@@ -7,6 +7,29 @@
 - Continuous monitoring across phases
 - Atmosphere retention gate (magnetic shielding)
 
+## Main Goals and Products
+1. Produce detailed (semi-)continuous terraforming trajectories over centuries
+   - time-continuous by default, with support for discrete step events when needed
+   - examples: asteroid redirection impacts for element delivery, turning on current through superconducting equatorial loop
+   - quantify energy, resource use, and monetary cost at each step
+
+2. Generate and compare 5-10 candidate terraforming plans
+   - evaluate efficiency tradeoffs across energy, resources, money, and planetary disruption
+   - identify top-performing plans under different priorities and constraints
+
+3. Identify unknown-but-critical Mars variables and rank measurement priorities
+   - track uncertain inputs that materially affect plan outcomes
+   - examples: CO2 inventory in ice caps, interior/core properties, other poorly constrained geophysical/atmospheric parameters
+   - produce a ranked list of measurements to guide future mission instrumentation and science priorities
+
+4. Build a flexible, modular framework
+   - architecture should be reusable for Venus, Mercury, Europa, and other bodies with minimal redesign
+   - keep planet-specific logic/data separated from shared simulation machinery
+
+5. Centralize Mars parameters in a single configuration source
+   - define all Mars constants/inputs in `config/mars.py` (or `mars.cfg`)
+   - ensure this source is easy to load from Python and can support uncertainty bounds/ranges
+
 ## Phases (Keywords)
 1. Baseline Mars system
    - geomorphology
