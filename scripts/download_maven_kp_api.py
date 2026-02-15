@@ -17,7 +17,9 @@ API_URL = (
     "search/science/fn_metadata/download_zip"
 )
 ZIP_MAGIC = (b"PK\x03\x04", b"PK\x05\x06")
-VALID_LEVELS = {"insitu", "iuvs"}
+VALID_KP_LEVELS = {"insitu", "iuvs"}
+VALID_NGI_LEVELS = {"l1a", "l1b", "l2", "l3"}
+VALID_EUV_PLANS = {"l2", "daily", "minute"}
 
 
 def parse_date(value: str) -> dt.date:
@@ -58,13 +60,22 @@ def year_chunks(start: dt.date, end: dt.date, years: int) -> list[tuple[dt.date,
     return chunks
 
 
-def build_url(level: str, start: dt.date, end: dt.date) -> str:
+def build_url(
+    instrument: str, product: str, start: dt.date, end: dt.date
+) -> str:
     params = {
-        "instrument": "kp",
-        "level": level,
+        "instrument": instrument,
         "start_date": start.isoformat(),
         "end_date": end.isoformat(),
     }
+    if instrument in {"kp", "ngi"}:
+        params["level"] = product
+    elif instrument == "euv":
+        # LASP docs: L2 uses default query (omit plan parameter).
+        if product != "l2":
+            params["plan"] = product
+    else:
+        raise ValueError(f"Unsupported instrument: {instrument}")
     return f"{API_URL}?{urllib.parse.urlencode(params)}"
 
 
@@ -95,16 +106,25 @@ def extract_zip(zip_path: Path, out_dir: Path) -> int:
     return len(members)
 
 
-def marker_name(level: str, start: dt.date, end: dt.date) -> str:
-    return f"{level}_{start.isoformat()}_{end.isoformat()}.done"
+def marker_name(
+    instrument: str, product: str, start: dt.date, end: dt.date
+) -> str:
+    return (
+        f"{instrument}_{product}_{start.isoformat()}_{end.isoformat()}.done"
+    )
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "Download MAVEN KP data from LASP API in chunks "
-            "(supports KP levels: insitu, iuvs)."
+            "Download MAVEN KP or EUV data from LASP API in chunks."
         )
+    )
+    parser.add_argument(
+        "--instrument",
+        choices=["kp", "euv", "ngi"],
+        default="kp",
+        help="Instrument family to download (kp, euv, or ngi).",
     )
     parser.add_argument(
         "--start-date",
@@ -121,7 +141,18 @@ def main() -> int:
     parser.add_argument(
         "--levels",
         default="insitu,iuvs",
-        help="Comma-separated KP levels to download (insitu,iuvs).",
+        help=(
+            "Comma-separated levels. For kp: insitu,iuvs. "
+            "For ngi: l1a,l1b,l2,l3."
+        ),
+    )
+    parser.add_argument(
+        "--plans",
+        default="minute",
+        help=(
+            "Comma-separated EUV plans to download "
+            "(l2,daily,minute). For l2, plan is omitted in API."
+        ),
     )
     parser.add_argument(
         "--insitu-chunk-months",
@@ -136,8 +167,20 @@ def main() -> int:
         help="Chunk size in years for iuvs KP downloads.",
     )
     parser.add_argument(
+        "--euv-chunk-months",
+        type=int,
+        default=1,
+        help="Chunk size in months for EUV plan downloads.",
+    )
+    parser.add_argument(
+        "--ngi-chunk-months",
+        type=int,
+        default=3,
+        help="Chunk size in months for NGIMS level downloads.",
+    )
+    parser.add_argument(
         "--output-dir",
-        default="data/maven/kp_api_full",
+        default="data/maven/sdc_api_full",
         help="Output directory for downloaded and extracted data.",
     )
     parser.add_argument(
@@ -173,10 +216,22 @@ def main() -> int:
     if args.end_date < args.start_date:
         raise SystemExit("end-date must be on or after start-date")
 
-    levels = [x.strip().lower() for x in args.levels.split(",") if x.strip()]
-    invalid = [x for x in levels if x not in VALID_LEVELS]
-    if invalid:
-        raise SystemExit(f"Invalid levels: {', '.join(invalid)}")
+    products: list[str]
+    if args.instrument == "kp":
+        products = [x.strip().lower() for x in args.levels.split(",") if x.strip()]
+        invalid = [x for x in products if x not in VALID_KP_LEVELS]
+        if invalid:
+            raise SystemExit(f"Invalid KP levels: {', '.join(invalid)}")
+    elif args.instrument == "ngi":
+        products = [x.strip().lower() for x in args.levels.split(",") if x.strip()]
+        invalid = [x for x in products if x not in VALID_NGI_LEVELS]
+        if invalid:
+            raise SystemExit(f"Invalid NGIMS levels: {', '.join(invalid)}")
+    else:
+        products = [x.strip().lower() for x in args.plans.split(",") if x.strip()]
+        invalid = [x for x in products if x not in VALID_EUV_PLANS]
+        if invalid:
+            raise SystemExit(f"Invalid EUV plans: {', '.join(invalid)}")
 
     out_root = Path(args.output_dir)
     zips_dir = out_root / "_zips"
@@ -188,48 +243,63 @@ def main() -> int:
     total_chunks = 0
     failed = 0
 
-    for level in levels:
-        level_dir = out_root / level
-        level_dir.mkdir(parents=True, exist_ok=True)
-        if level == "insitu":
+    for product in products:
+        product_dir = out_root / args.instrument / product
+        product_dir.mkdir(parents=True, exist_ok=True)
+        if args.instrument == "kp":
+            if product == "insitu":
+                chunks = month_chunks(
+                    args.start_date, args.end_date, max(1, args.insitu_chunk_months)
+                )
+            else:
+                chunks = year_chunks(
+                    args.start_date, args.end_date, max(1, args.iuvs_chunk_years)
+                )
+        elif args.instrument == "ngi":
             chunks = month_chunks(
-                args.start_date, args.end_date, max(1, args.insitu_chunk_months)
+                args.start_date, args.end_date, max(1, args.ngi_chunk_months)
             )
         else:
-            chunks = year_chunks(
-                args.start_date, args.end_date, max(1, args.iuvs_chunk_years)
+            chunks = month_chunks(
+                args.start_date, args.end_date, max(1, args.euv_chunk_months)
             )
 
-        print(f"[{level}] chunks: {len(chunks)}")
+        print(f"[{args.instrument}:{product}] chunks: {len(chunks)}")
         for start, end in chunks:
             total_chunks += 1
-            marker = marker_dir / marker_name(level, start, end)
+            marker = marker_dir / marker_name(args.instrument, product, start, end)
             if marker.exists():
-                print(f"skip {level} {start}..{end} (done)")
+                print(f"skip {args.instrument}:{product} {start}..{end} (done)")
                 continue
 
-            url = build_url(level, start, end)
-            zip_name = f"kp_{level}_{start.isoformat()}_{end.isoformat()}.zip"
+            url = build_url(args.instrument, product, start, end)
+            zip_name = (
+                f"{args.instrument}_{product}_{start.isoformat()}_"
+                f"{end.isoformat()}.zip"
+            )
             zip_path = zips_dir / zip_name
 
             if args.dry_run:
-                print(f"dry-run {level} {start}..{end}: {url}")
+                print(f"dry-run {args.instrument}:{product} {start}..{end}: {url}")
                 continue
 
-            print(f"get  {level} {start}..{end}")
+            print(f"get  {args.instrument}:{product} {start}..{end}")
             ok = fetch_zip(url=url, out_zip=zip_path, timeout=args.timeout, retries=args.retries)
             if not ok:
-                print(f"fail {level} {start}..{end}")
+                print(f"fail {args.instrument}:{product} {start}..{end}")
                 failed += 1
                 continue
 
             try:
-                count = extract_zip(zip_path, level_dir)
+                count = extract_zip(zip_path, product_dir)
                 marker.write_text(f"ok files={count}\n", encoding="utf-8")
-                print(f"ok   {level} {start}..{end}: {count} files")
+                print(
+                    f"ok   {args.instrument}:{product} {start}..{end}: "
+                    f"{count} files"
+                )
             except zipfile.BadZipFile:
                 failed += 1
-                print(f"fail {level} {start}..{end}: bad zip")
+                print(f"fail {args.instrument}:{product} {start}..{end}: bad zip")
                 continue
             finally:
                 if zip_path.exists() and not args.keep_zip:
