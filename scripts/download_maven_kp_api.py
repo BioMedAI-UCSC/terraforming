@@ -20,6 +20,36 @@ ZIP_MAGIC = (b"PK\x03\x04", b"PK\x05\x06")
 VALID_KP_LEVELS = {"insitu", "iuvs"}
 VALID_NGI_LEVELS = {"l1a", "l1b", "l2", "l3"}
 VALID_EUV_PLANS = {"l2", "daily", "minute"}
+VALID_STA_PLANS = {
+    "2a",
+    "c0",
+    "c2",
+    "c4",
+    "c6",
+    "c8",
+    "ca",
+    "cc",
+    "cd",
+    "ce",
+    "cf",
+    "d0",
+    "d1",
+    "d4",
+    "d6",
+    "d7",
+    "d8",
+    "d9",
+    "da",
+    "db",
+}
+VALID_SWI_PLANS = {
+    "coarsearc3d",
+    "coarsesvy3d",
+    "finearc3d",
+    "finesvy3d",
+    "onboardsvymom",
+    "onboardsvyspec",
+}
 
 
 def parse_date(value: str) -> dt.date:
@@ -74,6 +104,12 @@ def build_url(
         # LASP docs: L2 uses default query (omit plan parameter).
         if product != "l2":
             params["plan"] = product
+    elif instrument == "sta":
+        params["level"] = "l2"
+        params["plan"] = product
+    elif instrument == "swi":
+        params["level"] = "l2"
+        params["plan"] = product
     else:
         raise ValueError(f"Unsupported instrument: {instrument}")
     return f"{API_URL}?{urllib.parse.urlencode(params)}"
@@ -122,9 +158,9 @@ def main() -> int:
     )
     parser.add_argument(
         "--instrument",
-        choices=["kp", "euv", "ngi"],
+        choices=["kp", "euv", "ngi", "sta", "swi"],
         default="kp",
-        help="Instrument family to download (kp, euv, or ngi).",
+        help="Instrument family to download (kp, euv, ngi, sta, or swi).",
     )
     parser.add_argument(
         "--start-date",
@@ -150,8 +186,10 @@ def main() -> int:
         "--plans",
         default="minute",
         help=(
-            "Comma-separated EUV plans to download "
-            "(l2,daily,minute). For l2, plan is omitted in API."
+            "Comma-separated plans. For euv: l2,daily,minute "
+            "(for l2, plan is omitted in API). For sta: "
+            "2a,c0,c2,c4,c6,c8,ca,cc,cd,ce,cf,d0,d1,d4,d6,d7,d8,d9,da,db. "
+            "For swi: coarsearc3d,coarsesvy3d,finearc3d,finesvy3d,onboardsvymom,onboardsvyspec."
         ),
     )
     parser.add_argument(
@@ -177,6 +215,18 @@ def main() -> int:
         type=int,
         default=3,
         help="Chunk size in months for NGIMS level downloads.",
+    )
+    parser.add_argument(
+        "--sta-chunk-months",
+        type=int,
+        default=1,
+        help="Chunk size in months for STATIC L2 plan downloads.",
+    )
+    parser.add_argument(
+        "--swi-chunk-months",
+        type=int,
+        default=1,
+        help="Chunk size in months for SWIA L2 plan downloads.",
     )
     parser.add_argument(
         "--output-dir",
@@ -227,11 +277,21 @@ def main() -> int:
         invalid = [x for x in products if x not in VALID_NGI_LEVELS]
         if invalid:
             raise SystemExit(f"Invalid NGIMS levels: {', '.join(invalid)}")
-    else:
+    elif args.instrument == "euv":
         products = [x.strip().lower() for x in args.plans.split(",") if x.strip()]
         invalid = [x for x in products if x not in VALID_EUV_PLANS]
         if invalid:
             raise SystemExit(f"Invalid EUV plans: {', '.join(invalid)}")
+    elif args.instrument == "sta":
+        products = [x.strip().lower() for x in args.plans.split(",") if x.strip()]
+        invalid = [x for x in products if x not in VALID_STA_PLANS]
+        if invalid:
+            raise SystemExit(f"Invalid STATIC plans: {', '.join(invalid)}")
+    else:
+        products = [x.strip().lower() for x in args.plans.split(",") if x.strip()]
+        invalid = [x for x in products if x not in VALID_SWI_PLANS]
+        if invalid:
+            raise SystemExit(f"Invalid SWIA plans: {', '.join(invalid)}")
 
     out_root = Path(args.output_dir)
     zips_dir = out_root / "_zips"
@@ -258,6 +318,14 @@ def main() -> int:
         elif args.instrument == "ngi":
             chunks = month_chunks(
                 args.start_date, args.end_date, max(1, args.ngi_chunk_months)
+            )
+        elif args.instrument == "sta":
+            chunks = month_chunks(
+                args.start_date, args.end_date, max(1, args.sta_chunk_months)
+            )
+        elif args.instrument == "swi":
+            chunks = month_chunks(
+                args.start_date, args.end_date, max(1, args.swi_chunk_months)
             )
         else:
             chunks = month_chunks(
