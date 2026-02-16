@@ -18,6 +18,107 @@
   - Initial state minimum: one reference day plus +/- 7 days (15 files) to compute daily mean and variability.
   - Uncertainty bounds: 1 Mars year of daily files for seasonal range; full mission only if solar-cycle bounds are needed.
 
+## Planet object (baseline schema)
+The baseline state should be represented by a grouped `Planet` object with explicit static and dynamic fields.
+
+### Static data (slowly varying or constant for baseline runs)
+- **Identity and orbital constants**
+  - `name`
+  - `gravity_m_s2`
+  - `mean_radius_m` (radial distance from Mars center to reference surface)
+  - `semi_major_axis_m` (distance from Sun, long-term mean)
+  - `axis_tilt_deg` (obliquity; Mars is tilted)
+  - `sidereal_day_s` (Martian day / rotation period)
+  - `sidereal_year_s` (Mars orbital period around Sun)
+  - `rotation_rate_rad_s`
+- **Interior and solid planet**
+  - `crust`: thickness, density, heat production priors
+  - `mantle`: composition fractions, temperature priors, viscosity priors
+  - `core`: radius, density, state (liquid/solid fraction), composition priors
+- **Geomorphology**
+  - `altitude_m` (MOLA-referenced elevation grid)
+  - `slope_inclination_deg` (terrain slope grid)
+  - `surface_type` (bare ground, dust, ice classes)
+- **Soil / regolith**
+  - `chemistry` (major/minor species maps)
+  - `depth_m`
+  - `percolation_capacity_m_s`
+  - `porosity`
+  - `permeability_m2`
+  - `gcm_surface_thermal_inertia_tiu`
+  - `gcm_surface_bare_ground_albedo`
+
+### Dynamic data (time-dependent, weather/seasons/diurnal cycles)
+- **Orbital and solar geometry**
+  - `sun_mars_distance_m(t)` (distance evolution through Martian year)
+  - `solar_longitude_deg(t)` (`Ls`)
+  - `local_true_solar_time_h(t)` / sol clock
+  - `solar_zenith_angle_deg(t, lat, lon)`
+- **Atmosphere and weather**
+  - `temperature_K(t, lat, lon, z)`
+  - `pressure_Pa(t, lat, lon, z)`
+  - `density_kg_m3(t, lat, lon, z)`
+  - `winds_m_s(t, lat, lon, z)` (`u`, `v`, optional `w`)
+  - `column_height_m(t, lat, lon)` (effective atmospheric column height)
+  - `air_viscosity_Pa_s(t, lat, lon, z)` (estimated from state variables)
+  - `convective_pbl_height_m(t, lat, lon)`
+  - `seasons` and synoptic weather diagnostics
+- **Atmospheric composition and columns**
+  - `vmr(t, lat, lon, z)` for:
+    - `CO2`, `N2`, `Ar`, `CO`, `O`, `O2`, `O3`, `H`, `H2`, `He`
+  - `column_kg_m2(t, lat, lon)` for:
+    - `CO2`, `N2`, `Ar`, `CO`, `O`, `O2`, `O3`, `H`, `H2`, `He`
+  - `electron_number_density_cm3(t, lat, lon, z)`
+- **Plasma and magnetic environment**
+  - `plasma`:
+    - ion/electron temperature, density, velocity
+    - species-resolved ion densities (e.g., `H+`, `O+`, `O2+`, `CO2+`)
+    - solar wind dynamic pressure and energy spectra
+  - `magnetic_field_nT(t, lat, lon, z)`:
+    - crustal field components
+    - induced/external components
+    - optional equivalent dipole diagnostics
+- **Radiation and energy fluxes**
+  - `toa_incident_solar_flux_W_m2(t, lat, lon)` (top of atmosphere)
+  - `surface_incident_solar_flux_W_m2(t, lat, lon)`
+  - `surface_reflected_solar_flux_W_m2(t, lat, lon)` (horizontal surface)
+  - `thermal_ir_up_W_m2(t, lat, lon)` and `thermal_ir_down_W_m2(t, lat, lon)`
+  - `surface_thermal_ir_flux_W_m2(t, lat, lon)` (explicit surface thermal IR)
+- **Hydro/cryosphere**
+  - `polar_ice_h2o_kg_m2(t, lat, lon)` (single layer covering both poles)
+  - `polar_ice_co2_kg_m2(t, lat, lon)` (single layer covering both poles)
+  - `water_vapor_column_kg_m2(t, lat, lon)` (if source provides `km/m2`, store raw field plus converted SI)
+  - `water_vapor_vmr_mol_mol(t, lat, lon, z)`
+  - `water_ice_column_kg_m2(t, lat, lon)`
+  - `water_ice_vmr_mol_mol(t, lat, lon, z)`
+
+### Suggested grouped object layout
+```python
+Planet = {
+    "meta": {...},
+    "static": {
+        "identity_orbit": {...},
+        "interior": {"crust": {...}, "mantle": {...}, "core": {...}},
+        "geomorphology": {...},
+        "soil_regolith": {...},
+    },
+    "dynamic": {
+        "time": {...},                # sol, season, orbital geometry
+        "atmosphere": {...},          # T, P, rho, winds, PBL, viscosity
+        "composition": {...},         # VMR + atmospheric columns
+        "plasma_magnetic": {...},     # plasma species + magnetic field
+        "radiation_energy": {...},    # solar + reflected + thermal IR fluxes
+        "hydro_cryosphere": {...},    # water vapor/ice + merged polar ice layers (H2O and CO2)
+        "weather": {...},             # storm/season diagnostics
+    },
+}
+```
+
+### Notes
+- Preserve native source units in raw ingestion, and maintain SI-normalized fields in harmonized outputs.
+- Treat static fields as versioned constants (or slowly updated maps), and dynamic fields as time-indexed state variables.
+- This schema is intended for Mars baseline but should remain portable to other planetary bodies with minimal renaming.
+
 ## Baseline data checklist (Phase 1)
 | data component | status | date range (local) | source | notes |
 |---|---|---|---|---|
