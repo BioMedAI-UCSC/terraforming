@@ -38,19 +38,12 @@
    - radiation
    - seasonal cycles
 
-2. Resources and capability
-   - team
-   - compute
-   - tooling
-   - budget
-   - launch cadence
-
-3. Infrastructure enablers
+2. Infrastructure enablers
    - energy
    - mining
    - industrial throughput
 
-4. Magnetic shield program (required)
+3. Magnetic shield program (required)
    - solar wind deflection target
    - implemented as a superconductor around the equator
    - cryogenic power
