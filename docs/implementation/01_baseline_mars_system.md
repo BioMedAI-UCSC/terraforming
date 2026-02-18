@@ -114,6 +114,66 @@ Planet = {
 }
 ```
 
+### Evolution interface (`evolve()`)
+Use a single step function to advance dynamic state while keeping static fields fixed.
+
+```python
+def evolve(planet, dt_s, forcings, controls, params):
+    """
+    Advance Mars state by one timestep.
+
+    Updates dynamic groups only:
+    - time/orbital geometry (Ls, Sun-Mars distance, local solar time, zenith)
+    - atmosphere (T, P, density, winds, PBL, viscosity)
+    - composition (VMR and atmospheric columns)
+    - plasma/magnetic environment
+    - radiation/energy fluxes (TOA, surface, reflected, thermal IR)
+    - hydro/cryosphere (polar H2O/CO2 ice, vapor/ice columns and mixing ratios)
+    - weather diagnostics
+    """
+    # 1) Update orbital/solar geometry
+    # 2) Compute top-of-atmosphere forcing
+    # 3) Integrate atmosphere + composition tendencies
+    # 4) Update plasma/magnetic coupling and escape forcing terms
+    # 5) Integrate hydro/cryosphere tendencies
+    # 6) Recompute diagnostic fluxes and constraint checks
+    return planet
+```
+
+Recommended companion methods:
+- `initialize(static_data, dynamic_initial)`
+- `validate_state(planet)` (units/range/physical checks)
+- `diagnostics(planet)` (derived fields for logging and ranking)
+
+### Runtime details and defaults
+- `evolve()` is currently a reduced-order baseline stepper in `src/planet.py`.
+- `solar_zenith_angle_deg` is user-provided (via `forcings`) or defaults to `60 deg` if omitted.
+- TOA incident solar flux is computed as:
+  - `F_toa = S_1AU / r_AU^2 * max(0, cos(zenith))`
+  - where `S_1AU` default is `1361 W/m2`.
+- Surface incident solar flux is currently:
+  - `F_surface = F_toa * transmittance`
+  - default transmittance is `0.55`.
+- Flux naming conventions in runtime:
+  - `toa_incident_solar_flux_W_m2`: incoming shortwave at top of atmosphere
+  - `surface_incident_solar_flux_W_m2`: shortwave reaching surface
+  - `surface_reflected_solar_flux_W_m2`: reflected shortwave from horizontal surface
+  - `surface_thermal_ir_flux_W_m2`: downwelling thermal IR at surface
+
+### Example one-hour step (`dt_s = 3600`) at `Ls ~ 0 deg`
+Using baseline defaults in `src/planet.py`:
+
+| solar zenith angle | TOA incident solar flux (W/m2) | Surface incident solar flux (W/m2) |
+|---|---:|---:|
+| `0 deg` | `~713.25` | `~392.29` |
+| `60 deg` | `~356.62` | `~196.14` |
+| `90 deg` | `~0.0` (floating-point epsilon) | `~0.0` (floating-point epsilon) |
+
+Interpretation:
+- `0 deg` is near local noon direct incidence (maximum in this simplified setup).
+- `90 deg` is horizon condition, so direct shortwave is effectively zero.
+- The modeled TOA value depends on Mars-Sun distance and zenith, so it will vary with `Ls`.
+
 ### Notes
 - Preserve native source units in raw ingestion, and maintain SI-normalized fields in harmonized outputs.
 - Treat static fields as versioned constants (or slowly updated maps), and dynamic fields as time-indexed state variables.
