@@ -13,15 +13,15 @@ from __future__ import annotations
 
 import unittest
 
-import tensorflow as tf
+import torch
 
 from src.celestials import Mars, MARS_ORBITAL_PERIOD
 from src.engine import Accuracy, TimeController, Snapshot
 
 
-def _val(tensor: tf.Tensor) -> float:
-    """Extract a Python float from a tf.Tensor."""
-    return float(tensor.numpy())
+def _val(tensor: torch.Tensor) -> float:
+    """Extract a Python float from a torch.Tensor."""
+    return float(tensor.item())
 
 
 class TestMarsYearly(unittest.TestCase):

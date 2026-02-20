@@ -14,15 +14,15 @@ from __future__ import annotations
 
 import unittest
 
-import tensorflow as tf
+import torch
 
 from src.celestials import Mars
 from src.engine import Accuracy, TimeController
 
 
-def _val(tensor: tf.Tensor) -> float:
-    """Extract a Python float from a tf.Tensor."""
-    return float(tensor.numpy())
+def _val(tensor: torch.Tensor) -> float:
+    """Extract a Python float from a torch.Tensor."""
+    return float(tensor.item())
 
 
 class TestTimeController(unittest.TestCase):
@@ -66,14 +66,14 @@ class TestTimeController(unittest.TestCase):
             tc.run(duration=-1)
 
     def test_snapshot_values_are_tensors(self):
-        """Snapshot fields should be tf.Tensor."""
+        """Snapshot fields should be torch.Tensor."""
         mars = Mars()
         tc = TimeController(mars, dt=3600.0, accuracy=Accuracy.FAST)
         history = tc.run(duration=3600.0)
         snap = history[0]
-        self.assertIsInstance(snap.time, tf.Tensor)
-        self.assertIsInstance(snap.surface_temperature, tf.Tensor)
-        self.assertIsInstance(snap.surface_pressure, tf.Tensor)
+        self.assertIsInstance(snap.time, torch.Tensor)
+        self.assertIsInstance(snap.surface_temperature, torch.Tensor)
+        self.assertIsInstance(snap.surface_pressure, torch.Tensor)
 
     def test_accuracy_enum_is_stored(self):
         """Controller should store the Accuracy enum."""

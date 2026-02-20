@@ -3,7 +3,7 @@
 These tests verify:
     • Mars is a proper Planet subclass
     • PlanetaryState behaves correctly (copy, values, tensor types)
-    • Physical constants are tf.Tensor with float64 dtype
+    • Physical constants are torch.Tensor with float64 dtype
     • pack_state / unpack_state roundtrips
     • compute_derivatives returns correct shape and dtype
 """
@@ -12,15 +12,15 @@ from __future__ import annotations
 
 import unittest
 
-import tensorflow as tf
+import torch
 
 from src.constants import _c
 from src.celestials import Mars
 
 
-def _val(tensor: tf.Tensor) -> float:
-    """Extract a Python float from a tf.Tensor."""
-    return float(tensor.numpy())
+def _val(tensor: torch.Tensor) -> float:
+    """Extract a Python float from a torch.Tensor."""
+    return float(tensor.item())
 
 
 class TestPlanetInterface(unittest.TestCase):
@@ -54,29 +54,29 @@ class TestPlanetInterface(unittest.TestCase):
         self.assertAlmostEqual(_val(mars.state.surface_pressure), 700.0)
 
     def test_state_values_are_tensors(self):
-        """All state scalars should be tf.Tensor instances."""
+        """All state scalars should be torch.Tensor instances."""
         mars = Mars()
-        self.assertIsInstance(mars.state.surface_temperature, tf.Tensor)
-        self.assertIsInstance(mars.state.surface_pressure, tf.Tensor)
-        self.assertIsInstance(mars.state.ice_mass, tf.Tensor)
-        self.assertIsInstance(mars.state.albedo, tf.Tensor)
-        self.assertIsInstance(mars.state.elapsed_time, tf.Tensor)
+        self.assertIsInstance(mars.state.surface_temperature, torch.Tensor)
+        self.assertIsInstance(mars.state.surface_pressure, torch.Tensor)
+        self.assertIsInstance(mars.state.ice_mass, torch.Tensor)
+        self.assertIsInstance(mars.state.albedo, torch.Tensor)
+        self.assertIsInstance(mars.state.elapsed_time, torch.Tensor)
 
     def test_constants_are_tensors(self):
-        """Physical constants should be tf.Tensor."""
+        """Physical constants should be torch.Tensor."""
         from src.constants import (
             STEFAN_BOLTZMANN, BOLTZMANN_K, G_NEWTON, AU_METRES,
         )
         for const in [STEFAN_BOLTZMANN, BOLTZMANN_K, G_NEWTON, AU_METRES]:
-            self.assertIsInstance(const, tf.Tensor)
-            self.assertEqual(const.dtype, tf.float64)
+            self.assertIsInstance(const, torch.Tensor)
+            self.assertEqual(const.dtype, torch.float64)
 
     def test_pack_unpack_state(self):
         """pack_state / unpack_state should roundtrip correctly."""
         mars = Mars()
         y = mars.pack_state()
         self.assertEqual(y.shape, (3,))
-        self.assertAlmostEqual(float(y[0].numpy()), 210.0)
+        self.assertAlmostEqual(float(y[0].item()), 210.0)
         # Modify and unpack
         y_new = y + 1.0
         mars.unpack_state(y_new)
@@ -90,7 +90,7 @@ class TestPlanetInterface(unittest.TestCase):
         y = mars.pack_state()
         dy = mars.compute_derivatives(y)
         self.assertEqual(dy.shape, (3,))
-        self.assertEqual(dy.dtype, tf.float64)
+        self.assertEqual(dy.dtype, torch.float64)
 
 
 if __name__ == "__main__":

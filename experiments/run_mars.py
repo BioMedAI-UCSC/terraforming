@@ -16,8 +16,8 @@ import matplotlib.pyplot as plt
 
 
 def _v(t) -> float:
-    """tf.Tensor → Python float."""
-    return float(t.numpy())
+    """torch.Tensor → Python float."""
+    return float(t.item())
 
 
 def plot_history(history, filename: str, title: str):

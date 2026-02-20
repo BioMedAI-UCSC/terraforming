@@ -16,7 +16,7 @@ The ``Accuracy`` enum selects the ODE strategy:
     ``ACCURATE`` → 4th-order Runge-Kutta using ``planet.compute_derivatives``
     ``FAST``     → reduced-order model using ``planet.compute_fast_physics``
 
-All scalar values are ``tf.Tensor`` (float64).
+All scalar values are ``torch.Tensor`` (float64).
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ import enum
 from dataclasses import dataclass
 from typing import Callable, List, Optional
 
-import tensorflow as tf
+import torch
 
 from src.constants import TF_DTYPE, _c
 
@@ -58,12 +58,12 @@ class Accuracy(enum.Enum):
 class Snapshot:
     """Lightweight record of state at one point in time."""
 
-    time: tf.Tensor                   # elapsed simulation seconds
-    surface_temperature: tf.Tensor    # K
-    surface_pressure: tf.Tensor       # Pa
-    ice_mass: tf.Tensor               # kg
-    solar_flux: tf.Tensor             # W m⁻²
-    orbital_angle: tf.Tensor          # rad
+    time: torch.Tensor                   # elapsed simulation seconds
+    surface_temperature: torch.Tensor    # K
+    surface_pressure: torch.Tensor       # Pa
+    ice_mass: torch.Tensor               # kg
+    solar_flux: torch.Tensor             # W m⁻²
+    orbital_angle: torch.Tensor          # rad
 
 
 # ---------------------------------------------------------------------------
@@ -79,7 +79,7 @@ class TimeController:
     ----------
     planet : Planet
         Any concrete Planet subclass (e.g. Mars).
-    dt : float | tf.Tensor
+    dt : float | torch.Tensor
         Integration timestep in seconds.  Default 3600 (1 hour).
     accuracy : Accuracy
         Which integration strategy to use.  Default ``Accuracy.FAST``.
@@ -88,11 +88,11 @@ class TimeController:
     def __init__(
         self,
         planet: Planet,
-        dt: float | tf.Tensor = 3600.0,
+        dt: float | torch.Tensor = 3600.0,
         accuracy: Accuracy = Accuracy.FAST,
     ) -> None:
-        self.dt = tf.cast(dt, TF_DTYPE)
-        if tf.less_equal(self.dt, _c(0.0)):
+        self.dt = torch.as_tensor(dt, dtype=TF_DTYPE)
+        if self.dt <= _c(0.0):
             raise ValueError("dt must be > 0")
         self.planet = planet
         self.accuracy = accuracy
@@ -100,14 +100,14 @@ class TimeController:
     # ------------------------------------------------------------------
     # Core: single evolve method
     # ------------------------------------------------------------------
-    def evolve(self, dt: tf.Tensor) -> None:
+    def evolve(self, dt: torch.Tensor) -> None:
         """Advance the planet by *dt* seconds using the selected strategy.
 
         Steps performed:
             1. Advance orbital position  → updates ``planet.state.solar_flux``
             2. Apply physics step        → strategy-dependent
         """
-        dt = tf.cast(dt, TF_DTYPE)
+        dt = torch.as_tensor(dt, dtype=TF_DTYPE)
 
         # Step 1 — orbital mechanics (common to both strategies)
         self.planet.advance_orbit(dt)
@@ -121,7 +121,7 @@ class TimeController:
     # ------------------------------------------------------------------
     # RK4 integrator  (the engine owns the integration method)
     # ------------------------------------------------------------------
-    def _evolve_rk4(self, dt: tf.Tensor) -> None:
+    def _evolve_rk4(self, dt: torch.Tensor) -> None:
         """4th-order Runge-Kutta integration of the planet's ODE system.
 
         Uses ``planet.compute_derivatives(y)`` for the RHS and
@@ -149,14 +149,14 @@ class TimeController:
     # ------------------------------------------------------------------
     def run(
         self,
-        duration: float | tf.Tensor,
-        callback: Optional[Callable[[PlanetaryState, tf.Tensor], None]] = None,
+        duration: float | torch.Tensor,
+        callback: Optional[Callable[[PlanetaryState, torch.Tensor], None]] = None,
     ) -> List[Snapshot]:
         """Run the simulation for *duration* seconds, return a snapshot list.
 
         Parameters
         ----------
-        duration : float | tf.Tensor
+        duration : float | torch.Tensor
             Total simulation time in seconds.
         callback : callable, optional
             Called as ``callback(state, elapsed)`` after every step.
@@ -166,27 +166,27 @@ class TimeController:
         list[Snapshot]
             One snapshot per timestep.
         """
-        duration = tf.cast(duration, TF_DTYPE)
-        if tf.less_equal(duration, _c(0.0)):
+        duration = torch.as_tensor(duration, dtype=TF_DTYPE)
+        if duration <= _c(0.0):
             raise ValueError("duration must be > 0")
 
         history: List[Snapshot] = []
         elapsed = _c(0.0)
 
-        while tf.less(elapsed, duration):
-            step = tf.minimum(self.dt, duration - elapsed)
+        while elapsed < duration:
+            step = torch.minimum(self.dt, duration - elapsed)
             self.evolve(step)
             elapsed = elapsed + step
 
             s = self.planet.state
             history.append(
                 Snapshot(
-                    time=tf.identity(s.elapsed_time),
-                    surface_temperature=tf.identity(s.surface_temperature),
-                    surface_pressure=tf.identity(s.surface_pressure),
-                    ice_mass=tf.identity(s.ice_mass),
-                    solar_flux=tf.identity(s.solar_flux),
-                    orbital_angle=tf.identity(s.orbital_angle),
+                    time=s.elapsed_time.clone(),
+                    surface_temperature=s.surface_temperature.clone(),
+                    surface_pressure=s.surface_pressure.clone(),
+                    ice_mass=s.ice_mass.clone(),
+                    solar_flux=s.solar_flux.clone(),
+                    orbital_angle=s.orbital_angle.clone(),
                 )
             )
 

@@ -1,4 +1,4 @@
-"""Mars – concrete implementation of the abstract Planet (TensorFlow backend).
+"""Mars – concrete implementation of the abstract Planet (PyTorch backend).
 
 Mars provides the **physics model** — the governing equations for how its
 atmosphere, surface temperature, and ice budget evolve.  It does **not**
@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from typing import Dict, Optional
 
-import tensorflow as tf
+import torch
 
 from src.constants import (
     TF_DTYPE,
@@ -35,18 +35,18 @@ from src.celestials.framework.planet import (
     PlanetaryState,
 )
 
-# Mars-specific constants  (all tf.Tensor, float64)
-MARS_MASS: tf.Tensor             = _c(6.4171e23)             # kg
-MARS_RADIUS: tf.Tensor           = _c(3.3895e6)              # m
-MARS_GRAVITY: tf.Tensor          = _c(3.72076)               # m s⁻²
-MARS_ROTATION_PERIOD: tf.Tensor  = _c(88_775.244)            # s  (1 sol)
-MARS_SEMI_MAJOR_AXIS: tf.Tensor  = _c(2.27939200e11)         # m  (1.524 AU)
-MARS_ECCENTRICITY: tf.Tensor     = _c(0.0934)                # dimensionless
-MARS_ORBITAL_PERIOD: tf.Tensor   = _c(5.93568e7)             # s  (~687 d)
-MARS_AXIAL_TILT: tf.Tensor       = _c(25.19 * 3.141592653589793 / 180.0)  # rad
+# Mars-specific constants  (all torch.Tensor, float64)
+MARS_MASS: torch.Tensor             = _c(6.4171e23)             # kg
+MARS_RADIUS: torch.Tensor           = _c(3.3895e6)              # m
+MARS_GRAVITY: torch.Tensor          = _c(3.72076)               # m s⁻²
+MARS_ROTATION_PERIOD: torch.Tensor  = _c(88_775.244)            # s  (1 sol)
+MARS_SEMI_MAJOR_AXIS: torch.Tensor  = _c(2.27939200e11)         # m  (1.524 AU)
+MARS_ECCENTRICITY: torch.Tensor     = _c(0.0934)                # dimensionless
+MARS_ORBITAL_PERIOD: torch.Tensor   = _c(5.93568e7)             # s  (~687 d)
+MARS_AXIAL_TILT: torch.Tensor       = _c(25.19 * 3.141592653589793 / 180.0)  # rad
 
-# Default atmospheric composition (partial pressures in Pa, as tf.Tensor)
-MARS_DEFAULT_COMPOSITION: Dict[str, tf.Tensor] = {
+# Default atmospheric composition (partial pressures in Pa, as torch.Tensor)
+MARS_DEFAULT_COMPOSITION: Dict[str, torch.Tensor] = {
     "CO2": _c(580.0),
     "N2":  _c(15.0),
     "Ar":  _c(12.0),
@@ -109,7 +109,7 @@ class Mars(Planet):
             }
         else:
             self._init_composition = {
-                k: tf.identity(v) for k, v in MARS_DEFAULT_COMPOSITION.items()
+                k: v.clone() for k, v in MARS_DEFAULT_COMPOSITION.items()
             }
 
         self.state = self.initialize_state()
@@ -123,15 +123,15 @@ class Mars(Planet):
         Values sourced from NASA Mars Fact Sheet.
         """
         return PlanetaryState(
-            surface_pressure=tf.identity(self._init_pressure),
+            surface_pressure=self._init_pressure.clone(),
             atmospheric_mass=_c(2.5e16),         # kg  (total atmosphere)
             composition=dict(self._init_composition),
-            surface_temperature=tf.identity(self._init_temperature),
-            greenhouse_factor=tf.identity(self._init_greenhouse),
-            ice_mass=tf.identity(self._init_ice_mass),
+            surface_temperature=self._init_temperature.clone(),
+            greenhouse_factor=self._init_greenhouse.clone(),
+            ice_mass=self._init_ice_mass.clone(),
             liquid_mass=_c(0.0),
             vapour_mass=_c(1.0e13),
-            albedo=tf.identity(self._init_albedo),
+            albedo=self._init_albedo.clone(),
             solar_flux=_c(0.0),
             magnetic_field_strength=_c(5.0e-9),  # T  (weak crustal remnants)
             elapsed_time=_c(0.0),
@@ -141,7 +141,7 @@ class Mars(Planet):
     # ==================================================================
     # PHYSICS: Coupled ODE derivatives  (used by engine's RK4 integrator)
     # ==================================================================
-    def compute_derivatives(self, y: tf.Tensor) -> tf.Tensor:
+    def compute_derivatives(self, y: torch.Tensor) -> torch.Tensor:
         """Compute dy/dt for the coupled system y = [T, P, M_ice].
 
         Coupled ODE system:
@@ -165,15 +165,15 @@ class Mars(Planet):
         """
         s = self.state
 
-        T = tf.maximum(y[0], _c(1.0))
-        P = tf.maximum(y[1], _c(0.0))
-        M_ice = tf.maximum(y[2], _c(0.0))
+        T = torch.maximum(y[0], _c(1.0))
+        P = torch.maximum(y[1], _c(0.0))
+        M_ice = torch.maximum(y[2], _c(0.0))
 
         # --- dT/dt: energy balance ---
         Q_in = (_c(1.0) - s.albedo) * s.solar_flux * PI * self.radius ** 2
 
         emissivity = _c(0.95)
-        T_eff = T / tf.maximum(s.greenhouse_factor, _c(1.0))
+        T_eff = T / torch.maximum(s.greenhouse_factor, _c(1.0))
         Q_out = (
             emissivity
             * STEFAN_BOLTZMANN
@@ -189,12 +189,12 @@ class Mars(Planet):
         m_co2 = _c(44.0 * 1.66054e-27)            # kg
         R_exo = self.radius + _c(200_000.0)        # m
         lam = G_NEWTON * self.mass * m_co2 / (BOLTZMANN_K * T * R_exo)
-        v_th = tf.math.sqrt(_c(2.0) * BOLTZMANN_K * T / m_co2)
+        v_th = torch.sqrt(_c(2.0) * BOLTZMANN_K * T / m_co2)
         n_exo = P / (BOLTZMANN_K * T)
         escape_rate = (
             _c(4.0) * PI * R_exo ** 2
             * n_exo * m_co2 * v_th
-            * tf.math.exp(-lam)
+            * torch.exp(-lam)
         )
         dP_dt = -escape_rate * self.gravity / (
             _c(4.0) * PI * self.radius ** 2
@@ -204,18 +204,18 @@ class Mars(Planet):
         L_sub = _c(5.7e5)
         A_cap = _c(0.05) * _c(4.0) * PI * self.radius ** 2
         sublimation_flux = STEFAN_BOLTZMANN * T ** 4
-        dMice_dt = tf.where(
+        dMice_dt = torch.where(
             M_ice > _c(0.0),
             -A_cap * sublimation_flux / L_sub,
             _c(0.0),
         )
 
-        return tf.stack([dT_dt, dP_dt, dMice_dt])
+        return torch.stack([dT_dt, dP_dt, dMice_dt])
 
     # ==================================================================
     # PHYSICS: Reduced-order analytic update  (used by engine's fast path)
     # ==================================================================
-    def compute_fast_physics(self, dt: tf.Tensor) -> None:
+    def compute_fast_physics(self, dt: torch.Tensor) -> None:
         """Apply reduced-order physics to ``self.state``.
 
         Assumes ``self.state.solar_flux`` is already current
@@ -238,7 +238,7 @@ class Mars(Planet):
         Energy balance : https://scied.ucar.edu/learning-zone/how-climate-works/energy-balance
         Relaxation     : "Newtonian cooling" approximation
         """
-        dt = tf.cast(dt, TF_DTYPE)
+        dt = torch.as_tensor(dt, dtype=TF_DTYPE)
         s = self.state
 
         # --- Step 1: Equilibrium temperature ---
@@ -248,35 +248,35 @@ class Mars(Planet):
         T_eq = T_eq_base * s.greenhouse_factor
 
         # --- Step 2: Exponential relaxation ---
-        T_cur = tf.maximum(s.surface_temperature, _c(1.0))
+        T_cur = torch.maximum(s.surface_temperature, _c(1.0))
         tau = _c(2.0e6) / (_c(4.0) * emissivity * STEFAN_BOLTZMANN * T_cur ** 3)
-        tau = tf.maximum(tau, _c(1.0))
-        s.surface_temperature = T_eq + (T_cur - T_eq) * tf.math.exp(-dt / tau)
-        s.surface_temperature = tf.maximum(s.surface_temperature, _c(1.0))
+        tau = torch.maximum(tau, _c(1.0))
+        s.surface_temperature = T_eq + (T_cur - T_eq) * torch.exp(-dt / tau)
+        s.surface_temperature = torch.maximum(s.surface_temperature, _c(1.0))
 
         # --- Step 3: Pressure (first-order Jeans escape) ---
         m_co2 = _c(44.0 * 1.66054e-27)
         R_exo = self.radius + _c(200_000.0)
         T = s.surface_temperature
         lam = G_NEWTON * self.mass * m_co2 / (BOLTZMANN_K * T * R_exo)
-        v_th = tf.math.sqrt(_c(2.0) * BOLTZMANN_K * T / m_co2)
+        v_th = torch.sqrt(_c(2.0) * BOLTZMANN_K * T / m_co2)
         n_exo = s.surface_pressure / (BOLTZMANN_K * T)
         escape_rate = (
             _c(4.0) * PI * R_exo ** 2 * n_exo * m_co2 * v_th
-            * tf.math.exp(-lam)
+            * torch.exp(-lam)
         )
         dP = -escape_rate * self.gravity / (
             _c(4.0) * PI * self.radius ** 2
         ) * dt
-        s.surface_pressure = tf.maximum(s.surface_pressure + dP, _c(0.0))
+        s.surface_pressure = torch.maximum(s.surface_pressure + dP, _c(0.0))
 
         # --- Step 4: Ice budget (first-order sublimation) ---
         L_sub = _c(5.7e5)
         A_cap = _c(0.05) * _c(4.0) * PI * self.radius ** 2
         sublimation_flux = STEFAN_BOLTZMANN * T ** 4
-        dMice = tf.where(
+        dMice = torch.where(
             s.ice_mass > _c(0.0),
             -A_cap * sublimation_flux / L_sub * dt,
             _c(0.0),
         )
-        s.ice_mass = tf.maximum(s.ice_mass + dMice, _c(0.0))
+        s.ice_mass = torch.maximum(s.ice_mass + dMice, _c(0.0))

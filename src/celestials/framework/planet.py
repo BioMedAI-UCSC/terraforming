@@ -1,4 +1,4 @@
-"""Abstract Planet framework — TensorFlow backend.
+"""Abstract Planet framework — PyTorch backend.
 
 Defines the abstract base class ``Planet``, the ``PlanetaryState`` snapshot,
 and ``OrbitalParameters``.  Concrete planets (e.g. Mars) inherit from
@@ -10,7 +10,7 @@ Separation of concerns:
     Planet       → *what* the physics equations are  (state + derivatives)
     Engine       → *how* those equations are integrated  (RK4 / relaxation)
 
-All numerical values are stored as ``tf.Tensor`` scalars (dtype=tf.float64).
+All numerical values are stored as ``torch.Tensor`` scalars (dtype=torch.float64).
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Dict
 
-import tensorflow as tf
+import torch
 
 from src.constants import (
     TF_DTYPE,
@@ -41,12 +41,12 @@ from src.constants import (
 class OrbitalParameters:
     """Keplerian orbital elements (assumed constant over short runs)."""
 
-    semi_major_axis: tf.Tensor      # metres
-    eccentricity: tf.Tensor         # dimensionless, 0 < e < 1
-    orbital_period: tf.Tensor       # seconds
-    axial_tilt: tf.Tensor           # radians
+    semi_major_axis: torch.Tensor      # metres
+    eccentricity: torch.Tensor         # dimensionless, 0 < e < 1
+    orbital_period: torch.Tensor       # seconds
+    axial_tilt: torch.Tensor           # radians
 
-    def distance_from_sun(self, theta: tf.Tensor) -> tf.Tensor:
+    def distance_from_sun(self, theta: torch.Tensor) -> torch.Tensor:
         """Heliocentric distance at true anomaly *theta* (radians).
 
         Equation (Kepler's first law – conic section):
@@ -57,7 +57,7 @@ class OrbitalParameters:
         return (
             self.semi_major_axis
             * (_c(1.0) - self.eccentricity ** 2)
-            / (_c(1.0) + self.eccentricity * tf.math.cos(theta))
+            / (_c(1.0) + self.eccentricity * torch.cos(theta))
         )
 
 
@@ -72,46 +72,46 @@ class PlanetaryState:
         Radiation    – albedo, solar flux
         Magnetic     – surface field strength
 
-    All scalar fields are ``tf.Tensor`` with dtype ``tf.float64``.
+    All scalar fields are ``torch.Tensor`` with dtype ``torch.float64``.
     """
 
     # --- Atmospheric ---
-    surface_pressure: tf.Tensor = field(       # Pa
+    surface_pressure: torch.Tensor = field(       # Pa
         default_factory=lambda: _c(0.0))
-    atmospheric_mass: tf.Tensor = field(       # kg
+    atmospheric_mass: torch.Tensor = field(       # kg
         default_factory=lambda: _c(0.0))
-    composition: Dict[str, tf.Tensor] = field( # species → partial pressure (Pa)
+    composition: Dict[str, torch.Tensor] = field( # species → partial pressure (Pa)
         default_factory=dict,
     )
 
     # --- Thermal ---
-    surface_temperature: tf.Tensor = field(    # K
+    surface_temperature: torch.Tensor = field(    # K
         default_factory=lambda: _c(0.0))
-    greenhouse_factor: tf.Tensor = field(      # dimensionless (≥ 1)
+    greenhouse_factor: torch.Tensor = field(      # dimensionless (≥ 1)
         default_factory=lambda: _c(1.0))
 
     # --- Water budget ---
-    ice_mass: tf.Tensor = field(               # kg
+    ice_mass: torch.Tensor = field(               # kg
         default_factory=lambda: _c(0.0))
-    liquid_mass: tf.Tensor = field(            # kg
+    liquid_mass: torch.Tensor = field(            # kg
         default_factory=lambda: _c(0.0))
-    vapour_mass: tf.Tensor = field(            # kg
+    vapour_mass: torch.Tensor = field(            # kg
         default_factory=lambda: _c(0.0))
 
     # --- Radiation ---
-    albedo: tf.Tensor = field(                 # 0-1
+    albedo: torch.Tensor = field(                 # 0-1
         default_factory=lambda: _c(0.25))
-    solar_flux: tf.Tensor = field(             # W m⁻² (at current distance)
+    solar_flux: torch.Tensor = field(             # W m⁻² (at current distance)
         default_factory=lambda: _c(0.0))
 
     # --- Magnetic ---
-    magnetic_field_strength: tf.Tensor = field(  # Tesla at surface
+    magnetic_field_strength: torch.Tensor = field(  # Tesla at surface
         default_factory=lambda: _c(0.0))
 
     # --- Time tracking (set by engine) ---
-    elapsed_time: tf.Tensor = field(           # total sim seconds since epoch
+    elapsed_time: torch.Tensor = field(           # total sim seconds since epoch
         default_factory=lambda: _c(0.0))
-    orbital_angle: tf.Tensor = field(          # radians (true anomaly, 0-2π)
+    orbital_angle: torch.Tensor = field(          # radians (true anomaly, 0-2π)
         default_factory=lambda: _c(0.0))
 
     def copy(self) -> PlanetaryState:
@@ -136,10 +136,10 @@ class Planet(ABC):
     """
 
     # --- Concrete attributes set by subclass __init__ ---
-    mass: tf.Tensor                  # kg
-    radius: tf.Tensor                # m
-    rotation_period: tf.Tensor       # seconds (1 sidereal day)
-    gravity: tf.Tensor               # m s⁻² (surface)
+    mass: torch.Tensor                  # kg
+    radius: torch.Tensor                # m
+    rotation_period: torch.Tensor       # seconds (1 sidereal day)
+    gravity: torch.Tensor               # m s⁻² (surface)
     orbital_params: OrbitalParameters
     state: PlanetaryState
 
@@ -152,17 +152,17 @@ class Planet(ABC):
         ...
 
     @abstractmethod
-    def compute_derivatives(self, y: tf.Tensor) -> tf.Tensor:
+    def compute_derivatives(self, y: torch.Tensor) -> torch.Tensor:
         """Compute dy/dt for the coupled ODE system.
 
         Parameters
         ----------
-        y : tf.Tensor, shape [3]
+        y : torch.Tensor, shape [3]
             State vector ``[T_surface, P_surface, M_ice]``.
 
         Returns
         -------
-        tf.Tensor, shape [3]
+        torch.Tensor, shape [3]
             Time derivatives ``[dT/dt, dP/dt, dM_ice/dt]``.
 
         The engine calls this with intermediate state vectors during
@@ -173,7 +173,7 @@ class Planet(ABC):
         ...
 
     @abstractmethod
-    def compute_fast_physics(self, dt: tf.Tensor) -> None:
+    def compute_fast_physics(self, dt: torch.Tensor) -> None:
         """Apply a single reduced-order physics step to ``self.state``.
 
         This method computes analytic / linearised approximations
@@ -186,7 +186,7 @@ class Planet(ABC):
 
         Parameters
         ----------
-        dt : tf.Tensor
+        dt : torch.Tensor
             Timestep in seconds.
         """
         ...
@@ -194,29 +194,29 @@ class Planet(ABC):
     # ------------------------------------------------------------------
     # State packing / unpacking  (used by the engine's ODE integrators)
     # ------------------------------------------------------------------
-    def pack_state(self) -> tf.Tensor:
+    def pack_state(self) -> torch.Tensor:
         """Pack the evolvable variables into a 1-D tensor [T, P, M_ice]."""
         s = self.state
-        return tf.stack([
+        return torch.stack([
             s.surface_temperature,
             s.surface_pressure,
             s.ice_mass,
         ])
 
-    def unpack_state(self, y: tf.Tensor) -> None:
+    def unpack_state(self, y: torch.Tensor) -> None:
         """Unpack a 1-D tensor [T, P, M_ice] back into ``self.state``.
 
         Values are clamped to physical bounds.
         """
         s = self.state
-        s.surface_temperature = tf.maximum(y[0], _c(1.0))
-        s.surface_pressure    = tf.maximum(y[1], _c(0.0))
-        s.ice_mass            = tf.maximum(y[2], _c(0.0))
+        s.surface_temperature = torch.maximum(y[0], _c(1.0))
+        s.surface_pressure    = torch.maximum(y[1], _c(0.0))
+        s.ice_mass            = torch.maximum(y[2], _c(0.0))
 
     # ------------------------------------------------------------------
     # Shared helpers available to every planet
     # ------------------------------------------------------------------
-    def solar_flux_at_distance(self, distance: tf.Tensor) -> tf.Tensor:
+    def solar_flux_at_distance(self, distance: torch.Tensor) -> torch.Tensor:
         """Solar irradiance at heliocentric *distance* (metres).
 
         Equation (inverse-square law):
@@ -226,7 +226,7 @@ class Planet(ABC):
         """
         return SOLAR_CONSTANT_1AU * (AU_METRES / distance) ** 2
 
-    def advance_orbit(self, dt: tf.Tensor) -> None:
+    def advance_orbit(self, dt: torch.Tensor) -> None:
         """Advance orbital angle (mean-motion approximation) and update
         solar flux in ``self.state``.
 
@@ -237,10 +237,10 @@ class Planet(ABC):
             r(θ)  = a(1−e²)/(1+e cos θ)    (Kepler ellipse)
             F     = F₀ (1 AU / r)²          (inverse-square)
         """
-        dt = tf.cast(dt, TF_DTYPE)
+        dt = torch.as_tensor(dt, dtype=TF_DTYPE)
         s = self.state
         s.elapsed_time = s.elapsed_time + dt
-        s.orbital_angle = tf.math.floormod(
+        s.orbital_angle = torch.remainder(
             s.orbital_angle
             + _c(2.0) * PI * dt / self.orbital_params.orbital_period,
             _c(2.0) * PI,
