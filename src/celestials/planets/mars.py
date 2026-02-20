@@ -170,7 +170,10 @@ class Mars(Planet):
         M_ice = torch.maximum(y[2], _c(0.0))
 
         # --- dT/dt: energy balance ---
-        Q_in = (_c(1.0) - s.albedo) * s.solar_flux * PI * self.radius ** 2
+        # Add a diurnal multiplier to simulate day/night cycle causing sinusoidal temperature
+        omega = _c(2.0) * PI / self.rotation_period
+        diurnal_factor = PI * torch.maximum(_c(0.0), torch.cos(omega * s.elapsed_time))
+        Q_in = (_c(1.0) - s.albedo) * s.solar_flux * PI * self.radius ** 2 * diurnal_factor
 
         emissivity = _c(0.95)
         T_eff = T / torch.maximum(s.greenhouse_factor, _c(1.0))
@@ -246,6 +249,10 @@ class Mars(Planet):
         absorbed = (_c(1.0) - s.albedo) * s.solar_flux
         T_eq_base = (absorbed / (_c(4.0) * emissivity * STEFAN_BOLTZMANN)) ** 0.25
         T_eq = T_eq_base * s.greenhouse_factor
+        
+        # Superimpose diurnal variation onto equilibrium temperature
+        omega = _c(2.0) * PI / self.rotation_period
+        T_eq = T_eq + _c(2.0) * torch.cos(omega * s.elapsed_time)
 
         # --- Step 2: Exponential relaxation ---
         T_cur = torch.maximum(s.surface_temperature, _c(1.0))
@@ -265,10 +272,10 @@ class Mars(Planet):
             _c(4.0) * PI * R_exo ** 2 * n_exo * m_co2 * v_th
             * torch.exp(-lam)
         )
-        dP = -escape_rate * self.gravity / (
+        dP_escape = -escape_rate * self.gravity / (
             _c(4.0) * PI * self.radius ** 2
         ) * dt
-        s.surface_pressure = torch.maximum(s.surface_pressure + dP, _c(0.0))
+        s.surface_pressure = torch.maximum(s.surface_pressure + dP_escape, _c(0.0))
 
         # --- Step 4: Ice budget (first-order sublimation) ---
         L_sub = _c(5.7e5)

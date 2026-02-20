@@ -13,6 +13,8 @@ from __future__ import annotations
 from src.celestials import Mars, MARS_ROTATION_PERIOD, MARS_ORBITAL_PERIOD
 from src.engine import Accuracy, TimeController
 import matplotlib.pyplot as plt
+import os
+import csv
 
 
 def _v(t) -> float:
@@ -20,10 +22,36 @@ def _v(t) -> float:
     return float(t.item())
 
 
+def save_history_to_csv(history, filename: str):
+    """Write integration steps to a CSV file."""
+    filepath = os.path.join("outputs", filename)
+    with open(filepath, mode="w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["time_hours", "temperature_k", "pressure_pa", "ice_mass_kg", "solar_flux_wm2", "orbital_angle_rad"])
+        for s in history:
+            writer.writerow([
+                _v(s.time) / 3600.0,
+                _v(s.surface_temperature),
+                _v(s.surface_pressure),
+                _v(s.ice_mass),
+                _v(s.solar_flux),
+                _v(s.orbital_angle),
+            ])
+    print(f"  💾 Data saved to {filepath}")
+
+
 def plot_history(history, filename: str, title: str):
     """Plot temperature, pressure, and ice mass evolution."""
-    # Convert time to hours for readable X-axis
-    times = [_v(s.time) / 3600.0 for s in history]
+    max_time_s = max([_v(s.time) for s in history])
+    use_sols = max_time_s > 3 * _v(MARS_ROTATION_PERIOD)
+    
+    if use_sols:
+        times = [_v(s.time) / _v(MARS_ROTATION_PERIOD) for s in history]
+        xlabel = "Time (Sols)"
+    else:
+        times = [_v(s.time) / 3600.0 for s in history]
+        xlabel = "Time (hours)"
+
     temps = [_v(s.surface_temperature) for s in history]
     pressures = [_v(s.surface_pressure) for s in history]
     ice_masses = [_v(s.ice_mass) for s in history]
@@ -45,13 +73,14 @@ def plot_history(history, filename: str, title: str):
     # Ice Mass
     axes[2].plot(times, ice_masses, label="Ice Mass", color="tab:cyan")
     axes[2].set_ylabel("Ice Mass (kg)")
-    axes[2].set_xlabel("Time (hours)")
+    axes[2].set_xlabel(xlabel)
     axes[2].set_title(f"{title} - Ice Mass")
     axes[2].grid(True, alpha=0.3)
 
     plt.tight_layout()
-    plt.savefig(filename)
-    print(f"  📈 Plot saved to {filename}")
+    filepath = os.path.join("outputs", filename)
+    plt.savefig(filepath)
+    print(f"  📈 Plot saved to {filepath}")
     plt.close(fig)
 
 
@@ -124,13 +153,17 @@ def main():
     print("  🔴  Terraforming Mars — Basic Evolution Experiment")
     print("=" * 60)
 
+    os.makedirs("outputs", exist_ok=True)
+
     # ── One Sol ───────────────────────────────────────────────
-    run_one_sol(Accuracy.FAST)
-    history_sol = run_one_sol(Accuracy.ACCURATE)
+    run_one_sol(Accuracy.FAST, dt=3600.0)
+    history_sol = run_one_sol(Accuracy.ACCURATE, dt=3600.0) # 1 hour dt
+    save_history_to_csv(history_sol, "mars_sol_evolution.csv")
     plot_history(history_sol, "mars_sol_evolution.png", "Mars Evolution (1 Sol)")
 
     # ── One Year (fast only — accurate takes ~10 min) ─────────
-    history_year = run_one_year(Accuracy.FAST, dt=3600.0)
+    history_year = run_one_year(Accuracy.FAST, dt=3600.0) # 1 hour dt
+    save_history_to_csv(history_year, "mars_year_evolution.csv")
     plot_history(history_year, "mars_year_evolution.png", "Mars Evolution (1 Year)")
 
     print(f"\n{'=' * 60}")
