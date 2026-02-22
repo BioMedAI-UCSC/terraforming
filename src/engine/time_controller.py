@@ -29,7 +29,7 @@ import torch
 
 from src.constants import TF_DTYPE, _c
 
-from src.celestials.framework.planet import (
+from src.celestials import (
     Planet,
     PlanetaryState,
 )

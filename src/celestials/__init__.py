@@ -27,7 +27,7 @@ def _load(dotted_name: str, rel_path: str) -> types.ModuleType:
     (e.g. ``from src.celestials.framework.planet import Planet``) without
     requiring ``__init__.py`` in every intermediate directory.
     """
-    abs_path = os.path.join(_PKG_DIR, *rel_path.split("/"))
+    abs_path = os.path.abspath(os.path.join(_PKG_DIR, *rel_path.split("/")))
     spec = importlib.util.spec_from_file_location(dotted_name, abs_path)
     mod = importlib.util.module_from_spec(spec)
     sys.modules[dotted_name] = mod
@@ -37,13 +37,13 @@ def _load(dotted_name: str, rel_path: str) -> types.ModuleType:
 
 # Also register the intermediate namespace so that
 # ``from src.celestials.framework.planet import …`` resolves the dotted path.
-for _ns in ("src.celestials.framework", "src.celestials.planets"):
+for _ns in ("src.framework", "src.planets"):
     if _ns not in sys.modules:
         sys.modules[_ns] = types.ModuleType(_ns)
 
 # ── Load sub-modules ─────────────────────────────────────────────────
-_planet_mod = _load("src.celestials.framework.planet", "framework/planet.py")
-_mars_mod   = _load("src.celestials.planets.mars",     "planets/mars.py")
+_planet_mod = _load("src.framework.planet", "../framework/planet.py")
+_mars_mod   = _load("src.planets.mars",     "planets/mars.py")
 
 # ── Public re-exports ────────────────────────────────────────────────
 # Framework
