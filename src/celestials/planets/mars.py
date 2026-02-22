@@ -173,10 +173,26 @@ class Mars(Planet):
         # We compute for a specific 1 km^2 patch (per unit area formulation)
         # Area A cancels out (1m^2 effective) for local patch heating/cooling.
         
-        # Diurnal incidence angle (cosine of zenith) at equator.
-        # -cos() with omega starts the simulation exactly at midnight (t=0)
+        # Hour angle h. t=0 is midnight -> h = -pi
         omega = _c(2.0) * PI / self.rotation_period
-        cos_zenith = torch.maximum(_c(0.0), -torch.cos(omega * s.elapsed_time))
+        h = omega * s.elapsed_time - PI
+        
+        # Latitude for Viking Lander 1 (~22 degrees N)
+        lat = _c(22.0) * PI / _c(180.0)
+        
+        # True anomaly is s.orbital_angle (where 0 is perihelion).
+        # Mars perihelion is at Ls ~ 251 degrees.
+        Ls_perihelion = _c(251.0) * PI / _c(180.0)
+        Ls = s.orbital_angle + Ls_perihelion
+        
+        # Solar declination delta
+        delta = torch.asin(torch.sin(self.orbital_params.axial_tilt) * torch.sin(Ls))
+        
+        # Diurnal incidence angle (cosine of zenith)
+        cos_zenith = torch.maximum(
+            _c(0.0),
+            torch.sin(lat) * torch.sin(delta) + torch.cos(lat) * torch.cos(delta) * torch.cos(h)
+        )
         
         # Q_in is Watts per m^2
         Q_in = (_c(1.0) - s.albedo) * s.solar_flux * cos_zenith
@@ -194,7 +210,32 @@ class Mars(Planet):
 
         dT_dt = (Q_in - Q_out) / C_area
 
-        # --- dP/dt: Jeans escape ---
+        # --- dM_ice/dt: Polar CO2 Sublimation & Condensation ---
+        # Using a phenomenological two-pole radiative balance instead of global T
+        T_frost = _c(149.0)
+        L_sub = _c(5.7e5) # Latent heat J/kg
+        # Each polar cap covers ~3% of the planet's surface mathematically
+        A_cap_pole = _c(0.03) * _c(4.0) * PI * self.radius ** 2
+        
+        # Insolation at poles
+        cos_zenith_N = torch.maximum(_c(0.0), torch.sin(delta))
+        cos_zenith_S = torch.maximum(_c(0.0), -torch.sin(delta))
+        
+        Q_in_N = (_c(1.0) - s.albedo) * s.solar_flux * cos_zenith_N
+        Q_in_S = (_c(1.0) - s.albedo) * s.solar_flux * cos_zenith_S
+        Q_out_pole = _c(0.95) * STEFAN_BOLTZMANN * T_frost ** 4
+        
+        net_sub_N = (Q_in_N - Q_out_pole) * A_cap_pole / L_sub
+        net_sub_S = (Q_in_S - Q_out_pole) * A_cap_pole / L_sub
+        
+        dMice_dt = -(net_sub_N + net_sub_S) # negative means sublimating (ice drops)
+        dMice_dt = torch.where(
+            (M_ice <= _c(0.0)) & (dMice_dt < _c(0.0)),
+            _c(0.0),
+            dMice_dt
+        )
+
+        # --- dP/dt: Jeans escape + mass exchange from ice caps ---
         m_co2 = _c(44.0 * 1.66054e-27)            # kg
         R_exo = self.radius + _c(200_000.0)        # m
         lam = G_NEWTON * self.mass * m_co2 / (BOLTZMANN_K * T * R_exo)
@@ -205,19 +246,11 @@ class Mars(Planet):
             * n_exo * m_co2 * v_th
             * torch.exp(-lam)
         )
-        dP_dt = -escape_rate * self.gravity / (
-            _c(4.0) * PI * self.radius ** 2
-        )
-
-        # --- dM_ice/dt: sublimation ---
-        L_sub = _c(5.7e5)
-        A_cap = _c(0.05) * _c(4.0) * PI * self.radius ** 2
-        sublimation_flux = STEFAN_BOLTZMANN * T ** 4
-        dMice_dt = torch.where(
-            M_ice > _c(0.0),
-            -A_cap * sublimation_flux / L_sub,
-            _c(0.0),
-        )
+        
+        A_planet = _c(4.0) * PI * self.radius ** 2
+        
+        # Loss to space is slow, but sublimation is fast
+        dP_dt = (-escape_rate * self.gravity / A_planet) + (-dMice_dt * self.gravity / A_planet)
 
         return torch.stack([dT_dt, dP_dt, dMice_dt])
 
@@ -269,7 +302,35 @@ class Mars(Planet):
         s.surface_temperature = T_eq + (T_cur - T_eq) * torch.exp(-dt / tau)
         s.surface_temperature = torch.maximum(s.surface_temperature, _c(1.0))
 
-        # --- Step 3: Pressure (first-order Jeans escape) ---
+        # --- Step 3: Ice budget (Polar CO2 Sublimation & Condensation) ---
+        # Recalculate Ls and delta since they are local to the function
+        Ls_perihelion = _c(251.0) * PI / _c(180.0)
+        Ls = s.orbital_angle + Ls_perihelion
+        delta = torch.asin(torch.sin(self.orbital_params.axial_tilt) * torch.sin(Ls))
+        
+        T_frost = _c(149.0)
+        L_sub = _c(5.7e5)
+        A_cap_pole = _c(0.03) * _c(4.0) * PI * self.radius ** 2
+        
+        cos_zenith_N = torch.maximum(_c(0.0), torch.sin(delta))
+        cos_zenith_S = torch.maximum(_c(0.0), -torch.sin(delta))
+        
+        Q_in_N = (_c(1.0) - s.albedo) * s.solar_flux * cos_zenith_N
+        Q_in_S = (_c(1.0) - s.albedo) * s.solar_flux * cos_zenith_S
+        Q_out_pole = _c(0.95) * STEFAN_BOLTZMANN * T_frost ** 4
+        
+        net_sub_N = (Q_in_N - Q_out_pole) * A_cap_pole / L_sub
+        net_sub_S = (Q_in_S - Q_out_pole) * A_cap_pole / L_sub
+        
+        dMice = -(net_sub_N + net_sub_S) * dt
+        dMice = torch.where(
+            (s.ice_mass <= _c(0.0)) & (dMice < _c(0.0)),
+            _c(0.0),
+            dMice
+        )
+        s.ice_mass = torch.maximum(s.ice_mass + dMice, _c(0.0))
+
+        # --- Step 4: Pressure (Jeans escape + Mass exchange) ---
         m_co2 = _c(44.0 * 1.66054e-27)
         R_exo = self.radius + _c(200_000.0)
         T = s.surface_temperature
@@ -280,18 +341,8 @@ class Mars(Planet):
             _c(4.0) * PI * R_exo ** 2 * n_exo * m_co2 * v_th
             * torch.exp(-lam)
         )
-        dP_escape = -escape_rate * self.gravity / (
-            _c(4.0) * PI * self.radius ** 2
-        ) * dt
-        s.surface_pressure = torch.maximum(s.surface_pressure + dP_escape, _c(0.0))
-
-        # --- Step 4: Ice budget (first-order sublimation) ---
-        L_sub = _c(5.7e5)
-        A_cap = _c(0.05) * _c(4.0) * PI * self.radius ** 2
-        sublimation_flux = STEFAN_BOLTZMANN * T ** 4
-        dMice = torch.where(
-            s.ice_mass > _c(0.0),
-            -A_cap * sublimation_flux / L_sub * dt,
-            _c(0.0),
-        )
-        s.ice_mass = torch.maximum(s.ice_mass + dMice, _c(0.0))
+        A_planet = _c(4.0) * PI * self.radius ** 2
+        dP_escape = -escape_rate * self.gravity / A_planet * dt
+        dP_sublimation = -dMice * self.gravity / A_planet
+        
+        s.surface_pressure = torch.maximum(s.surface_pressure + dP_escape + dP_sublimation, _c(0.0))

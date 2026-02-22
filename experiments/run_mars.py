@@ -49,38 +49,114 @@ def plot_history(history, filename: str, title: str):
         times = [_v(s.time) / _v(MARS_ROTATION_PERIOD) for s in history]
         xlabel = "Time (Sols)"
     else:
-        times = [_v(s.time) / 3600.0 for s in history]
-        xlabel = "Time (hours)"
+        # Convert time into the planet's rotation angle (0 to 360 degrees for 1 Sol)
+        times = [(_v(s.time) / _v(MARS_ROTATION_PERIOD)) * 360.0 for s in history]
+        xlabel = "Rotation Angle (°)"
 
     temps = [_v(s.surface_temperature) for s in history]
     pressures = [_v(s.surface_pressure) for s in history]
     ice_masses = [_v(s.ice_mass) for s in history]
 
-    fig, axes = plt.subplots(3, 1, figsize=(10, 12), sharex=True)
+    lw = 0.15 if len(times) > 1000 else 1.5
+    al = 0.7 if len(times) > 1000 else 1.0
 
     # Temperature
-    axes[0].plot(times, temps, label="Temperature", color="tab:red")
-    axes[0].set_ylabel("Temperature (K)")
-    axes[0].set_title(f"{title} - Surface Temperature")
-    axes[0].grid(True, alpha=0.3)
+    fig_temp = plt.figure(figsize=(10, 4))
+    plt.plot(times, temps, label="Temperature", color="tab:red", linewidth=lw, alpha=al)
+    plt.ylabel("Temperature (K)")
+    plt.xlabel(xlabel)
+    plt.title(f"{title} - Surface Temperature")
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    temp_file = os.path.join("outputs", filename.replace(".png", "_temp.png"))
+    plt.savefig(temp_file)
+    print(f"  📈 Plot saved to {temp_file}")
+    plt.close(fig_temp)
 
     # Pressure
-    axes[1].plot(times, pressures, label="Pressure", color="tab:blue")
-    axes[1].set_ylabel("Pressure (Pa)")
-    axes[1].set_title(f"{title} - Surface Pressure")
-    axes[1].grid(True, alpha=0.3)
+    fig_press = plt.figure(figsize=(10, 4))
+    plt.plot(times, pressures, label="Pressure", color="tab:blue", linewidth=1.5, alpha=1.0)
+    plt.ylabel("Pressure (Pa)")
+    plt.xlabel(xlabel)
+    plt.title(f"{title} - Surface Pressure")
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    press_file = os.path.join("outputs", filename.replace(".png", "_pressure.png"))
+    plt.savefig(press_file)
+    print(f"  📈 Plot saved to {press_file}")
+    plt.close(fig_press)
 
     # Ice Mass
-    axes[2].plot(times, ice_masses, label="Ice Mass", color="tab:cyan")
-    axes[2].set_ylabel("Ice Mass (kg)")
-    axes[2].set_xlabel(xlabel)
-    axes[2].set_title(f"{title} - Ice Mass")
-    axes[2].grid(True, alpha=0.3)
-
+    fig_ice = plt.figure(figsize=(10, 4))
+    plt.plot(times, ice_masses, label="Ice Mass", color="tab:cyan", linewidth=1.5, alpha=1.0)
+    plt.ylabel("Ice Mass (kg)")
+    plt.xlabel(xlabel)
+    plt.title(f"{title} - Ice Mass")
+    plt.grid(True, alpha=0.3)
     plt.tight_layout()
+    ice_file = os.path.join("outputs", filename.replace(".png", "_ice.png"))
+    plt.savefig(ice_file)
+    print(f"  📈 Plot saved to {ice_file}")
+    plt.close(fig_ice)
+
+
+def plot_seasonal_temps(history, filename: str, title: str):
+    """Plot daily min, max, and avg temperatures over Solar Longitude (Ls)."""
+    import numpy as np
+    
+    times = np.array([_v(s.time) for s in history])
+    temps = np.array([_v(s.surface_temperature) for s in history]) - 273.15
+    
+    ls_rad = np.array([_v(s.orbital_angle) for s in history]) + 251.0 * np.pi / 180.0
+    ls = (ls_rad * 180 / np.pi) % 360.0
+
+    sols = times // _v(MARS_ROTATION_PERIOD)
+    unique_sols = np.unique(sols)
+
+    daily_ls = []
+    daily_max = []
+    daily_min = []
+    daily_avg = []
+
+    for sol in unique_sols:
+        mask = (sols == sol)
+        if np.sum(mask) == 0: continue
+        t_day = temps[mask]
+        
+        ls_day_array = ls[mask]
+        if np.max(ls_day_array) > 350 and np.min(ls_day_array) < 10:
+            ls_day_array = np.where(ls_day_array < 180, ls_day_array + 360, ls_day_array)
+            ls_day = np.mean(ls_day_array) % 360.0
+        else:
+            ls_day = np.mean(ls_day_array)
+            
+        daily_max.append(np.max(t_day))
+        daily_min.append(np.min(t_day))
+        daily_avg.append(np.mean(t_day))
+        daily_ls.append(ls_day)
+
+    idx = np.argsort(daily_ls)
+    daily_ls = np.array(daily_ls)[idx]
+    daily_max = np.array(daily_max)[idx]
+    daily_min = np.array(daily_min)[idx]
+    daily_avg = np.array(daily_avg)[idx]
+
+    fig = plt.figure(figsize=(10, 6))
+    plt.plot(daily_ls, daily_max, label='Daily Max', color='cyan')
+    plt.plot(daily_ls, daily_min, label='Daily Min', color='red', linestyle='--')
+    plt.plot(daily_ls, daily_avg, label='Daily Avg', color='green')
+
+    plt.title(title)
+    plt.xlabel("Solar Longitude Ls (°)")
+    plt.ylabel("Temperature (°C)")
+    plt.xlim(0, 360)
+    plt.xticks(np.arange(0, 361, 30))
+    plt.grid(True, alpha=0.3)
+    plt.legend()
+    
     filepath = os.path.join("outputs", filename)
     plt.savefig(filepath)
-    print(f"  📈 Plot saved to {filepath}")
+    print(f"  📈 Seasonal Plot saved to {filepath}")
     plt.close(fig)
 
 
@@ -153,18 +229,20 @@ def main():
     print("  🔴  Terraforming Mars — Basic Evolution Experiment")
     print("=" * 60)
 
-    os.makedirs("outputs", exist_ok=True)
+    os.makedirs("outputs/sol", exist_ok=True)
+    os.makedirs("outputs/668_sols", exist_ok=True)
 
     # ── One Sol ───────────────────────────────────────────────
     run_one_sol(Accuracy.FAST, dt=3600.0)
     history_sol = run_one_sol(Accuracy.ACCURATE, dt=3600.0) # 1 hour dt
-    save_history_to_csv(history_sol, "mars_sol_evolution.csv")
-    plot_history(history_sol, "mars_sol_evolution.png", "Mars Evolution (1 Sol)")
+    save_history_to_csv(history_sol, "sol/mars_sol_evolution.csv")
+    plot_history(history_sol, "sol/mars_sol_evolution.png", "Mars Evolution (1 Sol)")
 
-    # ── One Year (fast only — accurate takes ~10 min) ─────────
-    history_year = run_one_year(Accuracy.FAST, dt=3600.0) # 1 hour dt
-    save_history_to_csv(history_year, "mars_year_evolution.csv")
-    plot_history(history_year, "mars_year_evolution.png", "Mars Evolution (1 Year)")
+    # ── One Year (accurate mode to capture exact ODE) ─────────
+    history_year = run_one_year(Accuracy.ACCURATE, dt=3600.0) # 1 hour dt
+    save_history_to_csv(history_year, "668_sols/mars_year_evolution.csv")
+    plot_history(history_year, "668_sols/mars_year_evolution.png", "Mars Evolution (1 Year)")
+    plot_seasonal_temps(history_year, "668_sols/mars_seasonal_temps.png", "Mars Temps: ~90°C Swing Summer to Winter")
 
     print(f"\n{'=' * 60}")
     print("  ✅  Done.")
