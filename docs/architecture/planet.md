@@ -14,10 +14,10 @@ The terraforming simulation system models planetary properties and their evoluti
 │  ├─ Time Controller (simulation speed, timestep)            │
 │  └─ State Manager (snapshot, restore, history)              │
 └─────────────────────────────────────────────────────────────┘
-                            │
-                            ▼
+                        
 ┌─────────────────────────────────────────────────────────────┐
-│                   Planet (Abstract Base)                     │
+│                   Planet (Abstract Base)        
+│  ├─ Inherent Time variable                 │
 │  ├─ Physical Properties (mass, radius, orbit)               │
 │  ├─ Environmental State (temp, pressure, atmosphere)         │
 │  ├─ Planetary Systems (magnetic, radiation, wind)            │

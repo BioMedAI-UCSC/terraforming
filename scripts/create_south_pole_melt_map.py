@@ -54,13 +54,17 @@ def main() -> None:
 
     with Image.open(DEM_PATH) as dem_raw:
         # Keep processing lightweight while preserving south-pole structure.
-        dem_small = dem_raw.resize((4096, 2048), resample=Image.Resampling.BILINEAR)
+        if hasattr(Image, "Resampling"):
+            resample_filter = Image.Resampling.BILINEAR
+        else:
+            resample_filter = Image.BILINEAR
+        dem_small = dem_raw.resize((4096, 2048), resample=resample_filter)
 
     start_row = lat_to_row(POLAR_NORTH_EDGE_DEG, dem_small.height)
     south_cap = dem_small.crop((0, start_row, dem_small.width, dem_small.height))
 
     # Normalize elevation for visual contrast (bright = high terrain).
-    dem8 = ImageOps.autocontrast(south_cap.convert("I")).convert("L")
+    dem8 = ImageOps.autocontrast(south_cap.convert("L"))
 
     # Lowland factor supports potential local melt ponding.
     lowlands = ImageOps.invert(dem8)

@@ -1,0 +1,13 @@
+Mars Internal Structure Summary
+Source model: data/mantle/Models_Geophysical.zip
+Planet radius (km): 3389.500
+Crust thickness (km): 50.379
+Mantle thickness (km): 1499.353
+Core radius (km): 1839.768
+CMB depth (km): 1549.732
+Inner core radius in model (km): 0.500
+
+Estimated temperature ranges used in drawing:
+- Crust: -63 to ~500 C
+- Mantle: ~500 to ~1800 C
+- Core: ~1600 to ~2200 C
