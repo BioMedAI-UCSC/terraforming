@@ -36,20 +36,18 @@ def _load(dotted_name: str, rel_path: str) -> types.ModuleType:
 
 
 # Also register the intermediate namespace so that
-# ``from src.celestials.framework.planet import …`` resolves the dotted path.
-for _ns in ("src.framework", "src.planets"):
+# ``from src.celestials.planets.mars import …`` resolves the dotted path if needed.
+for _ns in ("src.planets",):
     if _ns not in sys.modules:
         sys.modules[_ns] = types.ModuleType(_ns)
 
 # ── Load sub-modules ─────────────────────────────────────────────────
-_planet_mod = _load("src.framework.planet", "../framework/planet.py")
 _mars_mod   = _load("src.planets.mars",     "planets/mars.py")
 
-# ── Public re-exports ────────────────────────────────────────────────
 # Framework
-Planet            = _planet_mod.Planet
-PlanetaryState    = _planet_mod.PlanetaryState
-OrbitalParameters = _planet_mod.OrbitalParameters
+from src.framework.planet import Planet
+from src.framework.orbital import OrbitalParameters
+from src.framework.intrinsic import IntrinsicParameters
 
 # Mars
 Mars                     = _mars_mod.Mars

@@ -30,10 +30,20 @@ from src.constants import (
 )
 
 from src.framework.planet import (
-    OrbitalParameters,
     Planet,
-    PlanetaryState,
 )
+from src.framework.atmosphere import Atmosphere
+from src.framework.thermal import Thermal
+from src.framework.water import Water
+from src.framework.radiation import Radiation
+from src.framework.magnetic import Magnetic
+from src.framework.intrinsic import IntrinsicParameters
+from src.framework.orbital import OrbitalParameters
+from src.framework.atmosphere import Atmosphere
+from src.framework.thermal import Thermal
+from src.framework.water import Water
+from src.framework.radiation import Radiation
+from src.framework.magnetic import Magnetic
 
 # Mars-specific constants  (all torch.Tensor, float64)
 MARS_MASS: torch.Tensor             = _c(6.4171e23)             # kg
@@ -83,10 +93,12 @@ class Mars(Planet):
         composition: Optional[Dict[str, float]] = None,
         ice_mass: float = 5.0e15,
     ) -> None:
-        self.mass = MARS_MASS
-        self.radius = MARS_RADIUS
-        self.gravity = MARS_GRAVITY
-        self.rotation_period = MARS_ROTATION_PERIOD
+        self.intrinsic_params = IntrinsicParameters(
+            mass=MARS_MASS,
+            radius=MARS_RADIUS,
+            gravity=MARS_GRAVITY,
+            rotation_period=MARS_ROTATION_PERIOD,
+        )
 
         self.orbital_params = OrbitalParameters(
             semi_major_axis=MARS_SEMI_MAJOR_AXIS,
@@ -112,31 +124,39 @@ class Mars(Planet):
                 k: v.clone() for k, v in MARS_DEFAULT_COMPOSITION.items()
             }
 
-        self.state = self.initialize_state()
+        self.setup_properties()
 
     # ------------------------------------------------------------------
     # Abstract method implementations
     # ------------------------------------------------------------------
-    def initialize_state(self) -> PlanetaryState:
-        """Create PlanetaryState with Mars-specific initial conditions.
+    def setup_properties(self) -> None:
+        """Initialize the planet's physical properties.
 
         Values sourced from NASA Mars Fact Sheet.
         """
-        return PlanetaryState(
+        self.atmosphere = Atmosphere(
             surface_pressure=self._init_pressure.clone(),
             atmospheric_mass=_c(2.5e16),         # kg  (total atmosphere)
             composition=dict(self._init_composition),
+        )
+        self.thermal = Thermal(
             surface_temperature=self._init_temperature.clone(),
             greenhouse_factor=self._init_greenhouse.clone(),
+        )
+        self.water = Water(
             ice_mass=self._init_ice_mass.clone(),
             liquid_mass=_c(0.0),
             vapour_mass=_c(1.0e13),
+        )
+        self.radiation = Radiation(
             albedo=self._init_albedo.clone(),
             solar_flux=_c(0.0),
-            magnetic_field_strength=_c(5.0e-9),  # T  (weak crustal remnants)
-            elapsed_time=_c(0.0),
-            orbital_angle=_c(0.0),
         )
+        self.magnetic = Magnetic(
+            magnetic_field_strength=_c(5.0e-9),  # T  (weak crustal remnants)
+        )
+        self.elapsed_time = _c(0.0)
+        self.orbital_angle = _c(0.0)
 
     # ==================================================================
     # PHYSICS: Coupled ODE derivatives  (used by engine's RK4 integrator)
@@ -163,7 +183,7 @@ class Mars(Planet):
         Stefan-Boltzmann law : https://en.wikipedia.org/wiki/Stefan–Boltzmann_law
         Jeans escape         : https://en.wikipedia.org/wiki/Atmospheric_escape
         """
-        s = self.state
+        s = self
 
         T = torch.maximum(y[0], _c(1.0))
         P = torch.maximum(y[1], _c(0.0))
@@ -174,7 +194,7 @@ class Mars(Planet):
         # Area A cancels out (1m^2 effective) for local patch heating/cooling.
         
         # Hour angle h. t=0 is midnight -> h = -pi
-        omega = _c(2.0) * PI / self.rotation_period
+        omega = _c(2.0) * PI / self.intrinsic_params.rotation_period
         h = omega * s.elapsed_time - PI
         
         # Latitude for Viking Lander 1 (~22 degrees N)
@@ -195,10 +215,10 @@ class Mars(Planet):
         )
         
         # Q_in is Watts per m^2
-        Q_in = (_c(1.0) - s.albedo) * s.solar_flux * cos_zenith
+        Q_in = (_c(1.0) - s.radiation.albedo) * s.radiation.solar_flux * cos_zenith
 
         emissivity = _c(0.95)
-        T_eff = T / torch.maximum(s.greenhouse_factor, _c(1.0))
+        T_eff = T / torch.maximum(s.thermal.greenhouse_factor, _c(1.0))
         
         # Q_out is Watts per m^2
         Q_out = emissivity * STEFAN_BOLTZMANN * T_eff ** 4
@@ -215,14 +235,14 @@ class Mars(Planet):
         T_frost = _c(149.0)
         L_sub = _c(5.7e5) # Latent heat J/kg
         # Each polar cap covers ~3% of the planet's surface mathematically
-        A_cap_pole = _c(0.03) * _c(4.0) * PI * self.radius ** 2
+        A_cap_pole = _c(0.03) * _c(4.0) * PI * self.intrinsic_params.radius ** 2
         
         # Insolation at poles
         cos_zenith_N = torch.maximum(_c(0.0), torch.sin(delta))
         cos_zenith_S = torch.maximum(_c(0.0), -torch.sin(delta))
         
-        Q_in_N = (_c(1.0) - s.albedo) * s.solar_flux * cos_zenith_N
-        Q_in_S = (_c(1.0) - s.albedo) * s.solar_flux * cos_zenith_S
+        Q_in_N = (_c(1.0) - s.radiation.albedo) * s.radiation.solar_flux * cos_zenith_N
+        Q_in_S = (_c(1.0) - s.radiation.albedo) * s.radiation.solar_flux * cos_zenith_S
         Q_out_pole = _c(0.95) * STEFAN_BOLTZMANN * T_frost ** 4
         
         net_sub_N = (Q_in_N - Q_out_pole) * A_cap_pole / L_sub
@@ -237,8 +257,8 @@ class Mars(Planet):
 
         # --- dP/dt: Jeans escape + mass exchange from ice caps ---
         m_co2 = _c(44.0 * 1.66054e-27)            # kg
-        R_exo = self.radius + _c(200_000.0)        # m
-        lam = G_NEWTON * self.mass * m_co2 / (BOLTZMANN_K * T * R_exo)
+        R_exo = self.intrinsic_params.radius + _c(200_000.0)        # m
+        lam = G_NEWTON * self.intrinsic_params.mass * m_co2 / (BOLTZMANN_K * T * R_exo)
         v_th = torch.sqrt(_c(2.0) * BOLTZMANN_K * T / m_co2)
         n_exo = P / (BOLTZMANN_K * T)
         escape_rate = (
@@ -247,10 +267,10 @@ class Mars(Planet):
             * torch.exp(-lam)
         )
         
-        A_planet = _c(4.0) * PI * self.radius ** 2
+        A_planet = _c(4.0) * PI * self.intrinsic_params.radius ** 2
         
         # Loss to space is slow, but sublimation is fast
-        dP_dt = (-escape_rate * self.gravity / A_planet) + (-dMice_dt * self.gravity / A_planet)
+        dP_dt = (-escape_rate * self.intrinsic_params.gravity / A_planet) + (-dMice_dt * self.intrinsic_params.gravity / A_planet)
 
         return torch.stack([dT_dt, dP_dt, dMice_dt])
 
@@ -258,9 +278,9 @@ class Mars(Planet):
     # PHYSICS: Reduced-order analytic update  (used by engine's fast path)
     # ==================================================================
     def compute_fast_physics(self, dt: torch.Tensor) -> None:
-        """Apply reduced-order physics to ``self.state``.
+        """Apply reduced-order physics to the planet.
 
-        Assumes ``self.state.solar_flux`` is already current
+        Assumes ``solar_flux`` is already current
         (the engine calls ``advance_orbit`` beforehand).
 
         Strategy:
@@ -281,26 +301,26 @@ class Mars(Planet):
         Relaxation     : "Newtonian cooling" approximation
         """
         dt = torch.as_tensor(dt, dtype=TF_DTYPE)
-        s = self.state
+        s = self
 
         # --- Step 1: Equilibrium temperature ---
         emissivity = _c(0.95)
-        absorbed = (_c(1.0) - s.albedo) * s.solar_flux
+        absorbed = (_c(1.0) - s.radiation.albedo) * s.radiation.solar_flux
         T_eq_base = (absorbed / (_c(4.0) * emissivity * STEFAN_BOLTZMANN)) ** 0.25
-        T_eq = T_eq_base * s.greenhouse_factor
+        T_eq = T_eq_base * s.thermal.greenhouse_factor
         
         # Superimpose diurnal variation onto equilibrium temperature
         # Using -cos() starts simulation at midnight (T_eq will be at its coldest)
-        omega = _c(2.0) * PI / self.rotation_period
+        omega = _c(2.0) * PI / self.intrinsic_params.rotation_period
         T_eq = T_eq - _c(50.0) * torch.cos(omega * s.elapsed_time)
 
         # --- Step 2: Exponential relaxation ---
-        T_cur = torch.maximum(s.surface_temperature, _c(1.0))
+        T_cur = torch.maximum(s.thermal.surface_temperature, _c(1.0))
         # Updated thermal inertia characteristic tau consistent with ODE formulation
         tau = _c(1.0e5) / (_c(4.0) * emissivity * STEFAN_BOLTZMANN * T_cur ** 3)
         tau = torch.maximum(tau, _c(1.0))
-        s.surface_temperature = T_eq + (T_cur - T_eq) * torch.exp(-dt / tau)
-        s.surface_temperature = torch.maximum(s.surface_temperature, _c(1.0))
+        s.thermal.surface_temperature = T_eq + (T_cur - T_eq) * torch.exp(-dt / tau)
+        s.thermal.surface_temperature = torch.maximum(s.thermal.surface_temperature, _c(1.0))
 
         # --- Step 3: Ice budget (Polar CO2 Sublimation & Condensation) ---
         # Recalculate Ls and delta since they are local to the function
@@ -310,13 +330,13 @@ class Mars(Planet):
         
         T_frost = _c(149.0)
         L_sub = _c(5.7e5)
-        A_cap_pole = _c(0.03) * _c(4.0) * PI * self.radius ** 2
+        A_cap_pole = _c(0.03) * _c(4.0) * PI * self.intrinsic_params.radius ** 2
         
         cos_zenith_N = torch.maximum(_c(0.0), torch.sin(delta))
         cos_zenith_S = torch.maximum(_c(0.0), -torch.sin(delta))
         
-        Q_in_N = (_c(1.0) - s.albedo) * s.solar_flux * cos_zenith_N
-        Q_in_S = (_c(1.0) - s.albedo) * s.solar_flux * cos_zenith_S
+        Q_in_N = (_c(1.0) - s.radiation.albedo) * s.radiation.solar_flux * cos_zenith_N
+        Q_in_S = (_c(1.0) - s.radiation.albedo) * s.radiation.solar_flux * cos_zenith_S
         Q_out_pole = _c(0.95) * STEFAN_BOLTZMANN * T_frost ** 4
         
         net_sub_N = (Q_in_N - Q_out_pole) * A_cap_pole / L_sub
@@ -324,25 +344,25 @@ class Mars(Planet):
         
         dMice = -(net_sub_N + net_sub_S) * dt
         dMice = torch.where(
-            (s.ice_mass <= _c(0.0)) & (dMice < _c(0.0)),
+            (s.water.ice_mass <= _c(0.0)) & (dMice < _c(0.0)),
             _c(0.0),
             dMice
         )
-        s.ice_mass = torch.maximum(s.ice_mass + dMice, _c(0.0))
+        s.water.ice_mass = torch.maximum(s.water.ice_mass + dMice, _c(0.0))
 
         # --- Step 4: Pressure (Jeans escape + Mass exchange) ---
         m_co2 = _c(44.0 * 1.66054e-27)
-        R_exo = self.radius + _c(200_000.0)
-        T = s.surface_temperature
-        lam = G_NEWTON * self.mass * m_co2 / (BOLTZMANN_K * T * R_exo)
+        R_exo = self.intrinsic_params.radius + _c(200_000.0)
+        T = s.thermal.surface_temperature
+        lam = G_NEWTON * self.intrinsic_params.mass * m_co2 / (BOLTZMANN_K * T * R_exo)
         v_th = torch.sqrt(_c(2.0) * BOLTZMANN_K * T / m_co2)
-        n_exo = s.surface_pressure / (BOLTZMANN_K * T)
+        n_exo = s.atmosphere.surface_pressure / (BOLTZMANN_K * T)
         escape_rate = (
             _c(4.0) * PI * R_exo ** 2 * n_exo * m_co2 * v_th
             * torch.exp(-lam)
         )
-        A_planet = _c(4.0) * PI * self.radius ** 2
-        dP_escape = -escape_rate * self.gravity / A_planet * dt
-        dP_sublimation = -dMice * self.gravity / A_planet
+        A_planet = _c(4.0) * PI * self.intrinsic_params.radius ** 2
+        dP_escape = -escape_rate * self.intrinsic_params.gravity / A_planet * dt
+        dP_sublimation = -dMice * self.intrinsic_params.gravity / A_planet
         
-        s.surface_pressure = torch.maximum(s.surface_pressure + dP_escape + dP_sublimation, _c(0.0))
+        s.atmosphere.surface_pressure = torch.maximum(s.atmosphere.surface_pressure + dP_escape + dP_sublimation, _c(0.0))

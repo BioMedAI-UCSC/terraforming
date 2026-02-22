@@ -31,7 +31,6 @@ from src.constants import TF_DTYPE, _c
 
 from src.celestials import (
     Planet,
-    PlanetaryState,
 )
 
 
@@ -150,7 +149,7 @@ class TimeController:
     def run(
         self,
         duration: float | torch.Tensor,
-        callback: Optional[Callable[[PlanetaryState, torch.Tensor], None]] = None,
+        callback: Optional[Callable[[Planet, torch.Tensor], None]] = None,
     ) -> List[Snapshot]:
         """Run the simulation for *duration* seconds, return a snapshot list.
 
@@ -178,14 +177,14 @@ class TimeController:
             self.evolve(step)
             elapsed = elapsed + step
 
-            s = self.planet.state
+            s = self.planet
             history.append(
                 Snapshot(
                     time=s.elapsed_time.clone(),
-                    surface_temperature=s.surface_temperature.clone(),
-                    surface_pressure=s.surface_pressure.clone(),
-                    ice_mass=s.ice_mass.clone(),
-                    solar_flux=s.solar_flux.clone(),
+                    surface_temperature=s.thermal.surface_temperature.clone(),
+                    surface_pressure=s.atmosphere.surface_pressure.clone(),
+                    ice_mass=s.water.ice_mass.clone(),
+                    solar_flux=s.radiation.solar_flux.clone(),
                     orbital_angle=s.orbital_angle.clone(),
                 )
             )

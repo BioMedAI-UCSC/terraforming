@@ -204,8 +204,8 @@ def run_one_year(accuracy: Accuracy = Accuracy.FAST, dt: float = 3600.0):
         step_count[0] += 1
         if step_count[0] % 5000 == 0:
             pct = _v(t) / year_seconds * 100
-            print(f"    ... {pct:5.1f}%  T={_v(state.surface_temperature):.2f} K  "
-                  f"P={_v(state.surface_pressure):.2f} Pa")
+            print(f"    ... {pct:5.1f}%  T={_v(state.thermal.surface_temperature):.2f} K  "
+                  f"P={_v(state.atmosphere.surface_pressure):.2f} Pa")
 
     history = tc.run(duration=MARS_ORBITAL_PERIOD, callback=progress)
 

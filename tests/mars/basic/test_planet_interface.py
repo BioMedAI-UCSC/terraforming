@@ -32,35 +32,27 @@ class TestPlanetInterface(unittest.TestCase):
         mars = Mars()
         self.assertIsInstance(mars, Planet)
 
-    def test_state_copy(self):
-        """PlanetaryState.copy() should produce an independent clone."""
-        mars = Mars()
-        original_t = _val(mars.state.surface_temperature)
-        clone = mars.state.copy()
-        clone.surface_temperature = clone.surface_temperature + 100.0
-        self.assertAlmostEqual(_val(mars.state.surface_temperature), original_t)
-
     def test_initial_state_values(self):
         """Default Mars state should have known values."""
         mars = Mars()
-        self.assertAlmostEqual(_val(mars.state.surface_temperature), 210.0)
-        self.assertAlmostEqual(_val(mars.state.surface_pressure), 610.0)
-        self.assertIn("CO2", mars.state.composition)
+        self.assertAlmostEqual(_val(mars.thermal.surface_temperature), 210.0)
+        self.assertAlmostEqual(_val(mars.atmosphere.surface_pressure), 610.0)
+        self.assertIn("CO2", mars.atmosphere.composition)
 
     def test_custom_initial_conditions(self):
         """Mars should accept custom initial conditions."""
         mars = Mars(surface_temperature=250.0, surface_pressure=700.0)
-        self.assertAlmostEqual(_val(mars.state.surface_temperature), 250.0)
-        self.assertAlmostEqual(_val(mars.state.surface_pressure), 700.0)
+        self.assertAlmostEqual(_val(mars.thermal.surface_temperature), 250.0)
+        self.assertAlmostEqual(_val(mars.atmosphere.surface_pressure), 700.0)
 
     def test_state_values_are_tensors(self):
         """All state scalars should be torch.Tensor instances."""
         mars = Mars()
-        self.assertIsInstance(mars.state.surface_temperature, torch.Tensor)
-        self.assertIsInstance(mars.state.surface_pressure, torch.Tensor)
-        self.assertIsInstance(mars.state.ice_mass, torch.Tensor)
-        self.assertIsInstance(mars.state.albedo, torch.Tensor)
-        self.assertIsInstance(mars.state.elapsed_time, torch.Tensor)
+        self.assertIsInstance(mars.thermal.surface_temperature, torch.Tensor)
+        self.assertIsInstance(mars.atmosphere.surface_pressure, torch.Tensor)
+        self.assertIsInstance(mars.water.ice_mass, torch.Tensor)
+        self.assertIsInstance(mars.radiation.albedo, torch.Tensor)
+        self.assertIsInstance(mars.elapsed_time, torch.Tensor)
 
     def test_constants_are_tensors(self):
         """Physical constants should be torch.Tensor."""
@@ -80,7 +72,7 @@ class TestPlanetInterface(unittest.TestCase):
         # Modify and unpack
         y_new = y + 1.0
         mars.unpack_state(y_new)
-        self.assertAlmostEqual(_val(mars.state.surface_temperature), 211.0)
+        self.assertAlmostEqual(_val(mars.thermal.surface_temperature), 211.0)
 
     def test_compute_derivatives_returns_tensor(self):
         """compute_derivatives should return a shape-[3] tensor."""

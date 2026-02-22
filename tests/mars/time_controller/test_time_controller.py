@@ -87,9 +87,9 @@ class TestTimeController(unittest.TestCase):
         """A single evolve() call should advance the state."""
         mars = Mars()
         tc = TimeController(mars, dt=3600.0, accuracy=Accuracy.FAST)
-        t0 = _val(mars.state.elapsed_time)
+        t0 = _val(mars.elapsed_time)
         tc.evolve(tc.dt)
-        t1 = _val(mars.state.elapsed_time)
+        t1 = _val(mars.elapsed_time)
         self.assertGreater(t1, t0)
 
 
