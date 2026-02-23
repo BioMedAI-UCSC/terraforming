@@ -92,6 +92,8 @@ class Mars(Planet):
         greenhouse_factor: float = 1.02,
         composition: Optional[Dict[str, float]] = None,
         ice_mass: float = 5.0e15,
+        latitude: float = 22.0,
+        longitude: float = 0.0,
     ) -> None:
         self.intrinsic_params = IntrinsicParameters(
             mass=MARS_MASS,
@@ -113,6 +115,8 @@ class Mars(Planet):
         self._init_albedo = _c(albedo)
         self._init_greenhouse = _c(greenhouse_factor)
         self._init_ice_mass = _c(ice_mass)
+        self._init_latitude = _c(latitude) * PI / _c(180.0)
+        self._init_longitude = _c(longitude) * PI / _c(180.0)
 
         # Composition: accept raw floats from user, convert to tensors
         if composition is not None:
@@ -195,10 +199,10 @@ class Mars(Planet):
         
         # Hour angle h. t=0 is midnight -> h = -pi
         omega = _c(2.0) * PI / self.intrinsic_params.rotation_period
-        h = omega * s.elapsed_time - PI
+        h = omega * s.elapsed_time - PI + self._init_longitude
         
-        # Latitude for Viking Lander 1 (~22 degrees N)
-        lat = _c(22.0) * PI / _c(180.0)
+        # Latitude
+        lat = self._init_latitude
         
         # True anomaly is s.orbital_angle (where 0 is perihelion).
         # Mars perihelion is at Ls ~ 251 degrees.
@@ -303,16 +307,30 @@ class Mars(Planet):
         dt = torch.as_tensor(dt, dtype=TF_DTYPE)
         s = self
 
-        # --- Step 1: Equilibrium temperature ---
+        # --- Step 1: Equilibrium temperature (Latitude-aware) ---
+        Ls_perihelion = _c(251.0) * PI / _c(180.0)
+        Ls = s.orbital_angle + Ls_perihelion
+        delta = torch.asin(torch.sin(self.orbital_params.axial_tilt) * torch.sin(Ls))
+        lat = self._init_latitude
+
+        # Mean diurnal insolation factor (daily average of cos_zenith)
+        # cos(h0) = -tan(lat) * tan(delta)
+        cos_h0 = torch.clamp(-torch.tan(lat) * torch.tan(delta), -1.0, 1.0)
+        h0 = torch.acos(cos_h0)
+        insolation_factor = (h0 * torch.sin(lat) * torch.sin(delta) + torch.cos(lat) * torch.cos(delta) * torch.sin(h0)) / PI
+        insolation_factor = torch.maximum(insolation_factor, _c(0.0))
+
         emissivity = _c(0.95)
-        absorbed = (_c(1.0) - s.radiation.albedo) * s.radiation.solar_flux
-        T_eq_base = (absorbed / (_c(4.0) * emissivity * STEFAN_BOLTZMANN)) ** 0.25
+        absorbed = (_c(1.0) - s.radiation.albedo) * s.radiation.solar_flux * insolation_factor
+        # Denominator is just emissivity*sigma because insolation_factor already averages the source
+        T_eq_base = (absorbed / (emissivity * STEFAN_BOLTZMANN)) ** 0.25
         T_eq = T_eq_base * s.thermal.greenhouse_factor
         
         # Superimpose diurnal variation onto equilibrium temperature
-        # Using -cos() starts simulation at midnight (T_eq will be at its coldest)
+        # Amplitude decreases at high latitudes near winter
+        swing = _c(50.0) * torch.cos(lat)
         omega = _c(2.0) * PI / self.intrinsic_params.rotation_period
-        T_eq = T_eq - _c(50.0) * torch.cos(omega * s.elapsed_time)
+        T_eq = T_eq - swing * torch.cos(omega * s.elapsed_time + self._init_longitude)
 
         # --- Step 2: Exponential relaxation ---
         T_cur = torch.maximum(s.thermal.surface_temperature, _c(1.0))

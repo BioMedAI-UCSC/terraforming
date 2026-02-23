@@ -15,7 +15,7 @@ from src.engine import Accuracy, TimeController
 import matplotlib.pyplot as plt
 import os
 import csv
-
+import numpy as np
 
 def _v(t) -> float:
     """torch.Tensor → Python float."""
@@ -224,6 +224,111 @@ def run_one_year(accuracy: Accuracy = Accuracy.FAST, dt: float = 3600.0):
     return history
 
 
+def plot_three_temperatures(histories, filename: str, title: str):
+    """Plot seasonal temperatures for three coordinates with spin-up removal."""
+    import numpy as np
+    
+    fig = plt.figure(figsize=(10, 6))
+    colors = {"North": "tab:blue", "Equator": "tab:red", "Southern Hemisphere": "tab:green"}
+    
+    # We strip the first few days of spin-up to avoid initial transients
+    spin_up_sols = 10
+    spin_up_seconds = spin_up_sols * _v(MARS_ROTATION_PERIOD)
+
+    for name, history in histories.items():
+        # Only take points after spin-up
+        history_filtered = [s for s in history if _v(s.time) > spin_up_seconds]
+        if not history_filtered: continue
+
+        times = np.array([_v(s.time) for s in history_filtered])
+        temps = np.array([_v(s.surface_temperature) for s in history_filtered]) - 273.15
+        
+        ls_rad = np.array([_v(s.orbital_angle) for s in history_filtered]) + 251.0 * np.pi / 180.0
+        ls = (ls_rad * 180 / np.pi) % 360.0
+
+        sols = times // _v(MARS_ROTATION_PERIOD)
+        unique_sols = np.unique(sols)
+
+        daily_ls = []
+        daily_avg = []
+
+        for sol in unique_sols:
+            mask = (sols == sol)
+            if np.sum(mask) < 10: continue # Need enough points for a representative average
+            
+            t_day = temps[mask]
+            ls_day_array = ls[mask]
+            
+            if np.max(ls_day_array) > 350 and np.min(ls_day_array) < 10:
+                ls_day_array = np.where(ls_day_array < 180, ls_day_array + 360, ls_day_array)
+                ls_day = np.mean(ls_day_array) % 360.0
+            else:
+                ls_day = np.mean(ls_day_array)
+                
+            daily_avg.append(np.mean(t_day))
+            daily_ls.append(ls_day)
+
+        idx = np.argsort(daily_ls)
+        daily_ls = np.array(daily_ls)[idx]
+        daily_avg = np.array(daily_avg)[idx]
+
+        plt.plot(daily_ls, daily_avg, label=f'{name} Avg', color=colors.get(name, "black"), linewidth=2)
+
+    plt.title(title)
+    plt.xlabel("Solar Longitude Ls (°)")
+    plt.ylabel("Temperature (°C)")
+    plt.xlim(0, 360)
+    plt.xticks(np.arange(0, 361, 30))
+    plt.grid(True, alpha=0.3)
+    plt.legend()
+    
+    filepath = os.path.join("outputs", filename)
+    plt.savefig(filepath)
+    print(f"  📈 Three-coordinate plot (refined) saved to {filepath}")
+    plt.close(fig)
+
+
+def run_three_coordinates(accuracy: Accuracy = Accuracy.FAST, dt: float = 600.0):
+    """Run simulations for three specific coordinates with higher resolution and spin-up."""
+    points = [
+        {"name": "North", "lat": 45.0, "lon": 137.0},
+        {"name": "Equator", "lat": 0.0, "lon": 137.0},
+        {"name": "Southern Hemisphere", "lat": -40.0, "lon": 137.0},
+    ]
+
+    histories = {}
+    # Run for orbital period + 10 sols of spin-up
+    spin_up = 10 * _v(MARS_ROTATION_PERIOD)
+    total_duration = _v(MARS_ORBITAL_PERIOD) + spin_up
+    
+    for pt in points:
+        print(f"\n{'─' * 60}")
+        print(f"  Running {pt['name']} ({pt['lat']}°N, {pt['lon']}°E)  —  {accuracy.value} (dt={dt}s)")
+        print(f"{'─' * 60}")
+        
+        mars = Mars(latitude=pt["lat"], longitude=pt["lon"])
+        tc = TimeController(mars, dt=dt, accuracy=accuracy)
+        
+        step_count = [0]
+        def progress(state, t):
+            step_count[0] += 1
+            if step_count[0] % 10000 == 0:
+                pct = _v(t) / total_duration * 100
+                print(f"    ... {pct:5.1f}%  T={_v(state.thermal.surface_temperature):.2f} K")
+        
+        history = tc.run(duration=total_duration, callback=progress)
+        histories[pt["name"]] = history
+
+        # Save individual data for each point
+        safe_name = pt["name"].lower().replace(" ", "_")
+        save_history_to_csv(history, f"668_sols/mars_{safe_name}_evolution.csv")
+        plot_history(history, f"668_sols/mars_{safe_name}_evolution.png", f"Mars Evolution: {pt['name']}")
+        plot_seasonal_temps(history, f"668_sols/mars_{safe_name}_seasonal.png", f"Mars Seasonal: {pt['name']}")
+        
+    plot_three_temperatures(histories, "668_sols/mars_three_coords_temps.png", "Temperature across Seasons at Three Coordinates (137°E)")
+    return histories
+
+
 def main():
     print("=" * 60)
     print("  🔴  Terraforming Mars — Basic Evolution Experiment")
@@ -244,10 +349,13 @@ def main():
     plot_history(history_year, "668_sols/mars_year_evolution.png", "Mars Evolution (1 Year)")
     plot_seasonal_temps(history_year, "668_sols/mars_seasonal_temps.png", "Mars Temps: ~90°C Swing Summer to Winter")
 
+    # ── Three Coordinates Experiment ───────────────────────────
+    # Run with Accuracy.FAST and 10 min timestep for better seasonal sampling coverage
+    run_three_coordinates(Accuracy.FAST, dt=600.0)
+
     print(f"\n{'=' * 60}")
     print("  ✅  Done.")
     print(f"{'=' * 60}\n")
-
 
 if __name__ == "__main__":
     main()
