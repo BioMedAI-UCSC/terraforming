@@ -100,18 +100,33 @@ def plot_history(history, filename: str, title: str):
     plt.close(fig_ice)
 
 
-def plot_seasonal_temps(history, filename: str, title: str):
-    """Plot daily min, max, and avg temperatures over Solar Longitude (Ls)."""
+def plot_seasonal_temps(history, filename: str, title: str, spin_up_sols: int = 0):
+    """Plot daily min, max, and avg temperatures over Solar Longitude (Ls).
+
+    spin_up_sols: number of initial sols to discard as thermal spin-up.
+    These early sols share the same Ls as the end of the orbit but have
+    out-of-equilibrium temperatures, which would create sorting artifacts.
+    """
     import numpy as np
-    
+
+    sol_period = _v(MARS_ROTATION_PERIOD)
+    spin_up_seconds = spin_up_sols * sol_period
+
     times = np.array([_v(s.time) for s in history])
     temps = np.array([_v(s.surface_temperature) for s in history]) - 273.15
-    
+
     ls_rad = np.array([_v(s.orbital_angle) for s in history]) + 251.0 * np.pi / 180.0
     ls = (ls_rad * 180 / np.pi) % 360.0
 
-    sols = times // _v(MARS_ROTATION_PERIOD)
-    unique_sols = np.unique(sols)
+    sols = times // sol_period
+
+    # Estimate expected timesteps per complete sol; skip any partial last sol
+    # (occurs when the simulation duration is not a multiple of the rotation period).
+    all_counts = np.array([np.sum(sols == s) for s in np.unique(sols)])
+    expected_steps = int(np.median(all_counts))
+    min_steps = max(10, int(0.8 * expected_steps))
+
+    unique_sols = np.unique(sols[times > spin_up_seconds])
 
     daily_ls = []
     daily_max = []
@@ -119,8 +134,8 @@ def plot_seasonal_temps(history, filename: str, title: str):
     daily_avg = []
 
     for sol in unique_sols:
-        mask = (sols == sol)
-        if np.sum(mask) == 0: continue
+        mask = (sols == sol) & (times > spin_up_seconds)
+        if np.sum(mask) < min_steps: continue
         t_day = temps[mask]
         
         ls_day_array = ls[mask]
@@ -192,10 +207,14 @@ def run_one_year(accuracy: Accuracy = Accuracy.FAST, dt: float = 3600.0):
     mars = Mars()
     tc = TimeController(mars, dt=dt, accuracy=accuracy)
 
-    year_seconds = _v(MARS_ORBITAL_PERIOD)
-    n_sols = year_seconds / _v(MARS_ROTATION_PERIOD)
+    # Round to a whole number of sols so there is no partial last day.
+    # MARS_ORBITAL_PERIOD = 668.62 sols; a fractional last sol would produce a
+    # biased daily average that creates a spike in the seasonal temperature plot.
+    n_complete_sols = int(_v(MARS_ORBITAL_PERIOD) / _v(MARS_ROTATION_PERIOD))
+    year_seconds = n_complete_sols * _v(MARS_ROTATION_PERIOD)
+    n_sols = n_complete_sols
     print(f"\n{'─' * 60}")
-    print(f"  One Year  ({n_sols:.1f} sols)  —  {accuracy.value} mode, dt={dt:.0f} s")
+    print(f"  One Year  ({n_sols} sols)  —  {accuracy.value} mode, dt={dt:.0f} s")
     print(f"{'─' * 60}")
 
     step_count = [0]
@@ -207,7 +226,7 @@ def run_one_year(accuracy: Accuracy = Accuracy.FAST, dt: float = 3600.0):
             print(f"    ... {pct:5.1f}%  T={_v(state.thermal.surface_temperature):.2f} K  "
                   f"P={_v(state.atmosphere.surface_pressure):.2f} Pa")
 
-    history = tc.run(duration=MARS_ORBITAL_PERIOD, callback=progress)
+    history = tc.run(duration=year_seconds, callback=progress)
 
     temps = [_v(s.surface_temperature) for s in history]
     press = [_v(s.surface_pressure) for s in history]
@@ -297,9 +316,13 @@ def run_three_coordinates(accuracy: Accuracy = Accuracy.FAST, dt: float = 600.0)
     ]
 
     histories = {}
-    # Run for orbital period + 10 sols of spin-up
+    # Run for spin-up + an integer number of complete sols so the last daily
+    # average is never computed from a partial day.  MARS_ORBITAL_PERIOD is
+    # 668.62 sols; truncating to 668 complete sols avoids a biased partial-sol
+    # average that otherwise creates a temperature spike near Ls ≈ 256°.
     spin_up = 10 * _v(MARS_ROTATION_PERIOD)
-    total_duration = _v(MARS_ORBITAL_PERIOD) + spin_up
+    n_complete_sols = int(_v(MARS_ORBITAL_PERIOD) / _v(MARS_ROTATION_PERIOD))
+    total_duration = spin_up + n_complete_sols * _v(MARS_ROTATION_PERIOD)
     
     for pt in points:
         print(f"\n{'─' * 60}")
@@ -323,7 +346,7 @@ def run_three_coordinates(accuracy: Accuracy = Accuracy.FAST, dt: float = 600.0)
         safe_name = pt["name"].lower().replace(" ", "_")
         save_history_to_csv(history, f"668_sols/mars_{safe_name}_evolution.csv")
         plot_history(history, f"668_sols/mars_{safe_name}_evolution.png", f"Mars Evolution: {pt['name']}")
-        plot_seasonal_temps(history, f"668_sols/mars_{safe_name}_seasonal.png", f"Mars Seasonal: {pt['name']}")
+        plot_seasonal_temps(history, f"668_sols/mars_{safe_name}_seasonal.png", f"Mars Seasonal: {pt['name']}", spin_up_sols=10)
         
     plot_three_temperatures(histories, "668_sols/mars_three_coords_temps.png", "Temperature across Seasons at Three Coordinates (137°E)")
     return histories
