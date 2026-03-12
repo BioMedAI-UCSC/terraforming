@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import os
+from datetime import datetime, timezone
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -19,7 +20,8 @@ import numpy as np
 from src.celestials import Mars, MARS_ROTATION_PERIOD, MARS_ORBITAL_PERIOD
 from src.engine import Accuracy, TimeController
 
-from experiments.utils import _v, save_history_to_csv, plot_history, plot_seasonal_temps
+from experiments.utils import _v, save_history_to_csv, plot_history, plot_seasonal_temps, REMS_NOTE
+from experiments.rems_loader import load_daily
 
 POINTS = [
     {"name": "North",               "lat":  45.0, "lon": 137.0},
@@ -28,10 +30,11 @@ POINTS = [
 ]
 
 
-def plot_three_temperatures(histories: dict, filename: str, title: str):
+def plot_three_temperatures(histories: dict, filename: str, title: str,
+                            out_dir: str = "668_sols", ground: dict = None):
     """Plot daily-average seasonal temperature for three coordinates."""
     fig = plt.figure(figsize=(10, 6))
-    colors = {"North": "tab:blue", "Equator": "tab:red", "Southern Hemisphere": "tab:green"}
+    colors = {"North": "#1f77b4", "Equator": "#d62728", "Southern Hemisphere": "#2ca02c"}
 
     spin_up_seconds = 10 * _v(MARS_ROTATION_PERIOD)
 
@@ -41,7 +44,7 @@ def plot_three_temperatures(histories: dict, filename: str, title: str):
             continue
 
         times = np.array([_v(s.time) for s in history_filtered])
-        temps = np.array([_v(s.surface_temperature) for s in history_filtered]) - 273.15
+        temps = np.array([_v(s.surface_temperature) for s in history_filtered])
 
         ls_rad = np.array([_v(s.orbital_angle) for s in history_filtered]) + 251.0 * np.pi / 180.0
         ls = (ls_rad * 180 / np.pi) % 360.0
@@ -69,20 +72,29 @@ def plot_three_temperatures(histories: dict, filename: str, title: str):
         daily_ls  = np.array(daily_ls)[idx]
         daily_avg = np.array(daily_avg)[idx]
 
-        plt.plot(daily_ls, daily_avg, label=f"{name} Avg",
+        plt.plot(daily_ls, daily_avg, label=f"{name} (model avg)",
                  color=colors.get(name, "black"), linewidth=2)
 
-    plt.title(title)
-    plt.xlabel("Solar Longitude Ls (°)")
-    plt.ylabel("Temperature (°C)")
+    if ground is not None:
+        plt.fill_between(ground["ls"], ground["min_temp_K"], ground["max_temp_K"],
+                         alpha=0.18, color="#ff7f0e", label="REMS Min–Max band")
+        plt.plot(ground["ls"], ground["avg_temp_K"],
+                 color="#ff7f0e", linewidth=1.8, linestyle="-.",
+                 label="REMS Daily Avg (Gale Crater)")
+        plt.text(0.01, 0.02, REMS_NOTE, transform=plt.gca().transAxes,
+                 fontsize=8, color="#555555", va="bottom")
+
+    plt.title(title, fontsize=13, fontweight="bold")
+    plt.xlabel("Solar Longitude Ls (°)", fontsize=12)
+    plt.ylabel("Temperature (K)", fontsize=12)
     plt.xlim(0, 360)
     plt.xticks(np.arange(0, 361, 30))
-    plt.grid(True, alpha=0.3)
-    plt.legend()
+    plt.grid(True, alpha=0.4, linestyle="--")
+    plt.legend(fontsize=10, framealpha=0.9)
 
-    filepath = os.path.join("outputs", filename)
+    filepath = os.path.join("outputs", out_dir, filename)
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
-    plt.savefig(filepath)
+    plt.savefig(filepath, dpi=150)
     print(f"  Three-coordinate plot saved to {filepath}")
     plt.close(fig)
 
@@ -92,6 +104,8 @@ def run_three_coordinates(
     dt: float = 600.0,
     save: bool = True,
     plot: bool = True,
+    out_dir: str = "668_sols",
+    ground: dict = None,
 ):
     """Run simulations for three latitudes with spin-up and seasonal sampling."""
     spin_up = 10 * _v(MARS_ROTATION_PERIOD)
@@ -120,18 +134,22 @@ def run_three_coordinates(
 
         safe_name = pt["name"].lower().replace(" ", "_")
         if save:
-            save_history_to_csv(history, f"668_sols/mars_{safe_name}_evolution.csv")
+            save_history_to_csv(history, f"{out_dir}/mars_{safe_name}_evolution.csv")
         if plot:
-            plot_history(history, f"668_sols/mars_{safe_name}_evolution.png",
-                         f"Mars Evolution: {pt['name']}")
-            plot_seasonal_temps(history, f"668_sols/mars_{safe_name}_seasonal.png",
-                                f"Mars Seasonal: {pt['name']}", spin_up_sols=10)
+            lat_v = pt["lat"];  ns = "N" if lat_v >= 0 else "S"
+            plot_history(history, f"{out_dir}/mars_{safe_name}_evolution.png",
+                         f"Mars Evolution: {pt['name']}  ({abs(lat_v):.0f}°{ns}, {pt['lon']:.0f}°E)")
+            plot_seasonal_temps(history, f"{out_dir}/mars_{safe_name}_seasonal.png",
+                                f"Mars Seasonal: {pt['name']}  ({abs(lat_v):.0f}°{ns}, {pt['lon']:.0f}°E)",
+                                spin_up_sols=10, ground=ground)
 
     if plot:
         plot_three_temperatures(
             histories,
-            "668_sols/mars_three_coords_temps.png",
+            "mars_three_coords_temps.png",
             "Temperature across Seasons at Three Coordinates (137°E)",
+            out_dir=out_dir,
+            ground=ground,
         )
 
     return histories
@@ -143,18 +161,27 @@ def main():
                         help="Integration accuracy mode")
     parser.add_argument("--dt", type=float, default=600.0,
                         help="Timestep in seconds (default: 600)")
+    parser.add_argument("--name", default=None, metavar="NAME",
+                        help="Custom experiment name (default: UTC timestamp)")
     parser.add_argument("--no-save", action="store_true", help="Skip saving CSVs")
     parser.add_argument("--no-plot", action="store_true", help="Skip saving plots")
+    parser.add_argument("--ground", action="store_true",
+                        help="Overlay REMS Curiosity ground-truth data (Gale Crater)")
     args = parser.parse_args()
 
     accuracy = Accuracy.FAST if args.accuracy == "fast" else Accuracy.ACCURATE
-    os.makedirs("outputs/668_sols", exist_ok=True)
+    tag = args.name if args.name else datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    out_dir = os.path.join("coords", f"exp_{tag}")
+
+    ground = load_daily() if args.ground else None
 
     run_three_coordinates(
         accuracy=accuracy,
         dt=args.dt,
         save=not args.no_save,
         plot=not args.no_plot,
+        out_dir=out_dir,
+        ground=ground,
     )
 
 

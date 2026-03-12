@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import os
+from datetime import datetime, timezone
 
 from src.celestials import Mars, MARS_ROTATION_PERIOD, MARS_ORBITAL_PERIOD
 from src.engine import Accuracy, TimeController
@@ -58,22 +59,25 @@ def main():
                         help="Integration accuracy mode (default: accurate)")
     parser.add_argument("--dt", type=float, default=3600.0,
                         help="Timestep in seconds (default: 3600)")
+    parser.add_argument("--name", default=None, metavar="NAME",
+                        help="Custom experiment name (default: UTC timestamp)")
     parser.add_argument("--no-save", action="store_true", help="Skip saving CSV")
     parser.add_argument("--no-plot", action="store_true", help="Skip saving plots")
     parser.add_argument("--no-seasonal", action="store_true", help="Skip seasonal temperature plot")
     args = parser.parse_args()
 
     accuracy = Accuracy.FAST if args.accuracy == "fast" else Accuracy.ACCURATE
-    os.makedirs("outputs/668_sols", exist_ok=True)
+    tag = args.name if args.name else datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    out_dir = os.path.join("668_sols", f"exp_{tag}")
 
     history = run_one_year(accuracy=accuracy, dt=args.dt)
 
     if not args.no_save:
-        save_history_to_csv(history, "668_sols/mars_year_evolution.csv")
+        save_history_to_csv(history, f"{out_dir}/mars_year_evolution.csv")
     if not args.no_plot:
-        plot_history(history, "668_sols/mars_year_evolution.png", "Mars Evolution (1 Year)")
+        plot_history(history, f"{out_dir}/mars_year_evolution.png", "Mars Evolution (1 Year)")
     if not args.no_seasonal:
-        plot_seasonal_temps(history, "668_sols/mars_seasonal_temps.png",
+        plot_seasonal_temps(history, f"{out_dir}/mars_seasonal_temps.png",
                             "Mars Temps: ~90°C Swing Summer to Winter")
 
 

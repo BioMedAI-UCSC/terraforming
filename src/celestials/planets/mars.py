@@ -56,7 +56,7 @@ MARS_AXIAL_TILT: torch.Tensor        = _c(25.19 * 3.141592653589793 / 180.0)  # 
 # Physics constants calibrated to Mars observations
 MARS_LS_PERIHELION: torch.Tensor      = _c(251.0 * 3.141592653589793 / 180.0)  # rad  (Ls at perihelion; Ls=0° is N. spring equinox)
 MARS_SURFACE_EMISSIVITY: torch.Tensor = _c(0.95)                                # dimensionless  (near-blackbody in infrared)
-MARS_THERMAL_INERTIA: torch.Tensor    = _c(1.0e5)                               # J K⁻¹ m⁻²  (calibrated to REMS Sol 224, Gale Crater, https://en.wikipedia.org/wiki/Gale_(crater))
+MARS_THERMAL_INERTIA: torch.Tensor    = _c(2.0e4)                               # J K⁻¹ m⁻²  (loose dust/sand regolith; TI ≈ 120 J m⁻² K⁻¹ s⁻⁰·⁵, typical Mars surface)
 MARS_MAVEN_ESCAPE_RATE: torch.Tensor  = _c(0.2)                                 # kg s⁻¹  (non-thermal loss; Jakosky et al. 2018)
 MARS_CO2_FROST_POINT: torch.Tensor    = _c(149.0)                               # K  (CO₂ condensation point at ~610 Pa)
 MARS_CO2_LATENT_HEAT: torch.Tensor    = _c(5.7e5)                               # J kg⁻¹  (CO₂ sublimation latent heat)
@@ -209,9 +209,10 @@ class Mars(Planet):
         # We compute for a specific 1 km^2 patch (per unit area formulation)
         # Area A cancels out (1m^2 effective) for local patch heating/cooling.
         
-        # Hour angle h. t=0 is midnight -> h = -pi
+        # Hour angle h. t=0 is local midnight -> h = -pi (longitude sets no phase offset;
+        # in a single-column model only latitude changes seasonal insolation, not longitude).
         omega = _c(2.0) * PI / self.intrinsic_params.rotation_period
-        h = omega * s.elapsed_time - PI + self._init_longitude
+        h = omega * s.elapsed_time - PI
         
         # Latitude
         lat = self._init_latitude
@@ -331,11 +332,12 @@ class Mars(Planet):
         T_eq_base = (absorbed / (MARS_SURFACE_EMISSIVITY * STEFAN_BOLTZMANN)) ** 0.25
         T_eq = T_eq_base * s.thermal.greenhouse_factor
 
-        # Superimpose diurnal variation onto equilibrium temperature
-        # Amplitude decreases at high latitudes near winter
+        # Superimpose diurnal variation onto equilibrium temperature.
+        # -swing·cos(ω·t): minimum (cold) at t=0 (midnight), maximum (warm) at t=T_sol/2 (noon).
+        # Amplitude decreases at high latitudes near winter.
         swing = MARS_DIURNAL_SWING_AMP * torch.cos(lat)
         omega = _c(2.0) * PI / self.intrinsic_params.rotation_period
-        T_eq = T_eq - swing * torch.cos(omega * s.elapsed_time + self._init_longitude)
+        T_eq = T_eq - swing * torch.cos(omega * s.elapsed_time)
 
         # --- Step 2: Exponential relaxation ---
         T_cur = torch.maximum(s.thermal.surface_temperature, _c(1.0))
