@@ -144,7 +144,9 @@ class Planet(ABC):
         Equation (inverse-square law):
             F(d) = F₀ × (1 AU / d)²
 
-        Reference: https://en.wikipedia.org/wiki/Solar_irradiance
+        Reference: 
+        https://en.wikipedia.org/wiki/Solar_irradiance
+        https://en.wikipedia.org/wiki/Solar_constant
         """
         return SOLAR_CONSTANT_1AU * (AU_METRES / distance) ** 2
 
@@ -161,6 +163,12 @@ class Planet(ABC):
         """
         dt = torch.as_tensor(dt, dtype=TF_DTYPE)
         self.elapsed_time = self.elapsed_time + dt
+
+        """The approximation here: this treats orbital_angle as the true anomaly (actual angular position on the ellipse)
+        but advances it at the constant rate of the mean anomaly. In reality, the planet moves faster near perihelion
+        and slower near aphelion (Kepler's second law — equal areas in equal times). For Mars with e = 0.0934,
+        this introduces a phase error of up to ~±10° in solar longitude, shifting the timing of seasonal peaks by roughly 5–10 sols.
+        """
         self.orbital_angle = torch.remainder(
             self.orbital_angle
             + _c(2.0) * PI * dt / self.orbital_params.orbital_period,

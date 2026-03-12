@@ -37,5 +37,8 @@ STEFAN_BOLTZMANN: torch.Tensor   = _c(5.670374419e-8)     # W m⁻² K⁻⁴
 BOLTZMANN_K: torch.Tensor        = _c(1.380649e-23)       # J K⁻¹
 G_NEWTON: torch.Tensor           = _c(6.67430e-11)        # m³ kg⁻¹ s⁻²
 AU_METRES: torch.Tensor          = _c(1.49597870700e11)   # 1 AU in metres
+
+# 1.3608 ± 0.0005  kW/m2, which is 81.65 kJ/m2 per minute
 SOLAR_CONSTANT_1AU: torch.Tensor = _c(1361.0)             # W m⁻² at 1 AU
+
 PI: torch.Tensor                 = _c(3.141592653589793)   # π

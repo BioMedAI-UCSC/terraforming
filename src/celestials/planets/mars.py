@@ -89,6 +89,7 @@ class Mars(Planet):
         surface_temperature: float = 210.0,
         surface_pressure: float = 610.0,
         albedo: float = 0.25,
+        # Mars's CO₂ atmosphere is very thin (610 Pa vs Earth's 101,325 Pa — 166× thinner). Earth's greenhouse factor is ~1.33 (288K actual vs 255K effective
         greenhouse_factor: float = 1.02,
         composition: Optional[Dict[str, float]] = None,
         ice_mass: float = 5.0e15,
@@ -193,7 +194,10 @@ class Mars(Planet):
         P = torch.maximum(y[1], _c(0.0))
         M_ice = torch.maximum(y[2], _c(0.0))
 
+        # ==================================================================
         # --- dT/dt: energy balance ---
+        # ==================================================================
+        
         # We compute for a specific 1 km^2 patch (per unit area formulation)
         # Area A cancels out (1m^2 effective) for local patch heating/cooling.
         
@@ -234,7 +238,10 @@ class Mars(Planet):
 
         dT_dt = (Q_in - Q_out) / C_area
 
+        # ==================================================================
         # --- dM_ice/dt: Polar CO2 Sublimation & Condensation ---
+        # ==================================================================
+        
         # Using a phenomenological two-pole radiative balance instead of global T
         T_frost = _c(149.0)
         L_sub = _c(5.7e5) # Latent heat J/kg
@@ -259,7 +266,10 @@ class Mars(Planet):
             dMice_dt
         )
 
+        # ==================================================================
         # --- dP/dt: Jeans escape + mass exchange from ice caps ---
+        # ==================================================================
+
         m_co2 = _c(44.0 * 1.66054e-27)            # kg
         R_exo = self.intrinsic_params.radius + _c(200_000.0)        # m
         lam = G_NEWTON * self.intrinsic_params.mass * m_co2 / (BOLTZMANN_K * T * R_exo)
