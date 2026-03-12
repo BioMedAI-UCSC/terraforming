@@ -22,8 +22,6 @@ from src.constants import (
     TF_DTYPE,
     _c,
     AU_METRES,
-    BOLTZMANN_K,
-    G_NEWTON,
     PI,
     SOLAR_CONSTANT_1AU,
     STEFAN_BOLTZMANN,
@@ -53,7 +51,17 @@ MARS_ROTATION_PERIOD: torch.Tensor  = _c(88_775.244)            # s  (1 sol)
 MARS_SEMI_MAJOR_AXIS: torch.Tensor  = _c(2.27939200e11)         # m  (1.524 AU)
 MARS_ECCENTRICITY: torch.Tensor     = _c(0.0934)                # dimensionless
 MARS_ORBITAL_PERIOD: torch.Tensor   = _c(5.93568e7)             # s  (~687 d)
-MARS_AXIAL_TILT: torch.Tensor       = _c(25.19 * 3.141592653589793 / 180.0)  # rad
+MARS_AXIAL_TILT: torch.Tensor        = _c(25.19 * 3.141592653589793 / 180.0)  # rad
+
+# Physics constants calibrated to Mars observations
+MARS_LS_PERIHELION: torch.Tensor      = _c(251.0 * 3.141592653589793 / 180.0)  # rad  (Ls at perihelion; Ls=0° is N. spring equinox)
+MARS_SURFACE_EMISSIVITY: torch.Tensor = _c(0.95)                                # dimensionless  (near-blackbody in infrared)
+MARS_THERMAL_INERTIA: torch.Tensor    = _c(1.0e5)                               # J K⁻¹ m⁻²  (calibrated to REMS Sol 224, Gale Crater, https://en.wikipedia.org/wiki/Gale_(crater))
+MARS_MAVEN_ESCAPE_RATE: torch.Tensor  = _c(0.2)                                 # kg s⁻¹  (non-thermal loss; Jakosky et al. 2018)
+MARS_CO2_FROST_POINT: torch.Tensor    = _c(149.0)                               # K  (CO₂ condensation point at ~610 Pa)
+MARS_CO2_LATENT_HEAT: torch.Tensor    = _c(5.7e5)                               # J kg⁻¹  (CO₂ sublimation latent heat)
+MARS_POLAR_CAP_FRACTION: torch.Tensor = _c(0.03)                                # dimensionless  (each cap covers ~3% of surface)
+MARS_DIURNAL_SWING_AMP: torch.Tensor  = _c(50.0)                                # K  (empirical equatorial diurnal amplitude)
 
 # Default atmospheric composition (partial pressures in Pa, as torch.Tensor)
 MARS_DEFAULT_COMPOSITION: Dict[str, torch.Tensor] = {
@@ -210,31 +218,30 @@ class Mars(Planet):
         
         # True anomaly is s.orbital_angle (where 0 is perihelion).
         # Mars perihelion is at Ls ~ 251 degrees.
-        Ls_perihelion = _c(251.0) * PI / _c(180.0)
-        Ls = s.orbital_angle + Ls_perihelion
+        Ls = s.orbital_angle + MARS_LS_PERIHELION
         
         # Solar declination delta
         delta = torch.asin(torch.sin(self.orbital_params.axial_tilt) * torch.sin(Ls))
         
         # Diurnal incidence angle (cosine of zenith)
+        # Lambert's cosine law https://en.wikipedia.org/wiki/Lambert%27s_cosine_law
+        
         cos_zenith = torch.maximum(
             _c(0.0),
             torch.sin(lat) * torch.sin(delta) + torch.cos(lat) * torch.cos(delta) * torch.cos(h)
         )
-        
+
         # Q_in is Watts per m^2
         Q_in = (_c(1.0) - s.radiation.albedo) * s.radiation.solar_flux * cos_zenith
 
-        emissivity = _c(0.95)
         T_eff = T / torch.maximum(s.thermal.greenhouse_factor, _c(1.0))
-        
+
         # Q_out is Watts per m^2
-        Q_out = emissivity * STEFAN_BOLTZMANN * T_eff ** 4
+        Q_out = MARS_SURFACE_EMISSIVITY * STEFAN_BOLTZMANN * T_eff ** 4
 
         # Specific heat capacity C (J / K / m^2).
-        # Gale Crater (Curiosity) experiences higher diurnal swings. 
-        # C = 1.0e5 produces the exact ~205K to ~270K profile seen in the REMS Sol 224 data.
-        C_area = _c(1.0e5)
+        # Calibrated to REMS Sol 224, Gale Crater (~205K to ~270K diurnal swing).
+        C_area = MARS_THERMAL_INERTIA
 
         dT_dt = (Q_in - Q_out) / C_area
 
@@ -243,21 +250,18 @@ class Mars(Planet):
         # ==================================================================
         
         # Using a phenomenological two-pole radiative balance instead of global T
-        T_frost = _c(149.0)
-        L_sub = _c(5.7e5) # Latent heat J/kg
-        # Each polar cap covers ~3% of the planet's surface mathematically
-        A_cap_pole = _c(0.03) * _c(4.0) * PI * self.intrinsic_params.radius ** 2
-        
+        A_cap_pole = MARS_POLAR_CAP_FRACTION * _c(4.0) * PI * self.intrinsic_params.radius ** 2
+
         # Insolation at poles
         cos_zenith_N = torch.maximum(_c(0.0), torch.sin(delta))
         cos_zenith_S = torch.maximum(_c(0.0), -torch.sin(delta))
-        
+
         Q_in_N = (_c(1.0) - s.radiation.albedo) * s.radiation.solar_flux * cos_zenith_N
         Q_in_S = (_c(1.0) - s.radiation.albedo) * s.radiation.solar_flux * cos_zenith_S
-        Q_out_pole = _c(0.95) * STEFAN_BOLTZMANN * T_frost ** 4
-        
-        net_sub_N = (Q_in_N - Q_out_pole) * A_cap_pole / L_sub
-        net_sub_S = (Q_in_S - Q_out_pole) * A_cap_pole / L_sub
+        Q_out_pole = MARS_SURFACE_EMISSIVITY * STEFAN_BOLTZMANN * MARS_CO2_FROST_POINT ** 4
+
+        net_sub_N = (Q_in_N - Q_out_pole) * A_cap_pole / MARS_CO2_LATENT_HEAT
+        net_sub_S = (Q_in_S - Q_out_pole) * A_cap_pole / MARS_CO2_LATENT_HEAT
         
         dMice_dt = -(net_sub_N + net_sub_S) # negative means sublimating (ice drops)
         dMice_dt = torch.where(
@@ -267,24 +271,17 @@ class Mars(Planet):
         )
 
         # ==================================================================
-        # --- dP/dt: Jeans escape + mass exchange from ice caps ---
+        # --- dP/dt: Non-thermal escape + ice cap mass exchange ---
         # ==================================================================
-
-        m_co2 = _c(44.0 * 1.66054e-27)            # kg
-        R_exo = self.intrinsic_params.radius + _c(200_000.0)        # m
-        lam = G_NEWTON * self.intrinsic_params.mass * m_co2 / (BOLTZMANN_K * T * R_exo)
-        v_th = torch.sqrt(_c(2.0) * BOLTZMANN_K * T / m_co2)
-        n_exo = P / (BOLTZMANN_K * T)
-        escape_rate = (
-            _c(4.0) * PI * R_exo ** 2
-            * n_exo * m_co2 * v_th
-            * torch.exp(-lam)
-        )
         
+        # CO₂ Jeans (thermal) escape is physically negligible for Mars:
+        # the Jeans parameter λ≈299 gives exp(-λ)≈10⁻¹³⁰, which underflows
+        # to zero in any floating-point format. Mars loses atmosphere via
+        # non-thermal processes (solar wind sputtering, photochemical escape)
+        # represented by MARS_MAVEN_ESCAPE_RATE (Jakosky et al. 2018).
         A_planet = _c(4.0) * PI * self.intrinsic_params.radius ** 2
-        
-        # Loss to space is slow, but sublimation is fast
-        dP_dt = (-escape_rate * self.intrinsic_params.gravity / A_planet) + (-dMice_dt * self.intrinsic_params.gravity / A_planet)
+        dP_dt = (-MARS_MAVEN_ESCAPE_RATE * self.intrinsic_params.gravity / A_planet) \
+              + (-dMice_dt * self.intrinsic_params.gravity / A_planet)
 
         return torch.stack([dT_dt, dP_dt, dMice_dt])
 
@@ -318,8 +315,7 @@ class Mars(Planet):
         s = self
 
         # --- Step 1: Equilibrium temperature (Latitude-aware) ---
-        Ls_perihelion = _c(251.0) * PI / _c(180.0)
-        Ls = s.orbital_angle + Ls_perihelion
+        Ls = s.orbital_angle + MARS_LS_PERIHELION
         delta = torch.asin(torch.sin(self.orbital_params.axial_tilt) * torch.sin(Ls))
         lat = self._init_latitude
 
@@ -330,45 +326,41 @@ class Mars(Planet):
         insolation_factor = (h0 * torch.sin(lat) * torch.sin(delta) + torch.cos(lat) * torch.cos(delta) * torch.sin(h0)) / PI
         insolation_factor = torch.maximum(insolation_factor, _c(0.0))
 
-        emissivity = _c(0.95)
         absorbed = (_c(1.0) - s.radiation.albedo) * s.radiation.solar_flux * insolation_factor
-        # Denominator is just emissivity*sigma because insolation_factor already averages the source
-        T_eq_base = (absorbed / (emissivity * STEFAN_BOLTZMANN)) ** 0.25
+        # Denominator is just MARS_SURFACE_EMISSIVITY*sigma because insolation_factor already averages the source
+        T_eq_base = (absorbed / (MARS_SURFACE_EMISSIVITY * STEFAN_BOLTZMANN)) ** 0.25
         T_eq = T_eq_base * s.thermal.greenhouse_factor
-        
+
         # Superimpose diurnal variation onto equilibrium temperature
         # Amplitude decreases at high latitudes near winter
-        swing = _c(50.0) * torch.cos(lat)
+        swing = MARS_DIURNAL_SWING_AMP * torch.cos(lat)
         omega = _c(2.0) * PI / self.intrinsic_params.rotation_period
         T_eq = T_eq - swing * torch.cos(omega * s.elapsed_time + self._init_longitude)
 
         # --- Step 2: Exponential relaxation ---
         T_cur = torch.maximum(s.thermal.surface_temperature, _c(1.0))
         # Updated thermal inertia characteristic tau consistent with ODE formulation
-        tau = _c(1.0e5) / (_c(4.0) * emissivity * STEFAN_BOLTZMANN * T_cur ** 3)
+        tau = MARS_THERMAL_INERTIA / (_c(4.0) * MARS_SURFACE_EMISSIVITY * STEFAN_BOLTZMANN * T_cur ** 3)
         tau = torch.maximum(tau, _c(1.0))
         s.thermal.surface_temperature = T_eq + (T_cur - T_eq) * torch.exp(-dt / tau)
         s.thermal.surface_temperature = torch.maximum(s.thermal.surface_temperature, _c(1.0))
 
         # --- Step 3: Ice budget (Polar CO2 Sublimation & Condensation) ---
         # Recalculate Ls and delta since they are local to the function
-        Ls_perihelion = _c(251.0) * PI / _c(180.0)
-        Ls = s.orbital_angle + Ls_perihelion
+        Ls = s.orbital_angle + MARS_LS_PERIHELION
         delta = torch.asin(torch.sin(self.orbital_params.axial_tilt) * torch.sin(Ls))
-        
-        T_frost = _c(149.0)
-        L_sub = _c(5.7e5)
-        A_cap_pole = _c(0.03) * _c(4.0) * PI * self.intrinsic_params.radius ** 2
-        
+
+        A_cap_pole = MARS_POLAR_CAP_FRACTION * _c(4.0) * PI * self.intrinsic_params.radius ** 2
+
         cos_zenith_N = torch.maximum(_c(0.0), torch.sin(delta))
         cos_zenith_S = torch.maximum(_c(0.0), -torch.sin(delta))
-        
+
         Q_in_N = (_c(1.0) - s.radiation.albedo) * s.radiation.solar_flux * cos_zenith_N
         Q_in_S = (_c(1.0) - s.radiation.albedo) * s.radiation.solar_flux * cos_zenith_S
-        Q_out_pole = _c(0.95) * STEFAN_BOLTZMANN * T_frost ** 4
-        
-        net_sub_N = (Q_in_N - Q_out_pole) * A_cap_pole / L_sub
-        net_sub_S = (Q_in_S - Q_out_pole) * A_cap_pole / L_sub
+        Q_out_pole = MARS_SURFACE_EMISSIVITY * STEFAN_BOLTZMANN * MARS_CO2_FROST_POINT ** 4
+
+        net_sub_N = (Q_in_N - Q_out_pole) * A_cap_pole / MARS_CO2_LATENT_HEAT
+        net_sub_S = (Q_in_S - Q_out_pole) * A_cap_pole / MARS_CO2_LATENT_HEAT
         
         dMice = -(net_sub_N + net_sub_S) * dt
         dMice = torch.where(
@@ -378,19 +370,10 @@ class Mars(Planet):
         )
         s.water.ice_mass = torch.maximum(s.water.ice_mass + dMice, _c(0.0))
 
-        # --- Step 4: Pressure (Jeans escape + Mass exchange) ---
-        m_co2 = _c(44.0 * 1.66054e-27)
-        R_exo = self.intrinsic_params.radius + _c(200_000.0)
-        T = s.thermal.surface_temperature
-        lam = G_NEWTON * self.intrinsic_params.mass * m_co2 / (BOLTZMANN_K * T * R_exo)
-        v_th = torch.sqrt(_c(2.0) * BOLTZMANN_K * T / m_co2)
-        n_exo = s.atmosphere.surface_pressure / (BOLTZMANN_K * T)
-        escape_rate = (
-            _c(4.0) * PI * R_exo ** 2 * n_exo * m_co2 * v_th
-            * torch.exp(-lam)
-        )
+        # --- Step 4: Pressure (non-thermal escape + ice mass exchange) ---
+        # MARS_MAVEN_ESCAPE_RATE: empirical non-thermal loss (Jakosky et al. 2018).
         A_planet = _c(4.0) * PI * self.intrinsic_params.radius ** 2
-        dP_escape = -escape_rate * self.intrinsic_params.gravity / A_planet * dt
+        dP_escape = -MARS_MAVEN_ESCAPE_RATE * self.intrinsic_params.gravity / A_planet * dt
         dP_sublimation = -dMice * self.intrinsic_params.gravity / A_planet
         
         s.atmosphere.surface_pressure = torch.maximum(s.atmosphere.surface_pressure + dP_escape + dP_sublimation, _c(0.0))
