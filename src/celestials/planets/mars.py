@@ -56,12 +56,18 @@ MARS_AXIAL_TILT: torch.Tensor        = _c(25.19 * 3.141592653589793 / 180.0)  # 
 # Physics constants calibrated to Mars observations
 MARS_LS_PERIHELION: torch.Tensor      = _c(251.0 * 3.141592653589793 / 180.0)  # rad  (Ls at perihelion; Ls=0° is N. spring equinox)
 MARS_SURFACE_EMISSIVITY: torch.Tensor = _c(0.95)                                # dimensionless  (near-blackbody in infrared)
-MARS_THERMAL_INERTIA: torch.Tensor    = _c(2.0e4)                               # J K⁻¹ m⁻²  (loose dust/sand regolith; TI ≈ 120 J m⁻² K⁻¹ s⁻⁰·⁵, typical Mars surface)
+MARS_THERMAL_INERTIA: torch.Tensor    = _c(6.0e4)                               # J K⁻¹ m⁻²  (Gale Crater rocky/sandy regolith; THEMIS/TES measured TI ≈ 200–350 TIU → C ≈ 5–9×10⁴ J m⁻² K⁻¹)
 MARS_MAVEN_ESCAPE_RATE: torch.Tensor  = _c(0.2)                                 # kg s⁻¹  (non-thermal loss; Jakosky et al. 2018)
 MARS_CO2_FROST_POINT: torch.Tensor    = _c(149.0)                               # K  (CO₂ condensation point at ~610 Pa)
 MARS_CO2_LATENT_HEAT: torch.Tensor    = _c(5.7e5)                               # J kg⁻¹  (CO₂ sublimation latent heat)
-MARS_POLAR_CAP_FRACTION: torch.Tensor = _c(0.03)                                # dimensionless  (each cap covers ~3% of surface)
+MARS_POLAR_CAP_FRACTION: torch.Tensor = _c(0.01)                                # dimensionless  (effective sublimating area; ~1% gives ~5e8 kg/s peak, matching seasonal CO₂ cycle)
 MARS_DIURNAL_SWING_AMP: torch.Tensor  = _c(50.0)                                # K  (empirical equatorial diurnal amplitude)
+# Thermal tide: empirical diurnal pressure oscillation (~40-50 Pa at Gale Crater).
+# Driven by global atmospheric heating/cooling — cannot emerge from a 1D column model,
+# so parameterised here as P_tide = A × cos(ω·t + φ).
+# Phase φ = -0.7π puts maximum at ~08:30 LMST, minimum at ~20:30 LMST (matches REMS Sol 224).
+MARS_THERMAL_TIDE_PA: torch.Tensor    = _c(30.0)                                # Pa  (half-amplitude of diurnal pressure oscillation)
+MARS_THERMAL_TIDE_PHASE: torch.Tensor = _c(-0.7 * 3.141592653589793)            # rad (phase offset)
 
 # Default atmospheric composition (partial pressures in Pa, as torch.Tensor)
 MARS_DEFAULT_COMPOSITION: Dict[str, torch.Tensor] = {
@@ -103,6 +109,8 @@ class Mars(Planet):
         ice_mass: float = 5.0e15,
         latitude: float = 22.0,
         longitude: float = 0.0,
+        elevation_m: float = 0.0,
+        initial_ls_deg: float = 251.0,
     ) -> None:
         self.intrinsic_params = IntrinsicParameters(
             mass=MARS_MASS,
@@ -118,14 +126,25 @@ class Mars(Planet):
             axial_tilt=MARS_AXIAL_TILT,
         )
 
+        # Hydrostatic elevation correction: P = P_ref * exp(-z / H)
+        # Mars CO₂ scale height H ≈ 11.1 km at mean surface temperature.
+        # Negative elevation_m (below datum) raises pressure; positive lowers it.
+        import math
+        MARS_SCALE_HEIGHT_M = 11_100.0
+        corrected_pressure = surface_pressure * math.exp(-elevation_m / MARS_SCALE_HEIGHT_M)
+
         # Store initial-condition overrides (convert to tensors)
         self._init_temperature = _c(surface_temperature)
-        self._init_pressure = _c(surface_pressure)
+        self._init_pressure = _c(corrected_pressure)
         self._init_albedo = _c(albedo)
         self._init_greenhouse = _c(greenhouse_factor)
         self._init_ice_mass = _c(ice_mass)
         self._init_latitude = _c(latitude) * PI / _c(180.0)
         self._init_longitude = _c(longitude) * PI / _c(180.0)
+        # orbital_angle = 0 is perihelion; Ls = orbital_angle + Ls_perihelion
+        # → orbital_angle = Ls - Ls_perihelion
+        import math as _math
+        self._init_orbital_angle = _c((initial_ls_deg - 251.0) * _math.pi / 180.0)
 
         # Composition: accept raw floats from user, convert to tensors
         if composition is not None:
@@ -156,8 +175,24 @@ class Mars(Planet):
             surface_temperature=self._init_temperature.clone(),
             greenhouse_factor=self._init_greenhouse.clone(),
         )
+        # Split ice between poles based on season at initial Ls.
+        # North seasonal cap fully depletes each northern summer (Ls 0–180°).
+        # South cap retains CO₂ year-round (permanent residual cap).
+        import math as _math
+        _ls_deg = float(self._init_orbital_angle.item()) * 180.0 / _math.pi + 251.0
+        _ls_deg = _ls_deg % 360.0
+        if 0.0 <= _ls_deg < 180.0:
+            # Northern summer: north CO₂ cap already fully sublimated
+            _f_north = 0.0
+        else:
+            # Northern winter: north cap holds ~40% of total seasonal ice;
+            # fraction grows linearly from 0 (Ls=180°) to 0.4 (Ls=360°).
+            _f_north = 0.4 * (_ls_deg - 180.0) / 180.0
+        _f_south = 1.0 - _f_north
         self.water = Water(
             ice_mass=self._init_ice_mass.clone(),
+            ice_mass_north=self._init_ice_mass * _c(_f_north),
+            ice_mass_south=self._init_ice_mass * _c(_f_south),
             liquid_mass=_c(0.0),
             vapour_mass=_c(1.0e13),
         )
@@ -169,7 +204,7 @@ class Mars(Planet):
             magnetic_field_strength=_c(5.0e-9),  # T  (weak crustal remnants)
         )
         self.elapsed_time = _c(0.0)
-        self.orbital_angle = _c(0.0)
+        self.orbital_angle = self._init_orbital_angle.clone()
 
     # ==================================================================
     # PHYSICS: Coupled ODE derivatives  (used by engine's RK4 integrator)
@@ -263,13 +298,18 @@ class Mars(Planet):
 
         net_sub_N = (Q_in_N - Q_out_pole) * A_cap_pole / MARS_CO2_LATENT_HEAT
         net_sub_S = (Q_in_S - Q_out_pole) * A_cap_pole / MARS_CO2_LATENT_HEAT
-        
-        dMice_dt = -(net_sub_N + net_sub_S) # negative means sublimating (ice drops)
-        dMice_dt = torch.where(
-            (M_ice <= _c(0.0)) & (dMice_dt < _c(0.0)),
-            _c(0.0),
-            dMice_dt
+
+        # Gate each pole on its own CO₂ reservoir: sublimation (net > 0) is
+        # blocked when that pole's ice is exhausted; condensation always allowed.
+        dMice_N = -net_sub_N
+        dMice_S = -net_sub_S
+        dMice_N = torch.where(
+            (s.water.ice_mass_north <= _c(0.0)) & (dMice_N < _c(0.0)), _c(0.0), dMice_N
         )
+        dMice_S = torch.where(
+            (s.water.ice_mass_south <= _c(0.0)) & (dMice_S < _c(0.0)), _c(0.0), dMice_S
+        )
+        dMice_dt = dMice_N + dMice_S
 
         # ==================================================================
         # --- dP/dt: Non-thermal escape + ice cap mass exchange ---
@@ -283,6 +323,11 @@ class Mars(Planet):
         A_planet = _c(4.0) * PI * self.intrinsic_params.radius ** 2
         dP_dt = (-MARS_MAVEN_ESCAPE_RATE * self.intrinsic_params.gravity / A_planet) \
               + (-dMice_dt * self.intrinsic_params.gravity / A_planet)
+
+        # Thermal tide: dP_tide/dt = -A × ω × sin(ω·t + φ)
+        # This is the time-derivative of A × cos(ω·t + φ), producing a zero-mean
+        # diurnal oscillation that does not affect the secular pressure trend.
+        dP_dt = dP_dt - MARS_THERMAL_TIDE_PA * omega * torch.sin(omega * s.elapsed_time + MARS_THERMAL_TIDE_PHASE)
 
         return torch.stack([dT_dt, dP_dt, dMice_dt])
 
@@ -363,19 +408,30 @@ class Mars(Planet):
 
         net_sub_N = (Q_in_N - Q_out_pole) * A_cap_pole / MARS_CO2_LATENT_HEAT
         net_sub_S = (Q_in_S - Q_out_pole) * A_cap_pole / MARS_CO2_LATENT_HEAT
-        
-        dMice = -(net_sub_N + net_sub_S) * dt
-        dMice = torch.where(
-            (s.water.ice_mass <= _c(0.0)) & (dMice < _c(0.0)),
-            _c(0.0),
-            dMice
+
+        dMice_N = -net_sub_N * dt
+        dMice_S = -net_sub_S * dt
+        dMice_N = torch.where(
+            (s.water.ice_mass_north <= _c(0.0)) & (dMice_N < _c(0.0)), _c(0.0), dMice_N
         )
-        s.water.ice_mass = torch.maximum(s.water.ice_mass + dMice, _c(0.0))
+        dMice_S = torch.where(
+            (s.water.ice_mass_south <= _c(0.0)) & (dMice_S < _c(0.0)), _c(0.0), dMice_S
+        )
+        dMice = dMice_N + dMice_S
+        s.water.ice_mass_north = torch.maximum(s.water.ice_mass_north + dMice_N, _c(0.0))
+        s.water.ice_mass_south = torch.maximum(s.water.ice_mass_south + dMice_S, _c(0.0))
+        s.water.ice_mass = s.water.ice_mass_north + s.water.ice_mass_south
 
         # --- Step 4: Pressure (non-thermal escape + ice mass exchange) ---
         # MARS_MAVEN_ESCAPE_RATE: empirical non-thermal loss (Jakosky et al. 2018).
         A_planet = _c(4.0) * PI * self.intrinsic_params.radius ** 2
         dP_escape = -MARS_MAVEN_ESCAPE_RATE * self.intrinsic_params.gravity / A_planet * dt
         dP_sublimation = -dMice * self.intrinsic_params.gravity / A_planet
-        
-        s.atmosphere.surface_pressure = torch.maximum(s.atmosphere.surface_pressure + dP_escape + dP_sublimation, _c(0.0))
+
+        # Thermal tide contribution (zero mean over one sol)
+        omega = _c(2.0) * PI / self.intrinsic_params.rotation_period
+        dP_tide = -MARS_THERMAL_TIDE_PA * omega * torch.sin(omega * s.elapsed_time + MARS_THERMAL_TIDE_PHASE) * dt
+
+        s.atmosphere.surface_pressure = torch.maximum(
+            s.atmosphere.surface_pressure + dP_escape + dP_sublimation + dP_tide, _c(0.0)
+        )

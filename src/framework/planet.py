@@ -133,7 +133,18 @@ class Planet(ABC):
         """
         self.thermal.surface_temperature = torch.maximum(y[0], _c(1.0))
         self.atmosphere.surface_pressure = torch.maximum(y[1], _c(0.0))
-        self.water.ice_mass              = torch.maximum(y[2], _c(0.0))
+        new_total = torch.maximum(y[2], _c(0.0))
+        # Apportion change between north/south reservoirs proportionally
+        old_total = self.water.ice_mass_north + self.water.ice_mass_south
+        if old_total > _c(0.0):
+            f_n = self.water.ice_mass_north / old_total
+            f_s = self.water.ice_mass_south / old_total
+        else:
+            f_n = _c(0.5)
+            f_s = _c(0.5)
+        self.water.ice_mass_north = torch.maximum(new_total * f_n, _c(0.0))
+        self.water.ice_mass_south = torch.maximum(new_total * f_s, _c(0.0))
+        self.water.ice_mass       = new_total
 
     # ------------------------------------------------------------------
     # Shared helpers available to every planet

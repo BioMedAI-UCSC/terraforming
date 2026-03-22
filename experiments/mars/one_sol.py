@@ -37,9 +37,13 @@ def run_sols(
     n_sols: float = 1.0,
     lat: float = 22.0,
     lon: float = 137.0,
+    elevation_m: float = 0.0,
+    initial_ls_deg: float = 251.0,
+    ice_mass: float = 5.0e15,
 ) -> list:
     """Evolve Mars for n_sols and print summary statistics."""
-    mars = Mars(latitude=lat, longitude=lon)
+    mars = Mars(latitude=lat, longitude=lon, elevation_m=elevation_m,
+                initial_ls_deg=initial_ls_deg, ice_mass=ice_mass)
     tc = TimeController(mars, dt=dt, accuracy=accuracy)
 
     duration = n_sols * _v(MARS_ROTATION_PERIOD)
@@ -134,6 +138,12 @@ def main():
                         help="Latitude in degrees N (default: 22.0; ignored with --multi-coord)")
     parser.add_argument("--lon", type=float, default=137.0,
                         help="Longitude in degrees E (default: 137.0; ignored with --multi-coord)")
+    parser.add_argument("--elevation", type=float, default=0.0,
+                        help="Surface elevation in metres relative to Mars datum (negative = below datum; e.g. Gale Crater = -4500)")
+    parser.add_argument("--ls", type=float, default=251.0,
+                        help="Initial Solar Longitude in degrees (default: 251 = perihelion; REMS Sol 224 ≈ Ls 148)")
+    parser.add_argument("--ice-mass", type=float, default=5.0e15,
+                        help="Initial total CO₂ ice mass in kg (default: 5e15; increase to slow seasonal pressure changes)")
     parser.add_argument("--multi-coord", action="store_true",
                         help="Run at North (45°N), Equator (0°), and S. Hemisphere (-40°N) at 137°E")
     parser.add_argument("--name", default=None, metavar="NAME",
@@ -181,7 +191,8 @@ def main():
     else:
         history = run_sols(
             accuracy=accuracy, dt=args.dt, n_sols=args.sols,
-            lat=args.lat, lon=args.lon,
+            lat=args.lat, lon=args.lon, elevation_m=args.elevation,
+            initial_ls_deg=args.ls, ice_mass=args.ice_mass,
         )
         if not args.no_save:
             save_history_to_csv(history, f"{out_dir}/mars_sol_evolution.csv")
