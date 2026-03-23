@@ -1,0 +1,28 @@
+preset:
+  name: terraforming-phase1
+  description: "Terraforming Phase 1 — post-CO2 sublimation release: 5 kPa, 240 K"
+
+planet:
+  surface_temperature: 240.0   # K — warmer from initial greenhouse heating
+  surface_pressure: 5000.0     # Pa — ~8x current (CO2 outgassing from polar caps)
+  albedo: 0.22                 # slightly lower — warming reduces polar albedo
+  greenhouse_factor: 1.08      # enhanced greenhouse from denser CO2
+  ice_mass: 2.0e15             # kg — depleted polar ice (released to atmosphere)
+  latitude: 22.0               # degrees N
+  longitude: 0.0
+  elevation_m: 0.0
+  initial_ls_deg: 251.0        # perihelion start
+
+engine:
+  dt: 3600.0
+  accuracy: fast
+
+experiment:
+  type: year
+  sols: 668.0
+
+output:
+  save_csv: true
+  save_plot: true
+  ground_truth: false
+  out_dir: null

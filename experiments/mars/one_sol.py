@@ -141,7 +141,7 @@ def main():
     parser.add_argument("--elevation", type=float, default=0.0,
                         help="Surface elevation in metres relative to Mars datum (negative = below datum; e.g. Gale Crater = -4500)")
     parser.add_argument("--ls", type=float, default=251.0,
-                        help="Initial Solar Longitude in degrees (default: 251 = perihelion; REMS Sol 224 ≈ Ls 148)")
+                        help="Initial Solar Longitude in degrees (default: 251 = perihelion; REMS Sol 224 = Ls 287)")
     parser.add_argument("--ice-mass", type=float, default=5.0e15,
                         help="Initial total CO₂ ice mass in kg (default: 5e15; increase to slow seasonal pressure changes)")
     parser.add_argument("--multi-coord", action="store_true",

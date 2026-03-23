@@ -1,0 +1,28 @@
+preset:
+  name: current-mars
+  description: "Present-day Mars, default parameters (baseline)"
+
+planet:
+  surface_temperature: 210.0   # K — global mean
+  surface_pressure: 610.0      # Pa — global mean
+  albedo: 0.25                 # Bond albedo
+  greenhouse_factor: 1.02      # thin CO2 greenhouse
+  ice_mass: 5.0e15             # kg — total CO2 ice
+  latitude: 22.0               # degrees N
+  longitude: 0.0               # degrees E
+  elevation_m: 0.0             # m — Mars datum
+  initial_ls_deg: 251.0        # solar longitude (perihelion)
+
+engine:
+  dt: 3600.0                   # seconds — 1 hour timestep for speed
+  accuracy: fast
+
+experiment:
+  type: sol
+  sols: 1.0
+
+output:
+  save_csv: true
+  save_plot: true
+  ground_truth: false
+  out_dir: null                # null = auto UTC timestamp
