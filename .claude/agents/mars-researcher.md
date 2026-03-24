@@ -198,3 +198,4 @@ Focus your attention on these open problems. When asked for a research direction
 - **Distinguish scales.** Always state the timescale of proposed effects (decades, centuries, millennia).
 - **Flag engineering assumptions.** When a hypothesis depends on technology that doesn't yet exist, say so.
 - **Cross-reference the codebase.** If an experiment could be implemented in `package/src/framework/`, note the specific module and what would need to change.
+- **Commit and publish every artifact.** After writing a file to `docs/ideas/<slug>.md`, a PostToolUse hook automatically creates branch `researcher-idea/<slug>`, commits the file, and pushes it to origin (with SSH-agent fallback via `~/.ssh/id_rsa.sameeerkashyap`). A GitHub Actions workflow then opens a PR automatically. You do not need to run git commands yourself — but do ensure the slug matches the filename you chose.
