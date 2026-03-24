@@ -1,6 +1,6 @@
 """Standalone output — CSV serialisation and matplotlib plots.
 
-No dependency on experiments/.  All serialisation and plotting logic lives here.
+Receives SimConfig and RunResult objects; no dependency on experiments/.
 """
 
 from __future__ import annotations
@@ -8,12 +8,12 @@ from __future__ import annotations
 import csv
 import os
 from datetime import datetime, timezone
-from typing import Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
 
-from cli.runner import RunResult, MULTI_POINTS
+from cli.models import ExpType, SimConfig
+from cli.runner import RunResult
 from src.celestials import MARS_ROTATION_PERIOD
 
 _SOL_SECONDS = float(MARS_ROTATION_PERIOD.item())
@@ -24,20 +24,16 @@ def _v(t) -> float:
     return float(t.item())
 
 
-def _tag(out_cfg: dict) -> str:
-    name = out_cfg.get("out_dir")
-    return name if name else datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+def _out_dir(cfg: SimConfig) -> str:
+    if cfg.output.output_path:
+        return cfg.output.output_path
+    tag = cfg.output.out_dir or datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    return os.path.join("outputs", tag)
 
 
-def _ensure(path: str) -> str:
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    return path
-
-
-# ── CSV ───────────────────────────────────────────────────────────────────────
+# ── CSV ────────────────────────────────────────────────────────────────────────
 
 def save_csv(result: RunResult, filepath: str) -> None:
-    """Write a RunResult's history to CSV."""
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     with open(filepath, "w", newline="") as f:
         w = csv.writer(f)
@@ -55,35 +51,28 @@ def save_csv(result: RunResult, filepath: str) -> None:
     print(f"  CSV  → {filepath}")
 
 
-# ── Diurnal / multi-sol plot ──────────────────────────────────────────────────
+# ── Diurnal / multi-sol plot ───────────────────────────────────────────────────
 
 def plot_diurnal(result: RunResult, filepath: str, title: str) -> None:
-    """Three-panel plot: temperature, pressure, ice mass vs time."""
-    history = result.history
-    max_t   = max(_v(s.time) for s in history)
+    history  = result.history
+    max_t    = max(_v(s.time) for s in history)
     use_sols = max_t > 3 * _SOL_SECONDS
 
-    if use_sols:
-        xs     = [_v(s.time) / _SOL_SECONDS for s in history]
-        xlabel = "Time (sols)"
-    else:
-        xs     = [_v(s.time) / _SOL_SECONDS * 360.0 for s in history]
-        xlabel = "Rotation angle (°)"
+    xs     = ([_v(s.time) / _SOL_SECONDS          for s in history] if use_sols
+              else [_v(s.time) / _SOL_SECONDS * 360.0 for s in history])
+    xlabel = "Time (sols)" if use_sols else "Rotation angle (°)"
 
-    temps  = [_v(s.surface_temperature) for s in history]
-    press  = [_v(s.surface_pressure)    for s in history]
-    ice    = [_v(s.ice_mass)            for s in history]
+    temps = [_v(s.surface_temperature) for s in history]
+    press = [_v(s.surface_pressure)    for s in history]
+    ice   = [_v(s.ice_mass)            for s in history]
+    lw    = max(0.8, 2.0 - 1.2 * min(len(xs) / 2000, 1.0))
 
-    lw = max(0.8, 2.0 - 1.2 * min(len(xs) / 2000, 1.0))
-
-    panels = [
+    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+    for ys, ylabel, color, tag in [
         (temps, "Temperature (K)",  "#d62728", "temp"),
         (press, "Pressure (Pa)",    "#1f77b4", "pressure"),
         (ice,   "Ice Mass (kg)",    "#2ca02c", "ice"),
-    ]
-
-    os.makedirs(os.path.dirname(filepath), exist_ok=True)
-    for ys, ylabel, color, tag in panels:
+    ]:
         fig = plt.figure(figsize=(10, 4))
         plt.plot(xs, ys, color=color, linewidth=lw)
         plt.xlabel(xlabel, fontsize=12)
@@ -97,28 +86,24 @@ def plot_diurnal(result: RunResult, filepath: str, title: str) -> None:
         print(f"  Plot → {out}")
 
 
-# ── Multi-coordinate temperature overlay ─────────────────────────────────────
+# ── Multi-coordinate overlay ───────────────────────────────────────────────────
 
 def plot_multi_coord(results: list[RunResult], filepath: str, title: str) -> None:
-    """Single figure overlaying temperature traces for all coordinates."""
     colors = {
         "North":               "#1f77b4",
         "Equator":             "#d62728",
         "Southern Hemisphere": "#2ca02c",
     }
-
     fig, ax = plt.subplots(figsize=(12, 6))
-
     for res in results:
-        times_h = np.array([_v(s.time) / 3600.0 for s in res.history])
-        temps   = np.array([_v(s.surface_temperature) for s in res.history])
+        times_h = np.array([_v(s.time) / 3600.0          for s in res.history])
+        temps   = np.array([_v(s.surface_temperature)     for s in res.history])
         lw      = max(1.0, 2.0 - 1.0 * min(len(times_h) / 2000, 1.0))
         ns      = "N" if res.lat >= 0 else "S"
         label   = f"{res.name}  ({abs(res.lat):.0f}°{ns}, {res.lon:.0f}°E)"
         ax.plot(times_h, temps, label=label,
                 color=colors.get(res.name, "#555555"), linewidth=lw)
 
-    # Vertical sol boundaries
     max_h = max(_v(r.history[-1].time) for r in results) / 3600.0
     for i in range(1, int(max_h / _SOL_HOURS) + 1):
         ax.axvline(i * _SOL_HOURS, color="#888", linewidth=0.7, linestyle="--", alpha=0.5)
@@ -136,21 +121,20 @@ def plot_multi_coord(results: list[RunResult], filepath: str, title: str) -> Non
     print(f"  Plot → {filepath}")
 
 
-# ── Seasonal temperature plot (year runs) ─────────────────────────────────────
+# ── Seasonal plot (year runs) ──────────────────────────────────────────────────
 
 def plot_seasonal(result: RunResult, filepath: str, title: str,
                   spin_up_sols: int = 10) -> None:
-    """Daily min/max/avg temperature vs Solar Longitude (Ls)."""
-    history    = result.history
-    spin_up_s  = spin_up_sols * _SOL_SECONDS
+    history   = result.history
+    spin_up_s = spin_up_sols * _SOL_SECONDS
 
-    times = np.array([_v(s.time) for s in history])
-    temps = np.array([_v(s.surface_temperature) for s in history])
-    ls_rad = np.array([_v(s.orbital_angle) for s in history]) + 251.0 * np.pi / 180.0
-    ls = (ls_rad * 180.0 / np.pi) % 360.0
-    sols = times // _SOL_SECONDS
+    times  = np.array([_v(s.time)             for s in history])
+    temps  = np.array([_v(s.surface_temperature) for s in history])
+    ls_rad = np.array([_v(s.orbital_angle)     for s in history]) + 251.0 * np.pi / 180.0
+    ls     = (ls_rad * 180.0 / np.pi) % 360.0
+    sols   = times // _SOL_SECONDS
 
-    counts = np.array([np.sum(sols == s) for s in np.unique(sols)])
+    counts    = np.array([np.sum(sols == s) for s in np.unique(sols)])
     min_steps = max(10, int(0.8 * int(np.median(counts))))
 
     daily_ls, daily_max, daily_min, daily_avg = [], [], [], []
@@ -167,7 +151,7 @@ def plot_seasonal(result: RunResult, filepath: str, title: str,
         daily_min.append(float(np.min(t_day)))
         daily_avg.append(float(np.mean(t_day)))
 
-    idx = np.argsort(daily_ls)
+    idx     = np.argsort(daily_ls)
     ls_arr  = np.array(daily_ls)[idx]
     mx_arr  = np.array(daily_max)[idx]
     mn_arr  = np.array(daily_min)[idx]
@@ -193,52 +177,49 @@ def plot_seasonal(result: RunResult, filepath: str, title: str,
     print(f"  Plot → {filepath}")
 
 
-# ── Dispatch ──────────────────────────────────────────────────────────────────
+# ── Dispatch ───────────────────────────────────────────────────────────────────
 
-def dispatch(results: list[RunResult], cfg: dict, exp_type: str) -> None:
+def dispatch(results: list[RunResult], cfg: SimConfig) -> None:
     """Save all outputs for a completed simulation."""
-    out_cfg = cfg["output"]
-    if not out_cfg["save_csv"] and not out_cfg["save_plot"]:
+    o = cfg.output
+    if not o.save_csv and not o.save_plot:
         return
 
-    if out_cfg.get("output_path"):
-        out_dir = out_cfg["output_path"]
-    else:
-        out_dir = os.path.join("outputs", _tag(out_cfg))
+    out_dir = _out_dir(cfg)
+    p       = cfg.planet
+    ns      = "N" if p.latitude >= 0 else "S"
+    loc     = f"{abs(p.latitude):.1f}°{ns}, {p.longitude:.1f}°E"
+    exp     = cfg.experiment.type
 
-    p   = cfg["planet"]
-    ns  = "N" if p["latitude"] >= 0 else "S"
-    loc = f"{abs(p['latitude']):.1f}°{ns}, {p['longitude']:.1f}°E"
-
-    if exp_type == "sol":
+    if exp == ExpType.sol:
         r     = results[0]
-        sols  = cfg["experiment"]["sols"]
-        title = f"Mars — {sols:.0f} sol{'s' if sols!=1 else ''}  ({loc})"
-        if out_cfg["save_csv"]:
+        sols  = cfg.experiment.sols
+        title = f"Mars — {sols:.0f} sol{'s' if sols != 1 else ''}  ({loc})"
+        if o.save_csv:
             save_csv(r, os.path.join(out_dir, "mars_sol.csv"))
-        if out_cfg["save_plot"]:
+        if o.save_plot:
             plot_diurnal(r, os.path.join(out_dir, "mars_sol.png"), title)
 
-    elif exp_type == "year":
+    elif exp == ExpType.year:
         r     = results[0]
         title = f"Mars — 1 year  ({loc})"
-        if out_cfg["save_csv"]:
+        if o.save_csv:
             save_csv(r, os.path.join(out_dir, "mars_year.csv"))
-        if out_cfg["save_plot"]:
+        if o.save_plot:
             plot_diurnal(r, os.path.join(out_dir, "mars_year.png"), title)
             plot_seasonal(r, os.path.join(out_dir, "mars_seasonal.png"),
-                          f"Mars Seasonal Temperatures — 1 Year")
+                          "Mars Seasonal Temperatures — 1 Year")
 
-    elif exp_type == "multi":
-        sols  = cfg["experiment"]["sols"]
-        title = f"Mars Multi-Coord — {sols:.0f} sol{'s' if sols!=1 else ''}  (137°E)"
+    elif exp == ExpType.multi:
+        sols  = cfg.experiment.sols
+        title = f"Mars Multi-Coord — {sols:.0f} sol{'s' if sols != 1 else ''}  (137°E)"
         for r in results:
             safe = r.name.lower().replace(" ", "_")
-            if out_cfg["save_csv"]:
+            if o.save_csv:
                 save_csv(r, os.path.join(out_dir, f"mars_{safe}.csv"))
-            if out_cfg["save_plot"]:
-                ns2   = "N" if r.lat >= 0 else "S"
+            if o.save_plot:
+                ns2    = "N" if r.lat >= 0 else "S"
                 rtitle = f"Mars {r.name} ({abs(r.lat):.0f}°{ns2})"
                 plot_diurnal(r, os.path.join(out_dir, f"mars_{safe}.png"), rtitle)
-        if out_cfg["save_plot"]:
+        if o.save_plot:
             plot_multi_coord(results, os.path.join(out_dir, "mars_multi_coord.png"), title)
