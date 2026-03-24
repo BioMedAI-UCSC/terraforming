@@ -1,0 +1,29 @@
+[project]
+name = "terraforming-cli"
+version = "0.1.0"
+description = "tform — interactive CLI for Mars climate simulation"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "click>=8.1",
+    "pydantic>=2.0",
+    "pyyaml>=6.0",
+    "terraforming>=0.1.0",
+]
+
+[project.scripts]
+tform = "cli.main:cli"
+
+[tool.uv.sources]
+terraforming = { workspace = true }
+
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = [".."]
+include = ["cli"]
+
+[tool.setuptools.package-data]
+cli = ["configs/*.yaml"]

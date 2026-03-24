@@ -1,0 +1,28 @@
+preset:
+  name: equatorial
+  description: "Equatorial multi-coordinate survey: 45°N, equator, 40°S at 137°E"
+
+planet:
+  surface_temperature: 215.0   # K — equatorial mean
+  surface_pressure: 610.0      # Pa
+  albedo: 0.25
+  greenhouse_factor: 1.02
+  ice_mass: 5.0e15             # kg
+  latitude: 0.0                # base latitude (overridden per-coord in multi mode)
+  longitude: 137.0             # degrees E — Curiosity longitude
+  elevation_m: 0.0
+  initial_ls_deg: 251.0
+
+engine:
+  dt: 300.0                    # fine timestep for diurnal resolution
+  accuracy: accurate
+
+experiment:
+  type: multi                  # 3-latitude simultaneous run
+  sols: 1.0
+
+output:
+  save_csv: true
+  save_plot: true
+  ground_truth: false
+  out_dir: null

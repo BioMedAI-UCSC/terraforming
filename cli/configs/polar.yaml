@@ -1,0 +1,28 @@
+preset:
+  name: polar
+  description: "North polar cap site (85°N) — CO2 ice sublimation dynamics"
+
+planet:
+  surface_temperature: 170.0   # K — polar cold, near CO2 frost point (149 K)
+  surface_pressure: 590.0      # Pa — slightly lower at high latitude
+  albedo: 0.60                 # high albedo — CO2/H2O ice covered surface
+  greenhouse_factor: 1.02
+  ice_mass: 5.0e15             # kg
+  latitude: 85.0               # degrees N — near north pole
+  longitude: 0.0
+  elevation_m: 0.0
+  initial_ls_deg: 251.0        # start near perihelion (southern summer)
+
+engine:
+  dt: 3600.0
+  accuracy: fast
+
+experiment:
+  type: sol
+  sols: 1.0
+
+output:
+  save_csv: true
+  save_plot: true
+  ground_truth: false
+  out_dir: null

@@ -1,0 +1,28 @@
+preset:
+  name: early-mars
+  description: "Noachian-era Mars (~3.5 Ga): warmer, wetter, thicker CO2 atmosphere"
+
+planet:
+  surface_temperature: 273.0   # K — near freezing point of water
+  surface_pressure: 101325.0   # Pa — Earth-like 1 atm (proposed early Mars)
+  albedo: 0.20                 # lower albedo — less dust, wetter surface
+  greenhouse_factor: 1.15      # stronger greenhouse from thick CO2 + H2O
+  ice_mass: 1.0e18             # kg — massive polar and subsurface ice reservoir
+  latitude: 0.0                # equatorial
+  longitude: 0.0
+  elevation_m: 0.0
+  initial_ls_deg: 90.0         # northern summer start
+
+engine:
+  dt: 3600.0                   # seconds — 1 hr timestep
+  accuracy: fast               # fast for long runs
+
+experiment:
+  type: year
+  sols: 668.0                  # one full Martian year
+
+output:
+  save_csv: true
+  save_plot: true
+  ground_truth: false
+  out_dir: null

@@ -1,18 +1,7 @@
-[project]
-name = "terraforming"
-version = "0.1.0"
-description = "Add your description here"
-readme = "README.md"
-requires-python = ">=3.12"
-dependencies = [
-    "matplotlib>=3.10.8",
-    "torch>=2.10.0",
+[tool.uv.workspace]
+members = ["package", "cli"]
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1.408",
 ]
-
-[build-system]
-requires = ["setuptools>=64", "setuptools-scm>=8"]
-build-backend = "setuptools.build_meta"
-
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["src*", "experiments*"]
