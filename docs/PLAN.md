@@ -121,3 +121,21 @@ Continuous across all nodes:
 - Shared state variables
 - Scenario matrix (baseline/optimistic/conservative)
 
+
+
+Project,Short project description,Asigned to,Status,2026,2027,2028
+Magnetic Field,Create a giant device to protect Mars from the Sun radiation and cosmic radiation,,,,,
+Increase atmosphere pressure to 1 atm,"In order for humans to be able to live on Mars, first we need to have a pressure like on Earth",,,,,
+Import inert gas from outside Mars,"Nitrogen is not enough on Mars, so it needs to be imported from the asteroid belt",,,,,
+Produce oxygen on Mars using its compounds and/or import it,"Oxygen can be produced on Mars, but it needs to be checked if it is enough and if it also needs to be imported",,,,,
+Atmosphere warming (greenhouse gas),Produce greenhouse gases on Mars. See if needed to import and monitor atmospheric temperature evolution as it is important to have low day and seasonal amplitudes,,,,,
+Ozone layer,Monitor creation of ozone layer and support the process,,,,,
+Hydrography,Model what is the necessary temperature to melt the ice caps at the poles and see where oceans will form,,,,,
+Soil decontamination,Create a solution to decontaminate the soil in order to start growing crops,,,,,
+Chemical balance of all spheres,Monitor chemical changes in order to have a reasonable and continuous balance for all spheres,,,,,
+Water circulation,"See how water will circulate, infiltrate, how it will precipitate from the atmosphere, where rivers will form, lakes, if ice will be present",,,,,
+Identifying right areas for future settlements,"See where cities can be created, bases, based on presence of water, altitude, atmospheric pressure, temperature, soil quality, etc.",,,,,
+Energy production,Find a reliable and long-lasting source of energy,,,,,
+Mining,Mining the crust is essential for producing chemical compounds necessary for the atmosphere and not only,,,,,
+Study the characteristics of Mars,"Read about its volume, gravity, distance from Sun, atmosphere, geomorphology, soil, ice caps at the poles, crust, core, mantle, rotation around its axis and Sus, axis inclination (Mars is tilted), weather, seasons, etc.,",Everyone,,,,
+"Identify resources (human, studies, tools for simulations, scenarios)","Who should we include in the project, what resources are needed besides human intelligence (IT tools, hardware, finances)",Everyone,,,,
