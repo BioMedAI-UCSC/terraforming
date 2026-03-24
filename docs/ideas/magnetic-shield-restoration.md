@@ -200,4 +200,4 @@ This is remarkably modest. Even with a safety factor of 10x for non-dipolar geom
 - Hassler, D.M. et al. (2014). Mars's surface radiation environment measured with the Mars Science Laboratory's Curiosity Rover. *Science*, 343(6169). doi:10.1126/science.1244797
 - Hazelton, D.W. et al. (2009). Recent developments in 2G HTS coil technology. *IEEE Trans. Appl. Supercond.*, 19(3), 2218--2222.
 - Jakosky, B.M. et al. (2018). Loss of the Martian atmosphere to space: Present-day loss rates determined from MAVEN observations and integrated loss through time. *Icarus*, 315, 146--157. doi:10.1016/j.icarus.2018.05.030
-- Ribas, I. et al. (2005). Evolution of the solar activity over time and effects on planetary atmospheres. *ApJ*, 622, 680--694. doi:10.1086/427977
+- Ribas, I. et al. (2005). Evolution of the solar activity over time and effects on planetary atmospheres. *ApJ*, 622, 680--694. doi:10.1086/427977 
