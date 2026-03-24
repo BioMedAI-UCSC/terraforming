@@ -48,3 +48,8 @@ htmlcov/
 
 # Project Specific
 data/
+
+# Experiment outputs — all auto-generated runs are ignored by default.
+# To commit a validated experiment, move or copy it out of outputs/ first,
+# or explicitly `git add -f outputs/sol/exp_<name>/`.
+outputs/
