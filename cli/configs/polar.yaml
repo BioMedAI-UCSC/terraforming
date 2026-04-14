@@ -3,7 +3,7 @@ preset:
   description: "North polar cap site (85°N) — CO2 ice sublimation dynamics"
 
 planet:
-  surface_temperature: 170.0   # K — polar cold, near CO2 frost point (149 K)
+  surface_temperature: 170.0   # K — north polar annual mean (MCD extvar[14] at 85°N); CO2 frost point is ~148 K at 590 Pa
   surface_pressure: 590.0      # Pa — slightly lower at high latitude
   albedo: 0.60                 # high albedo — CO2/H2O ice covered surface
   greenhouse_factor: 1.02
