@@ -13,19 +13,12 @@ Separation of concerns:
 All numerical values are stored as ``torch.Tensor`` scalars (dtype=torch.float64).
 """
 
-import copy
+import math
 from abc import ABC, abstractmethod
-from typing import Dict
 
 import torch
 
-from src.constants import (
-    TF_DTYPE,
-    _c,
-    AU_METRES,
-    PI,
-    SOLAR_CONSTANT_1AU,
-)
+from src.constants import TF_DTYPE
 
 from src.framework.atmosphere import Atmosphere
 from src.framework.thermal import Thermal
@@ -34,6 +27,11 @@ from src.framework.radiation import Radiation
 from src.framework.magnetic import Magnetic
 from src.framework.intrinsic import IntrinsicParameters
 from src.framework.orbital import OrbitalParameters
+
+# Python-float constants — device-agnostic (PyTorch broadcasts scalars to any device)
+_SOLAR_CONST_1AU = 1361.0           # W m⁻²
+_AU_METRES       = 1.49597870700e11  # m
+_TWO_PI          = 2.0 * math.pi
 
 
 # ---------------------------------------------------------------------------
@@ -55,7 +53,8 @@ class Planet(ABC):
     # --- Concrete attributes set by subclass __init__ ---
     intrinsic_params: IntrinsicParameters
     orbital_params: OrbitalParameters
-    
+    _device: torch.device          # set by subclass before setup_properties()
+
     # --- Planetary Properties ---
     atmosphere: Atmosphere
     thermal: Thermal
@@ -129,21 +128,26 @@ class Planet(ABC):
     def unpack_state(self, y: torch.Tensor) -> None:
         """Unpack a 1-D tensor [T, P, M_ice] back into the planet.
 
-        Values are clamped to physical bounds.
+        Values are clamped to physical bounds.  Uses ``torch.where`` instead
+        of a Python ``if`` so this method is device-agnostic and compatible
+        with batched / compiled execution.
         """
-        self.thermal.surface_temperature = torch.maximum(y[0], _c(1.0))
-        self.atmosphere.surface_pressure = torch.maximum(y[1], _c(0.0))
-        new_total = torch.maximum(y[2], _c(0.0))
-        # Apportion change between north/south reservoirs proportionally
+        self.thermal.surface_temperature = y[0].clamp(min=1.0)
+        self.atmosphere.surface_pressure = y[1].clamp(min=0.0)
+        new_total = y[2].clamp(min=0.0)
+
         old_total = self.water.ice_mass_north + self.water.ice_mass_south
-        if old_total > _c(0.0):
-            f_n = self.water.ice_mass_north / old_total
-            f_s = self.water.ice_mass_south / old_total
-        else:
-            f_n = _c(0.5)
-            f_s = _c(0.5)
-        self.water.ice_mass_north = torch.maximum(new_total * f_n, _c(0.0))
-        self.water.ice_mass_south = torch.maximum(new_total * f_s, _c(0.0))
+        # Apportion change between north/south reservoirs proportionally.
+        # Use torch.where to avoid a Python boolean check on a GPU tensor.
+        safe_total = old_total.clamp(min=1e-30)
+        f_n = torch.where(
+            old_total > 0.0,
+            self.water.ice_mass_north / safe_total,
+            old_total.new_full((), 0.5),  # same device & dtype, scalar shape
+        )
+        f_s = 1.0 - f_n
+        self.water.ice_mass_north = (new_total * f_n).clamp(min=0.0)
+        self.water.ice_mass_south = (new_total * f_s).clamp(min=0.0)
         self.water.ice_mass       = new_total
 
     # ------------------------------------------------------------------
@@ -152,27 +156,31 @@ class Planet(ABC):
     def solar_flux_at_distance(self, distance: torch.Tensor) -> torch.Tensor:
         """Solar irradiance at heliocentric *distance* (metres).
 
+        Uses Python-float constants so the result lives on whatever device
+        ``distance`` is on — no explicit ``.to(device)`` required.
+
         Equation (inverse-square law):
             F(d) = F₀ × (1 AU / d)²
 
-        Reference: 
+        Reference:
         https://en.wikipedia.org/wiki/Solar_irradiance
         https://en.wikipedia.org/wiki/Solar_constant
         """
-        return SOLAR_CONSTANT_1AU * (AU_METRES / distance) ** 2
+        return _SOLAR_CONST_1AU * (_AU_METRES / distance) ** 2
 
     def advance_orbit(self, dt: torch.Tensor) -> None:
         """Advance orbital angle (mean-motion approximation) and update
         solar flux.
 
         Called by the engine at each timestep *before* physics updates.
+        Uses Python-float math constants so all arithmetic stays on whichever
+        device the planet's tensors live on.
 
         Equations:
             dθ/dt = 2π / T_orbital          (mean motion)
             r(θ)  = a(1−e²)/(1+e cos θ)    (Kepler ellipse)
             F     = F₀ (1 AU / r)²          (inverse-square)
         """
-        dt = torch.as_tensor(dt, dtype=TF_DTYPE)
         self.elapsed_time = self.elapsed_time + dt
 
         """The approximation here: this treats orbital_angle as the true anomaly (actual angular position on the ellipse)
@@ -182,8 +190,8 @@ class Planet(ABC):
         """
         self.orbital_angle = torch.remainder(
             self.orbital_angle
-            + _c(2.0) * PI * dt / self.orbital_params.orbital_period,
-            _c(2.0) * PI,
+            + _TWO_PI * dt / self.orbital_params.orbital_period,
+            _TWO_PI,
         )
 
         distance = self.orbital_params.distance_from_sun(self.orbital_angle)

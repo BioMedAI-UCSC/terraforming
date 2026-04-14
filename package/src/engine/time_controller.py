@@ -16,18 +16,36 @@ The ``Accuracy`` enum selects the ODE strategy:
     ``ACCURATE`` → 4th-order Runge-Kutta using ``planet.compute_derivatives``
     ``FAST``     → reduced-order model using ``planet.compute_fast_physics``
 
+GPU support
+-----------
+The controller inherits its compute device from the planet: all tensors
+(``dt``, ``elapsed``, ``duration``) are created on ``planet._device`` so
+the entire simulation stays on-device.
+
+The main loop pre-computes ``n_steps = ⌊duration / dt⌋`` at construction so
+the ``for _ in range(n_steps)`` body contains **no GPU→CPU synchronisation**
+(no tensor comparisons used as Python booleans).  This lets the GPU queue
+many operations ahead of the CPU and maximises pipeline utilisation.
+
+Optional ``compile`` flag wraps ``planet.compute_derivatives`` and
+``planet.compute_fast_physics`` with ``torch.compile`` for kernel fusion.
+On GPU with ``mode="reduce-overhead"``, this uses CUDA graphs to eliminate
+per-kernel launch overhead.  The first call incurs JIT compilation; all
+subsequent calls use the cached compiled graph.
+
 All scalar values are ``torch.Tensor`` (float64).
 """
 
 from __future__ import annotations
 
 import enum
+import math
 from dataclasses import dataclass
 from typing import Callable, List, Optional
 
 import torch
 
-from src.constants import TF_DTYPE, _c
+from src.constants import TF_DTYPE
 
 from src.celestials import (
     Planet,
@@ -82,6 +100,10 @@ class TimeController:
         Integration timestep in seconds.  Default 3600 (1 hour).
     accuracy : Accuracy
         Which integration strategy to use.  Default ``Accuracy.FAST``.
+    compile : bool
+        If ``True``, wrap ``planet.compute_derivatives`` and
+        ``planet.compute_fast_physics`` with ``torch.compile`` for kernel
+        fusion.  Recommended when running on CUDA.  Default ``False``.
     """
 
     def __init__(
@@ -89,12 +111,22 @@ class TimeController:
         planet: Planet,
         dt: float | torch.Tensor = 3600.0,
         accuracy: Accuracy = Accuracy.FAST,
+        compile: bool = False,
     ) -> None:
-        self.dt = torch.as_tensor(dt, dtype=TF_DTYPE)
-        if self.dt <= _c(0.0):
-            raise ValueError("dt must be > 0")
-        self.planet = planet
+        self.planet   = planet
         self.accuracy = accuracy
+        self.device   = getattr(planet, '_device', torch.device('cpu'))
+
+        _dt_f = float(dt.item()) if isinstance(dt, torch.Tensor) else float(dt)
+        if _dt_f <= 0.0:
+            raise ValueError("dt must be > 0")
+        self.dt = torch.tensor(_dt_f, dtype=TF_DTYPE, device=self.device)
+
+        if compile:
+            planet.compute_derivatives  = torch.compile(
+                planet.compute_derivatives,  fullgraph=False)
+            planet.compute_fast_physics = torch.compile(
+                planet.compute_fast_physics, fullgraph=False)
 
     # ------------------------------------------------------------------
     # Core: single evolve method
@@ -106,8 +138,6 @@ class TimeController:
             1. Advance orbital position  → updates ``planet.state.solar_flux``
             2. Apply physics step        → strategy-dependent
         """
-        dt = torch.as_tensor(dt, dtype=TF_DTYPE)
-
         # Step 1 — orbital mechanics (common to both strategies)
         self.planet.advance_orbit(dt)
 
@@ -126,22 +156,39 @@ class TimeController:
         Uses ``planet.compute_derivatives(y)`` for the RHS and
         ``planet.pack_state() / unpack_state(y)`` for state ↔ tensor.
 
+        Python-float coefficients (0.5, 2.0, 6.0) broadcast to the device
+        of ``y`` without creating CPU constant tensors.
+
         References
         ----------
         RK4 method : https://en.wikipedia.org/wiki/Runge–Kutta_methods
         """
         planet = self.planet
 
-        y = planet.pack_state()
+        y  = planet.pack_state()
 
         k1 = planet.compute_derivatives(y)
-        k2 = planet.compute_derivatives(y + _c(0.5) * dt * k1)
-        k3 = planet.compute_derivatives(y + _c(0.5) * dt * k2)
+        k2 = planet.compute_derivatives(y + 0.5 * dt * k1)
+        k3 = planet.compute_derivatives(y + 0.5 * dt * k2)
         k4 = planet.compute_derivatives(y + dt * k3)
 
-        y_new = y + dt / _c(6.0) * (k1 + _c(2.0) * k2 + _c(2.0) * k3 + k4)
+        y_new = y + dt / 6.0 * (k1 + 2.0 * k2 + 2.0 * k3 + k4)
 
         planet.unpack_state(y_new)
+
+    # ------------------------------------------------------------------
+    # Snapshot helper
+    # ------------------------------------------------------------------
+    def _snapshot(self) -> Snapshot:
+        s = self.planet
+        return Snapshot(
+            time=s.elapsed_time.clone(),
+            surface_temperature=s.thermal.surface_temperature.clone(),
+            surface_pressure=s.atmosphere.surface_pressure.clone(),
+            ice_mass=s.water.ice_mass.clone(),
+            solar_flux=s.radiation.solar_flux.clone(),
+            orbital_angle=s.orbital_angle.clone(),
+        )
 
     # ------------------------------------------------------------------
     # Simulation loop
@@ -152,6 +199,10 @@ class TimeController:
         callback: Optional[Callable[[Planet, torch.Tensor], None]] = None,
     ) -> List[Snapshot]:
         """Run the simulation for *duration* seconds, return a snapshot list.
+
+        The loop uses a pre-computed ``n_steps`` count so the inner body
+        contains no GPU tensor comparisons (no implicit GPU→CPU syncs).
+        This keeps the GPU pipeline full when running on CUDA.
 
         Parameters
         ----------
@@ -165,31 +216,32 @@ class TimeController:
         list[Snapshot]
             One snapshot per timestep.
         """
-        duration = torch.as_tensor(duration, dtype=TF_DTYPE)
-        if duration <= _c(0.0):
+        dur_f = float(duration.item()) if isinstance(duration, torch.Tensor) else float(duration)
+        dt_f  = float(self.dt.item())
+        if dur_f <= 0.0:
             raise ValueError("duration must be > 0")
 
-        history: List[Snapshot] = []
-        elapsed = _c(0.0)
+        n_steps   = int(dur_f / dt_f)
+        remainder = dur_f - n_steps * dt_f
 
-        while elapsed < duration:
-            step = torch.minimum(self.dt, duration - elapsed)
+        # elapsed is kept on-device for use in callbacks
+        elapsed = torch.zeros((), dtype=TF_DTYPE, device=self.device)
+
+        history: List[Snapshot] = []
+
+        for _ in range(n_steps):
+            self.evolve(self.dt)
+            elapsed = elapsed + self.dt
+            history.append(self._snapshot())
+            if callback:
+                callback(self.planet, elapsed)
+
+        if remainder > 1e-9:
+            step = torch.tensor(remainder, dtype=TF_DTYPE, device=self.device)
             self.evolve(step)
             elapsed = elapsed + step
-
-            s = self.planet
-            history.append(
-                Snapshot(
-                    time=s.elapsed_time.clone(),
-                    surface_temperature=s.thermal.surface_temperature.clone(),
-                    surface_pressure=s.atmosphere.surface_pressure.clone(),
-                    ice_mass=s.water.ice_mass.clone(),
-                    solar_flux=s.radiation.solar_flux.clone(),
-                    orbital_angle=s.orbital_angle.clone(),
-                )
-            )
-
+            history.append(self._snapshot())
             if callback:
-                callback(s, elapsed)
+                callback(self.planet, elapsed)
 
         return history

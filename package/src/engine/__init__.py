@@ -30,9 +30,12 @@ def _load(dotted_name: str, rel_path: str) -> types.ModuleType:
 # sys.modules, which time_controller.py needs).
 import src.celestials  # noqa: F401
 
-_tc_mod = _load("src.engine.time_controller", "time_controller.py")
+_tc_mod  = _load("src.engine.time_controller",   "time_controller.py")
+_btc_mod = _load("src.engine.batched_controller", "batched_controller.py")
 
 # ── Public re-exports ────────────────────────────────────────────────
-Accuracy       = _tc_mod.Accuracy
-TimeController = _tc_mod.TimeController
-Snapshot       = _tc_mod.Snapshot
+Accuracy              = _tc_mod.Accuracy
+TimeController        = _tc_mod.TimeController
+Snapshot              = _tc_mod.Snapshot
+BatchedMars           = _btc_mod.BatchedMars
+BatchedTimeController = _btc_mod.BatchedTimeController

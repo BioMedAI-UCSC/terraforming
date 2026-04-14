@@ -14,9 +14,10 @@ import click
 from typing import Any
 
 from src.celestials import Mars, MARS_ROTATION_PERIOD, MARS_ORBITAL_PERIOD
-from src.engine import Accuracy as SrcAccuracy, TimeController
+from src.engine import Accuracy as SrcAccuracy, TimeController, BatchedTimeController
 
 from cli.models import Accuracy, SimConfig
+
 
 # Three canonical latitudes used in multi-coordinate runs
 MULTI_POINTS = [
@@ -98,7 +99,7 @@ def _build_mars(cfg: SimConfig) -> Mars:
     }
     if p.composition is not None:
         kw["composition"] = p.composition
-    return Mars(**kw)
+    return Mars(**kw)  # device auto-detected (CUDA if available)
 
 
 def _build_mars_at(cfg: SimConfig, lat: float, lon: float) -> Mars:
@@ -117,7 +118,7 @@ def _build_mars_at(cfg: SimConfig, lat: float, lon: float) -> Mars:
     }
     if p.composition is not None:
         kw["composition"] = p.composition
-    return Mars(**kw)
+    return Mars(**kw)  # device auto-detected (CUDA if available)
 
 
 # ── Progress bar ──────────────────────────────────────────────────────────────
@@ -189,16 +190,34 @@ def run_year(cfg: SimConfig) -> list[RunResult]:
 
 
 def run_multi(cfg: SimConfig) -> list[RunResult]:
-    results: list[RunResult] = []
-    for pt in MULTI_POINTS:
-        mars = _build_mars_at(cfg, lat=pt["lat"], lon=pt["lon"])
-        tc   = TimeController(mars, dt=cfg.engine.dt,
-                              accuracy=_src_accuracy(cfg.engine.accuracy))
-        duration = cfg.experiment.sols * _v(MARS_ROTATION_PERIOD)
+    """Run all MULTI_POINTS locations in parallel via BatchedTimeController.
 
+    On CUDA this executes all B=3 simulations as a single batched kernel per
+    timestep, achieving much higher GPU utilisation than sequential runs.
+    """
+    duration  = cfg.experiment.sols * _v(MARS_ROTATION_PERIOD)
+
+    # Mars() auto-detects CUDA; all instances land on the same device
+    mars_list = [
+        _build_mars_at(cfg, lat=pt["lat"], lon=pt["lon"])
+        for pt in MULTI_POINTS
+    ]
+
+    # Print headers before launching (cosmetic only)
+    for pt in MULTI_POINTS:
         _print_run_header(pt["lat"], pt["lon"], cfg.experiment.sols,
                           cfg.engine, label=pt["name"])
-        history = tc.run(duration=duration)
+
+    btc = BatchedTimeController(
+        mars_list,
+        dt=cfg.engine.dt,
+        accuracy=_src_accuracy(cfg.engine.accuracy),
+        compile=(mars_list[0]._device.type == 'cuda'),  # fuse kernels on GPU
+    )
+    all_histories = btc.run(duration=duration)
+
+    results: list[RunResult] = []
+    for pt, history in zip(MULTI_POINTS, all_histories):
         _print_summary(history)
         results.append(RunResult(name=pt["name"], history=history,
                                  lat=pt["lat"], lon=pt["lon"]))
