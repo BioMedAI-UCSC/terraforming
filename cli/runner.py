@@ -15,6 +15,7 @@ from typing import Any
 
 from src.celestials import Mars, MARS_ROTATION_PERIOD, MARS_ORBITAL_PERIOD
 from src.engine import Accuracy as SrcAccuracy, TimeController, BatchedTimeController
+from src.interventions import InterventionController
 
 from cli.models import Accuracy, SimConfig
 
@@ -222,6 +223,96 @@ def run_multi(cfg: SimConfig) -> list[RunResult]:
         results.append(RunResult(name=pt["name"], history=history,
                                  lat=pt["lat"], lon=pt["lon"]))
     return results
+
+
+def run_intervention(cfg: SimConfig) -> list[RunResult]:
+    """Run a GHG intervention experiment over N Mars years.
+
+    Injects the configured compounds at fixed annual rates, updating the
+    greenhouse factor each year and simulating the resulting climate evolution.
+    """
+    iv   = cfg.intervention
+    mars = _build_mars(cfg)
+
+    if not iv.injection:
+        click.echo(click.style(
+            "  ⚠  No --inject compounds specified — running baseline (no injection).",
+            fg="bright_yellow"
+        ))
+
+    ic = InterventionController(
+        mars,
+        injection_schedule_kg_yr = iv.injection,
+        dt       = cfg.engine.dt,
+        accuracy = _src_accuracy(cfg.engine.accuracy),
+        compile  = (mars._device.type == 'cuda'),
+    )
+
+    click.echo()
+    click.echo(_divider())
+    click.echo(
+        "  " + click.style("◉  ", fg="bright_red")
+        + click.style(f"Intervention  {iv.n_years} Mars years", fg="bright_white", bold=True)
+        + click.style(f"  ·  {cfg.engine.accuracy.value} mode  dt={cfg.engine.dt:.0f} s",
+                      fg="bright_black")
+    )
+    if iv.injection:
+        for compound, rate_kg in iv.injection.items():
+            click.echo(
+                "  " + click.style(f"  {compound:<8}", fg="bright_cyan", bold=True)
+                + click.style(f"  {rate_kg:.2e} kg/yr", fg="bright_white")
+            )
+    click.echo(_divider())
+
+    year_bar = [0]
+
+    def _progress(snap) -> None:
+        year_bar[0] = snap.year
+        pct    = snap.year / iv.n_years
+        filled = int(28 * pct)
+        bar    = (click.style("█" * filled,          fg="bright_red")
+                + click.style("░" * (28 - filled),   fg="bright_black"))
+        T  = _v(snap.surface_temperature)
+        dF = _v(snap.delta_F)
+        line = (f"  [{bar}] "
+              + click.style(f"{pct*100:5.1f}%", fg="bright_yellow")
+              + "  T=" + _styled_temp(T)
+              + "  ΔF=" + click.style(f"{dF:.1f} W/m²", fg="cyan", bold=True))
+        click.echo(f"\r{line}    ", nl=False)
+        if snap.year == iv.n_years:
+            click.echo()
+
+    history = ic.run(n_years=iv.n_years, callback=_progress)
+
+    click.echo()
+    _print_intervention_summary(history)
+
+    return [RunResult(name="intervention", history=history,
+                      lat=cfg.planet.latitude, lon=cfg.planet.longitude)]
+
+
+def _print_intervention_summary(history: list) -> None:
+    from src.interventions.controller import InterventionSnapshot
+
+    T0  = _v(history[0].surface_temperature)
+    T_f = _v(history[-1].surface_temperature)
+    P0  = _v(history[0].surface_pressure)
+    P_f = _v(history[-1].surface_pressure)
+    dF  = _v(history[-1].delta_F)
+    ghf = _v(history[-1].greenhouse_factor)
+
+    def lbl(s: str) -> str:
+        return click.style(s, fg="bright_black")
+
+    click.echo(
+        f"  {lbl('years')}      {click.style(str(len(history)), fg='bright_white')}\n"
+        f"  {lbl('T (K)')}      {_styled_temp(T0)}  →  {_styled_temp(T_f)}"
+        + click.style(f"   ΔT={T_f-T0:+.1f}", fg="bright_green" if T_f > T0 else "bright_blue") + "\n"
+        f"  {lbl('P (Pa)')}     {_styled_pressure(P0)}  →  {_styled_pressure(P_f)}"
+        + click.style(f"   ΔP={P_f-P0:+.1f}", fg="bright_black") + "\n"
+        f"  {lbl('ΔF final')}   {click.style(f'{dF:.2f} W/m²', fg='cyan', bold=True)}\n"
+        f"  {lbl('GHF final')}  {click.style(f'{ghf:.4f}', fg='bright_white')}"
+    )
 
 
 # ── Output helpers ─────────────────────────────────────────────────────────────
