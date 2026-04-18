@@ -1,8 +1,6 @@
 from dataclasses import dataclass
 import torch
 
-from src.constants import _c
-
 @dataclass
 class OrbitalParameters:
     """Keplerian orbital elements (assumed constant over short runs)."""
@@ -22,6 +20,6 @@ class OrbitalParameters:
         """
         return (
             self.semi_major_axis
-            * (_c(1.0) - self.eccentricity ** 2)
-            / (_c(1.0) + self.eccentricity * torch.cos(theta))
+            * (1.0 - self.eccentricity ** 2)
+            / (1.0 + self.eccentricity * torch.cos(theta))
         )

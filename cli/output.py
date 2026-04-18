@@ -58,14 +58,37 @@ def plot_diurnal(result: RunResult, filepath: str, title: str) -> None:
     max_t    = max(_v(s.time) for s in history)
     use_sols = max_t > 3 * _SOL_SECONDS
 
-    xs     = ([_v(s.time) / _SOL_SECONDS          for s in history] if use_sols
-              else [_v(s.time) / _SOL_SECONDS * 360.0 for s in history])
-    xlabel = "Time (sols)" if use_sols else "Rotation angle (°)"
+    times = np.array([_v(s.time)                for s in history])
+    temps = np.array([_v(s.surface_temperature) for s in history])
+    press = np.array([_v(s.surface_pressure)    for s in history])
+    ice   = np.array([_v(s.ice_mass)            for s in history])
 
-    temps = [_v(s.surface_temperature) for s in history]
-    press = [_v(s.surface_pressure)    for s in history]
-    ice   = [_v(s.ice_mass)            for s in history]
-    lw    = max(0.8, 2.0 - 1.2 * min(len(xs) / 2000, 1.0))
+    n_sols        = max_t / _SOL_SECONDS
+    steps_per_sol = len(history) / max(n_sols, 1)
+
+    # When there are multiple steps per sol on a long run (>5 sols), aggregate
+    # to daily means so that diurnal oscillations do not alias into a thick
+    # filled band.  Short runs (≤5 sols) keep raw timesteps to show the diurnal
+    # cycle.
+    if steps_per_sol > 1.5 and n_sols > 5:
+        sol_idx     = (times / _SOL_SECONDS).astype(int)
+        unique_sols = np.unique(sol_idx)
+        agg_times, agg_T, agg_P, agg_I = [], [], [], []
+        for s in unique_sols:
+            m = sol_idx == s
+            agg_times.append(float(s) * _SOL_SECONDS + 0.5 * _SOL_SECONDS)
+            agg_T.append(float(np.mean(temps[m])))
+            agg_P.append(float(np.mean(press[m])))
+            agg_I.append(float(np.mean(ice[m])))
+        times = np.array(agg_times)
+        temps = np.array(agg_T)
+        press = np.array(agg_P)
+        ice   = np.array(agg_I)
+
+    xs     = (times / _SOL_SECONDS          if use_sols
+              else times / _SOL_SECONDS * 360.0)
+    xlabel = "Time (sols)" if use_sols else "Rotation angle (°)"
+    lw     = max(0.8, 2.0 - 1.2 * min(len(xs) / 5000, 1.0))
 
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     for ys, ylabel, color, tag in [

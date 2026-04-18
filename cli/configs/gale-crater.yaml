@@ -3,8 +3,8 @@ preset:
   description: "Gale Crater — Curiosity MSL landing site (4.6°S, 137.4°E, -4500 m)"
 
 planet:
-  surface_temperature: 210.0   # K
-  surface_pressure: 610.0      # Pa (corrected for elevation internally)
+  surface_temperature: 220.0   # K — REMS annual mean at Gale (~215–220 K; MCD extvar[14] at -4500 m)
+  surface_pressure: 730.0      # Pa — MCD/REMS annual mean at -4500 m elevation (range 690–930 Pa)
   albedo: 0.25
   greenhouse_factor: 1.02
   ice_mass: 5.0e15             # kg
