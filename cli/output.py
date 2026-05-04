@@ -8,13 +8,22 @@ from __future__ import annotations
 import csv
 import os
 from datetime import datetime, timezone
+from typing import Protocol, runtime_checkable
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 from cli.models import ExpType, SimConfig
-from cli.runner import RunResult
 from src.celestials import MARS_ROTATION_PERIOD
+
+
+@runtime_checkable
+class RunResult(Protocol):
+    name:    str
+    history: list
+    lat:     float
+    lon:     float
+
 
 _SOL_SECONDS = float(MARS_ROTATION_PERIOD.item())
 _SOL_HOURS   = _SOL_SECONDS / 3600.0
@@ -53,54 +62,81 @@ def save_csv(result: RunResult, filepath: str) -> None:
 
 # ── Diurnal / multi-sol plot ───────────────────────────────────────────────────
 
+_MARS_YEAR_SOLS  = 668      # one Martian year in sols
+_MARS_MONTH_SOLS = 668 / 12  # one Mars month (~55.7 sols)
+_LONG_RUN_YEARS  = 5         # threshold above which monthly cycles replace diurnal
+
+
+def _sol_tick_interval(n_sols: float) -> float | None:
+    """X-axis tick interval in sols that keeps gridlines in the 10–50 sol range.
+
+    Returns None for very short runs (≤7 sols) so matplotlib auto-scales.
+    """
+    if n_sols <= 7:
+        return None
+    interval = max(10, min(50, int(n_sols / 7)))
+    return round(interval / 10) * 10  # snap to nearest 10
+
+
 def plot_diurnal(result: RunResult, filepath: str, title: str) -> None:
-    history  = result.history
-    max_t    = max(_v(s.time) for s in history)
-    use_sols = max_t > 3 * _SOL_SECONDS
+    history = result.history
+    max_t   = max(_v(s.time) for s in history)
+    n_sols  = max_t / _SOL_SECONDS
 
-    times = np.array([_v(s.time)                for s in history])
-    temps = np.array([_v(s.surface_temperature) for s in history])
-    press = np.array([_v(s.surface_pressure)    for s in history])
-    ice   = np.array([_v(s.ice_mass)            for s in history])
+    times_all = np.array([_v(s.time)                for s in history])
+    temps_all = np.array([_v(s.surface_temperature) for s in history])
+    press_all = np.array([_v(s.surface_pressure)    for s in history])
+    ice_all   = np.array([_v(s.ice_mass)            for s in history])
 
-    n_sols        = max_t / _SOL_SECONDS
-    steps_per_sol = len(history) / max(n_sols, 1)
+    if n_sols >= _LONG_RUN_YEARS * _MARS_YEAR_SOLS:
+        # ≥5 years: aggregate to monthly (≈56-sol) bins for seasonal cycles
+        month_idx   = (times_all / (_SOL_SECONDS * _MARS_MONTH_SOLS)).astype(int)
+        unique_m    = np.unique(month_idx)
+        agg_sol, agg_T, agg_P, agg_I = [], [], [], []
+        for m in unique_m:
+            mask = month_idx == m
+            agg_sol.append((float(m) + 0.5) * _MARS_MONTH_SOLS)
+            agg_T.append(float(np.mean(temps_all[mask])))
+            agg_P.append(float(np.mean(press_all[mask])))
+            agg_I.append(float(np.mean(ice_all[mask])))
+        xs           = np.array(agg_sol) / _MARS_YEAR_SOLS
+        temps        = np.array(agg_T)
+        press        = np.array(agg_P)
+        ice          = np.array(agg_I)
+        xlabel       = "Time (Mars years)"
+        title_suffix = "  (monthly avg)"
+        tick_xs      = None  # let matplotlib handle year-scale ticks
+    else:
+        # <5 years: show all data, x-axis in sols or rotation angle
+        if n_sols > 3:
+            xs     = times_all / _SOL_SECONDS
+            xlabel = "Time (Sols)"
+        else:
+            xs     = (times_all / _SOL_SECONDS) * 360.0
+            xlabel = "Rotation Angle (°)"
+        temps        = temps_all
+        press        = press_all
+        ice          = ice_all
+        title_suffix = ""
+        tick_xs      = _sol_tick_interval(n_sols)
 
-    # When there are multiple steps per sol on a long run (>5 sols), aggregate
-    # to daily means so that diurnal oscillations do not alias into a thick
-    # filled band.  Short runs (≤5 sols) keep raw timesteps to show the diurnal
-    # cycle.
-    if steps_per_sol > 1.5 and n_sols > 5:
-        sol_idx     = (times / _SOL_SECONDS).astype(int)
-        unique_sols = np.unique(sol_idx)
-        agg_times, agg_T, agg_P, agg_I = [], [], [], []
-        for s in unique_sols:
-            m = sol_idx == s
-            agg_times.append(float(s) * _SOL_SECONDS + 0.5 * _SOL_SECONDS)
-            agg_T.append(float(np.mean(temps[m])))
-            agg_P.append(float(np.mean(press[m])))
-            agg_I.append(float(np.mean(ice[m])))
-        times = np.array(agg_times)
-        temps = np.array(agg_T)
-        press = np.array(agg_P)
-        ice   = np.array(agg_I)
-
-    xs     = (times / _SOL_SECONDS          if use_sols
-              else times / _SOL_SECONDS * 360.0)
-    xlabel = "Time (sols)" if use_sols else "Rotation angle (°)"
-    lw     = max(0.8, 2.0 - 1.2 * min(len(xs) / 5000, 1.0))
+    lw = max(0.8, 2.0 - 1.2 * min(len(xs) / 2000, 1.0))
 
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     for ys, ylabel, color, tag in [
-        (temps, "Temperature (K)",  "#d62728", "temp"),
-        (press, "Pressure (Pa)",    "#1f77b4", "pressure"),
-        (ice,   "Ice Mass (kg)",    "#2ca02c", "ice"),
+        (temps, "Temperature (K)", "#d62728", "temp"),
+        (press, "Pressure (Pa)",   "#1f77b4", "pressure"),
+        (ice,   "Ice Mass (kg)",   "#2ca02c", "ice"),
     ]:
         fig = plt.figure(figsize=(10, 4))
-        plt.plot(xs, ys, color=color, linewidth=lw)
+        plt.plot(xs, ys, label=ylabel.split(" (")[0], color=color, linewidth=lw)
+        if tick_xs is not None:
+            plt.xticks(np.arange(0, xs[-1] + tick_xs, tick_xs))
         plt.xlabel(xlabel, fontsize=12)
         plt.ylabel(ylabel, fontsize=12)
-        plt.title(f"{title} — {ylabel.split(' (')[0]}", fontsize=13, fontweight="bold")
+        plt.title(f"{title}{title_suffix} — {ylabel.split(' (')[0]}",
+                  fontsize=13, fontweight="bold")
+        plt.legend(fontsize=10, framealpha=0.9)
         plt.grid(True, alpha=0.4, linestyle="--")
         plt.tight_layout()
         out = filepath.replace(".png", f"_{tag}.png")
