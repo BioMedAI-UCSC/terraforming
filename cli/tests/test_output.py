@@ -1,9 +1,10 @@
 """Tests for cli/output.py.
 
 Covers:
-  - plot_diurnal: per-sol aggregation for multi-step-per-sol histories (anti-band fix)
-  - plot_diurnal: raw data passthrough for single-step-per-sol histories
-  - plot_diurnal: output files are created for all three channels (temp, pressure, ice)
+  - plot_diurnal: short runs (≤50 sols) keep all raw data — clear diurnal sine waves
+  - plot_diurnal: medium runs (<5 years) show a 10–50 sol window of diurnal data
+  - plot_diurnal: long runs (≥5 Mars years) aggregate to monthly seasonal cycles
+  - plot_diurnal: output files created for all three channels (temp, pressure, ice)
   - save_csv: correct columns and row count
 """
 
@@ -43,13 +44,15 @@ def _snap(t, T, P, I=1e15, flux=500.0, angle=0.0) -> _Snap:
 
 @dataclass
 class _Result:
+    """Structurally matches cli.runner.RunResult — avoids importing the CUDA chain."""
     name:    str
     history: list
     lat:     float
     lon:     float
 
 
-_SOL_SECONDS = 88775.244  # one Mars sol in seconds
+_SOL_SECONDS  = 88775.244
+_MARS_YEAR_SOLS = 668
 
 
 def _multi_step_history(n_sols: int, steps_per_sol: int) -> list:
@@ -59,7 +62,6 @@ def _multi_step_history(n_sols: int, steps_per_sol: int) -> list:
     for sol in range(n_sols):
         for step in range(steps_per_sol):
             t = (sol * steps_per_sol + step + 1) * dt
-            # Diurnal oscillation: ±50 K around 210 K
             phase = 2 * np.pi * step / steps_per_sol
             T = 210.0 + 50.0 * np.sin(phase)
             history.append(_snap(t, T, 610.0 + sol * 0.01))
@@ -67,7 +69,7 @@ def _multi_step_history(n_sols: int, steps_per_sol: int) -> list:
 
 
 def _single_step_history(n_sols: int) -> list:
-    """Build a history with exactly 1 snapshot per sol (large-dt case)."""
+    """Build a history with exactly 1 snapshot per sol."""
     history = []
     for sol in range(n_sols):
         t = (sol + 1) * _SOL_SECONDS
@@ -79,40 +81,32 @@ def _single_step_history(n_sols: int) -> list:
 
 class TestPlotDiurnal:
 
-    def test_creates_three_output_files_given_multi_step_history(self, tmp_path):
-        """plot_diurnal saves temp, pressure, and ice PNG files."""
+    def test_creates_three_output_files_given_short_run(self, tmp_path):
+        """plot_diurnal saves temp, pressure, and ice PNG files for short runs."""
         from cli.output import plot_diurnal
 
-        result  = _Result("sim", _multi_step_history(n_sols=20, steps_per_sol=24), 0.0, 0.0)
+        result  = _Result("sim", _multi_step_history(n_sols=5, steps_per_sol=24), 0.0, 0.0)
         outfile = str(tmp_path / "mars_sol.png")
-
         plot_diurnal(result, outfile, "Test")
 
         assert os.path.exists(str(tmp_path / "mars_sol_temp.png"))
         assert os.path.exists(str(tmp_path / "mars_sol_pressure.png"))
         assert os.path.exists(str(tmp_path / "mars_sol_ice.png"))
 
-    def test_creates_three_output_files_given_single_step_history(self, tmp_path):
-        """plot_diurnal works cleanly when dt == 1 sol (no aggregation needed)."""
+    def test_creates_three_output_files_given_long_run(self, tmp_path):
+        """plot_diurnal saves three PNG files even for long (year-scale) runs."""
         from cli.output import plot_diurnal
 
-        result  = _Result("sim", _single_step_history(n_sols=50), 0.0, 0.0)
+        result  = _Result("sim", _single_step_history(n_sols=_MARS_YEAR_SOLS), 0.0, 0.0)
         outfile = str(tmp_path / "mars_year.png")
-
         plot_diurnal(result, outfile, "Test")
 
         assert os.path.exists(str(tmp_path / "mars_year_temp.png"))
         assert os.path.exists(str(tmp_path / "mars_year_pressure.png"))
         assert os.path.exists(str(tmp_path / "mars_year_ice.png"))
 
-    def test_aggregated_plot_has_one_point_per_sol(self, tmp_path, monkeypatch):
-        """Regression: multi-step history must be collapsed to ~N_sols data points.
-
-        Without the aggregation fix, plotting 20 sols × 24 steps renders a thick
-        filled band because every diurnal oscillation is drawn as a separate line
-        segment.  After the fix the plot has ≈one mean value per sol (within ±1
-        due to floating-point sol-boundary alignment).
-        """
+    def test_short_run_keeps_all_raw_data(self, tmp_path, monkeypatch):
+        """Runs of ≤50 sols keep every timestep (clear diurnal sine waves)."""
         import matplotlib
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
@@ -127,24 +121,17 @@ class TestPlotDiurnal:
         from cli import output as out_mod
         monkeypatch.setattr(out_mod.plt, "plot", _capture_plot)
 
-        n_sols  = 20
+        n_sols  = 5
         sps     = 24
         result  = _Result("sim", _multi_step_history(n_sols=n_sols, steps_per_sol=sps), 0.0, 0.0)
-        outfile = str(tmp_path / "mars_sol.png")
+        out_mod.plot_diurnal(result, str(tmp_path / "mars.png"), "Test")
 
-        out_mod.plot_diurnal(result, outfile, "Test")
-
-        # Three channels (temp, pressure, ice) — each must have far fewer points
-        # than raw (20×24=480) and close to n_sols (±1 for boundary rounding).
         assert len(captured_x) == 3
         for pts in captured_x:
-            assert abs(pts - n_sols) <= 1, (
-                f"Expected ≈{n_sols} sol-averaged points, got {pts}. "
-                "Diurnal aliasing (thick band) not fixed."
-            )
+            assert pts == n_sols * sps, f"Expected {n_sols * sps} raw points, got {pts}"
 
-    def test_short_run_plots_raw_data(self, tmp_path, monkeypatch):
-        """Runs of ≤5 sols keep raw timesteps to show the diurnal cycle."""
+    def test_medium_run_clips_to_10_to_50_sol_window(self, tmp_path, monkeypatch):
+        """Runs longer than 50 sols but under 5 years clip to a 10–50 sol window."""
         import matplotlib
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
@@ -159,15 +146,48 @@ class TestPlotDiurnal:
         from cli import output as out_mod
         monkeypatch.setattr(out_mod.plt, "plot", _capture_plot)
 
-        # 2 sols × 24 steps (≤5 sols) → should NOT aggregate
-        n_steps = 2 * 24
-        result  = _Result("sim", _multi_step_history(n_sols=2, steps_per_sol=24), 0.0, 0.0)
-        outfile = str(tmp_path / "mars_short.png")
-        out_mod.plot_diurnal(result, outfile, "Test")
+        n_sols = 300   # well above 50 sols, below 5 years
+        sps    = 4
+        result = _Result("sim", _multi_step_history(n_sols=n_sols, steps_per_sol=sps), 0.0, 0.0)
+        out_mod.plot_diurnal(result, str(tmp_path / "mars.png"), "Test")
 
-        # Raw 48 steps should be plotted unchanged
+        assert len(captured_x) == 3
+        window = out_mod._diurnal_window(n_sols)
+        assert 10 <= window <= 50
         for pts in captured_x:
-            assert pts == n_steps, f"Short run should keep {n_steps} raw points, got {pts}"
+            # allow ±sps for boundary rounding
+            assert abs(pts - window * sps) <= sps, (
+                f"Expected ≈{window * sps} points for {window}-sol window, got {pts}"
+            )
+
+    def test_long_run_aggregates_to_monthly(self, tmp_path, monkeypatch):
+        """Runs ≥5 Mars years aggregate to monthly bins (far fewer plot points)."""
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+
+        captured_x: list[int] = []
+        real_plot = plt.plot
+
+        def _capture_plot(x, y, **kw):
+            captured_x.append(len(x))
+            return real_plot(x, y, **kw)
+
+        from cli import output as out_mod
+        monkeypatch.setattr(out_mod.plt, "plot", _capture_plot)
+
+        # 6 Mars years at 1 step/sol
+        n_sols = 6 * _MARS_YEAR_SOLS
+        result = _Result("sim", _single_step_history(n_sols=n_sols), 0.0, 0.0)
+        out_mod.plot_diurnal(result, str(tmp_path / "mars.png"), "Test")
+
+        assert len(captured_x) == 3
+        # Monthly bins ≈ n_sols / 55.7
+        expected_months = int(n_sols / out_mod._MARS_MONTH_SOLS)
+        for pts in captured_x:
+            assert abs(pts - expected_months) <= 2, (
+                f"Expected ≈{expected_months} monthly points, got {pts}"
+            )
 
 
 # ── save_csv ──────────────────────────────────────────────────────────────────
@@ -181,17 +201,15 @@ class TestSaveCsv:
         n = 10
         result  = _Result("sim", _single_step_history(n_sols=n), 0.0, 0.0)
         outfile = str(tmp_path / "data" / "out.csv")
-
         save_csv(result, outfile)
 
         assert os.path.exists(outfile)
         with open(outfile) as f:
             rows = list(csv.reader(f))
 
-        header = rows[0]
-        assert header == ["time_hours", "temperature_k", "pressure_pa",
-                          "ice_mass_kg", "solar_flux_wm2", "orbital_angle_rad"]
-        assert len(rows) - 1 == n  # header + n data rows
+        assert rows[0] == ["time_hours", "temperature_k", "pressure_pa",
+                           "ice_mass_kg", "solar_flux_wm2", "orbital_angle_rad"]
+        assert len(rows) - 1 == n
 
     def test_csv_temperature_values_are_positive(self, tmp_path):
         """Physical invariant: all saved temperatures must be > 0 K."""
