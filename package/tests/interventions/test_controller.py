@@ -3,12 +3,15 @@
 Covers:
   - InterventionController returns correct number of snapshots
   - Snapshot fields are non-negative and physically plausible
-  - Temperature increases monotonically on average with positive injection
+  - Temperature increases on average with positive injection
   - ΔF grows each year when injection is continuous
   - GHF is non-decreasing across years
   - Baseline-only run (no injection) leaves GHF and temperature stable
   - Callback is called once per year
   - Unknown compound raises KeyError at construction time
+  - Injected GHGs appear in mars.atmosphere.composition (no separate tracker)
+  - mars.inject() and mars.decay_ghg() operate on composition directly
+  - mars.delta_F reflects current GHG forcing at any point
 """
 
 from __future__ import annotations
@@ -17,6 +20,7 @@ import pytest
 import torch
 
 from src.celestials import Mars
+from src.interventions.compounds import COMPOUNDS
 from src.interventions.controller import InterventionController, InterventionSnapshot
 
 
@@ -26,7 +30,6 @@ def _val(t: torch.Tensor) -> float:
 
 def _make_controller(
     injection: dict[str, float] | None = None,
-    n_years: int = 5,
     dt: float = 21600.0,
 ) -> tuple[InterventionController, Mars]:
     mars = Mars()
@@ -47,124 +50,194 @@ class TestInterventionControllerInit:
 
     def test_valid_compounds_do_not_raise(self):
         mars = Mars()
-        # Should not raise
         InterventionController(mars, {"CF4": 1e9, "SF6": 5e8})
+
+    def test_composition_unchanged_before_run(self):
+        """Injection schedule registered at init must not modify composition yet."""
+        mars = Mars()
+        keys_before = set(mars.atmosphere.composition.keys())
+        InterventionController(mars, {"CF4": 1e9})
+        assert set(mars.atmosphere.composition.keys()) == keys_before
+
+    def test_empty_schedule_leaves_composition_unchanged(self):
+        mars = Mars()
+        keys_before = set(mars.atmosphere.composition.keys())
+        InterventionController(mars, {})
+        assert set(mars.atmosphere.composition.keys()) == keys_before
+
+
+class TestMarsUnifiedState:
+    """Injected GHGs live in mars.atmosphere.composition — no separate tracker."""
+
+    def test_inject_adds_compound_to_composition(self):
+        """CF4 must appear in mars.atmosphere.composition after inject."""
+        mars = Mars()
+        assert "CF4" not in mars.atmosphere.composition
+        mars.inject({"CF4": 1e13})
+        assert "CF4" in mars.atmosphere.composition
+
+    def test_inject_increases_partial_pressure(self):
+        """Partial pressure of injected compound must be positive after inject."""
+        mars = Mars()
+        mars.inject({"SF6": 1e13})
+        assert _val(mars.atmosphere.composition["SF6"]) > 0.0
+
+    def test_inject_updates_greenhouse_factor(self):
+        """GHF must increase immediately after injection."""
+        mars = Mars()
+        ghf_before = _val(mars.thermal.greenhouse_factor)
+        mars.inject({"CF4": 1e13})
+        assert _val(mars.thermal.greenhouse_factor) > ghf_before
+
+    def test_delta_F_zero_before_injection(self):
+        """delta_F must be zero when no GHGs are in composition."""
+        mars = Mars()
+        assert _val(mars.delta_F) == pytest.approx(0.0)
+
+    def test_delta_F_positive_after_injection(self):
+        mars = Mars()
+        mars.inject({"CF4": 1e13})
+        assert _val(mars.delta_F) > 0.0
+
+    def test_inject_additive(self):
+        """Second inject must stack with first — partial pressure keeps growing."""
+        mars = Mars()
+        mars.inject({"CF4": 1e13})
+        p1 = _val(mars.atmosphere.composition["CF4"])
+        mars.inject({"CF4": 1e13})
+        p2 = _val(mars.atmosphere.composition["CF4"])
+        assert p2 == pytest.approx(p1 * 2, rel=1e-5)
+
+    def test_decay_reduces_partial_pressure(self):
+        """decay_ghg() must reduce the partial pressure of injected compounds."""
+        mars = Mars()
+        mars.inject({"CF4": 1e13})
+        p_before = _val(mars.atmosphere.composition["CF4"])
+        mars.decay_ghg(dt_years=1.0)
+        p_after = _val(mars.atmosphere.composition["CF4"])
+        assert p_after < p_before
+
+    def test_decay_does_not_affect_background_gases(self):
+        """CO₂, N₂, Ar partial pressures must not change during decay_ghg."""
+        mars = Mars()
+        mars.inject({"CF4": 1e13})
+        co2_before = _val(mars.atmosphere.composition["CO2"])
+        mars.decay_ghg(dt_years=1.0)
+        assert _val(mars.atmosphere.composition["CO2"]) == pytest.approx(co2_before, rel=1e-8)
+
+    def test_multiple_compounds_all_in_composition(self):
+        """All injected compounds must appear in composition after inject."""
+        mars = Mars()
+        mars.inject({"CF4": 1e9, "SF6": 5e8, "NF3": 2e8})
+        for name in ("CF4", "SF6", "NF3"):
+            assert name in mars.atmosphere.composition
+
+    def test_mars_state_matches_snapshot_ghf(self):
+        """After run(), mars.thermal.greenhouse_factor must equal last snapshot."""
+        mars = Mars()
+        ic = InterventionController(mars, {"CF4": 1e12}, dt=21600.0)
+        history = ic.run(n_years=3)
+        assert _val(mars.thermal.greenhouse_factor) == pytest.approx(
+            _val(history[-1].greenhouse_factor), rel=1e-6
+        )
+
+    def test_mars_delta_F_matches_snapshot(self):
+        """mars.delta_F after run() must equal the last snapshot delta_F."""
+        mars = Mars()
+        ic = InterventionController(mars, {"CF4": 1e12}, dt=21600.0)
+        history = ic.run(n_years=3)
+        assert _val(mars.delta_F) == pytest.approx(_val(history[-1].delta_F), rel=1e-5)
 
 
 class TestInterventionControllerRun:
 
     def test_returns_correct_number_of_snapshots(self):
-        ic, _ = _make_controller({"CF4": 1e12}, n_years=3)
-        history = ic.run(n_years=3)
-        assert len(history) == 3
+        ic, _ = _make_controller({"CF4": 1e12})
+        assert len(ic.run(n_years=3)) == 3
 
     def test_snapshots_are_intervention_snapshot_instances(self):
-        ic, _ = _make_controller({"CF4": 1e12}, n_years=2)
-        history = ic.run(n_years=2)
-        for snap in history:
+        ic, _ = _make_controller({"CF4": 1e12})
+        for snap in ic.run(n_years=2):
             assert isinstance(snap, InterventionSnapshot)
 
     def test_year_counter_starts_at_one(self):
-        ic, _ = _make_controller(n_years=3)
+        ic, _ = _make_controller()
         history = ic.run(n_years=3)
         assert history[0].year == 1
         assert history[-1].year == 3
 
     def test_surface_temperature_is_positive(self):
-        ic, _ = _make_controller({"CF4": 1e12}, n_years=3)
+        ic, _ = _make_controller({"CF4": 1e12})
         for snap in ic.run(n_years=3):
             assert _val(snap.surface_temperature) > 0
 
     def test_surface_pressure_is_positive(self):
-        ic, _ = _make_controller({"CF4": 1e12}, n_years=3)
+        ic, _ = _make_controller({"CF4": 1e12})
         for snap in ic.run(n_years=3):
             assert _val(snap.surface_pressure) > 0
 
     def test_greenhouse_factor_at_least_one(self):
-        ic, _ = _make_controller({"CF4": 1e12}, n_years=3)
+        ic, _ = _make_controller({"CF4": 1e12})
         for snap in ic.run(n_years=3):
             assert _val(snap.greenhouse_factor) >= 1.0
 
     def test_delta_F_non_negative(self):
-        ic, _ = _make_controller({"CF4": 1e12}, n_years=3)
+        ic, _ = _make_controller({"CF4": 1e12})
         for snap in ic.run(n_years=3):
             assert _val(snap.delta_F) >= 0.0
 
     def test_delta_F_grows_with_continuous_injection(self):
-        """ΔF at year N must exceed ΔF at year 1 when injection is ongoing."""
-        ic, _ = _make_controller({"CF4": 1e12}, n_years=5)
+        ic, _ = _make_controller({"CF4": 1e12})
         history = ic.run(n_years=5)
-        dF_year1 = _val(history[0].delta_F)
-        dF_year5 = _val(history[-1].delta_F)
-        assert dF_year5 > dF_year1
+        assert _val(history[-1].delta_F) > _val(history[0].delta_F)
 
     def test_ghf_non_decreasing_with_injection(self):
-        """GHF must not decrease from one year to the next during injection."""
-        ic, _ = _make_controller({"CF4": 1e12}, n_years=5)
+        ic, _ = _make_controller({"CF4": 1e12})
         history = ic.run(n_years=5)
         for i in range(1, len(history)):
             assert _val(history[i].greenhouse_factor) >= _val(
                 history[i - 1].greenhouse_factor
-            ) - 1e-6  # small tolerance for float arithmetic
+            ) - 1e-6
 
     def test_no_injection_leaves_delta_F_zero(self):
-        """Without injection, ΔF must stay at 0."""
-        ic, _ = _make_controller(injection={}, n_years=3)
+        ic, _ = _make_controller(injection={})
         for snap in ic.run(n_years=3):
             assert _val(snap.delta_F) == pytest.approx(0.0)
 
-    def test_ghg_masses_dict_has_injected_compound(self):
-        ic, _ = _make_controller({"SF6": 1e11}, n_years=2)
-        history = ic.run(n_years=2)
-        for snap in history:
-            assert "SF6" in snap.ghg_masses_kg
+    def test_ghg_partial_pressure_has_injected_compound(self):
+        ic, _ = _make_controller({"SF6": 1e11})
+        for snap in ic.run(n_years=2):
+            assert "SF6" in snap.ghg_partial_pressure_Pa
 
     def test_cumulative_injected_increases_each_year(self):
-        ic, _ = _make_controller({"CF4": 1e12}, n_years=3)
+        ic, _ = _make_controller({"CF4": 1e12})
         history = ic.run(n_years=3)
         cum0 = _val(history[0].cumulative_injected_kg["CF4"])
         cum2 = _val(history[2].cumulative_injected_kg["CF4"])
         assert cum2 > cum0
 
     def test_time_s_increases_each_year(self):
-        ic, _ = _make_controller({"CF4": 1e12}, n_years=3)
+        ic, _ = _make_controller({"CF4": 1e12})
         history = ic.run(n_years=3)
         for i in range(1, len(history)):
             assert _val(history[i].time_s) > _val(history[i - 1].time_s)
 
     def test_callback_called_once_per_year(self):
         call_count = [0]
-
-        def cb(snap):
-            call_count[0] += 1
-
-        ic, _ = _make_controller({"CF4": 1e12}, n_years=4)
-        ic.run(n_years=4, callback=cb)
+        ic, _ = _make_controller({"CF4": 1e12})
+        ic.run(n_years=4, callback=lambda s: call_count.__setitem__(0, call_count[0] + 1))
         assert call_count[0] == 4
 
     def test_callback_receives_snapshot(self):
         received = []
-
-        def cb(snap):
-            received.append(snap)
-
-        ic, _ = _make_controller({"CF4": 1e12}, n_years=2)
-        ic.run(n_years=2, callback=cb)
+        ic, _ = _make_controller({"CF4": 1e12})
+        ic.run(n_years=2, callback=received.append)
         assert all(isinstance(s, InterventionSnapshot) for s in received)
 
     @pytest.mark.slow
     def test_50_year_run_temperature_rises(self):
-        """Integration: 50-year CF4 injection must raise T by at least 10 K.
-
-        Uses realistic injection (1e9 kg/yr CF4) and dt=21600s (6h) for
-        physical stability.  Marked slow as it simulates 50 × ~10000 steps.
-        """
         mars = Mars()
-        ic = InterventionController(
-            mars,
-            injection_schedule_kg_yr={"CF4": 1e9},
-            dt=21600.0,
-        )
+        ic = InterventionController(mars, {"CF4": 1e9}, dt=21600.0)
         history = ic.run(n_years=50)
         T_start = _val(history[0].surface_temperature)
         T_end   = _val(history[-1].surface_temperature)

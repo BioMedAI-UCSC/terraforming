@@ -1,0 +1,28 @@
+preset:
+  name: hellas-basin
+  description: "Hellas Basin — deepest impact basin on Mars (39.0°S, 61.0°E, -4000 m)"
+
+planet:
+  latitude: -39.0             # °S — western Hellas Planitia
+  longitude: 61.0             # °E
+  elevation_m: -4000.0        # m — 4 km below Mars datum (basin floor ~-7 152 m)
+
+  surface_temperature: 225.0  # K — warmest site: dense atmosphere traps surface heat
+  surface_pressure: 610.0     # Pa — global datum; Mars model corrects to ≈872 Pa at -4000 m
+  albedo: 0.28                # sandy / dusty basin floor; frequent dust storms
+  greenhouse_factor: 1.03     # thicker CO₂ column at depth enhances greenhouse effect
+  ice_mass: 5.0e15            # kg
+  initial_ls_deg: 251.0       # °
+
+engine:
+  dt: 3600.0
+  accuracy: fast
+
+experiment:
+  type: sol
+  sols: 1.0
+
+output:
+  save_csv: true
+  save_plot: true
+  out_dir: null

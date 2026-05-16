@@ -1,0 +1,28 @@
+preset:
+  name: south-polar-cap
+  description: "South Polar Cap — perennial CO₂ ice cap region (73.0°S, 305.0°E, +1800 m)"
+
+planet:
+  latitude: -73.0             # °S — south polar layered deposits (SPLD)
+  longitude: 305.0            # °E  (= 55°W)
+  elevation_m: 1800.0         # m — SPLD surface elevated above surrounding plains
+
+  surface_temperature: 157.0  # K — near CO₂ frost point; cold polar environment
+  surface_pressure: 610.0     # Pa — global datum; Mars model corrects to ≈519 Pa at +1800 m
+  albedo: 0.65                # bright perennial CO₂ / H₂O ice cap
+  greenhouse_factor: 1.01     # thin, dry polar atmosphere; minimal greenhouse
+  ice_mass: 1.5e16            # kg — large perennial south polar cap
+  initial_ls_deg: 251.0       # °
+
+engine:
+  dt: 3600.0
+  accuracy: fast
+
+experiment:
+  type: sol
+  sols: 1.0
+
+output:
+  save_csv: true
+  save_plot: true
+  out_dir: null

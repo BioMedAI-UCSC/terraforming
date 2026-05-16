@@ -1,10 +1,14 @@
 """Tests for cli/output.py.
 
 Covers:
-  - plot_diurnal: short runs (≤50 sols) keep all raw data — clear diurnal sine waves
-  - plot_diurnal: medium runs (<5 years) show a 10–50 sol window of diurnal data
+  - plot_diurnal: all data kept for runs <5 Mars years (clear diurnal sine waves)
+  - plot_diurnal: x-axis tick interval snaps to 10–50 sol range for multi-sol runs
   - plot_diurnal: long runs (≥5 Mars years) aggregate to monthly seasonal cycles
   - plot_diurnal: output files created for all three channels (temp, pressure, ice)
+  - _sol_tick_interval: returns None for ≤7 sols, snaps to nearest 10 in [10, 50]
+  - _config_key: slug encoding for all four experiment types
+  - _versioned_dir: base path, _v2, _v3 collision resolution
+  - _out_dir: output_path passthrough, out_dir passthrough, auto date+config path
   - save_csv: correct columns and row count
 """
 
@@ -13,10 +17,16 @@ from __future__ import annotations
 import csv
 import os
 from dataclasses import dataclass
+from datetime import datetime, timezone
 
 import numpy as np
 import pytest
 import torch
+
+from cli.models import (
+    ExperimentConfig, ExpType, InterventionConfig,
+    OutputConfig, PlanetConfig, SimConfig,
+)
 
 
 # ── Minimal Snapshot / RunResult stubs ────────────────────────────────────────
@@ -77,6 +87,205 @@ def _single_step_history(n_sols: int) -> list:
     return history
 
 
+# ── _config_key ───────────────────────────────────────────────────────────────
+
+class TestConfigKey:
+
+    def test_sol_north_hemisphere(self):
+        """50-sol run at 22°N → mars_50sols_22N."""
+        from cli.output import _config_key
+        cfg = SimConfig(
+            experiment=ExperimentConfig(type=ExpType.sol, sols=50.0),
+            planet=PlanetConfig(latitude=22.0),
+        )
+        assert _config_key(cfg) == "mars_50sols_22N"
+
+    def test_sol_south_hemisphere(self):
+        """10-sol run at 40°S → mars_10sols_40S."""
+        from cli.output import _config_key
+        cfg = SimConfig(
+            experiment=ExperimentConfig(type=ExpType.sol, sols=10.0),
+            planet=PlanetConfig(latitude=-40.0),
+        )
+        assert _config_key(cfg) == "mars_10sols_40S"
+
+    def test_sol_equator(self):
+        """Equatorial run uses 0N."""
+        from cli.output import _config_key
+        cfg = SimConfig(
+            experiment=ExperimentConfig(type=ExpType.sol, sols=1.0),
+            planet=PlanetConfig(latitude=0.0),
+        )
+        assert _config_key(cfg) == "mars_1sols_0N"
+
+    def test_year_experiment(self):
+        """Year run encodes 1yr and the latitude."""
+        from cli.output import _config_key
+        cfg = SimConfig(
+            experiment=ExperimentConfig(type=ExpType.year),
+            planet=PlanetConfig(latitude=22.0),
+        )
+        assert _config_key(cfg) == "mars_1yr_22N"
+
+    def test_multi_experiment_encodes_sols(self):
+        """Multi-coord run encodes sol count (no latitude — covers all latitudes)."""
+        from cli.output import _config_key
+        cfg = SimConfig(
+            experiment=ExperimentConfig(type=ExpType.multi, sols=3.0),
+        )
+        assert _config_key(cfg) == "mars_multi_3sols"
+
+    def test_intervention_experiment(self):
+        """Intervention encodes n_years and latitude."""
+        from cli.output import _config_key
+        cfg = SimConfig(
+            experiment=ExperimentConfig(type=ExpType.intervention),
+            intervention=InterventionConfig(n_years=50),
+            planet=PlanetConfig(latitude=22.0),
+        )
+        assert _config_key(cfg) == "mars_iv_50yr_22N"
+
+    def test_sols_rounded_to_integer(self):
+        """Fractional sols are rounded to the nearest integer in the slug."""
+        from cli.output import _config_key
+        cfg = SimConfig(
+            experiment=ExperimentConfig(type=ExpType.sol, sols=50.9),
+            planet=PlanetConfig(latitude=22.0),
+        )
+        assert _config_key(cfg) == "mars_51sols_22N"
+
+
+# ── _versioned_dir ─────────────────────────────────────────────────────────────
+
+class TestVersionedDir:
+
+    def test_returns_base_when_nothing_exists(self, tmp_path):
+        """First run returns the unversioned base path."""
+        from cli.output import _versioned_dir
+        result = _versioned_dir(str(tmp_path), "mars_50sols_22N")
+        assert result == str(tmp_path / "mars_50sols_22N")
+
+    def test_appends_v2_when_base_exists(self, tmp_path):
+        """Second run (base dir present) returns _v2."""
+        from cli.output import _versioned_dir
+        (tmp_path / "mars_50sols_22N").mkdir()
+        result = _versioned_dir(str(tmp_path), "mars_50sols_22N")
+        assert result == str(tmp_path / "mars_50sols_22N_v2")
+
+    def test_appends_v3_when_base_and_v2_exist(self, tmp_path):
+        """Third run returns _v3."""
+        from cli.output import _versioned_dir
+        (tmp_path / "mars_50sols_22N").mkdir()
+        (tmp_path / "mars_50sols_22N_v2").mkdir()
+        result = _versioned_dir(str(tmp_path), "mars_50sols_22N")
+        assert result == str(tmp_path / "mars_50sols_22N_v3")
+
+    def test_does_not_skip_versions(self, tmp_path):
+        """Versioning is sequential — skipping v2 is impossible."""
+        from cli.output import _versioned_dir
+        (tmp_path / "mars_50sols_22N").mkdir()
+        # v2 absent — must return v2, not v3
+        result = _versioned_dir(str(tmp_path), "mars_50sols_22N")
+        assert "_v3" not in result
+        assert result.endswith("_v2")
+
+
+# ── _out_dir ──────────────────────────────────────────────────────────────────
+
+class TestOutDir:
+
+    def test_respects_explicit_output_path(self):
+        """output_path overrides all logic and is returned verbatim."""
+        from cli.output import _out_dir
+        cfg = SimConfig(output=OutputConfig(output_path="/custom/path"))
+        assert _out_dir(cfg) == "/custom/path"
+
+    def test_respects_explicit_out_dir(self):
+        """out_dir (--name flag) nests under outputs/ without a date subdirectory."""
+        from cli.output import _out_dir
+        cfg = SimConfig(output=OutputConfig(out_dir="my_experiment"))
+        assert _out_dir(cfg) == os.path.join("outputs", "my_experiment")
+
+    def test_auto_dir_has_date_prefix(self, monkeypatch):
+        """Auto path contains outputs/<dd-mmm-yy>/."""
+        import cli.output as out_mod
+        fixed_dt = datetime(2026, 5, 2, tzinfo=timezone.utc)
+        monkeypatch.setattr(
+            out_mod, "datetime",
+            type("_DT", (), {"now": staticmethod(lambda tz=None: fixed_dt)}),
+        )
+        cfg = SimConfig()
+        result = out_mod._out_dir(cfg)
+        assert result.startswith(os.path.join("outputs", "02-May-26"))
+
+    def test_auto_dir_encodes_config_key(self, monkeypatch):
+        """Auto path includes the experiment config slug."""
+        import cli.output as out_mod
+        fixed_dt = datetime(2026, 5, 2, tzinfo=timezone.utc)
+        monkeypatch.setattr(
+            out_mod, "datetime",
+            type("_DT", (), {"now": staticmethod(lambda tz=None: fixed_dt)}),
+        )
+        cfg = SimConfig(
+            experiment=ExperimentConfig(type=ExpType.sol, sols=50.0),
+            planet=PlanetConfig(latitude=22.0),
+        )
+        result = out_mod._out_dir(cfg)
+        assert result == os.path.join("outputs", "02-May-26", "mars_50sols_22N")
+
+    def test_auto_dir_versions_on_collision(self, tmp_path, monkeypatch):
+        """Auto path appends _v2 when the date/config dir already exists."""
+        import cli.output as out_mod
+        fixed_dt = datetime(2026, 5, 2, tzinfo=timezone.utc)
+        monkeypatch.setattr(
+            out_mod, "datetime",
+            type("_DT", (), {"now": staticmethod(lambda tz=None: fixed_dt)}),
+        )
+        # Pre-create outputs/<date>/<key> relative to tmp_path so the collision
+        # is detected when the CWD is tmp_path.
+        (tmp_path / "outputs" / "02-May-26" / "mars_50sols_22N").mkdir(parents=True)
+        monkeypatch.chdir(tmp_path)
+
+        cfg = SimConfig(
+            experiment=ExperimentConfig(type=ExpType.sol, sols=50.0),
+            planet=PlanetConfig(latitude=22.0),
+        )
+        result = out_mod._out_dir(cfg)
+        assert result == os.path.join("outputs", "02-May-26", "mars_50sols_22N_v2")
+
+
+# ── _sol_tick_interval ────────────────────────────────────────────────────────
+
+class TestSolTickInterval:
+
+    def test_returns_none_for_very_short_runs(self):
+        """≤7 sols → None so matplotlib auto-scales the x axis."""
+        from cli.output import _sol_tick_interval
+        assert _sol_tick_interval(1) is None
+        assert _sol_tick_interval(7) is None
+
+    def test_snaps_to_10_for_short_multi_sol_runs(self):
+        """8–14 sols → interval of 10 (minimum)."""
+        from cli.output import _sol_tick_interval
+        assert _sol_tick_interval(8)  == 10
+        assert _sol_tick_interval(14) == 10
+
+    def test_snaps_to_50_for_long_runs(self):
+        """700+ sols (≈1 Mars year) → interval of 50 (maximum)."""
+        from cli.output import _sol_tick_interval
+        assert _sol_tick_interval(700)  == 50
+        assert _sol_tick_interval(3000) == 50
+
+    def test_result_is_always_multiple_of_10(self):
+        """Interval is always a multiple of 10 in the range [10, 50]."""
+        from cli.output import _sol_tick_interval
+        for n in range(8, 700, 13):
+            iv = _sol_tick_interval(n)
+            assert iv is not None
+            assert iv % 10 == 0
+            assert 10 <= iv <= 50
+
+
 # ── plot_diurnal ──────────────────────────────────────────────────────────────
 
 class TestPlotDiurnal:
@@ -106,7 +315,7 @@ class TestPlotDiurnal:
         assert os.path.exists(str(tmp_path / "mars_year_ice.png"))
 
     def test_short_run_keeps_all_raw_data(self, tmp_path, monkeypatch):
-        """Runs of ≤50 sols keep every timestep (clear diurnal sine waves)."""
+        """Runs of ≤7 sols keep every timestep so the diurnal sine wave is visible."""
         import matplotlib
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
@@ -121,17 +330,16 @@ class TestPlotDiurnal:
         from cli import output as out_mod
         monkeypatch.setattr(out_mod.plt, "plot", _capture_plot)
 
-        n_sols  = 5
-        sps     = 24
-        result  = _Result("sim", _multi_step_history(n_sols=n_sols, steps_per_sol=sps), 0.0, 0.0)
+        n_sols, sps = 3, 24
+        result = _Result("sim", _multi_step_history(n_sols=n_sols, steps_per_sol=sps), 0.0, 0.0)
         out_mod.plot_diurnal(result, str(tmp_path / "mars.png"), "Test")
 
         assert len(captured_x) == 3
         for pts in captured_x:
             assert pts == n_sols * sps, f"Expected {n_sols * sps} raw points, got {pts}"
 
-    def test_medium_run_clips_to_10_to_50_sol_window(self, tmp_path, monkeypatch):
-        """Runs longer than 50 sols but under 5 years clip to a 10–50 sol window."""
+    def test_medium_run_keeps_all_raw_data(self, tmp_path, monkeypatch):
+        """Runs >7 sols but <5 Mars years keep every raw timestep (no clipping)."""
         import matplotlib
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
@@ -146,19 +354,45 @@ class TestPlotDiurnal:
         from cli import output as out_mod
         monkeypatch.setattr(out_mod.plt, "plot", _capture_plot)
 
-        n_sols = 300   # well above 50 sols, below 5 years
-        sps    = 4
+        n_sols, sps = 20, 24
         result = _Result("sim", _multi_step_history(n_sols=n_sols, steps_per_sol=sps), 0.0, 0.0)
-        out_mod.plot_diurnal(result, str(tmp_path / "mars.png"), "Test")
+        out_mod.plot_diurnal(result, str(tmp_path / "mars_sol.png"), "Test")
 
         assert len(captured_x) == 3
-        window = out_mod._diurnal_window(n_sols)
-        assert 10 <= window <= 50
         for pts in captured_x:
-            # allow ±sps for boundary rounding
-            assert abs(pts - window * sps) <= sps, (
-                f"Expected ≈{window * sps} points for {window}-sol window, got {pts}"
-            )
+            assert pts == n_sols * sps, f"Expected {n_sols * sps} raw points, got {pts}"
+
+    def test_temperature_diurnal_range_is_preserved(self, tmp_path, monkeypatch):
+        """Regression: daily-mean aggregation flattened the ±50 K diurnal swing.
+
+        With raw temperature data, the max−min spread across all plotted points
+        must be close to the injected 100 K peak-to-peak amplitude.
+        """
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+
+        captured_y: list = []
+        real_plot = plt.plot
+
+        def _capture_plot(x, y, **kw):
+            captured_y.append(np.asarray(y).copy())
+            return real_plot(x, y, **kw)
+
+        from cli import output as out_mod
+        monkeypatch.setattr(out_mod.plt, "plot", _capture_plot)
+
+        result  = _Result("sim", _multi_step_history(n_sols=20, steps_per_sol=24), 0.0, 0.0)
+        outfile = str(tmp_path / "mars_sol.png")
+        out_mod.plot_diurnal(result, outfile, "Test")
+
+        # First captured call is the temperature channel
+        T_plotted = captured_y[0]
+        diurnal_range = float(T_plotted.max() - T_plotted.min())
+        assert diurnal_range > 80.0, (
+            f"Diurnal range {diurnal_range:.1f} K is too small — "
+            "averaging may have collapsed the day/night cycle."
+        )
 
     def test_long_run_aggregates_to_monthly(self, tmp_path, monkeypatch):
         """Runs ≥5 Mars years aggregate to monthly bins (far fewer plot points)."""

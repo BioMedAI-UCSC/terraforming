@@ -1,50 +1,39 @@
-"""InterventionController — drives GHG injection + Mars climate simulation.
+"""InterventionController — annual GHG injection scheduler for Mars.
 
-This is the top-level orchestrator for terraforming intervention experiments.
-It wraps TimeController, injects super-greenhouse gases on an annual schedule,
-and returns a year-by-year record of the evolving climate state.
+The controller drives terraforming experiments by injecting super-greenhouse
+gases on a yearly schedule.  All atmospheric state lives in
+``mars.atmosphere.composition`` — injected GHGs are just additional entries
+in the same dict alongside CO₂, N₂, Ar.  There is no separate GHGState object.
 
 Architecture
 ------------
-The InterventionController is a **separate layer** from the Mars physics:
+    mars.atmosphere.composition = {
+        "CO2": 580 Pa,   # pre-existing
+        "N2":   15 Pa,   # pre-existing
+        "CF4":   X Pa,   # added by inject()
+        "SF6":   Y Pa,   # added by inject()
+        ...
+    }
 
-    InterventionController
-        ├── GHGState          (tracks atmospheric GHG masses)
-        ├── forcing.py        (converts GHG mass → ΔF → updated GHF)
-        └── TimeController    (integrates Mars physics for one year at a time)
+``mars.inject(schedule)`` converts kg → Pa and adds directly to composition.
+``mars.decay_ghg(dt_years)`` decays all COMPOUNDS-registered species in place.
+``mars.thermal.greenhouse_factor`` and ``mars.delta_F`` are always current.
 
-Each Mars year the controller:
-    1. Injects the annual GHG mass into GHGState
-    2. Computes ΔF from current concentrations
-    3. Writes updated greenhouse_factor to mars.thermal
-    4. Runs TimeController for exactly one Mars year
-    5. Decays GHG masses by one year
-    6. Records an InterventionSnapshot
-
-The physics model (mars.py, planet.py, time_controller.py) is never modified.
+The controller adds only one piece of state not derivable from physics:
+cumulative_injected_kg — how much total mass has ever been injected per species.
+This is a reporting quantity, not physics state.
 """
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Callable, Optional
 
 import torch
 
 from src.constants import TF_DTYPE
 from src.engine.time_controller import Accuracy, TimeController
-from src.interventions.compounds import get_compound
-from src.interventions.forcing import (
-    delta_F_total,
-    update_greenhouse_factor,
-    _MARS_EMISSIVITY,
-)
-from src.interventions.state import GHGState
-from src.constants import STEFAN_BOLTZMANN
-
-
-# Mars year in seconds (module-level Python float — device-agnostic)
+from src.interventions.compounds import get_compound, COMPOUNDS
 from src.celestials.planets.mars import MARS_ORBITAL_PERIOD as _MARS_YEAR_T
 
 
@@ -64,21 +53,22 @@ class InterventionSnapshot:
 
     # Climate state (mirrors TimeController Snapshot for compatibility)
     surface_temperature:      torch.Tensor                # K  (annual mean)
+    temp_min:                 torch.Tensor                # K  (annual minimum)
+    temp_max:                 torch.Tensor                # K  (annual maximum)
     surface_pressure:         torch.Tensor                # Pa (annual mean)
     ice_mass:                 torch.Tensor                # kg (end-of-year)
     solar_flux:               torch.Tensor                # W m⁻² (annual mean)
     orbital_angle:            torch.Tensor                # rad (end-of-year)
-    greenhouse_factor:        torch.Tensor                # updated GHF
+    greenhouse_factor:        torch.Tensor                # GHF at end of year
 
     # Intervention-specific
     delta_F:                  torch.Tensor                # total GHG forcing (W/m²)
-    ghg_masses_kg:            dict[str, torch.Tensor]     # atmospheric mass per compound
+    ghg_partial_pressure_Pa:  dict[str, torch.Tensor]     # Pa per GHG compound
     cumulative_injected_kg:   dict[str, torch.Tensor]     # total injected to date
 
-    # Convenience property: time in Mars years
     @property
     def time(self) -> torch.Tensor:
-        """Alias for time_s (seconds) — keeps compatibility with Snapshot consumers."""
+        """Alias for time_s — keeps compatibility with Snapshot consumers."""
         return self.time_s
 
 
@@ -89,19 +79,18 @@ class InterventionSnapshot:
 class InterventionController:
     """Annual GHG injection scheduler + climate simulation driver.
 
+    Injected gases become part of ``mars.atmosphere.composition`` — the same
+    dict that holds CO₂, N₂, and Ar.  No separate atmospheric bookkeeper exists.
+
     Parameters
     ----------
     mars : Mars
-        Configured Mars instance.  The initial greenhouse_factor on this
-        instance is used as the baseline (CO₂-only) GHF; the intervention
-        layer adds ΔF on top.
+        Configured Mars instance.
     injection_schedule_kg_yr : dict[str, float]
         ``{compound_name: kg_per_Mars_year}`` for each injected species.
         All compound names must be present in the COMPOUNDS registry.
     dt : float
         Sub-annual integration timestep in seconds.  Default 3600 s (1 hour).
-        Smaller values are more accurate; 3600–21600 s are physically stable
-        for the fast-physics solver.
     accuracy : Accuracy
         Integration accuracy passed to the underlying TimeController.
     compile : bool
@@ -114,18 +103,19 @@ class InterventionController:
     >>> mars = Mars()
     >>> ic = InterventionController(mars, {"CF4": 1e9, "SF6": 5e8}, dt=21600)
     >>> history = ic.run(n_years=50)
-    >>> print(f"Year 50 temperature: {float(history[-1].surface_temperature.item()):.1f} K")
+    >>> # mars.atmosphere.composition now contains CF4 and SF6 partial pressures
+    >>> print(mars.atmosphere.composition.keys())
+    >>> print(f"ΔF = {mars.delta_F.item():.3f} W/m²")
     """
 
     def __init__(
         self,
-        mars,                                           # Mars instance
+        mars,
         injection_schedule_kg_yr: dict[str, float],
         dt: float = 3600.0,
         accuracy: Accuracy = Accuracy.FAST,
         compile: bool = False,
     ) -> None:
-        # Validate compound names up front
         for name in injection_schedule_kg_yr:
             get_compound(name)
 
@@ -134,29 +124,19 @@ class InterventionController:
         self._schedule = {k: float(v) for k, v in injection_schedule_kg_yr.items()}
         self._tc       = TimeController(mars, dt=dt, accuracy=accuracy, compile=compile)
 
-        self._ghg = GHGState(
-            compounds=list(self._schedule.keys()),
-            device=self._device,
-        )
+        # Reporting-only: cumulative kg injected per compound (not physics state)
+        self._cumulative_injected_kg: dict[str, torch.Tensor] = {
+            k: torch.zeros((), dtype=TF_DTYPE, device=self._device)
+            for k in self._schedule
+        }
 
-        # Store the baseline GHF so it can be factored into the forcing formula
-        self._baseline_ghf = mars.thermal.greenhouse_factor.clone()
+        # Prime baselines on Mars so delta_F is well-defined from run() start
+        if self._schedule:
+            mars._init_ghg()
 
-        # Cache F_in_base = ε σ (T₀ / GHF₀)⁴ using the initial surface temperature.
-        # This constant is passed to update_greenhouse_factor every year so that the
-        # GHF formula's denominator never changes as T rises — otherwise the growing T
-        # would inflate F_in_base and cause GHF to decrease despite more forcing.
-        sb = STEFAN_BOLTZMANN.to(self._device)
-        T0 = mars.thermal.surface_temperature.clone()
-        self._baseline_olr: torch.Tensor = (
-            _MARS_EMISSIVITY * sb * (T0 / self._baseline_ghf) ** 4.0
-        )
-
-        # Running elapsed time (seconds)
-        self._elapsed = torch.zeros((), dtype=TF_DTYPE, device=self._device)
-
-        # Mars year duration in seconds (as a Python float for run() duration arg)
-        self._year_s = float(_MARS_YEAR_T.item())
+        self._elapsed     = torch.zeros((), dtype=TF_DTYPE, device=self._device)
+        self._year_s      = float(_MARS_YEAR_T.item())
+        self.all_hourly: list = []   # full hourly trace accumulated across all years
 
     # ------------------------------------------------------------------
     # Main loop
@@ -165,27 +145,15 @@ class InterventionController:
     def run(
         self,
         n_years: int,
-        callback: Optional[object] = None,
+        callback: Optional[Callable[[InterventionSnapshot], None]] = None,
     ) -> list[InterventionSnapshot]:
         """Run the intervention simulation for *n_years* Mars years.
 
-        Algorithm (per year)
-        --------------------
-        1. **Inject** annual GHG mass into GHGState (before decay so that
-           the first year's injection is fully present when forcing is computed).
-        2. **Compute ΔF** from current GHG concentrations.
-        3. **Update** mars.thermal.greenhouse_factor via forcing.py.
-        4. **Simulate** one Mars year using TimeController.run().
-           The physics sees the updated GHF for this entire year.
-        5. **Decay** GHG masses by one year (exponential decay).
-        6. **Record** an InterventionSnapshot summarising the year.
-
-        Parameters
-        ----------
-        n_years : int
-            Number of Mars years to simulate.
-        callback : callable, optional
-            If provided, called as ``callback(snapshot)`` after each year.
+        Per year:
+            1. mars.inject(schedule)        → partial pressures updated in composition
+            2. TimeController.run(1 year)   → ODE integrates with updated GHF
+            3. mars.decay_ghg(1.0)          → COMPOUNDS species decay in composition
+            4. InterventionSnapshot         → read from mars state
 
         Returns
         -------
@@ -195,27 +163,24 @@ class InterventionController:
         history: list[InterventionSnapshot] = []
 
         for year in range(1, n_years + 1):
-            # Step 1 — inject
-            self._ghg.inject(self._schedule)
+            # Step 1 — inject; GHF synced automatically inside mars.inject()
+            if self._schedule:
+                self._mars.inject(self._schedule)
+                for name, kg in self._schedule.items():
+                    self._cumulative_injected_kg[name] = (
+                        self._cumulative_injected_kg[name] + kg
+                    )
 
-            # Step 2 & 3 — compute ΔF and update GHF
-            # Always pass the initial CO₂-only GHF so ΔF is applied additively
-            # on top of the fixed baseline (not compounded on itself each year).
-            total_atm_mass = self._mars.atmosphere.atmospheric_mass
-            dF = delta_F_total(self._ghg, total_atm_mass)
-            update_greenhouse_factor(self._mars, dF,
-                                     baseline_ghf=self._baseline_ghf,
-                                     baseline_olr=self._baseline_olr)
-
-            # Step 4 — simulate one Mars year
+            # Step 2 — simulate one Mars year
             year_history = self._tc.run(duration=self._year_s)
+            self.all_hourly.extend(year_history)
             self._elapsed = self._elapsed + self._year_s
 
-            # Step 5 — decay
-            self._ghg.decay(dt_years=1.0)
+            # Step 3 — decay; GHF resynced automatically inside mars.decay_ghg()
+            self._mars.decay_ghg(dt_years=1.0)
 
-            # Step 6 — record annual snapshot (mean over year's sub-steps)
-            snap = self._make_snapshot(year, year_history, dF)
+            # Step 4 — snapshot from Mars (single source of truth)
+            snap = self._make_snapshot(year, year_history)
             history.append(snap)
 
             if callback is not None:
@@ -227,34 +192,31 @@ class InterventionController:
     # Private helpers
     # ------------------------------------------------------------------
 
-    def _make_snapshot(
-        self,
-        year: int,
-        year_history: list,
-        dF: torch.Tensor,
-    ) -> InterventionSnapshot:
-        """Summarise one year of simulation into an InterventionSnapshot.
-
-        Temperature, pressure, and solar flux are averaged over all timesteps
-        within the year (annual mean).  Ice mass and orbital angle are the
-        end-of-year values.
-        """
-        d = self._device
-
+    def _make_snapshot(self, year: int, year_history: list) -> InterventionSnapshot:
         def _mean(attr: str) -> torch.Tensor:
-            vals = torch.stack([getattr(s, attr) for s in year_history])
-            return vals.mean()
+            return torch.stack([getattr(s, attr) for s in year_history]).mean()
 
+        temps = torch.stack([s.surface_temperature for s in year_history])
+
+        ghg_pp = {
+            name: P.clone()
+            for name, P in self._mars.atmosphere.composition.items()
+            if name in COMPOUNDS
+        }
         return InterventionSnapshot(
-            year                  = year,
-            time_s                = self._elapsed.clone(),
-            surface_temperature   = _mean("surface_temperature"),
-            surface_pressure      = _mean("surface_pressure"),
-            ice_mass              = year_history[-1].ice_mass.clone(),
-            solar_flux            = _mean("solar_flux"),
-            orbital_angle         = year_history[-1].orbital_angle.clone(),
-            greenhouse_factor     = self._mars.thermal.greenhouse_factor.clone(),
-            delta_F               = dF.clone(),
-            ghg_masses_kg         = self._ghg.get_all_masses_kg(),
-            cumulative_injected_kg= self._ghg.get_cumulative_injected(),
+            year                    = year,
+            time_s                  = self._elapsed.clone(),
+            surface_temperature     = temps.mean(),
+            temp_min                = temps.min(),
+            temp_max                = temps.max(),
+            surface_pressure        = _mean("surface_pressure"),
+            ice_mass                = year_history[-1].ice_mass.clone(),
+            solar_flux              = _mean("solar_flux"),
+            orbital_angle           = year_history[-1].orbital_angle.clone(),
+            greenhouse_factor       = self._mars.thermal.greenhouse_factor.clone(),
+            delta_F                 = self._mars.delta_F.clone(),
+            ghg_partial_pressure_Pa = ghg_pp,
+            cumulative_injected_kg  = {
+                k: v.clone() for k, v in self._cumulative_injected_kg.items()
+            },
         )
