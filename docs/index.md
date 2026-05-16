@@ -1,18 +1,20 @@
 # Terraforming
 
-**tform** is a physics-based Mars terraforming simulation framework. It models the evolution of surface temperature, atmospheric pressure, and polar ice mass under solar forcing, greenhouse gas interventions, and orbital mechanics.
+**Terraforming** is the hypothetical process of deliberately modifying a planet's atmosphere, temperature, surface topography, or ecology to make it habitable for Earth life. The core challenge is an energy balance problem: enough heat must be retained by the atmosphere to sustain liquid water and breathable pressures at the surface.
+
+**tform** is a physics-based simulation framework for modelling terraforming processes. It provides a generic planetary state model — tracking how a planet's temperature, pressure, and volatile reservoirs evolve over time under external forcings — and implements planet-specific physics on top of that foundation. Mars is the first and primary target.
 
 ---
 
-## Core state vector
+## Framework design
 
-The simulator integrates a coupled ODE system over time:
+A planet in tform is described by a **state vector** of thermodynamic and atmospheric quantities that evolve continuously under physical forcing:
 
 $$
-\frac{d}{dt}\begin{pmatrix}T \\ P \\ M_\text{ice}\end{pmatrix} = f\!\left(T, P, M_\text{ice},\, L_s,\, r,\, \text{GHG}\right)
+\mathbf{y}(t) = \bigl(T,\; P,\; \ldots\bigr)
 $$
 
-where $T$ is mean surface temperature (K), $P$ is atmospheric pressure (Pa), and $M_\text{ice}$ is polar CO₂ ice mass (kg).
+The framework defines how that state changes — balancing incoming solar radiation, outgoing thermal emission, greenhouse retention, and any engineered interventions — without prescribing the planet-specific constants. Each planet subclass supplies its own orbital parameters, atmospheric composition, and physical constants, while inheriting the integration infrastructure.
 
 ---
 
