@@ -2,6 +2,7 @@ site_name: Terraforming
 site_description: Mars terraforming physics framework — planets, atmospheres, orbital mechanics
 repo_url: https://github.com/BioMedAI-UCSC/terraforming
 repo_name: BioMedAI-UCSC/terraforming
+edit_uri: edit/main/docs/
 
 theme:
   name: material
@@ -27,6 +28,7 @@ theme:
     - content.code.copy
     - content.code.annotate
     - toc.integrate
+    - content.action.edit
 
 markdown_extensions:
   - admonition
