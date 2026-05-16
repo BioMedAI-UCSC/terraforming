@@ -53,3 +53,19 @@ data/
 # To commit a validated experiment, move or copy it out of outputs/ first,
 # or explicitly `git add -f outputs/sol/exp_<name>/`.
 outputs/
+
+# Docs build
+site/
+
+# JS bundles & build artifacts
+*.min.js
+*.min.css
+*.bundle.js
+*.bundle.css
+*.map
+dist/
+node_modules/
+.parcel-cache/
+.next/
+.nuxt/
+.output/

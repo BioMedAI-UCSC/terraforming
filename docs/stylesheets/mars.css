@@ -1,0 +1,17 @@
+/* Mars rust-brown palette — dark mode primary */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color:        #c1531a;
+  --md-primary-fg-color--light: #d4662e;
+  --md-primary-fg-color--dark:  #8f3a0e;
+  --md-accent-fg-color:         #d96b30;
+  --md-accent-fg-color--transparent: #d96b301a;
+}
+
+/* Slightly deeper for light mode readability */
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color:        #8f3a0e;
+  --md-primary-fg-color--light: #b5491a;
+  --md-primary-fg-color--dark:  #6b2a09;
+  --md-accent-fg-color:         #c1531a;
+  --md-accent-fg-color--transparent: #c1531a1a;
+}
