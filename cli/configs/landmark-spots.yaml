@@ -1,0 +1,27 @@
+preset:
+  name: landmark-spots
+  description: "4 landmark sites — Olympus Mons, Elysium Mons, Hellas Basin, South Polar Cap"
+
+# Shared engine and experiment settings. Each site's lat/lon/elevation/T/P/albedo
+# are defined in runner.LANDMARK_SPOTS and override these defaults at runtime.
+engine:
+  dt: 3600.0
+  accuracy: fast
+
+experiment:
+  type: spots
+  sols: 1.0
+
+output:
+  save_csv: true
+  save_plot: true
+  out_dir: null
+
+# ── Per-site physical conditions (injected by runner.LANDMARK_SPOTS) ──────────
+#
+# Site              Lat       Lon      Elev      T₀      P₀      Albedo
+# ─────────────────────────────────────────────────────────────────────────────
+# Olympus Mons    18.65°N  226.2°E  +2 000 m  210 K   508 Pa   0.22
+# Elysium Mons    25.02°N  147.2°E  +1 500 m  213 K   533 Pa   0.24
+# Hellas Basin    39.00°S   61.0°E  -4 000 m  225 K   872 Pa   0.28
+# South Polar Cap 73.00°S  305.0°E  +1 800 m  157 K   519 Pa   0.65

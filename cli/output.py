@@ -33,11 +33,47 @@ def _v(t) -> float:
     return float(t.item())
 
 
+def _config_key(cfg: SimConfig) -> str:
+    """Build a human-readable experiment slug from the config: e.g. mars_50sols_22N."""
+    p   = cfg.planet
+    lat = int(round(abs(p.latitude)))
+    ns  = "N" if p.latitude >= 0 else "S"
+    exp = cfg.experiment.type
+
+    if exp == ExpType.sol:
+        sols = int(round(cfg.experiment.sols))
+        return f"mars_{sols}sols_{lat}{ns}"
+    if exp == ExpType.year:
+        return f"mars_1yr_{lat}{ns}"
+    if exp == ExpType.multi:
+        sols = int(round(cfg.experiment.sols))
+        return f"mars_multi_{sols}sols"
+    if exp == ExpType.intervention:
+        return f"mars_iv_{cfg.intervention.n_years}yr_{lat}{ns}"
+    return "mars_run"
+
+
+def _versioned_dir(date_dir: str, key: str) -> str:
+    """Return outputs/<date>/<key>, appending _v2/_v3/… if that path already exists."""
+    base = os.path.join(date_dir, key)
+    if not os.path.exists(base):
+        return base
+    v = 2
+    while True:
+        candidate = os.path.join(date_dir, f"{key}_v{v}")
+        if not os.path.exists(candidate):
+            return candidate
+        v += 1
+
+
 def _out_dir(cfg: SimConfig) -> str:
     if cfg.output.output_path:
         return cfg.output.output_path
-    tag = cfg.output.out_dir or datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-    return os.path.join("outputs", tag)
+    if cfg.output.out_dir:
+        return os.path.join("outputs", cfg.output.out_dir)
+    date_str = datetime.now(timezone.utc).strftime("%d-%b-%y")
+    date_dir = os.path.join("outputs", date_str)
+    return _versioned_dir(date_dir, _config_key(cfg))
 
 
 # ── CSV ────────────────────────────────────────────────────────────────────────
@@ -68,14 +104,20 @@ _LONG_RUN_YEARS  = 5         # threshold above which monthly cycles replace diur
 
 
 def _sol_tick_interval(n_sols: float) -> float | None:
-    """X-axis tick interval in sols that keeps gridlines in the 10–50 sol range.
+    """X-axis tick interval in sols targeting ~8 tick marks.
 
     Returns None for very short runs (≤7 sols) so matplotlib auto-scales.
     """
     if n_sols <= 7:
         return None
-    interval = max(10, min(50, int(n_sols / 7)))
-    return round(interval / 10) * 10  # snap to nearest 10
+    raw = n_sols / 8
+    if raw < 10:
+        return max(10, round(raw))
+    if raw < 50:
+        return round(raw / 10) * 10
+    if raw < 200:
+        return round(raw / 50) * 50
+    return round(raw / 100) * 100
 
 
 def plot_diurnal(result: RunResult, filepath: str, title: str) -> None:
@@ -239,49 +281,27 @@ def plot_seasonal(result: RunResult, filepath: str, title: str,
 # ── Intervention plot ─────────────────────────────────────────────────────────
 
 def plot_intervention(result: RunResult, filepath: str, title: str) -> None:
-    """Temperature, pressure, GHF and ΔF over N Mars years of GHG injection."""
+    """Intervention-specific panels: radiative forcing (ΔF / GHF) and GHG masses.
+
+    Temperature / pressure / ice are handled by plot_diurnal in dispatch —
+    the same function used by every other run type.
+    """
     history = result.history
-    years   = [s.year for s in history]
+    years   = [s.year             for s in history]
+    dFs     = [_v(s.delta_F)           for s in history]
+    ghfs    = [_v(s.greenhouse_factor) for s in history]
 
-    temps = [_v(s.surface_temperature) for s in history]
-    press = [_v(s.surface_pressure)    for s in history]
-    dFs   = [_v(s.delta_F)             for s in history]
-    ghfs  = [_v(s.greenhouse_factor)   for s in history]
-
-    os.makedirs(os.path.dirname(filepath), exist_ok=True)
-
-    # ── Temperature ──────────────────────────────────────────────────────────
-    fig, ax = plt.subplots(figsize=(11, 4))
-    ax.plot(years, temps, color="#d62728", linewidth=1.5)
-    ax.axhline(273.15, color="#aaaaaa", linestyle="--", linewidth=1.0, label="0°C")
-    ax.set_xlabel("Mars Years", fontsize=12)
-    ax.set_ylabel("Annual Mean Temperature (K)", fontsize=12)
-    ax.set_title(f"{title} — Temperature", fontsize=13, fontweight="bold")
-    ax.legend(fontsize=10)
-    ax.grid(True, alpha=0.4, linestyle="--")
-    fig.tight_layout()
-    out_T = filepath.replace(".png", "_temp.png")
-    fig.savefig(out_T, dpi=150); plt.close(fig)
-    print(f"  Plot → {out_T}")
-
-    # ── Pressure ─────────────────────────────────────────────────────────────
-    fig, ax = plt.subplots(figsize=(11, 4))
-    ax.plot(years, press, color="#1f77b4", linewidth=1.5)
-    ax.set_xlabel("Mars Years", fontsize=12)
-    ax.set_ylabel("Annual Mean Pressure (Pa)", fontsize=12)
-    ax.set_title(f"{title} — Pressure", fontsize=13, fontweight="bold")
-    ax.grid(True, alpha=0.4, linestyle="--")
-    fig.tight_layout()
-    out_P = filepath.replace(".png", "_pressure.png")
-    fig.savefig(out_P, dpi=150); plt.close(fig)
-    print(f"  Plot → {out_P}")
+    os.makedirs(os.path.dirname(filepath) or ".", exist_ok=True)
 
     # ── Radiative forcing + GHF (twin axes) ───────────────────────────────────
+    # Use markers when there is only one year so the single point is visible.
+    marker = "o" if len(years) == 1 else None
     fig, ax1 = plt.subplots(figsize=(11, 4))
     ax2 = ax1.twinx()
-    ax1.plot(years, dFs,  color="#ff7f0e", linewidth=1.5, label="ΔF (W/m²)")
+    ax1.plot(years, dFs,  color="#ff7f0e", linewidth=1.5, marker=marker,
+             markersize=8, label="ΔF (W/m²)")
     ax2.plot(years, ghfs, color="#9467bd", linewidth=1.5, linestyle="--",
-             label="GHF")
+             marker=marker, markersize=8, label="GHF")
     ax1.set_xlabel("Mars Years", fontsize=12)
     ax1.set_ylabel("Radiative Forcing ΔF (W/m²)", fontsize=12, color="#ff7f0e")
     ax2.set_ylabel("Greenhouse Factor", fontsize=12, color="#9467bd")
@@ -357,6 +377,18 @@ def dispatch(results: list[RunResult], cfg: SimConfig) -> None:
         if o.save_csv:
             save_csv(r, os.path.join(out_dir, "mars_intervention.csv"))
         if o.save_plot:
+            hourly = getattr(r, "hourly_history", [])
+            if hourly:
+                class _R:
+                    def __init__(self, hist):
+                        self.name    = r.name
+                        self.history = hist
+                        self.lat     = r.lat
+                        self.lon     = r.lon
+                # same plot_diurnal used by every other run type
+                plot_diurnal(_R(hourly),
+                             os.path.join(out_dir, "mars_intervention.png"), title)
+            # intervention-only: ΔF/GHF and GHG-mass panels
             plot_intervention(r, os.path.join(out_dir, "mars_intervention.png"), title)
 
     elif exp == ExpType.multi:

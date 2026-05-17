@@ -101,6 +101,39 @@ def delta_F_total(
     return dF
 
 
+def delta_F_from_composition(
+    composition: dict,
+    total_pressure: torch.Tensor,
+) -> torch.Tensor:
+    """Compute total GHG radiative forcing from atmosphere composition (W/m²).
+
+    Uses partial pressures (Pa) to derive mole-fraction concentrations (ppb),
+    then applies compound-specific RF efficiencies:
+
+        ppb_i  =  P_i / P_total × 10⁹
+        ΔF     =  Σ_i  η_i × ppb_i
+
+    Only species present in the COMPOUNDS registry contribute — background
+    gases (CO₂, N₂, Ar) are silently skipped.
+
+    Parameters
+    ----------
+    composition : dict[str, torch.Tensor]
+        Species → partial pressure (Pa), as stored in ``mars.atmosphere.composition``.
+    total_pressure : torch.Tensor
+        Total atmospheric surface pressure (Pa).
+    """
+    from src.interventions.compounds import COMPOUNDS, get_compound
+    device = total_pressure.device
+    dF = torch.zeros((), dtype=TF_DTYPE, device=device)
+    for name, P_i in composition.items():
+        if name in COMPOUNDS:
+            ppb = P_i.to(device) / total_pressure * 1e9
+            eta = get_compound(name).rf_efficiency_W_m2_ppb
+            dF = dF + eta * ppb
+    return dF
+
+
 def update_greenhouse_factor(
     mars,
     delta_F: torch.Tensor,

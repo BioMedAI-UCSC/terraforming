@@ -34,6 +34,7 @@ from pydantic import ValidationError
 from cli import config_loader
 from cli import presets as _presets
 from cli.models import Accuracy, ExpType, RunFlags, SimConfig
+from src.interventions.compounds import list_compounds as _list_compounds
 
 VERSION = "0.1.0"
 
@@ -166,9 +167,58 @@ ENGINE OPTIONS
     --dt FLOAT                Timestep in seconds               (default 3600)
 
 EXPERIMENT TYPES (--type)
-    sol     Simulate N sols at a fixed location  (use --sols N)
-    year    Simulate one full Martian year (668 sols)
-    multi   Simulate N sols at 45°N, Equator, -40°S simultaneously
+    sol          Simulate N sols at a fixed location  (use --sols N)
+    year         Simulate one full Martian year (668 sols)
+    multi        Simulate N sols at 45°N, Equator, -40°S simultaneously
+    spots        Simulate N sols at 4 landmark sites simultaneously:
+                   1. Olympus Mons   (18.65°N, 226.2°E, +2000 m)
+                   2. Elysium Mons   (25.02°N, 147.2°E, +1500 m)
+                   3. Hellas Basin   (39.0°S,   61.0°E, -4000 m)
+                   4. South Polar Cap(73.0°S,  305.0°E, +1800 m)
+    intervention Annual GHG injection loop  (use --years N and --inject)
+
+INTERVENTION OPTIONS
+    --years N                   Number of Mars years to simulate.
+    --inject COMPOUND:KG_PER_YEAR
+                                Inject a super-greenhouse gas at a fixed
+                                annual rate.  Repeat for multiple compounds.
+                                Omit to run a baseline (no injection) run.
+
+    Available compounds (Marinova 2005 RF efficiencies):
+
+      CF4    Carbon tetrafluoride (CFC-14)        0.0880 W/m²/ppb  lifetime 50 000 yr
+             Most stable perfluorocarbon; near-permanent once injected.
+             Best choice for long-horizon warming that outlasts the mission.
+
+      C2F6   Hexafluoroethane (CFC-116)           0.2600 W/m²/ppb  lifetime 10 000 yr
+             3× stronger forcing than CF4; industrial semiconductor byproduct.
+             Good balance of high efficiency and very long persistence.
+
+      C3F8   Octafluoropropane (CFC-218)          0.2400 W/m²/ppb  lifetime  2 600 yr
+             Common refrigerant and fire suppressant on Earth.
+             Useful for medium-term scenarios where some reversibility is wanted.
+
+      SF6    Sulfur hexafluoride                  0.5700 W/m²/ppb  lifetime  3 200 yr
+             Highest RF efficiency of all registered compounds — 6.5× CF4.
+             Used as an electrical insulator; most warming per kg injected.
+
+      NF3    Nitrogen trifluoride                 0.2100 W/m²/ppb  lifetime    500 yr
+             Shortest lifetime; used in LCD and solar panel manufacturing.
+             Best for fast early warming; significant decay within centuries.
+
+      C4F10  Decafluorobutane (CFC-31-10)         0.3600 W/m²/ppb  lifetime  2 600 yr
+             Fire suppression agent with strong warming potential.
+             Similar lifetime to C3F8 but higher RF efficiency.
+
+      C6F14  Tetradecafluorohexane (CFC-41-12)    0.4900 W/m²/ppb  lifetime  3 200 yr
+             Heaviest molecule in the registry; used as a heat-transfer fluid.
+             High RF efficiency with multi-millennial persistence.
+
+    Each year the controller:
+      1. Injects the scheduled mass (kg → Pa added to atmosphere.composition)
+      2. Integrates the coupled ODE for one Mars year with the updated GHF
+      3. Decays all GHG partial pressures by their atmospheric lifetime
+      4. Records an InterventionSnapshot (T, P, ice, ΔF, GHF, ppb per species)
 
 OUTPUT OPTIONS
     --no-save           Skip CSV output files
@@ -196,6 +246,18 @@ EXAMPLES
 
     # Interactive wizard (no flags)
     tform mars run
+
+    # 1 sol across all 4 landmark sites
+    tform mars run --type spots --sols 1 -y
+
+    # 5 accurate sols across all 4 landmark sites
+    tform mars run --type spots --sols 5 --accuracy accurate --preset landmark-spots -y
+
+    # 50-year intervention injecting CF4 and SF6
+    tform mars run --type intervention --years 50 --inject CF4:1e9 --inject SF6:5e8
+
+    # Baseline intervention run (no injection — physics only)
+    tform mars run --type intervention --years 50
 
 CONFIG FILE FORMAT
     YAML with sections: preset, planet, engine, experiment, output.
@@ -267,6 +329,7 @@ def _wizard_mars(
             (ExpType.sol,   "N sols at a fixed location"),
             (ExpType.year,  "Full Martian year (668 sols)"),
             (ExpType.multi, "3 latitudes simultaneously  (45°N / equator / 40°S)"),
+            (ExpType.spots, "4 landmark sites  (Olympus Mons / Elysium / Hellas / South Pole)"),
         ]
         for i, (key, desc) in enumerate(type_choices, 1):
             click.echo(
@@ -275,7 +338,7 @@ def _wizard_mars(
                 + _c(f"  {desc}", "bright_black")
             )
         idx      = click.prompt(click.style("\n  Select type", fg="bright_white"),
-                                type=click.IntRange(1, 3), default=1, show_default=True)
+                                type=click.IntRange(1, 4), default=1, show_default=True)
         exp_type = type_choices[idx - 1][0]
     wizard_updates["exp_type"] = exp_type
 
@@ -360,10 +423,16 @@ def _wizard_mars(
     if exp_type == ExpType.sol:
         _ask_float("Sols to simulate", "sols",      x.sols,           "sols")
     _ask_accuracy()
-    if exp_type != ExpType.year:
+    if exp_type not in (ExpType.year, ExpType.spots):
         _ask_float("Latitude",         "lat",        p.latitude,       "°N")
         _ask_float("Longitude",        "lon",        p.longitude,      "°E")
         _ask_float("Elevation",        "elevation",  p.elevation_m,    "m")
+    if exp_type == ExpType.spots:
+        click.echo(
+            _label("  location ")
+            + _c("fixed — Olympus Mons / Elysium Mons / Hellas Basin / South Polar Cap",
+                  "bright_black")
+        )
     _ask_float("Solar longitude (Ls)", "ls",         p.initial_ls_deg, "°")
 
     click.echo()
@@ -447,9 +516,15 @@ def mars_group(ctx: click.Context, preset: str | None, config: str | None) -> No
 # ── mars run ───────────────────────────────────────────────────────────────────
 
 @mars_group.command("run")
+@click.option("--preset", "-p", "run_preset",
+              type=click.Choice(_presets.MARS_PRESET_NAMES), default=None,
+              help="Built-in preset (may also be set on the mars group before run).")
+@click.option("--config", "-c", "run_config",
+              type=click.Path(exists=True, dir_okay=False), default=None,
+              help="YAML config file (may also be set on the mars group before run).")
 @click.option("--type", "exp_type",
               type=click.Choice([e.value for e in ExpType]), default=None,
-              help="Experiment type (sol, year, or multi-coordinate).")
+              help="Experiment type (sol, year, multi, spots, or intervention).")
 @click.option("--sols",      type=float,  default=None, help="Number of sols to simulate.")
 @click.option("--accuracy",  type=click.Choice([a.value for a in Accuracy]), default=None,
               help="Integration mode: fast (reduced-order) or accurate (RK4).")
@@ -476,11 +551,16 @@ def mars_group(ctx: click.Context, preset: str | None, config: str | None) -> No
               help="Mars years to simulate (intervention mode).")
 @click.option("--inject", "inject_list", multiple=True, default=(),
               metavar="COMPOUND:KG_PER_YEAR",
-              help="Inject super-GHG at rate kg/yr. Repeatable. "
-                   "Example: --inject CF4:1e9 --inject SF6:5e8")
+              help=(
+                  "Inject a super-greenhouse gas at a fixed annual rate.  Repeatable.  "
+                  f"Available: {', '.join(_list_compounds())}.  "
+                  "Example: --inject CF4:1e9 --inject SF6:5e8"
+              ))
 @click.pass_obj
 def mars_run(
     obj: dict,
+    run_preset:        str | None,
+    run_config:        str | None,
     exp_type:          str | None,
     sols:              float | None,
     accuracy:          str | None,
@@ -517,6 +597,18 @@ def mars_run(
     from cli import runner, output as out_mod
 
     _print_banner()
+
+    # If --preset / --config were given on the run subcommand rather than the
+    # parent mars group, reload the base config and update obj so the wizard
+    # and the rest of the function see the right values.
+    if run_preset is not None or run_config is not None:
+        effective_preset = run_preset or obj.get("preset")
+        effective_config = run_config or obj.get("config")
+        obj["cfg"]    = config_loader.load(planet="mars",
+                                           preset=effective_preset,
+                                           config=effective_config)
+        obj["preset"] = effective_preset
+        obj["config"] = effective_config
 
     # Parse --inject COMPOUND:KG_PER_YEAR pairs
     inject: dict[str, float] | None = None
@@ -594,6 +686,8 @@ def mars_run(
         results = runner.run_year(cfg)
     elif exp == ExpType.multi:
         results = runner.run_multi(cfg)
+    elif exp == ExpType.spots:
+        results = runner.run_spots(cfg)
     elif exp == ExpType.intervention:
         results = runner.run_intervention(cfg)
     else:

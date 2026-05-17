@@ -26,6 +26,7 @@ class ExpType(str, Enum):
     sol          = "sol"
     year         = "year"
     multi        = "multi"
+    spots        = "spots"
     intervention = "intervention"
 
 

@@ -6,7 +6,7 @@ It imports exclusively from `src.*` (the terraforming package).
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Callable
 
 import click
@@ -25,6 +25,68 @@ MULTI_POINTS = [
     {"name": "North",               "lat":  45.0, "lon": 137.0},
     {"name": "Equator",             "lat":   0.0, "lon": 137.0},
     {"name": "Southern Hemisphere", "lat": -40.0, "lon": 137.0},
+]
+
+# Four landmark sites from the annotated Mars map (spots experiment type).
+# Each entry carries the full site-specific initial conditions so that
+# run_spots() builds each Mars instance with physically calibrated state.
+#
+# T / P calibration basis:
+#   P(z) = 610 Pa × exp(-z / 11 100 m)   [Mars barometric formula]
+#   T from latitude + elevation + surface properties (MCD-informed estimates)
+LANDMARK_SPOTS = [
+    {
+        # Point 1 on the annotated map (~140°W = 226°E, ~20°N)
+        "name":              "Olympus Mons",
+        "lat":                18.65,
+        "lon":               226.2,
+        "elevation_m":        2000.0,   # m → P ≈ 610 × exp(-2000/11100) ≈ 508 Pa
+        "surface_temperature": 210.0,   # K — Tharsis plateau, high-altitude flank
+        "surface_pressure":    610.0,   # Pa — global datum; elevation corrects automatically
+        "albedo":               0.22,   # dark basaltic lava, low dust
+        "greenhouse_factor":    1.02,
+        "ice_mass":             5.0e15, # kg — negligible surface ice at equatorial volcano
+        "description": "Largest volcano in the solar system — Tharsis volcanic province",
+    },
+    {
+        # Point 2 on the annotated map (~145°E, ~25°N)
+        "name":              "Elysium Mons",
+        "lat":                25.02,
+        "lon":               147.21,
+        "elevation_m":        1500.0,   # m → P ≈ 610 × exp(-1500/11100) ≈ 533 Pa
+        "surface_temperature": 213.0,   # K — slightly warmer than Olympus, lower altitude
+        "surface_pressure":    610.0,   # Pa — global datum
+        "albedo":               0.24,   # mixed basalt / dust
+        "greenhouse_factor":    1.02,
+        "ice_mass":             5.0e15,
+        "description": "Eastern volcanic province — second major volcanic region on Mars",
+    },
+    {
+        # Point 3 on the annotated map (~57°E, ~39°S)
+        "name":              "Hellas Basin",
+        "lat":               -39.0,
+        "lon":                61.0,
+        "elevation_m":       -4000.0,   # m → P ≈ 610 × exp(4000/11100) ≈ 872 Pa
+        "surface_temperature": 225.0,   # K — warmest site; denser air traps heat
+        "surface_pressure":    610.0,   # Pa — global datum
+        "albedo":               0.28,   # sandy/dusty basin floor
+        "greenhouse_factor":    1.03,   # extra CO₂ column at -4 km
+        "ice_mass":             5.0e15,
+        "description": "Deepest impact basin — warmest, highest-pressure site on Mars",
+    },
+    {
+        # Point 4 on the annotated map (~55°W = 305°E, ~73°S)
+        "name":              "South Polar Cap",
+        "lat":               -73.0,
+        "lon":               305.0,
+        "elevation_m":        1800.0,   # m → P ≈ 610 × exp(-1800/11100) ≈ 519 Pa
+        "surface_temperature": 157.0,   # K — CO₂ frost point; cold polar environment
+        "surface_pressure":    610.0,   # Pa — global datum
+        "albedo":               0.65,   # bright CO₂ / H₂O ice cap
+        "greenhouse_factor":    1.01,   # thin, dry polar atmosphere
+        "ice_mass":             1.5e16, # kg — large perennial south polar cap
+        "description": "South polar layered deposits — perennial CO₂ ice cap region",
+    },
 ]
 
 
@@ -69,10 +131,11 @@ def _divider(width: int = 62) -> str:
 @dataclass
 class RunResult:
     """Output of a single simulation run."""
-    name:    str
-    history: list
-    lat:     float
-    lon:     float
+    name:           str
+    history:        list
+    lat:            float
+    lon:            float
+    hourly_history: list = field(default_factory=list)
 
 
 # ── Internal helpers ──────────────────────────────────────────────────────────
@@ -103,8 +166,9 @@ def _build_mars(cfg: SimConfig) -> Mars:
     return Mars(**kw)  # device auto-detected (CUDA if available)
 
 
-def _build_mars_at(cfg: SimConfig, lat: float, lon: float) -> Mars:
-    """Build a Mars instance with overridden lat/lon (used in multi-coord runs)."""
+def _build_mars_at(cfg: SimConfig, lat: float, lon: float,
+                   elevation_m: float | None = None) -> Mars:
+    """Build a Mars instance with overridden lat/lon (used in multi-coord/spots runs)."""
     p = cfg.planet
     kw: dict[str, Any] = {
         "surface_temperature": p.surface_temperature,
@@ -114,12 +178,32 @@ def _build_mars_at(cfg: SimConfig, lat: float, lon: float) -> Mars:
         "ice_mass":            p.ice_mass,
         "latitude":            lat,
         "longitude":           lon,
-        "elevation_m":         p.elevation_m,
+        "elevation_m":         elevation_m if elevation_m is not None else p.elevation_m,
         "initial_ls_deg":      p.initial_ls_deg,
     }
     if p.composition is not None:
         kw["composition"] = p.composition
     return Mars(**kw)  # device auto-detected (CUDA if available)
+
+
+def _build_mars_for_spot(spot: dict, cfg: SimConfig) -> Mars:
+    """Build a Mars instance from a LANDMARK_SPOTS entry.
+
+    Per-site values (T, P, albedo, elevation, lat, lon) take priority.
+    Global settings (dt, Ls, composition) come from cfg.
+    """
+    return Mars(
+        surface_temperature = spot["surface_temperature"],
+        surface_pressure    = spot["surface_pressure"],
+        albedo              = spot["albedo"],
+        greenhouse_factor   = spot["greenhouse_factor"],
+        ice_mass            = spot["ice_mass"],
+        latitude            = spot["lat"],
+        longitude           = spot["lon"],
+        elevation_m         = spot["elevation_m"],
+        initial_ls_deg      = cfg.planet.initial_ls_deg,
+        **({"composition": cfg.planet.composition} if cfg.planet.composition else {}),
+    )
 
 
 # ── Progress bar ──────────────────────────────────────────────────────────────
@@ -225,6 +309,52 @@ def run_multi(cfg: SimConfig) -> list[RunResult]:
     return results
 
 
+def run_spots(cfg: SimConfig) -> list[RunResult]:
+    """Run all four LANDMARK_SPOTS in parallel via BatchedTimeController.
+
+    Simulates Olympus Mons, Elysium Mons, Hellas Basin, and the South Polar Cap
+    simultaneously, each with site-specific lat/lon/elevation initial conditions.
+    """
+    duration  = cfg.experiment.sols * _v(MARS_ROTATION_PERIOD)
+
+    mars_list = [_build_mars_for_spot(sp, cfg) for sp in LANDMARK_SPOTS]
+
+    click.echo()
+    click.echo(_divider())
+    click.echo(
+        "  " + click.style("◎  ", fg="bright_red")
+        + click.style("Landmark Spots — 4 sites", fg="bright_white", bold=True)
+        + click.style(f"  ·  {cfg.engine.accuracy.value} mode  dt={cfg.engine.dt:.0f} s",
+                      fg="bright_black")
+    )
+    for sp in LANDMARK_SPOTS:
+        ns  = "N" if sp["lat"] >= 0 else "S"
+        elv = click.style(f"elev={sp['elevation_m']:+.0f} m", fg="bright_black")
+        click.echo(
+            "  " + click.style(f"  {sp['name']:<18}", fg="bright_cyan", bold=True)
+            + click.style(f"{abs(sp['lat']):.2f}°{ns}  {sp['lon']:.2f}°E  ", fg="bright_white")
+            + elv
+        )
+    click.echo(_divider())
+
+    btc = BatchedTimeController(
+        mars_list,
+        dt=cfg.engine.dt,
+        accuracy=_src_accuracy(cfg.engine.accuracy),
+        compile=(mars_list[0]._device.type == 'cuda'),
+    )
+    all_histories = btc.run(duration=duration)
+
+    results: list[RunResult] = []
+    for sp, history in zip(LANDMARK_SPOTS, all_histories):
+        click.echo()
+        click.echo(click.style(f"  ── {sp['name']} ──", fg="bright_cyan", bold=True))
+        _print_summary(history)
+        results.append(RunResult(name=sp["name"], history=history,
+                                 lat=sp["lat"], lon=sp["lon"]))
+    return results
+
+
 def run_intervention(cfg: SimConfig) -> list[RunResult]:
     """Run a GHG intervention experiment over N Mars years.
 
@@ -288,7 +418,8 @@ def run_intervention(cfg: SimConfig) -> list[RunResult]:
     _print_intervention_summary(history)
 
     return [RunResult(name="intervention", history=history,
-                      lat=cfg.planet.latitude, lon=cfg.planet.longitude)]
+                      lat=cfg.planet.latitude, lon=cfg.planet.longitude,
+                      hourly_history=ic.all_hourly)]
 
 
 def _print_intervention_summary(history: list) -> None:

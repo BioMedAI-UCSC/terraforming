@@ -206,6 +206,10 @@ class Mars(Planet):
         self.elapsed_time  = torch.zeros((), dtype=TF_DTYPE, device=d)
         self.orbital_angle = self._init_orbital_angle.clone()
 
+        # ---- GHG intervention baselines (populated on first inject) ----
+        self._baseline_ghf = None          # torch.Tensor | None — CO₂-only GHF at t=0
+        self._baseline_olr = None          # torch.Tensor | None — ε σ (T₀/GHF₀)⁴
+
         # ---- Device-local constant cache ----
         # These are the only references used inside compute_derivatives and
         # compute_fast_physics so that no CPU tensor ever touches GPU math.
@@ -424,3 +428,78 @@ class Mars(Planet):
             - dMice * self.intrinsic_params.gravity / A_planet
             + dP_tide
         ).clamp(min=0.0)
+
+    # ==================================================================
+    # GHG INTERVENTION — state lives in atmosphere.composition
+    # ==================================================================
+
+    def _init_ghg(self) -> None:
+        """Cache CO₂-only baseline GHF and OLR at the moment injection begins."""
+        from src.interventions.forcing import _MARS_EMISSIVITY
+        self._baseline_ghf = self.thermal.greenhouse_factor.clone()
+        sb = STEFAN_BOLTZMANN.to(self._device)
+        T0 = self.thermal.surface_temperature.clone()
+        self._baseline_olr = (
+            _MARS_EMISSIVITY * sb * (T0 / self._baseline_ghf) ** 4.0
+        )
+
+    def inject(self, schedule: dict[str, float]) -> None:
+        """Add GHGs to atmosphere.composition (kg → Pa) and resync GHF.
+
+        Each compound's partial pressure increases by ΔP = M·g / A_surface.
+        Unknown compounds are added to composition on first injection.
+        After this call ``mars.thermal.greenhouse_factor`` and ``mars.delta_F``
+        reflect the updated atmospheric state.
+        """
+        if self._baseline_ghf is None:
+            self._init_ghg()
+        g = self.intrinsic_params.gravity
+        A = 4.0 * math.pi * self.intrinsic_params.radius ** 2
+        for name, kg in schedule.items():
+            dP = torch.tensor(
+                float(kg) * float(g.item()) / float(A.item()),
+                dtype=TF_DTYPE, device=self._device,
+            )
+            if name in self.atmosphere.composition:
+                self.atmosphere.composition[name] = self.atmosphere.composition[name] + dP
+            else:
+                self.atmosphere.composition[name] = dP
+        self._recompute_greenhouse_factor()
+
+    def decay_ghg(self, dt_years: float) -> None:
+        """Exponentially decay all COMPOUNDS-registered gases in composition.
+
+        Only species present in the COMPOUNDS registry (the seven super-GHGs)
+        are decayed. Background gases (CO₂, N₂, Ar) are unaffected.
+        """
+        from src.interventions.compounds import COMPOUNDS, get_compound
+        for name in list(self.atmosphere.composition.keys()):
+            if name in COMPOUNDS:
+                tau = get_compound(name).atmospheric_lifetime_yr
+                decay_factor = math.exp(-dt_years / tau)
+                self.atmosphere.composition[name] = (
+                    self.atmosphere.composition[name] * decay_factor
+                )
+        self._recompute_greenhouse_factor()
+
+    @property
+    def delta_F(self) -> torch.Tensor:
+        """Total GHG radiative forcing in W/m² from atmosphere composition."""
+        from src.interventions.forcing import delta_F_from_composition
+        return delta_F_from_composition(
+            self.atmosphere.composition,
+            self.atmosphere.surface_pressure,
+        )
+
+    def _recompute_greenhouse_factor(self) -> None:
+        """Sync ``thermal.greenhouse_factor`` from current atmosphere composition.
+
+            GHF_new = GHF_base × (1 + ΔF / F_in_base)^(1/4)
+        """
+        if self._baseline_ghf is None or self._baseline_olr is None:
+            return
+        dF = self.delta_F
+        if float(dF.item()) <= 0.0:
+            return
+        GHF_new = self._baseline_ghf * torch.pow(1.0 + dF / self._baseline_olr, 0.25)
+        self.thermal.greenhouse_factor = GHF_new.clamp(min=1.0)
