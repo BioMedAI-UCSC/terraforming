@@ -15,7 +15,7 @@ Examples
 --------
   tform mars run --preset gale-crater
   tform mars run --preset current-mars --sols 5 --accuracy accurate
-  tform mars run --config my_run.yaml --lat 45 --no-plot
+  tform mars run --config my_run.yaml --lat 45
   tform mars run --type year --preset early-mars
   tform mars run --type multi --sols 3 --accuracy fast
   tform mars config list
@@ -283,7 +283,7 @@ CONFIG FILE FORMAT
       sols: 1.0
     output:
       save_csv: true
-      save_plot: true
+      save_plot: false
       out_dir: null
 """
 
@@ -544,7 +544,7 @@ def mars_group(ctx: click.Context, preset: str | None, config: str | None) -> No
 @click.option("--output-dir", "output_dir", default=None, metavar="PATH",
               help="Full custom output directory path (overrides --name).")
 @click.option("--no-save",   is_flag=True, default=False, help="Skip saving CSV files.")
-@click.option("--no-plot",   is_flag=True, default=False, help="Skip saving plots.")
+@click.option("--plot",      is_flag=True, default=False, help="Save matplotlib PNG plots (off by default).")
 @click.option("--yes", "-y", is_flag=True, default=False,
               help="Skip confirmation prompt (for scripting).")
 @click.option("--years",  "n_years", type=int, default=None,
@@ -576,7 +576,7 @@ def mars_run(
     greenhouse_factor: float | None,
     name:              str | None,
     output_dir:        str | None,
-    no_save: bool, no_plot: bool, yes: bool,
+    no_save: bool, plot: bool, yes: bool,
     n_years:           int | None,
     inject_list:       tuple,
 ) -> None:
@@ -641,7 +641,7 @@ def mars_run(
         name              = name,
         output_dir        = output_dir,
         no_save           = no_save,
-        no_plot           = no_plot,
+        plot              = plot,
         n_years           = n_years,
         inject            = inject,
     )
@@ -811,6 +811,106 @@ def mars_config_validate(config_path: str) -> None:
         for err in errors:
             click.echo(f"    {_c('•', 'bright_red')} {err}")
         sys.exit(1)
+
+
+# ── tform serve ────────────────────────────────────────────────────────────────
+
+@cli.command("serve")
+@click.option("--port",       default=8000,        show_default=True,
+              help="Port to bind the server to.")
+@click.option("--host",       default="127.0.0.1", show_default=True,
+              help="Host address to bind.")
+@click.option("--no-browser", is_flag=True, default=False,
+              help="Don't open a browser tab automatically.")
+@click.option("--dev",        is_flag=True, default=False,
+              help="Also start the Vite dev server from ui/ (port 5173).")
+def serve_cmd(port: int, host: str, no_browser: bool, dev: bool) -> None:
+    """Start the tform visualisation web server.
+
+    \b
+    Launches a FastAPI server that:
+      • Accepts simulation run requests from the browser UI
+      • Streams per-step physics data back via Server-Sent Events
+      • Serves the pre-built React app from cli/static/
+
+    \b
+    Examples:
+      tform serve
+      tform serve --port 9000
+      tform serve --dev          # also starts Vite dev server on :5173
+      tform serve --no-browser
+    """
+    try:
+        import uvicorn
+    except ImportError:
+        click.echo(_c("\n  ✖  uvicorn is not installed.", "bright_red"))
+        click.echo(_c("     Run: uv sync", "bright_black"))
+        sys.exit(1)
+
+    import pathlib
+    import subprocess
+
+    static_dir = pathlib.Path(__file__).parent / "static"
+    ui_dir     = pathlib.Path(__file__).parent.parent / "ui"
+
+    # Auto-build the UI on first install if cli/static/index.html is missing
+    if not (static_dir / "index.html").exists():
+        if not ui_dir.exists():
+            click.echo(_c("\n  ✖  cli/static/index.html not found and ui/ source is missing.", "bright_red"))
+            click.echo(_c("     Re-install tform or run: make ui-build", "bright_black"))
+            sys.exit(1)
+
+        click.echo()
+        click.echo(_divider())
+        click.echo("  " + _c("⚙", "bright_yellow") + _c("  First run — building UI", "bright_white", bold=True))
+        click.echo(_divider())
+
+        npm = "npm"
+        for step, args in [("npm install", [npm, "install"]),
+                           ("npm run build", [npm, "run", "build"])]:
+            click.echo(f"  {_label('running     ')}{_value(step)}")
+            result = subprocess.run(args, cwd=str(ui_dir), capture_output=True, text=True)
+            if result.returncode != 0:
+                click.echo(_c(f"\n  ✖  {step} failed:", "bright_red"))
+                click.echo(result.stderr[-2000:])
+                sys.exit(1)
+
+        click.echo("  " + _c("✔", "bright_green") + _c("  UI built successfully.", "bright_white"))
+        click.echo()
+
+    url = f"http://{host}:{port}"
+
+    click.echo()
+    click.echo(_divider())
+    click.echo("  " + _planet("tform") + _c("  serve", "bright_white", bold=True))
+    click.echo(f"  {_label('server      ')}{_value(url)}")
+    click.echo(f"  {_label('api docs    ')}{_value(url + '/api/docs')}")
+    if dev:
+        click.echo(f"  {_label('vite dev    ')}{_value('http://localhost:5173')}")
+    click.echo(_divider())
+    click.echo()
+
+    dev_proc = None
+    if dev:
+        if ui_dir.exists():
+            dev_proc = subprocess.Popen(
+                ["npm", "run", "dev"],
+                cwd=str(ui_dir),
+            )
+        else:
+            click.echo(_c("  ⚠  ui/ directory not found — skipping Vite dev server.", "bright_yellow"))
+
+    if not no_browser:
+        import threading
+        import webbrowser
+        open_url = "http://localhost:5173" if dev else url
+        threading.Timer(1.5, lambda: webbrowser.open(open_url)).start()
+
+    try:
+        uvicorn.run("cli.server:app", host=host, port=port, reload=False)
+    finally:
+        if dev_proc is not None:
+            dev_proc.terminate()
 
 
 if __name__ == "__main__":
