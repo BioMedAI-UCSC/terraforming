@@ -236,6 +236,86 @@ def plot_seasonal(result: RunResult, filepath: str, title: str,
     print(f"  Plot → {filepath}")
 
 
+# ── Intervention plot ─────────────────────────────────────────────────────────
+
+def plot_intervention(result: RunResult, filepath: str, title: str) -> None:
+    """Temperature, pressure, GHF and ΔF over N Mars years of GHG injection."""
+    history = result.history
+    years   = [s.year for s in history]
+
+    temps = [_v(s.surface_temperature) for s in history]
+    press = [_v(s.surface_pressure)    for s in history]
+    dFs   = [_v(s.delta_F)             for s in history]
+    ghfs  = [_v(s.greenhouse_factor)   for s in history]
+
+    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+
+    # ── Temperature ──────────────────────────────────────────────────────────
+    fig, ax = plt.subplots(figsize=(11, 4))
+    ax.plot(years, temps, color="#d62728", linewidth=1.5)
+    ax.axhline(273.15, color="#aaaaaa", linestyle="--", linewidth=1.0, label="0°C")
+    ax.set_xlabel("Mars Years", fontsize=12)
+    ax.set_ylabel("Annual Mean Temperature (K)", fontsize=12)
+    ax.set_title(f"{title} — Temperature", fontsize=13, fontweight="bold")
+    ax.legend(fontsize=10)
+    ax.grid(True, alpha=0.4, linestyle="--")
+    fig.tight_layout()
+    out_T = filepath.replace(".png", "_temp.png")
+    fig.savefig(out_T, dpi=150); plt.close(fig)
+    print(f"  Plot → {out_T}")
+
+    # ── Pressure ─────────────────────────────────────────────────────────────
+    fig, ax = plt.subplots(figsize=(11, 4))
+    ax.plot(years, press, color="#1f77b4", linewidth=1.5)
+    ax.set_xlabel("Mars Years", fontsize=12)
+    ax.set_ylabel("Annual Mean Pressure (Pa)", fontsize=12)
+    ax.set_title(f"{title} — Pressure", fontsize=13, fontweight="bold")
+    ax.grid(True, alpha=0.4, linestyle="--")
+    fig.tight_layout()
+    out_P = filepath.replace(".png", "_pressure.png")
+    fig.savefig(out_P, dpi=150); plt.close(fig)
+    print(f"  Plot → {out_P}")
+
+    # ── Radiative forcing + GHF (twin axes) ───────────────────────────────────
+    fig, ax1 = plt.subplots(figsize=(11, 4))
+    ax2 = ax1.twinx()
+    ax1.plot(years, dFs,  color="#ff7f0e", linewidth=1.5, label="ΔF (W/m²)")
+    ax2.plot(years, ghfs, color="#9467bd", linewidth=1.5, linestyle="--",
+             label="GHF")
+    ax1.set_xlabel("Mars Years", fontsize=12)
+    ax1.set_ylabel("Radiative Forcing ΔF (W/m²)", fontsize=12, color="#ff7f0e")
+    ax2.set_ylabel("Greenhouse Factor", fontsize=12, color="#9467bd")
+    ax1.tick_params(axis='y', labelcolor="#ff7f0e")
+    ax2.tick_params(axis='y', labelcolor="#9467bd")
+    lines1, labels1 = ax1.get_legend_handles_labels()
+    lines2, labels2 = ax2.get_legend_handles_labels()
+    ax1.legend(lines1 + lines2, labels1 + labels2, fontsize=10)
+    ax1.set_title(f"{title} — Forcing & Greenhouse Factor", fontsize=13, fontweight="bold")
+    ax1.grid(True, alpha=0.4, linestyle="--")
+    fig.tight_layout()
+    out_F = filepath.replace(".png", "_forcing.png")
+    fig.savefig(out_F, dpi=150); plt.close(fig)
+    print(f"  Plot → {out_F}")
+
+    # ── GHG masses (stacked per compound) ────────────────────────────────────
+    compounds = list(history[0].ghg_masses_kg.keys()) if hasattr(history[0], "ghg_masses_kg") else []
+    if compounds:
+        fig, ax = plt.subplots(figsize=(11, 4))
+        colors = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2"]
+        for i, cmp in enumerate(compounds):
+            masses = [_v(s.ghg_masses_kg[cmp]) / 1e9 for s in history]   # Gt
+            ax.plot(years, masses, color=colors[i % len(colors)], linewidth=1.5, label=cmp)
+        ax.set_xlabel("Mars Years", fontsize=12)
+        ax.set_ylabel("Atmospheric Mass (Gt)", fontsize=12)
+        ax.set_title(f"{title} — Atmospheric GHG Inventory", fontsize=13, fontweight="bold")
+        ax.legend(fontsize=10, framealpha=0.9)
+        ax.grid(True, alpha=0.4, linestyle="--")
+        fig.tight_layout()
+        out_M = filepath.replace(".png", "_ghg_mass.png")
+        fig.savefig(out_M, dpi=150); plt.close(fig)
+        print(f"  Plot → {out_M}")
+
+
 # ── Dispatch ───────────────────────────────────────────────────────────────────
 
 def dispatch(results: list[RunResult], cfg: SimConfig) -> None:
@@ -268,6 +348,16 @@ def dispatch(results: list[RunResult], cfg: SimConfig) -> None:
             plot_diurnal(r, os.path.join(out_dir, "mars_year.png"), title)
             plot_seasonal(r, os.path.join(out_dir, "mars_seasonal.png"),
                           "Mars Seasonal Temperatures — 1 Year")
+
+    elif exp == ExpType.intervention:
+        r      = results[0]
+        n_yrs  = cfg.intervention.n_years
+        cmpds  = ", ".join(cfg.intervention.injection.keys()) or "baseline"
+        title  = f"Mars Intervention — {n_yrs} yr  ({loc})  [{cmpds}]"
+        if o.save_csv:
+            save_csv(r, os.path.join(out_dir, "mars_intervention.csv"))
+        if o.save_plot:
+            plot_intervention(r, os.path.join(out_dir, "mars_intervention.png"), title)
 
     elif exp == ExpType.multi:
         sols  = cfg.experiment.sols

@@ -23,9 +23,10 @@ class Accuracy(str, Enum):
 
 
 class ExpType(str, Enum):
-    sol   = "sol"
-    year  = "year"
-    multi = "multi"
+    sol          = "sol"
+    year         = "year"
+    multi        = "multi"
+    intervention = "intervention"
 
 
 # ── Annotated constraint aliases ──────────────────────────────────────────────
@@ -66,6 +67,11 @@ class ExperimentConfig(BaseModel):
     sols: _PosFloat  = 1.0
 
 
+class InterventionConfig(BaseModel):
+    n_years:            Annotated[int, Field(gt=0)]   = 50
+    injection:          dict[str, float]              = {}
+
+
 class OutputConfig(BaseModel):
     save_csv:     bool          = True
     save_plot:    bool          = True
@@ -84,11 +90,12 @@ class SimConfig(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True)
 
-    preset:     PresetMeta       = PresetMeta()
-    planet:     PlanetConfig     = PlanetConfig()
-    engine:     EngineConfig     = EngineConfig()
-    experiment: ExperimentConfig = ExperimentConfig()
-    output:     OutputConfig     = OutputConfig()
+    preset:       PresetMeta         = PresetMeta()
+    planet:       PlanetConfig       = PlanetConfig()
+    engine:       EngineConfig       = EngineConfig()
+    experiment:   ExperimentConfig   = ExperimentConfig()
+    intervention: InterventionConfig = InterventionConfig()
+    output:       OutputConfig       = OutputConfig()
 
     @model_validator(mode="before")
     @classmethod
@@ -147,6 +154,9 @@ class RunFlags(BaseModel):
     output_dir:        Optional[str]      = None
     no_save:           bool               = False
     no_plot:           bool               = False
+    # intervention flags
+    n_years:           Optional[int]      = None
+    inject:            Optional[dict[str, float]] = None
 
     def apply(self, base: SimConfig) -> SimConfig:
         """Return a new SimConfig with non-None flags merged over *base*."""
@@ -190,10 +200,17 @@ class RunFlags(BaseModel):
         if self.no_plot:
             o["save_plot"] = False
 
+        iv = base.intervention.model_dump()
+        if self.n_years is not None:
+            iv["n_years"] = self.n_years
+        if self.inject is not None:
+            iv["injection"] = self.inject
+
         return SimConfig.model_validate({
-            "preset":     base.preset.model_dump(),
-            "planet":     p,
-            "engine":     e,
-            "experiment": x,
-            "output":     o,
+            "preset":       base.preset.model_dump(),
+            "planet":       p,
+            "engine":       e,
+            "experiment":   x,
+            "intervention": iv,
+            "output":       o,
         })

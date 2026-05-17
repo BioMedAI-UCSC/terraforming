@@ -472,6 +472,12 @@ def mars_group(ctx: click.Context, preset: str | None, config: str | None) -> No
 @click.option("--no-plot",   is_flag=True, default=False, help="Skip saving plots.")
 @click.option("--yes", "-y", is_flag=True, default=False,
               help="Skip confirmation prompt (for scripting).")
+@click.option("--years",  "n_years", type=int, default=None,
+              help="Mars years to simulate (intervention mode).")
+@click.option("--inject", "inject_list", multiple=True, default=(),
+              metavar="COMPOUND:KG_PER_YEAR",
+              help="Inject super-GHG at rate kg/yr. Repeatable. "
+                   "Example: --inject CF4:1e9 --inject SF6:5e8")
 @click.pass_obj
 def mars_run(
     obj: dict,
@@ -491,6 +497,8 @@ def mars_run(
     name:              str | None,
     output_dir:        str | None,
     no_save: bool, no_plot: bool, yes: bool,
+    n_years:           int | None,
+    inject_list:       tuple,
 ) -> None:
     """Run a Mars climate simulation.
 
@@ -509,6 +517,19 @@ def mars_run(
     from cli import runner, output as out_mod
 
     _print_banner()
+
+    # Parse --inject COMPOUND:KG_PER_YEAR pairs
+    inject: dict[str, float] | None = None
+    if inject_list:
+        inject = {}
+        for item in inject_list:
+            try:
+                compound, kg_str = item.split(":", 1)
+                inject[compound.strip()] = float(kg_str.strip())
+            except ValueError:
+                click.echo(_c(f"\n  ✖  Bad --inject value '{item}'. "
+                              "Expected COMPOUND:KG_PER_YEAR (e.g. CF4:1e9)", "bright_red"))
+                sys.exit(1)
 
     # Build a typed RunFlags from the raw Click values (str enums → Enum members)
     given_flags = RunFlags(
@@ -529,6 +550,8 @@ def mars_run(
         output_dir        = output_dir,
         no_save           = no_save,
         no_plot           = no_plot,
+        n_years           = n_years,
+        inject            = inject,
     )
 
     # Always run the wizard — it skips prompts for already-provided values
@@ -571,6 +594,8 @@ def mars_run(
         results = runner.run_year(cfg)
     elif exp == ExpType.multi:
         results = runner.run_multi(cfg)
+    elif exp == ExpType.intervention:
+        results = runner.run_intervention(cfg)
     else:
         raise AssertionError(f"Unhandled experiment type: {exp}")
 
@@ -585,15 +610,19 @@ def mars_run(
 # ── Summary box ────────────────────────────────────────────────────────────────
 
 def _echo_run_summary(cfg: SimConfig, preset: str | None) -> None:
-    p, e, x  = cfg.planet, cfg.engine, cfg.experiment
+    p, e, x, iv = cfg.planet, cfg.engine, cfg.experiment, cfg.intervention
     ns       = "N" if p.latitude >= 0 else "S"
     loc      = f"{abs(p.latitude):.2f}°{ns}  {p.longitude:.2f}°E  elev={p.elevation_m:.0f} m"
     preset_l = preset or cfg.preset.name
 
+    is_iv = (x.type.value == "intervention")
+    type_str = (f"intervention / {iv.n_years} yr" if is_iv
+                else f"{x.type.value} / {x.sols:.0f} sols")
+
     click.echo(_divider())
     for key, val in [
         ("preset",     preset_l),
-        ("type",       f"{x.type.value} / {x.sols:.0f} sols"),
+        ("type",       type_str),
         ("location",   loc),
         ("engine",     f"{e.accuracy.value}  dt={e.dt:.0f} s"),
         ("T₀",         f"{p.surface_temperature:.1f} K"),
@@ -602,6 +631,13 @@ def _echo_run_summary(cfg: SimConfig, preset: str | None) -> None:
         ("greenhouse", f"{p.greenhouse_factor:.3f}"),
     ]:
         click.echo(f"  {_label(f'{key:<12}')}" + _c(val, "bright_white"))
+
+    if is_iv and iv.injection:
+        click.echo(f"  {_label('inject      ')}" + _c(
+            "  ".join(f"{k} {v:.2e} kg/yr" for k, v in iv.injection.items()),
+            "bright_cyan"
+        ))
+
     click.echo(_divider())
 
 
