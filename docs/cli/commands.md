@@ -112,6 +112,91 @@ tform mars config validate experiments/my-run.yaml
 
 ---
 
+## `tform serve`
+
+Start the tform visualisation web server.
+
+```bash
+tform serve [OPTIONS]
+```
+
+Launches a FastAPI server that accepts simulation run requests from the browser UI,
+streams per-step physics data back in real time via Server-Sent Events, and serves
+the pre-built React app from `cli/static/`.  A browser tab opens automatically
+after one second.
+
+### Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--port N` | int | `8000` | Port to bind the server to |
+| `--host ADDR` | str | `127.0.0.1` | Host address to bind |
+| `--no-browser` | flag | — | Don't open a browser tab automatically |
+| `--dev` | flag | — | Also start the Vite dev server from `ui/` on port 5173 |
+
+### Examples
+
+```bash
+# Start the server and open the UI (default)
+tform serve
+
+# Use a custom port
+tform serve --port 9000
+
+# Development mode — starts FastAPI on :8000 and Vite on :5173
+tform serve --dev
+
+# Headless (useful on a remote machine)
+tform serve --no-browser
+```
+
+### API endpoints
+
+The server exposes a REST + SSE API consumed by the React UI:
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/runs` | Create and start a simulation run |
+| `GET` | `/api/runs` | List all runs (metadata, no data arrays) |
+| `GET` | `/api/runs/{id}` | Get full run including all data points |
+| `GET` | `/api/runs/{id}/events` | SSE stream — emits data points as they are computed |
+| `GET` | `/api/presets` | List available Mars presets |
+| `GET` | `/api/compounds` | List available GHG compounds |
+| `GET` | `/api/docs` | Interactive Swagger UI |
+
+### Data flow
+
+Every integration step in the physics engine fires a callback.  That callback
+writes one data point to an in-memory list.  The SSE generator polls the list
+with a cursor and pushes new points to the browser, where Recharts re-renders
+the chart in real time.
+
+```
+TimeController.step() → callback(planet, t) → _runs[id].data.append()
+                                                     ↓
+                                              SSE /events stream
+                                                     ↓
+                                            React state → Recharts
+```
+
+For intervention runs the natural granularity is one point per Mars year
+(via `InterventionController`'s per-year callback).  For sol/year runs the
+per-step callback is throttled to at most 2 000 chart points.
+
+### Requirements
+
+`fastapi` and `uvicorn` are included in the standard `cli` dependencies.
+No separate install step is required beyond the usual `uv sync`.
+
+To build the UI from source (only needed when modifying the frontend):
+
+```bash
+cd ui && npm install && npm run build
+# built assets are written to cli/static/ automatically
+```
+
+---
+
 ## `tform man`
 
 Show reference information for a planet or subsystem.

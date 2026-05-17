@@ -7,7 +7,7 @@ BASELINE_START ?= 2014-10-19
 BASELINE_END ?= 2016-08-17
 TIMEOUT ?= 180
 
-.PHONY: help \
+.PHONY: help ui-install ui-build ui-dev \
 	maven-kp-insitu maven-kp-insitu-dry \
 	maven-kp-iuvs maven-kp-iuvs-dry \
 	maven-ngi-l2l3 maven-ngi-l2l3-dry \
@@ -24,8 +24,21 @@ TIMEOUT ?= 180
 	maven-swea-recommended maven-swea-recommended-dry \
 	maven-swea-full maven-swea-full-dry
 
+ui-install:
+	cd ui && npm install
+
+ui-build: ui-install
+	cd ui && npm run build
+
+ui-dev:
+	cd ui && npm run dev
+
 help:
 	@echo "Available targets:"
+	@echo "  ui-install                  - Install npm dependencies for the UI"
+	@echo "  ui-build                    - Build React UI into cli/static/"
+	@echo "  ui-dev                      - Start Vite dev server on :5173"
+	@echo ""
 	@echo "  maven-kp-insitu             - KP insitu baseline pull"
 	@echo "  maven-kp-iuvs               - KP IUVS baseline pull"
 	@echo "  maven-ngi-l2l3              - NGIMS L2+L3 pull"

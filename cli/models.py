@@ -75,7 +75,7 @@ class InterventionConfig(BaseModel):
 
 class OutputConfig(BaseModel):
     save_csv:     bool          = True
-    save_plot:    bool          = True
+    save_plot:    bool          = False
     ground_truth: bool          = False
     out_dir:      Optional[str] = None
     output_path:  Optional[str] = None
@@ -154,7 +154,7 @@ class RunFlags(BaseModel):
     name:              Optional[str]      = None
     output_dir:        Optional[str]      = None
     no_save:           bool               = False
-    no_plot:           bool               = False
+    plot:              bool               = False
     # intervention flags
     n_years:           Optional[int]      = None
     inject:            Optional[dict[str, float]] = None
@@ -198,8 +198,8 @@ class RunFlags(BaseModel):
             o["output_path"] = self.output_dir
         if self.no_save:
             o["save_csv"] = False
-        if self.no_plot:
-            o["save_plot"] = False
+        if self.plot:
+            o["save_plot"] = True
 
         iv = base.intervention.model_dump()
         if self.n_years is not None:
