@@ -15,7 +15,7 @@ This document captures the full 1-hour (`dt_s = 3600`) `evolve()` setup currentl
 - `soil_regolith.gcm_surface_bare_ground_albedo = 0.25`
 
 ### Dynamic initial state
-- `time.solar_longitude_deg = 0.0`
+- `time.solar_longitude_deg = 251.0` (perihelion in the runtime Mars convention)
 - `time.solar_zenith_angle_deg = 60.0`
 - `atmosphere.temperature_K = 210.0`
 - `atmosphere.pressure_Pa = 610.0`
@@ -44,7 +44,8 @@ This document captures the full 1-hour (`dt_s = 3600`) `evolve()` setup currentl
 ## Equations used in this 1-hour step
 
 1. Sun-Mars distance (AU):
-   - `r_AU = a_AU * (1 - e^2) / (1 + e * cos(Ls))`
+   - `nu = Ls - Ls_perihelion`, with `Ls_perihelion = 251 deg`
+   - `r_AU = a_AU * (1 - e^2) / (1 + e * cos(nu))`
 
 2. TOA incident shortwave:
    - `F_TOA = (S_1AU / r_AU^2) * max(0, cos(theta_z))`
@@ -68,9 +69,9 @@ This document captures the full 1-hour (`dt_s = 3600`) `evolve()` setup currentl
    - `IceH2O_next = IceH2O + (dIceH2O_dt) * dt_s`
    - `IceCO2_next = IceCO2 + (dIceCO2_dt) * dt_s`
 
-## Example output diagnostics (current baseline run)
+## Example output diagnostics (current baseline run, initialized near perihelion)
 - `sol_elapsed = 0.04055184573753466`
-- `solar_longitude_deg = 0.021834676137470057`
+- `solar_longitude_deg = 251.02183467613747`
 - `toa_incident_solar_flux_W_m2 = 356.62331344871853`
 - `surface_incident_solar_flux_W_m2 = 196.1428223967952`
 - `surface_thermal_ir_flux_W_m2 = 22.05560174763078`

@@ -948,6 +948,7 @@ Temperature no longer feeds into pressure (Jeans escape removed).
 | A_cap = 1% per pole (fixed) | Fixed sublimating area; no seasonal cap extent evolution | `MARS_POLAR_CAP_FRACTION` |
 | Thermal tide empirical (A=30 Pa, φ=−0.7π) | Reproduces REMS diurnal P oscillation but not spatial structure or interannual variability | `MARS_THERMAL_TIDE_PA/PHASE` |
 | 0D global pressure | No spatial pressure gradient or local weather | dP/dt formulation |
+| Elevation is initialization-only | `Mars(elevation_m=...)` adjusts starting pressure with `P=P_ref exp(-z/H)`, but there is no MOLA lookup, pressure-gradient field, or temperature lapse-rate coupling during evolution | `Mars.__init__` |
 | f_gh = 1.02 fixed | Greenhouse does not evolve with pressure changes | `thermal.greenhouse_factor` |
 | MAVEN escape rate constant | Does not vary with solar activity or season | `MARS_MAVEN_ESCAPE_RATE` |
 | North/south ice split by season at init | Linear ramp from Ls=180°→360°; real cap exchange is more complex | `setup_properties` |

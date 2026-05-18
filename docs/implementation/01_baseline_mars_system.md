@@ -160,7 +160,7 @@ Recommended companion methods:
   - `surface_reflected_solar_flux_W_m2`: reflected shortwave from horizontal surface
   - `surface_thermal_ir_flux_W_m2`: downwelling thermal IR at surface
 
-### Example one-hour step (`dt_s = 3600`) at `Ls ~ 0 deg`
+### Example one-hour step (`dt_s = 3600`) near perihelion (`Ls ~ 251 deg`)
 Using baseline defaults in `src/planet.py`:
 
 | solar zenith angle | TOA incident solar flux (W/m2) | Surface incident solar flux (W/m2) |
@@ -173,6 +173,8 @@ Interpretation:
 - `0 deg` is near local noon direct incidence (maximum in this simplified setup).
 - `90 deg` is horizon condition, so direct shortwave is effectively zero.
 - The modeled TOA value depends on Mars-Sun distance and zenith, so it will vary with `Ls`.
+- Runtime Mars orbital phase uses `nu = Ls - 251 deg`; perihelion is `Ls ~= 251 deg` and aphelion is `Ls ~= 71 deg`.
+- Runtime `Mars(elevation_m=...)` applies an initialization-only hydrostatic pressure correction, but MOLA terrain lookup and temperature lapse-rate effects are not yet coupled into the evolution step. See `docs/wiki/elevation-effects.md`.
 
 ### Notes
 - Preserve native source units in raw ingestion, and maintain SI-normalized fields in harmonized outputs.
@@ -262,5 +264,4 @@ Interpretation:
 
 ## Pre-requisites
 - None (foundation phase).
-
 
