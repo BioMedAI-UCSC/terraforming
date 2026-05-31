@@ -756,6 +756,23 @@ compute_derivatives(y = [T, P, M_ice])
 Only one coupling: ice sublimation feeds directly into pressure.
 
 ---
+## ODE Term Locations
+
+| Term | System | File | Line |
+|---|---|---|---|
+| Q_in | Surface Energy Balance | mars.py | 285 |
+| Q_out | Surface Energy Balance | mars.py | 287 |
+| C_area | Surface Energy Balance | mars.py | 60 |
+| dP_escape | Atmospheric Pressure | mars.py | 327 |
+| dP_sub | Atmospheric Pressure | mars.py | 328 |
+| dP_tide | Atmospheric Pressure | mars.py | 329 |
+| A_cap | Polar CO2 Sublimation | mars.py | 294 |
+| L_sub | Polar CO2 Sublimation | mars.py | 63 |
+| M_sub_N | Polar CO2 Sublimation | mars.py | 302 |
+| M_sub_S | Polar CO2 Sublimation | mars.py | 303 |
+| dM_ice_N | Polar CO2 Sublimation | mars.py | 305 |
+| dM_ice_S | Polar CO2 Sublimation | mars.py | 306 |
+| dM_ice | Polor CO2 Sublimation | mars.py | 318 |
 
 ## 10. Model Scope and Known Approximations
 
