@@ -1,0 +1,11 @@
+# Core package (package/pyproject.toml)
+matplotlib>=3.10.8
+torch>=2.7.0
+
+# CLI package (cli/pyproject.toml)
+click>=8.1
+pydantic>=2.0
+pyyaml>=6.0
+
+# Dev tools (pyproject.toml)
+pyright>=1.1.408
