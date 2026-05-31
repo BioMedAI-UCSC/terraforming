@@ -31,6 +31,40 @@ The terraforming simulation system models planetary properties and their evoluti
     └─────────┘       └─────────┘      └─────────┘
 ```
 
+### 2.1 Verified Framework Composition (Current Code)
+
+In the current code, `Planet` is the main container. It holds smaller pieces that each track one part of the model:
+
+- `Atmosphere`
+- `Thermal`
+- `Water`
+- `Radiation`
+- `Magnetic`
+- `IntrinsicParameters`
+- `OrbitalParameters`
+
+All of these live under `package/src/framework/`.
+
+```mermaid
+flowchart TD
+    P[Planet abstract base class\npackage/src/framework/planet.py]
+    I[IntrinsicParameters\npackage/src/framework/intrinsic.py]
+    O[OrbitalParameters\npackage/src/framework/orbital.py]
+    A[Atmosphere dataclass\npackage/src/framework/atmosphere.py]
+    T[Thermal dataclass\npackage/src/framework/thermal.py]
+    W[Water dataclass\npackage/src/framework/water.py]
+    R[Radiation dataclass\npackage/src/framework/radiation.py]
+    M[Magnetic dataclass\npackage/src/framework/magnetic.py]
+
+    P --> I
+    P --> O
+    P --> A
+    P --> T
+    P --> W
+    P --> R
+    P --> M
+```
+
 ### 3. Simulation Flow
 
 ```
@@ -496,6 +530,45 @@ save_state(mars, 'mars_100years.pkl')
 3. **Numerical integration** with adaptive timestep
 4. **State persistence** for checkpointing
 5. **Mars-specific parameters** as reference implementation
+
+---
+
+## Verification Notes (Docs vs Current Framework)
+
+### A. Claim-to-Class Traceability (`package/src/framework/`)
+
+Quick mapping from this doc to what actually exists:
+
+| Doc claim | What exists in code | Result |
+|---|---|---|
+| `Planet` base class | `package/src/framework/planet.py` has abstract `Planet` with `setup_properties`, `compute_derivatives`, `compute_fast_physics` | Matches |
+| Atmosphere, thermal, water, radiation systems | Dataclasses in `atmosphere.py`, `thermal.py`, `water.py`, `radiation.py` | Matches |
+| `PlanetaryState` class | Not present in framework; state is split across dataclasses on `Planet` | Doc is outdated |
+| `OrbitalTimer` class | Not present in framework; orbit/time are tracked by `Planet.elapsed_time`, `Planet.orbital_angle`, and `Planet.advance_orbit` | Doc is outdated |
+| `WindSystem` class | Not present in `package/src/framework/` | Doc is outdated |
+| `SimulationEngine` in framework | Integration is done by engine modules (for example `TimeController`), not by a framework `SimulationEngine` class | Clarify wording |
+
+### B. Physical Constants Verification
+
+Constants in `package/src/constants/__init__.py` were checked against standard references:
+
+| Constant | Repo value | Reference | Verification |
+|---|---|---|---|
+| Stefan-Boltzmann `sigma` | `5.670374419e-8` W m^-2 K^-4 | NIST SI constant value | Match |
+| Boltzmann `k_B` | `1.380649e-23` J K^-1 | NIST SI exact defining constant | Match |
+| Newtonian gravitation `G` | `6.67430e-11` m^3 kg^-1 s^-2 | CODATA/NIST recommended value | Match |
+| Astronomical unit `AU` | `1.49597870700e11` m | IAU 2012 exact definition | Match |
+| Solar constant at 1 AU | `1361.0` W m^-2 | NASA Earth energy budget convention | Match |
+
+References: [NIST Fundamental Physical Constants](https://physics.nist.gov/cuu/Constants/), [IAU AU definition](https://www.iau.org/static/resolutions/IAU2012_English.pdf), [NASA Earth's Energy Budget](https://earthobservatory.nasa.gov/features/EnergyBalance).
+
+### C. Mars Thermal Parameters Check
+
+- `package/src/celestials/planets/mars.py` sets surface emissivity to `0.95`.
+- `C_eff = 2.0 x 10^6 J m^-2 K^-1` is not currently defined in framework or Mars constants.
+- The Mars model currently uses `MARS_THERMAL_INERTIA = 6.0e4` as its temperature-response term.
+- `MARS_THERMAL_INERTIA` and slab `C_eff` are not the same quantity, so they should not be treated as interchangeable in the docs.
+- Background reference: Putzig, N. E., and M. T. Mellon (2007), *Icarus* 191(1), 68-94, doi:10.1016/j.icarus.2007.05.013.
 
 ---
 
