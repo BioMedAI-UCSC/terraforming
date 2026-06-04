@@ -1,6 +1,6 @@
 """
 
 Functions in this file will verify the document diff equations in task assigned. 
-we want the calculations in the documents
+We want the calculations in the documents to be correct and we want to verify that the equations are correct.
 
 """
