@@ -1,15 +1,17 @@
 """
-
-Functions in this file will verify the document diff equations in task assigned. 
-we want the calculations in the documents
-
+Functions in this file will verify the differential equations in task assigned.
+We want the calculations in the document to be correct.
 """
 
+#Compute Loop Dipole Moment
+#Checking whether a current-carrying wire around Mars creates a dipole moment.
 def compute_loop_dipole_moment(
 	loop_current: float,
 	radius: float,
 ) ->float:
-	"""
+
+
+"""
 Equation: M = I * pi * R^2
 
 This computes the magnetic dipole moment of a superconducting loop around Mars
