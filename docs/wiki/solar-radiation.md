@@ -14,7 +14,7 @@ $$
 
 where $S_{1\,\text{AU}} = 1361\,\text{W\,m}^{-2}$ is the [solar constant](https://en.wikipedia.org/wiki/Solar_constant) — the total solar irradiance at 1 AU ([Kopp & Lean, 2011](https://doi.org/10.1029/2010GL045777)) — and $r$ is in AU.
 
-At Mars's semi-major axis ($a = 1.524\,\text{AU}$), the time-averaged flux is approximately $\bar{F} \approx 586\,\text{W\,m}^{-2}$, dropping to $\sim 493\,\text{W\,m}^{-2}$ at aphelion and rising to $\sim 718\,\text{W\,m}^{-2}$ at perihelion.
+At Mars's semi-major axis ($a = 1.524\,\text{AU}$), the flux at mean orbital distance is approximately $586\,\text{W\,m}^{-2}$, dropping to $\sim 490\,\text{W\,m}^{-2}$ at aphelion and rising to $\sim 713\,\text{W\,m}^{-2}$ at perihelion.
 
 ---
 
@@ -52,19 +52,19 @@ $$
 F_\text{abs} = F_\text{sfc}\,(1 - \alpha)
 $$
 
-Mars's global mean albedo is $\alpha \approx 0.25$, though it varies from $\sim 0.10$ in dark basaltic regions to $\sim 0.45$ over bright dust deposits and polar caps ([Christensen et al., 2001](https://doi.org/10.1029/2000JE001368)).
+The simplified Mars model uses a representative global shortwave albedo $\alpha \approx 0.25$. Real Martian surface albedo varies strongly by terrain and season, with darker basaltic regions absorbing more sunlight and bright dust or polar deposits reflecting more. This value should be treated as an effective model parameter unless tied to a specific Bond-albedo or surface-albedo data product.
 
 ---
 
 ## Numerical example at Mars baseline
 
-Using $S_{1\,\text{AU}} = 1361\,\text{W\,m}^{-2}$, $r \approx 1.38\,\text{AU}$ (near $L_s = 0°$), $\tau_\text{atm} = 0.55$, $\alpha = 0.25$:
+Using $S_{1\,\text{AU}} = 1361\,\text{W\,m}^{-2}$, $r \approx 1.558\,\text{AU}$ (near $L_s = 0°$), $\tau_\text{atm} = 0.55$, $\alpha = 0.25$:
 
 | $\theta_z$ | $F_\text{TOA}$ | $F_\text{sfc}$ | $F_\text{abs}$ |
 |-----------|---------------|---------------|---------------|
-| $0°$ | $713.2\,\text{W\,m}^{-2}$ | $392.3\,\text{W\,m}^{-2}$ | $294.2\,\text{W\,m}^{-2}$ |
-| $30°$ | $617.7\,\text{W\,m}^{-2}$ | $339.7\,\text{W\,m}^{-2}$ | $254.8\,\text{W\,m}^{-2}$ |
-| $60°$ | $356.6\,\text{W\,m}^{-2}$ | $196.1\,\text{W\,m}^{-2}$ | $147.1\,\text{W\,m}^{-2}$ |
+| $0°$ | $560.9\,\text{W\,m}^{-2}$ | $308.5\,\text{W\,m}^{-2}$ | $231.4\,\text{W\,m}^{-2}$ |
+| $30°$ | $485.7\,\text{W\,m}^{-2}$ | $267.1\,\text{W\,m}^{-2}$ | $200.3\,\text{W\,m}^{-2}$ |
+| $60°$ | $280.4\,\text{W\,m}^{-2}$ | $154.2\,\text{W\,m}^{-2}$ | $115.7\,\text{W\,m}^{-2}$ |
 | $90°$ | $\approx 0$ | $\approx 0$ | $\approx 0$ |
 
 ---

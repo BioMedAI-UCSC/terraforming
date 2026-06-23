@@ -35,8 +35,10 @@ Expanding each term:
 **Absorbed shortwave (solar):**
 
 $$
-F_\text{sfc} - F_\text{refl} = \frac{S_{1\,\text{AU}}}{r(L_s)^2}\,\max\!\bigl(0,\cos\theta_z\bigr)\cdot\tau_\text{atm}\cdot(1 - \alpha)
+F_\text{sfc} - F_\text{refl} = \frac{S_{1\,\text{AU}}}{r(\nu)^2}\,\max\!\bigl(0,\cos\theta_z\bigr)\cdot\tau_\text{atm}\cdot(1 - \alpha)
 $$
+
+For Mars, $\nu$ is the true anomaly measured from perihelion. It is related to solar longitude by $\nu = L_s - L_{s,\text{perihelion}}$, with $L_{s,\text{perihelion}} \approx 251°$.
 
 **Downwelling thermal IR (greenhouse back-radiation):**
 
@@ -104,15 +106,15 @@ The fast mode uses **reduced-order analytic updates** — a relaxation scheme th
 
 ---
 
-## Baseline outputs (1-hour step at $L_s = 0°$, $\theta_z = 60°$)
+## Shortwave reference values at $L_s = 0°$, $\theta_z = 60°$
 
 | Diagnostic | Value |
 |-----------|-------|
-| $F_\text{TOA}$ | $356.6\,\text{W\,m}^{-2}$ |
-| $F_\text{sfc}$ | $196.1\,\text{W\,m}^{-2}$ |
-| $F_\text{IR,up}$ | $22.1\,\text{W\,m}^{-2}$ |
-| $\Delta T$ per hour | $+0.116\,\text{K}$ |
-| $P$ | $610\,\text{Pa}$ (unchanged, no sublimation) |
+| $F_\text{TOA}$ | $280.4\,\text{W\,m}^{-2}$ |
+| $F_\text{sfc}$ | $154.2\,\text{W\,m}^{-2}$ |
+| $F_\text{abs}$ | $115.7\,\text{W\,m}^{-2}$ |
+
+These shortwave values use the simplified reference assumptions from [Solar Flux at Mars](solar-flux.md): $\tau_\text{atm} = 0.55$ and $\alpha = 0.25$. Full temperature and pressure tendencies depend on the implementation's thermal inertia, greenhouse factor, surface temperature, pressure, and CO₂ ice state.
 
 ---
 

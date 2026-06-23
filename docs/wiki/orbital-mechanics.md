@@ -1,15 +1,23 @@
 # Orbital Mechanics
 
-Planetary orbits are described by [Keplerian orbital elements](https://en.wikipedia.org/wiki/Orbital_elements). For a planet on an elliptical orbit, the key elements are the semi-major axis $a$, orbital eccentricity $e$, and the true anomaly $\nu$ (the angle from perihelion). In tform the true anomaly is parameterised through the **solar longitude** $L_s$, which is the standard convention in Mars science ([Allison & McEwen, 2000](https://doi.org/10.1016/S0032-0633(99)00092-6)).
+Planetary orbits are described by [Keplerian orbital elements](https://en.wikipedia.org/wiki/Orbital_elements). For a planet on an elliptical orbit, the key elements are the semi-major axis $a$, orbital eccentricity $e$, mean anomaly $M$, eccentric anomaly $E$, and true anomaly $\nu$ (the angle from perihelion).
+
+For Mars, seasons are conventionally described by the **areocentric solar longitude** $L_s$, following the Allison & McEwen (2000) convention ([doi:10.1016/S0032-0633(99)00092-6](https://doi.org/10.1016/S0032-0633(99)00092-6)). $L_s = 0°$ is northern spring equinox. It is not measured from perihelion. In the current simplified Mars model, true anomaly is related to solar longitude by:
+
+$$
+\nu = L_s - L_{s,\text{perihelion}}
+$$
+
+with $L_{s,\text{perihelion}} \approx 251°$.
 
 ---
 
 ## Orbital distance
 
-The instantaneous Sun–planet distance $r$ as a function of solar longitude $L_s$ follows directly from the [vis-viva equation](https://en.wikipedia.org/wiki/Vis-viva_equation) and the geometry of an ellipse ([Wikipedia: Elliptic orbit](https://en.wikipedia.org/wiki/Elliptic_orbit)):
+The instantaneous Sun–planet distance $r$ follows from the geometry of an ellipse ([Wikipedia: Elliptic orbit](https://en.wikipedia.org/wiki/Elliptic_orbit)):
 
 $$
-r(L_s) = \frac{a\,(1 - e^2)}{1 + e\cos L_s}
+r(\nu) = \frac{a\,(1 - e^2)}{1 + e\cos \nu}
 $$
 
 | Symbol | Meaning | Unit |
@@ -17,9 +25,55 @@ $$
 | $r$ | Sun–planet distance | AU |
 | $a$ | Semi-major axis | AU |
 | $e$ | Orbital eccentricity | dimensionless |
-| $L_s$ | Solar longitude (true anomaly from perihelion) | rad |
+| $\nu$ | True anomaly measured from perihelion | rad |
 
-For Mars: $a = 1.524\,\text{AU}$, $e = 0.0934$ ([NASA Mars Fact Sheet](https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html)). Mars's high eccentricity causes a ~19% variation in solar flux between perihelion ($L_s = 251°$) and aphelion ($L_s = 71°$), driving strong seasonal asymmetry.
+For Mars: $a = 1.524\,\text{AU}$, $e = 0.0934$ ([NASA Mars Fact Sheet](https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html)). Mars's high eccentricity causes perihelion flux to be about 45% higher than aphelion flux, driving strong seasonal asymmetry.
+
+---
+
+## Orbital time propagation
+
+True anomaly does not advance uniformly in time for an eccentric orbit. The uniformly advancing quantity is mean anomaly:
+
+$$
+\frac{dM}{dt} = \frac{2\pi}{T_\text{orbital}}
+$$
+
+At each timestep, the model converts the current true anomaly $\nu$ to eccentric anomaly $E$:
+
+$$
+E = 2 \tan^{-1}\!\left(
+    \sqrt{\frac{1-e}{1+e}} \tan\frac{\nu}{2}
+\right)
+$$
+
+then computes mean anomaly:
+
+$$
+M = E - e\sin E
+$$
+
+The timestep advances $M$ by the mean motion:
+
+$$
+M_{t+\Delta t} = M_t + \frac{2\pi}{T_\text{orbital}}\Delta t
+$$
+
+The updated eccentric anomaly is recovered by solving Kepler's equation:
+
+$$
+M = E - e\sin E
+$$
+
+and then converted back to true anomaly:
+
+$$
+\nu = 2 \tan^{-1}\!\left(
+    \sqrt{\frac{1+e}{1-e}} \tan\frac{E}{2}
+\right)
+$$
+
+This implements Kepler's second law: Mars moves faster near perihelion and slower near aphelion.
 
 ---
 

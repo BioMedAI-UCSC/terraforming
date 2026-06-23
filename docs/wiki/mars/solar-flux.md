@@ -6,19 +6,25 @@ This page derives the solar flux model used at each timestep in the Mars climate
 
 ## Orbital distance
 
-Mars's distance from the Sun at solar longitude $L_s$ ([Allison & McEwen, 2000](https://doi.org/10.1016/S0032-0633(99)00092-6)):
+Mars seasons are represented by areocentric solar longitude $L_s$ ([Allison & McEwen, 2000](https://doi.org/10.1016/S0032-0633(99)00092-6)). $L_s$ is measured from northern spring equinox, not from perihelion. The Mars model converts $L_s$ to true anomaly $\nu$ using:
 
 $$
-r(L_s) = \frac{a\,(1 - e^2)}{1 + e\cos L_s}
+\nu = L_s - L_{s,\text{perihelion}}
+$$
+
+with $L_{s,\text{perihelion}} \approx 251°$. Distance from the Sun is then:
+
+$$
+r(\nu) = \frac{a\,(1 - e^2)}{1 + e\cos \nu}
 $$
 
 With $a = 1.524\,\text{AU}$ and $e = 0.0934$:
 
 | $L_s$ | Event | $r$ (AU) |
 |--------|-------|----------|
-| $0°$ | N. spring equinox | $1.517$ |
+| $0°$ | N. spring equinox | $1.558$ |
 | $71°$ | Aphelion | $1.666$ |
-| $180°$ | N. autumn equinox | $1.517$ |
+| $180°$ | N. autumn equinox | $1.466$ |
 | $251°$ | Perihelion | $1.381$ |
 
 ---
@@ -28,16 +34,28 @@ With $a = 1.524\,\text{AU}$ and $e = 0.0934$:
 The TOA incident shortwave flux on a horizontal surface ([Wikipedia: Solar irradiance](https://en.wikipedia.org/wiki/Solar_irradiance)):
 
 $$
-F_\text{TOA} = \frac{S_{1\,\text{AU}}}{r(L_s)^2}\,\max\!\bigl(0,\,\cos\theta_z\bigr)
+F_\text{TOA} = \frac{S_{1\,\text{AU}}}{r(\nu)^2}\,\max\!\bigl(0,\,\cos\theta_z\bigr)
 $$
 
 where $S_{1\,\text{AU}} = 1361\,\text{W\,m}^{-2}$ ([Kopp & Lean, 2011](https://doi.org/10.1029/2010GL045777)) and $\theta_z$ is the solar zenith angle. The normal-incidence TOA flux at $L_s \approx 0°$ is:
 
 $$
-F_\text{normal} = \frac{1361}{1.517^2} \approx 591.5\,\text{W\,m}^{-2}
+F_\text{normal} = \frac{1361}{1.558^2} \approx 560.9\,\text{W\,m}^{-2}
 $$
 
-At perihelion ($r = 1.381\,\text{AU}$) this rises to $\approx 713\,\text{W\,m}^{-2}$, a 21% increase.
+At perihelion ($r = 1.381\,\text{AU}$) this rises to $\approx 713\,\text{W\,m}^{-2}$. Perihelion flux is about 45% higher than aphelion flux.
+
+---
+
+## Orbital time propagation
+
+The implementation does not advance $L_s$ or true anomaly uniformly. It advances mean anomaly uniformly:
+
+$$
+\frac{dM}{dt} = \frac{2\pi}{T_\text{orbital}}
+$$
+
+At each timestep the model converts the current true anomaly $\nu$ to eccentric anomaly $E$, computes mean anomaly $M = E - e\sin E$, advances $M$, solves Kepler's equation $M = E - e\sin E$, then converts the updated $E$ back to $\nu$. This preserves the expected seasonal timing: Mars moves faster near perihelion and slower near aphelion.
 
 ---
 
@@ -61,19 +79,19 @@ $$
 F_\text{refl} = \alpha \cdot F_\text{sfc}
 $$
 
-Mars's global mean albedo is $\alpha \approx 0.25$, though regional values range from $0.10$ (dark basalt) to $0.45$ (bright dust, polar caps) ([Christensen et al., 2001](https://doi.org/10.1029/2000JE001368)).
+The simplified model uses $\alpha \approx 0.25$ as a representative global shortwave albedo. Regional Martian surface albedo varies substantially between dark basaltic terrain, bright dust deposits, seasonal frost, and polar caps, so this should be treated as an effective model parameter unless tied to a specific albedo dataset.
 
 ---
 
 ## Zenith-angle reference table
 
-At $L_s \approx 0°$ ($F_\text{normal} = 591.5\,\text{W\,m}^{-2}$), $\tau_\text{atm} = 0.55$, $\alpha = 0.25$:
+At $L_s \approx 0°$ ($F_\text{normal} = 560.9\,\text{W\,m}^{-2}$), $\tau_\text{atm} = 0.55$, $\alpha = 0.25$:
 
 | $\theta_z$ | $F_\text{TOA}$ | $F_\text{sfc}$ | $F_\text{abs}$ |
 |-----------|---------------|---------------|---------------|
-| $0°$ | $591.5\,\text{W\,m}^{-2}$ | $325.3\,\text{W\,m}^{-2}$ | $244.0\,\text{W\,m}^{-2}$ |
-| $30°$ | $512.1\,\text{W\,m}^{-2}$ | $281.7\,\text{W\,m}^{-2}$ | $211.3\,\text{W\,m}^{-2}$ |
-| $60°$ | $295.8\,\text{W\,m}^{-2}$ | $162.7\,\text{W\,m}^{-2}$ | $122.0\,\text{W\,m}^{-2}$ |
+| $0°$ | $560.9\,\text{W\,m}^{-2}$ | $308.5\,\text{W\,m}^{-2}$ | $231.4\,\text{W\,m}^{-2}$ |
+| $30°$ | $485.7\,\text{W\,m}^{-2}$ | $267.1\,\text{W\,m}^{-2}$ | $200.3\,\text{W\,m}^{-2}$ |
+| $60°$ | $280.4\,\text{W\,m}^{-2}$ | $154.2\,\text{W\,m}^{-2}$ | $115.7\,\text{W\,m}^{-2}$ |
 | $90°$ | $\approx 0$ | $\approx 0$ | $\approx 0$ |
 
 At perihelion with $r = 1.381\,\text{AU}$ the $0°$ values increase to $F_\text{TOA} \approx 713\,\text{W\,m}^{-2}$, matching the baseline used in the evolve-1hr diagnostic.
