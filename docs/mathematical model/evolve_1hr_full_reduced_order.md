@@ -23,7 +23,7 @@ plasma/magnetic, cryosphere, composition, regolith chemistry, and gravity forcin
 ## Core equations (reduced-order)
 
 1. Orbital distance:
-- `r_AU = a_AU * (1 - e^2) / (1 + e * cos(Ls))`
+- `r_AU = a_AU * (1 - e^2) / (1 + e * cos(Ls-251))`
 
 2. TOA and surface shortwave:
 - `F_TOA = (S_1AU / r_AU^2) * max(0, cos(theta_z))`

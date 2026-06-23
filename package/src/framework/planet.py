@@ -163,36 +163,68 @@ class Planet(ABC):
             F(d) = F₀ × (1 AU / d)²
 
         Reference:
-        https://en.wikipedia.org/wiki/Solar_irradiance
-        https://en.wikipedia.org/wiki/Solar_constant
+            Kopp & Lean (2011), "A new, lower value of total solar irradiance:
+            Evidence and climate significance", Geophysical Research Letters.
+            https://doi.org/10.1029/2010GL045777
         """
         return _SOLAR_CONST_1AU * (_AU_METRES / distance) ** 2
 
-    def advance_orbit(self, dt: torch.Tensor) -> None:
-        """Advance orbital angle (mean-motion approximation) and update
-        solar flux.
 
-        Called by the engine at each timestep *before* physics updates.
-        Uses Python-float math constants so all arithmetic stays on whichever
-        device the planet's tensors live on.
+    def advance_orbit(self, dt: torch.Tensor) -> None:
+        """Advance the orbit using Keplerian timing and update solar flux.
+
+        ``orbital_angle`` is the true anomaly ν measured from perihelion.
+        Mean anomaly M advances uniformly in time. Kepler's equation is then
+        solved to recover eccentric anomaly E, which is converted back to true
+        anomaly ν for distance and solar-flux calculation.
 
         Equations:
-            dθ/dt = 2π / T_orbital          (mean motion)
-            r(θ)  = a(1−e²)/(1+e cos θ)    (Kepler ellipse)
-            F     = F₀ (1 AU / r)²          (inverse-square)
+            M = E - e sin(E)                 (Kepler's equation)
+            dM/dt = 2π / T_orbital           (mean motion)
+            r(ν) = a(1−e²)/(1+e cos ν)       (Kepler ellipse), (ν measured from perihelion)
+            F = F₀ (1 AU / r)²               (inverse-square flux)
         """
         self.elapsed_time = self.elapsed_time + dt
 
-        """The approximation here: this treats orbital_angle as the true anomaly (actual angular position on the ellipse)
-        but advances it at the constant rate of the mean anomaly. In reality, the planet moves faster near perihelion
-        and slower near aphelion (Kepler's second law — equal areas in equal times). For Mars with e = 0.0934,
-        this introduces a phase error of up to ~±10° in solar longitude, shifting the timing of seasonal peaks by roughly 5–10 sols.
-        """
-        self.orbital_angle = torch.remainder(
-            self.orbital_angle
+        e = self.orbital_params.eccentricity
+        nu = self.orbital_angle
+
+        # True anomaly ν -> eccentric anomaly E
+        eccentric_anomaly = 2.0 * torch.atan2(
+            torch.sqrt(1.0 - e) * torch.sin(nu / 2.0),
+            torch.sqrt(1.0 + e) * torch.cos(nu / 2.0),
+        )
+
+        # Eccentric anomaly E -> mean anomaly M.
+        # M = E - e sin(E)
+        mean_anomaly = eccentric_anomaly - e * torch.sin(eccentric_anomaly)
+
+        # Mean anomaly advances uniformly with time.
+        # Advances mean anomaly by the mean motion (2π / T_orbital) scaled by dt.
+        mean_anomaly = torch.remainder(
+            mean_anomaly
             + _TWO_PI * dt / self.orbital_params.orbital_period,
             _TWO_PI,
         )
+
+        # Solve Kepler's equation: M = E - e sin(E).
+        # Fixed iteration count preserves tensor/device compatibility.
+        eccentric_anomaly = mean_anomaly + e * torch.sin(mean_anomaly)
+        for _ in range(8):
+            residual = (
+                eccentric_anomaly
+                - e * torch.sin(eccentric_anomaly)
+                - mean_anomaly
+            )
+            derivative = 1.0 - e * torch.cos(eccentric_anomaly)
+            eccentric_anomaly = eccentric_anomaly - residual / derivative
+
+        # Eccentric anomaly E -> true anomaly ν.
+        true_anomaly = 2.0 * torch.atan2(
+            torch.sqrt(1.0 + e) * torch.sin(eccentric_anomaly / 2.0),
+            torch.sqrt(1.0 - e) * torch.cos(eccentric_anomaly / 2.0),
+        )
+        self.orbital_angle = torch.remainder(true_anomaly, _TWO_PI)
 
         distance = self.orbital_params.distance_from_sun(self.orbital_angle)
         self.radiation.solar_flux = self.solar_flux_at_distance(distance)
