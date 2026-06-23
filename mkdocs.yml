@@ -88,6 +88,7 @@ nav:
       - Mars:
           - Overview: wiki/mars/index.md
           - Solar Flux Model: wiki/mars/solar-flux.md
+          - Elevation Effects: wiki/mars/elevation.md
           - Climate Model: wiki/mars/climate-model.md
           - GHG Interventions: wiki/mars/interventions.md
   - Architecture:
