@@ -14,7 +14,7 @@ This wiki is the knowledge base behind the tform simulator. It explains the phys
 
 **Planet-specific sections** go into the physical constants, calibrated models, and intervention scenarios for each body:
 
-- [Mars](mars/index.md) — baseline state, climate model, atmospheric composition, GHG interventions
+- [Mars](mars/index.md) — baseline state, elevation effects, climate model, atmospheric composition, GHG interventions
 
 Future planets (Venus, the Moon, Europa) will each get their own subsection here.
 

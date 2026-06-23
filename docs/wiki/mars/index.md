@@ -42,6 +42,7 @@ Mean surface temperature is approximately $210\,\text{K}$ ($-63°\text{C}$), wit
 | Topic | Page |
 |-------|------|
 | Solar flux and zenith angle model | [Solar Flux](solar-flux.md) |
+| Elevation effects on pressure and temperature | [Elevation](elevation.md) |
 | Surface temperature ODE | [Climate Model](climate-model.md) |
 | GHG injection and radiative forcing | [GHG Interventions](interventions.md) |
 | API reference | [Mars API](../../api/celestials.md) |
