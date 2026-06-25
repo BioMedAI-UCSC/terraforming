@@ -259,8 +259,13 @@ Interpretation:
 ## Assumptions
 - Datasets are temporally harmonized to one reference epoch.
 - Bias corrections are stable over simulation horizon.
+- Current `package/src/` elevation support is limited to a one-time
+  hydrostatic initialization of surface pressure from caller-supplied
+  `elevation_m`. The runtime model does not yet use MOLA topography, pressure
+  scale-height updates, temperature lapse rates, slope/aspect, or
+  terrain-dependent albedo/thermal inertia. Physical impacts are documented in
+  `docs/architecture/mars.md` under "Elevation and Topography Treatment".
 
 ## Pre-requisites
 - None (foundation phase).
-
 

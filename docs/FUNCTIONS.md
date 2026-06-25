@@ -34,7 +34,7 @@ Inputs:
 - `Ls` (solar longitude, `deg`)
 
 Equation:
-- `r_AU = a_AU * (1 - e^2) / (1 + e * cos(Ls))`
+- `r_AU = a_AU * (1 - e^2) / (1 + e * cos(Ls - 251))`
 
 ### Thermal IR model
 Inputs:

@@ -952,6 +952,72 @@ Temperature no longer feeds into pressure (Jeans escape removed).
 | MAVEN escape rate constant | Does not vary with solar activity or season | `MARS_MAVEN_ESCAPE_RATE` |
 | North/south ice split by season at init | Linear ramp from Ls=180°→360°; real cap exchange is more complex | `setup_properties` |
 
+### 10.1 Elevation and Topography Treatment
+
+The current `Mars` implementation accepts `elevation_m`, but only uses it once
+when constructing the initial surface pressure:
+
+```
+P_initial = P_ref · exp(-elevation_m / H)
+H = 11 100 m
+```
+
+This is a hydrostatic/barometric correction with a fixed Mars CO2 scale height.
+It captures the first-order fact that high terrain starts with lower surface
+pressure and low terrain starts with higher surface pressure. For example,
+relative to the same reference pressure, +5 km terrain starts at about 64% of
+datum pressure, -7 km terrain starts at about 188%, and +21 km terrain starts at
+about 15%.
+
+What is modeled:
+
+- Initial local pressure is corrected from the supplied reference pressure using
+  `elevation_m`.
+- That corrected pressure is what enters the evolved state vector as `P`.
+- Batched runs inherit the corrected initial pressure because `BatchedMars`
+  stacks each `Mars` instance's initialized pressure.
+
+What is absent:
+
+- Elevation is not retained as an explicit model state after initialization.
+- The pressure scale height is fixed, not recomputed from temperature,
+  composition, or gravity during the run.
+- Pressure evolution is 0D/global after initialization. CO2 cap exchange,
+  atmospheric escape, and the empirical thermal tide are added directly to the
+  local initialized pressure, without recalculating a vertical pressure column.
+- No temperature lapse rate or altitude-dependent surface temperature correction
+  is applied. Temperature depends on latitude, season, solar flux, albedo,
+  emissivity, greenhouse factor, thermal inertia, and diurnal phase, but not
+  terrain height.
+- No MOLA DEM or other topography lookup is used by `package/src/`. Latitude and
+  longitude are accepted as inputs, but longitude does not currently select a
+  topographic height or alter local solar time in the implemented equations.
+- Slope, aspect, horizon shading, basin cold trapping, and terrain-dependent
+  thermal inertia/albedo are not modeled.
+
+Physical impact:
+
+- The model can distinguish a high-altitude and low-altitude site at `t=0` only
+  through pressure, and only if the caller supplies `elevation_m` manually.
+- Missing lapse-rate physics can be a large local-temperature error over Mars'
+  relief. A dry CO2 adiabatic estimate is roughly 4-5 K/km, so Hellas-like
+  basins, datum plains, and Tharsis/Olympus-like highlands could differ by
+  tens of kelvin from altitude effects alone. The real near-surface Martian
+  lapse rate is variable and can invert, but ignoring altitude removes this
+  entire class of behavior.
+- CO2 frost stability and sublimation are sensitive to both pressure and
+  temperature. Omitting altitude-dependent temperature means the model may
+  misplace where CO2 or H2O ice should be stable, especially in deep basins,
+  polar scarps, crater floors, and high volcanic terrain.
+- Without MOLA coupling, named-location simulations such as Hellas Basin, Gale
+  Crater, Olympus Mons, and Elysium Mons are not physically distinct unless
+  their latitude, initial pressure/temperature, albedo, thermal inertia, and
+  `elevation_m` are provided externally.
+- Because pressure is documented elsewhere as a global mean state while the
+  elevation correction makes it local at initialization, downstream consumers
+  should treat current `surface_pressure` as a reduced-order local diagnostic,
+  not a resolved Mars pressure field.
+
 ---
 
 

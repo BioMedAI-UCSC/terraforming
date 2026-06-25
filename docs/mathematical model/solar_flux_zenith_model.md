@@ -31,7 +31,7 @@ This model documents the shortwave radiation equations used in the baseline `evo
 Using the current baseline settings from `src/planet.py`:
 - `S_1AU = 1361 W/m2`
 - `tau_atm = 0.55`
-- near `Ls ~ 0 deg`, `r_AU ~ 1.38`
+- near `Ls ~ 251 deg`, `r_AU ~ 1.38`
 
 Example one-step outputs (`dt_s = 3600`):
 - `theta_z = 0 deg`: `F_TOA ~ 713.25 W/m2`, `F_sfc_inc ~ 392.29 W/m2`

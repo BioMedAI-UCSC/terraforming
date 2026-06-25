@@ -44,7 +44,7 @@ This document captures the full 1-hour (`dt_s = 3600`) `evolve()` setup currentl
 ## Equations used in this 1-hour step
 
 1. Sun-Mars distance (AU):
-   - `r_AU = a_AU * (1 - e^2) / (1 + e * cos(Ls))`
+   - `r_AU = a_AU * (1 - e^2) / (1 + e * cos(Ls-251))`
 
 2. TOA incident shortwave:
    - `F_TOA = (S_1AU / r_AU^2) * max(0, cos(theta_z))`
