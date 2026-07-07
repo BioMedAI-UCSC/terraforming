@@ -181,9 +181,6 @@ def update_greenhouse_factor(
         Callers should cache this at initialisation to avoid recomputing
         it at every annual update.  Computed on-the-fly if not provided.
     """
-    if float(delta_F.item()) <= 0.0:
-        return   # no forcing to apply
-
     d        = mars._device
     sb       = STEFAN_BOLTZMANN.to(d)
 
@@ -196,7 +193,9 @@ def update_greenhouse_factor(
         T0        = mars.thermal.surface_temperature
         F_in_base = _MARS_EMISSIVITY * sb * (T0 / GHF_base) ** 4.0
 
-    # Equation (3): monotonic, singularity-free
-    GHF_new = GHF_base * (1.0 + delta_F / F_in_base) ** 0.25
+    # Equation (3): monotonic, singularity-free.  relu keeps the
+    # "no forcing when ΔF ≤ 0" semantics without a data-dependent branch,
+    # so the autograd graph from delta_F to GHF is never cut.
+    GHF_new = GHF_base * (1.0 + torch.relu(delta_F) / F_in_base) ** 0.25
 
     mars.thermal.greenhouse_factor = GHF_new.clamp(min=1.0)

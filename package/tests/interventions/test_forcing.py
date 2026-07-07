@@ -153,7 +153,7 @@ class TestUpdateGreenhouseFactor:
         assert new_ghf > _val(baseline_ghf)
 
     def test_zero_forcing_does_not_change_ghf(self):
-        """ΔF = 0 → early return, GHF unchanged."""
+        """ΔF = 0 → relu gate leaves GHF at baseline, unchanged."""
         mars = self._mars_with_ghf()
         original_ghf = _val(mars.thermal.greenhouse_factor)
         update_greenhouse_factor(
@@ -164,7 +164,7 @@ class TestUpdateGreenhouseFactor:
         assert _val(mars.thermal.greenhouse_factor) == pytest.approx(original_ghf)
 
     def test_negative_forcing_does_not_change_ghf(self):
-        """Negative ΔF triggers early return."""
+        """Negative ΔF is gated to zero by relu — GHF stays at baseline."""
         mars = self._mars_with_ghf()
         original_ghf = _val(mars.thermal.greenhouse_factor)
         update_greenhouse_factor(
@@ -231,3 +231,17 @@ class TestUpdateGreenhouseFactor:
         ghf_after_second = _val(mars.thermal.greenhouse_factor)
 
         assert ghf_after_first == pytest.approx(ghf_after_second, rel=1e-6)
+
+    def test_gradient_flows_from_delta_F_to_ghf(self):
+        # Regression B4 (workplan Phase 0): float(delta_F.item()) early-return
+        # cut the autograd graph between the forcing and the greenhouse factor.
+        mars = self._mars_with_ghf()
+        dF = torch.tensor(50.0, dtype=TF_DTYPE, requires_grad=True)
+        update_greenhouse_factor(
+            mars, dF, baseline_ghf=mars.thermal.greenhouse_factor.clone()
+        )
+        assert mars.thermal.greenhouse_factor.grad_fn is not None
+        mars.thermal.greenhouse_factor.backward()
+        assert dF.grad is not None
+        assert torch.isfinite(dF.grad)
+        assert _val(dF.grad) > 0.0

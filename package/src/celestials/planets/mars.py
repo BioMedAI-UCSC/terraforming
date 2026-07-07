@@ -443,23 +443,23 @@ class Mars(Planet):
             _MARS_EMISSIVITY * sb * (T0 / self._baseline_ghf) ** 4.0
         )
 
-    def inject(self, schedule: dict[str, float]) -> None:
+    def inject(self, schedule: dict[str, float | torch.Tensor]) -> None:
         """Add GHGs to atmosphere.composition (kg → Pa) and resync GHF.
 
         Each compound's partial pressure increases by ΔP = M·g / A_surface.
         Unknown compounds are added to composition on first injection.
         After this call ``mars.thermal.greenhouse_factor`` and ``mars.delta_F``
         reflect the updated atmospheric state.
+
+        Masses may be tensors: ΔP is computed in tensor arithmetic so
+        gradients flow from an injected mass to the greenhouse factor.
         """
         if self._baseline_ghf is None:
             self._init_ghg()
         g = self.intrinsic_params.gravity
         A = 4.0 * math.pi * self.intrinsic_params.radius ** 2
         for name, kg in schedule.items():
-            dP = torch.tensor(
-                float(kg) * float(g.item()) / float(A.item()),
-                dtype=TF_DTYPE, device=self._device,
-            )
+            dP = torch.as_tensor(kg, dtype=TF_DTYPE, device=self._device) * g / A
             if name in self.atmosphere.composition:
                 self.atmosphere.composition[name] = self.atmosphere.composition[name] + dP
             else:
@@ -494,12 +494,16 @@ class Mars(Planet):
     def _recompute_greenhouse_factor(self) -> None:
         """Sync ``thermal.greenhouse_factor`` from current atmosphere composition.
 
-            GHF_new = GHF_base × (1 + ΔF / F_in_base)^(1/4)
+            GHF_new = GHF_base × (1 + relu(ΔF) / F_in_base)^(1/4)
+
+        relu reproduces the "no forcing when ΔF ≤ 0" semantics without a
+        data-dependent branch, so the computation stays on-device and the
+        autograd graph from ΔF to GHF is never cut.
         """
         if self._baseline_ghf is None or self._baseline_olr is None:
             return
         dF = self.delta_F
-        if float(dF.item()) <= 0.0:
-            return
-        GHF_new = self._baseline_ghf * torch.pow(1.0 + dF / self._baseline_olr, 0.25)
+        GHF_new = self._baseline_ghf * torch.pow(
+            1.0 + torch.relu(dF) / self._baseline_olr, 0.25
+        )
         self.thermal.greenhouse_factor = GHF_new.clamp(min=1.0)
