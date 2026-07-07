@@ -273,6 +273,129 @@ The paper's synthesis: four method families, one protocol, one table.
 
 ---
 
+## TRACK E — Making the simulator *better than AmesGCM*
+
+"Better" cannot mean raw 3-D fidelity — the AmesGCM comparison doc is
+explicit that competing on circulation/dust/cloud microphysics is a losing
+game that would sink the project. It **can** mean winning on four
+defensible axes, each with a measurable head-to-head claim. Most of this
+track is post-submission; items marked ⏱ fold into the paper because they
+are already on the critical path.
+
+### E-1. Better against *ground truth* (not GCM-as-truth)
+
+The July benchmark already hints at this: tform matched the GCM's nighttime
+floor to 0.1 K — and nothing says the GCM's 22 K-hotter daytime peak is the
+one reality agrees with. A GCM cannot be gradient-calibrated to lander data;
+we can. The winnable claim: **after calibration, the reduced model beats
+AmesGCM on site-specific surface climatology at ~10⁶× less compute.**
+
+43. ⏱ **Three-way benchmark at Gale crater: tform vs AmesGCM vs REMS
+    observations** (extends Track A task 16): score *both models* against
+    the lander record (diurnal min/max/mean T, seasonal P), not against
+    each other. Publish the table whichever way it comes out.
+44. **ML4 calibration as the weapon** (task 36, promoted here): fit thermal
+    inertia, cap fraction, tide amplitude/phase to VL1 by gradient descent,
+    hold out VL2 and REMS; report calibrated-tform vs AmesGCM residuals at
+    the held-out sites. This is the concrete "better than" result — 4D-Var
+    at a cost no Fortran GCM can match.
+45. **Multi-site, multi-season standing benchmark harness**: generalize
+    `benchmark_tform.py` into `experiments/benchmarks/vs_gcm.py` — matched
+    configs (Ls, pressure, albedo, thermal inertia fed from the GCM's own
+    surface maps), N sites × 4 seasons, metrics fixed in advance (diurnal
+    min/max/mean/ΔT, seasonal P extrema, RMSE), one command, one report.
+    Re-run on every physics change so "better/worse than GCM" is a CI
+    number, not a one-off study.
+46. **Fix the two known benchmark artifacts** so wins are real: local-time
+    diurnal diagnostic on the GCM side (phase comparability) and
+    exact-coordinate column matching (amescap interpolation) — from
+    benchmark.md's caveats section.
+
+### E-2. Better on the accuracy-per-compute Pareto frontier
+
+AmesGCM costs CPU-hours–days per Mars year; tform costs ≪1 s batched. The
+claim to build: **reduced model + learned components approaches GCM/MCD
+fidelity at 10³–10⁶× lower cost — and dominates it below a target accuracy.**
+
+47. **The Pareto figure**: accuracy (RMSE vs MCD/REMS climatology) vs cost
+    (core-seconds per simulated Mars year) with points for {AmesGCM at C24,
+    higher C-number, tform 0-D, tform+closure, tform banded EBM (+closure)}.
+    One figure that makes "better" precise — worth including in any paper.
+48. **ML3 closure trained on Ames GCM output** (upgrade of task 23's
+    baseline): teacher = actual GCM runs (via the existing benchmark
+    pipeline + CAP `MarsPull`), not just tform-ACCURATE — the closure then
+    absorbs *the GCM's own physics* (surface-layer response, the daytime
+    peak) into the fast model. Directly targets the measured 22 K gap.
+49. **ML2 — neural radiative-transfer surrogate distilled from the Ames
+    `Rad/` correlated-k scheme**: train an MLP on their band-model ΔF /
+    heating rates; the reduced model then carries NASA-grade radiation into
+    regimes (thick atmospheres) where the linear forcing model is invalid —
+    and where AmesGCM has never been run.
+50. **B7 banded EBM + ML8 learned meridional transport trained on MCD zonal
+    climatology**: recovers the equator–pole structure (the GCM belt's
+    140–295 K spread the 0-D model can't touch) while staying
+    differentiable; the fidelity rung between 0-D and 3-D that Fortran GCMs
+    skip.
+51. **Reduced dust forcing (B9) fit to GCM dust-storm runs**: dust is the
+    dominant interannual variability driver and our biggest fidelity hole;
+    a differentiable episodic-opacity model calibrated against Ames dust
+    scenarios closes the most-cited gap without importing microphysics.
+52. **Topographic pressure correction**: the benchmark's −50 Pa bias with
+    wrong variability sign traces to missing topography; a per-site
+    hypsometric elevation correction (+ optionally a fitted diurnal-tide
+    term) is cheap, differentiable, and directly fixes a measured loss.
+
+### E-3. Better at things a Fortran GCM structurally cannot do
+
+Not "catching up" — capability gaps that define the moat. Each deserves a
+quantified demonstration, not just an assertion:
+
+53. ⏱ **Inverse design head-to-head**: gradient-optimized intervention
+    schedule (task 33) vs the only option a GCM user has — hand-designed
+    scenarios evaluated forward (the Ansari–Kite workflow). Report design
+    quality at equal compute; this is the thesis in one figure.
+54. **One-call sensitivity analysis (E5/A8)**: `jacrev` tornado plot of
+    d(outcome)/d(every physical constant) from a single rollout vs the
+    finite-difference campaign (2×N full GCM runs) it replaces — quantify
+    the speedup.
+55. **Ensemble/UQ throughput**: 10⁴ perturbed-parameter century rollouts on
+    one GPU (D1/D2) vs a GCM ensemble of the same size on an HPC
+    allocation; posterior-based robust design (ML7) as the capstone no
+    forward-only model can offer.
+56. **Millennial horizons (D4 secular mode)**: escape, shield value,
+    obliquity stability (B8) at 10³–10⁶ years — a regime priced entirely
+    out of GCM budgets.
+57. **Interactive latency**: sub-second full-year rollouts enable the UI /
+    what-if exploration loop; a GCM's batch-queue turnaround cannot. Add a
+    wall-clock-to-first-result row to the D2 benchmark.
+
+### E-4. Better as a *usable artifact* (tooling parity, then advantage)
+
+The comparison doc's honest finding: analysis tooling is the one place
+AmesGCM is unambiguously ahead. Reach parity by adoption, then win on
+ergonomics:
+
+58. **Adopt CAP conventions**: `MarsCalendar` Ls/sol/MY conversions (~half
+    a day, kills off-by-a-season bugs) + CAP's derived-variable names,
+    units, and formulas in a new `analysis/` module — our plots become
+    legible to every Mars scientist who reads AmesGCM output.
+59. **`to_netcdf()` exporter** so CAP's own MarsPlot renders tform
+    trajectories beside AmesGCM output in the same framework — the
+    cheapest possible "compare us yourself" credibility move.
+60. **Mirror their conservation-testing practice** (`testconserv` → F2,
+    task 18) and cite it; then exceed it: our budgets are *differentiable*
+    and double as training losses — theirs can only assert.
+61. **Beat their install/run ergonomics**: `pip install` + a 10-line
+    optimize-a-schedule example (task 40) vs a Fortran/MPI HPC build; make
+    the contrast explicit in the README. Config-driven reproducibility
+    (F3) matches their namelist philosophy with modern tooling.
+62. **Publish the standing GCM benchmark (task 45) as part of the repo**,
+    with fixtures and expected outputs — no other reduced-order Mars model
+    ships an automated head-to-head against a NASA GCM; that alone is a
+    differentiator.
+
+---
+
 ## Parked (post-submission backlog)
 
 - **Mars Atmospheric Foundation Model track** (arXiv:2605.28851): author
