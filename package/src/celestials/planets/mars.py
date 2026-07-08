@@ -93,6 +93,15 @@ class Mars(Planet):
         Species → partial pressure (Pa).  Default is current Mars atmosphere.
     ice_mass : float, optional
         Initial polar + permafrost ice mass (kg).  Default 5 × 10¹⁵ kg.
+    smooth_gates : bool, optional
+        If True, replace the hard ice-exhaustion gate (sublimation snaps to
+        zero when a cap empties) with a smooth tanh fade so gradients
+        stay nonzero through cap depletion.  Default False — the hard gate
+        keeps existing runs bit-identical.
+    ice_ref_kg : float, optional
+        Reference ice mass (kg) setting the width of the smooth gate:
+        gate = tanh(M_ice / ice_ref_kg).  Only used when ``smooth_gates=True``.
+        Default 10¹² kg.
     device : str or torch.device, optional
         PyTorch device for all state tensors.  Default ``'cpu'``.
         Pass ``'cuda'`` (or ``'cuda:0'``) to run on GPU.
@@ -111,8 +120,14 @@ class Mars(Planet):
         longitude: float = 0.0,
         elevation_m: float = 0.0,
         initial_ls_deg: float = 251.0,
+        smooth_gates: bool = False,
+        ice_ref_kg: float = 1.0e12,
         device: str | torch.device | None = None,
     ) -> None:
+        if ice_ref_kg <= 0.0:
+            raise ValueError(f"ice_ref_kg must be positive, got {ice_ref_kg}")
+        self._smooth_gates = bool(smooth_gates)
+        self._init_ice_ref = float(ice_ref_kg)
         # Store device first — setup_properties() reads it.
         # Default: CUDA if available, otherwise CPU.
         if device is None:
@@ -225,6 +240,49 @@ class Mars(Planet):
         self._TIDE_PA     = MARS_THERMAL_TIDE_PA.to(d)
         self._TIDE_PHASE  = MARS_THERMAL_TIDE_PHASE.to(d)
         self._DIURNAL_AMP = MARS_DIURNAL_SWING_AMP.to(d)
+        self._ICE_REF     = torch.tensor(self._init_ice_ref, dtype=TF_DTYPE, device=d)
+
+    # ==================================================================
+    # PHYSICS: shared gates
+    # ==================================================================
+    def _gate_sublimation(self, dM: torch.Tensor, ice: torch.Tensor) -> torch.Tensor:
+        """Stop the sublimation flux (dM < 0) of an exhausted polar cap.
+
+        Hard mode (default): dM snaps to zero when the cap is empty.
+        Correct physics, but its gradient w.r.t. everything is zero once a
+        cap empties — the CO₂-collapse / cap-depletion regime is invisible
+        to gradient-based optimisation.
+
+            gate:  dM ← 0        where  M_ice ≤ 0  and  dM < 0
+
+        Smooth mode (``smooth_gates=True``): the sublimating branch is
+        multiplied by tanh(M_ice / ice_ref).  While M_ice ≫ ice_ref the gate
+        saturates to exactly 1.0 in float64, so the physics is unchanged;
+        as M_ice → 0 the flux fades continuously to exactly 0 instead of
+        snapping off, while d(flux)/d(M_ice) = dM / ice_ref stays nonzero at
+        the empty cap — the optimizer can see through cap exhaustion.
+
+            gate:  dM ← dM · tanh(M_ice / ice_ref)    where  dM < 0
+
+        tanh is used rather than the sigmoid of the original spec because
+        σ(0) = ½ would keep sublimating mass out of an *empty* cap forever
+        (a mass-conservation leak); tanh(0) = 0 removes the leak and matches
+        the hard gate exactly at both extremes.  Both integration paths
+        clamp ice ≥ 0, so the gate argument is never negative.
+
+        Condensation (dM > 0) is never gated in either mode.
+        """
+        if self._smooth_gates:
+            return torch.where(
+                dM < 0.0,
+                dM * torch.tanh(ice / self._ICE_REF),
+                dM,
+            )
+        return torch.where(
+            (ice <= 0.0) & (dM < 0.0),
+            torch.zeros_like(dM),
+            dM,
+        )
 
     # ==================================================================
     # PHYSICS: Coupled ODE derivatives  (used by engine's RK4 integrator)
@@ -302,19 +360,9 @@ class Mars(Planet):
         net_sub_N = (Q_in_N - self._Q_out_pole) * A_cap / self._LAT_HEAT
         net_sub_S = (Q_in_S - self._Q_out_pole) * A_cap / self._LAT_HEAT
 
-        dMice_N = -net_sub_N
-        dMice_S = -net_sub_S
         # Gate sublimation (dMice < 0) when that pole's ice is exhausted.
-        dMice_N = torch.where(
-            (s.water.ice_mass_north <= 0.0) & (dMice_N < 0.0),
-            torch.zeros_like(dMice_N),
-            dMice_N,
-        )
-        dMice_S = torch.where(
-            (s.water.ice_mass_south <= 0.0) & (dMice_S < 0.0),
-            torch.zeros_like(dMice_S),
-            dMice_S,
-        )
+        dMice_N = self._gate_sublimation(-net_sub_N, s.water.ice_mass_north)
+        dMice_S = self._gate_sublimation(-net_sub_S, s.water.ice_mass_south)
         dMice_dt = dMice_N + dMice_S
 
         # ==================================================================
@@ -400,18 +448,12 @@ class Mars(Planet):
         net_sub_N = (Q_N - self._Q_out_pole) * A_cap / self._LAT_HEAT
         net_sub_S = (Q_S - self._Q_out_pole) * A_cap / self._LAT_HEAT
 
-        dMice_N = torch.where(
-            (s.water.ice_mass_north <= 0.0) & (-net_sub_N * dt < 0.0),
-            torch.zeros_like(net_sub_N),
-            -net_sub_N * dt,
-        )
-        dMice_S = torch.where(
-            (s.water.ice_mass_south <= 0.0) & (-net_sub_S * dt < 0.0),
-            torch.zeros_like(net_sub_S),
-            -net_sub_S * dt,
-        )
+        dMice_N = self._gate_sublimation(-net_sub_N * dt, s.water.ice_mass_north)
+        dMice_S = self._gate_sublimation(-net_sub_S * dt, s.water.ice_mass_south)
         dMice = dMice_N + dMice_S
 
+        # clamp(min=0) has zero gradient at the floor — acceptable: the smooth
+        # gate fades the flux before the floor is reached (audit item D2).
         s.water.ice_mass_north = (s.water.ice_mass_north + dMice_N).clamp(min=0.0)
         s.water.ice_mass_south = (s.water.ice_mass_south + dMice_S).clamp(min=0.0)
         s.water.ice_mass       = s.water.ice_mass_north + s.water.ice_mass_south
