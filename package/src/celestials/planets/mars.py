@@ -161,6 +161,15 @@ class Mars(Planet):
         else:
             self._init_composition = {k: v.to(d) for k, v in MARS_DEFAULT_COMPOSITION.items()}
 
+        # Composition is the single source of truth for what the atmosphere
+        # contains: rescale the partial pressures so they sum exactly to the
+        # (elevation-corrected) total surface pressure.
+        comp_total = sum(self._init_composition.values())
+        self._init_composition = {
+            k: v * (self._init_pressure / comp_total)
+            for k, v in self._init_composition.items()
+        }
+
         self.setup_properties()
 
     # ------------------------------------------------------------------
@@ -180,9 +189,14 @@ class Mars(Planet):
             _f_north = 0.4 * (_ls_deg - 180.0) / 180.0
         _f_south = 1.0 - _f_north
 
+        # Atmospheric mass follows hydrostatically from the surface pressure:
+        # M_atm = P · 4πR² / g  (the old hardcoded 2.5e16 kg was ~6 % high).
+        _A_planet = 4.0 * math.pi * self.intrinsic_params.radius ** 2
         self.atmosphere = Atmosphere(
             surface_pressure=self._init_pressure.clone(),
-            atmospheric_mass=torch.tensor(2.5e16, dtype=TF_DTYPE, device=d),
+            atmospheric_mass=(
+                self._init_pressure * _A_planet / self.intrinsic_params.gravity
+            ),
             composition=dict(self._init_composition),
         )
         self.thermal = Thermal(
@@ -322,11 +336,14 @@ class Mars(Planet):
         # ==================================================================
         # CO₂ Jeans (thermal) escape is negligible for Mars (λ≈299).
         # Non-thermal loss parameterised by MAVEN data (Jakosky et al. 2018).
+        # P is the global-mean (mass-budget) pressure: every term is an
+        # explicit mass flux, so atmosphere + caps + escape·t is conserved.
+        # The local thermal tide is a diagnostic overlay
+        # (observed_surface_pressure), not a mass source.
         A_planet = 4.0 * math.pi * self.intrinsic_params.radius ** 2
         dP_dt = (
             -self._ESCAPE_RATE * self.intrinsic_params.gravity / A_planet
             + (-dMice_dt * self.intrinsic_params.gravity / A_planet)
-            - self._TIDE_PA * omega * torch.sin(omega * s.elapsed_time + self._TIDE_PHASE)
         )
 
         return torch.stack([dT_dt, dP_dt, dMice_dt])
@@ -417,17 +434,65 @@ class Mars(Planet):
         s.water.ice_mass       = s.water.ice_mass_north + s.water.ice_mass_south
 
         # --- Step 4: Pressure (non-thermal escape + ice mass exchange) ---
+        # Global-mean mass-budget pressure only — the local thermal tide is
+        # applied as a diagnostic overlay in observed_surface_pressure().
         A_planet = 4.0 * math.pi * self.intrinsic_params.radius ** 2
-        dP_tide  = (
-            -self._TIDE_PA * omega
-            * torch.sin(omega * s.elapsed_time + self._TIDE_PHASE) * dt
-        )
         s.atmosphere.surface_pressure = (
             s.atmosphere.surface_pressure
             - self._ESCAPE_RATE * self.intrinsic_params.gravity / A_planet * dt
             - dMice * self.intrinsic_params.gravity / A_planet
-            + dP_tide
         ).clamp(min=0.0)
+        self._sync_composition_co2()
+
+    # ==================================================================
+    # PRESSURE BOOKKEEPING — composition is the single source of truth
+    # ==================================================================
+
+    def _sync_composition_co2(self) -> None:
+        """Keep ``composition["CO2"]`` consistent with the evolving total.
+
+        All bulk pressure change (polar-cap exchange, atmospheric escape) is
+        CO₂ — the other species neither condense nor escape at these rates —
+        so the CO₂ partial pressure is the total minus the inert partials:
+
+            P_CO2 = P_total − Σ P_i (i ≠ CO2)
+
+        The floor at 0 covers deep-collapse states where the total approaches
+        the inert background; it is unreachable in current-Mars regimes.
+        """
+        others = sum(
+            v for k, v in self.atmosphere.composition.items() if k != "CO2"
+        )
+        self.atmosphere.composition["CO2"] = (
+            self.atmosphere.surface_pressure - others
+        ).clamp(min=0.0)
+
+    def unpack_state(self, y: torch.Tensor) -> None:
+        """Unpack [T, P, M_ice] and re-sync composition to the new pressure."""
+        super().unpack_state(y)
+        self._sync_composition_co2()
+
+    def observed_surface_pressure(self) -> torch.Tensor:
+        """Local (observed) surface pressure: mass-budget mean + thermal tide.
+
+        The diurnal thermal tide redistributes mass around the planet; it is
+        a *local* pressure oscillation, not a global source or sink, so it is
+        excluded from the prognostic (mass-budget) ``surface_pressure`` and
+        applied here as a closed-form overlay:
+
+            P_obs(t) = P_mean(t) + A_tide · [cos(ωt + φ) − cos(φ)]
+
+        This is exactly the time integral of the tide term the integrators
+        used to accumulate (−A_tide·ω·sin(ωt + φ)), so observed pressure is
+        analytically identical to the old trajectory — now exact instead of
+        discretised, and the mass budget closes without it.
+        """
+        omega = 2.0 * math.pi / self.intrinsic_params.rotation_period
+        tide = self._TIDE_PA * (
+            torch.cos(omega * self.elapsed_time + self._TIDE_PHASE)
+            - torch.cos(self._TIDE_PHASE)
+        )
+        return self.atmosphere.surface_pressure + tide
 
     # ==================================================================
     # GHG INTERVENTION — state lives in atmosphere.composition
@@ -455,6 +520,7 @@ class Mars(Planet):
             self._init_ghg()
         g = self.intrinsic_params.gravity
         A = 4.0 * math.pi * self.intrinsic_params.radius ** 2
+        dP_total = torch.zeros((), dtype=TF_DTYPE, device=self._device)
         for name, kg in schedule.items():
             dP = torch.tensor(
                 float(kg) * float(g.item()) / float(A.item()),
@@ -464,6 +530,10 @@ class Mars(Planet):
                 self.atmosphere.composition[name] = self.atmosphere.composition[name] + dP
             else:
                 self.atmosphere.composition[name] = dP
+            dP_total = dP_total + dP
+        # Injected mass raises the total pressure — the mass budget must see
+        # what the forcing sees.
+        self.atmosphere.surface_pressure = self.atmosphere.surface_pressure + dP_total
         self._recompute_greenhouse_factor()
 
     def decay_ghg(self, dt_years: float) -> None:
@@ -473,13 +543,18 @@ class Mars(Planet):
         are decayed. Background gases (CO₂, N₂, Ar) are unaffected.
         """
         from src.interventions.compounds import COMPOUNDS, get_compound
+        dP_lost = torch.zeros((), dtype=TF_DTYPE, device=self._device)
         for name in list(self.atmosphere.composition.keys()):
             if name in COMPOUNDS:
                 tau = get_compound(name).atmospheric_lifetime_yr
                 decay_factor = math.exp(-dt_years / tau)
-                self.atmosphere.composition[name] = (
-                    self.atmosphere.composition[name] * decay_factor
-                )
+                before = self.atmosphere.composition[name]
+                self.atmosphere.composition[name] = before * decay_factor
+                dP_lost = dP_lost + before * (1.0 - decay_factor)
+        # Decayed mass leaves the atmosphere — remove it from the total too.
+        self.atmosphere.surface_pressure = (
+            self.atmosphere.surface_pressure - dP_lost
+        ).clamp(min=0.0)
         self._recompute_greenhouse_factor()
 
     @property
