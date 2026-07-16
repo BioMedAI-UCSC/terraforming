@@ -10,6 +10,8 @@ import click
 
 COMPARISON_FIELDS = [
     "runtime_seconds",
+    "step_count",
+    "runtime_per_step_seconds",
     "temperature_trend_k_per_sol",
     "pressure_trend_pa_per_sol",
     "ice_trend_kg_per_sol",

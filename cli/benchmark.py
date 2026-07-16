@@ -76,6 +76,7 @@ def run_benchmarks(
 
             history = results[0].history
             final_state = history[-1]
+            step_count = len(history)
 
             temperature_daily = _extract_daily_series(
                 history,
@@ -97,8 +98,13 @@ def run_benchmarks(
 
 
             summary = {
+        
                 "sols": sols,
                 "runtime_seconds": runtime_seconds,
+                "step_count": step_count,
+                "runtime_per_step_seconds": (
+                    runtime_seconds / step_count if step_count else None
+                ),
                 "status": "success",
 
                 "temperature_k": _history_value(
@@ -162,6 +168,9 @@ def run_benchmarks(
                 "ice_tail_std_kg": None,
                 "ice_trend_kg_per_sol": None,
                 "ice_daily_samples": None,
+
+                "step_count": None,
+                "runtime_per_step_seconds": None,
 
                 "output_directory": str(run_dir),
                 "error": str(exc),
@@ -319,6 +328,8 @@ def _save_summary_csv(
     columns = [
         "sols",
         "runtime_seconds",
+        "step_count",
+        "runtime_per_step_seconds",
         "status",
 
         "temperature_k",
