@@ -180,6 +180,10 @@ def run_benchmarks(
     )
     _save_summary_csv(session_dir, summaries)
 
+    from cli.benchmark_compare import compare_with_previous
+
+    compare_with_previous(session_dir)
+
     click.echo(f"  Benchmark complete: {session_dir}")
     click.echo()
 
@@ -351,6 +355,34 @@ def _save_summary_csv(
             writer.writerow(
                 {column: summary.get(column) for column in columns}
             )
+
+
+def _find_previous_session(
+    benchmarks_dir: Path,
+    current_session_id: str,
+) -> Path | None:
+    """Find the newest completed benchmark session before the current one."""
+
+    candidates = []
+
+    for path in benchmarks_dir.iterdir():
+        if not path.is_dir():
+            continue
+
+        if path.name == current_session_id:
+            continue
+
+        # Only compare against completed sessions.
+        if not (path / "summary.csv").exists():
+            continue
+
+        candidates.append(path)
+
+    if not candidates:
+        return None
+
+    return max(candidates, key=lambda path: path.name)
+
 
 
 def _save_session_metadata(
