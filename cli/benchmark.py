@@ -428,6 +428,21 @@ def _save_session_metadata(
         json.dump(metadata, file, indent=2)
 
 ##make benchmark report 
+def _load_comparison_rows(
+    comparison_path: Path,
+) -> list[dict[str, str]]:
+    """Load benchmark comparison rows from comparison.csv."""
+
+    if not comparison_path.exists():
+        return []
+
+    with comparison_path.open(
+        "r",
+        newline="",
+        encoding="utf-8",
+    ) as file:
+        return list(csv.DictReader(file))
+
 
 def _save_benchmark_report(
     session_dir: Path,
@@ -506,6 +521,7 @@ def _save_benchmark_report(
         )
 
     comparison_path = session_dir / "comparison.csv"
+    comparison_rows = _load_comparison_rows(comparison_path)
 
     lines.extend(
         [
@@ -515,9 +531,42 @@ def _save_benchmark_report(
         ]
     )
 
-    if comparison_path.exists():
+    if comparison_rows:
+        for row in comparison_rows:
+            metric = row.get("metric", "")
+            percent_change = _to_float(row.get("percent_change"))
+            difference = _to_float(row.get("difference"))
+
+            if percent_change is None or difference is None:
+                continue
+
+            readable_metric = metric.replace("_", " ")
+
+            if difference == 0:
+                assessment = "was unchanged"
+            elif metric in {
+                "runtime_seconds",
+                "runtime_per_step_seconds",
+            }:
+                if abs(percent_change) < 10:
+                    assessment = "was roughly unchanged"
+                elif difference < 0:
+                    assessment = f"was faster by {abs(percent_change):.2f}%"
+                else:
+                    assessment = f"was slower by {abs(percent_change):.2f}%"
+            else:
+                direction = "increased" if difference > 0 else "decreased"
+                assessment = (
+                    f"{direction} by {abs(percent_change):.2f}%"
+                )
+
+            lines.append(
+                f"- **{readable_metric.title()}** {assessment}."
+            )
+
+        lines.append("")
         lines.append(
-            "Comparison data is available in "
+            "Full comparison data is available in "
             "[`comparison.csv`](comparison.csv)."
         )
     else:
