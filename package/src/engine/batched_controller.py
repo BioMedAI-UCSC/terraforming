@@ -34,6 +34,7 @@ GPU utilisation notes
 from __future__ import annotations
 
 import math
+from dataclasses import dataclass
 from typing import List, Optional
 
 import torch
@@ -45,6 +46,39 @@ from src.engine.time_controller import Accuracy, Snapshot
 # (engine/__init__.py loads celestials which loads mars which loads engine).
 
 _TWO_PI = 2.0 * math.pi
+
+
+@dataclass
+class BatchedHistory:
+    """Run history as stacked tensors: time is [n_steps], fields are [n_steps, B]."""
+    time: torch.Tensor
+    surface_temperature: torch.Tensor
+    surface_pressure: torch.Tensor
+    ice_mass: torch.Tensor
+    solar_flux: torch.Tensor
+    orbital_angle: torch.Tensor
+
+    @property
+    def B(self) -> int:
+        return self.surface_temperature.shape[1]
+
+    def to_lists(self) -> List[List[Snapshot]]:
+        t = self.time.cpu()
+        T = self.surface_temperature.cpu()
+        P = self.surface_pressure.cpu()
+        M = self.ice_mass.cpu()
+        F = self.solar_flux.cpu()
+        A = self.orbital_angle.cpu()
+        n = t.shape[0]
+        return [
+            [Snapshot(time=t[s], surface_temperature=T[s, i],
+                      surface_pressure=P[s, i], ice_mass=M[s, i],
+                      solar_flux=F[s, i], orbital_angle=A[s, i])
+             for s in range(n)]
+            for i in range(self.B)
+        ]
+
+    
 
 
 # ---------------------------------------------------------------------------
@@ -300,11 +334,9 @@ class BatchedTimeController:
             raise ValueError("dt must be > 0")
         self.dt = torch.tensor(_dt_f, dtype=TF_DTYPE, device=self._device)
 
-        if compile:
-            self.bmars.compute_derivatives  = torch.compile(
-                self.bmars.compute_derivatives,  fullgraph=False)
-            self.bmars.compute_fast_physics = torch.compile(
-                self.bmars.compute_fast_physics, fullgraph=False)
+        # All compilation happens at chunk level in _run_chunked —
+        # per-method wrapping would nest torch.compile and break the graph.
+        self._compile = bool(compile)
 
     # ------------------------------------------------------------------
     # Integration strategies
@@ -329,48 +361,113 @@ class BatchedTimeController:
     # ------------------------------------------------------------------
     # Simulation loop
     # ------------------------------------------------------------------
-    def run(self, duration: float) -> List[List[Snapshot]]:
+    def run(self, duration: float) -> BatchedHistory:
         """Run all B simulations for *duration* seconds.
 
         Returns
         -------
-        list[list[Snapshot]]
-            Outer list: one per batch element (length B).
-            Inner list: one Snapshot per timestep.
+        BatchedHistory
+            ``time`` is ``[n_steps]``; every other field is ``[n_steps, B]``.
+            Call ``.to_lists()`` for the legacy ``list[list[Snapshot]]``
+            format (only sensible for small B).
         """
         dur_f     = float(duration)
         dt_f      = float(self.dt.item())
         n_steps   = int(dur_f / dt_f)
         remainder = dur_f - n_steps * dt_f
+        if self._compile and self._device.type == 'cuda':
+            return self._run_chunked(n_steps, remainder)
 
         elapsed = torch.zeros((), dtype=TF_DTYPE, device=self._device)
-
-        # Pre-allocate B empty history lists
-        histories: List[List[Snapshot]] = [[] for _ in range(self.bmars._B)]
+        bm = self.bmars
+        hist_time:  List[torch.Tensor] = []
+        hist_T:     List[torch.Tensor] = []
+        hist_P:     List[torch.Tensor] = []
+        hist_M:     List[torch.Tensor] = []
+        hist_flux:  List[torch.Tensor] = []
+        hist_angle: List[torch.Tensor] = []
 
         for _ in range(n_steps):
             self._evolve(self.dt)
             elapsed = elapsed + self.dt
-            self._record(histories, elapsed)
+            hist_time.append(elapsed)
+            hist_T.append(bm._T)
+            hist_P.append(bm._P)
+            hist_M.append(bm._M)
+            hist_flux.append(bm.solar_flux)
+            hist_angle.append(bm.orbital_angle)
 
         if remainder > 1e-9:
             step = torch.tensor(remainder, dtype=TF_DTYPE, device=self._device)
             self._evolve(step)
             elapsed = elapsed + step
-            self._record(histories, elapsed)
+            hist_time.append(elapsed)
+            hist_T.append(bm._T)
+            hist_P.append(bm._P)
+            hist_M.append(bm._M)
+            hist_flux.append(bm.solar_flux)
+            hist_angle.append(bm.orbital_angle)
 
-        return histories
 
-    def _record(self, histories: List[List[Snapshot]], elapsed: torch.Tensor) -> None:
-        """Append one Snapshot per batch element (0-dim CUDA tensor, no sync)."""
-        bm = self.bmars
-        B  = bm._B
-        for i in range(B):
-            histories[i].append(Snapshot(
-                time=elapsed.clone(),
-                surface_temperature=bm._T[i].clone(),
-                surface_pressure=bm._P[i].clone(),
-                ice_mass=bm._M[i].clone(),
-                solar_flux=bm.solar_flux[i].clone(),
-                orbital_angle=bm.orbital_angle[i].clone(),
-            ))
+        return BatchedHistory(
+            time=torch.stack(hist_time),
+            surface_temperature=torch.stack(hist_T),
+            surface_pressure=torch.stack(hist_P),
+            ice_mass=torch.stack(hist_M),
+            solar_flux=torch.stack(hist_flux),
+            orbital_angle=torch.stack(hist_angle),
+        )
+
+    def _run_chunked(self, n_steps: int, remainder: float,
+                     chunk: int = 64) -> BatchedHistory:
+        """Compiled chunk loop (CUDA path) — works for FAST and ACCURATE.
+
+        One compiled call advances all B sims by *chunk* steps using
+        whatever strategy ``self._evolve`` selects (fast physics or RK4).
+        Results are written into a pre-allocated ``[n_total, 6, B]`` buffer
+        so peak memory is one history copy.
+        """
+        bm, dt = self.bmars, self.dt
+        n_total = n_steps + (1 if remainder > 1e-9 else 0)
+        out = torch.empty((n_total, 6, bm._B), dtype=TF_DTYPE,
+                          device=self._device)
+
+        def step_chunk():
+            rows = []
+            for _ in range(chunk):
+                self._evolve(dt)             # orbit + (fast physics OR RK4)
+                rows.append(torch.stack([
+                    bm.elapsed_time, bm._T, bm._P, bm._M,
+                    bm.solar_flux, bm.orbital_angle,
+                ]))                           # [6, B]
+            return torch.stack(rows)          # [chunk, 6, B]
+        step_fn = torch.compile(step_chunk, fullgraph=True)
+
+        i = 0
+        for _ in range(n_steps // chunk):
+            out[i:i + chunk] = step_fn()
+            i += chunk
+
+        def eager_row(step_dt):
+            self._evolve(step_dt)
+            return torch.stack([
+                bm.elapsed_time, bm._T, bm._P, bm._M,
+                bm.solar_flux, bm.orbital_angle,
+            ])
+
+        for _ in range(n_steps % chunk):
+            out[i] = eager_row(dt)
+            i += 1
+        if remainder > 1e-9:
+            step = torch.tensor(remainder, dtype=TF_DTYPE,
+                                device=self._device)
+            out[i] = eager_row(step)
+
+        return BatchedHistory(
+            time=out[:, 0, 0],
+            surface_temperature=out[:, 1],
+            surface_pressure=out[:, 2],
+            ice_mass=out[:, 3],
+            solar_flux=out[:, 4],
+            orbital_angle=out[:, 5],
+        )

@@ -299,7 +299,7 @@ def run_multi(cfg: SimConfig) -> list[RunResult]:
         accuracy=_src_accuracy(cfg.engine.accuracy),
         compile=(mars_list[0]._device.type == 'cuda'),  # fuse kernels on GPU
     )
-    all_histories = btc.run(duration=duration)
+    all_histories = btc.run(duration=duration).to_lists().to_lists()
 
     results: list[RunResult] = []
     for pt, history in zip(MULTI_POINTS, all_histories):
@@ -343,7 +343,7 @@ def run_spots(cfg: SimConfig) -> list[RunResult]:
         accuracy=_src_accuracy(cfg.engine.accuracy),
         compile=(mars_list[0]._device.type == 'cuda'),
     )
-    all_histories = btc.run(duration=duration)
+    all_histories = btc.run(duration=duration).to_lists().to_list()
 
     results: list[RunResult] = []
     for sp, history in zip(LANDMARK_SPOTS, all_histories):
