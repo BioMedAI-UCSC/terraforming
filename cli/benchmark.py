@@ -193,8 +193,15 @@ def run_benchmarks(
 
     compare_with_previous(session_dir)
 
+    report_path = _save_benchmark_report(
+        session_dir=session_dir,
+        session_id=session_id,
+        accuracy=accuracy,
+        summaries=summaries,
+    )
+
+    click.echo(f"  Report saved: {report_path}")
     click.echo(f"  Benchmark complete: {session_dir}")
-    click.echo()
 
     return session_dir
 
@@ -419,3 +426,147 @@ def _save_session_metadata(
         encoding="utf-8",
     ) as file:
         json.dump(metadata, file, indent=2)
+
+##make benchmark report 
+
+def _save_benchmark_report(
+    session_dir: Path,
+    session_id: str,
+    accuracy: Accuracy,
+    summaries: list[dict[str, object]],
+) -> Path:
+    """Create a readable Markdown summary of a benchmark session."""
+
+    lines = [
+        "# Terraforming Benchmark Report",
+        "",
+        "## Session Information",
+        "",
+        f"- **Session ID:** `{session_id}`",
+        f"- **Accuracy mode:** `{accuracy.value}`",
+        f"- **Runs completed:** {len(summaries)}",
+        "",
+        "## Results",
+        "",
+        "| Sols | Status | Runtime (s) | Steps | Runtime / Step (s) |",
+        "|---:|:---|---:|---:|---:|",
+    ]
+
+    for summary in summaries:
+        sols = summary.get("sols")
+        status = summary.get("status")
+        runtime = _format_report_value(
+            summary.get("runtime_seconds"),
+            precision=6,
+        )
+        steps = _format_report_value(
+            summary.get("step_count"),
+            precision=0,
+        )
+        runtime_per_step = _format_report_value(
+            summary.get("runtime_per_step_seconds"),
+            precision=8,
+        )
+
+        lines.append(
+            f"| {sols} | {status} | {runtime} | "
+            f"{steps} | {runtime_per_step} |"
+        )
+
+    lines.extend(
+        [
+            "",
+            "## Numerical Stability",
+            "",
+            "| Sols | Temperature Trend (K/sol) | "
+            "Pressure Trend (Pa/sol) | Ice Trend (kg/sol) |",
+            "|---:|---:|---:|---:|",
+        ]
+    )
+
+    for summary in summaries:
+        sols = summary.get("sols")
+        temperature_trend = _format_report_value(
+            summary.get("temperature_trend_k_per_sol"),
+            precision=6,
+        )
+        pressure_trend = _format_report_value(
+            summary.get("pressure_trend_pa_per_sol"),
+            precision=6,
+        )
+        ice_trend = _format_report_value(
+            summary.get("ice_trend_kg_per_sol"),
+            precision=6,
+            scientific=True,
+        )
+
+        lines.append(
+            f"| {sols} | {temperature_trend} | "
+            f"{pressure_trend} | {ice_trend} |"
+        )
+
+    comparison_path = session_dir / "comparison.csv"
+
+    lines.extend(
+        [
+            "",
+            "## Session Comparison",
+            "",
+        ]
+    )
+
+    if comparison_path.exists():
+        lines.append(
+            "Comparison data is available in "
+            "[`comparison.csv`](comparison.csv)."
+        )
+    else:
+        lines.append(
+            "No previous compatible benchmark session was available "
+            "for comparison."
+        )
+
+    lines.extend(
+        [
+            "",
+            "## Generated Artifacts",
+            "",
+            "- [`summary.csv`](summary.csv)",
+            "- [`metadata.json`](metadata.json)",
+        ]
+    )
+
+    if comparison_path.exists():
+        lines.append("- [`comparison.csv`](comparison.csv)")
+
+    report_path = session_dir / "benchmark_report.md"
+    report_path.write_text(
+        "\n".join(lines) + "\n",
+        encoding="utf-8",
+    )
+
+    return report_path
+
+
+def _format_report_value(
+    value: object,
+    precision: int = 3,
+    scientific: bool = False,
+) -> str:
+    """Format a benchmark value for the Markdown report."""
+
+    if value is None:
+        return "N/A"
+
+    try:
+        numeric_value = float(value)
+    except (TypeError, ValueError):
+        return str(value)
+
+    if scientific:
+        return f"{numeric_value:.{precision}e}"
+
+    if precision == 0:
+        return f"{numeric_value:.0f}"
+
+    return f"{numeric_value:.{precision}f}"
