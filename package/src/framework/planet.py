@@ -150,6 +150,16 @@ class Planet(ABC):
         self.water.ice_mass_south = (new_total * f_s).clamp(min=0.0)
         self.water.ice_mass       = new_total
 
+    def observed_surface_pressure(self) -> torch.Tensor:
+        """Local (observed) surface pressure.
+
+        Base planets have no local pressure phenomena, so this is the
+        prognostic (mass-budget) pressure unchanged.  Subclasses may add
+        diagnostic overlays (e.g. Mars's thermal tide) that redistribute
+        mass locally without creating or destroying it globally.
+        """
+        return self.atmosphere.surface_pressure
+
     # ------------------------------------------------------------------
     # Shared helpers available to every planet
     # ------------------------------------------------------------------

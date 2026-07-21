@@ -198,11 +198,12 @@ class BatchedMars:
         dMice_dt = dM_N + dM_S                                       # [B]
 
         # ----- dP/dt -----
+        # Mass-budget pressure only; the thermal tide is a diagnostic overlay
+        # (observed_surface_pressure), mirroring Mars.compute_derivatives.
         A_planet = 4.0 * math.pi * self._radius ** 2                 # scalar
         dP_dt = (
             -self._ESCAPE_RATE * self._gravity / A_planet
             - dMice_dt * self._gravity / A_planet
-            - self._TIDE_PA * omega * torch.sin(omega * self.elapsed_time + self._TIDE_PHASE)
         )                                                             # [B]
 
         return torch.stack([dT_dt, dP_dt, dMice_dt], dim=1)          # [B, 3]
@@ -253,16 +254,24 @@ class BatchedMars:
         self._M_S = (self._M_S + dM_S).clamp(min=0.0)
         self._M   = self._M_N + self._M_S
 
-        # Pressure
+        # Pressure — mass-budget mean only; tide is a diagnostic overlay
+        # (observed_surface_pressure), mirroring Mars.compute_fast_physics.
         A_planet = 4.0 * math.pi * self._radius ** 2
-        dP_tide  = (-self._TIDE_PA * omega
-                    * torch.sin(omega * self.elapsed_time + self._TIDE_PHASE) * dt)
         self._P  = (
             self._P
             - self._ESCAPE_RATE * self._gravity / A_planet * dt
             - dMice * self._gravity / A_planet
-            + dP_tide
         ).clamp(min=0.0)
+
+    def observed_surface_pressure(self) -> torch.Tensor:
+        """Batched local pressure: mass-budget mean + thermal-tide overlay
+        (same closed form as Mars.observed_surface_pressure)."""
+        omega = _TWO_PI / self._rot_period
+        tide = self._TIDE_PA * (
+            torch.cos(omega * self.elapsed_time + self._TIDE_PHASE)
+            - torch.cos(self._TIDE_PHASE)
+        )
+        return self._P + tide
 
 
 # ---------------------------------------------------------------------------
@@ -365,11 +374,12 @@ class BatchedTimeController:
         """Append one Snapshot per batch element (0-dim CUDA tensor, no sync)."""
         bm = self.bmars
         B  = bm._B
+        P_obs = bm.observed_surface_pressure()
         for i in range(B):
             histories[i].append(Snapshot(
                 time=elapsed.clone(),
                 surface_temperature=bm._T[i].clone(),
-                surface_pressure=bm._P[i].clone(),
+                surface_pressure=P_obs[i].clone(),
                 ice_mass=bm._M[i].clone(),
                 solar_flux=bm.solar_flux[i].clone(),
                 orbital_angle=bm.orbital_angle[i].clone(),
