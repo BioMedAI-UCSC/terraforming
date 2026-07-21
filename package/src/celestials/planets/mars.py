@@ -75,6 +75,31 @@ MARS_DEFAULT_COMPOSITION: Dict[str, torch.Tensor] = {
     "CO":  torch.tensor(0.4,   dtype=TF_DTYPE),
 }
 
+# ---------------------------------------------------------------------------
+# Mars body spec for the 3-D GCM core (src.gcm3d)
+# ---------------------------------------------------------------------------
+# The generic 3-D core (gcm3d, built on the NeuralGCM dinosaur dycore) is
+# planet-agnostic: it consumes a BodyConstants. Mars supplies its instance here,
+# derived from the MARS_* constants above so there is a single source of truth.
+# BodyConstants is pure Python (no JAX), so this import is safe on the torch side
+# and does not pull the optional 'gcm3d' extra.
+#
+# CO2-atmosphere thermodynamics (R_specific = R_universal / M_CO2; cp typical for
+# the thin Mars atmosphere) set kappa = R/cp; the 200 K reference temperature is
+# the semi-implicit linearisation anchor validated to integrate stably.
+from src.gcm3d.body import BodyConstants  # noqa: E402  (pure-Python, no torch/jax)
+
+MARS_BODY_3D: BodyConstants = BodyConstants(
+    name="Mars",
+    radius_m=float(MARS_RADIUS),
+    gravity_m_s2=float(MARS_GRAVITY),
+    rotation_period_s=float(MARS_ROTATION_PERIOD),
+    gas_constant_j_kg_k=188.92,   # 8.314462618 / 0.0440095 (CO2)
+    cp_j_kg_k=770.0,              # isobaric heat capacity, thin CO2 atmosphere
+    reference_temperature_k=200.0,
+    reference_surface_pressure_pa=610.0,
+)
+
 
 class Mars(Planet):
     """Mars planetary model — state container + physics equations.
