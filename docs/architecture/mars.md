@@ -755,8 +755,6 @@ compute_derivatives(y = [T, P, M_ice])
 
 Only one coupling: ice sublimation feeds directly into pressure.
 
----
-
 ## 10. Model Scope and Known Approximations
 
 | Approximation | Impact | Location |
