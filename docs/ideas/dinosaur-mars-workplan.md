@@ -1,164 +1,164 @@
-# Dinosaur → Mars workplan — a differentiable Mars GCM plugged into this framework
+# Strategy — implementing NeuralGCM's Dinosaur dycore into terraforming
 
-Exact plan for adapting the NeuralGCM dynamical core
-([neuralgcm/dinosaur](https://github.com/neuralgcm/dinosaur), Apache-2.0,
-active — v1.3.6 Jun 2026) into a differentiable 3-D Mars model (`mars3d`),
-and for wiring it into this repo. Companion to
-[master-task-list.md](master-task-list.md) (this is the "v2: 3-D
-differentiable" item, expanded). Timing: **post-ICLR submission** (Oct 2026 →),
-~8–10 person-weeks. Template for the coupling pattern: JCM v1.0
-(EGUsphere 2025-6266 — Dinosaur as a dependency + swappable physics interface).
-
-**Strategy in one line:** depend on `dinosaur` as a pip package; shim one file
-(`scales.py`, the hardcoded Earth constants); subclass one module
-(`primitive_equations.py`, to add the CO₂ mass source the fixed-mass spectral
-core lacks); write the Mars physics and the terraforming bridge ourselves.
-No wholesale fork — forks of active repos rot.
-
-Dinosaur module map (verified from the repo): `scales.py` (Earth constants —
-RADIUS, GRAVITY_ACCELERATION, OMEGA, KAPPA=2/7), `primitive_equations.py` /
-`primitive_equations_states.py` (dycore), `spherical_harmonic.py` /
-`associated_legendre.py` / `fourier.py` (transforms), `sigma_coordinates.py`,
-`time_integration.py` + `leapfrog_utils.py` (semi-implicit stepping),
-`filtering.py` (hyperdiffusion), `held_suarez.py` (validation case),
-`radiation.py` (incoming solar), `coordinate_systems.py`, `units.py`.
+Definitive strategy for building a **differentiable 3-D Mars GCM (`mars3d`)** on
+[neuralgcm/dinosaur](https://github.com/neuralgcm/dinosaur) (Apache-2.0, active —
+v1.3.6, Jun 2026) and plugging it into this framework. Grounded in Dinosaur's
+actual API (verified from source). Companion to
+[master-task-list.md](master-task-list.md) (the "v2: 3-D differentiable" item).
+Timing: **post-ICLR submission** (Oct 2026 →), ~8–10 person-weeks. Coupling
+template: JCM v1.0 (Dinosaur-as-dependency + swappable physics).
 
 ---
 
-## Phase 0 — De-risk spike (2–3 days)
+## 1. The decision (settled)
 
-**D0.1 Reproduce upstream.** Pin `dinosaur` at the current release; run the
-Held–Suarez and baroclinic-instability notebooks unchanged on our hardware
-(JAX CPU + one GPU run).
-*DoD:* both notebooks reproduce; one `jax.grad` through a short rollout works.
+**Depend, don't fork. Subclass, don't rewrite. Bridge, don't merge frameworks.**
 
-**D0.2 Mars-constants smoke test.** Shim module `mars3d/scales.py` exporting
-Mars values with dinosaur's names:
+- **Dinosaur is a pip dependency** (`jax, jaxlib, numpy, pint, xarray` — clean,
+  Python ≥3.10). The repo is active; a hard fork would rot. We pin a version.
+- **`mars3d/` is a new JAX workspace member**, isolated from `package/` (torch).
+  The two meet only at the experiment layer via DLPack — never cross-import.
+- **Three surgical touch points** into Dinosaur; everything else is unchanged
+  upstream code or new Mars code we own.
 
-| Constant | Earth (dinosaur) | Mars |
-|---|---|---|
-| RADIUS | 6.37122e6 m | **3.3895e6 m** (matches `mars.py`) |
-| GRAVITY_ACCELERATION | 9.80616 | **3.72076** |
-| OMEGA | 7.292e-5 s⁻¹ | **7.0779e-5 s⁻¹** (2π/88,775.244 s — nearly Earth's) |
-| KAPPA (R/cp) | 2/7 (air) | **≈0.257** (CO₂: R=188.9 J kg⁻¹ K⁻¹, cp≈735) |
-| Reference T profile (semi-implicit linearization) | ~250–300 K | **~140–220 K** (retune) |
+## 2. What Dinosaur gives us (verified from source)
 
-Run a dry Mars Held–Suarez analog (published Mars-HS forcing profiles exist —
-planetMPAS and UM idealized-Mars papers are the reference targets) at T21/L20
-for 30 sols.
-*DoD:* stable integration; a westerly midlatitude jet structure appears;
-gradient of mean T w.r.t. a forcing parameter is finite through ≥1 sol.
-**This spike is the go/no-go for the whole plan.**
+**Prognostic state** (`primitive_equations.State`): `vorticity`, `divergence`,
+`temperature_variation` (anomaly from a reference T profile), `log_surface_pressure`,
+`tracers: Mapping[str, Array]`, `sim_time`. Two things matter for Mars:
+- `log_surface_pressure` → surface pressure is **positive by construction** (no
+  clamp, no dead gradient — contrast our 0-D `P.clamp(min=0)`).
+- `tracers` dict → **dust drops straight in** as a tracer.
 
-## Phase 1 — Constants & boundary done right (~1 week)
+**The coupling seam** (`time_integration.ImplicitExplicitODE`): the whole model
+is `∂x/∂t = explicit_terms(x) + implicit_terms(x)`, with a semi-implicit split —
+fast gravity waves go in `implicit_terms` (solved via `implicit_inverse(state,
+dt)`), everything else (advection **+ all physics**) in `explicit_terms`.
+`PrimitiveEquationsSigma` is the concrete sigma-coordinate solver we build on.
+**Our Mars physics plugs in by contributing tendencies to `explicit_terms`** —
+this is the entire integration contract.
 
-**D1.1 Upstream PR** to neuralgcm/dinosaur parameterizing `scales.py`
-(planet-constants factory instead of module constants). Fallback if declined:
-keep the shim + version pin, documented.
-**D1.2 Topography.** MOLA orography → truncation-filtered spherical-harmonic
-coefficients → dycore lower boundary (same path their ERA5 notebook feeds
-Earth orography).
-*DoD:* dry Mars core with MOLA topography stable for 100 sols at T42/L25;
-upstream PR opened; surface-pressure field shows the Hellas/Olympus contrast
-(the −50 Pa problem from our 0-D benchmark, now resolved by construction).
+**Hooks already present** (no new numerics needed to reach them):
+- `nodal_log_pressure_tendency(...)` — where the **CO₂ frost source/sink** goes.
+- `orography_tendency()` — **topography already supported**; feed it MOLA.
+- `coriolis_parameter`, `T_ref` — set from Mars constants.
 
-## Phase 2 — The CO₂ mass cycle (~2 weeks — the genuinely new numerics)
+**Infrastructure that transfers verbatim** (planet-agnostic, zero changes):
+`spherical_harmonic` (transforms), `coordinate_systems` (nodal/modal duality,
+resolution change, sharding — reviewed in depth), `sigma_coordinates`,
+`time_integration`, `filtering` (hyperdiffusion), `held_suarez` (validation).
 
-Spectral cores assume fixed total dry mass; Mars condenses ~25 % of its
-atmosphere seasonally. This is the one dycore-internal change:
+**The only Earth-hardcoded file:** `scales.py` — module constants `RADIUS`,
+`GRAVITY_ACCELERATION`, `OMEGA`, `KAPPA=2/7`. This is the whole "Earth-ness" of
+the dycore. One shim (or upstream PR) fixes it.
 
-**D2.1** Subclass the primitive-equations module: add a surface mass
-source/sink S(θ_s, p_s) to the ln(p_s) tendency, active where surface T <
-T_frost(p) (Clausius–Clapeyron — the same B2 form as the 0-D model), with
-latent heating into the lowest layer.
-**D2.2** New 2-D grid-space prognostic: surface frost reservoir M_frost(λ, φ)
-(no spectral transform — it's a surface field, sidestepping ringing).
-**D2.3** Port the PR #33 ledger discipline to 3-D: global ∫(p_s/g)dA + ΣM_frost
-+ escape·t conserved; extend `engine/diagnostics.py`'s budget-residual pattern.
-*DoD:* an annual T42 run **reproduces the Viking-shaped seasonal pressure
-cycle emergently** (the same 610↔900 Pa target the 0-D model chases by
-calibration); mass budget closes to float tolerance; `/math-review` on the
-source-term derivation.
+## 3. The three touch points
 
-## Phase 3 — Mars physics package (~3–4 weeks)
+| # | Touch point | Dinosaur target | Effort |
+|---|---|---|---|
+| **T-A** | Planetary constants | `scales.py` — shim to Mars values, or upstream a planet-parameterized factory | days |
+| **T-B** | Mars physics tendencies | subclass `PrimitiveEquationsSigma`; add our physics to `explicit_terms` | weeks (Phase 3) |
+| **T-C** | CO₂ mass cycle | extend `nodal_log_pressure_tendency` with a frost source/sink + a 2-D frost reservoir + latent heat into `temperature_variation` | ~2 weeks (Phase 2, the one novel bit) |
 
-`mars3d/physics/` behind a JCM-style column interface
-(`physics(column_state) → tendencies`); **our schemes, not SPEEDY's**
-(SPEEDY is Earth moist physics — none of it transfers):
+Everything else = new code in `mars3d/` (physics schemes, interventions bridge,
+objectives) that never modifies Dinosaur.
 
-- **D3.1 Radiation:** two-stream, CO₂ 15 µm band + dust opacity (gray to
-  start); validation targets and band data from the Ames `Rad/` scheme
-  (Track E task 49 synergy — same distillation targets as ML2).
-- **D3.2 Surface:** energy balance with TES albedo + thermal-inertia maps,
-  frost albedo when M_frost > 0 (smooth gate — reuse the tanh pattern from
-  the smooth-gates PR).
-- **D3.3 Dust:** 1–2 tracers, **grid-space** transport (spectral advection of
-  sharp fields rings/goes negative), simple lifting + sedimentation,
-  radiative coupling. This is the fidelity jump the 0-D model can never make.
-- **D3.4 Diffusive boundary layer.**
-*DoD:* zonal-mean T within ~10–15 K of MCD climatology; thermal tides now
-**emergent** — compare amplitude/phase against our prescribed 30 Pa overlay
-(closing the loop on the tide work); the standing `vs_gcm.py` benchmark
-harness gains a `mars3d` column beside tform-0D and Ames.
+## 4. Phased plan
 
-## Phase 4 — Plugging into the terraforming framework (~1–2 weeks)
+### Phase 0 — Go/no-go spike (2–3 days)
+Pin Dinosaur; reproduce the Held–Suarez notebook. Add `mars3d/scales.py` with
+Mars constants (RADIUS 3.3895e6, GRAVITY 3.72076, OMEGA 7.0779e-5 ≈ Earth's,
+KAPPA≈0.257 for CO₂) and retune `T_ref` to Mars temps (~140–220 K, for the
+semi-implicit linearization). Run a dry Mars Held–Suarez analog at T21/L20 for
+30 sols. **DoD:** stable; a midlatitude jet forms; `jax.grad` of mean-T w.r.t. a
+forcing parameter is finite through ≥1 sol. **This spike is the whole go/no-go.**
 
-How `mars3d` connects to this repo — the integration contract:
+### Phase 1 — Constants & boundary (~1 week)
+Upstream a `scales.py` parameterization PR (fallback: shim + pin). Feed MOLA
+topography → truncation-filtered spherical-harmonic coefficients →
+`orography_tendency`. **DoD:** 100-sol stable run at T42/L25; surface-pressure
+field shows the Hellas/Olympus contrast (resolves the −50 Pa 0-D benchmark bias
+by construction).
 
-**D4.1 Repo mechanics.** New uv-workspace member `mars3d/` (JAX deps isolated
-from `package/`'s torch); its own CI job. **Strict framework boundary:** JAX
-inside `mars3d`, PyTorch inside `package/` — they meet only at the experiment
-layer via zero-copy DLPack (`torch.utils.dlpack` ↔ `jax.dlpack`) or numpy.
+### Phase 2 — CO₂ mass cycle (~2 weeks — the genuinely new numerics)
+Spectral cores assume fixed dry-air mass; Mars condenses ~25% seasonally.
+- **T-C.1** Extend `nodal_log_pressure_tendency` with source/sink S(θ_surf, p_s)
+  where T_surf < T_frost(p) (Clausius–Clapeyron — same B2 form as the 0-D model).
+- **T-C.2** New 2-D grid-space prognostic `M_frost(λ,φ)` (a surface field — no
+  spectral transform, so no ringing), with latent heat into the lowest layer's
+  `temperature_variation` tendency.
+- **T-C.3** Port PR #33's ledger discipline to 3-D: ∫(p_s/g)dA + Σ M_frost +
+  escape·t conserved; extend the `engine/diagnostics.py` residual pattern.
+**DoD:** an annual T42 run reproduces the **Viking-shaped seasonal pressure cycle
+emergently** (the 610↔900 Pa target the 0-D model chases by calibration); budget
+closes to float tolerance; `/math-review` on the source term.
 
-**D4.2 Interventions plug in through the C1 effect container.** The
-`Intervention` ABC's effect fields map 1:1 onto 3-D inputs:
-ΔF_radiative → column forcing in D3.1's radiation; Δalbedo → the surface
-albedo *field* (latitude-targeted cap darkening becomes real, not a 0-D
-hack); GHG/nanorod injections → well-mixed absorber concentrations;
-escape_multiplier → the (tiny) escape sink. One intervention definition, two
-backends.
+### Phase 3 — Mars physics package (~3–4 weeks)
+`mars3d/physics/` — **our schemes, not JCM's SPEEDY** (SPEEDY is Earth moist
+physics; none transfers). Each contributes tendencies via `explicit_terms`:
+- **Radiation:** two-stream, CO₂ 15 µm band + dust opacity (gray first);
+  validation/band targets from the Ames `Rad/` scheme (shares ML2 distillation).
+- **Surface:** energy balance with TES albedo + thermal-inertia maps; frost
+  albedo when M_frost>0 (smooth tanh gate — reuse the smooth-gates pattern).
+- **Dust:** 1–2 `tracers`, **grid-space** transport (spectral advection of sharp
+  dust rings/goes negative), lifting + sedimentation, radiative coupling.
+- **Boundary layer:** diffusive.
+**DoD:** zonal-mean T within ~10–15 K of MCD; thermal tides now **emergent** —
+compare amplitude/phase against our prescribed 30 Pa overlay (closes that loop);
+`mars3d` joins the standing `vs_gcm.py` benchmark beside tform-0D and Ames.
 
-**D4.3 Objectives evaluate on both backends.** E1 losses consume named
-diagnostics (T_surf, p_s, frost mass, liquid-water indicator); on `mars3d`
-the habitability metric becomes *spatial* — "fraction of surface area where
-liquid water is stable," the honest version of the headline objective.
+### Phase 4 — Plug into terraforming (~1–2 weeks)
+- **Repo:** `mars3d/` uv-workspace member, JAX deps isolated, own CI job.
+  **Framework boundary is strict:** JAX in `mars3d`, torch in `package/`, meeting
+  only at the experiment layer via zero-copy DLPack (`jax.dlpack ↔ torch.utils.dlpack`).
+- **Interventions** plug in through the **C1 `Intervention` effect container**:
+  ΔF_radiative → column forcing in Phase-3 radiation; Δalbedo → the surface
+  albedo *field* (latitude-targeted cap darkening becomes real); GHG/nanorod →
+  well-mixed absorber concentrations; escape_multiplier → the escape sink. One
+  intervention definition, two backends (0-D torch, 3-D JAX).
+- **Objectives** (E1) evaluate on both backends via named diagnostics; on
+  `mars3d` the habitability metric becomes **spatial** ("fraction of surface area
+  where liquid water is stable").
+- **Model ladder:** tform-0D (design/optimization, ≪1 s/yr, batched) ←calibrated→
+  `mars3d` (differentiable mid-fidelity, ~min/yr) ←validated→ Ames/MCD. `mars3d`
+  rollouts become (a) the ML3 closure teacher, (b) the **spatial world-model
+  substrate — supersedes B7's banded EBM** if timing aligns, (c) the verification
+  tier for schedules optimized on the 0-D model.
 
-**D4.4 The model ladder.** tform-0D (design/optimization, ≪1 s/year, batched)
-← calibrated against → `mars3d` (differentiable mid-fidelity, ~minutes/year)
-← validated against → Ames GCM / MCD (reference, CPU-hours). `mars3d`
-rollouts become: (a) the teacher for the 0-D learned closure (ML3 stage 2),
-(b) the observation space for the spatial world model — **supersedes the B7
-banded EBM** as JEPA v2's substrate if timing aligns, (c) the verification
-tier for schedules optimized on the 0-D model before anyone cites them.
+### Phase 5 — Deliverables
+Paper candidate: **"A differentiable Mars general circulation model"** — an
+unoccupied niche (NeuralGCM is Earth; MAFM is data-driven) and the mechanistic
+counterpart the foundation-model track lacks. Plus: gradient-through-dust-storm
+sensitivity, spatial intervention design, BPTT policies over fields.
 
-**D4.5 ML4-style calibration transfers.** `mars3d` is differentiable, so the
-gradient-calibration-to-Viking/REMS demo runs on it unchanged in spirit —
-at a fidelity tier where beating Ames at held-out lander sites (Track E
-task 44) is a genuinely strong claim.
+## 5. Dependencies on current work (must land on `main` first)
 
-## Phase 5 — Deliverables & stretch
+| Needs | Feeds |
+|---|---|
+| PR #33 pressure ledger + `diagnostics.py` | Phase 2 CO₂-cycle conservation (T-C.3) |
+| B2 pressure-dependent frost point | Phase 2 source term (T-C.1) |
+| PR #31 smooth-gates tanh pattern | Phase 3 frost-albedo gate |
+| C1 `Intervention` ABC | Phase 4 intervention bridge |
+| `vs_gcm.py` benchmark harness (Track E) | Phase 3 DoD |
 
-- **Paper candidate:** "A differentiable Mars general circulation model" —
-  nobody occupies this niche (NeuralGCM is Earth; MAFM is data-driven); it is
-  also the strongest possible artifact for the parked foundation-model track.
-- Gradient-through-dust-storm sensitivity, spatial intervention design
-  (where to darken, where to inject), BPTT policies over fields.
-
----
-
-## Risks & mitigations
+## 6. Risks & mitigations
 
 | Risk | Mitigation |
 |---|---|
-| Upstream rejects the scales PR | Shim + pin (already the Phase-0 mechanism); revisit each release |
-| Semi-implicit reference profile unstable at Mars temperatures | Retune reference T in D0.2 — known knob, not research |
-| Dust tracer numerics (ringing/negativity) | Grid-space transport from day one (D3.3) |
-| JAX↔torch friction at the bridge | DLPack only at the experiment layer; no cross-framework imports in cores |
-| Scope creep into the ICLR window | Hard gate: nothing here starts before submission except the 1-day D0 spike, which is allowed as a background curiosity |
+| Upstream rejects the `scales.py` PR | Shim + version pin (the Phase-0 mechanism anyway) |
+| Semi-implicit unstable at Mars temps | Retune `T_ref` in Phase 0 — a known knob, not research |
+| Dust tracer ringing / negativity | Grid-space transport from day one (Phase 3) |
+| JAX↔torch friction | DLPack only at the experiment layer; no cross-framework imports in cores |
+| Two frameworks in one repo | Accepted cost; the A6 functional-core work keeps 0-D physics portable for cross-checks; ICLR/0-D stack must not migrate |
+| Scope creep into the ICLR window | Hard gate: nothing here starts before submission except the 1-day Phase-0 spike |
 
-## Dependencies on current work
+## 7. One-paragraph summary
 
-Everything this plan reuses lands on `main` first: PR #33's ledger discipline
-(→ D2.3), B2 frost point (→ D2.1), C1 intervention ABC (→ D4.2), the
-`vs_gcm.py` harness (→ D3 DoD), A6 functional core (makes the 0-D physics
-portable for cross-checks).
+Build `mars3d` as a JAX workspace member that **depends on** Dinosaur, **shims**
+`scales.py` to Mars constants, **subclasses** `PrimitiveEquationsSigma` to add
+Mars physics through `explicit_terms` and a CO₂ frost source/sink through
+`nodal_log_pressure_tendency`, and **bridges** to the existing torch framework
+via DLPack at the experiment layer — reusing the intervention ABC, objectives,
+and conservation-diagnostics discipline already built for the 0-D model. Result:
+the first differentiable Mars GCM, a mid-fidelity rung between tform-0D and the
+Ames GCM, and the spatial substrate for the world-model track.
