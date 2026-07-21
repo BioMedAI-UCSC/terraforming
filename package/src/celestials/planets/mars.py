@@ -101,6 +101,27 @@ MARS_BODY_3D: BodyConstants = BodyConstants(
 )
 
 
+def mars_gcm3d_core(truncation: str = "T42", n_layers: int = 25):
+    """Build the 3-D GCM core (coords, physics-specs, dry equations) for Mars.
+
+    Convenience entry point wiring ``MARS_BODY_3D`` into the planet-agnostic
+    ``gcm3d`` core — the "utilised in mars" path. Requires the optional ``gcm3d``
+    extra (dinosaur + jax); the heavy imports are deferred so importing this
+    module never pulls JAX.
+
+    Returns
+    -------
+    tuple
+        ``(coordinate_system, physics_specs, primitive_equations)`` for Mars.
+    """
+    from src import gcm3d  # lazy: optional 'gcm3d' extra
+
+    coords = gcm3d.coordinate_system(truncation, n_layers)
+    specs = gcm3d.physics_specs(MARS_BODY_3D)
+    equations = gcm3d.primitive_equations(coords, MARS_BODY_3D, specs=specs)
+    return coords, specs, equations
+
+
 class Mars(Planet):
     """Mars planetary model — state container + physics equations.
 

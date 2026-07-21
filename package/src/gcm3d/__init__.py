@@ -31,7 +31,23 @@ __version__ = "0.0.1"
 # keep ``from src.gcm3d import BodyConstants`` working without the extra.
 try:  # pragma: no cover - import-availability branch
     from src.gcm3d.coordinates import coordinate_system, grid
+    from src.gcm3d.dynamics import (
+        integrate,
+        primitive_equations,
+        reference_temperature,
+        stepper,
+    )
+    from src.gcm3d.specs import nondimensionalization_scale, physics_specs
 
-    __all__ += ["coordinate_system", "grid"]
+    __all__ += [
+        "coordinate_system",
+        "grid",
+        "physics_specs",
+        "nondimensionalization_scale",
+        "primitive_equations",
+        "reference_temperature",
+        "stepper",
+        "integrate",
+    ]
 except ModuleNotFoundError:
     pass
