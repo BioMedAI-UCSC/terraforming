@@ -1,0 +1,42 @@
+name: gcm3d (dinosaur)
+
+# Isolated CI for the JAX-based 3-D GCM subpackage (package/src/gcm3d). Runs
+# ONLY when that subpackage changes, and installs the OPTIONAL gcm3d extra
+# (dinosaur + jax) that the main Tests workflow never installs — so the torch
+# stack and its CI are unaffected.
+on:
+  pull_request:
+    paths:
+      - "package/src/gcm3d/**"
+      - "package/tests/gcm3d/**"
+      - ".github/workflows/gcm3d.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: gcm3d-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  gcm3d-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install workspace + gcm3d extra (dinosaur + jax)
+        run: |
+          uv sync --dev
+          uv pip install "dinosaur==1.3.6"
+
+      - name: gcm3d tests
+        working-directory: package
+        run: uv run --no-sync python -m pytest tests/gcm3d/ -v
