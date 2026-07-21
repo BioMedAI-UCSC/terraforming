@@ -4,27 +4,35 @@
 tensors so a single kernel invocation advances all B simulations at once.
 
 ``BatchedTimeController`` drives a ``BatchedMars`` through time with the
-same RK4 / fast-physics strategies as the single-simulation engine, but
-returns a ``list[list[Snapshot]]`` — one history list per batch element.
+same RK4 / fast-physics strategies as the single-simulation engine, and
+returns a ``BatchedHistory`` — six stacked tensors (``time`` is
+``[n_steps]``; every other field is ``[n_steps, B]``).  Call
+``BatchedHistory.to_lists()`` for the legacy ``list[list[Snapshot]]``
+format (only sensible for small B).
 
 Typical use (from ``cli/runner.py``)::
 
     from src.engine import BatchedTimeController, Accuracy
 
     mars_list = [Mars(latitude=lat, device='cuda') for lat in lats]
-    btc = BatchedTimeController(mars_list, dt=3600.0, accuracy=Accuracy.FAST)
-    histories = btc.run(duration=10_000 * 88_775.244)  # list[list[Snapshot]]
+    btc = BatchedTimeController(mars_list, dt=3600.0,
+                                accuracy=Accuracy.FAST, compile=True)
+    hist = btc.run(duration=10_000 * 88_775.244)  # BatchedHistory
+    mean_T = hist.surface_temperature.mean(dim=0) # [B] — vectorised
 
 GPU utilisation notes
 ---------------------
 * All state is ``[B, ...]`` on one device — every physics kernel processes
   B simulations per call, dramatically improving GPU occupancy vs B separate
   scalar kernels.
-* The main loop uses ``for _ in range(n_steps)`` (pre-computed) so there are
-  **no GPU→CPU synchronisations** inside the hot loop.
-* Pass ``compile=True`` to wrap ``compute_derivatives`` / ``compute_fast_physics``
-  with ``torch.compile(mode='reduce-overhead')`` for additional kernel fusion
-  via CUDA graphs.
+* History is recorded by reference in the hot loop (no per-step clones or
+  Snapshot construction), then stacked once at the end.  This relies on
+  every physics update being out-of-place (``self._T = ...``); introducing
+  in-place ops would silently corrupt recorded history.
+* With ``compile=True`` on CUDA, the run executes as
+  ``torch.compile(fullgraph=True)``-fused ``chunk``-step blocks
+  (``_run_chunked``), covering both FAST and ACCURATE.  The first call pays
+  a one-time JIT cost (larger for ACCURATE / larger ``chunk``).
 * **float64 note**: consumer GPUs (RTX series) have ≈1/32 float64 throughput
   vs float32.  For maximum speed on consumer hardware, consider lowering the
   dtype to float32 (future work).  Data-centre GPUs (A100, H100) support
@@ -35,7 +43,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List
 
 import torch
 
@@ -314,8 +322,13 @@ class BatchedTimeController:
     accuracy : Accuracy
         ``FAST`` or ``ACCURATE`` integration strategy.
     compile : bool
-        Wrap physics methods with ``torch.compile``.
-        Recommended when ``device='cuda'``.  Default ``False``.
+        If ``True`` (and running on CUDA), execute the run as
+        ``torch.compile``-fused ``chunk``-step blocks.  Default ``False``.
+    chunk : int
+        Number of timesteps fused into one compiled call on the CUDA
+        compiled path.  Larger values amortise Python/launch overhead
+        further but increase one-time JIT cost and per-chunk memory.
+        Only affects the ``compile=True`` CUDA path.  Default ``64``.
     """
 
     def __init__(
@@ -324,6 +337,7 @@ class BatchedTimeController:
         dt: float = 3600.0,
         accuracy: Accuracy = Accuracy.FAST,
         compile: bool = False,
+        chunk: int = 64,
     ) -> None:
         self.bmars    = BatchedMars(mars_list)
         self.accuracy = accuracy
@@ -333,6 +347,10 @@ class BatchedTimeController:
         if _dt_f <= 0.0:
             raise ValueError("dt must be > 0")
         self.dt = torch.tensor(_dt_f, dtype=TF_DTYPE, device=self._device)
+
+        if int(chunk) < 1:
+            raise ValueError("chunk must be >= 1")
+        self._chunk = int(chunk)
 
         # All compilation happens at chunk level in _run_chunked —
         # per-method wrapping would nest torch.compile and break the graph.
@@ -376,7 +394,7 @@ class BatchedTimeController:
         n_steps   = int(dur_f / dt_f)
         remainder = dur_f - n_steps * dt_f
         if self._compile and self._device.type == 'cuda':
-            return self._run_chunked(n_steps, remainder)
+            return self._run_chunked(n_steps, remainder, self._chunk)
 
         elapsed = torch.zeros((), dtype=TF_DTYPE, device=self._device)
         bm = self.bmars

@@ -7,6 +7,10 @@ requires-python = ">=3.12"
 dependencies = [
     "matplotlib>=3.10.8",
     "torch>=2.10.0",
+    # torch.compile (the batched GPU turbo) needs Triton. Linux CUDA torch
+    # bundles it; on Windows it ships separately. Not applicable on macOS
+    # (no CUDA — the compiled path is skipped there anyway).
+    "triton-windows; sys_platform == 'win32'",
 ]
 
 [tool.uv.sources]
