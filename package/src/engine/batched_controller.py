@@ -240,11 +240,12 @@ class BatchedMars:
         dMice_dt = dM_N + dM_S                                       # [B]
 
         # ----- dP/dt -----
+        # Mass-budget pressure only; the thermal tide is a diagnostic overlay
+        # (observed_surface_pressure), mirroring Mars.compute_derivatives.
         A_planet = 4.0 * math.pi * self._radius ** 2                 # scalar
         dP_dt = (
             -self._ESCAPE_RATE * self._gravity / A_planet
             - dMice_dt * self._gravity / A_planet
-            - self._TIDE_PA * omega * torch.sin(omega * self.elapsed_time + self._TIDE_PHASE)
         )                                                             # [B]
 
         return torch.stack([dT_dt, dP_dt, dMice_dt], dim=1)          # [B, 3]
@@ -295,16 +296,24 @@ class BatchedMars:
         self._M_S = (self._M_S + dM_S).clamp(min=0.0)
         self._M   = self._M_N + self._M_S
 
-        # Pressure
+        # Pressure — mass-budget mean only; tide is a diagnostic overlay
+        # (observed_surface_pressure), mirroring Mars.compute_fast_physics.
         A_planet = 4.0 * math.pi * self._radius ** 2
-        dP_tide  = (-self._TIDE_PA * omega
-                    * torch.sin(omega * self.elapsed_time + self._TIDE_PHASE) * dt)
         self._P  = (
             self._P
             - self._ESCAPE_RATE * self._gravity / A_planet * dt
             - dMice * self._gravity / A_planet
-            + dP_tide
         ).clamp(min=0.0)
+
+    def observed_surface_pressure(self) -> torch.Tensor:
+        """Batched local pressure: mass-budget mean + thermal-tide overlay
+        (same closed form as Mars.observed_surface_pressure)."""
+        omega = _TWO_PI / self._rot_period
+        tide = self._TIDE_PA * (
+            torch.cos(omega * self.elapsed_time + self._TIDE_PHASE)
+            - torch.cos(self._TIDE_PHASE)
+        )
+        return self._P + tide
 
 
 # ---------------------------------------------------------------------------
@@ -410,7 +419,7 @@ class BatchedTimeController:
             elapsed = elapsed + self.dt
             hist_time.append(elapsed)
             hist_T.append(bm._T)
-            hist_P.append(bm._P)
+            hist_P.append(bm.observed_surface_pressure())
             hist_M.append(bm._M)
             hist_flux.append(bm.solar_flux)
             hist_angle.append(bm.orbital_angle)
@@ -421,7 +430,7 @@ class BatchedTimeController:
             elapsed = elapsed + step
             hist_time.append(elapsed)
             hist_T.append(bm._T)
-            hist_P.append(bm._P)
+            hist_P.append(bm.observed_surface_pressure())
             hist_M.append(bm._M)
             hist_flux.append(bm.solar_flux)
             hist_angle.append(bm.orbital_angle)
@@ -443,7 +452,8 @@ class BatchedTimeController:
         One compiled call advances all B sims by *chunk* steps using
         whatever strategy ``self._evolve`` selects (fast physics or RK4).
         Results are written into a pre-allocated ``[n_total, 6, B]`` buffer
-        so peak memory is one history copy.
+        so peak memory is one history copy.  Pressure is recorded as the
+        observed value (mass-budget mean + thermal-tide overlay).
         """
         bm, dt = self.bmars, self.dt
         n_total = n_steps + (1 if remainder > 1e-9 else 0)
@@ -455,8 +465,8 @@ class BatchedTimeController:
             for _ in range(chunk):
                 self._evolve(dt)             # orbit + (fast physics OR RK4)
                 rows.append(torch.stack([
-                    bm.elapsed_time, bm._T, bm._P, bm._M,
-                    bm.solar_flux, bm.orbital_angle,
+                    bm.elapsed_time, bm._T, bm.observed_surface_pressure(),
+                    bm._M, bm.solar_flux, bm.orbital_angle,
                 ]))                           # [6, B]
             return torch.stack(rows)          # [chunk, 6, B]
         step_fn = torch.compile(step_chunk, fullgraph=True)
@@ -469,8 +479,8 @@ class BatchedTimeController:
         def eager_row(step_dt):
             self._evolve(step_dt)
             return torch.stack([
-                bm.elapsed_time, bm._T, bm._P, bm._M,
-                bm.solar_flux, bm.orbital_angle,
+                bm.elapsed_time, bm._T, bm.observed_surface_pressure(),
+                bm._M, bm.solar_flux, bm.orbital_angle,
             ])
 
         for _ in range(n_steps % chunk):

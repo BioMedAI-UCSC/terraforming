@@ -184,7 +184,9 @@ class TimeController:
         return Snapshot(
             time=s.elapsed_time,
             surface_temperature=s.thermal.surface_temperature,
-            surface_pressure=s.atmosphere.surface_pressure,
+            # Observed pressure = mass-budget mean + any local diagnostic
+            # overlay (Mars: thermal tide), so outputs keep the diurnal wave.
+            surface_pressure=s.observed_surface_pressure(),
             ice_mass=s.water.ice_mass,
             solar_flux=s.radiation.solar_flux,
             orbital_angle=s.orbital_angle,

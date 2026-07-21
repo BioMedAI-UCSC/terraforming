@@ -86,9 +86,11 @@ class InterventionController:
     ----------
     mars : Mars
         Configured Mars instance.
-    injection_schedule_kg_yr : dict[str, float]
+    injection_schedule_kg_yr : dict[str, float | torch.Tensor]
         ``{compound_name: kg_per_Mars_year}`` for each injected species.
         All compound names must be present in the COMPOUNDS registry.
+        Tensor masses (e.g. with ``requires_grad=True``) are kept as-is so
+        gradients flow from the schedule to the simulated climate.
     dt : float
         Sub-annual integration timestep in seconds.  Default 3600 s (1 hour).
     accuracy : Accuracy
@@ -111,7 +113,7 @@ class InterventionController:
     def __init__(
         self,
         mars,
-        injection_schedule_kg_yr: dict[str, float],
+        injection_schedule_kg_yr: dict[str, float | torch.Tensor],
         dt: float = 3600.0,
         accuracy: Accuracy = Accuracy.FAST,
         compile: bool = False,
@@ -121,7 +123,9 @@ class InterventionController:
 
         self._mars     = mars
         self._device   = mars._device
-        self._schedule = {k: float(v) for k, v in injection_schedule_kg_yr.items()}
+        # Hold masses as given (float or tensor) — coercing to float() here
+        # would cut the autograd graph from a differentiable schedule.
+        self._schedule = dict(injection_schedule_kg_yr)
         self._tc       = TimeController(mars, dt=dt, accuracy=accuracy, compile=compile)
 
         # Reporting-only: cumulative kg injected per compound (not physics state)
