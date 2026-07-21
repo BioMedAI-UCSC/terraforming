@@ -234,6 +234,48 @@ class TestInterventionControllerRun:
         ic.run(n_years=2, callback=received.append)
         assert all(isinstance(s, InterventionSnapshot) for s in received)
 
+class TestDifferentiableSchedule:
+    """Regression B2 (workplan Phase 0): the controller coerced the schedule
+    to Python floats at __init__, so gradients could never reach it."""
+
+    def test_final_temperature_has_grad_fn_given_tensor_schedule(self):
+        kg = torch.tensor(1e12, requires_grad=True)
+        mars = Mars(device="cpu")
+        ic = InterventionController(mars, {"CF4": kg}, dt=21600.0)
+        history = ic.run(n_years=1)
+        assert history[-1].surface_temperature.grad_fn is not None
+        assert history[-1].greenhouse_factor.grad_fn is not None
+
+    def test_gradient_of_temperature_wrt_schedule_is_finite_and_positive(self):
+        """d(annual-mean T)/d(kg injected) must be finite and > 0 — more GHG warms."""
+        kg = torch.tensor(1e12, requires_grad=True)
+        mars = Mars(device="cpu")
+        ic = InterventionController(mars, {"CF4": kg}, dt=21600.0)
+        history = ic.run(n_years=1)
+        history[-1].surface_temperature.backward()
+        assert kg.grad is not None
+        assert torch.isfinite(kg.grad)
+        assert float(kg.grad.item()) > 0.0
+
+    def test_float_schedule_matches_tensor_schedule(self):
+        """Plain-float schedules (the CLI path) must produce identical results."""
+        mars_f = Mars(device="cpu")
+        mars_t = Mars(device="cpu")
+        hist_f = InterventionController(mars_f, {"CF4": 1e12}, dt=43200.0).run(n_years=1)
+        # TF_DTYPE (float64) — a float32 tensor cannot represent 1e12 exactly
+        hist_t = InterventionController(
+            mars_t, {"CF4": torch.tensor(1e12, dtype=torch.float64)}, dt=43200.0
+        ).run(n_years=1)
+        assert _val(hist_f[-1].surface_temperature) == pytest.approx(
+            _val(hist_t[-1].surface_temperature), rel=1e-12
+        )
+        assert _val(hist_f[-1].greenhouse_factor) == pytest.approx(
+            _val(hist_t[-1].greenhouse_factor), rel=1e-12
+        )
+
+
+class TestInterventionControllerLong:
+
     @pytest.mark.slow
     def test_50_year_run_temperature_rises(self):
         mars = Mars()
