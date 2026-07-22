@@ -14,6 +14,12 @@ auditable subset of the model's free physics parameters.
 
 from __future__ import annotations
 
+from src.calibration.baseline import (
+    PRESENT_DAY_ICE_KG,
+    PRESENT_DAY_PRESSURE_PA,
+    BaselineStability,
+    assess_baseline,
+)
 from src.calibration.harness import (
     CalibrationResult,
     SeasonalCycle,
@@ -43,4 +49,8 @@ __all__ = [
     "CalibrationResult",
     "CycleMetrics",
     "compute_metrics",
+    "assess_baseline",
+    "BaselineStability",
+    "PRESENT_DAY_PRESSURE_PA",
+    "PRESENT_DAY_ICE_KG",
 ]
