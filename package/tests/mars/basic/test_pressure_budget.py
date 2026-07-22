@@ -120,6 +120,34 @@ class TestCompositionTracksEvolvingPressure:
         )
 
 
+class TestSeasonalPressureSwing:
+    """Regression: the seasonal CO2-cycle pressure swing was too small.
+
+    MARS_POLAR_CAP_FRACTION = 0.01 produced only a ~6% peak-to-peak seasonal
+    (daily-mean) swing; the Viking Landers observe ~25-30% (Hess 1980; Tillman
+    1993). Corrected to 0.04. Measured on daily means so the diurnal tide is
+    excluded, over a spun-up Mars year.
+    """
+
+    @pytest.mark.slow
+    def test_daily_mean_seasonal_swing_matches_observed_band(self):
+        import numpy as np
+
+        year_s = float(Mars(device="cpu").orbital_params.orbital_period)
+        mars = Mars(device="cpu")
+        hist = TimeController(mars, dt=3600.0, accuracy=Accuracy.FAST).run(
+            duration=5 * year_s
+        )
+        t = np.array([_val(s.time) for s in hist])
+        P = np.array([_val(s.surface_pressure) for s in hist])
+        last = t >= 4 * year_s  # spun-up final year
+        day = np.floor(t / _SOL).astype(int)
+        daily = np.array([P[last & (day == d)].mean() for d in np.unique(day[last])])
+        swing_pct = 100.0 * (daily.max() - daily.min()) / daily.mean()
+        # Observed ~25-30%; the old 0.01 gave ~6%. Guard the corrected physics.
+        assert 22.0 < swing_pct < 33.0
+
+
 class TestTideIsDiagnosticOverlay:
 
     def _no_cap_mars(self) -> Mars:
