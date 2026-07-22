@@ -61,7 +61,15 @@ MARS_THERMAL_INERTIA: torch.Tensor    = torch.tensor(6.0e4,    dtype=TF_DTYPE)  
 MARS_MAVEN_ESCAPE_RATE: torch.Tensor  = torch.tensor(0.2,      dtype=TF_DTYPE)  # kg s⁻¹
 MARS_CO2_FROST_POINT: torch.Tensor    = torch.tensor(149.0,    dtype=TF_DTYPE)  # K
 MARS_CO2_LATENT_HEAT: torch.Tensor    = torch.tensor(5.7e5,    dtype=TF_DTYPE)  # J kg⁻¹
-MARS_POLAR_CAP_FRACTION: torch.Tensor = torch.tensor(0.01,     dtype=TF_DTYPE)  # dimensionless
+# Effective fractional surface area of each seasonal CO2 cap, per pole. Sets the
+# amplitude of the seasonal CO2-cycle pressure swing (dMice -> dP, in both
+# compute_derivatives and compute_fast_physics). The former 0.01 gave only a ~6%
+# seasonal (daily-mean) swing; the Viking Landers observe ~25-30% (Hess et al.
+# 1980; Tillman et al. 1993), reproduced by MCD 6.1. Calibrated to that swing:
+# 0.04 gives ~27% at a stable ~5.9 mb mean with the default reservoir. Effective
+# area (folds in partial coverage / sublimation efficiency) — still conservative
+# vs the real seasonal cap's mid-latitude reach.
+MARS_POLAR_CAP_FRACTION: torch.Tensor = torch.tensor(0.04,     dtype=TF_DTYPE)  # dimensionless
 MARS_DIURNAL_SWING_AMP: torch.Tensor  = torch.tensor(50.0,     dtype=TF_DTYPE)  # K
 MARS_THERMAL_TIDE_PA: torch.Tensor    = torch.tensor(30.0,     dtype=TF_DTYPE)  # Pa
 MARS_THERMAL_TIDE_PHASE: torch.Tensor = torch.tensor(-0.7 * math.pi, dtype=TF_DTYPE)  # rad
