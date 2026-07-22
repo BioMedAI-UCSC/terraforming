@@ -122,25 +122,21 @@ class BatchedMars:
     # State packing / unpacking
     # ------------------------------------------------------------------
     def pack_state(self) -> torch.Tensor:
-        """Return batched state ``[B, 3]`` as ``[T, P, M_ice]`` columns."""
-        return torch.stack([self._T, self._P, self._M], dim=1)
+        """Return batched state ``[B, 4]`` as ``[T, P, M_N, M_S]`` columns.
+
+        The two caps are independent state variables (mirrors ``Planet``); the
+        old total-plus-proportional-resplit drained the caps to zero on the RK4
+        (ACCURATE) path.
+        """
+        return torch.stack([self._T, self._P, self._M_N, self._M_S], dim=1)
 
     def unpack_state(self, y: torch.Tensor) -> None:
-        """Write ``[B, 3]`` state back into the planet attributes."""
-        self._T       = y[:, 0].clamp(min=1.0)
-        self._P       = y[:, 1].clamp(min=0.0)
-        new_total     = y[:, 2].clamp(min=0.0)
-        old_total     = self._M_N + self._M_S
-        safe_total    = old_total.clamp(min=1e-30)
-        f_n = torch.where(
-            old_total > 0.0,
-            self._M_N / safe_total,
-            old_total.new_full(old_total.shape, 0.5),
-        )
-        f_s       = 1.0 - f_n
-        self._M_N = (new_total * f_n).clamp(min=0.0)
-        self._M_S = (new_total * f_s).clamp(min=0.0)
-        self._M   = new_total
+        """Write ``[B, 4]`` state back into the planet attributes."""
+        self._T   = y[:, 0].clamp(min=1.0)
+        self._P   = y[:, 1].clamp(min=0.0)
+        self._M_N = y[:, 2].clamp(min=0.0)
+        self._M_S = y[:, 3].clamp(min=0.0)
+        self._M   = self._M_N + self._M_S
 
     # ------------------------------------------------------------------
     # Orbital update
@@ -159,10 +155,10 @@ class BatchedMars:
         self.solar_flux = 1361.0 * (1.49597870700e11 / distance) ** 2
 
     # ------------------------------------------------------------------
-    # Batched physics: compute_derivatives  [B, 3] → [B, 3]
+    # Batched physics: compute_derivatives  [B, 4] → [B, 4]
     # ------------------------------------------------------------------
     def compute_derivatives(self, y: torch.Tensor) -> torch.Tensor:
-        """Batched ODE RHS.  ``y`` shape ``[B, 3]``, returns ``[B, 3]``."""
+        """Batched ODE RHS.  ``y`` shape ``[B, 4]`` (T, P, M_N, M_S) → ``[B, 4]``."""
         T     = y[:, 0].clamp(min=1.0)   # [B]
         # P and M_ice are part of the state but not used in derivative calcs
         # that reference only T for radiation; kept for future coupling.
@@ -193,19 +189,24 @@ class BatchedMars:
         net_N  = (Q_N - self._Q_out_pole) * A_cap / self._LAT_HEAT  # [B]
         net_S  = (Q_S - self._Q_out_pole) * A_cap / self._LAT_HEAT  # [B]
 
-        dM_N = torch.where((self._M_N <= 0.0) & (-net_N < 0.0), 0.0, -net_N)  # [B]
-        dM_S = torch.where((self._M_S <= 0.0) & (-net_S < 0.0), 0.0, -net_S)  # [B]
+        # Gate each cap on its own state component (y), so RK4 integrates the two
+        # reservoirs independently through every sub-step.
+        ice_N = y[:, 2].clamp(min=0.0)                               # [B]
+        ice_S = y[:, 3].clamp(min=0.0)                               # [B]
+        dM_N = torch.where((ice_N <= 0.0) & (-net_N < 0.0), 0.0, -net_N)  # [B]
+        dM_S = torch.where((ice_S <= 0.0) & (-net_S < 0.0), 0.0, -net_S)  # [B]
         dMice_dt = dM_N + dM_S                                       # [B]
 
         # ----- dP/dt -----
+        # Mass-budget pressure only; the thermal tide is a diagnostic overlay
+        # (observed_surface_pressure), mirroring Mars.compute_derivatives.
         A_planet = 4.0 * math.pi * self._radius ** 2                 # scalar
         dP_dt = (
             -self._ESCAPE_RATE * self._gravity / A_planet
             - dMice_dt * self._gravity / A_planet
-            - self._TIDE_PA * omega * torch.sin(omega * self.elapsed_time + self._TIDE_PHASE)
         )                                                             # [B]
 
-        return torch.stack([dT_dt, dP_dt, dMice_dt], dim=1)          # [B, 3]
+        return torch.stack([dT_dt, dP_dt, dM_N, dM_S], dim=1)        # [B, 4]
 
     # ------------------------------------------------------------------
     # Batched fast physics  (in-place update)
@@ -253,16 +254,24 @@ class BatchedMars:
         self._M_S = (self._M_S + dM_S).clamp(min=0.0)
         self._M   = self._M_N + self._M_S
 
-        # Pressure
+        # Pressure — mass-budget mean only; tide is a diagnostic overlay
+        # (observed_surface_pressure), mirroring Mars.compute_fast_physics.
         A_planet = 4.0 * math.pi * self._radius ** 2
-        dP_tide  = (-self._TIDE_PA * omega
-                    * torch.sin(omega * self.elapsed_time + self._TIDE_PHASE) * dt)
         self._P  = (
             self._P
             - self._ESCAPE_RATE * self._gravity / A_planet * dt
             - dMice * self._gravity / A_planet
-            + dP_tide
         ).clamp(min=0.0)
+
+    def observed_surface_pressure(self) -> torch.Tensor:
+        """Batched local pressure: mass-budget mean + thermal-tide overlay
+        (same closed form as Mars.observed_surface_pressure)."""
+        omega = _TWO_PI / self._rot_period
+        tide = self._TIDE_PA * (
+            torch.cos(omega * self.elapsed_time + self._TIDE_PHASE)
+            - torch.cos(self._TIDE_PHASE)
+        )
+        return self._P + tide
 
 
 # ---------------------------------------------------------------------------
@@ -317,7 +326,7 @@ class BatchedTimeController:
             self.bmars.compute_fast_physics(dt)
 
     def _evolve_rk4(self, dt: torch.Tensor) -> None:
-        """Batched RK4: y is ``[B, 3]``."""
+        """Batched RK4: y is ``[B, 4]``."""
         bm = self.bmars
         y  = bm.pack_state()
         k1 = bm.compute_derivatives(y)
@@ -365,11 +374,12 @@ class BatchedTimeController:
         """Append one Snapshot per batch element (0-dim CUDA tensor, no sync)."""
         bm = self.bmars
         B  = bm._B
+        P_obs = bm.observed_surface_pressure()
         for i in range(B):
             histories[i].append(Snapshot(
                 time=elapsed.clone(),
                 surface_temperature=bm._T[i].clone(),
-                surface_pressure=bm._P[i].clone(),
+                surface_pressure=P_obs[i].clone(),
                 ice_mass=bm._M[i].clone(),
                 solar_flux=bm.solar_flux[i].clone(),
                 orbital_angle=bm.orbital_angle[i].clone(),

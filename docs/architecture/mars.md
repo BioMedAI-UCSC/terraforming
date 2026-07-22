@@ -23,15 +23,22 @@ Complete derivation, dependency graph, and worked examples for every equation in
 
 ## 1. State Vector
 
-The coupled ODE system evolves three variables:
+The coupled ODE system evolves four variables — the two polar caps are carried
+**independently** so the RK4 integrator evolves each on its own (collapsing them
+to a single total and re-apportioning afterwards destroyed the seasonal
+anti-phase exchange and drained the caps to zero on the ACCURATE path):
 
 ```
-y = [T,  P,  M_ice]
-     │    │    │
-     │    │    └─ Total polar CO₂ ice mass          [kg]
-     │    └────── Global mean surface pressure       [Pa]
-     └─────────── Surface temperature at (φ, λ)     [K]
+y = [T,  P,  M_north,  M_south]
+     │    │    │          │
+     │    │    │          └─ South polar-cap CO₂ ice mass  [kg]
+     │    │    └───────────── North polar-cap CO₂ ice mass  [kg]
+     │    └──────────────────  Global mean surface pressure  [Pa]
+     └─────────────────────── Surface temperature at (φ, λ)  [K]
 ```
+
+Total ice mass is `M_north + M_south`. Each cap gates its own sublimation on its
+own reservoir, through every RK4 sub-step.
 
 At every timestep the engine calls `advance_orbit(dt)` first (updates orbital
 angle and solar flux), then either:
@@ -71,7 +78,7 @@ All constants are `torch.float64` tensors defined at module level.
 | Constant | Value | Meaning |
 |----------|-------|---------|
 | `MARS_THERMAL_INERTIA` | $6.0\times10^4$ J K⁻¹ m⁻² | Surface thermal mass per unit area — controls diurnal temperature amplitude |
-| `MARS_POLAR_CAP_FRACTION` | $0.01$ | Effective fractional surface area of each sublimating polar cap |
+| `MARS_POLAR_CAP_FRACTION` | $0.04$ | Effective fractional surface area of each seasonal CO₂ cap; sets the seasonal pressure-swing amplitude. Calibrated to the Viking-observed ~25–30 % swing (was $0.01$, which gave only ~6 %) |
 | `MARS_THERMAL_TIDE_PA` | $30.0$ Pa | Half-amplitude of empirical diurnal pressure oscillation |
 | `MARS_THERMAL_TIDE_PHASE` | $-0.7\pi$ rad | Phase offset — puts pressure max at ~08:37 LMST |
 | `MARS_CO2_FROST_POINT` | $149.0$ K | CO₂ condensation/sublimation temperature at Mars surface pressure |
@@ -410,7 +417,7 @@ f_south = 1.0 − f_north
 
 **Mass rate equations:**
 
-$$A_\text{cap} = 0.01 \times 4\pi R^2 = 1.443\times10^{12}\;\text{m}^2, \qquad L_\text{sub} = 5.7\times10^5\;\text{J\,kg}^{-1}$$
+$$A_\text{cap} = 0.04 \times 4\pi R^2 = 5.774\times10^{12}\;\text{m}^2, \qquad L_\text{sub} = 5.7\times10^5\;\text{J\,kg}^{-1}$$
 
 $$\dot{M}_\text{sub,N} = \frac{\Delta Q_N \cdot A_\text{cap}}{L_\text{sub}}, \qquad \dot{M}_\text{sub,S} = \frac{\Delta Q_S \cdot A_\text{cap}}{L_\text{sub}}$$
 
@@ -434,21 +441,25 @@ Q_in_S = (1 − 0.25) × 714 × 0.40222 = 214.9 W/m²
 Q_out_pole = 26.51 W/m²
 ΔQ_S = 214.9 − 26.51 = 188.4 W/m²
 
-A_cap = 1.443×10¹² m²
+A_cap = 5.774×10¹² m²
 
-net_sub_S = 188.4 × 1.443×10¹² / 5.7×10⁵ = 4.77×10⁸ kg/s
+net_sub_S = 188.4 × 5.774×10¹² / 5.7×10⁵ = 1.909×10⁹ kg/s
 ```
 
-$$\frac{dM_\text{ice}}{dt} \approx -4.77\times10^8\;\text{kg\,s}^{-1}$$
+$$\frac{dM_\text{ice,S}}{dt} \approx -1.909\times10^9\;\text{kg\,s}^{-1}$$
 
 Over one sol (88 775 s):
 
 ```
-ΔM_ice ≈ −4.77×10⁸ × 88 775 = −4.23×10¹³ kg/sol
+ΔM_ice,S ≈ −1.909×10⁹ × 88 775 = −1.694×10¹⁴ kg/sol
 ```
 
-Starting from $M_\text{ice} = 5\times10^{15}$ kg, the south cap would fully sublimate in
-~118 sols at peak perihelion insolation.
+At $L_s = 251°$ the south cap holds $f_\text{south}\times5\times10^{15} \approx 4.2\times10^{15}$ kg,
+so at peak perihelion insolation it fully sublimates in **~25 sols** — the seasonal
+cap really does disappear each summer. Because the caps are integrated
+independently (state `[T, P, M_north, M_south]`), the sublimation gate stops this
+cap at zero while the north cap keeps condensing; the ODE state does **not**
+collapse both caps into one total (which drained them together on the RK4 path).
 
 ---
 
@@ -465,7 +476,8 @@ $$\frac{dP}{dt} = \frac{dP_\text{escape}}{dt} + \frac{dP_\text{sub}}{dt} + \frac
 > **Laws applied:** [Hydrostatic equilibrium](https://en.wikipedia.org/wiki/Hydrostatic_equilibrium) · [Ideal gas law](https://en.wikipedia.org/wiki/Ideal_gas_law) · [Barometric formula](https://en.wikipedia.org/wiki/Barometric_formula)
 
 From hydrostatic equilibrium: $P = M_\text{atm}\,g / A_\text{planet}$.
-Conservation of mass gives $M_\text{atm} + M_\text{ice} = \text{const}$, so:
+Conservation of mass gives $M_\text{atm} + M_\text{ice} = \text{const}$ (with
+$M_\text{ice} = M_\text{north} + M_\text{south}$, minus the escape sink below), so:
 
 $$\frac{dP_\text{sub}}{dt} = -\frac{dM_\text{ice}}{dt} \cdot \frac{g}{A_\text{planet}}$$
 
@@ -704,7 +716,7 @@ advance_orbit(dt)
         └── F = F₀·(1AU/r)²  →  radiation.solar_flux
 
 
-compute_derivatives(y = [T, P, M_ice])
+compute_derivatives(y = [T, P, M_north, M_south])
 │
 ├── [dT/dt]  = (Q_in − Q_out) / C_area
 │       │
@@ -732,7 +744,7 @@ compute_derivatives(y = [T, P, M_ice])
 │       │                     │              │          │       │
 │       │                     │         ε·σ·149⁴       │    5.7×10⁵ J/kg
 │       │                     │         = 26.51 W/m²   │
-│       │                     │                   0.01·4πR²
+│       │                     │                   0.04·4πR²
 │       │          (1−α)·F·max(0, ±sin(δ))
 │       │
 │       └── Guard: each pole clamped independently if that pole's ice = 0
@@ -750,10 +762,11 @@ compute_derivatives(y = [T, P, M_ice])
 | Equation | Reads from other equations? |
 |----------|-----------------------------|
 | $dT/dt$ | No — depends on orbital state and own $T$ |
-| $dM_\text{ice}/dt$ | No — depends on orbital state only |
-| $dP/dt$ | **Yes** — depends on $dM_\text{ice}/dt$ |
+| $dM_\text{ice,N}/dt$, $dM_\text{ice,S}/dt$ | Orbital state, plus each cap's own reservoir $M_\text{north}$/$M_\text{south}$ (the exhaustion gate) |
+| $dP/dt$ | **Yes** — depends on $dM_\text{ice}/dt = dM_\text{ice,N}/dt + dM_\text{ice,S}/dt$ |
 
-Only one coupling: ice sublimation feeds directly into pressure.
+Couplings: each cap's sublimation is gated by its own reservoir, and the two
+caps' combined mass change feeds directly into pressure.
 
 ---
 
@@ -764,7 +777,7 @@ Only one coupling: ice sublimation feeds directly into pressure.
 | Mean anomaly used as true anomaly | ±10° $L_s$ error, ±5–10 sol timing offset on seasonal peaks | `advance_orbit` |
 | $C_\text{area} = 6.0\times10^4$ constant everywhere | All surface points have Gale Crater's rocky-sandy thermal inertia | `MARS_THERMAL_INERTIA` |
 | Polar $\cos z = \max(0, \pm\sin\delta)$ | Exact at 90° poles, approximate at cap edges | polar section |
-| $A_\text{cap} = 1\%$ per pole (fixed) | Fixed sublimating area; no seasonal cap extent evolution | `MARS_POLAR_CAP_FRACTION` |
+| $A_\text{cap} = 4\%$ per pole (fixed) | Fixed effective sublimating area (calibrated to the observed seasonal swing); no explicit seasonal cap-extent evolution | `MARS_POLAR_CAP_FRACTION` |
 | Thermal tide empirical ($A=30$ Pa, $\varphi=-0.7\pi$) | Reproduces REMS diurnal $P$ oscillation but not spatial structure | `MARS_THERMAL_TIDE_PA/PHASE` |
 | 0D global pressure | No spatial pressure gradient or local weather | $dP/dt$ formulation |
 | $f_\text{gh} = 1.02$ fixed | Greenhouse does not evolve with pressure changes | `thermal.greenhouse_factor` |

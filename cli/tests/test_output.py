@@ -270,20 +270,28 @@ class TestSolTickInterval:
         assert _sol_tick_interval(8)  == 10
         assert _sol_tick_interval(14) == 10
 
-    def test_snaps_to_50_for_long_runs(self):
-        """700+ sols (≈1 Mars year) → interval of 50 (maximum)."""
+    def test_long_runs_scale_interval_for_readable_tick_count(self):
+        """Long runs keep ~8 tick marks by growing the interval past 50.
+
+        Regression: these asserted a fixed 50-sol cap, but the implementation
+        (docstring: "targeting ~8 tick marks") deliberately scales further —
+        a 3000-sol plot with 50-sol ticks would draw 60 tick marks.
+        """
         from cli.output import _sol_tick_interval
-        assert _sol_tick_interval(700)  == 50
-        assert _sol_tick_interval(3000) == 50
+        assert _sol_tick_interval(700)  == 100   # 7 ticks
+        assert _sol_tick_interval(3000) == 400   # 7.5 ticks
 
     def test_result_is_always_multiple_of_10(self):
-        """Interval is always a multiple of 10 in the range [10, 50]."""
+        """Interval is a multiple of 10, at least 10, and once runs exceed the
+        10-sol minimum-interval regime the tick count stays readable (4–12)."""
         from cli.output import _sol_tick_interval
-        for n in range(8, 700, 13):
+        for n in range(8, 3000, 13):
             iv = _sol_tick_interval(n)
             assert iv is not None
             assert iv % 10 == 0
-            assert 10 <= iv <= 50
+            assert iv >= 10
+            if n >= 40:
+                assert 4 <= n / iv <= 12, f"n={n}, interval={iv}"
 
 
 # ── plot_diurnal ──────────────────────────────────────────────────────────────
