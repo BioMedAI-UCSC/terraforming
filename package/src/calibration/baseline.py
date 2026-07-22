@@ -30,13 +30,16 @@ from src.celestials.planets.mars import Mars
 from src.engine.time_controller import Accuracy, TimeController
 
 # CO₂-budget-consistent present-day initial conditions (see module docstring).
-# The model's cap attractor is ~1.59e15 kg regardless of start; the equilibrium
-# *pressure* is set by the total CO₂ inventory. Starting the atmosphere at the
-# ~6 mb global mean with a cap slightly below the attractor lets the caps grow to
-# 1.59e15 while the spun-up mean stays ~6.1 mb (verified: 6.08 mb, drift <0.2
-# Pa/yr). The default 5e15 kg cap instead inflates the baseline to ~7.15 mb.
-PRESENT_DAY_PRESSURE_PA = 610.0
-PRESENT_DAY_ICE_KG = 0.8e15
+# The equilibrium *pressure* is set by the total CO₂ inventory (atmosphere +
+# caps); the cap has a robust seasonal attractor for a given cap fraction. With
+# the calibrated MARS_POLAR_CAP_FRACTION (0.023, tuned to the observed ~25%
+# swing) the caps relax to ~3.6e15 kg, so the atmosphere is started a little high
+# (680 Pa) with a small initial cap (0.65e15 kg); the spun-up state settles to a
+# stable ~6.2 mb with a ~25% swing (verified: drift <0.3 Pa/yr, repeatable to
+# σ<1 Pa). The model's default 5e15 kg cap instead inflates the baseline above
+# 6 mb.
+PRESENT_DAY_PRESSURE_PA = 680.0
+PRESENT_DAY_ICE_KG = 0.65e15
 
 
 @dataclasses.dataclass(frozen=True)

@@ -91,8 +91,10 @@ class TestPresentDayBaseline:
     def test_mean_pressure_is_roughly_six_millibar(self, baseline_result):
         assert 5.5 < baseline_result.mean_pressure_mb < 7.0  # ~6 mb present-day Mars
 
-    def test_has_a_seasonal_swing(self, baseline_result):
-        assert baseline_result.seasonal_swing_pa > 20.0  # CO2 cycle is present
+    def test_seasonal_swing_matches_observed_band(self, baseline_result):
+        # Regression for the cap-fraction fix: the seasonal pressure swing must be
+        # in the Viking-observed 25-30% band, not the old under-predicted ~16%.
+        assert 22.0 < baseline_result.seasonal_swing_pct < 32.0
 
     def test_is_a_stable_nondrifting_limit_cycle(self, baseline_result):
         assert abs(baseline_result.pressure_drift_pa_per_year) < 2.0

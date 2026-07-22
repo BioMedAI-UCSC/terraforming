@@ -71,7 +71,7 @@ All constants are `torch.float64` tensors defined at module level.
 | Constant | Value | Meaning |
 |----------|-------|---------|
 | `MARS_THERMAL_INERTIA` | $6.0\times10^4$ J K⁻¹ m⁻² | Surface thermal mass per unit area — controls diurnal temperature amplitude |
-| `MARS_POLAR_CAP_FRACTION` | $0.01$ | Effective fractional surface area of each sublimating polar cap |
+| `MARS_POLAR_CAP_FRACTION` | $0.023$ | Effective fractional surface area of each seasonal CO₂ cap; calibrated to the Viking-observed ~25–30 % seasonal pressure swing (was $0.01$, which gave only ~16 %) |
 | `MARS_THERMAL_TIDE_PA` | $30.0$ Pa | Half-amplitude of empirical diurnal pressure oscillation |
 | `MARS_THERMAL_TIDE_PHASE` | $-0.7\pi$ rad | Phase offset — puts pressure max at ~08:37 LMST |
 | `MARS_CO2_FROST_POINT` | $149.0$ K | CO₂ condensation/sublimation temperature at Mars surface pressure |

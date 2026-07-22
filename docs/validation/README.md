@@ -52,7 +52,14 @@ Metrics (regenerate with `PYTHONPATH=. python scripts/mcd_validation.py`):
 | `MARS_DIURNAL_SWING_AMP` | 50 K | diurnal swing envelope |
 | `MARS_THERMAL_TIDE_PA` | 30 Pa | diurnal pressure-tide amplitude |
 | `MARS_THERMAL_TIDE_PHASE` | −0.7π | tide phase (max ≈ 08:37 LMST) |
-| `MARS_POLAR_CAP_FRACTION` | 0.01 | effective sublimating cap area |
+| `MARS_POLAR_CAP_FRACTION` | 0.01 → **0.023** (corrected) | effective sublimating cap area |
+
+> **Update:** `MARS_POLAR_CAP_FRACTION` has since been corrected from 0.01 to
+> **0.023** in the ODE (see [baseline.md](baseline.md)) so the *global* seasonal
+> pressure swing matches the observed ~25–30 %. The VL1-specific optimum below
+> (0.051) is larger because VL1 sits ~3.6 km below the datum (higher local
+> pressure); this page's figure fixes both curves at explicit cap values, so it
+> is unaffected by the default change.
 
 **This pressure calibration — 1 parameter,** tuned by SciPy Nelder-Mead against
 the VL1 pressure cycle: `polar_cap_fraction`, **0.010 → 0.051**. That single knob

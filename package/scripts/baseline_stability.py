@@ -83,8 +83,8 @@ def main() -> None:
         "",
         f"Initial conditions: {run.pressure_pa[0]:.0f} Pa atmosphere, "
         f"{run.ice_kg[0]:.2e} kg cap CO₂, no forcing "
-        f"(caps relax to their ~1.59e15 kg attractor). {N_YEARS} Mars years, "
-        f"first {SPINUP} discarded as spin-up.",
+        f"(caps relax to a ~{s.mean_ice_kg:.2e} kg seasonal-mean attractor). "
+        f"{N_YEARS} Mars years, first {SPINUP} discarded as spin-up.",
         "",
         "| Quantity | Model | Present-day Mars |",
         "|---|---|---|",
