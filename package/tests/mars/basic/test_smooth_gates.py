@@ -45,11 +45,13 @@ def _sunlit(mars: Mars) -> Mars:
 
 
 def _pack_state(mars: Mars) -> torch.Tensor:
+    # State is [T, P, M_north, M_south] — the two caps are independent.
     return torch.stack(
         [
             mars.thermal.surface_temperature,
             mars.atmosphere.surface_pressure,
-            mars.water.ice_mass,
+            mars.water.ice_mass_north,
+            mars.water.ice_mass_south,
         ]
     )
 
@@ -79,7 +81,10 @@ class TestGateSemantics:
             mars.water.ice_mass_north = torch.zeros((), dtype=TF_DTYPE)
             mars.water.ice_mass_south = torch.zeros((), dtype=TF_DTYPE)
             derivs = mars.compute_derivatives(_pack_state(mars))
-            assert _val(derivs[2]) >= 0.0, f"smooth={smooth}"
+            # derivs = [dT, dP, dM_north, dM_south]; neither empty cap may lose
+            # mass (sublimation gated to 0), so both cap tendencies are >= 0.
+            assert _val(derivs[2]) >= 0.0, f"north smooth={smooth}"
+            assert _val(derivs[3]) >= 0.0, f"south smooth={smooth}"
 
     def test_condensation_is_never_gated(self):
         """dM > 0 (condensing) must pass through even at ice = 0, both modes."""
@@ -129,10 +134,18 @@ class TestGradientThroughExhaustion:
     """The bug being fixed: the hard gate's gradient is zero at an empty cap."""
 
     def _flux_grad_at_empty_cap(self, smooth: bool) -> torch.Tensor | None:
+        # The north cap (index 2) is the sunlit, empty, sublimating one. Put it in
+        # the state with requires_grad and differentiate its own tendency w.r.t.
+        # it — the autodiff path the RK4 rollout uses (caps read from y).
         mars = _sunlit(_northern_summer_mars(smooth_gates=smooth))
         ice_n = torch.zeros((), dtype=TF_DTYPE, requires_grad=True)
-        mars.water.ice_mass_north = ice_n
-        out = mars.compute_derivatives(_pack_state(mars).detach())[2]
+        y = torch.stack([
+            mars.thermal.surface_temperature.detach(),
+            mars.atmosphere.surface_pressure.detach(),
+            ice_n,
+            mars.water.ice_mass_south.detach(),
+        ])
+        out = mars.compute_derivatives(y)[2]  # north-cap tendency dM_north
         if out.grad_fn is None:
             return None  # output is disconnected from ice_n entirely
         (grad,) = torch.autograd.grad(out, ice_n, allow_unused=True)

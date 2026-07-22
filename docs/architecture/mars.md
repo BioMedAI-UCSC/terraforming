@@ -23,15 +23,22 @@ Complete derivation, dependency graph, and worked examples for every equation in
 
 ## 1. State Vector
 
-The coupled ODE system evolves three variables:
+The coupled ODE system evolves four variables — the two polar caps are carried
+**independently** so the RK4 integrator evolves each on its own (collapsing them
+to a single total and re-apportioning afterwards destroyed the seasonal
+anti-phase exchange and drained the caps to zero on the ACCURATE path):
 
 ```
-y = [T,  P,  M_ice]
-     │    │    │
-     │    │    └─ Total polar CO₂ ice mass          [kg]
-     │    └────── Global mean surface pressure       [Pa]
-     └─────────── Surface temperature at (φ, λ)     [K]
+y = [T,  P,  M_north,  M_south]
+     │    │    │          │
+     │    │    │          └─ South polar-cap CO₂ ice mass  [kg]
+     │    │    └───────────── North polar-cap CO₂ ice mass  [kg]
+     │    └──────────────────  Global mean surface pressure  [Pa]
+     └─────────────────────── Surface temperature at (φ, λ)  [K]
 ```
+
+Total ice mass is `M_north + M_south`. Each cap gates its own sublimation on its
+own reservoir, through every RK4 sub-step.
 
 At every timestep the engine calls `advance_orbit(dt)` first (updates orbital
 angle and solar flux), then either:
