@@ -118,37 +118,34 @@ class Planet(ABC):
     # State packing / unpacking  (used by the engine's ODE integrators)
     # ------------------------------------------------------------------
     def pack_state(self) -> torch.Tensor:
-        """Pack the evolvable variables into a 1-D tensor [T, P, M_ice]."""
+        """Pack the evolvable variables into a 1-D tensor [T, P, M_N, M_S].
+
+        The two polar caps are carried as **independent** state variables so the
+        ODE integrator (RK4) evolves each reservoir on its own. Collapsing them
+        to a single total and re-apportioning afterwards destroys the seasonal
+        anti-phase exchange (one cap grows while the other shrinks) and lets the
+        per-cap sublimation gate mis-fire — which drained the caps to zero on the
+        ACCURATE path.
+        """
         return torch.stack([
             self.thermal.surface_temperature,
             self.atmosphere.surface_pressure,
-            self.water.ice_mass,
+            self.water.ice_mass_north,
+            self.water.ice_mass_south,
         ])
 
     def unpack_state(self, y: torch.Tensor) -> None:
-        """Unpack a 1-D tensor [T, P, M_ice] back into the planet.
+        """Unpack a 1-D tensor [T, P, M_N, M_S] back into the planet.
 
-        Values are clamped to physical bounds.  Uses ``torch.where`` instead
-        of a Python ``if`` so this method is device-agnostic and compatible
-        with batched / compiled execution.
+        Each cap is set directly from its own state component (clamped ≥ 0); the
+        total ice mass is their sum. No proportional re-split — the reservoirs
+        are prognostic and independent.
         """
         self.thermal.surface_temperature = y[0].clamp(min=1.0)
         self.atmosphere.surface_pressure = y[1].clamp(min=0.0)
-        new_total = y[2].clamp(min=0.0)
-
-        old_total = self.water.ice_mass_north + self.water.ice_mass_south
-        # Apportion change between north/south reservoirs proportionally.
-        # Use torch.where to avoid a Python boolean check on a GPU tensor.
-        safe_total = old_total.clamp(min=1e-30)
-        f_n = torch.where(
-            old_total > 0.0,
-            self.water.ice_mass_north / safe_total,
-            old_total.new_full((), 0.5),  # same device & dtype, scalar shape
-        )
-        f_s = 1.0 - f_n
-        self.water.ice_mass_north = (new_total * f_n).clamp(min=0.0)
-        self.water.ice_mass_south = (new_total * f_s).clamp(min=0.0)
-        self.water.ice_mass       = new_total
+        self.water.ice_mass_north = y[2].clamp(min=0.0)
+        self.water.ice_mass_south = y[3].clamp(min=0.0)
+        self.water.ice_mass = self.water.ice_mass_north + self.water.ice_mass_south
 
     def observed_surface_pressure(self) -> torch.Tensor:
         """Local (observed) surface pressure.

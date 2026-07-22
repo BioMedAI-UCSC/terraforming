@@ -120,6 +120,48 @@ class TestCompositionTracksEvolvingPressure:
         )
 
 
+class TestAccurateCapBalance:
+    """Regression: the RK4 (ACCURATE) path drained the polar caps to zero.
+
+    The ODE state carried only the *total* ice mass and re-split it between the
+    caps proportionally each step, destroying the seasonal anti-phase exchange
+    so the per-cap sublimation gate never fired — the caps drained to 0 and
+    pressure ran away (~1130 Pa over a year). The state now carries both caps
+    ([T, P, M_north, M_south]) so RK4 integrates them independently.
+    """
+
+    def test_caps_are_independent_state_components(self):
+        # Perturbing one cap's state component must not move the other.
+        mars = Mars(device="cpu")
+        y = mars.pack_state()
+        assert y.shape == (4,)
+        y2 = y.clone()
+        y2[2] = y2[2] + 1.0e14          # bump north only
+        mars.unpack_state(y2)
+        assert _val(mars.water.ice_mass_north) == pytest.approx(
+            _val(y[2]) + 1.0e14, rel=1e-9
+        )
+        assert _val(mars.water.ice_mass_south) == pytest.approx(_val(y[3]), rel=1e-9)
+
+    @pytest.mark.slow
+    def test_accurate_matches_fast_and_does_not_drain(self):
+        import numpy as np
+
+        year_s = float(Mars(device="cpu").orbital_params.orbital_period)
+        out = {}
+        for acc in (Accuracy.ACCURATE, Accuracy.FAST):
+            mars = Mars(device="cpu")
+            hist = TimeController(mars, dt=3600.0, accuracy=acc).run(duration=year_s)
+            ice = np.array([_val(s.ice_mass) for s in hist])
+            P = np.array([_val(s.surface_pressure) for s in hist])
+            out[acc] = (ice.min(), P.max())
+        # Caps must NOT drain to zero on the accurate path (old bug: min → 0).
+        assert out[Accuracy.ACCURATE][0] > 1.0e14
+        # And no pressure runaway (old bug: > 1100 Pa); accurate ≈ fast.
+        assert out[Accuracy.ACCURATE][1] < 900.0
+        assert out[Accuracy.ACCURATE][1] == pytest.approx(out[Accuracy.FAST][1], rel=0.05)
+
+
 class TestSeasonalPressureSwing:
     """Regression: the seasonal CO2-cycle pressure swing was too small.
 
