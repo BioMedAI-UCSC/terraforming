@@ -8,6 +8,8 @@ Usage
   tform mars config list
   tform mars config show <preset>
   tform mars config validate <file>
+  tform benchmark [OPTIONS]
+  tform serve [OPTIONS]
   tform man [planet]
   tform --version
 
@@ -20,6 +22,7 @@ Examples
   tform mars run --type multi --sols 3 --accuracy fast
   tform mars config list
   tform mars config show gale-crater
+  tform benchmark --batch 500,1200 --years 1
   tform man mars
 """
 
@@ -458,6 +461,8 @@ def cli(ctx: click.Context) -> None:
     Usage:
       tform mars run [OPTIONS]
       tform mars config list
+      tform benchmark [OPTIONS]
+      tform serve [OPTIONS]
       tform man [mars]
 
     Pass --help after any command for detailed flag documentation.
@@ -911,6 +916,96 @@ def serve_cmd(port: int, host: str, no_browser: bool, dev: bool) -> None:
     finally:
         if dev_proc is not None:
             dev_proc.terminate()
+
+
+@cli.command("benchmark")
+@click.option("--batch", "-b", default="500,1200,1400", show_default=True,
+              help="Comma-separated batch sizes to time.")
+@click.option("--years", type=float, default=3.0, show_default=True,
+              help="Simulated duration per run, in Earth years.")
+@click.option("--accuracy", type=click.Choice([a.value for a in Accuracy]),
+              default="fast", show_default=True, help="Integration strategy.")
+@click.option("--dt", type=float, default=3600.0, show_default=True,
+              help="Timestep in seconds.")
+@click.option("--no-gpu", is_flag=True, default=False,
+              help="Skip the GPU path (CPU-only timing).")
+def benchmark_cmd(batch: str, years: float, accuracy: str, dt: float,
+                  no_gpu: bool) -> None:
+    """Benchmark batched-engine speed: CPU vs GPU across batch sizes.
+
+    \b
+    For each batch size, times BatchedTimeController on CPU (eager) and GPU
+    (torch.compile-fused), then prints a speedup table. The one-time compile
+    JIT is measured in a warm-up run and excluded from the timed GPU column.
+
+    \b
+    Examples:
+      tform benchmark
+      tform benchmark --batch 100,500,1000 --years 1
+      tform benchmark --accuracy accurate --batch 200
+      tform benchmark --no-gpu
+    """
+    import torch
+
+    from cli.runner import run_gpu_benchmark
+
+    try:
+        batch_sizes = [int(x) for x in batch.split(",") if x.strip()]
+    except ValueError:
+        click.echo(_c("\n  ✖  --batch must be comma-separated integers, "
+                      "e.g. 500,1000", "bright_red"))
+        sys.exit(1)
+    if not batch_sizes or any(b < 1 for b in batch_sizes):
+        click.echo(_c("\n  ✖  --batch needs at least one positive integer.",
+                      "bright_red"))
+        sys.exit(1)
+
+    duration_s = years * 365.0 * 24.0 * 3600.0
+    warmup_s   = 30.0 * 24.0 * 3600.0           # 30 days — enough to trigger JIT
+    acc        = Accuracy(accuracy)
+    use_gpu    = (not no_gpu) and torch.cuda.is_available()
+
+    click.echo()
+    click.echo(_divider())
+    click.echo("  " + _planet("tform") + _c("  benchmark", "bright_white", bold=True)
+               + _c(f"  ·  {acc.value} mode  ·  {years:g} yr/run  ·  dt={dt:.0f}s",
+                    "bright_black"))
+    if use_gpu:
+        click.echo(f"  {_label('device      ')}"
+                   f"{_value('cuda:0 — ' + torch.cuda.get_device_name(0))}")
+    elif no_gpu:
+        click.echo(f"  {_label('device      ')}{_value('CPU only (--no-gpu)')}")
+    else:
+        click.echo(f"  {_label('device      ')}"
+                   f"{_value('CPU only (no CUDA detected)')}")
+    click.echo(_divider())
+
+    if use_gpu:
+        click.echo(_c("  Note: the first GPU run per batch size compiles "
+                      "kernels (one-time;", "bright_black"))
+        click.echo(_c("        ~seconds on Linux, but can take MINUTES on "
+                      "Windows). This is not a hang.", "bright_black"))
+    click.echo()
+    click.echo(f"  {'B':>6}  {'CPU (s)':>10}  {'JIT (s)':>10}  "
+               f"{'GPU (s)':>10}  {'Speedup':>9}  Status")
+    click.echo("  " + "-" * 62)
+
+    def _on_start(b: int) -> None:
+        note = "CPU + GPU (compiling…)" if use_gpu else "CPU"
+        click.echo(_c(f"  {b:>6}  timing {note} …", "bright_black"))
+
+    def _on_done(r: dict) -> None:
+        cpu = f"{r['cpu_s']:>10.2f}"
+        jit = f"{r['jit_s']:>10.2f}" if r["jit_s"] is not None else f"{'—':>10}"
+        gpu = f"{r['gpu_s']:>10.2f}" if r["gpu_s"] is not None else f"{'—':>10}"
+        spd = f"{r['speedup']:>8.2f}x" if r["speedup"] is not None else f"{'—':>9}"
+        click.echo(f"  {r['B']:>6}  {cpu}  {jit}  {gpu}  {spd}  {r['status']}")
+
+    run_gpu_benchmark(batch_sizes, duration_s, warmup_s,
+                      accuracy=acc, dt=dt, use_gpu=use_gpu,
+                      on_start=_on_start, on_done=_on_done)
+
+    click.echo()
 
 
 if __name__ == "__main__":

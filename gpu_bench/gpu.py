@@ -1,60 +1,56 @@
+"""GPU vs CPU benchmark for the batched Mars engine (standalone entry point).
+
+ Read to undersand:  
+    Time the batched engine on CPU (eager) vs GPU (compiled) per batch size.
+    For each B: build B Mars instances on CPU and time an eager run; then, if a
+    CUDA device is available and *use_gpu*, build them on the GPU, pay the
+    one-time ``torch.compile`` JIT in a warm-up run (measured separately and start a new run), and
+    time a steady-state run. Pure logic — no printing — so callers own
+    formatting and the result is testable.
+
+    ``on_start(B)`` is called before each batch's work begins and
+    ``on_done(row)`` after it completes, so callers can stream progress (the
+    GPU compile can take minutes, especially on Windows).
+
+    Returns
+    -------
+    list[dict]
+        One row per batch size with keys ``B``, ``cpu_s``, ``gpu_s``,
+        ``jit_s``, ``speedup``, ``status``.  ``gpu_s`` / ``jit_s`` /
+        ``speedup`` are ``None`` when the GPU path is skipped or runs out of
+        memory.
+  WARNING: If you run this on your local GPU, and depending on the size of the batches(the bigger).
+  You can expect for some thermal throttling, meaning that the issue is, you laptop compute is
+  reaching its limit. You laptop will have some defense against this issue hence, you will see a dip in preformace.
+
+Thin wrapper around the shared benchmark logic in ``cli.runner`` — the same
+code that powers ``tform benchmark``. Prefer the CLI for normal use:
+
+    tform benchmark --batch 500,1200,1400 --years 3
+
+This script exists for quick standalone runs:
+
+    uv run python gpu_bench/gpu.py
 """
-GPU vs CPU benchmark for the Mars terraforming simulation.
-Runs B simulations in parallel for a given duration and compares CPU vs GPU time.
 
-   uv run python gpu_bench/gpu.py
-"""
-import time
-import torch
-from src.celestials import Mars
-from src.engine import BatchedTimeController, Accuracy
+from cli.runner import run_gpu_benchmark
+from cli.models import Accuracy
 
-# Fails loudly if the chunked-compile fix isn't in the imported package
-assert hasattr(BatchedTimeController, "_run_chunked"), \
-    "Fix 2 (_run_fast_chunked) not found — check which package install is being imported"
-
-BATCH_SIZES = [500,1200,1400]
+BATCH_SIZES = [500, 1200, 1400]
 DURATION_YEARS = 3
 DURATION_SECONDS = 3600.0 * 24 * 365 * DURATION_YEARS
-WARMUP_SECONDS = 3600.0 * 24 * 30   # 30 days = 720 steps — enough to trigger the JIT
+WARMUP_SECONDS = 3600.0 * 24 * 30   # 30 days — enough to trigger the JIT
 
 print(f"Mars Simulation Benchmark — {DURATION_YEARS} year run per simulation")
-print(f"{'B':>6}  {'CPU (s)':>10}  {'JIT (s)':>10}  {'GPU (s)':>10}  {'Speedup':>10}  Status")
+print(f"{'B':>6}  {'CPU (s)':>10}  {'JIT (s)':>10}  {'GPU (s)':>10}  "
+      f"{'Speedup':>10}  Status")
 print("-" * 68)
 
-for B in BATCH_SIZES:
-    # ---- CPU baseline (eager) ----
-    mars_cpu = [Mars(device='cpu') for _ in range(B)]
-    btc_cpu = BatchedTimeController(mars_cpu, accuracy=Accuracy.FAST, compile=False)
-    t0 = time.perf_counter()
-    btc_cpu.run(DURATION_SECONDS)
-    cpu_time = time.perf_counter() - t0
-    del mars_cpu, btc_cpu
-
-    # ---- GPU (compiled, chunked) ----
-    try:
-        torch.cuda.empty_cache()
-        mars_gpu = [Mars(device='cuda:0') for _ in range(B)]
-        btc_gpu = BatchedTimeController(mars_gpu, accuracy=Accuracy.FAST, compile=True)
-
-        # Warm-up: pays the one-time torch.compile cost for this batch size
-        torch.cuda.synchronize()
-        t0 = time.perf_counter()
-        btc_gpu.run(WARMUP_SECONDS)
-        torch.cuda.synchronize()
-        jit_time = time.perf_counter() - t0
-
-        # Timed run: steady-state performance
-        t0 = time.perf_counter()
-        btc_gpu.run(DURATION_SECONDS)
-        torch.cuda.synchronize()
-        gpu_time = time.perf_counter() - t0
-        speedup = cpu_time / gpu_time
-        status = "GPU wins" if gpu_time < cpu_time else "CPU wins"
-        print(f"{B:>6}  {cpu_time:>10.2f}  {jit_time:>10.2f}  {gpu_time:>10.2f}"
-              f"  {speedup:>9.2f}x  {status}")
-        del mars_gpu, btc_gpu
-        torch.cuda.empty_cache()
-    except RuntimeError as e:
-        print(f"{B:>6}  {cpu_time:>10.2f}  {'—':>10}  {'OOM':>10}  {'N/A':>10}  {e}")
-        torch.cuda.empty_cache()
+rows = run_gpu_benchmark(BATCH_SIZES, DURATION_SECONDS, WARMUP_SECONDS,
+                         accuracy=Accuracy.fast)
+for r in rows:
+    cpu = f"{r['cpu_s']:>10.2f}"
+    jit = f"{r['jit_s']:>10.2f}" if r["jit_s"] is not None else f"{'—':>10}"
+    gpu = f"{r['gpu_s']:>10.2f}" if r["gpu_s"] is not None else f"{'—':>10}"
+    spd = f"{r['speedup']:>9.2f}x" if r["speedup"] is not None else f"{'—':>10}"
+    print(f"{r['B']:>6}  {cpu}  {jit}  {gpu}  {spd}  {r['status']}")

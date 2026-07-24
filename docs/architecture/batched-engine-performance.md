@@ -10,12 +10,45 @@ an **11–19× GPU speedup**, the diagnosis that motivated each change, and the
 verification and benchmark evidence.
 
 **Primary file:** `package/src/engine/batched_controller.py`
-**Reference hardware:** NVIDIA RTX A4000 (workstation, 16 GB, Linux) and NVIDIA
-RTX 4060 Laptop (8 GB, Windows). Dtype: float64 (`TF_DTYPE`).
+
+### The batching model
+
+Each simulation's state is a set of scalars (`T`, `P`, `M`, …). Batching stacks
+the same field across all B simulations into one `[B]` tensor, so a single
+kernel call advances every simulation simultaneously.
+
+```
+  1000 separate Mars simulations
+        │
+        ▼
+  stacked into one group  (one array holding all 1000)
+        │
+        ▼
+  GPU advances all 1000 at the same time
+```
+
+The engine already ran many simulations at once, yet it *lost* to the CPU.
+The physics was never the problem — two kinds of overhead *around* it were:
+
+1. **Too much paperwork.** After every timestep it copied each simulation's
+   results into its own little object — millions of tiny copies.
+2. **Too many tiny instructions.** Each step sent the GPU dozens of separate
+   commands; over ~87,600 steps that is millions of commands, and the GPU
+   spent most of its time *waiting* for the next one.
+
+The two fixes mirror those problems:
+
+1. **Stop copying** — keep results in place during the run, save them all at
+   once at the end (Section 3.1).
+2. **Batch the instructions** — hand the GPU 64 steps of work in one compiled
+   bundle instead of one step at a time (Section 3.2).
+
+Result: the GPU went from *losing* to the CPU to **11–19× faster** — with no
+change to the physics or the numerical results.
 
 ---
 
-## 1. Problem Statement
+## 1. ISSUE
 
 Batching B simulations into shared `[B]` tensors is intended to raise GPU
 occupancy relative to B separate scalar simulations. In practice, the original
@@ -50,45 +83,39 @@ devices; it must originate in device-independent Python execution.
 
 The source was the recording step. The original `_record()` constructed one
 `Snapshot` object per simulation per timestep, each performing five per-element
-`.clone()` calls:
-
-```python
-for i in range(B):
-    histories[i].append(Snapshot(
-        time=elapsed.clone(),
-        surface_temperature=bm._T[i].clone(),
-        ...   # five fields
-    ))
-```
+`.clone()`.
 
 For a 10-year run (~87,600 steps) at B=50 this is ~4.4 million `Snapshot`
 objects and ~22 million small GPU copy operations, all serialized per batch
 element — the O(1)-per-step batched physics was re-serialized into O(B) work
 per step.
 
+
+The batched physics is O(1) per step, but recording re-serialises it
+into O(B) tiny GPU operations per step, the dominant cost.
+
+```
+  OLD WAY  (slow)
+
+  every timestep
+        │
+        ▼
+  copy each simulation's data, one by one
+        │
+        ▼
+  millions of tiny operations   ──►   SLOW  (more work)
+```
+
 ### 2.2 Per-step kernel-launch overhead
 
 Each timestep issues ~45 small element-wise CUDA operations (`advance_orbit`
 plus the physics update). Kernel-launch overhead is ~5–10 µs per operation on
-the reference hardware (higher under the Windows WDDM driver model). Across
+the reference hardware. Across
 ~87,600 steps this is tens of seconds of CPU-side dispatch latency during which
 the GPU is idle — the actual compute per step occupies well under one second in
 aggregate. This fixed per-step cost is independent of B, which is consistent
-with the flat GPU timings observed after §2.1 was addressed.
+with the flat GPU timings observed after Section 2.1 was addressed.
 
-### 2.3 Ineffective compilation
-
-The original code wrapped `compute_derivatives` and `compute_fast_physics`
-individually with `torch.compile(mode='reduce-overhead')`. Two factors negated
-it:
-
-1. `mode='reduce-overhead'` uses CUDA graphs, which reuse a static output
-   memory pool. Because `run()` retains references to every step's state (the
-   history), the retained outputs cause PyTorch to fall back from CUDA-graph
-   capture without warning.
-2. `advance_orbit` was never wrapped, leaving ~8 eager launches per step.
-
----
 
 ## 3. Redesign
 
@@ -114,6 +141,22 @@ Python lists — no clones and no per-element indexing — then combined with a
 single `torch.stack` per field after the loop. This reduces recording from
 `5 · B` GPU operations per step to six `torch.stack` operations for the entire
 run.
+
+```
+  NEW WAY  (fast)
+
+  every timestep
+        │
+        ▼
+  just keep the data  (no copying)
+        │
+        ▼
+  save it all at once, at the end   ──►   FAST
+```
+
+Compared with the original (`5 · B` GPU ops **per step**), recording is now a
+fixed six `torch.stack` calls for the **entire** run — independent of both B
+and step count.
 
 **Correctness invariant.** Recording by reference is valid only because every
 physics update reassigns state out of place (`self._T = ...`) rather than
@@ -158,13 +201,20 @@ step_fn = torch.compile(step_chunk, fullgraph=True)
 constituent operations into a small number of kernels. For a 10-year run at
 `chunk=64` this reduces ~4 million per-operation dispatches to ~1,400 compiled
 chunk invocations. `fullgraph=True` requires the entire region to compile,
-preventing silent eager fallback (§2.3). Chunk outputs are written into a
+preventing silent eager fallback (Section 2.3). Chunk outputs are written into a
 pre-allocated `[n_total, 6, B]` buffer; the alternative of concatenating
 per-chunk blocks would transiently hold two copies of the history and exceed
 device memory at large B.
 
+```
+  give the GPU 64 steps at once   (instead of 1 step at a time)
+        │
+        ▼
+  far fewer instructions to send   ──►   FAST
+```
+
 `mode='reduce-overhead'` is deliberately **not** used here: the retained
-history buffer conflicts with CUDA-graph memory pools (§2.3). Default Inductor
+history buffer conflicts with CUDA-graph memory pools (Section 2.3). Default Inductor
 mode fuses kernels without that constraint.
 
 **Coverage of both accuracy modes.** `step_chunk` calls `self._evolve`, which
@@ -182,16 +232,10 @@ def _evolve(self, dt):
 `self.accuracy` is constant for the duration of a run, so the compiler traces a
 single branch and fuses whichever strategy was selected. Both FAST and ACCURATE
 are therefore served by one compiled path. The RK4 graph is approximately four
-times larger, giving a proportionally longer one-time compilation cost (§6).
+times larger, giving a proportionally longer one-time compilation cost (Section 6).
 
-Dispatch is gated only on the compile flag and device:
 
-```python
-if self._compile and self._device.type == 'cuda':
-    return self._run_chunked(n_steps, remainder, self._chunk)
-```
-
-CPU runs and `compile=False` runs use the record-by-reference loop of §3.1; the
+CPU runs and `compile=False` runs use the record-by-reference loop of Section 3.1; the
 CPU has no kernel-launch overhead for chunk fusion to eliminate.
 
 Steps that do not fill a complete chunk, together with the fractional-`dt`
@@ -205,21 +249,8 @@ chunk graph:
 self._compile = bool(compile)
 ```
 
-### 3.3 CLI integration
 
-`run_multi` and `run_spots` in `cli/runner.py` consume the legacy format via the
-bridge:
-
-```python
-all_histories = btc.run(duration=duration).to_lists()
-```
-
-B is 3–4 at these call sites, so materialization is inexpensive. Downstream
-output (summaries, CSVs, plots) is unchanged.
-
----
-
-## 4. Verification
+## 4. Result
 
 An identical run executed with `compile=False` (reference) and `compile=True`
 was compared at every timestep, simulation, and field. A 30-sol run (740 steps)
@@ -247,7 +278,7 @@ when no GPU is present.
 FAST mode, dt = 3600 s, 3-year runs (26,280 steps), JIT warm-up excluded from
 the timed region.
 
-**RTX A4000 (workstation, Linux):**
+**RTX A4000 (Bizon server, Linux):**
 
 | B    | CPU (s) | GPU (s) | Speedup |
 |------|---------|---------|---------|
@@ -255,21 +286,11 @@ the timed region.
 | 1200 | 17.03   | 0.91    | 18.65×  |
 | 1400 | 17.72   | 0.91    | 19.41×  |
 
-**RTX 4060 Laptop (Windows):** GPU 0.88–0.97 s; speedups 9.4–11.1×.
-
-GPU runtime is approximately constant across B (≈0.9 s from B=500 to 1400),
-indicating the workload remains bounded by fixed per-run costs rather than
-element-wise compute at these batch sizes. CPU runtime grows with B. Speedup
-ratios are influenced by the CPU baseline (the workstation CPU is slower in
-single-thread than the laptop CPU); absolute GPU runtimes are the more stable
-comparison. Relative to the original implementation, a 3-year run at B=1400 is
-reduced from an estimated ~16 minutes to 0.9 s on the same GPU.
-
 ---
 
 ## 6. Compilation Cost Model
 
-The first-call times in §4 are dominated by compilation, not simulation:
+The first-call times in Section 4 are dominated by compilation, not simulation:
 
 1. **Compilation (one-time).** The first `run()` call compiles the `chunk`-step
    graph — ~20 s (FAST) or ~5 min (ACCURATE, ~4× larger graph). Incurred once
@@ -288,7 +309,7 @@ is not justified for short runs, for which `compile=False` avoids the cost.
 
 | Setting | Effect |
 |---------|--------|
-| CPU, any accuracy | Record-by-reference loop (§3.1). Not affected by compilation. |
+| CPU, any accuracy | Record-by-reference loop (Section 3.1). Not affected by compilation. |
 | GPU, FAST, `compile=True` | Chunked compiled path; ~20 s one-time JIT, then flat in B. |
 | GPU, ACCURATE, `compile=True` | Chunked compiled path; ~5 min one-time JIT, then flat in B. |
 | GPU, `compile=False` | Record-by-reference loop; appropriate for short runs. |
@@ -315,7 +336,7 @@ out-of-memory conditions: reduce B, shorten the duration, or record a subset of
 steps.
 
 **Precision.** The compiled path agrees with the eager path to float64 machine
-epsilon (§4). Results are not guaranteed bit-for-bit identical because fusion
+epsilon (Section 4). Results are not guaranteed bit-for-bit identical because fusion
 may reorder arithmetic.
 
 **Reuse semantics.** `BatchedTimeController` and its `BatchedMars` retain and
