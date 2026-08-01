@@ -1,0 +1,47 @@
+<svg width="720" height="240" viewBox="0 0 720 240" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="tform — Mars terraforming physics framework">
+  <defs>
+    <!-- Barren Mars hemisphere (left) -->
+    <linearGradient id="mars" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e8724c"/>
+      <stop offset="0.55" stop-color="#c1440e"/>
+      <stop offset="1" stop-color="#7a2408"/>
+    </linearGradient>
+    <!-- Terraformed hemisphere (right) -->
+    <linearGradient id="terra" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8fd694"/>
+      <stop offset="0.5" stop-color="#2f9e6f"/>
+      <stop offset="1" stop-color="#1f6f8b"/>
+    </linearGradient>
+    <!-- Atmosphere glow -->
+    <radialGradient id="atmo" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0.72" stop-color="#5ec8e6" stop-opacity="0"/>
+      <stop offset="0.9" stop-color="#5ec8e6" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#5ec8e6" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="disc"><circle cx="120" cy="120" r="84"/></clipPath>
+  </defs>
+
+  <!-- Atmospheric halo -->
+  <circle cx="120" cy="120" r="104" fill="url(#atmo)"/>
+
+  <!-- Planet: red past -> green/blue future -->
+  <g clip-path="url(#disc)">
+    <rect x="36" y="36" width="84" height="168" fill="url(#mars)"/>
+    <rect x="120" y="36" width="84" height="168" fill="url(#terra)"/>
+    <!-- crater / basin texture on the barren side -->
+    <circle cx="72" cy="86" r="11" fill="#8f2f10" opacity="0.55"/>
+    <circle cx="92" cy="150" r="7" fill="#8f2f10" opacity="0.5"/>
+    <circle cx="56" cy="140" r="5" fill="#8f2f10" opacity="0.5"/>
+    <!-- liquid water / life on the terraformed side -->
+    <path d="M132 92 q18 -10 40 4 q-14 12 -40 -4 Z" fill="#2a7fb0" opacity="0.8"/>
+    <path d="M150 150 q16 -8 34 2 q-12 10 -34 -2 Z" fill="#2a7fb0" opacity="0.75"/>
+    <circle cx="188" cy="118" r="6" fill="#bff0c4" opacity="0.7"/>
+  </g>
+  <!-- Terminator + rim -->
+  <line x1="120" y1="36" x2="120" y2="204" stroke="#0b0b0f" stroke-opacity="0.28" stroke-width="2"/>
+  <circle cx="120" cy="120" r="84" fill="none" stroke="#ffffff" stroke-opacity="0.12" stroke-width="2"/>
+
+  <!-- Wordmark -->
+  <text x="248" y="120" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="62" font-weight="800" fill="#e6e6ea" letter-spacing="-1.5">Terraforming</text>
+  <text x="250" y="158" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="19" font-weight="500" fill="#9aa0aa" letter-spacing="1.2">PLANETARY PHYSICS FRAMEWORK</text>
+</svg>
