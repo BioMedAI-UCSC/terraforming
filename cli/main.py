@@ -913,5 +913,45 @@ def serve_cmd(port: int, host: str, no_browser: bool, dev: bool) -> None:
             dev_proc.terminate()
 
 
+
+
+
+# ── tform benchmark ───────────────────────────────────────────────────────────
+
+@cli.command("benchmark")
+@click.option(
+    "--sols",
+    "sol_counts",
+    multiple=True,
+    type=click.IntRange(min=1),
+    help=(
+        "Sol count to benchmark. Repeat for multiple values. "
+        "Defaults to 7, 30, 180, 600, 5000, and 10000."
+    ),
+)
+@click.option(
+    "--accuracy",
+    type=click.Choice([a.value for a in Accuracy]),
+    default=Accuracy.fast.value,
+    show_default=True,
+)
+def benchmark_cmd(
+    sol_counts: tuple[int, ...],
+    accuracy: str,
+) -> None:
+    """Run repeatable Mars simulation benchmarks."""
+    from cli.benchmark import run_benchmarks
+
+    run_benchmarks(
+        sol_counts=list(sol_counts) or None,
+        accuracy=Accuracy(accuracy),
+    )
+
+
+
+
+
+
+
 if __name__ == "__main__":
     cli()
