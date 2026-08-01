@@ -64,24 +64,31 @@ class TestPlanetInterface(unittest.TestCase):
             self.assertEqual(const.dtype, torch.float64)
 
     def test_pack_unpack_state(self):
-        """pack_state / unpack_state should roundtrip correctly."""
+        """pack_state / unpack_state should roundtrip correctly.
+
+        State is [T, P, M_north, M_south] — the two caps are independent.
+        """
         mars = Mars()
         y = mars.pack_state()
-        self.assertEqual(y.shape, (3,))
+        self.assertEqual(y.shape, (4,))
         self.assertAlmostEqual(float(y[0].item()), 210.0)
+        # The two cap components must sum to the total ice mass.
+        self.assertAlmostEqual(
+            float(y[2].item()) + float(y[3].item()), _val(mars.water.ice_mass)
+        )
         # Modify and unpack
         y_new = y + 1.0
         mars.unpack_state(y_new)
         self.assertAlmostEqual(_val(mars.thermal.surface_temperature), 211.0)
 
     def test_compute_derivatives_returns_tensor(self):
-        """compute_derivatives should return a shape-[3] tensor."""
+        """compute_derivatives should return a shape-[4] tensor (per-cap)."""
         mars = Mars()
         # Need solar flux to be set for meaningful derivatives
         mars.advance_orbit(_c(3600.0))
         y = mars.pack_state()
         dy = mars.compute_derivatives(y)
-        self.assertEqual(dy.shape, (3,))
+        self.assertEqual(dy.shape, (4,))
         self.assertEqual(dy.dtype, torch.float64)
 
 

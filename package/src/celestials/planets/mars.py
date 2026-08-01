@@ -310,7 +310,12 @@ class Mars(Planet):
     # PHYSICS: Coupled ODE derivatives  (used by engine's RK4 integrator)
     # ==================================================================
     def compute_derivatives(self, y: torch.Tensor) -> torch.Tensor:
-        """Compute dy/dt for the coupled system y = [T, P, M_ice].
+        """Compute dy/dt for the coupled system y = [T, P, M_north, M_south].
+
+        The two polar caps are separate state variables (``M_north``,
+        ``M_south``) so RK4 integrates each independently and each gates its own
+        sublimation; ``dP/dt`` uses their combined tendency. ``M_ice`` below
+        refers to the cap being described.
 
         Coupled ODE system:
 
@@ -337,8 +342,9 @@ class Mars(Planet):
         s = self
 
         T     = y[0].clamp(min=1.0)
-        P     = y[1].clamp(min=0.0)
-        M_ice = y[2].clamp(min=0.0)  # noqa: F841  (available for future use)
+        P     = y[1].clamp(min=0.0)  # noqa: F841  (not used in the RHS)
+        ice_N = y[2].clamp(min=0.0)  # north-cap mass — gates its own sublimation
+        ice_S = y[3].clamp(min=0.0)  # south-cap mass
 
         # ==================================================================
         # --- dT/dt: energy balance ---
@@ -382,9 +388,11 @@ class Mars(Planet):
         net_sub_N = (Q_in_N - self._Q_out_pole) * A_cap / self._LAT_HEAT
         net_sub_S = (Q_in_S - self._Q_out_pole) * A_cap / self._LAT_HEAT
 
-        # Gate sublimation (dMice < 0) when that pole's ice is exhausted.
-        dMice_N = self._gate_sublimation(-net_sub_N, s.water.ice_mass_north)
-        dMice_S = self._gate_sublimation(-net_sub_S, s.water.ice_mass_south)
+        # Gate sublimation (dMice < 0) when that pole's ice is exhausted. The cap
+        # masses come from the integrated state (y), so each cap is gated on its
+        # own evolving reservoir through every RK4 sub-step.
+        dMice_N = self._gate_sublimation(-net_sub_N, ice_N)
+        dMice_S = self._gate_sublimation(-net_sub_S, ice_S)
         dMice_dt = dMice_N + dMice_S
 
         # ==================================================================
@@ -402,7 +410,10 @@ class Mars(Planet):
             + (-dMice_dt * self.intrinsic_params.gravity / A_planet)
         )
 
-        return torch.stack([dT_dt, dP_dt, dMice_dt])
+        # State is [T, P, M_north, M_south]: return each cap's tendency so RK4
+        # integrates the two reservoirs independently (they exchange in
+        # anti-phase across the seasons).
+        return torch.stack([dT_dt, dP_dt, dMice_N, dMice_S])
 
     # ==================================================================
     # PHYSICS: Reduced-order analytic update  (used by engine's fast path)
