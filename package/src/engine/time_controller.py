@@ -182,15 +182,16 @@ class TimeController:
     def _snapshot(self) -> Snapshot:
         s = self.planet
         return Snapshot(
-            time=s.elapsed_time.clone(),
-            surface_temperature=s.thermal.surface_temperature.clone(),
+            time=s.elapsed_time,
+            surface_temperature=s.thermal.surface_temperature,
             # Observed pressure = mass-budget mean + any local diagnostic
             # overlay (Mars: thermal tide), so outputs keep the diurnal wave.
-            surface_pressure=s.observed_surface_pressure().clone(),
-            ice_mass=s.water.ice_mass.clone(),
-            solar_flux=s.radiation.solar_flux.clone(),
-            orbital_angle=s.orbital_angle.clone(),
+            surface_pressure=s.observed_surface_pressure(),
+            ice_mass=s.water.ice_mass,
+            solar_flux=s.radiation.solar_flux,
+            orbital_angle=s.orbital_angle,
         )
+
 
     # ------------------------------------------------------------------
     # Simulation loop
@@ -230,7 +231,6 @@ class TimeController:
         elapsed = torch.zeros((), dtype=TF_DTYPE, device=self.device)
 
         history: List[Snapshot] = []
-
         for _ in range(n_steps):
             self.evolve(self.dt)
             elapsed = elapsed + self.dt

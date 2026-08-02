@@ -70,3 +70,5 @@ node_modules/
 .next/
 .nuxt/
 .output/
+
+requirements.txt

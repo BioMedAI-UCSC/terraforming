@@ -299,7 +299,7 @@ def run_multi(cfg: SimConfig) -> list[RunResult]:
         accuracy=_src_accuracy(cfg.engine.accuracy),
         compile=(mars_list[0]._device.type == 'cuda'),  # fuse kernels on GPU
     )
-    all_histories = btc.run(duration=duration)
+    all_histories = btc.run(duration=duration).to_lists()
 
     results: list[RunResult] = []
     for pt, history in zip(MULTI_POINTS, all_histories):
@@ -343,7 +343,7 @@ def run_spots(cfg: SimConfig) -> list[RunResult]:
         accuracy=_src_accuracy(cfg.engine.accuracy),
         compile=(mars_list[0]._device.type == 'cuda'),
     )
-    all_histories = btc.run(duration=duration)
+    all_histories = btc.run(duration=duration).to_lists()
 
     results: list[RunResult] = []
     for sp, history in zip(LANDMARK_SPOTS, all_histories):
@@ -352,6 +352,75 @@ def run_spots(cfg: SimConfig) -> list[RunResult]:
         _print_summary(history)
         results.append(RunResult(name=sp["name"], history=history,
                                  lat=sp["lat"], lon=sp["lon"]))
+    return results
+
+
+def run_gpu_benchmark(
+    batch_sizes: list[int],
+    duration_s: float,
+    warmup_s: float,
+    accuracy: Accuracy = Accuracy.fast,
+    dt: float = 3600.0,
+    use_gpu: bool = True,
+    on_start: Callable[[int], None] | None = None,
+    on_done: Callable[[dict[str, Any]], None] | None = None,
+) -> list[dict[str, Any]]:
+
+    import time
+    import torch
+
+    src_acc  = _src_accuracy(accuracy)
+    has_cuda = use_gpu and torch.cuda.is_available()
+    results: list[dict[str, Any]] = []
+
+    for B in batch_sizes:
+        if on_start is not None:
+            on_start(B)
+
+        # ---- CPU baseline (eager) ----
+        mars_cpu = [Mars(device="cpu") for _ in range(B)]
+        btc_cpu  = BatchedTimeController(mars_cpu, dt=dt, accuracy=src_acc,
+                                         compile=False)
+        t0 = time.perf_counter()
+        btc_cpu.run(duration_s)
+        cpu_s = time.perf_counter() - t0
+        del mars_cpu, btc_cpu
+
+        row: dict[str, Any] = {"B": B, "cpu_s": cpu_s, "gpu_s": None,
+                               "jit_s": None, "speedup": None,
+                               "status": "CPU only"}
+
+        # ---- GPU (compiled, chunked) ----
+        if has_cuda:
+            try:
+                torch.cuda.empty_cache()
+                mars_gpu = [Mars(device="cuda:0") for _ in range(B)]
+                btc_gpu  = BatchedTimeController(mars_gpu, dt=dt,
+                                                 accuracy=src_acc, compile=True)
+                # Warm-up: pays the one-time JIT for this batch size.
+                torch.cuda.synchronize()
+                t0 = time.perf_counter()
+                btc_gpu.run(warmup_s)
+                torch.cuda.synchronize()
+                row["jit_s"] = time.perf_counter() - t0
+                # Timed steady-state run.
+                t0 = time.perf_counter()
+                btc_gpu.run(duration_s)
+                torch.cuda.synchronize()
+                gpu_s = time.perf_counter() - t0
+                row["gpu_s"]   = gpu_s
+                row["speedup"] = cpu_s / gpu_s if gpu_s > 0 else None
+                row["status"]  = "GPU wins" if gpu_s < cpu_s else "CPU wins"
+                del mars_gpu, btc_gpu
+                torch.cuda.empty_cache()
+            except RuntimeError:
+                row["status"] = "GPU OOM"
+                torch.cuda.empty_cache()
+
+        if on_done is not None:
+            on_done(row)
+        results.append(row)
+
     return results
 
 

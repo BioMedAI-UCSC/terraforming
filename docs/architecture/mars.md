@@ -768,8 +768,6 @@ compute_derivatives(y = [T, P, M_north, M_south])
 Couplings: each cap's sublimation is gated by its own reservoir, and the two
 caps' combined mass change feeds directly into pressure.
 
----
-
 ## 10. Model Scope and Known Approximations
 
 | Approximation | Impact | Location |

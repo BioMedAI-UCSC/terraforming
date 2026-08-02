@@ -112,6 +112,50 @@ tform mars config validate experiments/my-run.yaml
 
 ---
 
+## `tform benchmark`
+
+Benchmark batched-engine speed: CPU vs GPU across batch sizes.
+
+```bash
+tform benchmark [OPTIONS]
+```
+
+For each batch size, times `BatchedTimeController` on CPU (eager) and, if a CUDA
+device is available, on GPU (`torch.compile`-fused), then prints a speedup table.
+The one-time compile (JIT) is measured in a warm-up run and reported in its own
+column, kept out of the timed GPU result. Progress streams per batch size.
+
+### Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--batch, -b LIST` | str | `500,1200,1400` | Comma-separated batch sizes to time |
+| `--years N` | float | `3.0` | Simulated duration per run, in Earth years |
+| `--accuracy MODE` | choice | `fast` | Integration strategy (`fast` / `accurate`) |
+| `--dt SECONDS` | float | `3600.0` | Timestep in seconds |
+| `--no-gpu` | flag | — | Skip the GPU path (CPU-only timing) |
+
+### Examples
+
+```bash
+# Default sweep (B = 500, 1200, 1400 over 3 years)
+tform benchmark
+
+# Custom batch sizes and duration
+tform benchmark --batch 100,500,1000 --years 1
+
+# CPU-only (instant — no GPU compile wait)
+tform benchmark --no-gpu
+```
+
+!!! note "First GPU run compiles kernels"
+    The first GPU run per batch size pays a one-time `torch.compile` cost —
+    seconds on Linux, but minutes on Windows. This is a one-time cost per batch
+    size, not a hang; the progress line shows it working. For fast results, run
+    on Linux, or use `--no-gpu` for a quick CPU-only baseline.
+
+---
+
 ## `tform serve`
 
 Start the tform visualisation web server.
