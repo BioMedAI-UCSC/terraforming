@@ -41,47 +41,124 @@ from src.framework.magnetic import Magnetic
 from src.framework.intrinsic import IntrinsicParameters
 from src.framework.orbital import OrbitalParameters
 
-# ---------------------------------------------------------------------------
-# Mars-specific constants  (module-level CPU tensors; moved to device in
-# setup_properties via self._* caching — never used directly in hot paths)
-# ---------------------------------------------------------------------------
-MARS_MASS: torch.Tensor             = torch.tensor(6.4171e23,   dtype=TF_DTYPE)  # kg
-MARS_RADIUS: torch.Tensor           = torch.tensor(3.3895e6,    dtype=TF_DTYPE)  # m
-MARS_GRAVITY: torch.Tensor          = torch.tensor(3.72076,     dtype=TF_DTYPE)  # m s⁻²
-MARS_ROTATION_PERIOD: torch.Tensor  = torch.tensor(88_775.244,  dtype=TF_DTYPE)  # s  (1 sol)
-MARS_SEMI_MAJOR_AXIS: torch.Tensor  = torch.tensor(2.27939200e11, dtype=TF_DTYPE) # m  (1.524 AU)
-MARS_ECCENTRICITY: torch.Tensor     = torch.tensor(0.0934,      dtype=TF_DTYPE)  # dimensionless
-MARS_ORBITAL_PERIOD: torch.Tensor   = torch.tensor(5.93568e7,   dtype=TF_DTYPE)  # s  (~687 d)
-MARS_AXIAL_TILT: torch.Tensor        = torch.tensor(25.19 * math.pi / 180.0, dtype=TF_DTYPE)  # rad
+from src.celestials.planets.mars.constants import MARS, MarsConstants
 
-# Physics constants calibrated to Mars observations
-MARS_LS_PERIHELION: torch.Tensor      = torch.tensor(251.0 * math.pi / 180.0, dtype=TF_DTYPE)  # rad
-MARS_SURFACE_EMISSIVITY: torch.Tensor = torch.tensor(0.95,     dtype=TF_DTYPE)
-MARS_THERMAL_INERTIA: torch.Tensor    = torch.tensor(6.0e4,    dtype=TF_DTYPE)  # J K⁻¹ m⁻²
-MARS_MAVEN_ESCAPE_RATE: torch.Tensor  = torch.tensor(0.2,      dtype=TF_DTYPE)  # kg s⁻¹
-MARS_CO2_FROST_POINT: torch.Tensor    = torch.tensor(149.0,    dtype=TF_DTYPE)  # K
-MARS_CO2_LATENT_HEAT: torch.Tensor    = torch.tensor(5.7e5,    dtype=TF_DTYPE)  # J kg⁻¹
-# Effective fractional surface area of each seasonal CO2 cap, per pole. Sets the
-# amplitude of the seasonal CO2-cycle pressure swing (dMice -> dP, in both
-# compute_derivatives and compute_fast_physics). The former 0.01 gave only a ~6%
-# seasonal (daily-mean) swing; the Viking Landers observe ~25-30% (Hess et al.
-# 1980; Tillman et al. 1993), reproduced by MCD 6.1. Calibrated to that swing:
-# 0.04 gives ~27% at a stable ~5.9 mb mean with the default reservoir. Effective
-# area (folds in partial coverage / sublimation efficiency) — still conservative
-# vs the real seasonal cap's mid-latitude reach.
-MARS_POLAR_CAP_FRACTION: torch.Tensor = torch.tensor(0.04,     dtype=TF_DTYPE)  # dimensionless
-MARS_DIURNAL_SWING_AMP: torch.Tensor  = torch.tensor(50.0,     dtype=TF_DTYPE)  # K
-MARS_THERMAL_TIDE_PA: torch.Tensor    = torch.tensor(30.0,     dtype=TF_DTYPE)  # Pa
-MARS_THERMAL_TIDE_PHASE: torch.Tensor = torch.tensor(-0.7 * math.pi, dtype=TF_DTYPE)  # rad
+# ---------------------------------------------------------------------------
+# Constants → tensors
+#
+# The *numbers* live in ``constants.py`` as plain floats, framework-free, so a
+# JAX/NumPy backend can read the same source of truth.  This module owns the
+# one-way conversion into PyTorch.  The module-level ``MARS_*`` tensors below
+# are CPU scalars kept for backwards compatibility with existing import sites;
+# they are moved to the planet's device in ``setup_properties`` via ``self._*``
+# caching and are never used directly in hot paths.
+# ---------------------------------------------------------------------------
+
+
+def constants_to_tensors(
+    constants: MarsConstants = MARS,
+    *,
+    device: str | torch.device | None = None,
+    dtype=TF_DTYPE,
+) -> Dict[str, torch.Tensor]:
+    """Convert a :class:`MarsConstants` into a dict of ``torch`` scalars.
+
+    This is the sole torch-ward crossing for Mars's scalar constants.  Keys are
+    the legacy ``MARS_*`` names, so the result can be used anywhere the old
+    module-level tensors were.  Composition is a nested mapping and therefore
+    lives in its own factory, :func:`composition_to_tensors`.
+
+    Parameters
+    ----------
+    constants : MarsConstants, optional
+        The bundle to convert.  Defaults to the canonical present-day
+        :data:`~src.celestials.planets.mars.constants.MARS`.
+    device : str or torch.device, optional
+        Device to allocate on.  ``None`` leaves them on CPU.
+    dtype : torch.dtype, optional
+        Defaults to the project-wide ``TF_DTYPE`` (float64).
+
+    Returns
+    -------
+    dict[str, torch.Tensor]
+        Zero-dimensional tensors keyed by ``MARS_*`` name.
+
+    Examples
+    --------
+    >>> t = constants_to_tensors(device="cpu")
+    >>> float(t["MARS_GRAVITY"])
+    3.72076
+    """
+    def _t(value: float) -> torch.Tensor:
+        return torch.tensor(value, dtype=dtype, device=device)
+
+    return {
+        "MARS_MASS":               _t(constants.mass_kg),
+        "MARS_RADIUS":             _t(constants.radius_m),
+        "MARS_GRAVITY":            _t(constants.gravity_m_s2),
+        "MARS_ROTATION_PERIOD":    _t(constants.solar_day_s),
+        "MARS_SEMI_MAJOR_AXIS":    _t(constants.semi_major_axis_m),
+        "MARS_ECCENTRICITY":       _t(constants.eccentricity),
+        "MARS_ORBITAL_PERIOD":     _t(constants.orbital_period_s),
+        "MARS_AXIAL_TILT":         _t(constants.axial_tilt_rad),
+        "MARS_LS_PERIHELION":      _t(constants.ls_perihelion_rad),
+        "MARS_SURFACE_EMISSIVITY": _t(constants.surface_emissivity),
+        "MARS_THERMAL_INERTIA":    _t(constants.thermal_inertia_j_k_m2),
+        "MARS_MAVEN_ESCAPE_RATE":  _t(constants.maven_escape_rate_kg_s),
+        "MARS_CO2_FROST_POINT":    _t(constants.co2_frost_point_k),
+        "MARS_CO2_LATENT_HEAT":    _t(constants.co2_latent_heat_j_kg),
+        "MARS_POLAR_CAP_FRACTION": _t(constants.polar_cap_fraction),
+        "MARS_DIURNAL_SWING_AMP":  _t(constants.diurnal_swing_amp_k),
+        "MARS_THERMAL_TIDE_PA":    _t(constants.thermal_tide_pa),
+        "MARS_THERMAL_TIDE_PHASE": _t(constants.thermal_tide_phase_rad),
+    }
+
+
+def composition_to_tensors(
+    constants: MarsConstants = MARS,
+    *,
+    device: str | torch.device | None = None,
+    dtype=TF_DTYPE,
+) -> Dict[str, torch.Tensor]:
+    """Convert the default atmospheric composition into ``torch`` scalars.
+
+    Parameters mirror :func:`constants_to_tensors`.
+
+    Returns
+    -------
+    dict[str, torch.Tensor]
+        Partial pressures in Pa, keyed by species symbol (``"CO2"``, ``"N2"``…).
+    """
+    return {
+        species: torch.tensor(pressure, dtype=dtype, device=device)
+        for species, pressure in constants.composition_pa.items()
+    }
+
+
+# CPU tensors for the present-day Mars, exported for backwards compatibility.
+_MARS_CPU_TENSORS = constants_to_tensors(MARS)
+
+MARS_MASS: torch.Tensor               = _MARS_CPU_TENSORS["MARS_MASS"]
+MARS_RADIUS: torch.Tensor             = _MARS_CPU_TENSORS["MARS_RADIUS"]
+MARS_GRAVITY: torch.Tensor            = _MARS_CPU_TENSORS["MARS_GRAVITY"]
+MARS_ROTATION_PERIOD: torch.Tensor    = _MARS_CPU_TENSORS["MARS_ROTATION_PERIOD"]
+MARS_SEMI_MAJOR_AXIS: torch.Tensor    = _MARS_CPU_TENSORS["MARS_SEMI_MAJOR_AXIS"]
+MARS_ECCENTRICITY: torch.Tensor       = _MARS_CPU_TENSORS["MARS_ECCENTRICITY"]
+MARS_ORBITAL_PERIOD: torch.Tensor     = _MARS_CPU_TENSORS["MARS_ORBITAL_PERIOD"]
+MARS_AXIAL_TILT: torch.Tensor         = _MARS_CPU_TENSORS["MARS_AXIAL_TILT"]
+MARS_LS_PERIHELION: torch.Tensor      = _MARS_CPU_TENSORS["MARS_LS_PERIHELION"]
+MARS_SURFACE_EMISSIVITY: torch.Tensor = _MARS_CPU_TENSORS["MARS_SURFACE_EMISSIVITY"]
+MARS_THERMAL_INERTIA: torch.Tensor    = _MARS_CPU_TENSORS["MARS_THERMAL_INERTIA"]
+MARS_MAVEN_ESCAPE_RATE: torch.Tensor  = _MARS_CPU_TENSORS["MARS_MAVEN_ESCAPE_RATE"]
+MARS_CO2_FROST_POINT: torch.Tensor    = _MARS_CPU_TENSORS["MARS_CO2_FROST_POINT"]
+MARS_CO2_LATENT_HEAT: torch.Tensor    = _MARS_CPU_TENSORS["MARS_CO2_LATENT_HEAT"]
+MARS_POLAR_CAP_FRACTION: torch.Tensor = _MARS_CPU_TENSORS["MARS_POLAR_CAP_FRACTION"]
+MARS_DIURNAL_SWING_AMP: torch.Tensor  = _MARS_CPU_TENSORS["MARS_DIURNAL_SWING_AMP"]
+MARS_THERMAL_TIDE_PA: torch.Tensor    = _MARS_CPU_TENSORS["MARS_THERMAL_TIDE_PA"]
+MARS_THERMAL_TIDE_PHASE: torch.Tensor = _MARS_CPU_TENSORS["MARS_THERMAL_TIDE_PHASE"]
 
 # Default atmospheric composition (partial pressures in Pa)
-MARS_DEFAULT_COMPOSITION: Dict[str, torch.Tensor] = {
-    "CO2": torch.tensor(580.0, dtype=TF_DTYPE),
-    "N2":  torch.tensor(15.0,  dtype=TF_DTYPE),
-    "Ar":  torch.tensor(12.0,  dtype=TF_DTYPE),
-    "O2":  torch.tensor(0.8,   dtype=TF_DTYPE),
-    "CO":  torch.tensor(0.4,   dtype=TF_DTYPE),
-}
+MARS_DEFAULT_COMPOSITION: Dict[str, torch.Tensor] = composition_to_tensors(MARS)
 
 
 class Mars(Planet):
@@ -110,6 +187,11 @@ class Mars(Planet):
         Reference ice mass (kg) setting the width of the smooth gate:
         gate = tanh(M_ice / ice_ref_kg).  Only used when ``smooth_gates=True``.
         Default 10¹² kg.
+    constants : MarsConstants, optional
+        The physical constants to build this planet on.  Defaults to the
+        canonical present-day :data:`~src.celestials.planets.mars.constants.MARS`.
+        Pass a ``dataclasses.replace(MARS, ...)`` variant to run a
+        counterfactual Mars without touching module state.
     device : str or torch.device, optional
         PyTorch device for all state tensors.  Default ``'cpu'``.
         Pass ``'cuda'`` (or ``'cuda:0'``) to run on GPU.
@@ -130,6 +212,7 @@ class Mars(Planet):
         initial_ls_deg: float = 251.0,
         smooth_gates: bool = False,
         ice_ref_kg: float = 1.0e12,
+        constants: MarsConstants = MARS,
         device: str | torch.device | None = None,
     ) -> None:
         if ice_ref_kg <= 0.0:
@@ -143,6 +226,11 @@ class Mars(Planet):
         self._device = torch.device(device)
         d = self._device
 
+        # Framework-neutral constants, converted to device tensors exactly once.
+        # ``setup_properties`` caches individual entries onto ``self._*``.
+        self.constants = constants
+        self._const = constants_to_tensors(constants, device=d)
+
         def _t(v: float) -> torch.Tensor:
             """Create a scalar tensor on the planet's device."""
             return torch.tensor(v, dtype=TF_DTYPE, device=d)
@@ -150,23 +238,22 @@ class Mars(Planet):
         # All IntrinsicParameters and OrbitalParameters tensors must be on device
         # so that distance_from_sun() and physics methods stay device-local.
         self.intrinsic_params = IntrinsicParameters(
-            mass=MARS_MASS.to(d),
-            radius=MARS_RADIUS.to(d),
-            gravity=MARS_GRAVITY.to(d),
-            rotation_period=MARS_ROTATION_PERIOD.to(d),
+            mass=self._const["MARS_MASS"],
+            radius=self._const["MARS_RADIUS"],
+            gravity=self._const["MARS_GRAVITY"],
+            rotation_period=self._const["MARS_ROTATION_PERIOD"],
         )
 
         self.orbital_params = OrbitalParameters(
-            semi_major_axis=MARS_SEMI_MAJOR_AXIS.to(d),
-            eccentricity=MARS_ECCENTRICITY.to(d),
-            orbital_period=MARS_ORBITAL_PERIOD.to(d),
-            axial_tilt=MARS_AXIAL_TILT.to(d),
+            semi_major_axis=self._const["MARS_SEMI_MAJOR_AXIS"],
+            eccentricity=self._const["MARS_ECCENTRICITY"],
+            orbital_period=self._const["MARS_ORBITAL_PERIOD"],
+            axial_tilt=self._const["MARS_AXIAL_TILT"],
         )
 
         # Hydrostatic elevation correction: P = P_ref * exp(-z / H)
         # Mars CO₂ scale height H ≈ 11.1 km at mean surface temperature.
-        MARS_SCALE_HEIGHT_M = 11_100.0
-        corrected_pressure = surface_pressure * math.exp(-elevation_m / MARS_SCALE_HEIGHT_M)
+        corrected_pressure = surface_pressure * math.exp(-elevation_m / constants.scale_height_m)
 
         # Initial-condition tensors — all on device
         self._init_temperature    = _t(surface_temperature)
@@ -177,12 +264,14 @@ class Mars(Planet):
         self._init_latitude       = _t(latitude * math.pi / 180.0)
         self._init_longitude      = _t(longitude * math.pi / 180.0)
         # orbital_angle = 0 is perihelion; Ls = orbital_angle + Ls_perihelion
-        self._init_orbital_angle  = _t((initial_ls_deg - 251.0) * math.pi / 180.0)
+        self._init_orbital_angle  = _t(
+            (initial_ls_deg - constants.ls_perihelion_deg) * math.pi / 180.0
+        )
 
         if composition is not None:
             self._init_composition = {k: _t(v) for k, v in composition.items()}
         else:
-            self._init_composition = {k: v.to(d) for k, v in MARS_DEFAULT_COMPOSITION.items()}
+            self._init_composition = composition_to_tensors(constants, device=d)
 
         # Composition is the single source of truth for what the atmosphere
         # contains: rescale the partial pressures so they sum exactly to the
@@ -250,18 +339,19 @@ class Mars(Planet):
         # ---- Device-local constant cache ----
         # These are the only references used inside compute_derivatives and
         # compute_fast_physics so that no CPU tensor ever touches GPU math.
+        c = self._const                                                                # already on device
         self._SB          = STEFAN_BOLTZMANN.to(d)                                    # σ
-        self._TI          = MARS_THERMAL_INERTIA.to(d)                                # C (J K⁻¹ m⁻²)
-        self._EMISS       = MARS_SURFACE_EMISSIVITY.to(d)                             # ε
-        self._LS_PERI     = MARS_LS_PERIHELION.to(d)                                  # Ls at perihelion
-        self._CAP_FRAC    = MARS_POLAR_CAP_FRACTION.to(d)
-        self._Q_out_pole  = (MARS_SURFACE_EMISSIVITY * STEFAN_BOLTZMANN              # ε σ T_frost⁴
-                             * MARS_CO2_FROST_POINT ** 4).to(d)
-        self._LAT_HEAT    = MARS_CO2_LATENT_HEAT.to(d)
-        self._ESCAPE_RATE = MARS_MAVEN_ESCAPE_RATE.to(d)
-        self._TIDE_PA     = MARS_THERMAL_TIDE_PA.to(d)
-        self._TIDE_PHASE  = MARS_THERMAL_TIDE_PHASE.to(d)
-        self._DIURNAL_AMP = MARS_DIURNAL_SWING_AMP.to(d)
+        self._TI          = c["MARS_THERMAL_INERTIA"]                                 # C (J K⁻¹ m⁻²)
+        self._EMISS       = c["MARS_SURFACE_EMISSIVITY"]                              # ε
+        self._LS_PERI     = c["MARS_LS_PERIHELION"]                                   # Ls at perihelion
+        self._CAP_FRAC    = c["MARS_POLAR_CAP_FRACTION"]
+        self._Q_out_pole  = (c["MARS_SURFACE_EMISSIVITY"] * self._SB                  # ε σ T_frost⁴
+                             * c["MARS_CO2_FROST_POINT"] ** 4)
+        self._LAT_HEAT    = c["MARS_CO2_LATENT_HEAT"]
+        self._ESCAPE_RATE = c["MARS_MAVEN_ESCAPE_RATE"]
+        self._TIDE_PA     = c["MARS_THERMAL_TIDE_PA"]
+        self._TIDE_PHASE  = c["MARS_THERMAL_TIDE_PHASE"]
+        self._DIURNAL_AMP = c["MARS_DIURNAL_SWING_AMP"]
         self._ICE_REF     = torch.tensor(self._init_ice_ref, dtype=TF_DTYPE, device=d)
 
     # ==================================================================

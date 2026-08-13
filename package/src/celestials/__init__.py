@@ -35,14 +35,19 @@ def _load(dotted_name: str, rel_path: str) -> types.ModuleType:
     return mod
 
 
-# Also register the intermediate namespace so that
-# ``from src.celestials.planets.mars import …`` resolves the dotted path if needed.
+# ── Load sub-modules ─────────────────────────────────────────────────
+# ``planets/mars/`` is a real package (it has an ``__init__.py``), so it is
+# imported normally rather than through ``_load``.  Going through ``_load``
+# here would execute the package body under a second module name and produce a
+# duplicate ``Mars`` class, breaking ``isinstance``.
+import src.celestials.planets.mars as _mars_mod
+
+# Legacy alias: some call sites import ``src.planets.mars`` directly.  Bind it
+# to the *same* module object rather than re-executing it.
 for _ns in ("src.planets",):
     if _ns not in sys.modules:
         sys.modules[_ns] = types.ModuleType(_ns)
-
-# ── Load sub-modules ─────────────────────────────────────────────────
-_mars_mod   = _load("src.planets.mars",     "planets/mars.py")
+sys.modules.setdefault("src.planets.mars", _mars_mod)
 
 # Framework
 from src.framework.planet import Planet
@@ -51,6 +56,8 @@ from src.framework.intrinsic import IntrinsicParameters
 
 # Mars
 Mars                     = _mars_mod.Mars
+MarsConstants            = _mars_mod.MarsConstants
+MARS                     = _mars_mod.MARS
 MARS_MASS                = _mars_mod.MARS_MASS
 MARS_RADIUS              = _mars_mod.MARS_RADIUS
 MARS_GRAVITY             = _mars_mod.MARS_GRAVITY

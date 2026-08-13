@@ -114,6 +114,20 @@ class Planet(ABC):
         """
         ...
 
+    def step_gcm(self, dt: torch.Tensor) -> None:
+        """Advance a coupled 3-D GCM by *dt* seconds (``GCM`` strategy only).
+
+        Only planets with a GCM backend implement this method.  It advances the
+        3-D state and writes reduced scalars into the planet's property mirror,
+        so the engine and ``Snapshot`` are unchanged.  The default raises.
+
+        Parameters
+        ----------
+        dt : torch.Tensor
+            Timestep in seconds.
+        """
+        raise NotImplementedError("This planet has no GCM backend")
+
     # ------------------------------------------------------------------
     # State packing / unpacking  (used by the engine's ODE integrators)
     # ------------------------------------------------------------------

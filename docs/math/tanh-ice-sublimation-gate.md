@@ -1,7 +1,7 @@
 ---
 title: Smooth ice-exhaustion gate — tanh gating of the polar CO₂ sublimation flux
 date: 2026-07-08
-target: package/src/celestials/planets/mars.py :: _gate_sublimation
+target: package/src/celestials/planets/mars/planet.py :: _gate_sublimation
 domain: [algebraic, numerical]
 variables: [dM, M_ice, M_ref, Φ, g, A, σ_SB, ε, L_sub, T_frost]
 status: verified
@@ -164,7 +164,7 @@ $$
 \;}
 $$
 
-**Code mapping** (`package/src/celestials/planets/mars.py`, `_gate_sublimation`):
+**Code mapping** (`package/src/celestials/planets/mars/planet.py`, `_gate_sublimation`):
 ```python
 if self._smooth_gates:
     return torch.where(

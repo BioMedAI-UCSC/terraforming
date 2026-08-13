@@ -7,7 +7,11 @@ requires-python = ">=3.12"
 dependencies = [
     "matplotlib>=3.10.8",
     "torch>=2.10.0",
+    "jcm",
 ]
+
+[tool.uv.sources]
+jcm = { git = "https://github.com/climate-analytics-lab/jax-gcm" }
 
 [build-system]
 requires = ["setuptools>=64"]

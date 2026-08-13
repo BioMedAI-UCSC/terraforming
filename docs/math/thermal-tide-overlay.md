@@ -1,7 +1,7 @@
 ---
 title: Thermal-tide diagnostic overlay and the closed CO₂ mass budget
 date: 2026-07-08
-target: package/src/celestials/planets/mars.py :: observed_surface_pressure, compute_derivatives, compute_fast_physics; src/engine/diagnostics.py
+target: package/src/celestials/planets/mars/planet.py :: observed_surface_pressure, compute_derivatives, compute_fast_physics; src/engine/diagnostics.py
 domain: [ode, algebraic, dimensional]
 variables: [P, P_obs, A_tide, ω, φ, t, M_atm, M_ice, R_esc, g, R]
 status: verified

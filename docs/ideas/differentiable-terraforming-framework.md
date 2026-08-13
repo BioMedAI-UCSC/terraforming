@@ -105,6 +105,122 @@ This keeps us portable across dycore backends.
 
 ---
 
+## 3.5 Where JCM fits — hooking into the existing package
+
+The framing above (`marsphys` as a standalone paper track) is the *research* view.
+The *engineering* view is: **JCM becomes a third simulation backend behind the
+package's existing interfaces**, with the 0-D PyTorch box model kept intact as a fast
+mode. Nothing in `cli/`, `Snapshot`, or the plotting/output layer changes — the seam
+is a single new strategy branch.
+
+### The seam in one picture
+
+```mermaid
+flowchart TB
+    subgraph CLI["cli/ — UNCHANGED"]
+        R["runner.py — the only bridge"]
+    end
+
+    subgraph PKG["package/src — interfaces UNCHANGED"]
+        TC["TimeController.run() → list of Snapshot"]
+        EV{"evolve(dt) — strategy branch"}
+        SNAP["Snapshot — scalar fields only"]
+    end
+
+    subgraph TORCH["Existing 0-D backend — PyTorch, kept as fast mode"]
+        RK4["ACCURATE → RK4 via compute_derivatives"]
+        FAST["FAST → compute_fast_physics"]
+    end
+
+    subgraph ADAPT["NEW seam — MarsGCM, a Planet subclass"]
+        STEP["GCM → step_gcm(dt)"]
+        RED["reduce_to_scalars — 3-D grid to global means"]
+        MIRROR["scalar diagnostic mirror — thermal / atmosphere / water"]
+    end
+
+    subgraph JCMBOX["jcm (JAX) + marsphys physics terms"]
+        MODEL["ComposablePhysics — co2_cycle + dust + radiation + regolith"]
+        DYN["DynamicalCore.step — dinosaur dycore, transitive"]
+    end
+
+    R --> TC --> EV
+    EV -->|"ACCURATE"| RK4
+    EV -->|"FAST"| FAST
+    EV -->|"GCM (new)"| STEP
+    STEP --> MODEL --> DYN
+    DYN --> RED --> MIRROR
+    RK4 --> SNAP
+    FAST --> SNAP
+    MIRROR --> SNAP
+```
+
+**JCM sits one level below a new `Accuracy.GCM` branch in `evolve()`.** It never touches
+the CLI or `Snapshot`; a reduction layer collapses its 3-D state to the four scalars the
+existing `Snapshot` already carries. The torch box model stays reachable under
+`FAST`/`ACCURATE` — this *adds* an engine, it does not delete one.
+
+### One timestep — exactly where JCM is called
+
+```mermaid
+sequenceDiagram
+    participant TC as TimeController
+    participant M as MarsGCM (Planet)
+    participant J as jcm model
+    participant D as dinosaur dycore
+    TC->>M: advance_orbit(dt)
+    Note right of M: keeps solar_flux + orbital_angle diagnostics
+    TC->>M: step_gcm(dt)
+    M->>J: model.step(state, dt)
+    J->>D: DynamicalCore.step (spectral)
+    D-->>J: new PhysicsState (3-D fields)
+    J-->>M: new state
+    M->>M: reduce_to_scalars → write scalar mirror
+    TC->>M: _snapshot() reads the mirror
+    Note right of TC: Snapshot list identical to 0-D output
+```
+
+The only crossing of the JAX↔PyTorch boundary is inside `reduce_to_scalars`: three
+JAX scalars (`T_mean`, `ps_mean`, `co2_ice`) cast to torch and written into the mirror
+— one host sync per snapshot, negligible.
+
+### Mars properties → which system owns them
+
+"Adding a property of Mars" means routing it to the right subsystem. Each property is
+one of five kinds, and its kind decides where the code goes:
+
+| Mars property | Subsystem / module | Feeds into | Backend owner | Kind |
+|---|---|---|---|---|
+| Topography (MOLA) | `marsphys/surface_maps.py` | surface geopotential, spatial p_s | JCM boundary | static map |
+| Surface albedo (TES/THEMIS) | `surface_maps.py` | SW radiation | `mars_radiation.py` | static map |
+| Thermal inertia | `regolith.py` | subsurface heat diffusion | new `PhysicsTerm` | prognostic field |
+| CO₂ condensation / sublimation | `co2_cycle.py` | **mass tendency** (Patch 1) + latent heat | new `PhysicsTerm` | prognostic field + tendency |
+| Dust opacity τ(Ls, lat) | `dust.py` | SW + LW radiation | prescribed forcing | forcing term |
+| Orbital (e, obliquity, Ls_peri) | `orbital.py` | insolation / solar geometry | drives `advance_orbit` + radiation | planetary constant |
+| Rotation Ω, gravity g, gas const R, radius | `constants.py` (Patch 3) | dycore + geopotential | threaded pytree | planetary constant |
+| Composition / injected PFCs | ported `interventions/compounds.py` | LW optical depth | `mars_radiation.py` | forcing term |
+| Winds u,v, temperature T, humidity q | JCM `PhysicsState` (native) | dynamical core | JCM | prognostic field (built-in) |
+
+### Recipe — adding a new Mars property to the right system
+
+1. **Prognostic field** (evolves in time, e.g. regolith temperature, CO₂ ice mass):
+   add it as a `PhysicsState` field or JCM tracer; write its rate of change in a
+   `PhysicsTerm.tendency()`.
+2. **Forcing / tendency** (modifies existing fields, e.g. dust, PFC opacity):
+   add a `PhysicsTerm` and compose it — `mars_base + DustForcing(...)`.
+3. **Static boundary map** (fixed in time, e.g. topography, albedo):
+   load into `surface_maps.py`; it becomes a boundary array the terms read.
+4. **Planetary constant** (scalar per planet, e.g. gravity, obliquity):
+   put it in the threaded constants pytree (Patch 3); never a global singleton.
+5. **Diagnostic only** (something to *observe*, e.g. cap extent): add it to
+   `reduce_to_scalars` **and** the `Snapshot` dataclass — the only case that touches
+   the package interface, and even then only additively.
+
+Rule of thumb: if the CLI must *display* it, it ends up in `Snapshot` (kind 5); if it
+only *influences* the climate, it stays inside a JCM `PhysicsTerm` (kinds 1–4) and never
+crosses the seam.
+
+---
+
 ## 4. Patches to JCM (upstreamable)
 
 | # | Change | Files | Size |

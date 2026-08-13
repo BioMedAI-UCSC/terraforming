@@ -439,7 +439,7 @@ src/interventions/
   forcing.py           ppb → ΔF computation (used by mars internally)
   controller.py        InterventionController (thin scheduler) + InterventionSnapshot
 
-src/celestials/planets/mars.py   ← single source of truth for all state
+src/celestials/planets/mars/planet.py   ← single source of truth for all state
   Mars.atmosphere.composition      {"CO2": Pa, "CF4": Pa, ...} — all species unified
   Mars._baseline_ghf               CO₂-only GHF cached at first injection
   Mars._baseline_olr               ε σ (T₀/GHF₀)⁴ cached at first injection

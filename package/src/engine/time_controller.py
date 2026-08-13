@@ -62,10 +62,13 @@ class Accuracy(enum.Enum):
                    Fast, suitable for long-duration sweeps.
     ``ACCURATE`` – full coupled ODE with 4th-order Runge-Kutta.
                    Higher fidelity, slower per step.
+    ``GCM``      – 3-D JCM general circulation model.  The planet owns the
+                   stepping (``planet.step_gcm``); highest fidelity, slowest.
     """
 
     FAST = "fast"
     ACCURATE = "accurate"
+    GCM = "gcm"
 
 
 # ---------------------------------------------------------------------------
@@ -144,6 +147,8 @@ class TimeController:
         # Step 2 — physics (strategy-dependent)
         if self.accuracy is Accuracy.ACCURATE:
             self._evolve_rk4(dt)
+        elif self.accuracy is Accuracy.GCM:
+            self.planet.step_gcm(dt)   # the JCM model owns the 3-D step
         else:
             self.planet.compute_fast_physics(dt)
 
