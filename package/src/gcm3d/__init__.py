@@ -37,7 +37,40 @@ try:  # pragma: no cover - import-availability branch
         reference_temperature,
         stepper,
     )
+    from src.gcm3d.maps import (
+        MarsMapFields,
+        plot_maps,
+        run_maps,
+        save_maps,
+        save_netcdf,
+    )
     from src.gcm3d.specs import nondimensionalization_scale, physics_specs
+    from src.gcm3d.topography import (
+        load_mola_meg,
+        mola_modal_orography,
+        regrid_to_nodal,
+    )
+    from src.gcm3d.physics import (
+        CO2Forcing,
+        RadiativeForcing,
+        cos_zenith_nodal,
+        forced_co2_primitive_equations,
+        forced_primitive_equations,
+        initial_co2_state,
+        mars_co2_forcing,
+        mars_radiative_forcing,
+        radiative_heating_tendency,
+    )
+    from src.gcm3d.terraforming_ode import (
+        SeasonalForcing,
+        SeasonalTrajectory,
+        initial_seasonal_state,
+        run_seasonal,
+        seasonal_ode,
+        seasonal_tendency,
+        solar_flux,
+        solar_longitude,
+    )
 
     __all__ += [
         "coordinate_system",
@@ -48,6 +81,35 @@ try:  # pragma: no cover - import-availability branch
         "reference_temperature",
         "stepper",
         "integrate",
+        # 0-D terraforming ODE on the dinosaur substrate (seasonal / Ls outputs)
+        "SeasonalForcing",
+        "SeasonalTrajectory",
+        "initial_seasonal_state",
+        "run_seasonal",
+        "seasonal_ode",
+        "seasonal_tendency",
+        "solar_flux",
+        "solar_longitude",
+        # 3-D column radiative forcing on the dycore (bridges 0-D physics -> 3-D)
+        "RadiativeForcing",
+        "mars_radiative_forcing",
+        "forced_primitive_equations",
+        "radiative_heating_tendency",
+        "cos_zenith_nodal",
+        # 3-D CO2 condensation cycle (Leighton-Murray) on a tuple-wrapped state
+        "CO2Forcing",
+        "mars_co2_forcing",
+        "forced_co2_primitive_equations",
+        "initial_co2_state",
+        # 3-D dry-dynamics maps over MOLA terrain (Ames/LMD-comparable form)
+        "load_mola_meg",
+        "regrid_to_nodal",
+        "mola_modal_orography",
+        "MarsMapFields",
+        "run_maps",
+        "plot_maps",
+        "save_netcdf",
+        "save_maps",
     ]
 except ModuleNotFoundError:
     pass

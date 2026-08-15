@@ -41,8 +41,8 @@ abstraction cleanly; there is no impedance mismatch, and the three properties th
 engine port must preserve (parity, differentiability, batching) all hold.
 
 Still open for the full port (deliberately out of scope here):
-- Carry `sim_time` in state and advance the orbit inside `explicit_terms`
-  (drop the frozen-forcing assumption).
+- ~~Carry `sim_time` in state and advance the orbit inside `explicit_terms`~~
+  **Done** — see "Seasonal outputs" below.
 - Port `compute_fast_physics` (the FAST relaxation path) and the intervention
   hooks / `TimeController` orchestration.
 - Prove `vmap`+`jit` batched throughput meets or beats the torch
@@ -51,6 +51,41 @@ Still open for the full port (deliberately out of scope here):
   spatial engine (recommended) or a separate cheap tier.
 
 The isolation contract is preserved: `terraforming_ode.py` imports only
-JAX/dinosaur; the torch comparison lives in the test (the experiment layer), and
-the module is not wired into `src.gcm3d.__init__`, so the torch-only CI is
-unaffected.
+JAX/dinosaur; the torch comparison lives in the tests (the experiment layer). The
+seasonal API is now exported from `src.gcm3d.__init__` under the existing
+dinosaur-guarded block, so it is only importable with the `gcm3d` extra and the
+torch-only CI is unaffected.
+
+## Seasonal outputs (integrated: orbit advances inside the ODE)
+
+The frozen-epoch assumption is dropped. The seasonal path carries elapsed time
+`t` as a 5th state component (`[T, P, M_north, M_south, t]`, the **two-cap**
+layout main uses) and rebuilds the orbital forcing from `t` every step — a
+line-for-line port of `BatchedController.advance_orbit` + the two-cap
+`compute_derivatives`:
+
+| Public symbol (`src.gcm3d`) | Role |
+|---|---|
+| `SeasonalForcing` | Pure-Python constants **+ Keplerian orbital elements** (no frozen flux/caps). |
+| `seasonal_tendency` / `seasonal_ode` | Two-cap kernel with orbit derived from `t`; parity-tested vs torch at arbitrary phase. |
+| `run_seasonal` | `jax.lax.scan` rollout, samples every N steps. |
+| `SeasonalTrajectory` | Ls-indexed diagnostics + `write_csv` (`sol, ls_deg, temperature_k, pressure_pa, ice_*_kg, solar_flux_wm2`). |
+| `solar_longitude` / `solar_flux` | Derive `Ls(t)` and inverse-square flux `S(t)`. |
+
+A one-Mars-year rollout sweeps `Ls` 0→360° with `S` peaking at perihelion
+(~713 W m⁻²) and troughing at aphelion (~490 W m⁻²), `T` in 172–277 K, and a
+seasonal pressure drift from cap exchange + escape — the CSV columns match the
+existing Mars seasonal exports so the same Ls-on-x plotting works unchanged.
+Sample: `outputs/gcm3d_seasonal/mars_ls_evolution.csv`.
+
+**Accuracy guard.** The explicit step must resolve the diurnal energy balance
+(`h = 2π t / rotation_period`). Near ~1 step/rotation the `T⁴` relaxation aliases
+and diverges, so `run_seasonal` **raises** if `dt > rotation_period/8` rather
+than emit silently-wrong output; `dt ≤ rotation_period/40` (~2200 s for Mars) is
+converged.
+
+**MOLA topography: not required here, and not added.** A 0-D global-mean column
+has no horizontal grid, so it has no orography — MOLA elevation cannot enter the
+seasonal energy/mass budget. It only matters to the **3-D** dycore's
+surface-pressure field, which still uses `flat_orography`; wiring real MOLA there
+is a separate 3-D task, out of scope for accurate 0-D Ls outputs.

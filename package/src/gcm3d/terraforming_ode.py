@@ -40,13 +40,23 @@ isolation. Requires the optional ``gcm3d`` extra.
 
 from __future__ import annotations
 
+import csv
 import dataclasses
 import math
+from pathlib import Path
+
+import numpy as np
 
 from src.gcm3d._dinosaur import jax, jnp, time_integration
 
 # State layout for the 0-D coupled system, matching the torch model's ``y``.
 T_IDX, P_IDX, MICE_IDX = 0, 1, 2
+
+# Astronomical constants shared with the torch orbit model (device-agnostic
+# Python floats): total solar irradiance at 1 AU and the astronomical unit.
+TSI_1AU_W_M2 = 1361.0
+AU_M = 1.49597870700e11
+_TWO_PI = 2.0 * math.pi
 
 
 @dataclasses.dataclass(frozen=True)
@@ -174,3 +184,315 @@ def stepper(ode: "time_integration.ImplicitExplicitODE", dt_seconds: float):
     nondimensionalisation.
     """
     return time_integration.imex_rk_sil3(ode, dt_seconds)
+
+
+# ==============================================================================
+# Seasonal 0-D ODE — the orbit advances *inside* the ODE, so a rollout produces
+# a full areocentric-solar-longitude (Ls) seasonal cycle.
+#
+# This drops the ``ZeroDForcing`` "frozen at an epoch" assumption (the one item
+# the prototype deferred): elapsed time ``t`` is carried in the state, and the
+# orbital angle, solar longitude ``Ls``, insolation and solar flux are derived
+# from ``t`` every step — exactly as ``BatchedController.advance_orbit`` +
+# ``compute_derivatives`` do on the torch side. The state is the two-cap layout
+# main uses (``[T, P, M_north, M_south]``) plus ``t``, so each polar cap gates
+# its own reservoir and the pair exchanges in anti-phase across the seasons.
+#
+# Deliberately *not* included (out of scope, per the workplan): the FAST
+# relaxation overlay (thermal tide, diurnal swing) — those are diagnostics on
+# top of ``compute_fast_physics``, not mass/energy tendencies. And there is no
+# horizontal grid, so there is no orography: MOLA topography is irrelevant to a
+# global-mean 0-D column. It only matters to the 3-D dycore's surface-pressure
+# field (which still uses ``flat_orography``).
+# ==============================================================================
+
+# Seasonal state layout: [T, P, M_north, M_south, t].
+ST_T, ST_P, ST_MN, ST_MS, ST_TIME = 0, 1, 2, 3, 4
+
+
+@dataclasses.dataclass(frozen=True)
+class SeasonalForcing:
+    """Constants + orbital elements for the time-advancing 0-D terraforming ODE.
+
+    Unlike :class:`ZeroDForcing`, the solar flux, orbital angle and polar caps
+    are **not** frozen: the flux and ``Ls`` are recomputed from the state's
+    elapsed time ``t`` each step, and the caps are integrated state variables.
+    Every field is a plain float/bool, so this stays pure Python — the torch
+    engine can build it from a ``Mars`` without importing JAX.
+    """
+
+    # Radiative / thermal
+    albedo: float
+    greenhouse_factor: float
+    emissivity: float
+    stefan_boltzmann: float
+    thermal_inertia: float
+    # Geometry / rotation
+    radius_m: float
+    gravity_m_s2: float
+    rotation_period_s: float
+    latitude_rad: float
+    axial_tilt_rad: float
+    ls_perihelion_rad: float
+    # Orbit (Keplerian ellipse; angle advances at the mean rate, matching the
+    # torch model's ``advance_orbit``)
+    orbital_period_s: float
+    semi_major_axis_m: float
+    eccentricity: float
+    init_orbital_angle_rad: float
+    # Polar CO2 caps
+    cap_fraction: float
+    q_out_pole: float
+    latent_heat: float
+    ice_ref_kg: float
+    # Non-thermal escape
+    escape_rate_kg_s: float
+    # Astronomical constants (overridable for other bodies)
+    tsi_1au_w_m2: float = TSI_1AU_W_M2
+    au_m: float = AU_M
+    # Sublimation-gate mode (smooth = differentiable through cap exhaustion)
+    smooth_gates: bool = True
+
+
+def orbital_angle(t, f: SeasonalForcing):
+    """True-anomaly proxy at elapsed time ``t`` (0 = perihelion).
+
+    Advances at the constant mean rate ``2π/period`` from the epoch angle, the
+    same approximation ``BatchedController.advance_orbit`` uses. It feeds ``cos``
+    and ``sin`` downstream, so it is intentionally *not* wrapped to ``[0, 2π)``.
+    """
+    return f.init_orbital_angle_rad + _TWO_PI * t / f.orbital_period_s
+
+
+def solar_longitude(t, f: SeasonalForcing):
+    """Areocentric solar longitude ``Ls`` (radians) at elapsed time ``t``."""
+    return orbital_angle(t, f) + f.ls_perihelion_rad
+
+
+def solar_flux(t, f: SeasonalForcing):
+    """Inverse-square solar flux (W m^-2) at elapsed time ``t``.
+
+    Kepler distance ``r(θ) = a(1-e²)/(1+e cos θ)`` then ``S = S_1AU·(AU/r)²`` —
+    a line-for-line match of the torch ``advance_orbit`` flux update.
+    """
+    theta = orbital_angle(t, f)
+    distance = (
+        f.semi_major_axis_m * (1.0 - f.eccentricity**2)
+        / (1.0 + f.eccentricity * jnp.cos(theta))
+    )
+    return f.tsi_1au_w_m2 * (f.au_m / distance) ** 2
+
+
+def seasonal_tendency(y, f: SeasonalForcing):
+    """dy/dt for ``y = [T, P, M_north, M_south, t]`` — the two-cap kernel.
+
+    A line-for-line JAX port of ``Mars.compute_derivatives`` (main's two-cap
+    kernel), with the orbital forcing rebuilt from ``t`` instead of frozen. The
+    5th component's tendency is 1 (``dt/dt = 1``), so the orbit sweeps a full
+    year over one orbital period.
+    """
+    T = jnp.clip(y[ST_T], 1.0, None)
+    ice_N = y[ST_MN]
+    ice_S = y[ST_MS]
+    t = y[ST_TIME]
+
+    # --- orbital forcing derived from elapsed time ---
+    omega = _TWO_PI / f.rotation_period_s
+    h = omega * t - math.pi
+    Ls = solar_longitude(t, f)
+    delta = jnp.arcsin(jnp.sin(f.axial_tilt_rad) * jnp.sin(Ls))
+    S = solar_flux(t, f)
+
+    # --- dT/dt: diurnal energy balance ---
+    cos_zenith = jnp.clip(
+        jnp.sin(f.latitude_rad) * jnp.sin(delta)
+        + jnp.cos(f.latitude_rad) * jnp.cos(delta) * jnp.cos(h),
+        0.0,
+        None,
+    )
+    Q_in = (1.0 - f.albedo) * S * cos_zenith
+    T_eff = T / max(f.greenhouse_factor, 1.0)
+    Q_out = f.emissivity * f.stefan_boltzmann * T_eff**4
+    dT_dt = (Q_in - Q_out) / f.thermal_inertia
+
+    # --- dM_ice/dt: per-cap polar CO2 sublimation / condensation ---
+    A_cap = f.cap_fraction * 4.0 * math.pi * f.radius_m**2
+    cz_N = jnp.clip(jnp.sin(delta), 0.0, None)
+    cz_S = jnp.clip(-jnp.sin(delta), 0.0, None)
+    Q_in_N = (1.0 - f.albedo) * S * cz_N
+    Q_in_S = (1.0 - f.albedo) * S * cz_S
+    net_sub_N = (Q_in_N - f.q_out_pole) * A_cap / f.latent_heat
+    net_sub_S = (Q_in_S - f.q_out_pole) * A_cap / f.latent_heat
+    dMice_N = _gate_sublimation(-net_sub_N, ice_N, f.ice_ref_kg, f.smooth_gates)
+    dMice_S = _gate_sublimation(-net_sub_S, ice_S, f.ice_ref_kg, f.smooth_gates)
+
+    # --- dP/dt: non-thermal escape + cap mass exchange (mass budget) ---
+    A_planet = 4.0 * math.pi * f.radius_m**2
+    dP_dt = (
+        -f.escape_rate_kg_s * f.gravity_m_s2 / A_planet
+        + (-(dMice_N + dMice_S) * f.gravity_m_s2 / A_planet)
+    )
+
+    return jnp.stack([dT_dt, dP_dt, dMice_N, dMice_S, jnp.ones_like(dT_dt)])
+
+
+def seasonal_ode(f: SeasonalForcing) -> "time_integration.ImplicitExplicitODE":
+    """Wrap :func:`seasonal_tendency` as a dinosaur ``ImplicitExplicitODE``.
+
+    Non-stiff, so the implicit side is empty (identity inverse) and dinosaur's
+    IMEX-RK-SIL3 reduces to its explicit tableau — same as :func:`terraforming_ode`.
+    """
+
+    def explicit_terms(y):
+        return seasonal_tendency(y, f)
+
+    def implicit_terms(y):
+        return jax.tree_util.tree_map(jnp.zeros_like, y)
+
+    def implicit_inverse(y, step_size):
+        return y
+
+    return time_integration.ImplicitExplicitODE.from_functions(
+        explicit_terms, implicit_terms, implicit_inverse
+    )
+
+
+def initial_seasonal_state(
+    temperature_k: float,
+    pressure_pa: float,
+    ice_north_kg: float,
+    ice_south_kg: float,
+    t0_s: float = 0.0,
+):
+    """Build a seasonal state array ``[T, P, M_north, M_south, t]``."""
+    return jnp.asarray(
+        [temperature_k, pressure_pa, ice_north_kg, ice_south_kg, t0_s],
+        dtype=jnp.float64,
+    )
+
+
+@dataclasses.dataclass(frozen=True)
+class SeasonalTrajectory:
+    """Sampled seasonal rollout with the Ls-indexed diagnostics.
+
+    All fields are NumPy arrays of equal length (one entry per sample). ``ls_deg``
+    is the areocentric solar longitude in ``[0, 360)`` — the season coordinate
+    every Mars seasonal plot is drawn against.
+    """
+
+    time_s: np.ndarray
+    sol: np.ndarray
+    ls_deg: np.ndarray
+    temperature_k: np.ndarray
+    pressure_pa: np.ndarray
+    ice_north_kg: np.ndarray
+    ice_south_kg: np.ndarray
+    ice_total_kg: np.ndarray
+    solar_flux_wm2: np.ndarray
+
+    def write_csv(self, path) -> Path:
+        """Write the trajectory as a CSV (Ls-indexed), returning the path.
+
+        Columns mirror the existing Mars seasonal exports so the same plotting
+        code (Ls on the x-axis) works unchanged.
+        """
+        path = Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        cols = [
+            "sol",
+            "ls_deg",
+            "temperature_k",
+            "pressure_pa",
+            "ice_mass_kg",
+            "ice_north_kg",
+            "ice_south_kg",
+            "solar_flux_wm2",
+        ]
+        with path.open("w", newline="") as fh:
+            w = csv.writer(fh)
+            w.writerow(cols)
+            for i in range(len(self.time_s)):
+                w.writerow(
+                    [
+                        f"{self.sol[i]:.6f}",
+                        f"{self.ls_deg[i]:.4f}",
+                        f"{self.temperature_k[i]:.6f}",
+                        f"{self.pressure_pa[i]:.6f}",
+                        f"{self.ice_total_kg[i]:.6e}",
+                        f"{self.ice_north_kg[i]:.6e}",
+                        f"{self.ice_south_kg[i]:.6e}",
+                        f"{self.solar_flux_wm2[i]:.6f}",
+                    ]
+                )
+        return path
+
+
+def run_seasonal(
+    f: SeasonalForcing,
+    y0,
+    dt_seconds: float,
+    n_steps: int,
+    sample_every: int = 1,
+) -> SeasonalTrajectory:
+    """Integrate the seasonal ODE and return an Ls-indexed :class:`SeasonalTrajectory`.
+
+    Steps ``n_steps`` of dinosaur's stepper (via :func:`jax.lax.scan`), recording
+    the state every ``sample_every`` steps, then derives ``Ls``, ``sol`` and the
+    solar flux from each sampled elapsed time. The rollout itself is a single
+    jitted scan, so it stays differentiable/batchable; only the returned arrays
+    are pulled to host as NumPy for output.
+    """
+    if n_steps < 1:
+        raise ValueError(f"n_steps must be >= 1, got {n_steps}")
+    if sample_every < 1:
+        raise ValueError(f"sample_every must be >= 1, got {sample_every}")
+    # Stability: the explicit step must resolve the diurnal energy balance
+    # (hour angle h = 2π t / rotation_period). Near ~1 step per rotation the
+    # T^4 radiative relaxation aliases and the integrator diverges to
+    # non-physical temperatures, so refuse a step that coarse rather than emit
+    # silently-wrong seasonal output. ~8 steps/rotation is the stability floor;
+    # ~40+ (dt <= rotation_period/40) is recommended for converged accuracy.
+    max_stable_dt = f.rotation_period_s / 8.0
+    if dt_seconds > max_stable_dt:
+        raise ValueError(
+            f"dt_seconds={dt_seconds:g} is too coarse to resolve the diurnal "
+            f"cycle (rotation_period={f.rotation_period_s:g} s); the explicit "
+            f"integrator would diverge. Use dt_seconds <= {max_stable_dt:g} "
+            f"(recommend <= {f.rotation_period_s / 40.0:g})."
+        )
+
+    step = stepper(seasonal_ode(f), dt_seconds)
+    n_samples = n_steps // sample_every
+
+    def outer(carry, _):
+        def inner(yy, _):
+            return step(yy), None
+
+        y, _ = jax.lax.scan(inner, carry, None, length=sample_every)
+        return y, y
+
+    _, samples = jax.lax.scan(outer, y0, None, length=n_samples)
+    samples = np.asarray(samples)  # [n_samples, 5]
+
+    t = samples[:, ST_TIME]
+    theta = f.init_orbital_angle_rad + _TWO_PI * t / f.orbital_period_s
+    ls_deg = np.degrees(theta + f.ls_perihelion_rad) % 360.0
+    distance = (
+        f.semi_major_axis_m * (1.0 - f.eccentricity**2)
+        / (1.0 + f.eccentricity * np.cos(theta))
+    )
+    flux = f.tsi_1au_w_m2 * (f.au_m / distance) ** 2
+    ice_n = samples[:, ST_MN]
+    ice_s = samples[:, ST_MS]
+
+    return SeasonalTrajectory(
+        time_s=t,
+        sol=t / f.rotation_period_s,
+        ls_deg=ls_deg,
+        temperature_k=samples[:, ST_T],
+        pressure_pa=samples[:, ST_P],
+        ice_north_kg=ice_n,
+        ice_south_kg=ice_s,
+        ice_total_kg=ice_n + ice_s,
+        solar_flux_wm2=flux,
+    )
