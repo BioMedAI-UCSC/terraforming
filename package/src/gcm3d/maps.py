@@ -324,9 +324,16 @@ def plot_maps(fields: MarsMapFields, outdir, prefix: str = "mars") -> list[Path]
         # MOLA terrain contours on every panel for geographic reference.
         ax.contour(lon, lat, elev, levels=8, colors="k", linewidths=0.3, alpha=0.4)
         if overlay == "quiver":
-            s = max(1, len(lon) // 24)
-            ax.quiver(lon[::s], lat[::s], fields.u_ms[::s, ::s], fields.v_ms[::s, ::s],
-                      scale=300, width=0.0015, color="white", alpha=0.7)
+            # Subsample lon/lat independently (grids are not square) and scale
+            # arrows to the field's own peak speed so they stay short and legible.
+            slon = max(1, field.shape[1] // 20)
+            slat = max(1, field.shape[0] // 12)
+            speed_max = float(np.nanmax(fields.wind_speed_ms)) or 1.0
+            ax.quiver(
+                lon[::slon], lat[::slat],
+                fields.u_ms[::slat, ::slon], fields.v_ms[::slat, ::slon],
+                scale=speed_max * 12.0, width=0.002, color="white", alpha=0.85,
+            )
         fig.colorbar(mesh, ax=ax, label=label, shrink=0.85)
         ax.set_xlabel("Longitude (°E)")
         ax.set_ylabel("Latitude (°N)")
