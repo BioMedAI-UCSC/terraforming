@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { getRunFields, getRunSnapshots } from '../api'
 import type { FieldGrid, RunFields } from '../types'
 
@@ -19,21 +19,100 @@ function sample(stops: number[][], t: number): [number, number, number] {
   return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f]
 }
 
-interface Selected { key: string; grid: FieldGrid; kind: 'map' | 'section' }
+const TILE_W = 360
+const TILE_H = 220
 
-const CANVAS_W = 760
-const CANVAS_H = 400
+// Draw one field (heatmap + colorbar + axis ticks) onto a canvas, auto-scaled
+// to its own min/max.
+function drawField(canvas: HTMLCanvasElement, grid: FieldGrid, cmapName: string,
+                   kind: 'map' | 'section') {
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+  const stops = COLORMAPS[cmapName]
+  const lo = grid.min, hi = grid.max, span = hi - lo || 1
+
+  // Rows top→bottom; for maps flip so north is on top.
+  const data = kind === 'map' ? [...grid.data].reverse() : grid.data
+  const rows = data.length, cols = data[0].length
+
+  const mL = 34, mR = 58, mT = 8, mB = 22
+  const pw = TILE_W - mL - mR, ph = TILE_H - mT - mB
+
+  ctx.fillStyle = '#0e1116'; ctx.fillRect(0, 0, TILE_W, TILE_H)
+
+  const cw = pw / cols, ch = ph / rows
+  for (let i = 0; i < rows; i++) {
+    for (let j = 0; j < cols; j++) {
+      const [r, g, b] = sample(stops, (data[i][j] - lo) / span)
+      ctx.fillStyle = `rgb(${r | 0},${g | 0},${b | 0})`
+      ctx.fillRect(mL + j * cw, mT + i * ch, cw + 1, ch + 1)
+    }
+  }
+  ctx.strokeStyle = '#3a3f47'; ctx.strokeRect(mL, mT, pw, ph)
+
+  // Colorbar.
+  const cbX = TILE_W - mR + 16, cbW = 10
+  for (let k = 0; k < ph; k++) {
+    const [r, g, b] = sample(stops, 1 - k / ph)
+    ctx.fillStyle = `rgb(${r | 0},${g | 0},${b | 0})`
+    ctx.fillRect(cbX, mT + k, cbW, 1)
+  }
+  ctx.strokeRect(cbX, mT, cbW, ph)
+
+  ctx.font = '10px system-ui, sans-serif'
+  ctx.textBaseline = 'middle'
+  const isMap = kind === 'map'
+
+  // Colorbar ticks.
+  ctx.fillStyle = '#c9d1d9'; ctx.textAlign = 'left'
+  ctx.fillText(hi.toFixed(1), cbX + cbW + 3, mT + 4)
+  ctx.fillText(lo.toFixed(1), cbX + cbW + 3, mT + ph - 4)
+
+  // Axis tick labels.
+  ctx.fillStyle = '#8b949e'; ctx.textAlign = 'right'
+  ctx.fillText(isMap ? '90' : '0', mL - 4, mT + 5)
+  ctx.fillText(isMap ? '-90' : '1', mL - 4, mT + ph - 5)
+  ctx.textAlign = 'center'
+  ctx.fillText(isMap ? '0' : '-90', mL + 6, TILE_H - 8)
+  ctx.fillText(isMap ? '360' : '90', mL + pw - 10, TILE_H - 8)
+}
+
+// One field tile: title/units header + heatmap canvas + PNG export.
+function MapTile({ name, grid, cmapName, kind }:
+                 { name: string; grid: FieldGrid; cmapName: string; kind: 'map' | 'section' }) {
+  const ref = useRef<HTMLCanvasElement>(null)
+  useEffect(() => {
+    if (ref.current) drawField(ref.current, grid, cmapName, kind)
+  }, [grid, cmapName, kind])
+
+  function exportPNG() {
+    if (!ref.current) return
+    const a = document.createElement('a')
+    a.href = ref.current.toDataURL('image/png')
+    a.download = `marsgcm_${name}.png`
+    a.click()
+  }
+
+  return (
+    <div style={tile}>
+      <div style={tileHead}>
+        <span style={{ color: '#c9d1d9', fontSize: 12, fontWeight: 600 }}>
+          {grid.label} <span style={{ color: '#8b949e', fontWeight: 400 }}>({grid.units})</span>
+        </span>
+        <button onClick={exportPNG} style={miniBtn} title="Export PNG">PNG</button>
+      </div>
+      <canvas ref={ref} width={TILE_W} height={TILE_H}
+              style={{ width: '100%', display: 'block', borderRadius: 4 }} />
+    </div>
+  )
+}
 
 export function FieldMap({ runId }: { runId: string }) {
   const [fields, setFields] = useState<RunFields | null>(null)
   const [error, setError]   = useState<string | null>(null)
-  const [key, setKey]       = useState<string>('map:surface_temperature')
   const [cmapName, setCmap] = useState<string>('inferno')
-  const [vmin, setVmin]     = useState<number | null>(null)
-  const [vmax, setVmax]     = useState<number | null>(null)
   const [years, setYears]   = useState<number[]>([])
   const [year, setYear]     = useState<number | null>(null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
 
   // Discover snapshot years (terraforming timeline). Default to the last (final).
   useEffect(() => {
@@ -53,145 +132,28 @@ export function FieldMap({ runId }: { runId: string }) {
     return () => { ok = false }
   }, [runId, year])
 
-  // Flatten maps + sections into a single option list.
-  const options = useMemo(() => {
-    if (!fields) return [] as { key: string; label: string }[]
-    return [
-      ...Object.entries(fields.maps).map(([k, g]) => ({ key: `map:${k}`, label: g.label })),
-      ...Object.entries(fields.sections).map(([k, g]) => ({ key: `section:${k}`, label: g.label })),
-    ]
-  }, [fields])
-
-  const selected: Selected | null = useMemo(() => {
-    if (!fields) return null
-    const [kind, name] = key.split(':') as ['map' | 'section', string]
-    const grid = kind === 'map' ? fields.maps[name] : fields.sections[name]
-    return grid ? { key, grid, kind } : null
-  }, [fields, key])
-
-  // Reset the value range to the field's own min/max when the field changes.
-  useEffect(() => {
-    if (selected) { setVmin(selected.grid.min); setVmax(selected.grid.max) }
-  }, [key, selected])
-
-  // Draw the heatmap + colorbar + axes onto the canvas.
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas || !fields || !selected || vmin == null || vmax == null) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-    const stops = COLORMAPS[cmapName]
-    const lo = vmin, hi = vmax, span = hi - lo || 1
-
-    // Rows top→bottom; for maps flip so north is on top.
-    const raw = selected.grid.data
-    const grid = selected.kind === 'map' ? [...raw].reverse() : raw
-    const rows = grid.length, cols = grid[0].length
-
-    const mL = 54, mR = 96, mT = 34, mB = 44
-    const pw = CANVAS_W - mL - mR, ph = CANVAS_H - mT - mB
-
-    ctx.fillStyle = '#0e1116'; ctx.fillRect(0, 0, CANVAS_W, CANVAS_H)
-
-    // Heatmap cells.
-    const cw = pw / cols, ch = ph / rows
-    for (let i = 0; i < rows; i++) {
-      for (let j = 0; j < cols; j++) {
-        const [r, g, b] = sample(stops, (grid[i][j] - lo) / span)
-        ctx.fillStyle = `rgb(${r | 0},${g | 0},${b | 0})`
-        ctx.fillRect(mL + j * cw, mT + i * ch, cw + 1, ch + 1)
-      }
-    }
-    ctx.strokeStyle = '#3a3f47'; ctx.strokeRect(mL, mT, pw, ph)
-
-    // Colorbar.
-    const cbX = CANVAS_W - mR + 24, cbW = 14
-    for (let k = 0; k < ph; k++) {
-      const [r, g, b] = sample(stops, 1 - k / ph)
-      ctx.fillStyle = `rgb(${r | 0},${g | 0},${b | 0})`
-      ctx.fillRect(cbX, mT + k, cbW, 1)
-    }
-    ctx.strokeRect(cbX, mT, cbW, ph)
-
-    // Text (axes, ticks, title).
-    ctx.fillStyle = '#c9d1d9'; ctx.font = '12px system-ui, sans-serif'
-    ctx.textBaseline = 'middle'
-    const isMap = selected.kind === 'map'
-    const xlab = isMap ? 'Longitude (°E)' : 'Latitude (°)'
-    const ylab = isMap ? 'Latitude (°)' : 'sigma'
-    ctx.textAlign = 'center'
-    ctx.fillText(`${selected.grid.label} (${selected.grid.units})`, mL + pw / 2, 14)
-    ctx.fillText(xlab, mL + pw / 2, CANVAS_H - 12)
-
-    // Colorbar ticks (hi at top, lo at bottom).
-    ctx.textAlign = 'left'
-    ctx.fillText(hi.toFixed(1), cbX + cbW + 4, mT + 2)
-    ctx.fillText(((hi + lo) / 2).toFixed(1), cbX + cbW + 4, mT + ph / 2)
-    ctx.fillText(lo.toFixed(1), cbX + cbW + 4, mT + ph - 2)
-
-    // Axis tick labels.
-    ctx.fillStyle = '#8b949e'
-    ctx.textAlign = 'right'
-    const yTop = isMap ? '90' : '0';  const yBot = isMap ? '-90' : '1'
-    ctx.fillText(yTop, mL - 6, mT + 4); ctx.fillText(yBot, mL - 6, mT + ph - 4)
-    ctx.save(); ctx.translate(14, mT + ph / 2); ctx.rotate(-Math.PI / 2)
-    ctx.textAlign = 'center'; ctx.fillStyle = '#c9d1d9'; ctx.fillText(ylab, 0, 0); ctx.restore()
-    ctx.textAlign = 'center'; ctx.fillStyle = '#8b949e'
-    const xLo = isMap ? '0' : '-90'; const xHi = isMap ? '360' : '90'
-    ctx.fillText(xLo, mL, CANVAS_H - 28); ctx.fillText(xHi, mL + pw, CANVAS_H - 28)
-  }, [fields, selected, cmapName, vmin, vmax, key])
-
-  function exportPNG() {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const a = document.createElement('a')
-    a.href = canvas.toDataURL('image/png')
-    a.download = `marsgcm_${key.replace(':', '_')}.png`
-    a.click()
-  }
-
-  function exportCSV() {
-    if (!fields || !selected) return
-    const g = selected.grid.data
-    const csv = g.map(row => row.join(',')).join('\n')
-    const a = document.createElement('a')
-    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }))
-    a.download = `marsgcm_${key.replace(':', '_')}.csv`
-    a.click()
-  }
-
   if (error) return <p style={{ color: '#8b949e', padding: 12 }}>{error}</p>
-  if (!fields || !selected || vmin == null || vmax == null)
-    return <p style={{ color: '#8b949e', padding: 12 }}>Loading fields…</p>
+  if (!fields) return <p style={{ color: '#8b949e', padding: 12 }}>Loading fields…</p>
+
+  const mapEntries = Object.entries(fields.maps)
+  const sectionEntries = Object.entries(fields.sections)
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: 12 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 12 }}>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
-        <label style={lbl}>Field&nbsp;
-          <select value={key} onChange={e => setKey(e.target.value)} style={sel}>
-            {options.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
-          </select>
-        </label>
         <label style={lbl}>Colormap&nbsp;
           <select value={cmapName} onChange={e => setCmap(e.target.value)} style={sel}>
             {Object.keys(COLORMAPS).map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </label>
-        <label style={lbl}>Min&nbsp;
-          <input type="number" step="any" value={vmin}
-                 onChange={e => setVmin(parseFloat(e.target.value))} style={num} />
-        </label>
-        <label style={lbl}>Max&nbsp;
-          <input type="number" step="any" value={vmax}
-                 onChange={e => setVmax(parseFloat(e.target.value))} style={num} />
-        </label>
-        <button onClick={() => { setVmin(selected.grid.min); setVmax(selected.grid.max) }} style={btn}>Auto</button>
-        <button onClick={exportPNG} style={btn}>Export PNG</button>
-        <button onClick={exportCSV} style={btn}>Export CSV</button>
+        <span style={{ color: '#8b949e', fontSize: 12 }}>
+          {mapEntries.length + sectionEntries.length} fields · each auto-scaled to its own range
+        </span>
       </div>
+
       {years.length > 1 && year != null && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ ...lbl, minWidth: 96 }}>Year&nbsp;<b>{year}</b></span>
+          <span style={{ ...lbl, minWidth: 84 }}>Year&nbsp;<b>{year}</b></span>
           <input type="range" min={0} max={years.length - 1}
                  value={years.indexOf(year)}
                  onChange={e => setYear(years[parseInt(e.target.value)])}
@@ -201,13 +163,25 @@ export function FieldMap({ runId }: { runId: string }) {
           </span>
         </div>
       )}
-      <canvas ref={canvasRef} width={CANVAS_W} height={CANVAS_H}
-              style={{ width: '100%', maxWidth: CANVAS_W, borderRadius: 6, border: '1px solid #30363d' }} />
+
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+        gap: 12,
+      }}>
+        {mapEntries.map(([k, g]) => (
+          <MapTile key={k} name={k} grid={g} cmapName={cmapName} kind="map" />
+        ))}
+        {sectionEntries.map(([k, g]) => (
+          <MapTile key={k} name={k} grid={g} cmapName={cmapName} kind="section" />
+        ))}
+      </div>
     </div>
   )
 }
 
 const lbl: React.CSSProperties = { color: '#c9d1d9', fontSize: 13 }
 const sel: React.CSSProperties = { background: '#161b22', color: '#c9d1d9', border: '1px solid #30363d', borderRadius: 4, padding: '3px 6px' }
-const num: React.CSSProperties = { ...sel, width: 80 }
-const btn: React.CSSProperties = { ...sel, cursor: 'pointer' }
+const tile: React.CSSProperties = { background: '#0e1116', border: '1px solid #30363d', borderRadius: 6, padding: 8 }
+const tileHead: React.CSSProperties = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6, gap: 8 }
+const miniBtn: React.CSSProperties = { ...sel, cursor: 'pointer', fontSize: 11, padding: '2px 6px' }
