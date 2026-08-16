@@ -15,6 +15,7 @@ point. Requires the optional ``gcm3d`` extra.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import numpy as np
@@ -23,19 +24,61 @@ from src.gcm3d._dinosaur import jnp, primitive_equations, scales
 
 _u = scales.units
 
-# Default location of the staged MOLA MEGDR raster (repo-relative).
-_DEFAULT_MOLA = (
-    Path(__file__).resolve().parents[3]
-    / "data"
-    / "mola"
-    / "meg004"
-    / "megt90n000cb.img"
+# ── MOLA MEGDR provenance (authoritative source + integrity) ──────────────────
+# Product: MGS MOLA MEGDR global topography, 4 pixels/degree (megt90n000cb).
+# Node:    NASA PDS Geosciences Node, dataset MGS-M-MOLA-5-MEGDR-L3-V1.
+# License: public domain (U.S. Government / NASA PDS); cite Smith et al. (2001),
+#          JGR 106, "Mars Orbiter Laser Altimeter: Experiment summary...".
+# The URL may move between PDS mirrors; integrity is guaranteed by the SHA-256
+# below (verified regardless of source), so a wrong/old URL fails loudly at
+# staging rather than silently loading corrupt data.
+MOLA_SOURCE_URL = (
+    "https://pds-geosciences.wustl.edu/mgs/mgs-m-mola-5-megdr-l3-v1/"
+    "mgsl_300x/meg/megt90n000cb.img"
 )
+MOLA_LABEL_URL = MOLA_SOURCE_URL[:-4] + ".lbl"
+MOLA_SHA256 = "25f16fb7aaf857898dcf98bc4f841341a24f8b9f7e98453ca083bc45d897ca2c"
+MOLA_SIZE_BYTES = 2_073_600  # 720 × 1440 × 2 (int16)
+
+# Staging location: env override MOLA_PATH, else repo-relative default.
+_REPO_DEFAULT_MOLA = (
+    Path(__file__).resolve().parents[3]
+    / "data" / "mola" / "meg004" / "megt90n000cb.img"
+)
+
+
+def _default_mola_path() -> Path:
+    """Configured MOLA path: ``$MOLA_PATH`` if set, else the repo default."""
+    env = os.environ.get("MOLA_PATH")
+    return Path(env) if env else _REPO_DEFAULT_MOLA
+
+
+# Back-compat module constant (tests reference topography._DEFAULT_MOLA).
+_DEFAULT_MOLA = _default_mola_path()
 
 # MEGDR ``megt90n000cb`` raster geometry (from the PDS .lbl).
 _MOLA_LINES = 720      # latitude rows,  0.25° each
 _MOLA_SAMPLES = 1440   # longitude cols, 0.25° each
 _MOLA_DEG_PER_PX = 0.25
+
+
+def verify_mola_checksum(path: str | Path | None = None) -> str:
+    """Return the SHA-256 of the staged raster, raising if it doesn't match.
+
+    Guards against truncated/corrupt downloads and wrong-product files — the
+    numbers only mean anything if the bytes are exactly the MEGDR product.
+    """
+    import hashlib
+
+    path = Path(path) if path is not None else _default_mola_path()
+    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    if digest != MOLA_SHA256:
+        raise ValueError(
+            f"MOLA raster at {path} has SHA-256 {digest}, expected {MOLA_SHA256}. "
+            f"The file is corrupt or the wrong product; re-stage with "
+            f"scripts/stage_mola.py."
+        )
+    return digest
 
 
 def load_mola_meg(path: str | Path | None = None):
@@ -50,11 +93,16 @@ def load_mola_meg(path: str | Path | None = None):
     lats_deg : np.ndarray, shape (720,)   Descending pixel-centre latitudes.
     lons_deg : np.ndarray, shape (1440,)  Ascending pixel-centre longitudes [0, 360).
     """
-    path = Path(path) if path is not None else _DEFAULT_MOLA
+    path = Path(path) if path is not None else _default_mola_path()
     if not path.exists():
         raise FileNotFoundError(
-            f"MOLA MEGDR raster not found at {path}. Expected the staged "
-            f"'megt90n000cb.img' (720×1440 int16 MSB)."
+            f"MOLA MEGDR raster not found at {path}.\n"
+            f"The 3-D Mars maps require the real MEGDR topography — this is a "
+            f"setup step, not an optional skip.\n"
+            f"  • Stage it:   python scripts/stage_mola.py\n"
+            f"  • Or set MOLA_PATH=/absolute/path/to/megt90n000cb.img\n"
+            f"  • Source:      {MOLA_SOURCE_URL}\n"
+            f"  • SHA-256:     {MOLA_SHA256}"
         )
     # 16-bit big-endian (MSB) signed integers, metres.
     raw = np.fromfile(path, dtype=">i2")

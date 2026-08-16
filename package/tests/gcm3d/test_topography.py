@@ -26,6 +26,31 @@ _HAS_MOLA = topo._DEFAULT_MOLA.exists()
 needs_mola = pytest.mark.skipif(not _HAS_MOLA, reason="MOLA MEGDR raster not staged")
 
 
+class TestProvenance:
+    """Integrity/reproducibility of the staged MOLA raster (fast, no dinosaur run)."""
+
+    def test_env_path_override(self, monkeypatch, tmp_path):
+        p = tmp_path / "custom.img"
+        monkeypatch.setenv("MOLA_PATH", str(p))
+        assert topo._default_mola_path() == p
+
+    def test_missing_raster_gives_actionable_error(self, monkeypatch, tmp_path):
+        monkeypatch.setenv("MOLA_PATH", str(tmp_path / "nope.img"))
+        with pytest.raises(FileNotFoundError, match="stage_mola"):
+            topo.load_mola_meg()
+
+    @needs_mola
+    def test_staged_raster_matches_pinned_checksum(self):
+        assert topo.verify_mola_checksum() == topo.MOLA_SHA256
+
+    @needs_mola
+    def test_corrupt_raster_is_rejected(self, tmp_path):
+        bad = tmp_path / "bad.img"
+        bad.write_bytes(b"\x00" * topo.MOLA_SIZE_BYTES)
+        with pytest.raises(ValueError, match="expected"):
+            topo.verify_mola_checksum(bad)
+
+
 @needs_mola
 class TestLoadMola:
 
