@@ -156,10 +156,12 @@ def _gcm_snapshot(scale: str, albedo: float, greenhouse: float, ls_deg: float,
     from src.gcm3d.maps import resolve_scale, run_maps
     from src.gcm3d.physics import mars_co2_forcing, mars_radiative_forcing
 
+    from src.gcm3d.physics import mean_anomaly_for_ls
+
     forcing = mars_radiative_forcing(albedo=albedo, greenhouse_factor=greenhouse,
                                      diurnal=False)
     forcing = dataclasses.replace(
-        forcing, init_orbital_angle_rad=math.radians(ls_deg) - forcing.ls_perihelion_rad,
+        forcing, init_orbital_angle_rad=mean_anomaly_for_ls(math.radians(ls_deg), forcing),
     )
     cfg = resolve_scale(scale)
     fields = run_maps(

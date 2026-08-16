@@ -56,7 +56,10 @@ try:  # pragma: no cover - import-availability branch
     from src.gcm3d.physics import (
         CO2Forcing,
         RadiativeForcing,
+        co2_frost_point_k,
         cos_zenith_nodal,
+        mean_anomaly_for_ls,
+        orbital_distance,
         forced_co2_primitive_equations,
         forced_primitive_equations,
         initial_co2_state,
@@ -102,8 +105,11 @@ try:  # pragma: no cover - import-availability branch
         # 3-D CO2 condensation cycle (Leighton-Murray) on a tuple-wrapped state
         "CO2Forcing",
         "mars_co2_forcing",
+        "co2_frost_point_k",
         "forced_co2_primitive_equations",
         "initial_co2_state",
+        "mean_anomaly_for_ls",
+        "orbital_distance",
         # 3-D dry-dynamics maps over MOLA terrain (Ames/LMD-comparable form)
         "load_mola_meg",
         "regrid_to_nodal",

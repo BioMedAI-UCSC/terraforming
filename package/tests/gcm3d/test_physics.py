@@ -246,11 +246,16 @@ def _co2_state():
     specs = physics_specs(MARS_BODY_3D)
     grid = coords.horizontal
     zeros = jnp.zeros((coords.vertical.layers,) + grid.modal_shape)
+    # Realistic Mars surface pressure (~610 Pa), uniform: the CO2 frost point is
+    # pressure-dependent, so the initial state must be a real atmosphere, not the
+    # nondimensional p_s=1 (which dimensionalises to ~vacuum).
+    ps_nd = float(specs.nondimensionalize(610.0 * _u.pascal))
+    log_sp_nodal = jnp.full((1,) + grid.nodal_shape, float(np.log(ps_nd)))
     dyn = primitive_equations.State(
         vorticity=zeros,
         divergence=zeros,
         temperature_variation=zeros,
-        log_surface_pressure=jnp.zeros((1,) + grid.modal_shape),
+        log_surface_pressure=grid.to_modal(log_sp_nodal),
         sim_time=0.0,
     )
     f = physics.mars_radiative_forcing()
@@ -260,11 +265,32 @@ def _co2_state():
 
 
 def _column_masses(grid, state):
-    """Area-weighted total atmospheric and frost mass (nondimensional)."""
+    """Global atmospheric and frost mass via proper spherical quadrature weights.
+
+    Uses the grid's Gaussian ``quadrature_weights`` (which integrate exactly over
+    the sphere, sum = 4*pi) rather than a raw cos(lat) approximation, so the
+    conservation residual reflects the physics, not the integration rule.
+    """
     dyn, ice = state
-    w = np.cos(np.asarray(grid.latitudes))[None, :]
+    w = np.asarray(grid.quadrature_weights)  # (n_lon, n_lat)
     ps = np.asarray(np.exp(grid.to_nodal(dyn.log_surface_pressure)))[0]
     return float((ps * w).sum()), float((np.asarray(ice)[0] * w).sum())
+
+
+class TestCO2FrostPoint:
+
+    def test_calibration_points(self):
+        # Mars surface (6.1 hPa) ~148 K; CO2 sublimation point at 1 atm ~194 K.
+        assert float(physics.co2_frost_point_k(610.0)) == pytest.approx(148, abs=1.5)
+        assert float(physics.co2_frost_point_k(101325.0)) == pytest.approx(194, abs=1.5)
+
+    def test_monotonic_increasing_with_pressure(self):
+        ps = np.linspace(50.0, 1.0e5, 60)
+        t = np.array([float(physics.co2_frost_point_k(p)) for p in ps])
+        assert np.all(np.diff(t) > 0)
+
+    def test_finite_in_vacuum(self):
+        assert np.isfinite(float(physics.co2_frost_point_k(0.0)))
 
 
 class TestCO2Cycle:

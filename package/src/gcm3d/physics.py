@@ -127,28 +127,73 @@ def mars_radiative_forcing(
     )
 
 
-def _orbital_angle(t_s, f: RadiativeForcing):
-    """Mean-rate orbital angle (0 = perihelion) at elapsed seconds ``t_s``."""
+# ── Keplerian orbit ───────────────────────────────────────────────────────────
+# Epoch convention: ``init_orbital_angle_rad`` is the *mean anomaly* M0 at t=0,
+# measured from perihelion (M=0 at perihelion). The mean anomaly advances
+# uniformly; the eccentric anomaly E solves Kepler's equation M = E - e sin E;
+# the true anomaly nu and heliocentric distance follow from E. Areocentric solar
+# longitude is Ls = nu + Ls_perihelion (Ls_perihelion ~= 251 deg for Mars). Use
+# :func:`mean_anomaly_for_ls` to set the epoch from a desired Ls consistently.
+_KEPLER_ITERS = 6  # Newton iterations; e<0.1 converges to ~machine eps in ~4
+
+
+def _mean_anomaly(t_s, f: RadiativeForcing):
+    """Mean anomaly (rad) at elapsed seconds ``t_s`` — advances uniformly."""
     return f.init_orbital_angle_rad + _TWO_PI * t_s / f.orbital_period_s
+
+
+def _eccentric_anomaly(mean_anomaly, e: float):
+    """Solve Kepler's equation ``M = E - e sin E`` for E (Newton's method)."""
+    E = mean_anomaly  # good initial guess for small e
+    for _ in range(_KEPLER_ITERS):
+        E = E - (E - e * jnp.sin(E) - mean_anomaly) / (1.0 - e * jnp.cos(E))
+    return E
+
+
+def _true_anomaly(t_s, f: RadiativeForcing):
+    """True anomaly nu (rad) from the Kepler solution at elapsed seconds ``t_s``."""
+    E = _eccentric_anomaly(_mean_anomaly(t_s, f), f.eccentricity)
+    e = f.eccentricity
+    return 2.0 * jnp.arctan2(
+        jnp.sqrt(1.0 + e) * jnp.sin(E / 2.0),
+        jnp.sqrt(1.0 - e) * jnp.cos(E / 2.0),
+    )
+
+
+def orbital_distance(t_s, f: RadiativeForcing):
+    """Heliocentric distance (m): ``r = a(1 - e cos E)``."""
+    E = _eccentric_anomaly(_mean_anomaly(t_s, f), f.eccentricity)
+    return f.semi_major_axis_m * (1.0 - f.eccentricity * jnp.cos(E))
+
+
+def mean_anomaly_for_ls(ls_rad: float, f: RadiativeForcing) -> float:
+    """The epoch mean anomaly that places the orbit at solar longitude ``ls_rad``.
+
+    Inverts the Kepler chain (Ls -> nu -> E -> M) so callers can specify a season
+    (Ls) rather than a mean anomaly, keeping epoch/perihelion/Ls mutually
+    consistent. Returned as a plain float (static epoch config).
+    """
+    nu = float(ls_rad) - f.ls_perihelion_rad
+    e = f.eccentricity
+    E = 2.0 * math.atan2(
+        math.sqrt(1.0 - e) * math.sin(nu / 2.0),
+        math.sqrt(1.0 + e) * math.cos(nu / 2.0),
+    )
+    return E - e * math.sin(E)
 
 
 def solar_flux(t_s, f: RadiativeForcing):
     """Inverse-square solar flux (W m^-2) at elapsed seconds ``t_s``.
 
-    Kepler distance ``r = a(1-e^2)/(1+e cos theta)`` then ``S = S_1AU (AU/r)^2``,
-    matching :func:`src.gcm3d.terraforming_ode.solar_flux`.
+    Uses the true Keplerian distance ``r = a(1 - e cos E)`` then
+    ``S = S_1AU (AU/r)^2``.
     """
-    theta = _orbital_angle(t_s, f)
-    distance = (
-        f.semi_major_axis_m * (1.0 - f.eccentricity**2)
-        / (1.0 + f.eccentricity * jnp.cos(theta))
-    )
-    return f.tsi_1au_w_m2 * (f.au_m / distance) ** 2
+    return f.tsi_1au_w_m2 * (f.au_m / orbital_distance(t_s, f)) ** 2
 
 
 def _declination(t_s, f: RadiativeForcing):
-    """Solar declination (rad): ``arcsin(sin(tilt) sin(Ls))``."""
-    ls = _orbital_angle(t_s, f) + f.ls_perihelion_rad
+    """Solar declination (rad): ``arcsin(sin(tilt) sin(Ls))``, Ls = nu + Ls_peri."""
+    ls = _true_anomaly(t_s, f) + f.ls_perihelion_rad
     return jnp.arcsin(jnp.sin(f.axial_tilt_rad) * jnp.sin(ls))
 
 
@@ -278,10 +323,13 @@ class CO2Forcing:
     temperatures over a few sols without destabilising the explicit step.
     """
 
-    frost_point_k: float
+    frost_point_k: float               # constant fallback (used if use_pressure_frost=False)
     latent_heat_j_kg: float
     gravity_m_s2: float
     thermal_inertia: float
+    # Use the pressure-dependent CO2 saturation temperature (Clausius-Clapeyron
+    # curve) instead of the constant frost_point_k. See :func:`co2_frost_point_k`.
+    use_pressure_frost: bool = True
     # Smooth condensation/sublimation rate (Pa of exchange per K of frost offset
     # per second) and the ice scale that gates sublimation to zero as frost runs out.
     exchange_rate_pa_s_per_k: float = 1.0e-4
@@ -313,6 +361,24 @@ def mars_co2_forcing(
     )
 
 
+def co2_frost_point_k(pressure_pa):
+    """CO2 condensation (frost-point) temperature (K) at partial pressure ``pressure_pa``.
+
+    Uses the CO2 saturation-vapour-pressure (Clausius-Clapeyron) relation in the
+    inverted, GCM-standard form
+
+        T_sat = 3182.48 / (23.3494 - ln p[hPa])
+
+    which is the CO2 condensation temperature used in Mars GCMs. It is well
+    calibrated against the CO2 phase curve: it returns ~147.7 K at 6.1 hPa (Mars
+    surface pressure) and 194.6 K at 1013 hPa (the CO2 sublimation point at 1 atm),
+    and rises with pressure as Clausius-Clapeyron requires. ``pressure_pa`` is
+    clipped to a small positive floor so the log stays finite in vacuum cells.
+    """
+    p_hpa = jnp.clip(jnp.asarray(pressure_pa) / 100.0, 1e-6, None)
+    return 3182.48 / (23.3494 - jnp.log(p_hpa))
+
+
 def _co2_surface_tendencies(dyn, ice_nd, coords, specs, body, cf: CO2Forcing):
     """Per-cell CO2 exchange: returns (d_logsp_modal, d_ice_nd_nodal, dT_latent_nd).
 
@@ -333,8 +399,13 @@ def _co2_surface_tendencies(dyn, ice_nd, coords, specs, body, cf: CO2Forcing):
     # Ice reservoir in Pa (dimensional) for gating and rates.
     ice_pa = specs.dimensionalize(ice_nd, _u.pascal).magnitude        # (1,n_lon,n_lat)
 
-    below = jnp.clip(cf.frost_point_k - t_surf_k, 0.0, None)           # K, cooling below frost
-    above = jnp.clip(t_surf_k - cf.frost_point_k, 0.0, None)          # K, warm enough to sublime
+    # Frost point: pressure-dependent CO2 saturation temperature per cell (or the
+    # constant fallback). Using the local p_s makes the winter-pole cap form at the
+    # right temperature and respond as the atmosphere thickens/thins.
+    frost_k = (co2_frost_point_k(ps_pa[0]) if cf.use_pressure_frost
+               else cf.frost_point_k)
+    below = jnp.clip(frost_k - t_surf_k, 0.0, None)                   # K, cooling below frost
+    above = jnp.clip(t_surf_k - frost_k, 0.0, None)                  # K, warm enough to sublime
     # Supply-limited condensation: vanishes as the local column thins (p_s -> 0),
     # which keeps p_s strictly positive and the log-pressure tendency bounded.
     supply_gate = jnp.tanh(ps_pa[0] / cf.supply_scale_pa)

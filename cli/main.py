@@ -807,12 +807,14 @@ def mars_maps(
     forcing = None
     co2_forcing = None
     if physics:
+        from src.gcm3d.physics import mean_anomaly_for_ls
+
         forcing = mars_radiative_forcing(
             albedo=albedo, greenhouse_factor=greenhouse_factor, diurnal=diurnal,
         )
         forcing = dataclasses.replace(
             forcing,
-            init_orbital_angle_rad=math.radians(ls) - forcing.ls_perihelion_rad,
+            init_orbital_angle_rad=mean_anomaly_for_ls(math.radians(ls), forcing),
         )
         if co2:
             co2_forcing = mars_co2_forcing()
