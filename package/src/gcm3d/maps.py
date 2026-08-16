@@ -121,10 +121,22 @@ class MarsMapFields:
     dt_seconds: float
     physics: str = "dry dynamics; no radiation/CO2/dust"
     co2_ice_pa: np.ndarray | None = None  # (n_lat, n_lon) surface CO2 frost, Pa-equiv
+    rotation_period_s: float = 88775.244  # for the duration diagnostic
 
     @property
     def wind_speed_ms(self) -> np.ndarray:
         return np.hypot(self.u_ms, self.v_ms)
+
+    @property
+    def duration_sols(self) -> float:
+        """Physical duration of the run in sols (n_steps * dt / rotation period)."""
+        return self.n_steps * self.dt_seconds / self.rotation_period_s
+
+    @property
+    def is_transient(self) -> bool:
+        """True if the run is too short (< 1 Mars year ~ 668 sols) to be a
+        seasonally-equilibrated climatology — it is a spin-up transient snapshot."""
+        return self.duration_sols < 668.0
 
 
 def run_maps(
@@ -250,6 +262,14 @@ def run_maps(
 
     surf = n_layers - 1  # near-surface sigma level (sigma ≈ 1)
 
+    # Honesty about duration: flag short runs as spin-up transients, not climate.
+    duration_sols = n_steps * dt_seconds / body.rotation_period_s
+    if duration_sols < 668.0:
+        physics_label += (
+            f" | TRANSIENT: {duration_sols:.1f}-sol spin-up snapshot, "
+            f"NOT a seasonally-equilibrated climatology (needs >= 1 Mars year)"
+        )
+
     def to_map(field_lonlat):
         """(n_lon, n_lat) → (n_lat, n_lon)."""
         return np.asarray(field_lonlat).T
@@ -268,6 +288,7 @@ def run_maps(
         dt_seconds=dt_seconds,
         physics=physics_label,
         co2_ice_pa=co2_ice_map,
+        rotation_period_s=body.rotation_period_s,
     )
 
 
