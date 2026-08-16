@@ -24,6 +24,7 @@ export function App() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [viewData, setViewData]   = useState<DataPoint[]>([])
   const [viewRun, setViewRun]     = useState<RunSummary | null>(null)
+  const [formError, setFormError] = useState<string | null>(null)
   const unsubRef = useRef<(() => void) | null>(null)
 
   useEffect(() => {
@@ -31,7 +32,18 @@ export function App() {
   }, [])
 
   const handleCreate = useCallback(async (config: Partial<RunConfig>) => {
-    const { run_id } = await createRun(config)
+    let run_id: string
+    try {
+      ({ run_id } = await createRun(config))
+      setFormError(null)
+    } catch (e) {
+      // Most common cause: the `tform serve` backend isn't running.
+      setFormError(
+        'Could not reach the simulation server. Is `tform serve` running? ' +
+        (e instanceof Error ? `(${e.message})` : ''),
+      )
+      return
+    }
 
     const stub: RunSummary = {
       id:           run_id,
@@ -111,6 +123,13 @@ export function App() {
           <span style={s.brandTag}>visualizer</span>
         </div>
         <div style={s.sideScroll}>
+          {formError && (
+            <div style={{
+              margin: '0 0 10px', padding: '8px 10px', borderRadius: 6,
+              background: '#3d1a1a', border: '1px solid #a33', color: '#ffb3b3',
+              fontSize: 12, lineHeight: 1.4,
+            }}>{formError}</div>
+          )}
           <RunForm onSubmit={handleCreate} />
           <RunList runs={runs} selectedId={selectedId} onSelect={handleSelect} />
         </div>
