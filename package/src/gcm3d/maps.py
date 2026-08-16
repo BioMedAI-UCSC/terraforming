@@ -34,6 +34,30 @@ from src.gcm3d.topography import mola_modal_orography, regrid_to_nodal
 _u = scales.units
 
 
+# ── Runtime scale presets ─────────────────────────────────────────────────────
+# Named resolution/step configurations, selectable per run (CLI --scale, server
+# `scale` field). Each maps to run_maps' truncation / n_layers / dt / n_steps.
+# dt is kept below the daily-mean stability limit at each resolution; the diurnal
+# terminator CFL (dt <= rotation/(2*n_lon)) is enforced separately in run_maps.
+MAP_SCALES: dict[str, dict] = {
+    "fast":     dict(truncation="T42",  n_layers=12, dt_seconds=450.0, n_steps=700),
+    "balanced": dict(truncation="T85",  n_layers=20, dt_seconds=300.0, n_steps=1000),
+    "high":     dict(truncation="T106", n_layers=30, dt_seconds=225.0, n_steps=1400),
+    "ultra":    dict(truncation="T170", n_layers=40, dt_seconds=150.0, n_steps=2000),
+}
+DEFAULT_SCALE = "fast"
+
+
+def resolve_scale(scale: str | None) -> dict:
+    """Return the run_maps kwargs for a named scale preset (see :data:`MAP_SCALES`)."""
+    key = (scale or DEFAULT_SCALE).lower()
+    if key not in MAP_SCALES:
+        raise ValueError(
+            f"unknown scale {scale!r}; choose one of {list(MAP_SCALES)}"
+        )
+    return dict(MAP_SCALES[key])
+
+
 def hydrostatic_surface_pressure_pa(elevation_m, body, t_ref_k=None, p0_pa=None):
     """Mars-hydrostatic surface pressure over terrain (Pa).
 

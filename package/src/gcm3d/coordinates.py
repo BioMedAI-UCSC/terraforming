@@ -18,9 +18,12 @@ from src.gcm3d._dinosaur import (
 # Named triangular truncations. T21 is the smoke/dev resolution; T42/T85 are for
 # production runs.
 _GRIDS = {
-    "T21": spherical_harmonic.Grid.T21,
-    "T42": spherical_harmonic.Grid.T42,
-    "T85": spherical_harmonic.Grid.T85,
+    "T21": spherical_harmonic.Grid.T21,     # 64×32   smoke/dev
+    "T31": spherical_harmonic.Grid.T31,     # 96×48
+    "T42": spherical_harmonic.Grid.T42,     # 128×64  default
+    "T85": spherical_harmonic.Grid.T85,     # 256×128
+    "T106": spherical_harmonic.Grid.T106,   # 320×160 high
+    "T170": spherical_harmonic.Grid.T170,   # 512×256 ultra
 }
 
 

@@ -119,11 +119,13 @@ export function App() {
       <main style={s.main}>
         {viewRun
           ? <>
-              {viewRun.config.accuracy === 'gcm'
-                ? (viewRun.status === 'done'
-                    ? <FieldMap runId={viewRun.id} />
-                    : <ChartPanel data={viewData} run={viewRun} />)
-                : <ChartPanel data={viewData} run={viewRun} />}
+              {/* Chart: shown for non-gcm runs, and for gcm terraforming runs
+                  (intervention) which have a 100-yr trajectory. */}
+              {(viewRun.config.accuracy !== 'gcm' || viewData.length > 0) &&
+                <ChartPanel data={viewData} run={viewRun} />}
+              {/* FieldMap: 3-D snapshots for any finished gcm run. */}
+              {viewRun.config.accuracy === 'gcm' && viewRun.status === 'done' &&
+                <FieldMap runId={viewRun.id} />}
             </>
           : <EmptyState />
         }

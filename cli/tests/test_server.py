@@ -63,6 +63,23 @@ class TestExtractMapsFields:
         assert "co2_ice" not in server._extract_maps_fields(_fake_fields(False))["maps"]
 
 
+# ── _snapshot_years (pure) ────────────────────────────────────────────────────
+
+class TestSnapshotYears:
+
+    def test_evenly_spaced_and_includes_final(self):
+        ys = server._snapshot_years(100, 5)
+        assert max(ys) == 100          # final year always captured
+        assert min(ys) >= 1
+        assert len(ys) == 5
+
+    def test_zero_snapshots_is_empty(self):
+        assert server._snapshot_years(100, 0) == set()
+
+    def test_more_snapshots_than_years_caps_at_every_year(self):
+        assert server._snapshot_years(3, 10) == {1, 2, 3}
+
+
 # ── Full gcm run path (needs the gcm3d extra) ─────────────────────────────────
 
 @pytest.mark.slow
@@ -93,5 +110,39 @@ def test_gcm_run_produces_fields_and_hides_them_from_poll():
         # the run poll must not carry the (heavy) field grids
         poll = {k: v for k, v in run.items() if k != "fields"}
         assert "fields" not in poll
+    finally:
+        server._runs.pop(rid, None)
+
+
+@pytest.mark.slow
+def test_gcm_intervention_captures_snapshots_along_timeline():
+    pytest.importorskip("dinosaur")
+    from src.gcm3d import topography as topo
+
+    if not topo._DEFAULT_MOLA.exists():
+        pytest.skip("MOLA raster not staged")
+
+    rid = "srv_hybrid_test"
+    req = server.RunRequest(preset="current-mars", exp_type="intervention",
+                            accuracy="gcm", years=4, snapshots=2, scale="fast",
+                            inject={"SF6": 5e8}, ls=270.0)
+    server._runs[rid] = {
+        "id": rid, "status": "running", "progress": 0.0,
+        "config": req.model_dump(), "data": [], "error": None,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "completed_at": None, "label": "hybrid test",
+    }
+    try:
+        server._run_simulation(rid, req)
+        run = server._runs[rid]
+        assert run["status"] == "done", run.get("error")
+        # trajectory chart present (the existing timeline)
+        assert len(run["data"]) == 4
+        # 3-D snapshots captured along that timeline, final year included
+        years = run["snapshot_years"]
+        assert 4 in years
+        assert set(str(y) for y in years) == set(run["field_snapshots"].keys())
+        # headline fields = the final snapshot
+        assert "surface_temperature" in run["fields"]["maps"]
     finally:
         server._runs.pop(rid, None)

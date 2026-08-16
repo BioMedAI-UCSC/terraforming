@@ -38,8 +38,11 @@ try:  # pragma: no cover - import-availability branch
         stepper,
     )
     from src.gcm3d.maps import (
+        MAP_SCALES,
+        DEFAULT_SCALE,
         MarsMapFields,
         plot_maps,
+        resolve_scale,
         run_maps,
         save_maps,
         save_netcdf,
@@ -110,6 +113,9 @@ try:  # pragma: no cover - import-availability branch
         "plot_maps",
         "save_netcdf",
         "save_maps",
+        "MAP_SCALES",
+        "DEFAULT_SCALE",
+        "resolve_scale",
     ]
 except ModuleNotFoundError:
     pass

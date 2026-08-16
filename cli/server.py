@@ -71,6 +71,9 @@ class RunRequest(BaseModel):
     ice_mass: float | None = None
     inject: dict[str, float] = {}
     label: str | None = None
+    # gcm ('gcm3d maps') options
+    scale: str = "fast"      # runtime resolution preset (fast/balanced/high/ultra)
+    snapshots: int = 5       # 3-D map snapshots along an intervention timeline
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -139,35 +142,60 @@ def _extract_maps_fields(fields) -> dict:
     }
 
 
-def _run_gcm_maps(run, req: RunRequest, cfg) -> None:
-    """Run the gcm3d 3-D maps backend and attach the field grids to ``run``.
+def _gcm_snapshot(scale: str, albedo: float, greenhouse: float, ls_deg: float,
+                  pressure_pa: float | None) -> dict:
+    """Run one 3-D gcm3d map at the given atmosphere state; return field grids.
 
-    This is a spatial (lat/lon) run, not a timeseries, so ``run["data"]`` stays
-    empty and the browser shows the ``FieldMap`` view instead of a chart.
+    ``pressure_pa`` (if given) sets the reference surface pressure, so a snapshot
+    taken partway through a terraforming run reflects that epoch's evolved (thicker)
+    atmosphere and greenhouse factor.
     """
     import dataclasses
     import math
 
-    from src.gcm3d.maps import run_maps
+    from src.gcm3d.maps import resolve_scale, run_maps
     from src.gcm3d.physics import mars_co2_forcing, mars_radiative_forcing
 
-    p = cfg.planet
-    # Season epoch: convert the requested Ls (deg) to an orbital angle offset.
-    forcing = mars_radiative_forcing(
-        albedo=p.albedo, greenhouse_factor=p.greenhouse_factor, diurnal=False,
-    )
-    ls_deg = p.initial_ls_deg or 0.0
+    forcing = mars_radiative_forcing(albedo=albedo, greenhouse_factor=greenhouse,
+                                     diurnal=False)
     forcing = dataclasses.replace(
         forcing, init_orbital_angle_rad=math.radians(ls_deg) - forcing.ls_perihelion_rad,
     )
-    co2 = mars_co2_forcing()
-
+    cfg = resolve_scale(scale)
     fields = run_maps(
-        truncation="T42", n_layers=12, dt_seconds=450.0, n_steps=700,
-        forcing=forcing, co2_forcing=co2,
+        forcing=forcing, co2_forcing=mars_co2_forcing(),
+        p0_pa=pressure_pa, **cfg,
     )
-    run["fields"] = _extract_maps_fields(fields)
+    return _extract_maps_fields(fields)
+
+
+def _run_gcm_maps(run, req: RunRequest, cfg) -> None:
+    """Run a single gcm3d 3-D map (no timeseries) and attach the field grids.
+
+    ``run["data"]`` stays empty, so the browser shows the ``FieldMap`` view.
+    """
+    p = cfg.planet
+    run["fields"] = _gcm_snapshot(
+        req.scale, p.albedo, p.greenhouse_factor, p.initial_ls_deg or 0.0,
+        pressure_pa=p.surface_pressure,
+    )
     run["progress"] = 1.0
+
+
+def _snapshot_years(n_years: int, n_snapshots: int) -> set[int]:
+    """The intervention years at which to capture a 3-D snapshot.
+
+    Evenly spaced across 1..n_years, always including the final year (so the last
+    snapshot is the terraformed end-state used as the headline heatmap).
+    """
+    if n_snapshots <= 0 or n_years <= 0:
+        return set()
+    if n_snapshots >= n_years:
+        return set(range(1, n_years + 1))
+    import numpy as np
+    years = {int(y) for y in np.linspace(1, n_years, n_snapshots).round().astype(int)}
+    years.add(n_years)
+    return years
 
 
 def _run_simulation(run_id: str, req: RunRequest) -> None:
@@ -209,8 +237,10 @@ def _run_simulation(run_id: str, req: RunRequest) -> None:
         p = cfg.planet
 
         # The 'gcm' accuracy runs the 3-D gcm3d maps backend (dinosaur dycore +
-        # radiation + CO2), producing lat/lon field grids rather than a timeseries.
-        if req.accuracy == "gcm":
+        # radiation + CO2). A one-off gcm map (no timeseries) short-circuits here;
+        # a gcm *intervention* runs the 100-yr trajectory and captures 3-D snapshots
+        # along that existing timeline (handled below, after Mars is built).
+        if req.accuracy == "gcm" and req.exp_type != "intervention":
             _run_gcm_maps(run, req, cfg)
             run["status"] = "done"
             run["progress"] = 1.0
@@ -228,10 +258,13 @@ def _run_simulation(run_id: str, req: RunRequest) -> None:
             elevation_m=p.elevation_m,
             initial_ls_deg=p.initial_ls_deg,
         )
-        accuracy = SrcAccuracy.FAST if req.accuracy == "fast" else SrcAccuracy.ACCURATE
+        # gcm-flavoured intervention drives the (torch) trajectory with the FAST
+        # reduced-order kernel and layers 3-D snapshots on top.
+        accuracy = SrcAccuracy.ACCURATE if req.accuracy == "accurate" else SrcAccuracy.FAST
 
         if req.exp_type == "intervention":
-            _run_intervention(run, req, mars, cfg, accuracy)
+            _run_intervention(run, req, mars, cfg, accuracy,
+                              capture_gcm=(req.accuracy == "gcm"))
         else:
             _run_timeseries(run, req, mars, cfg, accuracy)
 
@@ -246,8 +279,14 @@ def _run_simulation(run_id: str, req: RunRequest) -> None:
         run["error"] = f"{type(exc).__name__}: {exc}\n{traceback.format_exc()}"
 
 
-def _run_intervention(run, req, mars, cfg, accuracy) -> None:
-    """One data point per Mars year via InterventionController callback."""
+def _run_intervention(run, req, mars, cfg, accuracy, capture_gcm: bool = False) -> None:
+    """One data point per Mars year via InterventionController callback.
+
+    When ``capture_gcm`` is set, a 3-D gcm3d snapshot is also captured at a handful
+    of years along this same (existing) timeline — using each year's evolved
+    pressure + greenhouse factor — so the browser can show the spatial evolution
+    of the terraforming run, with the final year as the headline heatmap.
+    """
     from src.interventions import InterventionController
 
     ic = InterventionController(
@@ -257,6 +296,11 @@ def _run_intervention(run, req, mars, cfg, accuracy) -> None:
         accuracy=accuracy,
     )
     n_years = req.years
+    ls_deg = cfg.planet.initial_ls_deg or 0.0
+    snap_years = _snapshot_years(n_years, req.snapshots) if capture_gcm else set()
+    if capture_gcm:
+        run["snapshot_years"] = sorted(snap_years)
+        run["field_snapshots"] = {}
 
     def iv_cb(snap) -> None:
         run["data"].append({
@@ -269,6 +313,22 @@ def _run_intervention(run, req, mars, cfg, accuracy) -> None:
             "delta_F":       _v(snap.delta_F),
             "greenhouse_factor": _v(snap.greenhouse_factor),
         })
+        # 3-D snapshot at this year's evolved atmosphere (thicker air + stronger
+        # greenhouse as the terraforming proceeds).
+        if snap.year in snap_years:
+            try:
+                fld = _gcm_snapshot(
+                    req.scale,
+                    albedo=cfg.planet.albedo,
+                    greenhouse=_v(snap.greenhouse_factor),
+                    ls_deg=ls_deg,
+                    pressure_pa=_v(snap.surface_pressure),
+                )
+                run["field_snapshots"][str(snap.year)] = fld
+                run["fields"] = fld  # latest snapshot is the current headline
+            except Exception:  # noqa: BLE001 — snapshots are optional, never fail the run
+                pass
+        # Progress: trajectory year plus the extra weight of snapshot rendering.
         run["progress"] = snap.year / n_years
 
     ic.run(n_years=n_years, callback=iv_cb)
@@ -354,18 +414,39 @@ async def get_run(run_id: str) -> dict:
     if run_id not in _runs:
         raise HTTPException(404, "Run not found")
     # Field grids (3-D maps) are served separately so run polling stays light.
-    return {k: v for k, v in _runs[run_id].items() if k != "fields"}
+    heavy = {"fields", "field_snapshots"}
+    return {k: v for k, v in _runs[run_id].items() if k not in heavy}
 
 
 @app.get("/api/runs/{run_id}/fields")
-async def get_run_fields(run_id: str) -> dict:
-    """The lat/lon field grids for a gcm ('gcm3d maps') run, for the map view."""
+async def get_run_fields(run_id: str, year: int | None = None) -> dict:
+    """The lat/lon field grids for a gcm run.
+
+    With no ``year`` this returns the headline snapshot (the final/most-recent one).
+    Pass ``year`` to fetch a specific snapshot from a terraforming timeline.
+    """
     if run_id not in _runs:
         raise HTTPException(404, "Run not found")
-    fields = _runs[run_id].get("fields")
+    run = _runs[run_id]
+    if year is not None:
+        snap = (run.get("field_snapshots") or {}).get(str(year))
+        if not snap:
+            raise HTTPException(404, f"No snapshot for year {year}")
+        return snap
+    fields = run.get("fields")
     if not fields:
         raise HTTPException(404, "No field data (not a gcm run, or not finished)")
     return fields
+
+
+@app.get("/api/runs/{run_id}/snapshots")
+async def get_run_snapshots(run_id: str) -> dict:
+    """The years for which 3-D snapshots exist (for the timeline slider)."""
+    if run_id not in _runs:
+        raise HTTPException(404, "Run not found")
+    run = _runs[run_id]
+    years = sorted(int(y) for y in (run.get("field_snapshots") or {}))
+    return {"years": years}
 
 
 @app.get("/api/runs/{run_id}/events")

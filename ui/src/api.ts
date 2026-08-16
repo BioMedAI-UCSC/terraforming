@@ -15,7 +15,10 @@ export const createRun = (config: Partial<RunConfig>) =>
 
 export const listRuns  = () => req<RunSummary[]>('/api/runs')
 export const getRun    = (id: string) => req<Run>(`/api/runs/${id}`)
-export const getRunFields = (id: string) => req<RunFields>(`/api/runs/${id}/fields`)
+export const getRunFields = (id: string, year?: number) =>
+  req<RunFields>(`/api/runs/${id}/fields${year != null ? `?year=${year}` : ''}`)
+export const getRunSnapshots = (id: string) =>
+  req<{ years: number[] }>(`/api/runs/${id}/snapshots`)
 export const getPresets       = () => req<string[]>('/api/presets')
 export const getPresetConfig  = (name: string) => req<PresetValues>(`/api/presets/${name}`)
 export const getCompounds     = () => req<string[]>('/api/compounds')

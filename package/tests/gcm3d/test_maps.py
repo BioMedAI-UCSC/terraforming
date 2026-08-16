@@ -82,6 +82,27 @@ class TestRunMaps:
             maps.run_maps(truncation="T21", n_layers=8, n_steps=0)
 
 
+class TestScalePresets:
+
+    def test_known_presets_resolve(self):
+        for name in ("fast", "balanced", "high", "ultra"):
+            cfg = maps.resolve_scale(name)
+            assert set(cfg) == {"truncation", "n_layers", "dt_seconds", "n_steps"}
+            assert cfg["n_layers"] > 0 and cfg["n_steps"] > 0
+
+    def test_default_and_ordering(self):
+        # Higher scales are at least as fine as lower ones.
+        fast = maps.resolve_scale("fast")
+        ultra = maps.resolve_scale("ultra")
+        assert ultra["n_layers"] >= fast["n_layers"]
+        assert ultra["n_steps"] >= fast["n_steps"]
+        assert maps.resolve_scale(None) == maps.resolve_scale(maps.DEFAULT_SCALE)
+
+    def test_unknown_scale_raises(self):
+        with pytest.raises(ValueError, match="unknown scale"):
+            maps.resolve_scale("gigantic")
+
+
 @needs_mola
 class TestOutputs:
 

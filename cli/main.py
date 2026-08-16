@@ -738,14 +738,18 @@ def _echo_run_summary(cfg: SimConfig, preset: str | None) -> None:
 # ── mars maps (3-D gcm3d over MOLA terrain) ─────────────────────────────────────
 
 @mars_group.command("maps")
-@click.option("--truncation", type=click.Choice(["T21", "T31", "T42", "T63"]),
-              default="T42", show_default=True, help="Spectral resolution.")
-@click.option("--layers", "n_layers", type=int, default=12, show_default=True,
-              help="Number of vertical sigma layers.")
-@click.option("--dt", "dt_seconds", type=float, default=450.0, show_default=True,
-              help="Timestep in seconds.")
-@click.option("--steps", "n_steps", type=int, default=700, show_default=True,
-              help="Number of integration steps.")
+@click.option("--scale", type=click.Choice(["fast", "balanced", "high", "ultra"]),
+              default="fast", show_default=True,
+              help="Runtime resolution preset (sets truncation/layers/dt/steps). "
+                   "Individual flags below override the preset.")
+@click.option("--truncation", type=click.Choice(["T21", "T31", "T42", "T85", "T106", "T170"]),
+              default=None, help="Override the preset's spectral resolution.")
+@click.option("--layers", "n_layers", type=int, default=None,
+              help="Override the preset's number of vertical sigma layers.")
+@click.option("--dt", "dt_seconds", type=float, default=None,
+              help="Override the preset's timestep in seconds.")
+@click.option("--steps", "n_steps", type=int, default=None,
+              help="Override the preset's number of integration steps.")
 @click.option("--physics/--no-physics", default=True, show_default=True,
               help="Add the grey radiative energy balance (else dry dynamics only).")
 @click.option("--co2/--no-co2", "co2", default=True, show_default=True,
@@ -761,7 +765,8 @@ def _echo_run_summary(cfg: SimConfig, preset: str | None) -> None:
 @click.option("--name", default=None, metavar="TAG",
               help="Output subfolder under outputs/gcm3d_maps/ (default: mars).")
 def mars_maps(
-    truncation: str, n_layers: int, dt_seconds: float, n_steps: int,
+    scale: str, truncation: str | None, n_layers: int | None,
+    dt_seconds: float | None, n_steps: int | None,
     physics: bool, co2: bool, diurnal: bool, albedo: float,
     greenhouse_factor: float, ls: float, name: str | None,
 ) -> None:
@@ -783,12 +788,21 @@ def mars_maps(
 
     _print_banner()
     try:
-        from src.gcm3d.maps import run_maps, save_maps
+        from src.gcm3d.maps import resolve_scale, run_maps, save_maps
         from src.gcm3d.physics import mars_co2_forcing, mars_radiative_forcing
     except ModuleNotFoundError:
         click.echo(_c("\n  ✖  The 3-D maps need the optional 'gcm3d' extra.", "bright_red"))
         click.echo(_c("     Install it:  pip install 'terraforming[gcm3d]'", "bright_black"))
         sys.exit(1)
+
+    # Resolve the runtime scale preset, then apply any explicit per-flag overrides.
+    cfg = resolve_scale(scale)
+    if truncation is not None: cfg["truncation"] = truncation
+    if n_layers is not None:   cfg["n_layers"] = n_layers
+    if dt_seconds is not None: cfg["dt_seconds"] = dt_seconds
+    if n_steps is not None:    cfg["n_steps"] = n_steps
+    truncation = cfg["truncation"]; n_layers = cfg["n_layers"]
+    dt_seconds = cfg["dt_seconds"]; n_steps = cfg["n_steps"]
 
     forcing = None
     co2_forcing = None
@@ -810,7 +824,7 @@ def mars_maps(
         else "radiation + CO2 cycle" if co2 else "radiation"
     )
     click.echo(f"  {_label('backend     ')}{_value('gcm3d (' + label + ')')}")
-    click.echo(f"  {_label('resolution  ')}{_value(f'{truncation}, {n_layers} layers')}")
+    click.echo(f"  {_label('scale       ')}{_value(f'{scale} → {truncation}, {n_layers} layers')}")
     click.echo(f"  {_label('integration ')}{_value(f'{n_steps} steps × {dt_seconds:g}s')}")
 
     try:

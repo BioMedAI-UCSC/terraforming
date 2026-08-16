@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { getRunFields } from '../api'
+import { getRunFields, getRunSnapshots } from '../api'
 import type { FieldGrid, RunFields } from '../types'
 
 // ── Colormaps (control-point RGB stops, sampled by interpolation) ─────────────
@@ -31,14 +31,27 @@ export function FieldMap({ runId }: { runId: string }) {
   const [cmapName, setCmap] = useState<string>('inferno')
   const [vmin, setVmin]     = useState<number | null>(null)
   const [vmax, setVmax]     = useState<number | null>(null)
+  const [years, setYears]   = useState<number[]>([])
+  const [year, setYear]     = useState<number | null>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
+  // Discover snapshot years (terraforming timeline). Default to the last (final).
   useEffect(() => {
     let ok = true
-    getRunFields(runId).then(f => { if (ok) { setFields(f); setError(null) } })
-                       .catch(() => { if (ok) setError('No field data for this run yet.') })
+    getRunSnapshots(runId)
+      .then(s => { if (ok && s.years.length) { setYears(s.years); setYear(s.years[s.years.length - 1]) } })
+      .catch(() => { /* no timeline: single-snapshot run */ })
     return () => { ok = false }
   }, [runId])
+
+  // Fetch the field grids for the selected year (or the headline snapshot).
+  useEffect(() => {
+    let ok = true
+    getRunFields(runId, year ?? undefined)
+      .then(f => { if (ok) { setFields(f); setError(null) } })
+      .catch(() => { if (ok) setError('No field data for this run yet.') })
+    return () => { ok = false }
+  }, [runId, year])
 
   // Flatten maps + sections into a single option list.
   const options = useMemo(() => {
@@ -176,6 +189,18 @@ export function FieldMap({ runId }: { runId: string }) {
         <button onClick={exportPNG} style={btn}>Export PNG</button>
         <button onClick={exportCSV} style={btn}>Export CSV</button>
       </div>
+      {years.length > 1 && year != null && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ ...lbl, minWidth: 96 }}>Year&nbsp;<b>{year}</b></span>
+          <input type="range" min={0} max={years.length - 1}
+                 value={years.indexOf(year)}
+                 onChange={e => setYear(years[parseInt(e.target.value)])}
+                 style={{ flex: 1, maxWidth: 520, accentColor: '#d1552b' }} />
+          <span style={{ color: '#8b949e', fontSize: 12 }}>
+            {years[0]}–{years[years.length - 1]} yr · {years.length} snapshots
+          </span>
+        </div>
+      )}
       <canvas ref={canvasRef} width={CANVAS_W} height={CANVAS_H}
               style={{ width: '100%', maxWidth: CANVAS_W, borderRadius: 6, border: '1px solid #30363d' }} />
     </div>
