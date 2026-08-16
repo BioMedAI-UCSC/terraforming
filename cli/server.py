@@ -105,6 +105,71 @@ def _save_run_csv(run_id: str, run: dict) -> None:
 
 # ── Simulation thread ──────────────────────────────────────────────────────────
 
+def _extract_maps_fields(fields) -> dict:
+    """Adapt a gcm3d ``MarsMapFields`` into the browser field-grid contract.
+
+    Returns lon/lat axes plus 2-D maps (row = lat, col = lon) each with its own
+    min/max/units, matching the ``RunFields`` shape the ``FieldMap`` component
+    consumes. gcm3d already stores every field as ``(n_lat, n_lon)``.
+    """
+    import numpy as np
+
+    def _map(arr, label, units):
+        a = np.asarray(arr, dtype=float)
+        return {"label": label, "units": units,
+                "min": float(np.nanmin(a)), "max": float(np.nanmax(a)),
+                "data": np.round(a, 3).tolist()}
+
+    maps = {
+        "surface_temperature": _map(fields.temperature_k, "Surface temperature", "K"),
+        "surface_pressure": _map(fields.surface_pressure_pa, "Surface pressure", "Pa"),
+        "surface_zonal_wind": _map(fields.u_ms, "Surface zonal wind", "m/s"),
+        "surface_wind_speed": _map(fields.wind_speed_ms, "Surface wind speed", "m/s"),
+        "elevation": _map(fields.elevation_m, "MOLA elevation", "m"),
+    }
+    if getattr(fields, "co2_ice_pa", None) is not None:
+        maps["co2_ice"] = _map(fields.co2_ice_pa, "CO2 surface frost", "Pa-equiv")
+
+    return {
+        "lon": np.round(np.asarray(fields.lon_deg), 2).tolist(),
+        "lat": np.round(np.asarray(fields.lat_deg), 2).tolist(),
+        "sigma": [],
+        "maps": maps,
+        "sections": {},
+    }
+
+
+def _run_gcm_maps(run, req: RunRequest, cfg) -> None:
+    """Run the gcm3d 3-D maps backend and attach the field grids to ``run``.
+
+    This is a spatial (lat/lon) run, not a timeseries, so ``run["data"]`` stays
+    empty and the browser shows the ``FieldMap`` view instead of a chart.
+    """
+    import dataclasses
+    import math
+
+    from src.gcm3d.maps import run_maps
+    from src.gcm3d.physics import mars_co2_forcing, mars_radiative_forcing
+
+    p = cfg.planet
+    # Season epoch: convert the requested Ls (deg) to an orbital angle offset.
+    forcing = mars_radiative_forcing(
+        albedo=p.albedo, greenhouse_factor=p.greenhouse_factor, diurnal=False,
+    )
+    ls_deg = p.initial_ls_deg or 0.0
+    forcing = dataclasses.replace(
+        forcing, init_orbital_angle_rad=math.radians(ls_deg) - forcing.ls_perihelion_rad,
+    )
+    co2 = mars_co2_forcing()
+
+    fields = run_maps(
+        truncation="T42", n_layers=12, dt_seconds=450.0, n_steps=700,
+        forcing=forcing, co2_forcing=co2,
+    )
+    run["fields"] = _extract_maps_fields(fields)
+    run["progress"] = 1.0
+
+
 def _run_simulation(run_id: str, req: RunRequest) -> None:
     """Execute the simulation in a background thread.
 
@@ -142,6 +207,15 @@ def _run_simulation(run_id: str, req: RunRequest) -> None:
         cfg = config_loader.load(planet="mars", preset=req.preset)
         cfg = config_loader.merge_overrides(cfg, flags)
         p = cfg.planet
+
+        # The 'gcm' accuracy runs the 3-D gcm3d maps backend (dinosaur dycore +
+        # radiation + CO2), producing lat/lon field grids rather than a timeseries.
+        if req.accuracy == "gcm":
+            _run_gcm_maps(run, req, cfg)
+            run["status"] = "done"
+            run["progress"] = 1.0
+            run["completed_at"] = datetime.now(timezone.utc).isoformat()
+            return
 
         mars = Mars(
             surface_temperature=p.surface_temperature,
@@ -279,7 +353,19 @@ async def list_runs() -> list:
 async def get_run(run_id: str) -> dict:
     if run_id not in _runs:
         raise HTTPException(404, "Run not found")
-    return _runs[run_id]
+    # Field grids (3-D maps) are served separately so run polling stays light.
+    return {k: v for k, v in _runs[run_id].items() if k != "fields"}
+
+
+@app.get("/api/runs/{run_id}/fields")
+async def get_run_fields(run_id: str) -> dict:
+    """The lat/lon field grids for a gcm ('gcm3d maps') run, for the map view."""
+    if run_id not in _runs:
+        raise HTTPException(404, "Run not found")
+    fields = _runs[run_id].get("fields")
+    if not fields:
+        raise HTTPException(404, "No field data (not a gcm run, or not finished)")
+    return fields
 
 
 @app.get("/api/runs/{run_id}/events")

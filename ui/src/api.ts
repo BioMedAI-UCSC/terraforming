@@ -1,4 +1,4 @@
-import type { DataPoint, PresetValues, Run, RunConfig, RunSummary } from './types'
+import type { DataPoint, PresetValues, Run, RunConfig, RunFields, RunSummary } from './types'
 
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, init)
@@ -15,6 +15,7 @@ export const createRun = (config: Partial<RunConfig>) =>
 
 export const listRuns  = () => req<RunSummary[]>('/api/runs')
 export const getRun    = (id: string) => req<Run>(`/api/runs/${id}`)
+export const getRunFields = (id: string) => req<RunFields>(`/api/runs/${id}/fields`)
 export const getPresets       = () => req<string[]>('/api/presets')
 export const getPresetConfig  = (name: string) => req<PresetValues>(`/api/presets/${name}`)
 export const getCompounds     = () => req<string[]>('/api/compounds')

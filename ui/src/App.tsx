@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createRun, getRun, listRuns, subscribeToRun } from './api'
 import { ChartPanel } from './components/ChartPanel'
+import { FieldMap } from './components/FieldMap'
 import { RunForm } from './components/RunForm'
 import { RunList } from './components/RunList'
 import type { DataPoint, RunConfig, RunSummary } from './types'
@@ -117,7 +118,13 @@ export function App() {
 
       <main style={s.main}>
         {viewRun
-          ? <ChartPanel data={viewData} run={viewRun} />
+          ? <>
+              {viewRun.config.accuracy === 'gcm'
+                ? (viewRun.status === 'done'
+                    ? <FieldMap runId={viewRun.id} />
+                    : <ChartPanel data={viewData} run={viewRun} />)
+                : <ChartPanel data={viewData} run={viewRun} />}
+            </>
           : <EmptyState />
         }
       </main>

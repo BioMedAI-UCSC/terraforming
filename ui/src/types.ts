@@ -68,3 +68,21 @@ export interface RunSummary {
 export interface Run extends RunSummary {
   data: DataPoint[]
 }
+
+/** One 2-D field grid from a gcm run. `data` is [rows][cols]. */
+export interface FieldGrid {
+  label: string
+  units: string
+  min: number
+  max: number
+  data: number[][]
+}
+
+/** The lat/lon field grids for a gcm run: surface maps (+ optional sections). */
+export interface RunFields {
+  lon: number[]
+  lat: number[]
+  sigma: number[]
+  maps: Record<string, FieldGrid>
+  sections: Record<string, FieldGrid>
+}

@@ -223,7 +223,7 @@ export function RunForm({ onSubmit }: Props) {
       {/* Accuracy */}
       <label style={s.label}>Accuracy</label>
       <div style={s.row}>
-        {(['fast', 'accurate'] as const).map(a => (
+        {(['fast', 'accurate', 'gcm'] as const).map(a => (
           <button key={a} type="button"
             style={{ ...s.chip, ...(accuracy === a ? s.chipActive : {}) }}
             onClick={() => setAccuracy(a)}
