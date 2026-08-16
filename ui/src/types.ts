@@ -52,6 +52,9 @@ export interface RunConfig {
   ice_mass: number | null
   inject: Record<string, number>
   label: string | null
+  diurnal?: boolean
+  scale?: string
+  snapshots?: number
 }
 
 export interface RunSummary {
@@ -63,6 +66,8 @@ export interface RunSummary {
   error: string | null
   created_at: string
   completed_at: string | null
+  warning?: string | null       // e.g. partial GCM run (some snapshots failed)
+  partial?: boolean
 }
 
 export interface Run extends RunSummary {

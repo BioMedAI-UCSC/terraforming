@@ -29,7 +29,8 @@ export function RunForm({ onSubmit }: Props) {
   const [expType, setExpType]       = useState('intervention')
   const [years, setYears]           = useState(100)
   const [sols, setSols]             = useState(1)
-  const [accuracy, setAccuracy]     = useState('fast')
+  const [accuracy, setAccuracy]     = useState('gcm')
+  const [diurnal, setDiurnal]       = useState(false)
   const [inject, setInject]         = useState<InjectEntry[]>([{ compound: 'SF6', kgPerYear: '1e9' }])
   const [label, setLabel]           = useState('')
   const [running, setRunning]       = useState(false)
@@ -101,6 +102,7 @@ export function RunForm({ onSubmit }: Props) {
         years,
         sols,
         accuracy,
+        diurnal,
         dt: parseOpt(dt) ?? 3600,
         lat: parseOpt(lat) ?? null,
         lon: parseOpt(lon) ?? null,
@@ -230,6 +232,12 @@ export function RunForm({ onSubmit }: Props) {
           >{a}</button>
         ))}
       </div>
+      {accuracy === 'gcm' && (
+        <label style={{ ...s.label, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontWeight: 400 }}>
+          <input type="checkbox" checked={diurnal} onChange={e => setDiurnal(e.target.checked)} />
+          Diurnal day/night maps <span style={{ color: '#8b949e', fontSize: 11 }}>(else daily-mean)</span>
+        </label>
+      )}
 
       {/* Label */}
       <label style={s.label}>Label <span style={s.optional}>(optional)</span></label>

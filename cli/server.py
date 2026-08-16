@@ -74,6 +74,7 @@ class RunRequest(BaseModel):
     # gcm ('gcm3d maps') options
     scale: str = "fast"      # runtime resolution preset (fast/balanced/high/ultra)
     snapshots: int = 5       # 3-D map snapshots along an intervention timeline
+    diurnal: bool = False    # moving day/night terminator (else daily-mean insolation)
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -143,27 +144,38 @@ def _extract_maps_fields(fields) -> dict:
 
 
 def _gcm_snapshot(scale: str, albedo: float, greenhouse: float, ls_deg: float,
-                  pressure_pa: float | None) -> dict:
+                  pressure_pa: float | None, diurnal: bool = False) -> dict:
     """Run one 3-D gcm3d map at the given atmosphere state; return field grids.
 
     ``pressure_pa`` (if given) sets the reference surface pressure, so a snapshot
     taken partway through a terraforming run reflects that epoch's evolved (thicker)
-    atmosphere and greenhouse factor.
+    atmosphere and greenhouse factor. With ``diurnal`` the run uses the moving
+    day/night terminator; the timestep is then capped to the terminator CFL
+    (dt <= rotation/(2*n_lon)) and the step count raised to hold physical duration,
+    so a diurnal request never trips the guard.
     """
     import dataclasses
     import math
 
+    from src.gcm3d.coordinates import coordinate_system
     from src.gcm3d.maps import resolve_scale, run_maps
-    from src.gcm3d.physics import mars_co2_forcing, mars_radiative_forcing
-
-    from src.gcm3d.physics import mean_anomaly_for_ls
+    from src.gcm3d.physics import (
+        mars_co2_forcing, mars_radiative_forcing, mean_anomaly_for_ls,
+    )
 
     forcing = mars_radiative_forcing(albedo=albedo, greenhouse_factor=greenhouse,
-                                     diurnal=False)
+                                     diurnal=diurnal)
     forcing = dataclasses.replace(
         forcing, init_orbital_angle_rad=mean_anomaly_for_ls(math.radians(ls_deg), forcing),
     )
     cfg = resolve_scale(scale)
+    if diurnal:
+        n_lon = len(coordinate_system(cfg["truncation"], n_layers=1).horizontal.longitudes)
+        max_dt = forcing.rotation_period_s / (2.0 * n_lon)
+        if cfg["dt_seconds"] > max_dt:
+            factor = math.ceil(cfg["dt_seconds"] / max_dt)
+            cfg["dt_seconds"] = cfg["dt_seconds"] / factor
+            cfg["n_steps"] = cfg["n_steps"] * factor
     fields = run_maps(
         forcing=forcing, co2_forcing=mars_co2_forcing(),
         p0_pa=pressure_pa, **cfg,
@@ -179,7 +191,7 @@ def _run_gcm_maps(run, req: RunRequest, cfg) -> None:
     p = cfg.planet
     run["fields"] = _gcm_snapshot(
         req.scale, p.albedo, p.greenhouse_factor, p.initial_ls_deg or 0.0,
-        pressure_pa=p.surface_pressure,
+        pressure_pa=p.surface_pressure, diurnal=req.diurnal,
     )
     run["progress"] = 1.0
 
@@ -303,6 +315,7 @@ def _run_intervention(run, req, mars, cfg, accuracy, capture_gcm: bool = False) 
     if capture_gcm:
         run["snapshot_years"] = sorted(snap_years)
         run["field_snapshots"] = {}
+        run["snapshot_errors"] = {}  # year -> traceback, surfaced to the browser
 
     def iv_cb(snap) -> None:
         run["data"].append({
@@ -325,15 +338,33 @@ def _run_intervention(run, req, mars, cfg, accuracy, capture_gcm: bool = False) 
                     greenhouse=_v(snap.greenhouse_factor),
                     ls_deg=ls_deg,
                     pressure_pa=_v(snap.surface_pressure),
+                    diurnal=req.diurnal,
                 )
                 run["field_snapshots"][str(snap.year)] = fld
-                run["fields"] = fld  # latest snapshot is the current headline
-            except Exception:  # noqa: BLE001 — snapshots are optional, never fail the run
-                pass
+                run["fields"] = fld  # latest successful snapshot is the headline
+            except Exception:  # noqa: BLE001 — record the failure, do not hide it
+                import traceback
+                run["snapshot_errors"][str(snap.year)] = traceback.format_exc()
         # Progress: trajectory year plus the extra weight of snapshot rendering.
         run["progress"] = snap.year / n_years
 
     ic.run(n_years=n_years, callback=iv_cb)
+
+    if capture_gcm:
+        errors = run["snapshot_errors"]
+        # The final-year snapshot is the required headline map: if it failed, the
+        # GCM job failed. Earlier snapshot failures are partial-success.
+        if str(n_years) in errors:
+            raise RuntimeError(
+                f"required final-year (Ls end) 3-D snapshot failed:\n"
+                f"{errors[str(n_years)]}"
+            )
+        if errors:
+            run["partial"] = True
+            run["warning"] = (
+                f"{len(errors)} of {len(snap_years)} snapshots failed "
+                f"(years {sorted(int(y) for y in errors)}); see snapshot_errors."
+            )
 
 
 def _run_timeseries(run, req, mars, cfg, accuracy) -> None:

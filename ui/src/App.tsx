@@ -138,6 +138,13 @@ export function App() {
       <main style={s.main}>
         {viewRun
           ? <>
+              {viewRun.warning && (
+                <div style={{
+                  margin: 12, padding: '8px 10px', borderRadius: 6,
+                  background: '#3a2f14', border: '1px solid #a8792b', color: '#f0d38a',
+                  fontSize: 12,
+                }}>⚠ {viewRun.warning}</div>
+              )}
               {/* Chart: shown for non-gcm runs, and for gcm terraforming runs
                   (intervention) which have a 100-yr trajectory. */}
               {(viewRun.config.accuracy !== 'gcm' || viewData.length > 0) &&

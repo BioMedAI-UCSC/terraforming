@@ -80,6 +80,36 @@ class TestSnapshotYears:
         assert server._snapshot_years(3, 10) == {1, 2, 3}
 
 
+@pytest.mark.slow
+def test_gcm_snapshot_failure_is_recorded_and_fails_final(monkeypatch):
+    """A failing 3-D snapshot must not be silently swallowed: it is recorded, and
+    a failed *final*-year snapshot fails the whole GCM job (not a silent success)."""
+    pytest.importorskip("dinosaur")
+
+    def boom(*a, **k):
+        raise RuntimeError("snapshot boom")
+
+    monkeypatch.setattr(server, "_gcm_snapshot", boom)
+
+    rid = "srv_snapfail"
+    req = server.RunRequest(preset="current-mars", exp_type="intervention",
+                            accuracy="gcm", years=2, snapshots=2, scale="fast")
+    server._runs[rid] = {
+        "id": rid, "status": "running", "progress": 0.0,
+        "config": req.model_dump(), "data": [], "error": None,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "completed_at": None, "label": "snapfail",
+    }
+    try:
+        server._run_simulation(rid, req)
+        run = server._runs[rid]
+        assert run["status"] == "error"           # final snapshot failed -> job failed
+        assert "snapshot boom" in run["error"]
+        assert run["snapshot_errors"]             # failures recorded, not hidden
+    finally:
+        server._runs.pop(rid, None)
+
+
 # ── Full gcm run path (needs the gcm3d extra) ─────────────────────────────────
 
 @pytest.mark.slow
