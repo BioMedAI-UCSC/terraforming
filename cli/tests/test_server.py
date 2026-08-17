@@ -34,6 +34,7 @@ def _fake_fields(with_co2: bool = True):
         v_ms=np.zeros(shape),
         wind_speed_ms=np.zeros(shape),
         co2_ice_pa=np.zeros(shape) if with_co2 else None,
+        approximate_wind_height_m=432.0,
     )
     return ns
 
@@ -47,7 +48,8 @@ class TestExtractMapsFields:
         assert out["sigma"] == [] and out["sections"] == {}
         # required surface maps present
         for key in ("surface_temperature", "surface_pressure",
-                    "surface_zonal_wind", "surface_wind_speed", "elevation"):
+                    "surface_zonal_wind", "surface_meridional_wind",
+                    "surface_wind_speed", "elevation"):
             assert key in out["maps"]
 
     def test_grid_orientation_and_stats(self):
@@ -61,6 +63,37 @@ class TestExtractMapsFields:
     def test_co2_optional(self):
         assert "co2_ice" in server._extract_maps_fields(_fake_fields(True))["maps"]
         assert "co2_ice" not in server._extract_maps_fields(_fake_fields(False))["maps"]
+
+
+def test_matched_mcd_comparison_uses_requested_parameters(monkeypatch):
+    import xarray as xr
+    from src.gcm3d import mcd
+
+    calls = []
+    server._mcd_ascii_cache.clear()
+    reference = xr.Dataset({
+        "temperature": (("lat", "lon"), np.full((4, 6), 205.0)),
+        "surface_pressure": (("lat", "lon"), np.full((4, 6), 600.0)),
+        "wind_speed": (("lat", "lon"), np.full((4, 6), 5.0)),
+        "co2_ice": (("lat", "lon"), np.zeros((4, 6))),
+    }, coords={"lat": np.linspace(-90, 90, 4), "lon": np.linspace(0, 300, 6)})
+
+    def fetch(ls, hour, **kwargs):
+        calls.append((ls, hour, kwargs))
+        return "ignored", f"mcd://{hour}"
+
+    monkeypatch.setattr(mcd, "fetch_ascii", fetch)
+    monkeypatch.setattr(mcd, "parse_ascii", lambda _: reference)
+    monkeypatch.setattr(mcd, "interpolate_periodic", lambda ref, target: ref)
+    out = server._matched_mcd_comparison(
+        _fake_fields(), ls_deg=90.0, local_time=14.0, dust=3
+    )
+    assert calls == [(90.0, 14.0, {
+        "dust": 3, "high_res": True, "altitude_m": 432.0,
+    })]
+    assert out["metadata"]["local_times_hours"] == [14.0]
+    assert out["metrics"]["temperature"]["bias"] == pytest.approx(5.0)
+    assert out["mcd"]["temperature"]["data"][0][0] == pytest.approx(205.0)
 
 
 # ── _snapshot_years (pure) ────────────────────────────────────────────────────

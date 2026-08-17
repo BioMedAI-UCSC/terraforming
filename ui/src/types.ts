@@ -55,6 +55,9 @@ export interface RunConfig {
   diurnal?: boolean
   scale?: string
   snapshots?: number
+  compare_mcd?: boolean
+  mcd_local_time?: number | null
+  mcd_dust?: number
 }
 
 export interface RunSummary {
@@ -90,6 +93,26 @@ export interface RunFields {
   sigma: number[]
   maps: Record<string, FieldGrid>
   sections: Record<string, FieldGrid>
+  comparison?: {
+    mcd: Record<string, FieldGrid>
+    difference: Record<string, FieldGrid>
+    metrics: Record<string, {
+      bias: number
+      mae: number
+      rmse: number
+      spatial_correlation: number
+      model_area_mean: number
+      mcd_area_mean: number
+    }>
+    metadata: {
+      mcd_version: string
+      ls_deg: number
+      local_times_hours: number[]
+      dust_scenario: number
+      wind_altitude_m: number
+      status: string
+    }
+  }
   metadata?: {
     fidelity: string
     duration_sols: number

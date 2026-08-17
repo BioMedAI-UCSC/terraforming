@@ -6,6 +6,7 @@ const KNOWN_COMPOUNDS = ['CF4', 'C2F6', 'C3F8', 'SF6', 'NF3', 'C4F10', 'C6F14']
 
 interface Props {
   onSubmit: (config: Partial<RunConfig>) => Promise<void>
+  modelMode: 'gcm' | 'gcm-mcd'
 }
 
 interface InjectEntry {
@@ -21,16 +22,19 @@ const parseOpt = (v: string): number | undefined => {
 const fmt = (v: number, exp?: boolean) =>
   exp ? v.toExponential(2) : String(v)
 
-export function RunForm({ onSubmit }: Props) {
+export function RunForm({ onSubmit, modelMode }: Props) {
   const [presets, setPresets]       = useState<string[]>(['current-mars'])
   const [preset, setPreset]         = useState('current-mars')
   const [presetCfg, setPresetCfg]   = useState<PresetValues | null>(null)
   const [showPreview, setShowPreview] = useState(false)
-  const [expType, setExpType]       = useState('intervention')
+  const [expType, setExpType]       = useState('sol')
   const [years, setYears]           = useState(100)
   const [sols, setSols]             = useState(1)
-  const [accuracy, setAccuracy]     = useState('gcm')
+  const accuracy = 'gcm'
+  const [scale, setScale]           = useState('fast')
   const [diurnal, setDiurnal]       = useState(false)
+  const [mcdLocalTime, setMcdLocalTime] = useState('')
+  const [mcdDust, setMcdDust] = useState(1)
   const [inject, setInject]         = useState<InjectEntry[]>([{ compound: 'SF6', kgPerYear: '1e9' }])
   const [label, setLabel]           = useState('')
   const [running, setRunning]       = useState(false)
@@ -102,7 +106,11 @@ export function RunForm({ onSubmit }: Props) {
         years,
         sols,
         accuracy,
-        diurnal,
+        scale,
+        diurnal: modelMode === 'gcm-mcd' ? false : diurnal,
+        compare_mcd: modelMode === 'gcm-mcd',
+        mcd_local_time: parseOpt(mcdLocalTime) ?? null,
+        mcd_dust: mcdDust,
         dt: parseOpt(dt) ?? 3600,
         lat: parseOpt(lat) ?? null,
         lon: parseOpt(lon) ?? null,
@@ -222,21 +230,35 @@ export function RunForm({ onSubmit }: Props) {
         </div>
       </>}
 
-      {/* Accuracy */}
-      <label style={s.label}>Accuracy</label>
-      <div style={s.row}>
-        {(['fast', 'accurate', 'gcm'] as const).map(a => (
-          <button key={a} type="button"
-            style={{ ...s.chip, ...(accuracy === a ? s.chipActive : {}) }}
-            onClick={() => setAccuracy(a)}
-          >{a}</button>
-        ))}
-      </div>
+      <label style={s.label}>GCM resolution</label>
+      <select style={s.select} value={scale} onChange={e => setScale(e.target.value)}>
+        <option value="fast">fast · T42 / 12 levels</option>
+        <option value="balanced">balanced · T85 / 20 levels</option>
+        <option value="high">high · T106 / 30 levels</option>
+        <option value="ultra">ultra · T170 / 40 levels</option>
+      </select>
       {accuracy === 'gcm' && (
         <label style={{ ...s.label, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontWeight: 400 }}>
-          <input type="checkbox" checked={diurnal} onChange={e => setDiurnal(e.target.checked)} />
+          <input type="checkbox" checked={diurnal} disabled={modelMode === 'gcm-mcd'}
+                 onChange={e => setDiurnal(e.target.checked)} />
           Diurnal day/night maps <span style={{ color: '#8b949e', fontSize: 11 }}>(else daily-mean)</span>
         </label>
+      )}
+      {modelMode === 'gcm-mcd' && (
+        <><div style={{ color: '#8b949e', fontSize: 10, lineHeight: 1.4 }}>
+          Comparison uses daily-mean GCM insolation and either the 12-time MCD mean
+          or one explicitly selected MCD local time.
+        </div><div style={s.advGrid}>
+          <AdvField label="MCD local time" placeholder="blank = diurnal mean"
+                    value={mcdLocalTime} onChange={setMcdLocalTime} />
+          <div>
+            <div style={{ fontSize: 10, color: '#666', marginBottom: 2 }}>MCD dust scenario</div>
+            <select style={{ ...s.select, width: '100%' }} value={mcdDust}
+                    onChange={e => setMcdDust(parseInt(e.target.value))}>
+              {[1, 2, 3, 4, 5, 6, 7, 8].map(v => <option key={v} value={v}>{v}</option>)}
+            </select>
+          </div>
+        </div></>
       )}
 
       {/* Label */}

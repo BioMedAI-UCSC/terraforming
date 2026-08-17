@@ -113,6 +113,9 @@ export function FieldMap({ runId }: { runId: string }) {
   const [cmapName, setCmap] = useState<string>('inferno')
   const [years, setYears]   = useState<number[]>([])
   const [year, setYear]     = useState<number | null>(null)
+  const [source, setSource] = useState<'gcm' | 'mcd' | 'difference'>('gcm')
+
+  useEffect(() => { setSource('gcm') }, [runId])
 
   // Discover snapshot years (terraforming timeline). Default to the last (final).
   useEffect(() => {
@@ -135,7 +138,12 @@ export function FieldMap({ runId }: { runId: string }) {
   if (error) return <p style={{ color: '#8b949e', padding: 12 }}>{error}</p>
   if (!fields) return <p style={{ color: '#8b949e', padding: 12 }}>Loading fields…</p>
 
-  const mapEntries = Object.entries(fields.maps)
+  const selectedMaps = source === 'gcm'
+    ? fields.maps
+    : source === 'mcd'
+      ? fields.comparison?.mcd ?? {}
+      : fields.comparison?.difference ?? {}
+  const mapEntries = Object.entries(selectedMaps)
   const sectionEntries = Object.entries(fields.sections)
 
   return (
@@ -148,6 +156,13 @@ export function FieldMap({ runId }: { runId: string }) {
         </div>
       )}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
+        <label style={lbl}>Output&nbsp;
+          <select value={source} onChange={e => setSource(e.target.value as typeof source)} style={sel}>
+            <option value="gcm">GCM</option>
+            {fields.comparison && <option value="mcd">MCD</option>}
+            {fields.comparison && <option value="difference">GCM − MCD</option>}
+          </select>
+        </label>
         <label style={lbl}>Colormap&nbsp;
           <select value={cmapName} onChange={e => setCmap(e.target.value)} style={sel}>
             {Object.keys(COLORMAPS).map(c => <option key={c} value={c}>{c}</option>)}
@@ -157,6 +172,26 @@ export function FieldMap({ runId }: { runId: string }) {
           {mapEntries.length + sectionEntries.length} fields · each auto-scaled to its own range
         </span>
       </div>
+
+      {fields.comparison && (
+        <div style={{ background: '#0e1116', border: '1px solid #30363d', borderRadius: 6, padding: 10 }}>
+          <div style={{ color: '#c9d1d9', fontWeight: 600, fontSize: 12, marginBottom: 8 }}>
+            Matched MCD v{fields.comparison.metadata.mcd_version} diagnostics · Ls {fields.comparison.metadata.ls_deg.toFixed(1)}° · wind {fields.comparison.metadata.wind_altitude_m.toFixed(0)} m
+          </div>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, color: '#aeb6c0' }}>
+              <thead><tr>{['Field', 'Bias', 'MAE', 'RMSE', 'Correlation', 'GCM mean', 'MCD mean'].map(h =>
+                <th key={h} style={{ textAlign: h === 'Field' ? 'left' : 'right', padding: '4px 6px', borderBottom: '1px solid #30363d' }}>{h}</th>)}</tr></thead>
+              <tbody>{Object.entries(fields.comparison.metrics).map(([name, m]) =>
+                <tr key={name}>
+                  <td style={{ padding: '4px 6px' }}>{name.replace(/_/g, ' ')}</td>
+                  {[m.bias, m.mae, m.rmse, m.spatial_correlation, m.model_area_mean, m.mcd_area_mean].map((v, i) =>
+                    <td key={i} style={{ textAlign: 'right', padding: '4px 6px', fontVariantNumeric: 'tabular-nums' }}>{v.toFixed(3)}</td>)}
+                </tr>)}</tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {years.length > 1 && year != null && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

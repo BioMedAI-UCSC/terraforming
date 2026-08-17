@@ -45,6 +45,7 @@ app.add_middleware(
 
 _executor = ThreadPoolExecutor(max_workers=4)
 _runs: dict[str, dict[str, Any]] = {}
+_mcd_ascii_cache: dict[tuple[float, float, int, float], tuple[str, str]] = {}
 
 MAX_CHART_POINTS = 2000  # throttle cap for sol/year runs
 _STATIC_DIR  = Path(__file__).parent / "static"
@@ -75,6 +76,9 @@ class RunRequest(BaseModel):
     scale: str = "fast"      # runtime resolution preset (fast/balanced/high/ultra)
     snapshots: int = 5       # 3-D map snapshots along an intervention timeline
     diurnal: bool = False    # moving day/night terminator (else daily-mean insolation)
+    compare_mcd: bool = False
+    mcd_local_time: float | None = None  # None = 12-sample diurnal mean
+    mcd_dust: int = 1
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -128,6 +132,9 @@ def _extract_maps_fields(fields) -> dict:
         "surface_temperature": _map(fields.temperature_k, "Surface temperature", "K"),
         "surface_pressure": _map(fields.surface_pressure_pa, "Surface pressure", "Pa"),
         "surface_zonal_wind": _map(fields.u_ms, "Surface zonal wind", "m/s"),
+        "surface_meridional_wind": _map(
+            fields.v_ms, "Surface meridional wind", "m/s"
+        ),
         "surface_wind_speed": _map(fields.wind_speed_ms, "Surface wind speed", "m/s"),
         "elevation": _map(fields.elevation_m, "MOLA elevation", "m"),
     }
@@ -150,8 +157,84 @@ def _extract_maps_fields(fields) -> dict:
     }
 
 
+def _matched_mcd_comparison(fields, ls_deg: float, local_time: float | None,
+                            dust: int = 1) -> dict:
+    """Fetch MCD with the requested season/time/height and align it to GCM."""
+    import numpy as np
+    import xarray as xr
+
+    from src.gcm3d import mcd
+
+    local_times = ([float(local_time)] if local_time is not None
+                   else [float(hour) for hour in range(0, 24, 2)])
+    samples = []
+    sources = []
+    altitude_m = float(fields.approximate_wind_height_m)
+    for hour in local_times:
+        key = (round(float(ls_deg), 4), hour, int(dust), round(altitude_m, 3))
+        if key not in _mcd_ascii_cache:
+            _mcd_ascii_cache[key] = mcd.fetch_ascii(
+                ls_deg, hour, dust=dust, high_res=True, altitude_m=altitude_m,
+            )
+        text, source = _mcd_ascii_cache[key]
+        samples.append(mcd.parse_ascii(text))
+        sources.append(source)
+    native = xr.concat(
+        samples, dim=xr.IndexVariable("local_time", local_times)
+    ).mean("local_time")
+    target = xr.Dataset(coords={"lat": fields.lat_deg, "lon": fields.lon_deg})
+    matched = mcd.interpolate_periodic(native, target)
+
+    model_arrays = {
+        "temperature": np.asarray(fields.temperature_k),
+        "surface_pressure": np.asarray(fields.surface_pressure_pa),
+        "wind_speed": np.asarray(fields.wind_speed_ms),
+        "co2_ice": np.asarray(fields.co2_ice_pa),
+    }
+    labels = {
+        "temperature": ("Surface temperature", "K"),
+        "surface_pressure": ("Surface pressure", "Pa"),
+        "wind_speed": ("Horizontal wind speed", "m/s"),
+        "co2_ice": ("CO2 surface frost", "Pa-equiv"),
+    }
+
+    def grid(values, label, units):
+        values = np.asarray(values, dtype=float)
+        return {
+            "label": label, "units": units,
+            "min": float(np.nanmin(values)), "max": float(np.nanmax(values)),
+            "data": np.round(values, 3).tolist(),
+        }
+
+    mcd_maps = {}
+    difference_maps = {}
+    metrics = {}
+    for name, model in model_arrays.items():
+        reference = np.asarray(matched[name])
+        label, units = labels[name]
+        mcd_maps[name] = grid(reference, f"MCD {label}", units)
+        difference_maps[name] = grid(
+            model - reference, f"GCM − MCD {label}", units
+        )
+        metrics[name] = mcd.weighted_metrics(
+            model, reference, np.asarray(fields.lat_deg)
+        )
+    return {
+        "mcd": mcd_maps,
+        "difference": difference_maps,
+        "metrics": metrics,
+        "metadata": {
+            "mcd_version": "6.1", "ls_deg": float(ls_deg),
+            "local_times_hours": local_times, "dust_scenario": int(dust),
+            "wind_altitude_m": altitude_m, "source_urls": sources,
+            "status": "diagnostic_transient_vs_climatology",
+        },
+    }
 def _gcm_snapshot(scale: str, albedo: float, greenhouse: float, ls_deg: float,
-                  pressure_pa: float | None, diurnal: bool = False) -> dict:
+                  pressure_pa: float | None, diurnal: bool = False,
+                  compare_mcd: bool = False, mcd_local_time: float | None = None,
+                  mcd_dust: int = 1, surface_temp_k: float | None = None,
+                  duration_sols: float | None = None) -> dict:
     """Run one 3-D gcm3d map at the given atmosphere state; return field grids.
 
     ``pressure_pa`` (if given) sets the reference surface pressure, so a snapshot
@@ -170,12 +253,18 @@ def _gcm_snapshot(scale: str, albedo: float, greenhouse: float, ls_deg: float,
         mars_co2_forcing, mars_radiative_forcing, mean_anomaly_for_ls,
     )
 
-    forcing = mars_radiative_forcing(albedo=albedo, greenhouse_factor=greenhouse,
-                                     diurnal=diurnal)
+    forcing = mars_radiative_forcing(
+        albedo=albedo, greenhouse_factor=greenhouse, diurnal=diurnal,
+        co2_radiation_enabled=True,
+    )
     forcing = dataclasses.replace(
         forcing, init_orbital_angle_rad=mean_anomaly_for_ls(math.radians(ls_deg), forcing),
     )
     cfg = resolve_scale(scale)
+    if duration_sols is not None:
+        cfg["n_steps"] = max(1, round(
+            duration_sols * forcing.rotation_period_s / cfg["dt_seconds"]
+        ))
     if diurnal:
         n_lon = len(coordinate_system(cfg["truncation"], n_layers=1).horizontal.longitudes)
         max_dt = forcing.rotation_period_s / (2.0 * n_lon)
@@ -185,9 +274,14 @@ def _gcm_snapshot(scale: str, albedo: float, greenhouse: float, ls_deg: float,
             cfg["n_steps"] = cfg["n_steps"] * factor
     fields = run_maps(
         forcing=forcing, co2_forcing=mars_co2_forcing(),
-        p0_pa=pressure_pa, **cfg,
+        p0_pa=pressure_pa, t_ref_k=surface_temp_k, **cfg,
     )
-    return _extract_maps_fields(fields)
+    extracted = _extract_maps_fields(fields)
+    if compare_mcd:
+        extracted["comparison"] = _matched_mcd_comparison(
+            fields, ls_deg, mcd_local_time, mcd_dust
+        )
+    return extracted
 
 
 def _run_gcm_maps(run, req: RunRequest, cfg) -> None:
@@ -199,6 +293,10 @@ def _run_gcm_maps(run, req: RunRequest, cfg) -> None:
     run["fields"] = _gcm_snapshot(
         req.scale, p.albedo, p.greenhouse_factor, p.initial_ls_deg or 0.0,
         pressure_pa=p.surface_pressure, diurnal=req.diurnal,
+        compare_mcd=req.compare_mcd, mcd_local_time=req.mcd_local_time,
+        mcd_dust=req.mcd_dust,
+        surface_temp_k=p.surface_temperature,
+        duration_sols=req.sols,
     )
     run["progress"] = 1.0
 
@@ -346,6 +444,10 @@ def _run_intervention(run, req, mars, cfg, accuracy, capture_gcm: bool = False) 
                     ls_deg=ls_deg,
                     pressure_pa=_v(snap.surface_pressure),
                     diurnal=req.diurnal,
+                    compare_mcd=req.compare_mcd,
+                    mcd_local_time=req.mcd_local_time,
+                    mcd_dust=req.mcd_dust,
+                    surface_temp_k=_v(snap.surface_temperature),
                 )
                 run["field_snapshots"][str(snap.year)] = fld
                 run["fields"] = fld  # latest successful snapshot is the headline

@@ -20,6 +20,7 @@ const writeCache = (id: string, data: DataPoint[]) => {
 }
 
 export function App() {
+  const [modelMode, setModelMode] = useState<'gcm' | 'gcm-mcd'>('gcm')
   const [runs, setRuns]           = useState<RunSummary[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [viewData, setViewData]   = useState<DataPoint[]>([])
@@ -32,6 +33,7 @@ export function App() {
   }, [])
 
   const handleCreate = useCallback(async (config: Partial<RunConfig>) => {
+    config = { ...config, accuracy: 'gcm', compare_mcd: modelMode === 'gcm-mcd' }
     let run_id: string
     try {
       ({ run_id } = await createRun(config))
@@ -91,7 +93,7 @@ export function App() {
         if (status === 'done') writeCache(run_id, accumulated)
       },
     )
-  }, [])
+  }, [modelMode])
 
   const handleSelect = useCallback(async (id: string) => {
     if (id === selectedId) return
@@ -119,8 +121,15 @@ export function App() {
     <div style={s.root}>
       <aside style={s.sidebar}>
         <div style={s.brand}>
-          <span style={s.brandName}>tform</span>
-          <span style={s.brandTag}>visualizer</span>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+            <span style={s.brandName}>tform</span>
+            <span style={s.brandTag}>visualizer</span>
+          </div>
+          <select value={modelMode} onChange={e => setModelMode(e.target.value as typeof modelMode)}
+                  style={s.modelSelect} aria-label="Model output source">
+            <option value="gcm">GCM</option>
+            <option value="gcm-mcd">GCM + MCD comparison</option>
+          </select>
         </div>
         <div style={s.sideScroll}>
           {formError && (
@@ -130,7 +139,7 @@ export function App() {
               fontSize: 12, lineHeight: 1.4,
             }}>{formError}</div>
           )}
-          <RunForm onSubmit={handleCreate} />
+          <RunForm onSubmit={handleCreate} modelMode={modelMode} />
           <RunList runs={runs} selectedId={selectedId} onSelect={handleSelect} />
         </div>
       </aside>
@@ -183,9 +192,10 @@ function buildLabel(config: Partial<RunConfig>): string {
 const s: Record<string, React.CSSProperties> = {
   root:       { display: 'flex', height: '100vh', overflow: 'hidden', background: '#0a0a0a' },
   sidebar:    { width: 280, flexShrink: 0, borderRight: '1px solid #1e1e1e', display: 'flex', flexDirection: 'column', overflow: 'hidden' },
-  brand:      { display: 'flex', alignItems: 'baseline', gap: 8, padding: '14px 14px 10px', borderBottom: '1px solid #1e1e1e', flexShrink: 0 },
+  brand:      { display: 'flex', flexDirection: 'column', gap: 8, padding: '14px 14px 10px', borderBottom: '1px solid #1e1e1e', flexShrink: 0 },
   brandName:  { fontSize: 18, fontWeight: 800, color: '#c1440e', letterSpacing: '-0.03em' },
   brandTag:   { fontSize: 11, color: '#555' },
+  modelSelect:{ width: '100%', background: '#161616', color: '#ddd', border: '1px solid #333', borderRadius: 5, padding: '6px 8px', fontSize: 12 },
   sideScroll: { flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' },
   main:       { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' },
   empty:      { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' },
