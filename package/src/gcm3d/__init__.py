@@ -89,6 +89,8 @@ try:  # pragma: no cover - import-availability branch
         forced_co2_primitive_equations,
         forced_primitive_equations,
         initial_co2_state,
+        positivity_preserving_co2_step,
+        project_co2_reservoirs,
         initial_column_state,
         mars_co2_forcing,
         mars_radiative_forcing,
@@ -162,6 +164,8 @@ try:  # pragma: no cover - import-availability branch
         "co2_frost_point_k",
         "forced_co2_primitive_equations",
         "initial_co2_state",
+        "positivity_preserving_co2_step",
+        "project_co2_reservoirs",
         "mean_anomaly_for_ls",
         "orbital_distance",
         # 3-D dry-dynamics maps over MOLA terrain (Ames/LMD-comparable form)

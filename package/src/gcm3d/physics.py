@@ -903,7 +903,7 @@ class CO2Forcing:
 def mars_co2_forcing(
     exchange_rate_pa_s_per_k: float = 1.0e-4,
     escape_rate_kg_s: float = 0.0,
-    energy_limited: bool = False,
+    energy_limited: bool = True,
 ) -> CO2Forcing:
     """A :class:`CO2Forcing` built from the package's Mars CO2 constants."""
     from src.celestials.planets import mars as _m
@@ -1074,6 +1074,39 @@ def forced_co2_primitive_equations(
             mix_tracers,
         )
     return column_primitive_equations(base, parameterization)
+
+
+def project_co2_reservoirs(state: ColumnPhysicsState, coords, specs):
+    """Project frost to non-negative values while conserving local CO2 mass.
+
+    Explicit multistage schemes do not preserve positivity at a moving frost
+    boundary. Any negative pressure-equivalent frost is set to zero and the same
+    pressure deficit is removed from the atmospheric column. The correction is
+    applied after a complete timestep, not within Runge--Kutta stages.
+    """
+    grid = coords.horizontal
+    pressure_scale = float(specs.dimensionalize(1.0, _u.pascal).magnitude)
+    ice_pa = state.co2_ice * pressure_scale
+    ps_nd = jnp.exp(grid.to_nodal(state.dynamics.log_surface_pressure))
+    ps_pa = ps_nd * pressure_scale
+    deficit_pa = jnp.clip(-ice_pa, 0.0, None)
+    ice_pa = jnp.clip(ice_pa, 0.0, None)
+    ps_pa = jnp.clip(ps_pa - deficit_pa, 1.0e-6, None)
+    dynamics = dataclasses.replace(
+        state.dynamics,
+        log_surface_pressure=grid.to_modal(jnp.log(ps_pa / pressure_scale)),
+    )
+    return state._replace(
+        dynamics=dynamics,
+        co2_ice=ice_pa / pressure_scale,
+    )
+
+
+def positivity_preserving_co2_step(step_fn, coords, specs):
+    """Wrap an IMEX step with the conservative CO2-reservoir projection."""
+    def step(state):
+        return project_co2_reservoirs(step_fn(state), coords, specs)
+    return step
 
 
 def initial_co2_state(dyn_state, coords, ice_pa: float = 0.0, specs=None, body=None,

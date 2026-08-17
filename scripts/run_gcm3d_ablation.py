@@ -72,6 +72,12 @@ def main() -> int:
             int(json.loads(progress_path.read_text())["completed_steps"])
             if state is not None and progress_path.exists() else 0
         )
+        if completed >= steps_total:
+            manifest["runs"][name] = {
+                "steps": completed, "restart": str(restart_path),
+                "netcdf": str(root / "maps.nc"), "status": "already_complete",
+            }
+            continue
         while completed < steps_total:
             count = min(steps_chunk, steps_total - completed)
             fields, state = run_maps(
@@ -83,7 +89,6 @@ def main() -> int:
             completed += count
             save_restart(state, restart_path)
             progress_path.write_text(json.dumps({"completed_steps": completed}) + "\n")
-        fields = dataclasses.replace(fields, n_steps=completed)
         nc = save_netcdf(fields, root / "maps.nc")
         pngs = plot_maps(fields, root, prefix=name)
         manifest["runs"][name] = {

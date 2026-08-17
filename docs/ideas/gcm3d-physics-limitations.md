@@ -223,11 +223,13 @@ prognostic soil-layer temperature so future long spin-ups remain continuous.
   Acceptance: no frost-point overshoot, non-negative reservoirs, exact mass/latent-
   energy closure, and Viking seasonal-pressure comparison
   [Guo et al. (2009)][guo2009].
-  - [x] Add an opt-in energy-residual phase-change tendency satisfying
-    (L\dot m=-Q_{residual}), with atmospheric/frost mass transfer and a direct
-    latent-energy closure test. It remains opt-in because the generic multistage
-    IMEX update can undershoot zero ice by about 0.05 Pa at moving cap edges;
-    a projection-aware phase-change step is required before P1.5 can be closed.
+  - [x] Add an energy-residual phase-change tendency satisfying
+    \(L\dot m=-Q_{residual}\), with atmospheric/frost mass transfer and a direct
+    latent-energy closure test. Production maps apply a conservative post-step
+    projection: negative stage-level frost is set to zero and the identical
+    pressure-equivalent deficit is removed from the atmosphere. Tests verify
+    non-negative frost and atmospheric-plus-cap mass conservation over a rollout.
+    Viking seasonal-pressure validation remains before P1.5 can be closed.
 
 - [ ] **P1.6 — Prescribed, radiatively active dust.** Start with observed seasonal
   column opacity and a prescribed vertical profile; transport can follow later.

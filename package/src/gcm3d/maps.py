@@ -297,6 +297,9 @@ def run_maps(
                 )
 
     step = stepper(equation, dt_seconds, specs)
+    if co2_forcing is not None and co2_forcing.energy_limited:
+        from src.gcm3d.physics import positivity_preserving_co2_step
+        step = positivity_preserving_co2_step(step, coords, specs)
     final = _integrate(step, state0, n_steps)
     final_state = final
 
@@ -336,8 +339,16 @@ def run_maps(
 
     surf = n_layers - 1  # near-surface sigma level (sigma ≈ 1)
 
-    # Honesty about duration: flag short runs as spin-up transients, not climate.
-    duration_sols = n_steps * dt_seconds / body.rotation_period_s
+    # Honesty about duration: use prognostic time, including resumed chunks.
+    if getattr(final, "sim_time", None) is not None:
+        elapsed_seconds = float(final.sim_time) / float(
+            specs.nondimensionalize(1.0 * _u.second)
+        )
+        total_steps = round(elapsed_seconds / dt_seconds)
+    else:
+        elapsed_seconds = n_steps * dt_seconds
+        total_steps = n_steps
+    duration_sols = elapsed_seconds / body.rotation_period_s
     if duration_sols < 668.0:
         physics_label += (
             f" | TRANSIENT: {duration_sols:.1f}-sol spin-up snapshot, "
@@ -359,7 +370,7 @@ def run_maps(
         v_ms=to_map(v_ms[surf]),
         truncation=truncation,
         n_layers=n_layers,
-        n_steps=n_steps,
+        n_steps=total_steps,
         dt_seconds=dt_seconds,
         physics=physics_label,
         co2_ice_pa=co2_ice_map,

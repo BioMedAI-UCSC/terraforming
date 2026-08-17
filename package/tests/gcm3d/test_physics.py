@@ -464,7 +464,9 @@ def _co2_state():
         sim_time=0.0,
     )
     f = physics.mars_radiative_forcing()
-    cf = physics.mars_co2_forcing(escape_rate_kg_s=0.0)
+    # Legacy relaxation cases remain regression-tested separately from the
+    # production energy-limited, projected path.
+    cf = physics.mars_co2_forcing(escape_rate_kg_s=0.0, energy_limited=False)
     state = physics.initial_co2_state(
         dyn, coords, ice_pa=0.0, specs=specs, body=MARS_BODY_3D
     )
@@ -501,6 +503,28 @@ class TestCO2FrostPoint:
 
 
 class TestCO2Cycle:
+
+    def test_projection_preserves_co2_and_removes_negative_frost(self):
+        coords, specs, grid, _, _, state = _co2_state()
+        pressure_scale = float(specs.dimensionalize(1.0, _u.pascal).magnitude)
+        state = state._replace(co2_ice=jnp.full_like(state.co2_ice, -2.0 / pressure_scale))
+        before = sum(_column_masses(grid, state))
+        projected = physics.project_co2_reservoirs(state, coords, specs)
+        after = sum(_column_masses(grid, projected))
+        assert np.min(np.asarray(projected.co2_ice)) >= 0.0
+        assert after == pytest.approx(before, rel=1e-7)
+
+    def test_projected_energy_limited_rollout_keeps_frost_nonnegative(self):
+        coords, specs, _, f, cf, state = _co2_state()
+        cf = dataclasses.replace(cf, energy_limited=True)
+        equation = physics.forced_co2_primitive_equations(
+            coords, MARS_BODY_3D, f, cf, specs=specs
+        )
+        advance = physics.positivity_preserving_co2_step(
+            stepper(equation, 600.0, specs), coords, specs
+        )
+        final = integrate(advance, state, 200)
+        assert np.min(np.asarray(final.co2_ice)) >= 0.0
 
     def test_energy_limited_latent_heat_cancels_surface_deficit(self):
         coords, specs, _, _, cf, state = _co2_state()
