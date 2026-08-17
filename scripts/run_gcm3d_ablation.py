@@ -11,7 +11,20 @@ from __future__ import annotations
 import argparse
 import dataclasses
 import json
+import os
+import time
 from pathlib import Path
+
+# Configure XLA before importing NumPy/JAX or any gcm3d module. The defaults are
+# intentionally laptop-friendly; expert users can override XLA_FLAGS explicitly.
+os.environ.setdefault(
+    "XLA_FLAGS",
+    "--xla_cpu_multi_thread_eigen=false intra_op_parallelism_threads=2",
+)
+os.environ.setdefault(
+    "JAX_COMPILATION_CACHE_DIR",
+    str(Path("outputs/.jax_compilation_cache").resolve()),
+)
 
 import numpy as np
 from src.gcm3d._dinosaur import jax
@@ -46,10 +59,26 @@ def main() -> int:
     parser.add_argument("--dt", type=float, default=450.0)
     parser.add_argument("--sols", type=float, default=668.0)
     parser.add_argument("--chunk-sols", type=float, default=10.0)
+    parser.add_argument(
+        "--cooldown-seconds", type=float, default=5.0,
+        help="idle time after every checkpoint to limit sustained laptop load",
+    )
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--dust-visible", type=float, default=0.3)
     parser.add_argument("--dust-longwave", type=float, default=0.1)
+    parser.add_argument(
+        "--laptop", action="store_true",
+        help="use T21/8 levels, 600 s steps, 5-sol chunks and 15 s cooldowns",
+    )
     args = parser.parse_args()
+    if args.laptop:
+        args.truncation = "T21"
+        args.layers = 8
+        args.dt = 600.0
+        args.chunk_sols = min(args.chunk_sols, 5.0)
+        args.cooldown_seconds = max(args.cooldown_seconds, 15.0)
+    if args.cooldown_seconds < 0:
+        parser.error("--cooldown-seconds must be non-negative")
 
     verified_dt = {"T42": 450.0, "T85": 300.0, "T106": 225.0, "T170": 150.0}
     if args.truncation in verified_dt and args.dt > verified_dt[args.truncation]:
@@ -108,6 +137,8 @@ def main() -> int:
             completed += count
             save_restart(state, restart_path)
             progress_path.write_text(json.dumps({"completed_steps": completed}) + "\n")
+            if completed < steps_total and args.cooldown_seconds:
+                time.sleep(args.cooldown_seconds)
         nc = save_netcdf(fields, root / "maps.nc")
         pngs = plot_maps(fields, root, prefix=name)
         manifest["runs"][name] = {
