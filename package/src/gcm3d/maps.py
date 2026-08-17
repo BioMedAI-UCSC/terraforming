@@ -59,6 +59,22 @@ def resolve_scale(scale: str | None) -> dict:
     return dict(MAP_SCALES[key])
 
 
+def forcing_with_surface_properties(forcing, grid, path):
+    """Return forcing with explicitly supplied nodal albedo/TES inertia fields."""
+    from src.gcm3d.surface import surface_fields_on_grid
+
+    albedo, thermal_inertia_tiu = surface_fields_on_grid(grid, path)
+    return dataclasses.replace(
+        forcing,
+        albedo=jnp.asarray(albedo),
+        surface_thermal_inertia_tiu=jnp.asarray(thermal_inertia_tiu),
+        regolith_enabled=True,
+        stability_exchange_enabled=True,
+        pbl_diffusion_enabled=True,
+        convective_adjustment_enabled=True,
+    )
+
+
 def hydrostatic_surface_pressure_pa(elevation_m, body, t_ref_k=None, p0_pa=None):
     """Mars-hydrostatic surface pressure over terrain (Pa).
 
@@ -203,19 +219,8 @@ def run_maps(
 
     spatial_surface = False
     if forcing is not None and surface_properties_path is not None:
-        from src.gcm3d.surface import surface_fields_on_grid
-
-        albedo, thermal_inertia_tiu = surface_fields_on_grid(
-            grid, surface_properties_path
-        )
-        forcing = dataclasses.replace(
-            forcing,
-            albedo=jnp.asarray(albedo),
-            surface_thermal_inertia_tiu=jnp.asarray(thermal_inertia_tiu),
-            regolith_enabled=True,
-            stability_exchange_enabled=True,
-            pbl_diffusion_enabled=True,
-            convective_adjustment_enabled=True,
+        forcing = forcing_with_surface_properties(
+            forcing, grid, surface_properties_path
         )
         spatial_surface = True
 

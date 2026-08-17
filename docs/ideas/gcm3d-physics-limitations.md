@@ -199,6 +199,11 @@ prognostic soil-layer temperature so future long spin-ups remain continuous.
   \(\dot T_k=g(F_{k+1/2}-F_{k-1/2})/(c_p\Delta p_k)\), so the sum telescopes to the
   top/surface boundary fluxes. Acceptance: layer-summed closure and comparison with
   published Mars column/GCM benchmarks in [Forget et al. (1999)][forget1999].
+  **Current fidelity blocker:** outgoing longwave remains the single-grey proxy
+  \(F_{LW}=\epsilon\sigma(T_s/G)^4\). There are no resolved CO₂ 15-µm/NIR bands,
+  correlated-k coefficients, two-stream atmospheric fluxes or layerwise radiative
+  heating. Consequently the current temperature comparison is not JCM-fidelity
+  radiation, regardless of the added surface/PBL physics.
 
 - [ ] **P1.5 — Energy-limited CO₂ phase change.** Replace the tunable relaxation rate
   with complementarity at the frost point: when frost is present, hold

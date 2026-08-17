@@ -344,7 +344,8 @@ def initial_column_state(dyn_state, coords, surface_temperature_k: float, specs,
 
 
 def surface_energy_tendencies(state: ColumnPhysicsState, coords, specs,
-                              body: BodyConstants, f: RadiativeForcing):
+                              body: BodyConstants, f: RadiativeForcing,
+                              wind_nodal=None):
     """Conservative surface/atmosphere energy exchange.
 
     Solar and longwave fluxes act once on a prognostic surface reservoir. A bulk
@@ -372,7 +373,8 @@ def surface_energy_tendencies(state: ColumnPhysicsState, coords, specs,
     ) ** 4
     if f.stability_exchange_enabled:
         exchange, _, _ = _surface_exchange_properties(
-            state, coords, specs, body, f, air_k[-1], surface_k, ps_pa=None
+            state, coords, specs, body, f, air_k[-1], surface_k, ps_pa=None,
+            wind_nodal=wind_nodal,
         )
         sensible = exchange * (surface_k - air_k[-1])
     else:
@@ -400,7 +402,8 @@ def surface_energy_tendencies(state: ColumnPhysicsState, coords, specs,
 
 
 def surface_momentum_tendencies(
-    state: ColumnPhysicsState, coords, specs, body: BodyConstants, f: RadiativeForcing
+    state: ColumnPhysicsState, coords, specs, body: BodyConstants, f: RadiativeForcing,
+    wind_nodal=None,
 ):
     """Neutral-log-law surface stress applied to the lowest sigma layer.
 
@@ -410,9 +413,11 @@ def surface_momentum_tendencies(
     resolved kinetic energy and approaches zero continuously with wind speed.
     """
     grid, dyn = coords.horizontal, state.dynamics
-    u_nd, v_nd = spherical_harmonic.vor_div_to_uv_nodal(
-        grid, dyn.vorticity, dyn.divergence
-    )
+    if wind_nodal is None:
+        wind_nodal = spherical_harmonic.vor_div_to_uv_nodal(
+            grid, dyn.vorticity, dyn.divergence
+        )
+    u_nd, v_nd = wind_nodal
     velocity_unit = _u.meter / _u.second
     u_ms = specs.dimensionalize(u_nd, velocity_unit).magnitude
     v_ms = specs.dimensionalize(v_nd, velocity_unit).magnitude
@@ -421,7 +426,8 @@ def surface_momentum_tendencies(
     air_k = jnp.clip(grid.to_nodal(dyn.temperature_variation)[-1] + ref_t[-1], 50.0, None)
     surface_k = jnp.clip(state.surface_temperature[0], 50.0, None)
     _, drag_coefficient, speed = _surface_exchange_properties(
-        state, coords, specs, body, f, air_k, surface_k, ps_pa=None
+        state, coords, specs, body, f, air_k, surface_k, ps_pa=None,
+        wind_nodal=wind_nodal,
     )
     dsigma = float(np.diff(np.asarray(coords.vertical.boundaries))[-1])
     # rho/(dp/g) = g/(R*T*dsigma), using the actual lowest-layer temperature.
@@ -436,12 +442,16 @@ def surface_momentum_tendencies(
     return spherical_harmonic.uv_nodal_to_vor_div_modal(grid, du_nd, dv_nd)
 
 
-def _surface_exchange_properties(state, coords, specs, body, f, air_k, surface_k, ps_pa=None):
+def _surface_exchange_properties(
+    state, coords, specs, body, f, air_k, surface_k, ps_pa=None, wind_nodal=None
+):
     """Return sensible conductance, drag coefficient and resolved wind speed."""
     grid = coords.horizontal
-    u_nd, v_nd = spherical_harmonic.vor_div_to_uv_nodal(
-        grid, state.dynamics.vorticity, state.dynamics.divergence
-    )
+    if wind_nodal is None:
+        wind_nodal = spherical_harmonic.vor_div_to_uv_nodal(
+            grid, state.dynamics.vorticity, state.dynamics.divergence
+        )
+    u_nd, v_nd = wind_nodal
     unit = _u.meter / _u.second
     u = specs.dimensionalize(u_nd[-1], unit).magnitude
     v = specs.dimensionalize(v_nd[-1], unit).magnitude
@@ -467,7 +477,9 @@ def _surface_exchange_properties(state, coords, specs, body, f, air_k, surface_k
     return sensible_conductance, cd, speed
 
 
-def pbl_vertical_diffusion_tendencies(state, coords, specs, body, f):
+def pbl_vertical_diffusion_tendencies(
+    state, coords, specs, body, f, wind_nodal=None
+):
     """Mass-conserving adjacent-layer diffusion of momentum and temperature."""
     dyn, grid = state.dynamics, coords.horizontal
     zeros = jnp.zeros_like(dyn.temperature_variation)
@@ -476,7 +488,11 @@ def pbl_vertical_diffusion_tendencies(state, coords, specs, body, f):
             jnp.zeros_like(dyn.vorticity), jnp.zeros_like(dyn.divergence), zeros,
             {name: jnp.zeros_like(value) for name, value in dyn.tracers.items()},
         )
-    u, v = spherical_harmonic.vor_div_to_uv_nodal(grid, dyn.vorticity, dyn.divergence)
+    if wind_nodal is None:
+        wind_nodal = spherical_harmonic.vor_div_to_uv_nodal(
+            grid, dyn.vorticity, dyn.divergence
+        )
+    u, v = wind_nodal
     temperature = grid.to_nodal(dyn.temperature_variation)
     sigma = np.asarray(coords.vertical.centers)
     dsigma = np.diff(np.asarray(coords.vertical.boundaries))
@@ -492,6 +508,7 @@ def pbl_vertical_diffusion_tendencies(state, coords, specs, body, f):
         state, coords, specs, body, f,
         jnp.ones(grid.nodal_shape) * body.reference_temperature_k,
         state.surface_temperature[0],
+        wind_nodal=wind_nodal,
     )
     ustar = jnp.sqrt(cd) * speed
     time_scale = 1.0 / float(specs.nondimensionalize(1.0 * _u.second))
@@ -639,14 +656,19 @@ def forced_primitive_equations(
     base = _build_primitive_equations(coords, body, specs=specs, orography=orography)
 
     def parameterization(state):
+        wind_nodal = spherical_harmonic.vor_div_to_uv_nodal(
+            coords.horizontal,
+            state.dynamics.vorticity,
+            state.dynamics.divergence,
+        )
         heat, surface_tendency, _ = surface_energy_tendencies(
-            state, coords, specs, body, forcing
+            state, coords, specs, body, forcing, wind_nodal=wind_nodal
         )
         drag_vor, drag_div = surface_momentum_tendencies(
-            state, coords, specs, body, forcing
+            state, coords, specs, body, forcing, wind_nodal=wind_nodal
         )
         mix_vor, mix_div, mix_heat, mix_tracers = pbl_vertical_diffusion_tendencies(
-            state, coords, specs, body, forcing
+            state, coords, specs, body, forcing, wind_nodal=wind_nodal
         )
         convection = dry_convective_adjustment_tendency(
             state, coords, specs, body, forcing
@@ -834,17 +856,22 @@ def forced_co2_primitive_equations(
     base = _build_primitive_equations(coords, body, specs=specs, orography=orography)
 
     def parameterization(state):
+        wind_nodal = spherical_harmonic.vor_div_to_uv_nodal(
+            coords.horizontal,
+            state.dynamics.vorticity,
+            state.dynamics.divergence,
+        )
         heat, dsurface, _ = surface_energy_tendencies(
-            state, coords, specs, body, forcing
+            state, coords, specs, body, forcing, wind_nodal=wind_nodal
         )
         d_logsp, dice, dlatent_surface = _co2_surface_tendencies(
             state, coords, specs, body, co2_forcing
         )
         drag_vor, drag_div = surface_momentum_tendencies(
-            state, coords, specs, body, forcing
+            state, coords, specs, body, forcing, wind_nodal=wind_nodal
         )
         mix_vor, mix_div, mix_heat, mix_tracers = pbl_vertical_diffusion_tendencies(
-            state, coords, specs, body, forcing
+            state, coords, specs, body, forcing, wind_nodal=wind_nodal
         )
         convection = dry_convective_adjustment_tendency(
             state, coords, specs, body, forcing

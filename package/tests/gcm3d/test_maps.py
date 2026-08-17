@@ -127,6 +127,39 @@ def test_explicit_surface_fields_match_grid_and_physical_bounds(tmp_path):
     assert np.all(inertia > 0.0)
 
 
+def test_surface_fields_are_threaded_into_radiation_and_regolith(tmp_path):
+    import xarray as xr
+
+    from src.gcm3d.coordinates import coordinate_system
+    from src.gcm3d.physics import mars_radiative_forcing
+
+    grid = coordinate_system("T21", 8).horizontal
+    path = tmp_path / "surface.nc"
+    lat = np.linspace(-90.0, 90.0, 7)
+    lon = np.linspace(0.0, 330.0, 12)
+    lon_pattern = np.linspace(0.1, 0.4, lon.size)[None, :]
+    albedo = np.broadcast_to(lon_pattern, (lat.size, lon.size))
+    inertia = np.broadcast_to(100.0 + 900.0 * lon_pattern, albedo.shape)
+    xr.Dataset(
+        {
+            "albedo": (("lat", "lon"), albedo),
+            "thermal_inertia": (("lat", "lon"), inertia),
+        },
+        coords={"lat": lat, "lon": lon},
+    ).to_netcdf(path)
+
+    forcing = maps.forcing_with_surface_properties(
+        mars_radiative_forcing(diurnal=False), grid, path
+    )
+    assert np.asarray(forcing.albedo).shape == grid.nodal_shape
+    assert np.ptp(np.asarray(forcing.albedo)) > 0.2
+    assert np.ptp(np.asarray(forcing.surface_thermal_inertia_tiu)) > 200.0
+    assert forcing.regolith_enabled
+    assert forcing.stability_exchange_enabled
+    assert forcing.pbl_diffusion_enabled
+    assert forcing.convective_adjustment_enabled
+
+
 @needs_mola
 class TestOutputs:
 
