@@ -29,11 +29,11 @@ the lowest atmospheric sigma layer using its mass-dependent heat capacity
 ``cp*dp/g``. Surface loss and atmospheric gain therefore cancel exactly and the
 column budget is independent of vertical layer count.
 
-Honesty about fidelity: this is a single-band ("grey") radiative *forcing*, not a
-radiative-transfer scheme — no spectral CO2 bands, no dust, and (yet) no CO2
-condensation cycle. It fixes the largest gap in the dry maps (a fluid with no
-thermal forcing); the CO2 cap mass/pressure exchange is the next increment and is
-deliberately not included here. Requires the optional ``gcm3d`` extra.
+The legacy grey forcing remains available for regression experiments. The
+JCM-style path uses a compact pressure-scaled two-stream solver with CO2 near-IR
+and thermal bands plus prescribed dust. It is not yet correlated-k and therefore
+must not be described as full LMD/JCM radiative fidelity. Requires the optional
+``gcm3d`` extra.
 """
 
 from __future__ import annotations
@@ -107,8 +107,21 @@ class RadiativeForcing:
     stability_exchange_enabled: bool = False
     pbl_diffusion_enabled: bool = False
     pbl_height_m: float = 5000.0
+    pbl_implicit_timestep_s: float = 1800.0
     convective_adjustment_enabled: bool = False
     convective_relaxation_s: float = 900.0
+    # Vertically resolved two-stream, two-band Mars radiation.  The optical
+    # depths are pressure-scaled column values at the reference pressure.  This
+    # is deliberately a compact JCM-style scheme, not correlated-k: it resolves
+    # CO2 near-IR absorption and the 15-micron thermal band and exposes the same
+    # flux-divergence interface that a later correlated-k solver can replace.
+    co2_radiation_enabled: bool = False
+    co2_longwave_optical_depth: float = 0.35
+    co2_near_ir_optical_depth: float = 0.08
+    # Prescribed visible/IR dust column opacity. May be a scalar or nodal field.
+    dust_visible_optical_depth: object = 0.0
+    dust_longwave_optical_depth: object = 0.0
+    dust_single_scattering_albedo: float = 0.92
 
 
 def mars_radiative_forcing(
@@ -116,6 +129,9 @@ def mars_radiative_forcing(
     greenhouse_factor: float = 1.02,
     diurnal: bool = True,
     init_orbital_angle_rad: float = 0.0,
+    co2_radiation_enabled: bool = False,
+    dust_visible_optical_depth: object = 0.0,
+    dust_longwave_optical_depth: object = 0.0,
 ) -> RadiativeForcing:
     """A :class:`RadiativeForcing` built from the package's Mars constants.
 
@@ -141,6 +157,9 @@ def mars_radiative_forcing(
         eccentricity=float(_m.MARS_ECCENTRICITY),
         init_orbital_angle_rad=init_orbital_angle_rad,
         diurnal=diurnal,
+        co2_radiation_enabled=co2_radiation_enabled,
+        dust_visible_optical_depth=dust_visible_optical_depth,
+        dust_longwave_optical_depth=dust_longwave_optical_depth,
     )
 
 
@@ -267,6 +286,17 @@ class SurfaceEnergyDiagnostics(NamedTuple):
     net_external_w_m2: object
 
 
+class RadiativeFluxDiagnostics(NamedTuple):
+    """Interface fluxes, ordered from TOA (0) to the surface (L)."""
+
+    shortwave_down_w_m2: object
+    longwave_up_w_m2: object
+    longwave_down_w_m2: object
+    atmospheric_convergence_w_m2: object
+    surface_net_w_m2: object
+    toa_net_down_w_m2: object
+
+
 class ColumnPhysicsTendencies(NamedTuple):
     """Replaceable JCM-style physics contribution to the prognostic tendencies."""
 
@@ -343,6 +373,72 @@ def initial_column_state(dyn_state, coords, surface_temperature_k: float, specs,
     )
 
 
+def two_stream_radiative_fluxes(
+    state: ColumnPhysicsState, coords, specs, body: BodyConstants,
+    f: RadiativeForcing,
+) -> RadiativeFluxDiagnostics:
+    """Pressure-scaled two-stream CO2/dust fluxes and layer convergence.
+
+    The compact solver uses Beer--Lambert transmission in a solar near-IR band
+    and a hemispheric two-stream thermal band.  Each layer emits equally upward
+    and downward according to Kirchhoff's law.  Its principal contract is exact
+    discrete energy closure; correlated-k coefficients can later replace the
+    optical-depth closure without changing callers.
+    """
+    grid, dyn = coords.horizontal, state.dynamics
+    n = coords.vertical.layers
+    time_scale_s = 1.0 / float(specs.nondimensionalize(1.0 * _u.second))
+    t_s = dyn.sim_time * time_scale_s
+    cz = cos_zenith_nodal(t_s, grid.latitudes, grid.longitudes, f)
+    incoming = solar_flux(t_s, f) * cz
+    ps_nd = jnp.exp(grid.to_nodal(dyn.log_surface_pressure))[0]
+    ps_pa = ps_nd * float(specs.dimensionalize(1.0, _u.pascal).magnitude)
+    pressure_scale = ps_pa / body.reference_surface_pressure_pa
+    dsigma = jnp.asarray(np.diff(np.asarray(coords.vertical.boundaries)))[:, None, None]
+
+    dust_vis = jnp.asarray(f.dust_visible_optical_depth)
+    dust_lw = jnp.asarray(f.dust_longwave_optical_depth)
+    # Only the absorbing fraction heats the solar band; the remainder is treated
+    # as conservative back-scattering at TOA in this compact closure.
+    sw_tau = pressure_scale[None] * dsigma * (
+        f.co2_near_ir_optical_depth
+        + dust_vis * (1.0 - f.dust_single_scattering_albedo)
+    )
+    lw_tau = pressure_scale[None] * dsigma * (
+        f.co2_longwave_optical_depth + dust_lw
+    )
+    sw_trans = jnp.exp(-jnp.clip(sw_tau, 0.0, 50.0))
+    lw_trans = jnp.exp(-jnp.clip(lw_tau, 0.0, 50.0))
+
+    sw = [incoming]
+    for k in range(n):
+        sw.append(sw[-1] * sw_trans[k])
+    sw = jnp.stack(sw)
+
+    ref = np.asarray(reference_temperature(coords, body)).reshape(n, 1, 1)
+    air_k = jnp.clip(grid.to_nodal(dyn.temperature_variation) + ref, 1.0, None)
+    surface_k = jnp.clip(state.surface_temperature[0], 1.0, None)
+    blackbody_air = f.stefan_boltzmann * air_k**4
+    surface_emission = f.emissivity * f.stefan_boltzmann * surface_k**4
+    up = [surface_emission]
+    for k in range(n - 1, -1, -1):
+        up.append(up[-1] * lw_trans[k] + (1.0 - lw_trans[k]) * blackbody_air[k])
+    lw_up = jnp.stack(up[::-1])
+    down = [jnp.zeros_like(surface_k)]
+    for k in range(n):
+        down.append(down[-1] * lw_trans[k] + (1.0 - lw_trans[k]) * blackbody_air[k])
+    lw_down = jnp.stack(down)
+
+    net_up = lw_up - lw_down - sw
+    convergence = net_up[1:] - net_up[:-1]
+    surface_net = (1.0 - f.albedo) * sw[-1] + lw_down[-1] - surface_emission
+    reflected = f.albedo * sw[-1]
+    toa_net_down = sw[0] - lw_up[0] - reflected
+    return RadiativeFluxDiagnostics(
+        sw, lw_up, lw_down, convergence, surface_net, toa_net_down
+    )
+
+
 def surface_energy_tendencies(state: ColumnPhysicsState, coords, specs,
                               body: BodyConstants, f: RadiativeForcing,
                               wind_nodal=None):
@@ -362,15 +458,19 @@ def surface_energy_tendencies(state: ColumnPhysicsState, coords, specs,
     t_s = dyn.sim_time * time_scale_s
 
     cz = cos_zenith_nodal(t_s, grid.latitudes, grid.longitudes, f)  # (n_lon,n_lat)
-    q_in = (1.0 - f.albedo) * solar_flux(t_s, f) * cz                # (n_lon,n_lat), W m^-2
-
     # Lowest atmospheric-layer and surface temperatures in kelvin.
     ref_t = np.asarray(reference_temperature(coords, body)).reshape(n_layers, 1, 1)
     air_k = jnp.clip(grid.to_nodal(dyn.temperature_variation) + ref_t, 1.0, None)
     surface_k = jnp.clip(state.surface_temperature[0], 1.0, None)
-    q_out = f.emissivity * f.stefan_boltzmann * (
-        surface_k / max(f.greenhouse_factor, 1.0)
-    ) ** 4
+    if f.co2_radiation_enabled:
+        radiation = two_stream_radiative_fluxes(state, coords, specs, body, f)
+        q_in = (1.0 - f.albedo) * radiation.shortwave_down_w_m2[-1]
+        q_out = radiation.longwave_up_w_m2[-1] - radiation.longwave_down_w_m2[-1]
+    else:
+        q_in = (1.0 - f.albedo) * solar_flux(t_s, f) * cz
+        q_out = f.emissivity * f.stefan_boltzmann * (
+            surface_k / max(f.greenhouse_factor, 1.0)
+        ) ** 4
     if f.stability_exchange_enabled:
         exchange, _, _ = _surface_exchange_properties(
             state, coords, specs, body, f, air_k[-1], surface_k, ps_pa=None,
@@ -396,6 +496,15 @@ def surface_energy_tendencies(state: ColumnPhysicsState, coords, specs,
     atm_nodal = jnp.zeros((n_layers,) + sensible.shape).at[-1].set(
         dtair_si * time_scale_s
     )
+    if f.co2_radiation_enabled:
+        layer_capacity = (
+            body.cp_j_kg_k * ps_pa[None] *
+            jnp.asarray(np.diff(np.asarray(coords.vertical.boundaries)))[:, None, None]
+            / body.gravity_m_s2
+        )
+        atm_nodal = atm_nodal + radiation.atmospheric_convergence_w_m2 / jnp.clip(
+            layer_capacity, 1e-6, None
+        ) * time_scale_s
     surface_nd = (dts_si * time_scale_s)[None, :, :]
     diagnostics = SurfaceEnergyDiagnostics(q_in, q_out, sensible, q_in - q_out)
     return grid.to_modal(atm_nodal), surface_nd, diagnostics
@@ -512,6 +621,7 @@ def pbl_vertical_diffusion_tendencies(
     )
     ustar = jnp.sqrt(cd) * speed
     time_scale = 1.0 / float(specs.nondimensionalize(1.0 * _u.second))
+    interface_rates = []
     def diffuse(field):
         tendency = jnp.zeros_like(field)
         for k in range(coords.vertical.layers - 1):
@@ -541,18 +651,64 @@ def pbl_vertical_diffusion_tendencies(
             )
             rate = rate / max((z[k] - z[k + 1]) ** 2, 1.0)
             rate = jnp.minimum(rate, 1.0 / 1800.0) * time_scale
+            if len(interface_rates) <= k:
+                interface_rates.append(rate / time_scale)
             ratio = float(dsigma[k] / dsigma[k + 1])
             exchange = rate * (field[k + 1] - field[k])
             tendency = tendency.at[k].add(exchange)
             tendency = tendency.at[k + 1].add(-ratio * exchange)
         return tendency
-    du, dv, dt = diffuse(u), diffuse(v), diffuse(temperature)
+    dt = diffuse(temperature)
+    rates_si = jnp.stack(interface_rates)
+    du, u_new = _implicit_vertical_diffusion_tendency(
+        u_ms, rates_si, dsigma, f.pbl_implicit_timestep_s, specs, velocity=True
+    )
+    dv, v_new = _implicit_vertical_diffusion_tendency(
+        v_ms, rates_si, dsigma, f.pbl_implicit_timestep_s, specs, velocity=True
+    )
+    # Backward diffusion dissipates resolved kinetic energy. Return that energy
+    # uniformly to the mixed air column as heat, preserving the resolved budget.
+    old_ke = jnp.sum(jnp.asarray(dsigma)[:, None, None] * (u_ms**2 + v_ms**2) / 2.0, axis=0)
+    new_ke = jnp.sum(jnp.asarray(dsigma)[:, None, None] * (u_new**2 + v_new**2) / 2.0, axis=0)
+    heat_si = jnp.clip(old_ke - new_ke, 0.0, None) / (
+        body.cp_j_kg_k * jnp.sum(jnp.asarray(dsigma)) * f.pbl_implicit_timestep_s
+    )
+    dt = dt + heat_si[None] * time_scale
     vor, div = spherical_harmonic.uv_nodal_to_vor_div_modal(grid, du, dv)
     tracer_tendencies = {
         name: grid.to_modal(diffuse(grid.to_nodal(value)))
         for name, value in dyn.tracers.items()
     }
     return vor, div, grid.to_modal(dt), tracer_tendencies
+
+
+def _implicit_vertical_diffusion_tendency(
+    field_si, interface_rate_s, layer_weights, timestep_s, specs, *, velocity=False
+):
+    """Backward-Euler conservative column diffusion on arbitrary nodal columns."""
+    n = field_si.shape[0]
+    weights = jnp.asarray(layer_weights)
+    operator = jnp.zeros(field_si.shape[1:] + (n, n))
+    for k in range(n - 1):
+        rate = interface_rate_s[k]
+        ratio = weights[k] / weights[k + 1]
+        operator = operator.at[..., k, k].add(-rate)
+        operator = operator.at[..., k, k + 1].add(rate)
+        operator = operator.at[..., k + 1, k].add(ratio * rate)
+        operator = operator.at[..., k + 1, k + 1].add(-ratio * rate)
+    matrix = jnp.eye(n) - timestep_s * operator
+    old = jnp.moveaxis(field_si, 0, -1)
+    new = jnp.linalg.solve(matrix, old[..., None])[..., 0]
+    new = jnp.moveaxis(new, -1, 0)
+    tendency_si = (new - field_si) / timestep_s
+    if velocity:
+        tendency = specs.nondimensionalize(
+            tendency_si * (_u.meter / (_u.second**2))
+        )
+    else:
+        time_scale = 1.0 / float(specs.nondimensionalize(1.0 * _u.second))
+        tendency = tendency_si * time_scale
+    return tendency, new
 
 
 def dry_convective_adjusted_temperature(state, coords, body):
@@ -736,11 +892,18 @@ class CO2Forcing:
     supply_scale_pa: float = 50.0
     # Non-thermal escape (uniform atmospheric mass sink), kg s^-1 over the globe.
     escape_rate_kg_s: float = 0.0
+    # Diagnose phase change from the non-latent surface energy residual.  This
+    # removes the tunable temperature-relaxation rate from the active scheme.
+    energy_limited: bool = False
+    # Four-stage IMEX evaluations can sample intermediate reservoirs, so use a
+    # conservative four-step positivity horizon for the default 600 s step.
+    exchange_timestep_s: float = 24000.0
 
 
 def mars_co2_forcing(
     exchange_rate_pa_s_per_k: float = 1.0e-4,
     escape_rate_kg_s: float = 0.0,
+    energy_limited: bool = False,
 ) -> CO2Forcing:
     """A :class:`CO2Forcing` built from the package's Mars CO2 constants."""
     from src.celestials.planets import mars as _m
@@ -752,6 +915,7 @@ def mars_co2_forcing(
         thermal_inertia=float(_m.MARS_THERMAL_INERTIA),
         exchange_rate_pa_s_per_k=exchange_rate_pa_s_per_k,
         escape_rate_kg_s=escape_rate_kg_s,
+        energy_limited=energy_limited,
     )
 
 
@@ -773,7 +937,10 @@ def co2_frost_point_k(pressure_pa):
     return 3182.48 / (23.3494 - jnp.log(p_hpa))
 
 
-def _co2_surface_tendencies(state, coords, specs, body, cf: CO2Forcing):
+def _co2_surface_tendencies(
+    state, coords, specs, body, cf: CO2Forcing,
+    available_surface_flux_w_m2=None,
+):
     """Per-cell CO2 exchange: returns pressure, frost, and surface-T tendencies.
 
     Works in SI (Pa s^-1, K s^-1) then nondimensionalises. ``ice_nd`` is the frost
@@ -797,27 +964,43 @@ def _co2_surface_tendencies(state, coords, specs, body, cf: CO2Forcing):
     # right temperature and respond as the atmosphere thickens/thins.
     frost_k = (co2_frost_point_k(ps_pa[0]) if cf.use_pressure_frost
                else cf.frost_point_k)
-    below = jnp.clip(frost_k - t_surf_k, 0.0, None)                   # K, cooling below frost
-    above = jnp.clip(t_surf_k - frost_k, 0.0, None)                  # K, warm enough to sublime
-    # Supply-limited condensation: vanishes as the local column thins (p_s -> 0),
-    # which keeps p_s strictly positive and the log-pressure tendency bounded.
     supply_gate = jnp.tanh(ps_pa[0] / cf.supply_scale_pa)
-    cond_pa_s = cf.exchange_rate_pa_s_per_k * below * supply_gate      # atmosphere -> ice
-    # Gate sublimation on available frost (clip >= 0 so spectral noise near the
-    # cap edge can never drive sublimation of non-existent ice).
-    subl_pa_s = (
-        cf.exchange_rate_pa_s_per_k
-        * above
-        * jnp.tanh(jnp.clip(ice_pa[0], 0.0, None) / cf.ice_ref_pa)
-    )
+    ice_gate = jnp.tanh(jnp.clip(ice_pa[0], 0.0, None) / cf.ice_ref_pa)
+    if cf.energy_limited:
+        if available_surface_flux_w_m2 is None:
+            raise ValueError("energy-limited CO2 exchange requires the surface-energy residual")
+        residual = jnp.asarray(available_surface_flux_w_m2)
+        pa_per_watt = cf.gravity_m_s2 / cf.latent_heat_j_kg
+        cond_pa_s = jnp.where(
+            t_surf_k <= frost_k, jnp.clip(-residual, 0.0, None) * pa_per_watt * supply_gate, 0.0
+        )
+        subl_pa_s = jnp.where(
+            (t_surf_k >= frost_k) & (ice_pa[0] > 0.0),
+            jnp.clip(residual, 0.0, None) * pa_per_watt * ice_gate,
+            0.0,
+        )
+    else:
+        below = jnp.clip(frost_k - t_surf_k, 0.0, None)
+        above = jnp.clip(t_surf_k - frost_k, 0.0, None)
+        cond_pa_s = cf.exchange_rate_pa_s_per_k * below * supply_gate
+        subl_pa_s = cf.exchange_rate_pa_s_per_k * above * ice_gate
+    # Positivity limiter for the explicit phase-change tendency. The configured
+    # interval is the maximum physics step supported by this forcing.
+    cond_pa_s = jnp.minimum(cond_pa_s, jnp.clip(ps_pa[0], 0.0, None) / cf.exchange_timestep_s)
+    subl_pa_s = jnp.minimum(subl_pa_s, jnp.clip(ice_pa[0], 0.0, None) / cf.exchange_timestep_s)
     net_pa_s = cond_pa_s - subl_pa_s                                   # (n_lon,n_lat), >0 = condensing
+
+    # Positivity repair for intermediate Runge--Kutta stages. It transfers any
+    # tiny negative numerical reservoir back from the atmosphere, so total CO2
+    # remains unchanged while the physical state is restored rapidly.
+    repair_pa_s = jnp.clip(-ice_pa[0], 0.0, None) / 60.0
 
     # Escape: uniform atmospheric mass sink spread over the globe (Pa s^-1).
     escape_pa_s = cf.escape_rate_kg_s * cf.gravity_m_s2 / body.surface_area_m2
 
     # Mass budget (SI, per cell): ice gains net, atmosphere loses net + escape.
-    dice_pa_s = net_pa_s[None, :, :]                                  # (1,n_lon,n_lat)
-    dps_pa_s = -net_pa_s[None, :, :] - escape_pa_s
+    dice_pa_s = (net_pa_s + repair_pa_s)[None, :, :]                   # (1,n_lon,n_lat)
+    dps_pa_s = (-net_pa_s - repair_pa_s)[None, :, :] - escape_pa_s
 
     # Latent heating: condensing mass (net/g kg m^-2 s^-1) releases L (W m^-2).
     dT_latent_si = cf.latent_heat_j_kg * (net_pa_s / cf.gravity_m_s2) / cf.thermal_inertia
@@ -864,8 +1047,14 @@ def forced_co2_primitive_equations(
         heat, dsurface, _ = surface_energy_tendencies(
             state, coords, specs, body, forcing, wind_nodal=wind_nodal
         )
+        ground_surface, ground = regolith_conduction_tendencies(state, specs, forcing)
+        time_scale = 1.0 / float(specs.nondimensionalize(1.0 * _u.second))
+        surface_flux = (
+            (dsurface + ground_surface)[0] / time_scale * forcing.thermal_inertia
+        )
         d_logsp, dice, dlatent_surface = _co2_surface_tendencies(
-            state, coords, specs, body, co2_forcing
+            state, coords, specs, body, co2_forcing,
+            available_surface_flux_w_m2=surface_flux,
         )
         drag_vor, drag_div = surface_momentum_tendencies(
             state, coords, specs, body, forcing, wind_nodal=wind_nodal
@@ -876,7 +1065,6 @@ def forced_co2_primitive_equations(
         convection = dry_convective_adjustment_tendency(
             state, coords, specs, body, forcing
         )
-        ground_surface, ground = regolith_conduction_tendencies(state, specs, forcing)
         return ColumnPhysicsTendencies(
             drag_vor + mix_vor, drag_div + mix_div,
             heat + mix_heat + convection, d_logsp,

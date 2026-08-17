@@ -152,6 +152,38 @@ class TestHeatingTendency:
         assert np.abs(np.asarray(ds)).max() > 0.0
         assert np.isfinite(np.asarray(diagnostic.net_external_w_m2)).all()
 
+    def test_two_stream_column_fluxes_close(self):
+        coords, specs = _coords(), physics_specs(MARS_BODY_3D)
+        state = _column_state(coords, specs)
+        f = physics.mars_radiative_forcing(co2_radiation_enabled=True)
+        flux = physics.two_stream_radiative_fluxes(
+            state, coords, specs, MARS_BODY_3D, f
+        )
+        closed = (
+            np.sum(np.asarray(flux.atmospheric_convergence_w_m2), axis=0)
+            + np.asarray(flux.surface_net_w_m2)
+        )
+        assert np.allclose(closed, np.asarray(flux.toa_net_down_w_m2), atol=1e-10)
+
+    def test_zero_dust_limit_and_positive_dust_heating_response(self):
+        coords, specs = _coords(), physics_specs(MARS_BODY_3D)
+        state = _column_state(coords, specs)
+        clear = physics.mars_radiative_forcing(co2_radiation_enabled=True)
+        zero = dataclasses.replace(
+            clear, dust_visible_optical_depth=0.0, dust_longwave_optical_depth=0.0
+        )
+        dusty = dataclasses.replace(
+            clear, dust_visible_optical_depth=1.0, dust_longwave_optical_depth=0.3
+        )
+        a = physics.two_stream_radiative_fluxes(state, coords, specs, MARS_BODY_3D, clear)
+        b = physics.two_stream_radiative_fluxes(state, coords, specs, MARS_BODY_3D, zero)
+        c = physics.two_stream_radiative_fluxes(state, coords, specs, MARS_BODY_3D, dusty)
+        assert np.array_equal(np.asarray(a.shortwave_down_w_m2), np.asarray(b.shortwave_down_w_m2))
+        assert np.max(np.abs(
+            np.asarray(c.atmospheric_convergence_w_m2)
+            - np.asarray(a.atmospheric_convergence_w_m2)
+        )) > 0.0
+
 
 class TestSurfaceMomentumDrag:
 
@@ -276,6 +308,23 @@ class TestBoundaryLayerPhysics:
             weights * np.asarray(grid.to_nodal(tracers["dust"])), axis=0
         )
         assert np.max(np.abs(residual)) < 1e-10
+
+    def test_implicit_momentum_mixing_conserves_momentum_and_dissipates_ke(self):
+        coords, specs = _coords(), physics_specs(MARS_BODY_3D)
+        n = coords.vertical.layers
+        shape = coords.horizontal.nodal_shape
+        field = jnp.broadcast_to(jnp.linspace(0.0, 30.0, n)[:, None, None], (n,) + shape)
+        rates = jnp.full((n - 1,) + shape, 1.0 / 900.0)
+        weights = np.diff(np.asarray(coords.vertical.boundaries))
+        _, new = physics._implicit_vertical_diffusion_tendency(
+            field, rates, weights, 1800.0, specs, velocity=True
+        )
+        old = np.asarray(field)
+        new = np.asarray(new)
+        w = weights[:, None, None]
+        # Dinosaur's vertical-coordinate weights are float32.
+        assert np.max(np.abs(np.sum(w * (new - old), axis=0))) < 2e-7
+        assert np.all(np.sum(w * new**2, axis=0) <= np.sum(w * old**2, axis=0) + 1e-10)
 
 
 class TestDryConvectiveAdjustment:
@@ -452,6 +501,20 @@ class TestCO2FrostPoint:
 
 
 class TestCO2Cycle:
+
+    def test_energy_limited_latent_heat_cancels_surface_deficit(self):
+        coords, specs, _, _, cf, state = _co2_state()
+        cf = dataclasses.replace(cf, energy_limited=True)
+        state = state._replace(surface_temperature=jnp.full_like(state.surface_temperature, 140.0))
+        residual = jnp.full(coords.horizontal.nodal_shape, -100.0)
+        _, dice, latent = physics._co2_surface_tendencies(
+            state, coords, specs, MARS_BODY_3D, cf,
+            available_surface_flux_w_m2=residual,
+        )
+        time_scale = 1.0 / float(specs.nondimensionalize(1.0 * _u.second))
+        latent_flux = np.asarray(latent)[0] / time_scale * cf.thermal_inertia
+        assert np.all(np.asarray(dice) >= 0.0)
+        assert np.allclose(latent_flux, 100.0, rtol=1e-5)
 
     def test_conserves_total_mass_with_escape_off(self):
         """With escape=0 the CO2 cycle only *moves* mass atmosphere<->frost, so

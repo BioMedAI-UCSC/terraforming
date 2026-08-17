@@ -72,6 +72,7 @@ def forcing_with_surface_properties(forcing, grid, path):
         stability_exchange_enabled=True,
         pbl_diffusion_enabled=True,
         convective_adjustment_enabled=True,
+        co2_radiation_enabled=True,
     )
 
 
@@ -185,7 +186,9 @@ def run_maps(
     forcing=None,
     co2_forcing=None,
     surface_properties_path=None,
-) -> MarsMapFields:
+    initial_state=None,
+    return_final_state: bool = False,
+) -> MarsMapFields | tuple[MarsMapFields, object]:
     """Run the Mars dycore over MOLA terrain and return lat/lon map fields.
 
     Builds the coordinate system, the MOLA modal orography, a terrain-balanced
@@ -227,7 +230,8 @@ def run_maps(
     elevation_nodal_m = regrid_to_nodal(coords, mola_path=mola_path)  # (n_lon, n_lat)
     orography = mola_modal_orography(coords, specs, elevation_nodal_m=elevation_nodal_m)
 
-    state0 = initial_rest_state(coords, specs, body, elevation_nodal_m, t_ref_k, p0_pa)
+    state0 = (initial_rest_state(coords, specs, body, elevation_nodal_m, t_ref_k, p0_pa)
+              if initial_state is None else initial_state)
     if forcing is None:
         equation = build_primitive_equations(coords, body, specs=specs, orography=orography)
         physics_label = "dry dynamics; no radiation/CO2/dust"
@@ -238,11 +242,22 @@ def run_maps(
             coords, body, forcing, specs=specs, orography=orography
         )
         # sim_time must be present (0.0) for the diurnal/seasonal forcing to advance.
-        state0 = dataclasses.replace(state0, sim_time=0.0)
-        state0 = initial_column_state(
-            state0, coords, t_ref_k or body.reference_temperature_k, specs
+        if initial_state is None:
+            state0 = dataclasses.replace(state0, sim_time=0.0)
+            state0 = initial_column_state(
+                state0, coords, t_ref_k or body.reference_temperature_k, specs
+            )
+        radiation_name = (
+            "two-stream CO2-band radiation" if forcing.co2_radiation_enabled
+            else "grey radiative energy balance"
         )
-        physics_label = "dry dynamics + grey radiative energy balance; no CO2/dust"
+        dust_name = (
+            " + prescribed radiatively active dust"
+            if (np.any(np.asarray(forcing.dust_visible_optical_depth) != 0.0)
+                or np.any(np.asarray(forcing.dust_longwave_optical_depth) != 0.0))
+            else "; no dust"
+        )
+        physics_label = f"dry dynamics + {radiation_name}{dust_name}"
         if co2_forcing is not None:
             from src.gcm3d.physics import (
                 forced_co2_primitive_equations,
@@ -254,7 +269,7 @@ def run_maps(
             # The radiation-only state already contains the surface reservoir;
             # enabling CO2 simply uses its existing zero frost field.
             physics_label = (
-                "dry dynamics + grey radiation + CO2 condensation cycle; no dust"
+                f"dry dynamics + {radiation_name} + CO2 condensation cycle{dust_name}"
             )
         if spatial_surface:
             physics_label += (
@@ -283,6 +298,7 @@ def run_maps(
 
     step = stepper(equation, dt_seconds, specs)
     final = _integrate(step, state0, n_steps)
+    final_state = final
 
     # Unwrap the JCM-style column state used by all forced integrations.
     co2_ice_map = None
@@ -332,7 +348,7 @@ def run_maps(
         """(n_lon, n_lat) → (n_lat, n_lon)."""
         return np.asarray(field_lonlat).T
 
-    return MarsMapFields(
+    fields = MarsMapFields(
         lon_deg=np.degrees(np.asarray(grid.longitudes)),
         lat_deg=np.degrees(np.asarray(grid.latitudes)),
         elevation_m=to_map(elevation_nodal_m),
@@ -349,6 +365,7 @@ def run_maps(
         co2_ice_pa=co2_ice_map,
         rotation_period_s=body.rotation_period_s,
     )
+    return (fields, final_state) if return_final_state else fields
 
 
 # ── Output: NetCDF export + lat/lon map plots ─────────────────────────────────

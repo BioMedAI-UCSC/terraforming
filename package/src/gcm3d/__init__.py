@@ -80,6 +80,7 @@ try:  # pragma: no cover - import-availability branch
         ColumnPhysicsTendencies,
         RadiativeForcing,
         SurfaceEnergyDiagnostics,
+        RadiativeFluxDiagnostics,
         co2_frost_point_k,
         column_primitive_equations,
         cos_zenith_nodal,
@@ -93,6 +94,7 @@ try:  # pragma: no cover - import-availability branch
         mars_radiative_forcing,
         radiative_heating_tendency,
         surface_energy_tendencies,
+        two_stream_radiative_fluxes,
     )
     from src.gcm3d.terraforming_ode import (
         SeasonalForcing,
@@ -145,12 +147,14 @@ try:  # pragma: no cover - import-availability branch
         "ColumnPhysicsState",
         "ColumnPhysicsTendencies",
         "SurfaceEnergyDiagnostics",
+        "RadiativeFluxDiagnostics",
         "mars_radiative_forcing",
         "initial_column_state",
         "column_primitive_equations",
         "forced_primitive_equations",
         "radiative_heating_tendency",
         "surface_energy_tendencies",
+        "two_stream_radiative_fluxes",
         "cos_zenith_nodal",
         # 3-D CO2 condensation cycle (Leighton-Murray) on a tuple-wrapped state
         "CO2Forcing",

@@ -166,11 +166,16 @@ and preserves the same dynamics-plus-physics-tendencies seam needed by NeuralGCM
     Richardson stability functions are bounded for explicit stability, with a
     30-minute minimum mixing timescale. Tests verify stable versus unstable exchange
     ordering and column-mean heat/tracer conservation.
-  - [ ] Add implicit/energy-consistent momentum diffusion and a
-    stable nocturnal single-column benchmark before checking P1.2 complete. The
+  - [ ] Add a stable nocturnal single-column benchmark before checking P1.2
+    complete. The
     latest bounded-Richardson coupled transient transports too much upper momentum
     downward (23.68 m/s versus 9.48 m/s MCD at the matched level; RMSE 18.97 m/s),
     so it is not yet accepted.
+  - [x] Replace the explicit momentum part with a pressure-mass-conserving
+    backward-Euler column solve. Diagnosed kinetic-energy loss is returned as
+    heat; tests verify momentum conservation and non-increasing kinetic energy.
+    The stable nocturnal single-column/LES comparison remains required before
+    P1.2 is complete.
 
 - [ ] **P1.3 — Dry convective adjustment, then nonlocal daytime PBL.** First mix
   statically unstable columns to neutral dry potential temperature while conserving
@@ -204,6 +209,12 @@ prognostic soil-layer temperature so future long spin-ups remain continuous.
   correlated-k coefficients, two-stream atmospheric fluxes or layerwise radiative
   heating. Consequently the current temperature comparison is not JCM-fidelity
   radiation, regardless of the added surface/PBL physics.
+  - [x] Add a differentiable, pressure-scaled two-stream interface with separate
+    CO₂ near-IR and 15-µm thermal optical depths. Layer heating is diagnosed from
+    interface-flux convergence and a direct test verifies that atmosphere plus
+    surface equals the TOA budget to roundoff. This is a compact band model, not
+    correlated-k, so P1.4 remains open pending published coefficient tables and
+    the Forget et al. column comparison [Forget et al. (1999)][forget1999].
 
 - [ ] **P1.5 — Energy-limited CO₂ phase change.** Replace the tunable relaxation rate
   with complementarity at the frost point: when frost is present, hold
@@ -212,6 +223,11 @@ prognostic soil-layer temperature so future long spin-ups remain continuous.
   Acceptance: no frost-point overshoot, non-negative reservoirs, exact mass/latent-
   energy closure, and Viking seasonal-pressure comparison
   [Guo et al. (2009)][guo2009].
+  - [x] Add an opt-in energy-residual phase-change tendency satisfying
+    (L\dot m=-Q_{residual}), with atmospheric/frost mass transfer and a direct
+    latent-energy closure test. It remains opt-in because the generic multistage
+    IMEX update can undershoot zero ice by about 0.05 Pa at moving cap edges;
+    a projection-aware phase-change step is required before P1.5 can be closed.
 
 - [ ] **P1.6 — Prescribed, radiatively active dust.** Start with observed seasonal
   column opacity and a prescribed vertical profile; transport can follow later.
@@ -220,6 +236,11 @@ prognostic soil-layer temperature so future long spin-ups remain continuous.
   clear-sky radiation and heating responds correctly to single-scattering albedo.
   Dust is a primary control on Martian atmospheric temperature
   [Madeleine et al. (2011)][madeleine2011].
+  - [x] Add prescribed nodal/scalar visible and infrared optical depth to the
+    common two-stream flux solver, including single-scattering albedo. Tests show
+    the zero-opacity limit exactly recovers clear sky and nonzero opacity changes
+    layer heating. Seasonal opacity staging and an MCD dust-scenario comparison
+    remain before P1.6 is complete.
 
 - [ ] **P1.7 — One-Mars-year deterministic baseline.** Run at least one spin-up year
   plus one diagnostic year with checkpointing. Publish zonal means, surface-pressure
@@ -233,6 +254,11 @@ prognostic soil-layer temperature so future long spin-ups remain continuous.
     at 10 m above the local surface rather than the no-slip surface. This is a diagnostic
     harness, not completion of P1.7: transient runs remain scientifically incomparable
     to the equilibrated MCD climatology [MCD web interface][mcd-web].
+  - [x] Add `scripts/run_gcm3d_ablation.py`, a restartable 668-sol driver for
+    drag, regolith, stability, PBL and convective-adjustment ablations. It writes
+    versioned checkpoints, maps, NetCDF and a manifest; a T21 smoke run verifies
+    restart and artifact production. The full T42 Mars-year matrix has not yet
+    been executed and is therefore not presented as a completed climatology.
 
 ### P2 — learned residual physics and extended Mars cycles
 
