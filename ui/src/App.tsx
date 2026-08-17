@@ -197,7 +197,7 @@ const s: Record<string, React.CSSProperties> = {
   brandTag:   { fontSize: 11, color: '#555' },
   modelSelect:{ width: '100%', background: '#161616', color: '#ddd', border: '1px solid #333', borderRadius: 5, padding: '6px 8px', fontSize: 12 },
   sideScroll: { flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' },
-  main:       { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' },
+  main:       { flex: 1, minWidth: 0, minHeight: 0, overflowX: 'hidden', overflowY: 'auto', display: 'flex', flexDirection: 'column' },
   empty:      { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' },
   emptyInner: { textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 },
   emptyGlyph: { fontSize: 40, color: '#2a2a2a' },

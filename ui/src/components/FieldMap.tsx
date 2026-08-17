@@ -147,7 +147,8 @@ export function FieldMap({ runId }: { runId: string }) {
   const sectionEntries = Object.entries(fields.sections)
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 12 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 12,
+                  flex: '0 0 auto', minWidth: 0 }}>
       {fields.metadata?.is_transient && (
         <div style={{ color: '#f0b45a', background: '#2a2115', border: '1px solid #6b4b1f',
                       borderRadius: 5, padding: '8px 10px', fontSize: 12 }}>
