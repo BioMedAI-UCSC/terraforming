@@ -90,4 +90,11 @@ export interface RunFields {
   sigma: number[]
   maps: Record<string, FieldGrid>
   sections: Record<string, FieldGrid>
+  metadata?: {
+    fidelity: string
+    duration_sols: number
+    is_transient: boolean
+    truncation: string
+    n_layers: number
+  }
 }

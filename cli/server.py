@@ -140,6 +140,13 @@ def _extract_maps_fields(fields) -> dict:
         "sigma": [],
         "maps": maps,
         "sections": {},
+        "metadata": {
+            "fidelity": getattr(fields, "physics", "unspecified diagnostic physics"),
+            "duration_sols": float(getattr(fields, "duration_sols", 0.0)),
+            "is_transient": bool(getattr(fields, "is_transient", True)),
+            "truncation": getattr(fields, "truncation", "unknown"),
+            "n_layers": int(getattr(fields, "n_layers", 0)),
+        },
     }
 
 

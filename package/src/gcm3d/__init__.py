@@ -31,6 +31,21 @@ __version__ = "0.0.1"
 # keep ``from src.gcm3d import BodyConstants`` working without the extra.
 try:  # pragma: no cover - import-availability branch
     from src.gcm3d.coordinates import coordinate_system, grid
+    from src.gcm3d.benchmarks import (
+        DryDriftDiagnostics,
+        TracerAdvectionDiagnostics,
+        HeldSuarezDiagnostics,
+        ConservedQuantities,
+        ConservationDrift,
+        dry_drift_diagnostics,
+        run_resting_atmosphere,
+        run_solid_body_tracer,
+        run_balanced_jet,
+        run_held_suarez,
+        dry_conserved_quantities,
+        conservation_drift,
+        resting_convergence_matrix,
+    )
     from src.gcm3d.dynamics import (
         integrate,
         primitive_equations,
@@ -48,6 +63,12 @@ try:  # pragma: no cover - import-availability branch
         save_netcdf,
     )
     from src.gcm3d.specs import nondimensionalization_scale, physics_specs
+    from src.gcm3d.restart import (
+        RESTART_FORMAT_VERSION,
+        integrate_with_averaging,
+        load_restart,
+        save_restart,
+    )
     from src.gcm3d.topography import (
         load_mola_meg,
         mola_modal_orography,
@@ -55,17 +76,23 @@ try:  # pragma: no cover - import-availability branch
     )
     from src.gcm3d.physics import (
         CO2Forcing,
+        ColumnPhysicsState,
+        ColumnPhysicsTendencies,
         RadiativeForcing,
+        SurfaceEnergyDiagnostics,
         co2_frost_point_k,
+        column_primitive_equations,
         cos_zenith_nodal,
         mean_anomaly_for_ls,
         orbital_distance,
         forced_co2_primitive_equations,
         forced_primitive_equations,
         initial_co2_state,
+        initial_column_state,
         mars_co2_forcing,
         mars_radiative_forcing,
         radiative_heating_tendency,
+        surface_energy_tendencies,
     )
     from src.gcm3d.terraforming_ode import (
         SeasonalForcing,
@@ -80,9 +107,26 @@ try:  # pragma: no cover - import-availability branch
 
     __all__ += [
         "coordinate_system",
+        "DryDriftDiagnostics",
+        "TracerAdvectionDiagnostics",
+        "HeldSuarezDiagnostics",
+        "ConservedQuantities",
+        "ConservationDrift",
+        "dry_drift_diagnostics",
+        "run_resting_atmosphere",
+        "run_solid_body_tracer",
+        "run_balanced_jet",
+        "run_held_suarez",
+        "dry_conserved_quantities",
+        "conservation_drift",
+        "resting_convergence_matrix",
         "grid",
         "physics_specs",
         "nondimensionalization_scale",
+        "RESTART_FORMAT_VERSION",
+        "save_restart",
+        "load_restart",
+        "integrate_with_averaging",
         "primitive_equations",
         "reference_temperature",
         "stepper",
@@ -98,9 +142,15 @@ try:  # pragma: no cover - import-availability branch
         "solar_longitude",
         # 3-D column radiative forcing on the dycore (bridges 0-D physics -> 3-D)
         "RadiativeForcing",
+        "ColumnPhysicsState",
+        "ColumnPhysicsTendencies",
+        "SurfaceEnergyDiagnostics",
         "mars_radiative_forcing",
+        "initial_column_state",
+        "column_primitive_equations",
         "forced_primitive_equations",
         "radiative_heating_tendency",
+        "surface_energy_tendencies",
         "cos_zenith_nodal",
         # 3-D CO2 condensation cycle (Leighton-Murray) on a tuple-wrapped state
         "CO2Forcing",

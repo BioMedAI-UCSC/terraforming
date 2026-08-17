@@ -104,6 +104,9 @@ def load_mola_meg(path: str | Path | None = None):
             f"  • Source:      {MOLA_SOURCE_URL}\n"
             f"  • SHA-256:     {MOLA_SHA256}"
         )
+    # Loading is a scientific-data boundary: size alone cannot distinguish the
+    # pinned MEGDR product from a same-sized corrupt or unrelated raster.
+    verify_mola_checksum(path)
     # 16-bit big-endian (MSB) signed integers, metres.
     raw = np.fromfile(path, dtype=">i2")
     if raw.size != _MOLA_LINES * _MOLA_SAMPLES:

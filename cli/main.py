@@ -758,6 +758,8 @@ def _echo_run_summary(cfg: SimConfig, preset: str | None) -> None:
               help="Moving day/night terminator vs smooth daily-mean insolation.")
 @click.option("--albedo", type=float, default=0.25, show_default=True,
               help="Bond albedo (0–1).")
+@click.option("--surface-properties", type=click.Path(exists=True, dir_okay=False),
+              default=None, help="Explicit TES/PDS-style albedo and thermal-inertia NetCDF.")
 @click.option("--greenhouse-factor", "greenhouse_factor", type=float, default=1.02,
               show_default=True, help="Greenhouse enhancement factor (≥1).")
 @click.option("--ls", type=float, default=0.0, show_default=True,
@@ -767,7 +769,7 @@ def _echo_run_summary(cfg: SimConfig, preset: str | None) -> None:
 def mars_maps(
     scale: str, truncation: str | None, n_layers: int | None,
     dt_seconds: float | None, n_steps: int | None,
-    physics: bool, co2: bool, diurnal: bool, albedo: float,
+    physics: bool, co2: bool, diurnal: bool, albedo: float, surface_properties: str | None,
     greenhouse_factor: float, ls: float, name: str | None,
 ) -> None:
     """Run the 3-D gcm3d dycore over real MOLA terrain and save lat/lon maps.
@@ -833,6 +835,7 @@ def mars_maps(
         fields = run_maps(
             truncation=truncation, n_layers=n_layers, dt_seconds=dt_seconds,
             n_steps=n_steps, forcing=forcing, co2_forcing=co2_forcing,
+            surface_properties_path=surface_properties,
         )
     except ValueError as exc:
         click.echo(_c(f"\n  ✖  {exc}", "bright_red"))

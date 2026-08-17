@@ -23,15 +23,11 @@ field that the base equations advance at unit (nondimensional) rate, so we read 
 with no change to the state layout. Initialise the state with ``sim_time=0.0`` (see
 :func:`src.gcm3d.maps.run_maps` with ``forcing=...``) for time to advance.
 
-The heating law is the *same* nonlinear surface energy balance as the 0-D kernel
-(``compute_derivatives``): ``dT/dt = (Q_in - eps*sigma*(T/greenhouse)**4) / C``,
-with ``Q_in = (1-albedo)*S*cos_zenith`` and a per-column solar zenith angle from
-latitude, solar declination and hour angle. It is applied uniformly through the
-column (the dry core has no convection/vertical diffusion to redistribute a
-surface-only flux, so a bottom-only heating would be statically unstable). Because
-it is the explicit 0-D balance, it inherits the 0-D stability limit: the step must
-resolve the diurnal cycle (``dt <= rotation_period/8``); use daily-mean insolation
-(``diurnal=False``) if you must step coarser.
+The nonlinear surface energy balance is evaluated once per column on a prognostic
+surface temperature. A conservative bulk sensible flux couples that reservoir to
+the lowest atmospheric sigma layer using its mass-dependent heat capacity
+``cp*dp/g``. Surface loss and atmospheric gain therefore cancel exactly and the
+column budget is independent of vertical layer count.
 
 Honesty about fidelity: this is a single-band ("grey") radiative *forcing*, not a
 radiative-transfer scheme — no spectral CO2 bands, no dust, and (yet) no CO2
@@ -44,10 +40,11 @@ from __future__ import annotations
 
 import dataclasses
 import math
+from typing import NamedTuple
 
 import numpy as np
 
-from src.gcm3d._dinosaur import jnp, scales, time_integration
+from src.gcm3d._dinosaur import jnp, scales, spherical_harmonic, time_integration
 from src.gcm3d.body import BodyConstants
 from src.gcm3d.dynamics import primitive_equations as _build_primitive_equations
 from src.gcm3d.dynamics import reference_temperature
@@ -55,6 +52,7 @@ from src.gcm3d.specs import physics_specs
 
 _u = scales.units
 _TWO_PI = 2.0 * math.pi
+_REGOLITH_LAYER_FRACTIONS = (0.5, 1.0, 2.0, 4.0)
 
 # Astronomical constants shared with the 0-D orbit model.
 TSI_1AU_W_M2 = 1361.0
@@ -73,7 +71,7 @@ class RadiativeForcing:
     """
 
     # Radiative / thermal
-    albedo: float
+    albedo: object
     greenhouse_factor: float
     emissivity: float
     stefan_boltzmann: float
@@ -92,6 +90,25 @@ class RadiativeForcing:
     au_m: float = AU_M
     # Diurnal cycle on (per-longitude hour angle) or daily-mean insolation.
     diurnal: bool = True
+    # Bulk surface-atmosphere sensible heat exchange coefficient (W m-2 K-1).
+    # This is deliberately explicit and replaceable: unlike the old layer-uniform
+    # heating it transfers energy between two reservoirs without creating energy.
+    sensible_heat_transfer_w_m2_k: float = 2.0
+    # Neutral bulk aerodynamic surface drag.  The coefficient is diagnosed from
+    # the logarithmic surface-layer law at the centre of the lowest sigma layer.
+    surface_roughness_m: float = 0.01
+    von_karman_constant: float = 0.4
+    minimum_wind_ms: float = 0.1
+    # Regolith properties. Thermal inertia may be replaced by a nodal TES field.
+    surface_thermal_inertia_tiu: object = 250.0
+    regolith_volumetric_heat_capacity_j_m3_k: float = 1.0e6
+    regolith_layer_skin_depth_fractions: tuple[float, ...] = _REGOLITH_LAYER_FRACTIONS
+    regolith_enabled: bool = False
+    stability_exchange_enabled: bool = False
+    pbl_diffusion_enabled: bool = False
+    pbl_height_m: float = 5000.0
+    convective_adjustment_enabled: bool = False
+    convective_relaxation_s: float = 900.0
 
 
 def mars_radiative_forcing(
@@ -228,36 +245,377 @@ def cos_zenith_nodal(t_s, lat_rad, lon_rad, f: RadiativeForcing):
     return jnp.broadcast_to(mean_cz[None, :], (n_lon, mean_cz.shape[0]))
 
 
-def radiative_heating_tendency(state, coords, specs, body: BodyConstants, f: RadiativeForcing):
-    """Modal temperature-variation tendency (nondimensional) from the energy balance.
+class ColumnPhysicsState(NamedTuple):
+    """JAX-pytree state for the dycore plus non-advected surface reservoirs.
 
-    Evaluates the 0-D surface energy balance per grid column:
-    ``dT/dt = (Q_in - eps*sigma*(T/greenhouse)**4) / thermal_inertia`` in SI
-    (K s^-1), applied uniformly through the vertical, then converts to dinosaur's
-    nondimensional time units and returns it in the modal basis so it can be added
-    directly to ``base.explicit_terms(state).temperature_variation``.
+    Keeping the Dinosaur state intact makes this the stable seam for conventional
+    or learned JCM-style column parameterizations. Surface temperature and frost
+    are nodal ``(1, n_lon, n_lat)`` fields; frost is pressure-equivalent and may be
+    zero when the CO2 cycle is disabled.
+    """
+
+    dynamics: object
+    surface_temperature: object
+    co2_ice: object
+    ground_temperature: object
+
+
+class SurfaceEnergyDiagnostics(NamedTuple):
+    absorbed_shortwave_w_m2: object
+    outgoing_longwave_w_m2: object
+    sensible_heat_w_m2: object
+    net_external_w_m2: object
+
+
+class ColumnPhysicsTendencies(NamedTuple):
+    """Replaceable JCM-style physics contribution to the prognostic tendencies."""
+
+    vorticity: object
+    divergence: object
+    temperature_variation: object
+    log_surface_pressure: object
+    surface_temperature: object
+    co2_ice: object
+    ground_temperature: object
+    tracers: object
+
+
+def column_primitive_equations(base, parameterization):
+    """Compose Dinosaur dynamics with a conventional or learned column-physics callable.
+
+    ``parameterization(state)`` returns :class:`ColumnPhysicsTendencies`. This is
+    the stable integration seam intended for later JCM-inspired deterministic
+    packages and NeuralGCM-style learned residual tendencies.
+    """
+    def explicit_terms(state):
+        dry = base.explicit_terms(state.dynamics)
+        phy = parameterization(state)
+        dynamics = dataclasses.replace(
+            dry,
+            vorticity=dry.vorticity + phy.vorticity,
+            divergence=dry.divergence + phy.divergence,
+            temperature_variation=(dry.temperature_variation
+                                   + phy.temperature_variation),
+            log_surface_pressure=(dry.log_surface_pressure
+                                  + phy.log_surface_pressure),
+            tracers={
+                name: value + phy.tracers.get(name, 0.0)
+                for name, value in dry.tracers.items()
+            },
+        )
+        return ColumnPhysicsState(
+            dynamics, phy.surface_temperature, phy.co2_ice, phy.ground_temperature
+        )
+
+    def implicit_terms(state):
+        return ColumnPhysicsState(
+            base.implicit_terms(state.dynamics),
+            jnp.zeros_like(state.surface_temperature),
+            jnp.zeros_like(state.co2_ice),
+            jnp.zeros_like(state.ground_temperature),
+        )
+
+    def implicit_inverse(state, step_size):
+        return ColumnPhysicsState(
+            base.implicit_inverse(state.dynamics, step_size),
+            state.surface_temperature,
+            state.co2_ice,
+            state.ground_temperature,
+        )
+
+    return time_integration.ImplicitExplicitODE.from_functions(
+        explicit_terms, implicit_terms, implicit_inverse
+    )
+
+
+def initial_column_state(dyn_state, coords, surface_temperature_k: float, specs,
+                         ice_pa: float = 0.0) -> ColumnPhysicsState:
+    """Attach prognostic surface temperature and frost reservoirs to a dycore state."""
+    ts_nd = float(specs.nondimensionalize(surface_temperature_k * _u.kelvin))
+    ice_nd = float(specs.nondimensionalize(ice_pa * _u.pascal))
+    shape = coords.surface_nodal_shape
+    ground = jnp.full(
+        (len(_REGOLITH_LAYER_FRACTIONS),) + shape[1:],
+        ts_nd,
+    )
+    return ColumnPhysicsState(
+        dyn_state, jnp.full(shape, ts_nd), jnp.full(shape, ice_nd), ground
+    )
+
+
+def surface_energy_tendencies(state: ColumnPhysicsState, coords, specs,
+                              body: BodyConstants, f: RadiativeForcing):
+    """Conservative surface/atmosphere energy exchange.
+
+    Solar and longwave fluxes act once on a prognostic surface reservoir. A bulk
+    sensible flux transfers energy to the lowest atmospheric sigma layer, divided
+    by its actual areal heat capacity ``cp * dp/g``. Thus the surface loss and
+    atmospheric gain cancel exactly and do not depend on the number of layers.
     """
     grid = coords.horizontal
     n_layers = coords.vertical.layers
+    dyn = state.dynamics
 
     # sim_time is nondimensional; convert to seconds (time scale = 1/(2 Omega)).
     time_scale_s = 1.0 / float(specs.nondimensionalize(1.0 * _u.second))
-    t_s = state.sim_time * time_scale_s
+    t_s = dyn.sim_time * time_scale_s
 
     cz = cos_zenith_nodal(t_s, grid.latitudes, grid.longitudes, f)  # (n_lon,n_lat)
     q_in = (1.0 - f.albedo) * solar_flux(t_s, f) * cz                # (n_lon,n_lat), W m^-2
 
-    # Absolute temperature per layer (K): reference profile + variation.
+    # Lowest atmospheric-layer and surface temperatures in kelvin.
     ref_t = np.asarray(reference_temperature(coords, body)).reshape(n_layers, 1, 1)
-    t_var = grid.to_nodal(state.temperature_variation)              # (L,n_lon,n_lat)
-    temp_k = jnp.clip(t_var + ref_t, 1.0, None)
+    air_k = jnp.clip(grid.to_nodal(dyn.temperature_variation) + ref_t, 1.0, None)
+    surface_k = jnp.clip(state.surface_temperature[0], 1.0, None)
+    q_out = f.emissivity * f.stefan_boltzmann * (
+        surface_k / max(f.greenhouse_factor, 1.0)
+    ) ** 4
+    if f.stability_exchange_enabled:
+        exchange, _, _ = _surface_exchange_properties(
+            state, coords, specs, body, f, air_k[-1], surface_k, ps_pa=None
+        )
+        sensible = exchange * (surface_k - air_k[-1])
+    else:
+        sensible = f.sensible_heat_transfer_w_m2_k * (surface_k - air_k[-1])
 
-    q_out = f.emissivity * f.stefan_boltzmann * (temp_k / max(f.greenhouse_factor, 1.0)) ** 4
-    dtdt_si = (q_in[None, :, :] - q_out) / f.thermal_inertia        # K s^-1, (L,n_lon,n_lat)
+    # Surface reservoir: external radiation minus energy transferred to atmosphere.
+    dts_si = (q_in - q_out - sensible) / f.thermal_inertia
 
-    # K s^-1 -> nondimensional (T scale = 1 K, so only the time scale enters).
-    dtdt_nd = dtdt_si * time_scale_s
-    return grid.to_modal(dtdt_nd)
+    # Lowest-layer areal heat capacity cp*dp/g. In sigma coordinates
+    # dp = p_s * delta_sigma, so thickening the atmosphere correctly increases its
+    # thermal inertia. No flux is duplicated in the other layers.
+    ps_nd = jnp.exp(grid.to_nodal(dyn.log_surface_pressure))[0]
+    pa_per_nd = float(specs.dimensionalize(1.0, _u.pascal).magnitude)
+    ps_pa = ps_nd * pa_per_nd
+    dsigma = float(np.diff(np.asarray(coords.vertical.boundaries))[-1])
+    cp = body.gas_constant_j_kg_k / body.kappa
+    lowest_capacity = cp * jnp.clip(ps_pa * dsigma / body.gravity_m_s2, 1e-6, None)
+    dtair_si = sensible / lowest_capacity
+    atm_nodal = jnp.zeros((n_layers,) + sensible.shape).at[-1].set(
+        dtair_si * time_scale_s
+    )
+    surface_nd = (dts_si * time_scale_s)[None, :, :]
+    diagnostics = SurfaceEnergyDiagnostics(q_in, q_out, sensible, q_in - q_out)
+    return grid.to_modal(atm_nodal), surface_nd, diagnostics
+
+
+def surface_momentum_tendencies(
+    state: ColumnPhysicsState, coords, specs, body: BodyConstants, f: RadiativeForcing
+):
+    """Neutral-log-law surface stress applied to the lowest sigma layer.
+
+    The stress is ``tau = rho C_D |V| V`` and the layer acceleration is
+    ``-tau / (dp/g)``.  ``C_D = (kappa/log(z/z0))**2`` uses the hydrostatic
+    height of the lowest-layer pressure midpoint.  The tendency always removes
+    resolved kinetic energy and approaches zero continuously with wind speed.
+    """
+    grid, dyn = coords.horizontal, state.dynamics
+    u_nd, v_nd = spherical_harmonic.vor_div_to_uv_nodal(
+        grid, dyn.vorticity, dyn.divergence
+    )
+    velocity_unit = _u.meter / _u.second
+    u_ms = specs.dimensionalize(u_nd, velocity_unit).magnitude
+    v_ms = specs.dimensionalize(v_nd, velocity_unit).magnitude
+
+    ref_t = np.asarray(reference_temperature(coords, body)).reshape(coords.vertical.layers, 1, 1)
+    air_k = jnp.clip(grid.to_nodal(dyn.temperature_variation)[-1] + ref_t[-1], 50.0, None)
+    surface_k = jnp.clip(state.surface_temperature[0], 50.0, None)
+    _, drag_coefficient, speed = _surface_exchange_properties(
+        state, coords, specs, body, f, air_k, surface_k, ps_pa=None
+    )
+    dsigma = float(np.diff(np.asarray(coords.vertical.boundaries))[-1])
+    # rho/(dp/g) = g/(R*T*dsigma), using the actual lowest-layer temperature.
+    rate_s = drag_coefficient * speed * body.gravity_m_s2 / (
+        body.gas_constant_j_kg_k * air_k * dsigma
+    )
+    du_si = jnp.zeros_like(u_ms).at[-1].set(-rate_s * u_ms[-1])
+    dv_si = jnp.zeros_like(v_ms).at[-1].set(-rate_s * v_ms[-1])
+    acceleration_unit = _u.meter / (_u.second**2)
+    du_nd = specs.nondimensionalize(du_si * acceleration_unit)
+    dv_nd = specs.nondimensionalize(dv_si * acceleration_unit)
+    return spherical_harmonic.uv_nodal_to_vor_div_modal(grid, du_nd, dv_nd)
+
+
+def _surface_exchange_properties(state, coords, specs, body, f, air_k, surface_k, ps_pa=None):
+    """Return sensible conductance, drag coefficient and resolved wind speed."""
+    grid = coords.horizontal
+    u_nd, v_nd = spherical_harmonic.vor_div_to_uv_nodal(
+        grid, state.dynamics.vorticity, state.dynamics.divergence
+    )
+    unit = _u.meter / _u.second
+    u = specs.dimensionalize(u_nd[-1], unit).magnitude
+    v = specs.dimensionalize(v_nd[-1], unit).magnitude
+    speed = jnp.sqrt(u**2 + v**2 + f.minimum_wind_ms**2)
+    sigma = float(np.asarray(coords.vertical.centers)[-1])
+    scale_height = body.gas_constant_j_kg_k * body.reference_temperature_k / body.gravity_m_s2
+    height = max(-scale_height * math.log(sigma), 1.01 * f.surface_roughness_m)
+    neutral_cd = (f.von_karman_constant / math.log(height / f.surface_roughness_m)) ** 2
+    if f.stability_exchange_enabled:
+        ri = body.gravity_m_s2 * height * (air_k - surface_k) / (
+            jnp.clip(air_k, 50.0, None) * speed**2
+        )
+        stable = jnp.clip(1.0 - 5.0 * ri, 0.1, 1.0) ** 2
+        unstable = jnp.sqrt(jnp.clip(1.0 - 16.0 * ri, 1.0, None))
+        cd = neutral_cd * jnp.where(ri >= 0.0, stable, unstable)
+    else:
+        cd = neutral_cd
+    if ps_pa is None:
+        ps_nd = jnp.exp(grid.to_nodal(state.dynamics.log_surface_pressure))[0]
+        ps_pa = ps_nd * float(specs.dimensionalize(1.0, _u.pascal).magnitude)
+    rho = ps_pa / (body.gas_constant_j_kg_k * jnp.clip(air_k, 50.0, None))
+    sensible_conductance = rho * body.cp_j_kg_k * cd * speed
+    return sensible_conductance, cd, speed
+
+
+def pbl_vertical_diffusion_tendencies(state, coords, specs, body, f):
+    """Mass-conserving adjacent-layer diffusion of momentum and temperature."""
+    dyn, grid = state.dynamics, coords.horizontal
+    zeros = jnp.zeros_like(dyn.temperature_variation)
+    if not f.pbl_diffusion_enabled:
+        return (
+            jnp.zeros_like(dyn.vorticity), jnp.zeros_like(dyn.divergence), zeros,
+            {name: jnp.zeros_like(value) for name, value in dyn.tracers.items()},
+        )
+    u, v = spherical_harmonic.vor_div_to_uv_nodal(grid, dyn.vorticity, dyn.divergence)
+    temperature = grid.to_nodal(dyn.temperature_variation)
+    sigma = np.asarray(coords.vertical.centers)
+    dsigma = np.diff(np.asarray(coords.vertical.boundaries))
+    scale_height = body.gas_constant_j_kg_k * body.reference_temperature_k / body.gravity_m_s2
+    z = -scale_height * np.log(np.clip(sigma, 1e-6, None))
+    velocity_unit = _u.meter / _u.second
+    u_ms = specs.dimensionalize(u, velocity_unit).magnitude
+    v_ms = specs.dimensionalize(v, velocity_unit).magnitude
+    ref = np.asarray(reference_temperature(coords, body)).reshape(coords.vertical.layers, 1, 1)
+    actual_t = temperature + ref
+    theta = actual_t / jnp.asarray(sigma[:, None, None]) ** body.kappa
+    _, cd, speed = _surface_exchange_properties(
+        state, coords, specs, body, f,
+        jnp.ones(grid.nodal_shape) * body.reference_temperature_k,
+        state.surface_temperature[0],
+    )
+    ustar = jnp.sqrt(cd) * speed
+    time_scale = 1.0 / float(specs.nondimensionalize(1.0 * _u.second))
+    def diffuse(field):
+        tendency = jnp.zeros_like(field)
+        for k in range(coords.vertical.layers - 1):
+            interface_z = min(z[k], z[k + 1])
+            shape = max(0.0, 1.0 - interface_z / f.pbl_height_m) ** 2
+            rate = f.von_karman_constant * ustar * max(interface_z, 1.0) * shape
+            dz_local = max(z[k] - z[k + 1], 1.0)
+            shear2 = (
+                ((u_ms[k] - u_ms[k + 1]) / dz_local) ** 2
+                + ((v_ms[k] - v_ms[k + 1]) / dz_local) ** 2
+                + 1.0e-10
+            )
+            ri_gradient = (
+                body.gravity_m_s2
+                / jnp.clip(0.5 * (theta[k] + theta[k + 1]), 50.0, None)
+                * ((theta[k] - theta[k + 1]) / dz_local)
+                / shear2
+            )
+            stable_factor = jnp.clip(1.0 - 5.0 * ri_gradient, 0.0, 1.0) ** 2
+            unstable_factor = jnp.clip(
+                jnp.sqrt(jnp.clip(1.0 - 16.0 * ri_gradient, 1.0, None)),
+                1.0,
+                4.0,
+            )
+            rate = rate * jnp.where(
+                ri_gradient >= 0.0, stable_factor, unstable_factor
+            )
+            rate = rate / max((z[k] - z[k + 1]) ** 2, 1.0)
+            rate = jnp.minimum(rate, 1.0 / 1800.0) * time_scale
+            ratio = float(dsigma[k] / dsigma[k + 1])
+            exchange = rate * (field[k + 1] - field[k])
+            tendency = tendency.at[k].add(exchange)
+            tendency = tendency.at[k + 1].add(-ratio * exchange)
+        return tendency
+    du, dv, dt = diffuse(u), diffuse(v), diffuse(temperature)
+    vor, div = spherical_harmonic.uv_nodal_to_vor_div_modal(grid, du, dv)
+    tracer_tendencies = {
+        name: grid.to_modal(diffuse(grid.to_nodal(value)))
+        for name, value in dyn.tracers.items()
+    }
+    return vor, div, grid.to_modal(dt), tracer_tendencies
+
+
+def dry_convective_adjusted_temperature(state, coords, body):
+    """Return an enthalpy-conserving, statically neutral/stable temperature field."""
+    grid = coords.horizontal
+    n = coords.vertical.layers
+    ref = np.asarray(reference_temperature(coords, body)).reshape(n, 1, 1)
+    temperature = grid.to_nodal(state.dynamics.temperature_variation) + ref
+    sigma = jnp.asarray(coords.vertical.centers).reshape(n, 1, 1)
+    exner = sigma ** body.kappa
+    theta = temperature / exner
+    weights = np.diff(np.asarray(coords.vertical.boundaries))
+    # First milestone: if a column contains any unstable pair, mix the dry column
+    # to a single potential temperature. This is intentionally more diffusive than
+    # a later PAVA/block adjustment, but is exact, deterministic and conservative.
+    unstable = jnp.any(theta[:-1] < theta[1:], axis=0)
+    w = jnp.asarray(weights).reshape(n, 1, 1)
+    mixed = jnp.sum(w * theta * exner, axis=0) / jnp.sum(w * exner, axis=0)
+    theta = jnp.where(unstable[None, :, :], mixed[None, :, :], theta)
+    adjusted = theta * exner
+    return grid.to_modal(adjusted - ref)
+
+
+def dry_convective_adjustment_tendency(state, coords, specs, body, f):
+    if not f.convective_adjustment_enabled:
+        return jnp.zeros_like(state.dynamics.temperature_variation)
+    target = dry_convective_adjusted_temperature(state, coords, body)
+    time_scale = 1.0 / float(specs.nondimensionalize(1.0 * _u.second))
+    return (
+        target - state.dynamics.temperature_variation
+    ) * time_scale / f.convective_relaxation_s
+
+
+def regolith_conduction_tendencies(
+    state: ColumnPhysicsState, specs, f: RadiativeForcing
+):
+    """Conservative finite-volume conduction through skin-depth-scaled soil layers.
+
+    Positive interface flux points downward. The top flux is removed from the
+    prognostic surface reservoir and added to the first soil layer; the bottom
+    boundary has zero flux. Thus the area-integrated internal energy tendency is
+    zero to roundoff in every column.
+    """
+    if not f.regolith_enabled:
+        return (
+            jnp.zeros_like(state.surface_temperature),
+            jnp.zeros_like(state.ground_temperature),
+        )
+    time_scale_s = 1.0 / float(specs.nondimensionalize(1.0 * _u.second))
+    ts = state.surface_temperature[0]
+    tg = state.ground_temperature
+    inertia = jnp.asarray(f.surface_thermal_inertia_tiu)
+    cv = f.regolith_volumetric_heat_capacity_j_m3_k
+    skin_depth = inertia / cv * math.sqrt(f.rotation_period_s / math.pi)
+    fractions = jnp.asarray(f.regolith_layer_skin_depth_fractions).reshape((-1, 1, 1))
+    dz = jnp.clip(fractions * skin_depth, 1.0e-4, None)
+    conductivity = inertia**2 / cv
+
+    top_distance = 0.5 * dz[0]
+    top_flux = conductivity * (ts - tg[0]) / top_distance
+    center_distance = 0.5 * (dz[:-1] + dz[1:])
+    internal_flux = conductivity * (tg[:-1] - tg[1:]) / center_distance
+    fluxes = jnp.concatenate(
+        [top_flux[None], internal_flux, jnp.zeros_like(top_flux)[None]], axis=0
+    )
+    ground_si = (fluxes[:-1] - fluxes[1:]) / (cv * dz)
+    surface_si = -top_flux / f.thermal_inertia
+    return surface_si[None] * time_scale_s, ground_si * time_scale_s
+
+
+def radiative_heating_tendency(state, coords, specs, body: BodyConstants,
+                               f: RadiativeForcing):
+    """Compatibility accessor for the conservative atmospheric tendency.
+
+    ``state`` must now be :class:`ColumnPhysicsState`; radiation cannot be closed
+    without the prognostic surface reservoir.
+    """
+    if not isinstance(state, ColumnPhysicsState):
+        raise TypeError("radiative forcing requires a ColumnPhysicsState")
+    return surface_energy_tendencies(state, coords, specs, body, f)[0]
 
 
 def forced_primitive_equations(
@@ -280,16 +638,31 @@ def forced_primitive_equations(
         specs = physics_specs(body)
     base = _build_primitive_equations(coords, body, specs=specs, orography=orography)
 
-    def explicit_terms(state):
-        tend = base.explicit_terms(state)
-        heat = radiative_heating_tendency(state, coords, specs, body, forcing)
-        return dataclasses.replace(
-            tend, temperature_variation=tend.temperature_variation + heat
+    def parameterization(state):
+        heat, surface_tendency, _ = surface_energy_tendencies(
+            state, coords, specs, body, forcing
         )
-
-    return time_integration.ImplicitExplicitODE.from_functions(
-        explicit_terms, base.implicit_terms, base.implicit_inverse
-    )
+        drag_vor, drag_div = surface_momentum_tendencies(
+            state, coords, specs, body, forcing
+        )
+        mix_vor, mix_div, mix_heat, mix_tracers = pbl_vertical_diffusion_tendencies(
+            state, coords, specs, body, forcing
+        )
+        convection = dry_convective_adjustment_tendency(
+            state, coords, specs, body, forcing
+        )
+        ground_surface, ground = regolith_conduction_tendencies(state, specs, forcing)
+        return ColumnPhysicsTendencies(
+            drag_vor + mix_vor,
+            drag_div + mix_div,
+            heat + mix_heat + convection,
+            jnp.zeros_like(state.dynamics.log_surface_pressure),
+            surface_tendency + ground_surface,
+            jnp.zeros_like(state.co2_ice),
+            ground,
+            mix_tracers,
+        )
+    return column_primitive_equations(base, parameterization)
 
 
 # ==============================================================================
@@ -305,8 +678,7 @@ def forced_primitive_equations(
 #
 # Surface frost sits on the ground, so it is *not* advected by the 3-D wind and must
 # not be a dinosaur tracer (those get transported). Instead the state becomes a
-# tuple ``(dyn_state, co2_ice)`` — JAX treats tuples as pytrees, so dinosaur's
-# stepper/scan operate on it unchanged. ``co2_ice`` is stored in pressure-equivalent
+# :class:`ColumnPhysicsState` JAX pytree. ``co2_ice`` is stored in pressure-equivalent
 # units (the surface pressure the frost would contribute if fully sublimed), so mass
 # conservation is exact per cell: ``d(p_s) = -d(ice) - escape``.
 # ==============================================================================
@@ -379,8 +751,8 @@ def co2_frost_point_k(pressure_pa):
     return 3182.48 / (23.3494 - jnp.log(p_hpa))
 
 
-def _co2_surface_tendencies(dyn, ice_nd, coords, specs, body, cf: CO2Forcing):
-    """Per-cell CO2 exchange: returns (d_logsp_modal, d_ice_nd_nodal, dT_latent_nd).
+def _co2_surface_tendencies(state, coords, specs, body, cf: CO2Forcing):
+    """Per-cell CO2 exchange: returns pressure, frost, and surface-T tendencies.
 
     Works in SI (Pa s^-1, K s^-1) then nondimensionalises. ``ice_nd`` is the frost
     reservoir in nondimensional pressure-equivalent units (same scaling as p_s).
@@ -388,11 +760,10 @@ def _co2_surface_tendencies(dyn, ice_nd, coords, specs, body, cf: CO2Forcing):
     warms; sublimation (above frost, gated by available ice) moves it back and cools.
     """
     grid = coords.horizontal
-    n_layers = coords.vertical.layers
+    dyn, ice_nd = state.dynamics, state.co2_ice
 
-    # Surface-layer absolute temperature (K) and surface pressure (Pa).
-    ref_t = np.asarray(reference_temperature(coords, body)).reshape(n_layers, 1, 1)
-    t_surf_k = (grid.to_nodal(dyn.temperature_variation) + ref_t)[-1]  # (n_lon,n_lat)
+    # Prognostic physical surface temperature (K) and surface pressure (Pa).
+    t_surf_k = jnp.clip(state.surface_temperature[0], 1.0, None)
     ps_nd = jnp.exp(grid.to_nodal(dyn.log_surface_pressure))           # (1,n_lon,n_lat)
     ps_pa = np.asarray(specs.dimensionalize(1.0, _u.pascal).magnitude) * ps_nd
 
@@ -438,12 +809,9 @@ def _co2_surface_tendencies(dyn, ice_nd, coords, specs, body, cf: CO2Forcing):
     d_logsp_nodal = dps_nd / ps_nd                                    # d(ln p_s)/dt
     d_logsp_modal = grid.to_modal(d_logsp_nodal)
 
-    dT_latent_nd = dT_latent_si * time_scale_s                        # (n_lon,n_lat)
-    # Apply latent heating column-uniform (matching the radiative treatment).
-    dT_latent_modal = grid.to_modal(
-        jnp.broadcast_to(dT_latent_nd[None, :, :], (n_layers,) + dT_latent_nd.shape)
-    )
-    return d_logsp_modal, dice_nd, dT_latent_modal
+    # Latent energy belongs to the surface reservoir where frost forms/sublimes.
+    dT_latent_nd = (dT_latent_si * time_scale_s)[None, :, :]
+    return d_logsp_modal, dice_nd, dT_latent_nd
 
 
 def forced_co2_primitive_equations(
@@ -456,51 +824,58 @@ def forced_co2_primitive_equations(
 ) -> "time_integration.ImplicitExplicitODE":
     """Dry dynamics + radiative forcing + CO2 condensation cycle on a tuple state.
 
-    The ODE operates on ``(dyn_state, co2_ice)`` where ``co2_ice`` is a nodal
-    surface field ``(1, n_lon, n_lat)`` of frost in nondimensional pressure-equiv
-    units. Build the initial tuple with :func:`initial_co2_state`; integrate with
+    The ODE operates on :class:`ColumnPhysicsState`, carrying the Dinosaur state,
+    prognostic surface temperature, and a nodal surface frost reservoir. Build it
+    with :func:`initial_column_state` or :func:`initial_co2_state`; integrate with
     the ordinary :func:`src.gcm3d.stepper`/:func:`src.gcm3d.integrate`.
     """
     if specs is None:
         specs = physics_specs(body)
     base = _build_primitive_equations(coords, body, specs=specs, orography=orography)
 
-    def explicit_terms(state):
-        dyn, ice = state
-        tend = base.explicit_terms(dyn)
-        heat = radiative_heating_tendency(dyn, coords, specs, body, forcing)
-        d_logsp, dice, dlatent = _co2_surface_tendencies(
-            dyn, ice, coords, specs, body, co2_forcing
+    def parameterization(state):
+        heat, dsurface, _ = surface_energy_tendencies(
+            state, coords, specs, body, forcing
         )
-        dyn_tend = dataclasses.replace(
-            tend,
-            temperature_variation=tend.temperature_variation + heat + dlatent,
-            log_surface_pressure=tend.log_surface_pressure + d_logsp,
+        d_logsp, dice, dlatent_surface = _co2_surface_tendencies(
+            state, coords, specs, body, co2_forcing
         )
-        return (dyn_tend, dice)
+        drag_vor, drag_div = surface_momentum_tendencies(
+            state, coords, specs, body, forcing
+        )
+        mix_vor, mix_div, mix_heat, mix_tracers = pbl_vertical_diffusion_tendencies(
+            state, coords, specs, body, forcing
+        )
+        convection = dry_convective_adjustment_tendency(
+            state, coords, specs, body, forcing
+        )
+        ground_surface, ground = regolith_conduction_tendencies(state, specs, forcing)
+        return ColumnPhysicsTendencies(
+            drag_vor + mix_vor, drag_div + mix_div,
+            heat + mix_heat + convection, d_logsp,
+            dsurface + dlatent_surface + ground_surface,
+            dice,
+            ground,
+            mix_tracers,
+        )
+    return column_primitive_equations(base, parameterization)
 
-    def implicit_terms(state):
-        dyn, ice = state
-        return (base.implicit_terms(dyn), jnp.zeros_like(ice))
 
-    def implicit_inverse(state, step_size):
-        dyn, ice = state
-        return (base.implicit_inverse(dyn, step_size), ice)
-
-    return time_integration.ImplicitExplicitODE.from_functions(
-        explicit_terms, implicit_terms, implicit_inverse
-    )
-
-
-def initial_co2_state(dyn_state, coords, ice_pa: float = 0.0, specs=None, body=None):
+def initial_co2_state(dyn_state, coords, ice_pa: float = 0.0, specs=None, body=None,
+                      surface_temperature_k: float | None = None):
     """Pair a dynamical ``State`` with an initial (uniform) CO2 frost field.
 
     ``ice_pa`` is the starting frost everywhere in Pa-equivalent (0 by default, i.e.
     frost forms from the atmosphere as poles cool). Returns the ``(dyn, ice)`` tuple
     the CO2 ODE integrates.
     """
+    if body is None:
+        from src.celestials.planets.mars import MARS_BODY_3D
+        body = MARS_BODY_3D
     if specs is None:
         specs = physics_specs(body)
-    ice_nd = float(specs.nondimensionalize(ice_pa * _u.pascal))
-    ice = jnp.full(coords.surface_nodal_shape, ice_nd)
-    return (dyn_state, ice)
+    if surface_temperature_k is None:
+        surface_temperature_k = body.reference_temperature_k
+    return initial_column_state(
+        dyn_state, coords, surface_temperature_k, specs, ice_pa=ice_pa
+    )

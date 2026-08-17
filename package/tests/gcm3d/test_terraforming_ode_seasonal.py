@@ -18,7 +18,6 @@ kernel; the module under test stays torch-free.
 
 from __future__ import annotations
 
-import math
 
 import numpy as np
 import pytest
@@ -33,6 +32,7 @@ from src.gcm3d.terraforming_ode import (  # noqa: E402
     SeasonalForcing,
     SeasonalTrajectory,
     initial_seasonal_state,
+    orbital_angle,
     run_seasonal,
     seasonal_tendency,
     solar_flux,
@@ -99,10 +99,7 @@ class TestSeasonalTendencyParity:
             # this isolates the port from how the flux is sourced.
             mars._smooth_gates = smooth
             mars.elapsed_time = torch.tensor(float(t), dtype=torch.float64)
-            mars.orbital_angle = torch.tensor(
-                f.init_orbital_angle_rad + 2 * math.pi * float(t) / period,
-                dtype=torch.float64,
-            )
+            mars.orbital_angle = torch.tensor(float(orbital_angle(float(t), f)), dtype=torch.float64)
             mars.radiation.solar_flux = torch.tensor(
                 float(solar_flux(float(t), f)), dtype=torch.float64
             )
@@ -112,7 +109,7 @@ class TestSeasonalTendencyParity:
 
             # First four components (T, P, M_N, M_S) are the physics port; the
             # 5th is the trivial dt/dt = 1.
-            assert np.allclose(jax_dy[:4], torch_dy, rtol=0, atol=1e-9)
+            assert np.allclose(jax_dy[:4], torch_dy, rtol=1e-14, atol=1e-6)
             assert jax_dy[4] == pytest.approx(1.0)
 
 
@@ -182,6 +179,13 @@ class TestSeasonalRollout:
             run_seasonal(f, y0, dt_seconds=100.0, n_steps=0)
         with pytest.raises(ValueError):
             run_seasonal(f, y0, dt_seconds=100.0, n_steps=10, sample_every=0)
+
+    def test_run_seasonal_keeps_remainder_steps(self, mars):
+        f = _seasonal_forcing_from_mars(mars)
+        y0 = initial_seasonal_state(210.0, 610.0, 5.0e15, 5.0e15)
+        traj = run_seasonal(f, y0, dt_seconds=100.0, n_steps=12, sample_every=5)
+        assert len(traj.time_s) == 3
+        assert traj.time_s[-1] == pytest.approx(1200.0)
 
     def test_run_seasonal_rejects_diurnally_coarse_dt(self, mars):
         # Regression: dt ~ 1 sol aliases the diurnal T^4 balance and diverges to

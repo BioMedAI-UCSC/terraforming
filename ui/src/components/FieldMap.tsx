@@ -140,6 +140,13 @@ export function FieldMap({ runId }: { runId: string }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 12 }}>
+      {fields.metadata?.is_transient && (
+        <div style={{ color: '#f0b45a', background: '#2a2115', border: '1px solid #6b4b1f',
+                      borderRadius: 5, padding: '8px 10px', fontSize: 12 }}>
+          Diagnostic transient ({fields.metadata.duration_sols.toFixed(1)} sols), not an
+          equilibrated Mars climatology. {fields.metadata.fidelity}
+        </div>
+      )}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
         <label style={lbl}>Colormap&nbsp;
           <select value={cmapName} onChange={e => setCmap(e.target.value)} style={sel}>

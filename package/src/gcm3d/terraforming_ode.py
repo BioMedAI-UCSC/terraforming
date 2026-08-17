@@ -234,8 +234,8 @@ class SeasonalForcing:
     latitude_rad: float
     axial_tilt_rad: float
     ls_perihelion_rad: float
-    # Orbit (Keplerian ellipse; angle advances at the mean rate, matching the
-    # torch model's ``advance_orbit``)
+    # Orbit (Keplerian ellipse; mean anomaly advances uniformly and Kepler's
+    # equation determines eccentric/true anomaly)
     orbital_period_s: float
     semi_major_axis_m: float
     eccentricity: float
@@ -254,14 +254,30 @@ class SeasonalForcing:
     smooth_gates: bool = True
 
 
-def orbital_angle(t, f: SeasonalForcing):
-    """True-anomaly proxy at elapsed time ``t`` (0 = perihelion).
-
-    Advances at the constant mean rate ``2π/period`` from the epoch angle, the
-    same approximation ``BatchedController.advance_orbit`` uses. It feeds ``cos``
-    and ``sin`` downstream, so it is intentionally *not* wrapped to ``[0, 2π)``.
-    """
+def mean_anomaly(t, f: SeasonalForcing):
+    """Mean anomaly, the orbital angle that advances uniformly in time."""
     return f.init_orbital_angle_rad + _TWO_PI * t / f.orbital_period_s
+
+
+def eccentric_anomaly(t, f: SeasonalForcing):
+    """Solve Kepler's equation ``M = E - e sin(E)`` by fixed Newton iteration."""
+    M = mean_anomaly(t, f)
+    E = M
+    for _ in range(6):
+        E = E - (E - f.eccentricity * jnp.sin(E) - M) / (
+            1.0 - f.eccentricity * jnp.cos(E)
+        )
+    return E
+
+
+def orbital_angle(t, f: SeasonalForcing):
+    """True anomaly at elapsed time ``t`` from a Keplerian orbit."""
+    E = eccentric_anomaly(t, f)
+    e = f.eccentricity
+    return 2.0 * jnp.arctan2(
+        jnp.sqrt(1.0 + e) * jnp.sin(E / 2.0),
+        jnp.sqrt(1.0 - e) * jnp.cos(E / 2.0),
+    )
 
 
 def solar_longitude(t, f: SeasonalForcing):
@@ -272,14 +288,10 @@ def solar_longitude(t, f: SeasonalForcing):
 def solar_flux(t, f: SeasonalForcing):
     """Inverse-square solar flux (W m^-2) at elapsed time ``t``.
 
-    Kepler distance ``r(θ) = a(1-e²)/(1+e cos θ)`` then ``S = S_1AU·(AU/r)²`` —
-    a line-for-line match of the torch ``advance_orbit`` flux update.
+    Kepler distance ``r = a(1-e cos E)`` then ``S = S_1AU·(AU/r)²``.
     """
-    theta = orbital_angle(t, f)
-    distance = (
-        f.semi_major_axis_m * (1.0 - f.eccentricity**2)
-        / (1.0 + f.eccentricity * jnp.cos(theta))
-    )
+    E = eccentric_anomaly(t, f)
+    distance = f.semi_major_axis_m * (1.0 - f.eccentricity * jnp.cos(E))
     return f.tsi_1au_w_m2 * (f.au_m / distance) ** 2
 
 
@@ -463,6 +475,7 @@ def run_seasonal(
 
     step = stepper(seasonal_ode(f), dt_seconds)
     n_samples = n_steps // sample_every
+    remainder = n_steps % sample_every
 
     def outer(carry, _):
         def inner(yy, _):
@@ -471,16 +484,28 @@ def run_seasonal(
         y, _ = jax.lax.scan(inner, carry, None, length=sample_every)
         return y, y
 
-    _, samples = jax.lax.scan(outer, y0, None, length=n_samples)
+    carry, samples = jax.lax.scan(outer, y0, None, length=n_samples)
+    if remainder:
+        def remainder_step(yy, _):
+            return step(yy), None
+
+        carry, _ = jax.lax.scan(remainder_step, carry, None, length=remainder)
+        samples = jnp.concatenate([samples, carry[None, :]], axis=0)
     samples = np.asarray(samples)  # [n_samples, 5]
 
     t = samples[:, ST_TIME]
-    theta = f.init_orbital_angle_rad + _TWO_PI * t / f.orbital_period_s
-    ls_deg = np.degrees(theta + f.ls_perihelion_rad) % 360.0
-    distance = (
-        f.semi_major_axis_m * (1.0 - f.eccentricity**2)
-        / (1.0 + f.eccentricity * np.cos(theta))
+    mean = f.init_orbital_angle_rad + _TWO_PI * t / f.orbital_period_s
+    eccentric = mean.copy()
+    for _ in range(6):
+        eccentric -= (eccentric - f.eccentricity * np.sin(eccentric) - mean) / (
+            1.0 - f.eccentricity * np.cos(eccentric)
+        )
+    theta = 2.0 * np.arctan2(
+        np.sqrt(1.0 + f.eccentricity) * np.sin(eccentric / 2.0),
+        np.sqrt(1.0 - f.eccentricity) * np.cos(eccentric / 2.0),
     )
+    ls_deg = np.degrees(theta + f.ls_perihelion_rad) % 360.0
+    distance = f.semi_major_axis_m * (1.0 - f.eccentricity * np.cos(eccentric))
     flux = f.tsi_1au_w_m2 * (f.au_m / distance) ** 2
     ice_n = samples[:, ST_MN]
     ice_s = samples[:, ST_MS]

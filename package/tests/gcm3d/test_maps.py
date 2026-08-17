@@ -103,6 +103,30 @@ class TestScalePresets:
             maps.resolve_scale("gigantic")
 
 
+def test_explicit_surface_fields_match_grid_and_physical_bounds(tmp_path):
+    from src.gcm3d.coordinates import coordinate_system
+    from src.gcm3d.surface import surface_fields_on_grid
+    import xarray as xr
+
+    grid = coordinate_system("T21", 8).horizontal
+    path = tmp_path / "surface.nc"
+    lat = np.linspace(-90.0, 90.0, 7)
+    lon = np.linspace(0.0, 330.0, 12)
+    shape = (lat.size, lon.size)
+    xr.Dataset(
+        {
+            "albedo": (("lat", "lon"), np.full(shape, 0.25)),
+            "thermal_inertia": (("lat", "lon"), np.full(shape, 250.0)),
+        },
+        coords={"lat": lat, "lon": lon},
+    ).to_netcdf(path)
+    albedo, inertia = surface_fields_on_grid(grid, path)
+    assert albedo.shape == grid.nodal_shape
+    assert inertia.shape == grid.nodal_shape
+    assert np.all((albedo >= 0.0) & (albedo <= 1.0))
+    assert np.all(inertia > 0.0)
+
+
 @needs_mola
 class TestOutputs:
 
@@ -114,6 +138,8 @@ class TestOutputs:
 
         ds = xr.open_dataset(nc)
         assert set(["surface_pressure", "temperature", "u", "v", "elevation"]).issubset(ds.data_vars)
+        assert 0.0 < ds.attrs["wind_level_sigma"] < 1.0
+        assert ds.attrs["approximate_wind_height_m"] > 0.0
         ds.close()
 
         pngs = maps.plot_maps(f, tmp_path, prefix="mars")

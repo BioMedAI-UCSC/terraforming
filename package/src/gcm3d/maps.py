@@ -19,6 +19,7 @@ Requires the optional ``gcm3d`` extra.
 from __future__ import annotations
 
 import dataclasses
+import math
 from pathlib import Path
 
 import numpy as np
@@ -138,6 +139,23 @@ class MarsMapFields:
         seasonally-equilibrated climatology — it is a spin-up transient snapshot."""
         return self.duration_sols < 668.0
 
+    @property
+    def wind_level_sigma(self) -> float:
+        """Sigma midpoint represented by the exported lowest-layer wind."""
+        return 1.0 - 0.5 / self.n_layers
+
+    @property
+    def approximate_wind_height_m(self) -> float:
+        """Hydrostatic reference height of the exported lowest-layer midpoint."""
+        from src.celestials.planets.mars import MARS_BODY_3D
+
+        scale_height = (
+            MARS_BODY_3D.gas_constant_j_kg_k
+            * MARS_BODY_3D.reference_temperature_k
+            / MARS_BODY_3D.gravity_m_s2
+        )
+        return -scale_height * math.log(self.wind_level_sigma)
+
 
 def run_maps(
     body=None,
@@ -150,6 +168,7 @@ def run_maps(
     mola_path=None,
     forcing=None,
     co2_forcing=None,
+    surface_properties_path=None,
 ) -> MarsMapFields:
     """Run the Mars dycore over MOLA terrain and return lat/lon map fields.
 
@@ -170,6 +189,8 @@ def run_maps(
         body = MARS_BODY_3D
     if n_steps < 1:
         raise ValueError(f"n_steps must be >= 1, got {n_steps}")
+    if not np.isfinite(dt_seconds) or dt_seconds <= 0:
+        raise ValueError(f"dt_seconds must be finite and > 0, got {dt_seconds}")
     if co2_forcing is not None and forcing is None:
         raise ValueError(
             "co2_forcing requires a radiative `forcing` (the CO2 cycle is driven "
@@ -180,6 +201,24 @@ def run_maps(
     specs = physics_specs(body)
     grid = coords.horizontal
 
+    spatial_surface = False
+    if forcing is not None and surface_properties_path is not None:
+        from src.gcm3d.surface import surface_fields_on_grid
+
+        albedo, thermal_inertia_tiu = surface_fields_on_grid(
+            grid, surface_properties_path
+        )
+        forcing = dataclasses.replace(
+            forcing,
+            albedo=jnp.asarray(albedo),
+            surface_thermal_inertia_tiu=jnp.asarray(thermal_inertia_tiu),
+            regolith_enabled=True,
+            stability_exchange_enabled=True,
+            pbl_diffusion_enabled=True,
+            convective_adjustment_enabled=True,
+        )
+        spatial_surface = True
+
     elevation_nodal_m = regrid_to_nodal(coords, mola_path=mola_path)  # (n_lon, n_lat)
     orography = mola_modal_orography(coords, specs, elevation_nodal_m=elevation_nodal_m)
 
@@ -188,27 +227,34 @@ def run_maps(
         equation = build_primitive_equations(coords, body, specs=specs, orography=orography)
         physics_label = "dry dynamics; no radiation/CO2/dust"
     else:
-        from src.gcm3d.physics import forced_primitive_equations
+        from src.gcm3d.physics import forced_primitive_equations, initial_column_state
 
         equation = forced_primitive_equations(
             coords, body, forcing, specs=specs, orography=orography
         )
         # sim_time must be present (0.0) for the diurnal/seasonal forcing to advance.
         state0 = dataclasses.replace(state0, sim_time=0.0)
+        state0 = initial_column_state(
+            state0, coords, t_ref_k or body.reference_temperature_k, specs
+        )
         physics_label = "dry dynamics + grey radiative energy balance; no CO2/dust"
-
         if co2_forcing is not None:
             from src.gcm3d.physics import (
                 forced_co2_primitive_equations,
-                initial_co2_state,
             )
 
             equation = forced_co2_primitive_equations(
                 coords, body, forcing, co2_forcing, specs=specs, orography=orography
             )
-            state0 = initial_co2_state(state0, coords, ice_pa=0.0, specs=specs)
+            # The radiation-only state already contains the surface reservoir;
+            # enabling CO2 simply uses its existing zero frost field.
             physics_label = (
                 "dry dynamics + grey radiation + CO2 condensation cycle; no dust"
+            )
+        if spatial_surface:
+            physics_label += (
+                " + explicit spatial albedo/TI + multilayer regolith"
+                " + Richardson/PBL diffusion + dry convective adjustment"
             )
 
         # Diurnal-terminator CFL: the subsolar point sweeps 360° per rotation, so
@@ -233,10 +279,17 @@ def run_maps(
     step = stepper(equation, dt_seconds, specs)
     final = _integrate(step, state0, n_steps)
 
-    # Unwrap the (dyn, co2_ice) tuple state used by the CO2 cycle.
+    # Unwrap the JCM-style column state used by all forced integrations.
     co2_ice_map = None
+    surface_temperature_map = None
+    if forcing is not None:
+        column_final = final
+        final = column_final.dynamics
+        surface_temperature_map = np.asarray(
+            specs.dimensionalize(column_final.surface_temperature, _u.kelvin).magnitude
+        )[0].T
     if co2_forcing is not None:
-        final, co2_ice = final
+        co2_ice = column_final.co2_ice
         ice_pa = np.asarray(
             specs.dimensionalize(jnp.asarray(co2_ice), _u.pascal).magnitude
         )  # (1, n_lon, n_lat)
@@ -279,7 +332,8 @@ def run_maps(
         lat_deg=np.degrees(np.asarray(grid.latitudes)),
         elevation_m=to_map(elevation_nodal_m),
         surface_pressure_pa=to_map(ps_pa[0]),
-        temperature_k=to_map(t_k[surf]),
+        temperature_k=(surface_temperature_map if surface_temperature_map is not None
+                       else to_map(t_k[surf])),
         u_ms=to_map(u_ms[surf]),
         v_ms=to_map(v_ms[surf]),
         truncation=truncation,
@@ -328,6 +382,8 @@ def save_netcdf(fields: MarsMapFields, path) -> Path:
             "n_steps": fields.n_steps,
             "dt_seconds": fields.dt_seconds,
             "fidelity": fields.physics,
+            "wind_level_sigma": fields.wind_level_sigma,
+            "approximate_wind_height_m": fields.approximate_wind_height_m,
         },
     )
     ds.lat.attrs.update(units="degrees_north")

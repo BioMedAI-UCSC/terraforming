@@ -26,7 +26,7 @@ import jax  # noqa: E402
 
 from src.celestials.planets.mars import MARS_BODY_3D  # noqa: E402
 from src.gcm3d import physics  # noqa: E402
-from src.gcm3d._dinosaur import scales  # noqa: E402
+from src.gcm3d._dinosaur import jnp, scales, spherical_harmonic  # noqa: E402
 from src.gcm3d.coordinates import coordinate_system  # noqa: E402
 from src.gcm3d.dynamics import integrate, reference_temperature, stepper  # noqa: E402
 from src.gcm3d.dynamics import primitive_equations as build_dry  # noqa: E402
@@ -48,12 +48,20 @@ def _rest_state(coords, specs):
 
     grid = coords.horizontal
     zeros = jnp.zeros((coords.vertical.layers,) + grid.modal_shape)
+    ps_nd = float(specs.nondimensionalize(610.0 * _u.pascal))
+    log_sp = grid.to_modal(jnp.full((1,) + grid.nodal_shape, np.log(ps_nd)))
     return primitive_equations.State(
         vorticity=zeros,
         divergence=zeros,
         temperature_variation=zeros,
-        log_surface_pressure=jnp.zeros((1,) + grid.modal_shape),
+        log_surface_pressure=log_sp,
         sim_time=0.0,
+    )
+
+
+def _column_state(coords, specs, surface_temperature_k=200.0):
+    return physics.initial_column_state(
+        _rest_state(coords, specs), coords, surface_temperature_k, specs
     )
 
 
@@ -129,50 +137,198 @@ class TestCosZenith:
 
 class TestHeatingTendency:
 
-    def test_shape_finite_and_nontrivial(self):
+    def test_shape_finite_and_surface_forcing_nontrivial(self):
         coords = _coords()
         specs = physics_specs(MARS_BODY_3D)
         f = physics.mars_radiative_forcing()
-        state = _rest_state(coords, specs)
-        h = physics.radiative_heating_tendency(coords=coords, state=state, specs=specs, body=MARS_BODY_3D, f=f)
+        state = _column_state(coords, specs)
+        h, ds, diagnostic = physics.surface_energy_tendencies(
+            state, coords, specs, MARS_BODY_3D, f
+        )
         h = np.asarray(h)
-        assert h.shape == state.temperature_variation.shape
+        assert h.shape == state.dynamics.temperature_variation.shape
         assert np.isfinite(h).all()
-        assert np.abs(h).max() > 0.0
+        assert np.isfinite(np.asarray(ds)).all()
+        assert np.abs(np.asarray(ds)).max() > 0.0
+        assert np.isfinite(np.asarray(diagnostic.net_external_w_m2)).all()
 
-    def test_column_parity_with_zero_d_balance(self):
-        """The nodal heating equals the 0-D energy balance dT/dt at each column.
 
-        Rebuild Q_in - eps*sigma*(T/gh)^4 over thermal_inertia by hand in SI,
-        convert to nondimensional time, and compare against the tendency the
-        module produces mapped back to nodal space (rest state => T = T_ref)."""
+class TestSurfaceMomentumDrag:
+
+    def test_drag_removes_lowest_layer_kinetic_energy(self):
         coords = _coords()
         specs = physics_specs(MARS_BODY_3D)
-        f = physics.mars_radiative_forcing()
-        state = _rest_state(coords, specs)
-        g = coords.horizontal
-
-        h_nodal = np.asarray(g.to_nodal(
-            physics.radiative_heating_tendency(coords=coords, state=state, specs=specs, body=MARS_BODY_3D, f=f)
+        state = _column_state(coords, specs)
+        grid = coords.horizontal
+        u = jnp.zeros((coords.vertical.layers,) + grid.nodal_shape).at[-1].set(20.0)
+        v = jnp.zeros_like(u)
+        velocity_unit = _u.meter / _u.second
+        vor, div = spherical_harmonic.uv_nodal_to_vor_div_modal(
+            grid,
+            specs.nondimensionalize(u * velocity_unit),
+            specs.nondimensionalize(v * velocity_unit),
+        )
+        state = state._replace(dynamics=dataclasses.replace(
+            state.dynamics, vorticity=vor, divergence=div
         ))
+        drag_vor, drag_div = physics.surface_momentum_tendencies(
+            state, coords, specs, MARS_BODY_3D, physics.mars_radiative_forcing()
+        )
+        du_nd, dv_nd = spherical_harmonic.vor_div_to_uv_nodal(
+            grid, drag_vor, drag_div
+        )
+        du = np.asarray(specs.dimensionalize(du_nd, _u.meter / _u.second).magnitude)
+        dv = np.asarray(specs.dimensionalize(dv_nd, _u.meter / _u.second).magnitude)
+        assert np.mean(du[-1]) < 0.0
+        assert np.max(np.abs(du[:-1])) < 1e-10
+        assert np.max(np.abs(dv)) < 1e-10
 
-        # Hand-computed reference at t=0, rest state (T = reference profile).
-        t_s = 0.0
-        cz = np.asarray(physics.cos_zenith_nodal(t_s, g.latitudes, g.longitudes, f))
-        q_in = (1.0 - f.albedo) * float(physics.solar_flux(t_s, f)) * cz
-        ref_t = np.asarray(reference_temperature(coords, MARS_BODY_3D)).reshape(-1, 1, 1)
-        temp_k = np.clip(ref_t, 1.0, None)
-        q_out = f.emissivity * f.stefan_boltzmann * (temp_k / max(f.greenhouse_factor, 1.0)) ** 4
-        dtdt_si = (q_in[None] - q_out) / f.thermal_inertia
+
+class TestRegolithConduction:
+
+    def test_internal_conduction_closes_column_energy(self):
+        coords = _coords()
+        specs = physics_specs(MARS_BODY_3D)
+        state = _column_state(coords, specs, surface_temperature_k=220.0)
+        ground = state.ground_temperature.at[0].set(state.ground_temperature[0] - 10.0)
+        state = state._replace(ground_temperature=ground)
+        f = dataclasses.replace(
+            physics.mars_radiative_forcing(), regolith_enabled=True,
+            surface_thermal_inertia_tiu=250.0,
+        )
+        ds, dg = physics.regolith_conduction_tendencies(state, specs, f)
+        time_scale = 1.0 / float(specs.nondimensionalize(1.0 * _u.second))
+        skin = 250.0 / f.regolith_volumetric_heat_capacity_j_m3_k * math.sqrt(
+            f.rotation_period_s / math.pi
+        )
+        dz = np.asarray(f.regolith_layer_skin_depth_fractions) * skin
+        surface_power = np.asarray(ds)[0] / time_scale * f.thermal_inertia
+        ground_power = np.sum(
+            np.asarray(dg) / time_scale
+            * f.regolith_volumetric_heat_capacity_j_m3_k
+            * dz[:, None, None], axis=0,
+        )
+        assert np.max(np.abs(surface_power + ground_power)) < 1e-10
+
+    def test_skin_depth_scales_linearly_with_thermal_inertia(self):
+        f = physics.mars_radiative_forcing()
+        factor = math.sqrt(f.rotation_period_s / math.pi) / f.regolith_volumetric_heat_capacity_j_m3_k
+        assert 500.0 * factor == pytest.approx(2.0 * 250.0 * factor)
+
+
+class TestBoundaryLayerPhysics:
+
+    def test_bulk_richardson_suppresses_stable_and_enhances_unstable_exchange(self):
+        coords, specs = _coords(), physics_specs(MARS_BODY_3D)
+        state = _column_state(coords, specs)
+        f = dataclasses.replace(
+            physics.mars_radiative_forcing(), stability_exchange_enabled=True
+        )
+        air = jnp.full(coords.horizontal.nodal_shape, 200.0)
+        stable, _, _ = physics._surface_exchange_properties(
+            state, coords, specs, MARS_BODY_3D, f, air, air - 10.0
+        )
+        neutral, _, _ = physics._surface_exchange_properties(
+            state, coords, specs, MARS_BODY_3D, f, air, air
+        )
+        unstable, _, _ = physics._surface_exchange_properties(
+            state, coords, specs, MARS_BODY_3D, f, air, air + 10.0
+        )
+        assert np.all(np.asarray(stable) < np.asarray(neutral))
+        assert np.all(np.asarray(unstable) > np.asarray(neutral))
+
+    def test_vertical_temperature_diffusion_conserves_mass_weighted_mean(self):
+        coords, specs = _coords(), physics_specs(MARS_BODY_3D)
+        state = _column_state(coords, specs)
+        grid = coords.horizontal
+        profile = jnp.arange(coords.vertical.layers)[:, None, None]
+        nodal = jnp.broadcast_to(profile, (coords.vertical.layers,) + grid.nodal_shape)
+        state = state._replace(dynamics=dataclasses.replace(
+            state.dynamics, temperature_variation=grid.to_modal(nodal)
+        ))
+        f = dataclasses.replace(
+            physics.mars_radiative_forcing(), pbl_diffusion_enabled=True
+        )
+        _, _, tendency, _ = physics.pbl_vertical_diffusion_tendencies(
+            state, coords, specs, MARS_BODY_3D, f
+        )
+        weights = np.diff(np.asarray(coords.vertical.boundaries))[:, None, None]
+        residual = np.sum(weights * np.asarray(grid.to_nodal(tendency)), axis=0)
+        assert np.max(np.abs(residual)) < 1e-10
+
+    def test_vertical_tracer_diffusion_conserves_column_mass(self):
+        coords, specs = _coords(), physics_specs(MARS_BODY_3D)
+        state = _column_state(coords, specs)
+        grid = coords.horizontal
+        profile = jnp.arange(coords.vertical.layers)[:, None, None]
+        nodal = jnp.broadcast_to(profile, (coords.vertical.layers,) + grid.nodal_shape)
+        state = state._replace(dynamics=dataclasses.replace(
+            state.dynamics, tracers={"dust": grid.to_modal(nodal)}
+        ))
+        f = dataclasses.replace(
+            physics.mars_radiative_forcing(), pbl_diffusion_enabled=True
+        )
+        *_, tracers = physics.pbl_vertical_diffusion_tendencies(
+            state, coords, specs, MARS_BODY_3D, f
+        )
+        weights = np.diff(np.asarray(coords.vertical.boundaries))[:, None, None]
+        residual = np.sum(
+            weights * np.asarray(grid.to_nodal(tracers["dust"])), axis=0
+        )
+        assert np.max(np.abs(residual)) < 1e-10
+
+
+class TestDryConvectiveAdjustment:
+
+    def test_removes_instability_and_conserves_enthalpy(self):
+        coords, specs = _coords(), physics_specs(MARS_BODY_3D)
+        state = _column_state(coords, specs)
+        grid, n = coords.horizontal, coords.vertical.layers
+        sigma = np.asarray(coords.vertical.centers)[:, None, None]
+        exner = sigma ** MARS_BODY_3D.kappa
+        theta = np.linspace(180.0, 260.0, n)[:, None, None]
+        temperature = np.broadcast_to(theta * exner, (n,) + grid.nodal_shape)
+        ref = np.asarray(reference_temperature(coords, MARS_BODY_3D)).reshape(n, 1, 1)
+        state = state._replace(dynamics=dataclasses.replace(
+            state.dynamics,
+            temperature_variation=grid.to_modal(jnp.asarray(temperature - ref)),
+        ))
+        adjusted_modal = physics.dry_convective_adjusted_temperature(
+            state, coords, MARS_BODY_3D
+        )
+        adjusted = np.asarray(grid.to_nodal(adjusted_modal)) + ref
+        adjusted_theta = adjusted / exner
+        assert np.min(adjusted_theta[:-1] - adjusted_theta[1:]) >= -1e-9
+        weights = np.diff(np.asarray(coords.vertical.boundaries))[:, None, None]
+        before = np.sum(weights * temperature, axis=0)
+        after = np.sum(weights * adjusted, axis=0)
+        # Nodal adjustment is algebraically exact; modal round-trip is limited by
+        # Dinosaur's float32 spectral basis even with JAX x64 enabled.
+        assert np.max(np.abs(after - before)) < 2e-5
+
+    @pytest.mark.parametrize("n_layers", [4, 8])
+    def test_surface_atmosphere_exchange_conserves_energy(self, n_layers):
+        """Internal sensible exchange cancels exactly in the column budget."""
+        coords = _coords(n_layers)
+        specs = physics_specs(MARS_BODY_3D)
+        f = physics.mars_radiative_forcing()
+        state = _column_state(coords, specs, surface_temperature_k=220.0)
+        g = coords.horizontal
         time_scale_s = 1.0 / float(specs.nondimensionalize(1.0 * _u.second))
-        expect = dtdt_si * time_scale_s
-
-        # Put the hand-computed SI field through the *same* spectral round-trip
-        # (to_modal then to_nodal) the module uses, so this asserts physics parity
-        # independent of dinosaur's truncation (the sharp day/night terminator
-        # rings at T21, which is the transform's business, not the balance's).
-        expect_rt = np.asarray(g.to_nodal(g.to_modal(expect)))
-        assert np.allclose(h_nodal, expect_rt, rtol=1e-6, atol=1e-9)
+        heat, ds, diagnostic = physics.surface_energy_tendencies(
+            state, coords, specs, MARS_BODY_3D, f
+        )
+        air_rate_si = np.asarray(g.to_nodal(heat))[-1] / time_scale_s
+        ps_nd = np.exp(np.asarray(g.to_nodal(state.dynamics.log_surface_pressure)))[0]
+        ps_pa = ps_nd * float(specs.dimensionalize(1.0, _u.pascal).magnitude)
+        dsigma = np.diff(np.asarray(coords.vertical.boundaries))[-1]
+        capacity = MARS_BODY_3D.cp_j_kg_k * ps_pa * dsigma / MARS_BODY_3D.gravity_m_s2
+        atmospheric_flux = air_rate_si * capacity
+        surface_flux = np.asarray(ds)[0] / time_scale_s * f.thermal_inertia
+        assert np.allclose(
+            surface_flux + atmospheric_flux,
+            np.asarray(diagnostic.net_external_w_m2), rtol=2e-5, atol=2e-5,
+        )
 
 
 # ── forced_primitive_equations ────────────────────────────────────────────────
@@ -184,9 +340,9 @@ class TestForcedEquations:
         specs = physics_specs(MARS_BODY_3D)
         f = physics.mars_radiative_forcing()
         eq = physics.forced_primitive_equations(coords, MARS_BODY_3D, f, specs=specs)
-        state = _rest_state(coords, specs)
+        state = _column_state(coords, specs)
         final = integrate(stepper(eq, 600.0, specs), state, 40)
-        assert float(final.sim_time) > 0.0
+        assert float(final.dynamics.sim_time) > 0.0
         for leaf in jax.tree_util.tree_leaves(final):
             assert np.isfinite(np.asarray(leaf)).all()
 
@@ -197,22 +353,22 @@ class TestForcedEquations:
         specs = physics_specs(MARS_BODY_3D)
         g = coords.horizontal
         ref_t = np.asarray(reference_temperature(coords, MARS_BODY_3D)).reshape(-1, 1, 1)
-        state = _rest_state(coords, specs)
+        dry_state = _rest_state(coords, specs)
 
         # Dry: temperature variation stays ~0 -> surface field is flat.
-        dry = integrate(stepper(build_dry(coords, MARS_BODY_3D, specs=specs), 600.0, specs), state, 40)
+        dry = integrate(stepper(build_dry(coords, MARS_BODY_3D, specs=specs), 600.0, specs), dry_state, 40)
         dry_surf = (np.asarray(g.to_nodal(dry.temperature_variation)) + ref_t)[-1]
         assert dry_surf.std() < 1.0
 
         # Forced: surface field develops a hot dayside / cold nightside contrast.
         f = physics.mars_radiative_forcing()
+        state = physics.initial_column_state(dry_state, coords, 200.0, specs)
         forced = integrate(
             stepper(physics.forced_primitive_equations(coords, MARS_BODY_3D, f, specs=specs), 600.0, specs),
             state, 40,
         )
-        forced_surf = (np.asarray(g.to_nodal(forced.temperature_variation)) + ref_t)[-1]
-        forced_k = np.asarray(specs.dimensionalize(forced_surf, _u.kelvin).magnitude)
-        assert forced_surf.std() > 5.0
+        forced_k = np.asarray(specs.dimensionalize(forced.surface_temperature[0], _u.kelvin).magnitude)
+        assert forced_k.std() > 5.0
         assert np.isfinite(forced_k).all()
         assert forced_k.min() > 50.0 and forced_k.max() < 400.0
 
@@ -221,14 +377,14 @@ class TestForcedEquations:
         proving the coupling preserves end-to-end differentiability."""
         coords = _coords(n_layers=4)
         specs = physics_specs(MARS_BODY_3D)
-        state = _rest_state(coords, specs)
+        state = _column_state(coords, specs)
         base = physics.mars_radiative_forcing()
 
         def mean_temp(albedo):
             f = dataclasses.replace(base, albedo=albedo)
             eq = physics.forced_primitive_equations(coords, MARS_BODY_3D, f, specs=specs)
             final = integrate(stepper(eq, 600.0, specs), state, 8)
-            return jax.numpy.mean(final.temperature_variation.real)
+            return jax.numpy.mean(final.surface_temperature)
 
         grad = float(jax.grad(mean_temp)(0.25))
         assert math.isfinite(grad)
@@ -260,7 +416,9 @@ def _co2_state():
     )
     f = physics.mars_radiative_forcing()
     cf = physics.mars_co2_forcing(escape_rate_kg_s=0.0)
-    state = physics.initial_co2_state(dyn, coords, ice_pa=0.0, specs=specs)
+    state = physics.initial_co2_state(
+        dyn, coords, ice_pa=0.0, specs=specs, body=MARS_BODY_3D
+    )
     return coords, specs, grid, f, cf, state
 
 
@@ -271,7 +429,7 @@ def _column_masses(grid, state):
     the sphere, sum = 4*pi) rather than a raw cos(lat) approximation, so the
     conservation residual reflects the physics, not the integration rule.
     """
-    dyn, ice = state
+    dyn, ice = state.dynamics, state.co2_ice
     w = np.asarray(grid.quadrature_weights)  # (n_lon, n_lat)
     ps = np.asarray(np.exp(grid.to_nodal(dyn.log_surface_pressure)))[0]
     return float((ps * w).sum()), float((np.asarray(ice)[0] * w).sum())
@@ -320,8 +478,7 @@ class TestCO2Cycle:
             coords, MARS_BODY_3D, f, cf, specs=specs
         )
         final = integrate(stepper(eq, 600.0, specs), state, 200)
-        _, ice = final
-        ice = np.asarray(ice)[0]
+        ice = np.asarray(final.co2_ice)[0]
         j = np.unravel_index(np.argmax(ice), ice.shape)
         assert abs(np.degrees(np.asarray(grid.latitudes)[j[1]])) > 60.0
         assert ice.min() >= -1e-6  # frost stays non-negative
@@ -333,15 +490,15 @@ class TestCO2Cycle:
         eq = physics.forced_co2_primitive_equations(
             coords, MARS_BODY_3D, f, cf, specs=specs
         )
-        dyn0, _ = state
-        final, _ = integrate(stepper(eq, 600.0, specs), state, 300)
-        ref = np.asarray(reference_temperature(coords, MARS_BODY_3D)).reshape(-1, 1, 1)
-        t_surf = (np.asarray(grid.to_nodal(final.temperature_variation)) + ref)[-1]
+        dyn0 = state.dynamics
+        final = integrate(stepper(eq, 600.0, specs), state, 300)
+        t_surf = np.asarray(final.surface_temperature)[0]
 
         # radiation only, same run
         eqr = physics.forced_primitive_equations(coords, MARS_BODY_3D, f, specs=specs)
-        finr = integrate(stepper(eqr, 600.0, specs), dyn0, 300)
-        t_surf_r = (np.asarray(grid.to_nodal(finr.temperature_variation)) + ref)[-1]
+        rad0 = physics.initial_column_state(dyn0, coords, 200.0, specs)
+        finr = integrate(stepper(eqr, 600.0, specs), rad0, 300)
+        t_surf_r = np.asarray(finr.surface_temperature)[0]
 
         assert t_surf.min() > t_surf_r.min()  # CO2 raises the cold floor
 
