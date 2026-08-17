@@ -13,6 +13,9 @@ import dataclasses
 import json
 from pathlib import Path
 
+import numpy as np
+from src.gcm3d._dinosaur import jax
+
 from src.gcm3d.coordinates import coordinate_system
 from src.gcm3d.maps import forcing_with_surface_properties, plot_maps, run_maps, save_netcdf
 from src.gcm3d.physics import mars_co2_forcing, mars_radiative_forcing
@@ -40,13 +43,20 @@ def main() -> int:
     parser.add_argument("--config", choices=["all", *ABLATIONS], default="all")
     parser.add_argument("--truncation", default="T42")
     parser.add_argument("--layers", type=int, default=12)
-    parser.add_argument("--dt", type=float, default=1800.0)
+    parser.add_argument("--dt", type=float, default=450.0)
     parser.add_argument("--sols", type=float, default=668.0)
     parser.add_argument("--chunk-sols", type=float, default=10.0)
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--dust-visible", type=float, default=0.3)
     parser.add_argument("--dust-longwave", type=float, default=0.1)
     args = parser.parse_args()
+
+    verified_dt = {"T42": 450.0, "T85": 300.0, "T106": 225.0, "T170": 150.0}
+    if args.truncation in verified_dt and args.dt > verified_dt[args.truncation]:
+        parser.error(
+            f"--dt={args.dt:g} s exceeds the verified {args.truncation} limit "
+            f"of {verified_dt[args.truncation]:g} s"
+        )
 
     configs = list(ABLATIONS) if args.config == "all" else [args.config]
     grid = coordinate_system(args.truncation, args.layers).horizontal
@@ -86,6 +96,15 @@ def main() -> int:
                 co2_forcing=mars_co2_forcing(energy_limited=True),
                 initial_state=state, return_final_state=True,
             )
+            finite = all(
+                np.isfinite(np.asarray(leaf)).all()
+                for leaf in jax.tree_util.tree_leaves(state)
+            )
+            if not finite:
+                raise FloatingPointError(
+                    f"{name} became non-finite before step {completed + count}; "
+                    "the last saved restart remains valid"
+                )
             completed += count
             save_restart(state, restart_path)
             progress_path.write_text(json.dumps({"completed_steps": completed}) + "\n")
