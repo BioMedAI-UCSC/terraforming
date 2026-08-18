@@ -184,6 +184,64 @@ class TestHeatingTendency:
             - np.asarray(a.atmospheric_convergence_w_m2)
         )) > 0.0
 
+    def test_multiband_opacity_responds_to_pressure_and_temperature(self):
+        """The new closure is not a relabeled grey band: local P/T changes fluxes."""
+        coords, specs = _coords(), physics_specs(MARS_BODY_3D)
+        state = _column_state(coords, specs)
+        f = physics.mars_radiative_forcing(co2_radiation_enabled=True)
+        grid = coords.horizontal
+
+        def with_pressure(column, pressure_pa):
+            ps_nd = specs.nondimensionalize(pressure_pa * _u.pascal)
+            log_ps = grid.to_modal(
+                jnp.full((1,) + grid.nodal_shape, jnp.log(ps_nd))
+            )
+            return column._replace(
+                dynamics=column.dynamics.replace(log_surface_pressure=log_ps)
+            )
+
+        thin = physics.two_stream_radiative_fluxes(
+            with_pressure(state, 300.0), coords, specs, MARS_BODY_3D, f
+        )
+        thick = physics.two_stream_radiative_fluxes(
+            with_pressure(state, 1200.0), coords, specs, MARS_BODY_3D, f
+        )
+        # A thicker CO2 column transmits less sunlight to the surface.
+        assert np.mean(np.asarray(thick.shortwave_down_w_m2[-1])) < np.mean(
+            np.asarray(thin.shortwave_down_w_m2[-1])
+        )
+
+        def toa_longwave(temp_offset_k):
+            offset = grid.to_modal(
+                jnp.full(
+                    (coords.vertical.layers,) + grid.nodal_shape,
+                    temp_offset_k,
+                )
+            )
+            warm = state._replace(
+                dynamics=state.dynamics.replace(temperature_variation=offset)
+            )
+            flux = physics.two_stream_radiative_fluxes(
+                warm, coords, specs, MARS_BODY_3D, f
+            )
+            return jnp.mean(flux.longwave_up_w_m2[0])
+
+        gradient = float(jax.grad(toa_longwave)(0.0))
+        assert math.isfinite(gradient)
+        assert abs(gradient) > 1.0e-6
+
+    def test_invalid_multiband_configuration_fails_early(self):
+        coords, specs = _coords(), physics_specs(MARS_BODY_3D)
+        state = _column_state(coords, specs)
+        f = dataclasses.replace(
+            physics.mars_radiative_forcing(co2_radiation_enabled=True),
+            co2_shortwave_band_weights=(1.0,),
+        )
+        with pytest.raises(ValueError, match="shortwave CO2 band tuples"):
+            physics.two_stream_radiative_fluxes(
+                state, coords, specs, MARS_BODY_3D, f
+            )
+
 
 class TestSurfaceMomentumDrag:
 

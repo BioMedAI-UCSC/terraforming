@@ -110,14 +110,26 @@ class RadiativeForcing:
     pbl_implicit_timestep_s: float = 1800.0
     convective_adjustment_enabled: bool = False
     convective_relaxation_s: float = 900.0
-    # Vertically resolved two-stream, two-band Mars radiation.  The optical
-    # depths are pressure-scaled column values at the reference pressure.  This
-    # is deliberately a compact JCM-style scheme, not correlated-k: it resolves
-    # CO2 near-IR absorption and the 15-micron thermal band and exposes the same
-    # flux-divergence interface that a later correlated-k solver can replace.
+    # Vertically resolved multiband Mars radiation. The two scalar optical depths
+    # remain useful experiment controls; the tuples split them into spectral
+    # bands with distinct pressure/temperature responses. This is a compact
+    # differentiable precursor to Ames-style correlated-k table interpolation,
+    # not a replacement for those tables.
     co2_radiation_enabled: bool = False
+    # Use the bundled Ames 12-band correlated-k coefficients. Disable only for
+    # compact-scheme ablations or installations without the staged asset.
+    ames_correlated_k_enabled: bool = True
     co2_longwave_optical_depth: float = 0.35
     co2_near_ir_optical_depth: float = 0.08
+    co2_reference_temperature_k: float = 200.0
+    co2_shortwave_band_weights: tuple[float, ...] = (0.72, 0.28)
+    co2_shortwave_band_strengths: tuple[float, ...] = (0.35, 2.67)
+    co2_shortwave_pressure_exponents: tuple[float, ...] = (1.0, 1.18)
+    co2_shortwave_temperature_exponents: tuple[float, ...] = (0.15, 0.55)
+    co2_longwave_band_weights: tuple[float, ...] = (0.18, 0.62, 0.20)
+    co2_longwave_band_strengths: tuple[float, ...] = (0.12, 1.32, 0.48)
+    co2_longwave_pressure_exponents: tuple[float, ...] = (1.0, 1.22, 1.08)
+    co2_longwave_temperature_exponents: tuple[float, ...] = (0.10, 0.75, 0.35)
     # Prescribed visible/IR dust column opacity. May be a scalar or nodal field.
     dust_visible_optical_depth: object = 0.0
     dust_longwave_optical_depth: object = 0.0
@@ -297,6 +309,30 @@ class RadiativeFluxDiagnostics(NamedTuple):
     toa_net_down_w_m2: object
 
 
+def _validate_radiative_bands(f: RadiativeForcing) -> None:
+    """Fail early when static spectral configuration has inconsistent lengths."""
+    sw_lengths = {
+        len(f.co2_shortwave_band_weights),
+        len(f.co2_shortwave_band_strengths),
+        len(f.co2_shortwave_pressure_exponents),
+        len(f.co2_shortwave_temperature_exponents),
+    }
+    lw_lengths = {
+        len(f.co2_longwave_band_weights),
+        len(f.co2_longwave_band_strengths),
+        len(f.co2_longwave_pressure_exponents),
+        len(f.co2_longwave_temperature_exponents),
+    }
+    if len(sw_lengths) != 1 or 0 in sw_lengths:
+        raise ValueError("shortwave CO2 band tuples must have one common non-zero length")
+    if len(lw_lengths) != 1 or 0 in lw_lengths:
+        raise ValueError("longwave CO2 band tuples must have one common non-zero length")
+    if sum(f.co2_shortwave_band_weights) <= 0.0:
+        raise ValueError("shortwave CO2 band weights must have a positive sum")
+    if sum(f.co2_longwave_band_weights) <= 0.0:
+        raise ValueError("longwave CO2 band weights must have a positive sum")
+
+
 class ColumnPhysicsTendencies(NamedTuple):
     """Replaceable JCM-style physics contribution to the prognostic tendencies."""
 
@@ -377,14 +413,17 @@ def two_stream_radiative_fluxes(
     state: ColumnPhysicsState, coords, specs, body: BodyConstants,
     f: RadiativeForcing,
 ) -> RadiativeFluxDiagnostics:
-    """Pressure-scaled two-stream CO2/dust fluxes and layer convergence.
+    """Multiband pressure/temperature-scaled CO2/dust radiative fluxes.
 
-    The compact solver uses Beer--Lambert transmission in a solar near-IR band
-    and a hemispheric two-stream thermal band.  Each layer emits equally upward
-    and downward according to Kirchhoff's law.  Its principal contract is exact
-    discrete energy closure; correlated-k coefficients can later replace the
-    optical-depth closure without changing callers.
+    The compact solver uses Beer--Lambert transmission in two solar bands and a
+    hemispheric two-stream solve in three thermal bands. Each band responds
+    differently to local pressure and temperature. Thermal emission is divided
+    by normalized Planck-like band weights and emitted equally upward/downward
+    according to Kirchhoff's law. Its principal contract is exact discrete energy
+    closure; Ames-style correlated-k coefficients can later replace the optical
+    depth closure without changing callers.
     """
+    _validate_radiative_bands(f)
     grid, dyn = coords.horizontal, state.dynamics
     n = coords.vertical.layers
     time_scale_s = 1.0 / float(specs.nondimensionalize(1.0 * _u.second))
@@ -393,41 +432,137 @@ def two_stream_radiative_fluxes(
     incoming = solar_flux(t_s, f) * cz
     ps_nd = jnp.exp(grid.to_nodal(dyn.log_surface_pressure))[0]
     ps_pa = ps_nd * float(specs.dimensionalize(1.0, _u.pascal).magnitude)
-    pressure_scale = ps_pa / body.reference_surface_pressure_pa
     dsigma = jnp.asarray(np.diff(np.asarray(coords.vertical.boundaries)))[:, None, None]
-
-    dust_vis = jnp.asarray(f.dust_visible_optical_depth)
-    dust_lw = jnp.asarray(f.dust_longwave_optical_depth)
-    # Only the absorbing fraction heats the solar band; the remainder is treated
-    # as conservative back-scattering at TOA in this compact closure.
-    sw_tau = pressure_scale[None] * dsigma * (
-        f.co2_near_ir_optical_depth
-        + dust_vis * (1.0 - f.dust_single_scattering_albedo)
-    )
-    lw_tau = pressure_scale[None] * dsigma * (
-        f.co2_longwave_optical_depth + dust_lw
-    )
-    sw_trans = jnp.exp(-jnp.clip(sw_tau, 0.0, 50.0))
-    lw_trans = jnp.exp(-jnp.clip(lw_tau, 0.0, 50.0))
-
-    sw = [incoming]
-    for k in range(n):
-        sw.append(sw[-1] * sw_trans[k])
-    sw = jnp.stack(sw)
 
     ref = np.asarray(reference_temperature(coords, body)).reshape(n, 1, 1)
     air_k = jnp.clip(grid.to_nodal(dyn.temperature_variation) + ref, 1.0, None)
     surface_k = jnp.clip(state.surface_temperature[0], 1.0, None)
+
+    sigma_mid = jnp.asarray(
+        0.5 * (np.asarray(coords.vertical.boundaries[:-1])
+               + np.asarray(coords.vertical.boundaries[1:]))
+    )[:, None, None]
+    local_pressure_ratio = jnp.clip(
+        sigma_mid * ps_pa[None] / body.reference_surface_pressure_pa, 1.0e-6, None
+    )
+    column_pressure_ratio = ps_pa / body.reference_surface_pressure_pa
+    temperature_ratio = jnp.clip(
+        f.co2_reference_temperature_k / air_k, 0.25, 4.0
+    )
+
+    def band_tau(base_tau, strengths, p_exponents, t_exponents, dust_tau=0.0):
+        """Return ``(band, layer, lon, lat)`` optical depths."""
+        values = []
+        for strength, p_exp, t_exp in zip(strengths, p_exponents, t_exponents):
+            gas = (
+                base_tau * strength * column_pressure_ratio[None] * dsigma
+                * local_pressure_ratio ** (p_exp - 1.0)
+                * temperature_ratio ** t_exp
+            )
+            values.append(gas + jnp.asarray(dust_tau)[None] * dsigma)
+        return jnp.stack(values)
+
     blackbody_air = f.stefan_boltzmann * air_k**4
     surface_emission = f.emissivity * f.stefan_boltzmann * surface_k**4
-    up = [surface_emission]
-    for k in range(n - 1, -1, -1):
-        up.append(up[-1] * lw_trans[k] + (1.0 - lw_trans[k]) * blackbody_air[k])
-    lw_up = jnp.stack(up[::-1])
-    down = [jnp.zeros_like(surface_k)]
-    for k in range(n):
-        down.append(down[-1] * lw_trans[k] + (1.0 - lw_trans[k]) * blackbody_air[k])
-    lw_down = jnp.stack(down)
+    if f.ames_correlated_k_enabled:
+        from src.gcm3d import ames_radiation
+
+        pressure_mid_pa = sigma_mid * ps_pa[None]
+        delta_pressure_pa = dsigma * ps_pa[None]
+        sw_tau, lw_tau = ames_radiation.correlated_k_optical_depths(
+            air_k, pressure_mid_pa, delta_pressure_pa
+        )
+        data = ames_radiation.load_ames_co2_tables()
+        sw_channel_weights = ames_radiation.channel_weights(
+            data["clear_fraction_sw"]
+        )
+        lw_channel_weights = ames_radiation.channel_weights(
+            data["clear_fraction_ir"]
+        )
+        # Dust is still grey within SW/LW here; spectral aerosol properties are
+        # the next milestone. It is applied to every k channel consistently.
+        dust_sw = (jnp.asarray(f.dust_visible_optical_depth)
+                   * (1.0 - f.dust_single_scattering_albedo)
+                   * column_pressure_ratio)[None, None, None] * dsigma[None, None]
+        dust_lw = (jnp.asarray(f.dust_longwave_optical_depth)
+                   * column_pressure_ratio)[None, None, None] * dsigma[None, None]
+        sw_tau = sw_tau + dust_sw
+        lw_tau = lw_tau + dust_lw
+        # Direct solar path length scales as 1/cos(zenith), as in Ames dsolflux.
+        mu = jnp.clip(cz, 0.05, 1.0)
+        sw_trans = jnp.exp(-jnp.clip(sw_tau / mu[None, None, None], 0.0, 50.0))
+        lw_trans = jnp.exp(-jnp.clip(lw_tau / 0.5, 0.0, 50.0))
+        solar_weights = jnp.asarray(data["solar_weights"])
+        flux = (incoming[None, None] * solar_weights[:, None, None, None]
+                * sw_channel_weights[:, :, None, None])
+        sw_levels = [flux]
+        for k in range(n):
+            flux = flux * sw_trans[:, :, k]
+            sw_levels.append(flux)
+        sw = jnp.sum(jnp.stack(sw_levels), axis=(1, 2))
+
+        planck_air = ames_radiation.planck_band_fractions(air_k)
+        planck_surface = ames_radiation.planck_band_fractions(surface_k)
+        channel = lw_channel_weights[:, :, None, None]
+        up = [surface_emission[None, None] * planck_surface[:, None] * channel]
+        for k in range(n - 1, -1, -1):
+            emission = blackbody_air[k][None, None] * planck_air[:, None, k] * channel
+            up.append(up[-1] * lw_trans[:, :, k]
+                      + (1.0 - lw_trans[:, :, k]) * emission)
+        lw_up = jnp.sum(jnp.stack(up[::-1]), axis=(1, 2))
+        down = [jnp.zeros_like(up[0])]
+        for k in range(n):
+            emission = blackbody_air[k][None, None] * planck_air[:, None, k] * channel
+            down.append(down[-1] * lw_trans[:, :, k]
+                        + (1.0 - lw_trans[:, :, k]) * emission)
+        lw_down = jnp.sum(jnp.stack(down), axis=(1, 2))
+    else:
+        # Compact multiband fallback used for ablations.
+        sw_tau = band_tau(
+            f.co2_near_ir_optical_depth,
+            f.co2_shortwave_band_strengths,
+            f.co2_shortwave_pressure_exponents,
+            f.co2_shortwave_temperature_exponents,
+            jnp.asarray(f.dust_visible_optical_depth)
+            * (1.0 - f.dust_single_scattering_albedo)
+            * column_pressure_ratio,
+        )
+        lw_tau = band_tau(
+            f.co2_longwave_optical_depth,
+            f.co2_longwave_band_strengths,
+            f.co2_longwave_pressure_exponents,
+            f.co2_longwave_temperature_exponents,
+            jnp.asarray(f.dust_longwave_optical_depth) * column_pressure_ratio,
+        )
+        sw_trans = jnp.exp(-jnp.clip(sw_tau, 0.0, 50.0))
+        lw_trans = jnp.exp(-jnp.clip(lw_tau, 0.0, 50.0))
+        sw_weights = jnp.asarray(f.co2_shortwave_band_weights)
+        sw_weights = sw_weights / jnp.sum(sw_weights)
+        sw_bands = []
+        for band in range(len(f.co2_shortwave_band_weights)):
+            flux = [incoming * sw_weights[band]]
+            for k in range(n):
+                flux.append(flux[-1] * sw_trans[band, k])
+            sw_bands.append(jnp.stack(flux))
+        sw = jnp.sum(jnp.stack(sw_bands), axis=0)
+        lw_weights = jnp.asarray(f.co2_longwave_band_weights)
+        lw_weights = lw_weights / jnp.sum(lw_weights)
+        up_bands, down_bands = [], []
+        for band in range(len(f.co2_longwave_band_weights)):
+            up = [surface_emission * lw_weights[band]]
+            for k in range(n - 1, -1, -1):
+                emission = blackbody_air[k] * lw_weights[band]
+                up.append(up[-1] * lw_trans[band, k]
+                          + (1.0 - lw_trans[band, k]) * emission)
+            up_bands.append(jnp.stack(up[::-1]))
+            down = [jnp.zeros_like(surface_k)]
+            for k in range(n):
+                emission = blackbody_air[k] * lw_weights[band]
+                down.append(down[-1] * lw_trans[band, k]
+                            + (1.0 - lw_trans[band, k]) * emission)
+            down_bands.append(jnp.stack(down))
+        lw_up = jnp.sum(jnp.stack(up_bands), axis=0)
+        lw_down = jnp.sum(jnp.stack(down_bands), axis=0)
 
     net_up = lw_up - lw_down - sw
     convergence = net_up[1:] - net_up[:-1]

@@ -263,6 +263,29 @@ They should be completed before training learned residual physics.
 
 #### 1. Multiband CO2 radiative transfer
 
+**Status: Ames coefficients integrated; full Ames flux regression pending.** The
+default path now uses the bundled Ames 12-band tables: seven solar bands, five
+thermal bands, 16 absorbing correlated-k quadrature points, and one clear channel
+per band. `scripts/stage_ames_co2_radiation.py` reproducibly decodes the
+little-endian sequential Fortran records, selects the nearly pure-CO2 mixture,
+records source SHA-256 hashes, constructs temperature-dependent Planck fractions,
+and writes the compact packaged JAX asset `ames_co2_12band.npz`.
+
+The JAX implementation interpolates `log10(k)` bilinearly in temperature and
+log-pressure and follows the Ames gas optical-depth relation
+`tau = 3.51e22 * delta_p_mbar * k`. It uses Ames Gaussian weights, clear-spectrum
+fractions, solar-band fractions, and direct-beam air-mass scaling. The earlier
+two-solar/three-thermal compact coefficients remain only as an explicit ablation
+fallback (`ames_correlated_k_enabled=False`).
+
+Aggregate interface diagnostics and exact discrete column energy closure are
+preserved. Tests pin source hashes and decoded coefficient values and cover table
+dimensions, quadrature normalization, pressure response, temperature gradients,
+configuration validation, dust-limit behavior, and column closure. The remaining
+scientific gap is comparison against flux/heating outputs from a running Ames
+column, because our current absorption-only flux propagation is simpler than the
+complete Ames scattering two-stream solver.
+
 **Import from Ames:** the division into solar and thermal spectral bands, the
 pressure/temperature dependence of gaseous optical depth, two-stream flux
 structure, and representative column regression cases from
@@ -279,8 +302,8 @@ radiative heating is deposited at the wrong heights.
 
 - [ ] Top-of-atmosphere and surface fluxes match selected Ames columns within a
       documented tolerance.
-- [ ] Layer heating sums to net column flux convergence.
-- [ ] Gradients through temperature, pressure, and optical depth are finite.
+- [x] Layer heating sums to net column flux convergence.
+- [x] Gradients through temperature and pressure-dependent optical depth are finite.
 - [ ] Clear-sky seasonal temperature structure improves against MCD without a
       learned correction.
 
