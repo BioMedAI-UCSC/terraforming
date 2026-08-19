@@ -59,6 +59,9 @@ MARS_LS_PERIHELION: torch.Tensor      = torch.tensor(251.0 * math.pi / 180.0, dt
 MARS_SURFACE_EMISSIVITY: torch.Tensor = torch.tensor(0.95,     dtype=TF_DTYPE)
 MARS_THERMAL_INERTIA: torch.Tensor    = torch.tensor(6.0e4,    dtype=TF_DTYPE)  # J K⁻¹ m⁻²
 MARS_MAVEN_ESCAPE_RATE: torch.Tensor  = torch.tensor(0.2,      dtype=TF_DTYPE)  # kg s⁻¹
+# Empirical constant-mode fallback. It is intentionally not identical to the
+# pressure-dependent Clausius--Clapeyron value (~147.7 K at 610 Pa); switching
+# ``use_pressure_frost`` therefore changes the threshold by ~1.3 K at reference p.
 MARS_CO2_FROST_POINT: torch.Tensor    = torch.tensor(149.0,    dtype=TF_DTYPE)  # K
 MARS_CO2_LATENT_HEAT: torch.Tensor    = torch.tensor(5.7e5,    dtype=TF_DTYPE)  # J kg⁻¹
 # Effective fractional surface area of each seasonal CO2 cap, per pole. Sets the
@@ -369,9 +372,8 @@ class Mars(Planet):
         │  dT/dt  = [ Q_in − Q_out ] / C                             │
         │         = [(1−α) F π R² − ε σ (T/f_gh)⁴ 4π R²] / C        │
         │                                                              │
-        │  dP/dt  = −Ṁ_escape g / (4π R²)                            │
-        │         where Ṁ_escape = 4π R² n(R) v_th exp(−λ)           │
-        │         λ = G M m_CO2 / (k T R_exo)                         │
+        │  dP/dt  = −[Ṁ_MAVEN + dM_N/dt + dM_S/dt] g / (4π R²)      │
+        │         where Ṁ_MAVEN is the prescribed non-thermal loss   │
         │                                                              │
         │  dM_ice/dt = −(sublimation rate)                            │
         │            = −A_cap L_sub⁻¹ σ T⁴   (simplified)            │
@@ -383,7 +385,7 @@ class Mars(Planet):
         References
         ----------
         Stefan-Boltzmann law : https://en.wikipedia.org/wiki/Stefan–Boltzmann_law
-        Jeans escape         : https://en.wikipedia.org/wiki/Atmospheric_escape
+        MAVEN escape         : https://doi.org/10.1126/science.aan5015
         """
         s = self
 

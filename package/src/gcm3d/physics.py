@@ -403,15 +403,26 @@ def column_primitive_equations(base, parameterization):
 
 
 def initial_column_state(dyn_state, coords, surface_temperature_k: float, specs,
-                         ice_pa: float = 0.0) -> ColumnPhysicsState:
-    """Attach prognostic surface temperature and frost reservoirs to a dycore state."""
+                         ice_pa: float = 0.0,
+                         forcing: RadiativeForcing | None = None) -> ColumnPhysicsState:
+    """Attach surface/frost/soil reservoirs using the forcing's soil layout.
+
+    Passing the same forcing used by the equation makes a custom regolith layer
+    tuple define both state size and conduction geometry. With no forcing, the
+    canonical 12-layer layout is used for backwards compatibility.
+    """
     ts_nd = float(specs.nondimensionalize(surface_temperature_k * _u.kelvin))
     ice_nd = float(specs.nondimensionalize(ice_pa * _u.pascal))
     shape = coords.surface_nodal_shape
-    ground = jnp.full(
-        (len(_REGOLITH_LAYER_FRACTIONS),) + shape[1:],
-        ts_nd,
+    layer_fractions = tuple(
+        _REGOLITH_LAYER_FRACTIONS if forcing is None
+        else forcing.regolith_layer_skin_depth_fractions
     )
+    if not layer_fractions or any(
+        not np.isfinite(x) or x <= 0 for x in layer_fractions
+    ):
+        raise ValueError("regolith layer skin-depth fractions must be finite and positive")
+    ground = jnp.full((len(layer_fractions),) + shape[1:], ts_nd)
     return ColumnPhysicsState(
         dyn_state, jnp.full(shape, ts_nd), jnp.full(shape, ice_nd), ground
     )
@@ -1094,6 +1105,12 @@ def regolith_conduction_tendencies(
     cv = f.regolith_volumetric_heat_capacity_j_m3_k
     skin_depth = inertia / cv * math.sqrt(f.rotation_period_s / math.pi)
     fractions = jnp.asarray(f.regolith_layer_skin_depth_fractions).reshape((-1, 1, 1))
+    if tg.shape[0] != fractions.shape[0]:
+        raise ValueError(
+            "ground_temperature has "
+            f"{tg.shape[0]} layers but forcing configures {fractions.shape[0]}; "
+            "initialize the state with initial_column_state(..., forcing=forcing)"
+        )
     dz = jnp.clip(fractions * skin_depth, 1.0e-4, None)
     conductivity = inertia**2 / cv
 
@@ -1460,7 +1477,7 @@ def positivity_preserving_co2_step(step_fn, coords, specs):
 
 
 def initial_co2_state(dyn_state, coords, ice_pa: float = 0.0, specs=None, body=None,
-                      surface_temperature_k: float | None = None):
+                      surface_temperature_k: float | None = None, forcing=None):
     """Pair a dynamical ``State`` with an initial (uniform) CO2 frost field.
 
     ``ice_pa`` is the starting frost everywhere in Pa-equivalent (0 by default, i.e.
@@ -1475,5 +1492,6 @@ def initial_co2_state(dyn_state, coords, ice_pa: float = 0.0, specs=None, body=N
     if surface_temperature_k is None:
         surface_temperature_k = body.reference_temperature_k
     return initial_column_state(
-        dyn_state, coords, surface_temperature_k, specs, ice_pa=ice_pa
+        dyn_state, coords, surface_temperature_k, specs, ice_pa=ice_pa,
+        forcing=forcing,
     )

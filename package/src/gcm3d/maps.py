@@ -269,7 +269,8 @@ def run_maps(
         if initial_state is None:
             state0 = dataclasses.replace(state0, sim_time=0.0)
             state0 = initial_column_state(
-                state0, coords, t_ref_k or body.reference_temperature_k, specs
+                state0, coords, t_ref_k or body.reference_temperature_k, specs,
+                forcing=forcing,
             )
         radiation_name = (
             "two-stream CO2-band radiation" if forcing.co2_radiation_enabled

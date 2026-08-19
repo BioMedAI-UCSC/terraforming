@@ -204,17 +204,26 @@ prognostic soil-layer temperature so future long spin-ups remain continuous.
   \(\dot T_k=g(F_{k+1/2}-F_{k-1/2})/(c_p\Delta p_k)\), so the sum telescopes to the
   top/surface boundary fluxes. Acceptance: layer-summed closure and comparison with
   published Mars column/GCM benchmarks in [Forget et al. (1999)][forget1999].
-  **Current fidelity blocker:** outgoing longwave remains the single-grey proxy
-  \(F_{LW}=\epsilon\sigma(T_s/G)^4\). There are no resolved CO₂ 15-µm/NIR bands,
-  correlated-k coefficients, two-stream atmospheric fluxes or layerwise radiative
-  heating. Consequently the current temperature comparison is not JCM-fidelity
-  radiation, regardless of the added surface/PBL physics.
+  **Current fidelity blocker:** *validation*, not capability. When
+  `co2_radiation_enabled=False` (the `mars_radiative_forcing` default) the outgoing
+  longwave is still the single-grey proxy \(F_{LW}=\epsilon\sigma(T_s/G)^4\); when
+  radiation is enabled the model now runs resolved CO₂ shortwave/longwave bands,
+  Ames correlated-k coefficients, two-stream atmospheric fluxes and layerwise
+  radiative heating (flux-divergence). What remains before P1.4 closes is the
+  published-benchmark comparison (Forget et al. column), so enabled-radiation
+  output is not yet claimed as JCM-fidelity.
   - [x] Add a differentiable, pressure-scaled two-stream interface with separate
     CO₂ near-IR and 15-µm thermal optical depths. Layer heating is diagnosed from
     interface-flux convergence and a direct test verifies that atmosphere plus
-    surface equals the TOA budget to roundoff. This is a compact band model, not
-    correlated-k, so P1.4 remains open pending published coefficient tables and
-    the Forget et al. column comparison [Forget et al. (1999)][forget1999].
+    surface equals the TOA budget to roundoff. This compact band model remains as
+    the ablation fallback.
+  - [x] Integrate the bundled NASA Ames 12-band correlated-k CO₂ tables
+    (`ames_co2_12band.npz`, staged by `scripts/stage_ames_co2_radiation.py`):
+    SW/LW optical depths bilinearly interpolated in temperature and log-pressure,
+    split-Gaussian channel weights, Planck-band-fraction thermal emission, and
+    spectral Ames/Wolff dust optics. Enabled by default
+    (`ames_correlated_k_enabled=True`). P1.4 stays open pending the Forget et al.
+    column comparison [Forget et al. (1999)][forget1999].
 
 - [ ] **P1.5 — Energy-limited CO₂ phase change.** Replace the tunable relaxation rate
   with complementarity at the frost point: when frost is present, hold
@@ -324,10 +333,18 @@ prognostic soil-layer temperature so future long spin-ups remain continuous.
 
 ## Approximations (implemented, but NOT physically complete)
 
-- **Surface "heat capacity" is not a thermal model (P1, deferred).**
-  `thermal_inertia` (60000) is used as an effective areal heat capacity, not a
-  regolith conduction model. No subsurface layers, no diurnal skin depth, no
-  terrain-dependent albedo/inertia.
+- **Regolith conduction is a skin-depth-scaled column, not a full k(z) profile
+  (P1, opt-in).** With `regolith_enabled=True`, `regolith_conduction_tendencies`
+  runs conservative finite-volume conduction through 12 subsurface layers whose
+  thicknesses scale with the diurnal skin depth \(\sqrt{I^2/(\rho c)\cdot
+  P_\mathrm{rot}/\pi}\) (the deepest layers retain seasonal memory), and
+  `surface_properties_path` supplies terrain-dependent TES albedo/thermal-inertia
+  maps. Tested for state/config layer-count consistency, skin-depth scaling, and
+  column energy closure (`TestRegolithConduction`). Remaining simplifications:
+  uniform volumetric heat capacity, a single homogeneous conductivity per column
+  (no depth-varying \(k\) or subsurface ice table), and a zero-flux lower boundary.
+  With `regolith_enabled=False` (the default) the model falls back to
+  `thermal_inertia` as an effective areal heat capacity with no subsurface layers.
 - **Atmospheric mass coupling is partial (P1).** Evolving surface pressure enters
   the hydrostatic state and the CO₂ supply gate, but does **not** yet modulate heat
   capacity, radiative optical depth, or surface exchange. Injected compounds change
@@ -342,17 +359,31 @@ prognostic soil-layer temperature so future long spin-ups remain continuous.
   high/ultra` set grid/steps only. No timestep- or resolution-convergence study has
   been run, so "high"/"ultra" denote grid size, **not** demonstrated convergence.
 
-## Absent processes (explicitly declared)
+## Opt-in and absent processes (explicitly declared)
 
-None of the following are represented:
+Several deterministic-physics processes are now **implemented but off by default**
+in `mars_radiative_forcing`. They are enabled together by
+`forcing_with_surface_properties`, by attaching a `co2_forcing`, or via the
+individual `*_enabled` flags:
 
-- Dust radiative heating and transport.
-- CO₂ (and other gas) infrared absorption / real radiative transfer — the scheme
-  is single-band grey.
-- Convection / boundary-layer mixing.
-- Stability-dependent surface exchange (neutral momentum drag is implemented).
-- Vertical diffusion.
-- Water cycle, clouds, ice.
+- **Dust radiative heating** — spectral Ames/Wolff dust optics with a Conrath
+  vertical profile in the two-stream solver (`dust_visible_optical_depth`,
+  `dust_longwave_optical_depth`, `seasonal_dust_on_grid`). *Dust transport is not
+  modelled* — the opacity field is prescribed, not lifted or advected.
+- **Resolved CO₂ infrared/near-IR radiative transfer** — multiband two-stream with
+  the Ames 12-band correlated-k tables (`co2_radiation_enabled`,
+  `ames_correlated_k_enabled`). With radiation disabled the scheme is single-band grey.
+- **Dry convective adjustment** (`convective_adjustment_enabled`) and
+  **boundary-layer / vertical diffusion** (`pbl_diffusion_enabled`).
+- **Stability-dependent surface exchange** (`stability_exchange_enabled`); neutral
+  momentum drag is always on.
+
+Genuinely **absent** (not represented in any configuration):
+
+- Moist processes: water cycle, water vapour, clouds, water-ice. (The CO₂
+  condensation cycle *is* implemented — see P0/P2 — but is a separate process.)
+- Interactive dust lifting/transport and radiatively-active clouds.
+- Photochemistry / trace-gas chemistry.
 
 ## GCM-intervention semantics (explicitly declared)
 

@@ -284,6 +284,30 @@ class TestSurfaceMomentumDrag:
 
 class TestRegolithConduction:
 
+    def test_custom_layer_layout_sizes_state_and_conduction_consistently(self):
+        coords, specs = _coords(), physics_specs(MARS_BODY_3D)
+        default_state = _column_state(coords, specs)
+        forcing = dataclasses.replace(
+            physics.mars_radiative_forcing(), regolith_enabled=True,
+            regolith_layer_skin_depth_fractions=(0.5, 1.5, 4.0),
+        )
+        state = physics.initial_column_state(
+            default_state.dynamics, coords, 210.0, specs, forcing=forcing
+        )
+        assert state.ground_temperature.shape[0] == 3
+        _, tendency = physics.regolith_conduction_tendencies(state, specs, forcing)
+        assert tendency.shape == state.ground_temperature.shape
+
+    def test_mismatched_layer_layout_has_descriptive_error(self):
+        coords, specs = _coords(), physics_specs(MARS_BODY_3D)
+        state = _column_state(coords, specs)
+        forcing = dataclasses.replace(
+            physics.mars_radiative_forcing(), regolith_enabled=True,
+            regolith_layer_skin_depth_fractions=(1.0, 2.0),
+        )
+        with pytest.raises(ValueError, match="ground_temperature has 12 layers"):
+            physics.regolith_conduction_tendencies(state, specs, forcing)
+
     def test_internal_conduction_closes_column_energy(self):
         coords = _coords()
         specs = physics_specs(MARS_BODY_3D)

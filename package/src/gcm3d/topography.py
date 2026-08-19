@@ -116,10 +116,8 @@ def load_mola_meg(path: str | Path | None = None):
         )
     elevation_m = raw.reshape(_MOLA_LINES, _MOLA_SAMPLES).astype(np.float64)
 
-    half = _MOLA_DEG_PER_PX / 2.0
     lats_deg = 90.0 - (np.arange(_MOLA_LINES) + 0.5) * _MOLA_DEG_PER_PX  # +89.875..−89.875
     lons_deg = (np.arange(_MOLA_SAMPLES) + 0.5) * _MOLA_DEG_PER_PX       # 0.125..359.875
-    del half
     return elevation_m, lats_deg, lons_deg
 
 
