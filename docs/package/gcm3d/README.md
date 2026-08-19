@@ -2,8 +2,8 @@
 
 > A planet-agnostic, differentiable 3-D general-circulation core built on the NeuralGCM **dinosaur** dycore, plus the Mars column physics (radiation, surface energy, regolith, PBL, CO₂ condensation) that turns it into a mid-fidelity Mars climate model.
 
-`gcm3d` is the **mid-fidelity tier** of the model ladder. The 0-D torch model
-(`src.celestials.planets.mars.Mars`) gives a global-mean seasonal cycle; `gcm3d`
+The GCM is the **mid-fidelity tier** of the model ladder. The 0-D torch model
+(`src.celestials.planets.mars.Mars`) gives a global-mean seasonal cycle; the GCM
 resolves the same physics on a spherical-harmonic 3-D grid over real MOLA
 topography, and is differentiable and batchable end-to-end via JAX.
 
@@ -28,28 +28,30 @@ are an **optional extra**:
 pip install 'terraforming[gcm3d]'
 ```
 
-The pure-Python body abstraction (`from src.gcm3d import BodyConstants`) is always
+The pure-Python body abstraction (`from src.framework.gcm import BodyConstants`) is always
 importable; every dycore builder raises a friendly "install the gcm3d extra"
-message if the extra is absent (single guard in `src/gcm3d/_dinosaur.py`).
+message if the extra is absent (single guard in `src/framework/gcm/_dinosaur.py`).
 
 ## Quick start
 
 ```python
 # Dry-dynamics Mars maps over real MOLA terrain
-from src.gcm3d import run_maps, save_maps
+from src.celestials.planets.mars.maps import run_maps, save_maps
 fields = run_maps(truncation="T42", n_layers=25, dt_seconds=300.0, n_steps=1000)
 save_maps(fields, "outputs/mars_maps")          # NetCDF + one PNG per field
 
 # Add the column radiative energy balance + seasonal CO₂ cap
-from src.gcm3d import mars_radiative_forcing, mars_co2_forcing
-forcing    = mars_radiative_forcing(co2_radiation_enabled=True, diurnal=True)
-co2        = mars_co2_forcing()
+from src.celestials.planets.mars.gcm import radiative_forcing, co2_forcing
+forcing    = radiative_forcing(co2_radiation_enabled=True, diurnal=True)
+co2        = co2_forcing()
 fields     = run_maps(forcing=forcing, co2_forcing=co2, **resolve_scale("balanced"))
 ```
 
 ```python
 # 0-D seasonal (Ls-indexed) cycle on the same substrate — differentiable
-from src.gcm3d import SeasonalForcing, initial_seasonal_state, run_seasonal
+from src.celestials.planets.mars.seasonal import (
+    SeasonalForcing, initial_seasonal_state, run_seasonal,
+)
 traj = run_seasonal(forcing, initial_seasonal_state(210.0, 610.0, 0.0, 4e15),
                     dt_seconds=2000.0, n_steps=30000, sample_every=50)
 traj.write_csv("outputs/mars_seasonal.csv")     # sol, Ls, T, P, ice, flux

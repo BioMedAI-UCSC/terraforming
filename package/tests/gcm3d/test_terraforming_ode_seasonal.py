@@ -1,5 +1,5 @@
 """Tests for the seasonal (time-advancing) 0-D terraforming ODE in
-``src.gcm3d.terraforming_ode`` (requires the optional 'gcm3d' extra).
+``src.celestials.planets.mars.seasonal`` (requires the optional 'gcm3d' extra).
 
 Where ``test_terraforming_ode.py`` covers the *frozen-epoch* prototype, this
 file covers the integrated version that carries elapsed time ``t`` in the state
@@ -28,7 +28,7 @@ import jax.numpy as jnp  # noqa: E402
 import torch  # noqa: E402
 
 from src.celestials.planets.mars import Mars  # noqa: E402
-from src.gcm3d.terraforming_ode import (  # noqa: E402
+from src.celestials.planets.mars.seasonal import (  # noqa: E402
     SeasonalForcing,
     SeasonalTrajectory,
     initial_seasonal_state,
@@ -199,8 +199,8 @@ class TestSeasonalRollout:
 
     def test_grad_flows_through_seasonal_rollout(self, mars):
         f = _seasonal_forcing_from_mars(mars)
-        from src.gcm3d.terraforming_ode import seasonal_ode, stepper
-        from src.gcm3d import integrate
+        from src.celestials.planets.mars.seasonal import seasonal_ode, stepper
+        from src.framework.gcm.dynamics import integrate
 
         step = stepper(seasonal_ode(f), dt_seconds=1000.0)
 

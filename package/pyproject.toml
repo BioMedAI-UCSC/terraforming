@@ -27,7 +27,7 @@ where = ["."]
 include = ["src*"]
 
 [tool.setuptools.package-data]
-"src.gcm3d" = ["*.npz"]
+"src.framework.physics" = ["*.npz"]
 
 [tool.pytest.ini_options]
 markers = [

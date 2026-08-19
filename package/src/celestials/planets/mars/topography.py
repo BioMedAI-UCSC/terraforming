@@ -20,7 +20,7 @@ from pathlib import Path
 
 import numpy as np
 
-from src.gcm3d._dinosaur import jnp, primitive_equations, scales
+from src.framework.gcm._dinosaur import jnp, primitive_equations, scales
 
 _u = scales.units
 
@@ -42,7 +42,7 @@ MOLA_SIZE_BYTES = 2_073_600  # 720 × 1440 × 2 (int16)
 
 # Staging location: env override MOLA_PATH, else repo-relative default.
 _REPO_DEFAULT_MOLA = (
-    Path(__file__).resolve().parents[3]
+    Path(__file__).resolve().parents[5]
     / "data" / "mola" / "meg004" / "megt90n000cb.img"
 )
 
@@ -185,7 +185,7 @@ def mola_modal_orography(coords, specs, elevation_nodal_m=None, mola_path=None,
     total wavenumbers clipped (``truncated_modal_orography``) to suppress Gibbs
     ringing at the truncation. Returns a modal array of shape
     ``coords.horizontal.modal_shape`` — pass it straight to
-    :func:`src.gcm3d.primitive_equations` as ``orography=…``.
+    :func:`src.framework.gcm.dynamics.primitive_equations` as ``orography=…``.
     """
     if elevation_nodal_m is None:
         elevation_nodal_m = regrid_to_nodal(coords, mola_path=mola_path)

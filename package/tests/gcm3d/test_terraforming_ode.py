@@ -1,4 +1,4 @@
-"""Tests for src.gcm3d.terraforming_ode — the "0-D physics on the dinosaur
+"""Tests for src.celestials.planets.mars.seasonal — the "0-D physics on the dinosaur
 substrate" prototype (requires the optional 'gcm3d' extra).
 
 This is the go/no-go for making dinosaur the engine backbone: it checks that the
@@ -21,8 +21,8 @@ import jax.numpy as jnp  # noqa: E402
 import torch  # noqa: E402
 
 from src.celestials.planets.mars import Mars  # noqa: E402
-from src.gcm3d import integrate  # noqa: E402
-from src.gcm3d.terraforming_ode import (  # noqa: E402
+from src.framework.gcm.dynamics import integrate  # noqa: E402
+from src.celestials.planets.mars.seasonal import (  # noqa: E402
     T_IDX,
     ZeroDForcing,
     stepper,

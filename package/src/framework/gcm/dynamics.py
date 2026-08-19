@@ -1,9 +1,11 @@
 """Dry primitive-equations dynamics on the dinosaur sigma-coordinate core.
 
-Planet-agnostic: every builder takes a :class:`~src.gcm3d.body.BodyConstants`.
+Planet-agnostic: every builder takes a
+:class:`~src.framework.gcm.body.BodyConstants`.
 Assembles a runnable, differentiable dry dynamical core for any body::
 
-    from src.gcm3d import coordinate_system, physics_specs, primitive_equations, stepper, integrate
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.framework.gcm import physics_specs, primitive_equations, stepper, integrate
     coords = coordinate_system("T21", n_layers=12)
     specs  = physics_specs(body)
     eq     = primitive_equations(coords, body)
@@ -21,11 +23,11 @@ from __future__ import annotations
 
 import numpy as np
 
-from src.gcm3d._dinosaur import jax
-from src.gcm3d._dinosaur import primitive_equations as _pe
-from src.gcm3d._dinosaur import scales, time_integration
-from src.gcm3d.body import BodyConstants
-from src.gcm3d.specs import physics_specs
+from src.framework.gcm._dinosaur import jax
+from src.framework.gcm._dinosaur import primitive_equations as _pe
+from src.framework.gcm._dinosaur import scales, time_integration
+from src.framework.gcm.body import BodyConstants
+from src.framework.gcm.specs import physics_specs
 
 _u = scales.units
 
@@ -57,7 +59,7 @@ def primitive_equations(coords, body: BodyConstants, specs=None, orography=None)
     Parameters
     ----------
     coords : dinosaur CoordinateSystem
-        From :func:`src.gcm3d.coordinate_system`.
+        From :func:`src.framework.gcm.coordinates.coordinate_system`.
     body : BodyConstants
         Planet/moon constants.
     specs : units.SimUnits, optional

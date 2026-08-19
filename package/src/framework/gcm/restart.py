@@ -12,9 +12,9 @@ from pathlib import Path
 
 import numpy as np
 
-from src.gcm3d._dinosaur import jax, jnp, primitive_equations
-from src.gcm3d.dynamics import integrate
-from src.gcm3d.physics import ColumnPhysicsState
+from src.framework.gcm._dinosaur import jax, jnp, primitive_equations
+from src.framework.gcm.dynamics import integrate
+from src.framework.physics.gcm import ColumnPhysicsState
 
 RESTART_FORMAT_VERSION = 2
 

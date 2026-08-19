@@ -10,8 +10,8 @@ import pytest
 pytest.importorskip("dinosaur")
 import jax  # noqa: E402
 
-from src.gcm3d import ames_radiation  # noqa: E402
-from src.gcm3d._dinosaur import jnp  # noqa: E402
+from src.framework.physics import ames_radiation  # noqa: E402
+from src.framework.gcm._dinosaur import jnp  # noqa: E402
 
 jax.config.update("jax_enable_x64", True)
 

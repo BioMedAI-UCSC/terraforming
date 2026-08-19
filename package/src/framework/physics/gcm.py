@@ -1,10 +1,10 @@
 """Column radiative physics as an explicit forcing on the 3-D primitive equations.
 
 This is the bridge from the 0-D terraforming ODE to the 3-D dycore: it takes the
-diurnal/seasonal radiative energy balance that :mod:`src.gcm3d.terraforming_ode`
+diurnal/seasonal radiative energy balance that :mod:`src.celestials.planets.mars.seasonal`
 integrates for a *single* global-mean column and evaluates it **per grid column**,
 then adds the result as a temperature tendency onto dinosaur's dry
-``PrimitiveEquationsSigma``. The dry maps path (:mod:`src.gcm3d.maps`) is
+``PrimitiveEquationsSigma``. The dry maps path (:mod:`src.celestials.planets.mars.maps`) is
 dynamics-only — dinosaur computes every tendency and nothing heats the fluid; here
 we supply the missing radiative forcing so the model develops its *own* temperature
 structure (hot subsolar point, cold poles/nightside) instead of relaxing a
@@ -21,7 +21,7 @@ implicit (gravity-wave) side untouched. The forcing needs the current time for t
 diurnal + seasonal cycle — dinosaur's ``State`` already carries a ``sim_time``
 field that the base equations advance at unit (nondimensional) rate, so we read it
 with no change to the state layout. Initialise the state with ``sim_time=0.0`` (see
-:func:`src.gcm3d.maps.run_maps` with ``forcing=...``) for time to advance.
+:func:`src.celestials.planets.mars.maps.run_maps` with ``forcing=...``) for time to advance.
 
 The nonlinear surface energy balance is evaluated once per column on a prognostic
 surface temperature. A conservative bulk sensible flux couples that reservoir to
@@ -44,12 +44,18 @@ from typing import NamedTuple
 
 import numpy as np
 
-from src.gcm3d import ames_radiation
-from src.gcm3d._dinosaur import jax, jnp, scales, spherical_harmonic, time_integration
-from src.gcm3d.body import BodyConstants
-from src.gcm3d.dynamics import primitive_equations as _build_primitive_equations
-from src.gcm3d.dynamics import reference_temperature
-from src.gcm3d.specs import physics_specs
+from src.framework.physics import ames_radiation
+from src.framework.gcm._dinosaur import (
+    jax,
+    jnp,
+    scales,
+    spherical_harmonic,
+    time_integration,
+)
+from src.framework.gcm.body import BodyConstants
+from src.framework.gcm.dynamics import primitive_equations as _build_primitive_equations
+from src.framework.gcm.dynamics import reference_temperature
+from src.framework.gcm.specs import physics_specs
 
 _u = scales.units
 _TWO_PI = 2.0 * math.pi
@@ -68,10 +74,11 @@ AU_M = 1.49597870700e11
 class RadiativeForcing:
     """Radiative + orbital constants for the per-column energy-balance forcing.
 
-    Mirrors the subset of :class:`src.gcm3d.terraforming_ode.SeasonalForcing`
+    Mirrors the subset of :class:`src.celestials.planets.mars.seasonal.SeasonalForcing`
     needed for the temperature tendency (no polar-cap fields — the CO2 cycle is a
     separate increment). Every field is a plain float/bool, so this stays pure
-    Python; the values that are *not* on :class:`~src.gcm3d.body.BodyConstants`
+    Python; the values that are *not* on
+    :class:`~src.framework.gcm.body.BodyConstants`
     (albedo, greenhouse, emissivity, thermal inertia, orbit) live here.
     """
 
@@ -141,45 +148,6 @@ class RadiativeForcing:
     dust_single_scattering_albedo: float = 0.92
     dust_conrath_parameter: float = 0.003
     dust_top_height_km: object = 35.0
-
-
-def mars_radiative_forcing(
-    albedo: float = 0.25,
-    greenhouse_factor: float = 1.02,
-    diurnal: bool = True,
-    init_orbital_angle_rad: float = 0.0,
-    co2_radiation_enabled: bool = False,
-    dust_visible_optical_depth: object = 0.0,
-    dust_longwave_optical_depth: object = 0.0,
-) -> RadiativeForcing:
-    """A :class:`RadiativeForcing` built from the package's Mars constants.
-
-    Pulls obliquity, precession, orbit, emissivity and thermal inertia from
-    ``src.celestials.planets.mars`` so the 3-D forcing uses the same numbers as
-    the 0-D/torch Mars model. ``albedo`` and ``greenhouse_factor`` default to the
-    torch ``Mars`` defaults but are overridable (e.g. to sweep terraforming
-    scenarios).
-    """
-    from src.celestials.planets import mars as _m
-
-    return RadiativeForcing(
-        albedo=albedo,
-        greenhouse_factor=greenhouse_factor,
-        emissivity=float(_m.MARS_SURFACE_EMISSIVITY),
-        stefan_boltzmann=float(_m.STEFAN_BOLTZMANN),
-        thermal_inertia=float(_m.MARS_THERMAL_INERTIA),
-        rotation_period_s=float(_m.MARS_ROTATION_PERIOD),
-        axial_tilt_rad=float(_m.MARS_AXIAL_TILT),
-        ls_perihelion_rad=float(_m.MARS_LS_PERIHELION),
-        orbital_period_s=float(_m.MARS_ORBITAL_PERIOD),
-        semi_major_axis_m=float(_m.MARS_SEMI_MAJOR_AXIS),
-        eccentricity=float(_m.MARS_ECCENTRICITY),
-        init_orbital_angle_rad=init_orbital_angle_rad,
-        diurnal=diurnal,
-        co2_radiation_enabled=co2_radiation_enabled,
-        dust_visible_optical_depth=dust_visible_optical_depth,
-        dust_longwave_optical_depth=dust_longwave_optical_depth,
-    )
 
 
 # ── Keplerian orbit ───────────────────────────────────────────────────────────
@@ -1150,7 +1118,8 @@ def forced_primitive_equations(
     Returns an ``ImplicitExplicitODE`` whose implicit side is dinosaur's unchanged
     (the semi-implicit gravity-wave treatment) and whose explicit side is the dry
     dynamical tendency **plus** :func:`radiative_heating_tendency`. Integrate it
-    with :func:`src.gcm3d.stepper` / :func:`src.gcm3d.integrate` exactly like the
+    with :func:`src.framework.gcm.dynamics.stepper` /
+    :func:`src.framework.gcm.dynamics.integrate` exactly like the
     dry equations; the only requirement is that the state carries ``sim_time`` (set
     it to ``0.0``) so the diurnal/seasonal forcing advances.
     """
@@ -1252,25 +1221,6 @@ class CO2Forcing:
     # Four-stage IMEX evaluations can sample intermediate reservoirs, so use a
     # conservative four-step positivity horizon for the default 600 s step.
     exchange_timestep_s: float = 24000.0
-
-
-def mars_co2_forcing(
-    exchange_rate_pa_s_per_k: float = 1.0e-4,
-    escape_rate_kg_s: float = 0.0,
-    energy_limited: bool = True,
-) -> CO2Forcing:
-    """A :class:`CO2Forcing` built from the package's Mars CO2 constants."""
-    from src.celestials.planets import mars as _m
-
-    return CO2Forcing(
-        frost_point_k=float(_m.MARS_CO2_FROST_POINT),
-        latent_heat_j_kg=float(_m.MARS_CO2_LATENT_HEAT),
-        gravity_m_s2=float(_m.MARS_BODY_3D.gravity_m_s2),
-        thermal_inertia=float(_m.MARS_THERMAL_INERTIA),
-        exchange_rate_pa_s_per_k=exchange_rate_pa_s_per_k,
-        escape_rate_kg_s=escape_rate_kg_s,
-        energy_limited=energy_limited,
-    )
 
 
 def co2_frost_point_k(pressure_pa):
@@ -1391,7 +1341,8 @@ def forced_co2_primitive_equations(
     The ODE operates on :class:`ColumnPhysicsState`, carrying the Dinosaur state,
     prognostic surface temperature, and a nodal surface frost reservoir. Build it
     with :func:`initial_column_state` or :func:`initial_co2_state`; integrate with
-    the ordinary :func:`src.gcm3d.stepper`/:func:`src.gcm3d.integrate`.
+    the ordinary :func:`src.framework.gcm.dynamics.stepper` /
+    :func:`src.framework.gcm.dynamics.integrate`.
     """
     if specs is None:
         specs = physics_specs(body)
@@ -1484,9 +1435,11 @@ def initial_co2_state(dyn_state, coords, ice_pa: float = 0.0, specs=None, body=N
     frost forms from the atmosphere as poles cool). Returns the ``(dyn, ice)`` tuple
     the CO2 ODE integrates.
     """
-    if body is None:
-        from src.celestials.planets.mars import MARS_BODY_3D
-        body = MARS_BODY_3D
+    if body is None and (specs is None or surface_temperature_k is None):
+        raise ValueError(
+            "generic initial_co2_state requires body when specs or "
+            "surface_temperature_k is omitted"
+        )
     if specs is None:
         specs = physics_specs(body)
     if surface_temperature_k is None:

@@ -1,6 +1,8 @@
 # API Reference — gcm3d
 
-All names below are re-exported from `src.gcm3d` (`from src.gcm3d import …`).
+Reusable imports live under `src.framework.gcm` and `src.framework.physics`.
+Mars forcing, maps, datasets, and seasonal components live under
+`src.celestials.planets.mars`. There is no top-level `src.gcm3d` package.
 `BodyConstants`/`EARTH` are always available; everything else requires the
 `gcm3d` extra. Signatures reflect the current implementation.
 
@@ -8,7 +10,7 @@ All names below are re-exported from `src.gcm3d` (`from src.gcm3d import …`).
 
 ### `BodyConstants`
 **Purpose**: frozen SI constants a planet/moon supplies to the dry dynamical core.
-**Location**: `package/src/gcm3d/body.py`
+**Location**: `package/src/framework/gcm/body.py`
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -45,18 +47,18 @@ Length = radius, time = 1/(2Ω), mass = 1 kg, temperature = 1 K.
 - `stepper(equation, dt_seconds, specs) -> step_fn` — semi-implicit IMEX-RK-SIL3; nondimensionalises `dt`.
 - `integrate(step_fn, state, n_steps) -> state` — `jax.lax.scan` rollout; differentiable. **Raises** `ValueError` if `n_steps < 1`.
 
-## Column physics — `physics.py`
+## Column physics — `framework/physics/gcm.py`
 
-### `RadiativeForcing` (dataclass) / `mars_radiative_forcing(...) -> RadiativeForcing`
+### `RadiativeForcing` (dataclass) / Mars `radiative_forcing(...) -> RadiativeForcing`
 Radiative + orbital + surface-scheme constants for the per-column energy balance.
-`mars_radiative_forcing` pulls obliquity/precession/orbit/emissivity/thermal-inertia
-from `src.celestials.planets.mars`. Key toggles: `diurnal`, `co2_radiation_enabled`,
+`src.celestials.planets.mars.gcm.radiative_forcing` supplies Mars's
+obliquity/precession/orbit/emissivity/thermal-inertia. Key toggles: `diurnal`, `co2_radiation_enabled`,
 `ames_correlated_k_enabled` (default True), `regolith_enabled`,
 `stability_exchange_enabled`, `pbl_diffusion_enabled`,
 `convective_adjustment_enabled`, dust fields (`dust_visible_optical_depth`,
 `dust_longwave_optical_depth`, `dust_top_height_km`, `dust_conrath_parameter`).
 
-### `CO2Forcing` (dataclass) / `mars_co2_forcing(...) -> CO2Forcing`
+### `CO2Forcing` (dataclass) / Mars `co2_forcing(...) -> CO2Forcing`
 Constants for the 3-D CO₂ condensation/sublimation cycle. `energy_limited=True`
 drives phase change off the surface-energy residual (no tunable relaxation rate);
 `use_pressure_frost` uses the Clausius–Clapeyron frost point; `escape_rate_kg_s`
@@ -83,7 +85,7 @@ is a uniform non-thermal mass sink.
 - `cos_zenith_nodal(t_s, lat_rad, lon_rad, f)` — cos(zenith) on the `(n_lon, n_lat)` grid; diurnal terminator or daily-mean.
 - `orbital_distance(t_s, f)`, `mean_anomaly_for_ls(ls_rad, f)`, `co2_frost_point_k(pressure_pa)`.
 
-## Ames radiation — `ames_radiation.py`
+## Correlated-k radiation — `framework/physics/ames_radiation.py`
 - `load_ames_co2_tables()` / `load_ames_co2_tables_jax()` — the bundled 12-band correlated-k asset.
 - `correlated_k_optical_depths(temperature_k, pressure_mid_pa, delta_pressure_pa) -> (sw_tau, lw_tau)`.
 - `channel_weights(clear_fraction)`, `planck_band_fractions(temperature_k)`.

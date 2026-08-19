@@ -5,7 +5,7 @@ planet-agnostic. Crucially, it does **not** require patching dinosaur's
 Earth-hardcoded ``scales.py``: dinosaur's equations consume a
 ``units.SimUnitsProtocol`` (``physics_specs``) carrying radius, angular velocity,
 gravity, gas constant and kappa, built via ``SimUnits.from_si``. We pass the
-values from any :class:`~src.gcm3d.body.BodyConstants`.
+values from any :class:`~src.framework.gcm.body.BodyConstants`.
 
 Nondimensionalisation convention (matches dinosaur/NeuralGCM): length is scaled
 by the body radius and time by ``1/(2Ω)``, so any body has ``radius = 1`` and
@@ -16,8 +16,8 @@ body makes its radius ≠ 1 and the equations reject the mismatch.
 
 from __future__ import annotations
 
-from src.gcm3d._dinosaur import scales, units
-from src.gcm3d.body import BodyConstants
+from src.framework.gcm._dinosaur import scales, units
+from src.framework.gcm.body import BodyConstants
 
 _u = scales.units
 

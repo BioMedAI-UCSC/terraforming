@@ -13,7 +13,7 @@ pytest.importorskip("dinosaur")
 import jax.numpy as jnp  # noqa: E402
 
 from src.celestials.planets.mars import mars_gcm3d_core  # noqa: E402
-from src.gcm3d import integrate, stepper  # noqa: E402
+from src.framework.gcm.dynamics import integrate, stepper  # noqa: E402
 
 
 def test_mars_gcm3d_core_builds_runnable_model():
@@ -23,7 +23,7 @@ def test_mars_gcm3d_core_builds_runnable_model():
     assert coords.nodal_shape == (10, 64, 32)
 
     # And the returned equations actually integrate one step (finite state).
-    from src.gcm3d._dinosaur import primitive_equations_states, scales
+    from src.framework.gcm._dinosaur import primitive_equations_states, scales
 
     _u = scales.units
     init_fn, _ = primitive_equations_states.steady_state_jw(

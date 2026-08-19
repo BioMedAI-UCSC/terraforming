@@ -17,7 +17,7 @@ from src.celestials.planets.mars import (
     MARS_RADIUS,
     MARS_ROTATION_PERIOD,
 )
-from src.gcm3d.body import BodyConstants
+from src.framework.gcm.body import BodyConstants
 
 
 class TestMarsBody3D:

@@ -67,7 +67,7 @@ class TestExtractMapsFields:
 
 def test_matched_mcd_comparison_uses_requested_parameters(monkeypatch, tmp_path):
     import xarray as xr
-    from src.gcm3d import mcd
+    from src.celestials.planets.mars import mcd
 
     calls = []
     server._mcd_ascii_cache.clear()
@@ -224,7 +224,7 @@ def test_gcm_snapshot_failure_is_recorded_and_fails_final(monkeypatch):
 @pytest.mark.slow
 def test_gcm_run_produces_fields_and_hides_them_from_poll():
     pytest.importorskip("dinosaur")
-    from src.gcm3d import topography as topo
+    from src.celestials.planets.mars import topography as topo
 
     if not topo._DEFAULT_MOLA.exists():
         pytest.skip("MOLA raster not staged")
@@ -256,7 +256,7 @@ def test_gcm_run_produces_fields_and_hides_them_from_poll():
 @pytest.mark.slow
 def test_gcm_intervention_captures_snapshots_along_timeline():
     pytest.importorskip("dinosaur")
-    from src.gcm3d import topography as topo
+    from src.celestials.planets.mars import topography as topo
 
     if not topo._DEFAULT_MOLA.exists():
         pytest.skip("MOLA raster not staged")

@@ -9,7 +9,7 @@ does not depend on which body is being simulated — so this module takes no
 
 from __future__ import annotations
 
-from src.gcm3d._dinosaur import (
+from src.framework.gcm._dinosaur import (
     coordinate_systems,
     sigma_coordinates,
     spherical_harmonic,

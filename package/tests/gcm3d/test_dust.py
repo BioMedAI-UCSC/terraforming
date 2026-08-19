@@ -7,8 +7,8 @@ import pytest
 
 pytest.importorskip("dinosaur")
 
-from src.gcm3d.coordinates import coordinate_system  # noqa: E402
-from src.gcm3d.dust import seasonal_dust_on_grid  # noqa: E402
+from src.framework.gcm.coordinates import coordinate_system  # noqa: E402
+from src.celestials.planets.mars.dust import seasonal_dust_on_grid  # noqa: E402
 
 
 AMES_DUST = Path(__file__).resolve().parents[3] / "AmesGCM/data/DustScenario_Background.nc"

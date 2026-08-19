@@ -7,20 +7,20 @@ pytest.importorskip("dinosaur")
 import jax
 
 from src.celestials.planets.mars import MARS_BODY_3D  # noqa: E402
-from src.gcm3d.coordinates import coordinate_system  # noqa: E402
-from src.gcm3d.dynamics import integrate, stepper  # noqa: E402
-from src.gcm3d.physics import (  # noqa: E402
+from src.framework.gcm.coordinates import coordinate_system  # noqa: E402
+from src.framework.gcm.dynamics import integrate, stepper  # noqa: E402
+from src.framework.physics.gcm import (  # noqa: E402
     forced_primitive_equations,
     initial_column_state,
-    mars_radiative_forcing,
 )
-from src.gcm3d.restart import (  # noqa: E402
+from src.celestials.planets.mars.gcm import radiative_forcing  # noqa: E402
+from src.framework.gcm.restart import (  # noqa: E402
     integrate_with_averaging,
     load_restart,
     save_restart,
 )
-from src.gcm3d.specs import physics_specs  # noqa: E402
-from src.gcm3d._dinosaur import jnp, primitive_equations, scales  # noqa: E402
+from src.framework.gcm.specs import physics_specs  # noqa: E402
+from src.framework.gcm._dinosaur import jnp, primitive_equations, scales  # noqa: E402
 
 _u = scales.units
 
@@ -43,7 +43,7 @@ def _model():
     )
     state = initial_column_state(dyn, coords, 200.0, specs)
     equation = forced_primitive_equations(
-        coords, MARS_BODY_3D, mars_radiative_forcing(diurnal=False), specs=specs
+        coords, MARS_BODY_3D, radiative_forcing(diurnal=False), specs=specs
     )
     return state, jax.jit(stepper(equation, 300.0, specs))
 

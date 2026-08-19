@@ -5,8 +5,8 @@ import pytest
 pytest.importorskip("dinosaur")
 
 from src.celestials.planets.mars import MARS_BODY_3D  # noqa: E402
-from src.gcm3d.body import EARTH  # noqa: E402
-from src.gcm3d.benchmarks import (  # noqa: E402
+from src.framework.gcm.body import EARTH  # noqa: E402
+from src.framework.gcm.benchmarks import (  # noqa: E402
     run_resting_atmosphere,
     run_solid_body_tracer,
     run_balanced_jet,

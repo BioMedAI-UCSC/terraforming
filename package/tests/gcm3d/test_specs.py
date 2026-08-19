@@ -1,4 +1,4 @@
-"""Tests for src.gcm3d.specs (requires the optional 'gcm3d' extra).
+"""Tests for framework GCM unit specifications (requires the GCM extra).
 
 Covers the planet-agnostic "constants into the equations" seam:
   - a body's physics_specs nondimensionalises to the grid convention
@@ -14,8 +14,8 @@ import pytest
 pytest.importorskip("dinosaur")
 
 from src.celestials.planets.mars import MARS_BODY_3D  # noqa: E402
-from src.gcm3d.body import EARTH  # noqa: E402
-from src.gcm3d.specs import nondimensionalization_scale, physics_specs  # noqa: E402
+from src.framework.gcm.body import EARTH  # noqa: E402
+from src.framework.gcm.specs import nondimensionalization_scale, physics_specs  # noqa: E402
 
 
 @pytest.mark.parametrize("body", [MARS_BODY_3D, EARTH], ids=["mars", "earth"])

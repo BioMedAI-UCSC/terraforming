@@ -27,7 +27,7 @@ def test_mars_maps_help_exits_zero():
 @pytest.mark.slow
 def test_mars_maps_writes_outputs():
     pytest.importorskip("dinosaur")
-    from src.gcm3d import topography as topo
+    from src.celestials.planets.mars import topography as topo
 
     if not topo._DEFAULT_MOLA.exists():
         pytest.skip("MOLA raster not staged")
@@ -50,7 +50,7 @@ def test_mars_maps_writes_outputs():
 @pytest.mark.slow
 def test_mars_maps_no_physics_has_no_co2_panel():
     pytest.importorskip("dinosaur")
-    from src.gcm3d import topography as topo
+    from src.celestials.planets.mars import topography as topo
 
     if not topo._DEFAULT_MOLA.exists():
         pytest.skip("MOLA raster not staged")

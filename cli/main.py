@@ -790,8 +790,12 @@ def mars_maps(
 
     _print_banner()
     try:
-        from src.gcm3d.maps import resolve_scale, run_maps, save_maps
-        from src.gcm3d.physics import mars_co2_forcing, mars_radiative_forcing
+        from src.celestials.planets.mars.maps import resolve_scale, run_maps, save_maps
+        from src.celestials.planets.mars.gcm import (
+            co2_forcing as build_co2_forcing,
+            radiative_forcing,
+        )
+        from src.framework.physics.gcm import mean_anomaly_for_ls
     except ModuleNotFoundError:
         click.echo(_c("\n  ✖  The 3-D maps need the optional 'gcm3d' extra.", "bright_red"))
         click.echo(_c("     Install it:  pip install 'terraforming[gcm3d]'", "bright_black"))
@@ -809,9 +813,7 @@ def mars_maps(
     forcing = None
     co2_forcing = None
     if physics:
-        from src.gcm3d.physics import mean_anomaly_for_ls
-
-        forcing = mars_radiative_forcing(
+        forcing = radiative_forcing(
             albedo=albedo, greenhouse_factor=greenhouse_factor, diurnal=diurnal,
         )
         forcing = dataclasses.replace(
@@ -819,7 +821,7 @@ def mars_maps(
             init_orbital_angle_rad=mean_anomaly_for_ls(math.radians(ls), forcing),
         )
         if co2:
-            co2_forcing = mars_co2_forcing()
+            co2_forcing = build_co2_forcing()
     elif co2:
         click.echo(_c("  note: --co2 needs --physics; ignoring CO2 cycle.", "bright_yellow"))
 

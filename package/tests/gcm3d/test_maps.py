@@ -1,4 +1,4 @@
-"""Tests for src.gcm3d.maps — dry-dynamics Mars maps over MOLA terrain
+"""Tests for src.celestials.planets.mars.maps — dry-dynamics Mars maps over MOLA terrain
 (requires the optional 'gcm3d' extra and the staged MOLA raster).
 
 Covers:
@@ -17,8 +17,8 @@ pytest.importorskip("dinosaur")
 import jax  # noqa: E402
 
 from src.celestials.planets.mars import MARS_BODY_3D  # noqa: E402
-from src.gcm3d import maps  # noqa: E402
-from src.gcm3d import topography as topo  # noqa: E402
+from src.celestials.planets.mars import maps  # noqa: E402
+from src.celestials.planets.mars import topography as topo  # noqa: E402
 
 jax.config.update("jax_enable_x64", True)
 
@@ -116,8 +116,8 @@ class TestScalePresets:
 
 
 def test_explicit_surface_fields_match_grid_and_physical_bounds(tmp_path):
-    from src.gcm3d.coordinates import coordinate_system
-    from src.gcm3d.surface import surface_fields_on_grid
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.celestials.planets.mars.surface import surface_fields_on_grid
     import xarray as xr
 
     grid = coordinate_system("T21", 8).horizontal
@@ -142,8 +142,8 @@ def test_explicit_surface_fields_match_grid_and_physical_bounds(tmp_path):
 def test_surface_fields_are_threaded_into_radiation_and_regolith(tmp_path):
     import xarray as xr
 
-    from src.gcm3d.coordinates import coordinate_system
-    from src.gcm3d.physics import mars_radiative_forcing
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.celestials.planets.mars.gcm import radiative_forcing
 
     grid = coordinate_system("T21", 8).horizontal
     path = tmp_path / "surface.nc"
@@ -161,7 +161,7 @@ def test_surface_fields_are_threaded_into_radiation_and_regolith(tmp_path):
     ).to_netcdf(path)
 
     forcing = maps.forcing_with_surface_properties(
-        mars_radiative_forcing(diurnal=False), grid, path
+        radiative_forcing(diurnal=False), grid, path
     )
     assert np.asarray(forcing.albedo).shape == grid.nodal_shape
     assert np.ptp(np.asarray(forcing.albedo)) > 0.2

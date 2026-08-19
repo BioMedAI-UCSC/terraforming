@@ -15,7 +15,7 @@ of holding the isothermal rest state.
 
 ## What was built
 
-| Module / symbol (`src.gcm3d`) | Role |
+| Module / symbol | Role |
 |---|---|
 | `topography.load_mola_meg` | Read the staged MOLA MEGDR raster (`data/mola/meg004/megt90n000cb.img`, 720×1440 int16 MSB, metres). |
 | `topography.regrid_to_nodal` | Bilinear (periodic-lon) regrid of MOLA onto the dynamics nodal grid. |
@@ -55,7 +55,7 @@ proper (multi-band) radiation scheme, dust, and quantitative comparison.
 
 ## Physics coupling: radiation + CO₂ (0-D → 3-D)
 
-`src.gcm3d.physics` moves the two 0-D physics pieces onto the 3-D dycore as
+`src.framework.physics.gcm` moves the two column-physics pieces onto the 3-D dycore as
 **explicit forcing terms** added to dinosaur's `explicit_terms`. dinosaur's `State`
 already carries `sim_time` (the base equations advance it), so the diurnal/seasonal
 forcing needs no new state — set `sim_time=0.0` and it advances.
@@ -102,19 +102,19 @@ the MOLA modal orography.
 ## Usage
 
 ```python
-from src.gcm3d import run_maps, save_maps
-from src.gcm3d import mars_radiative_forcing, mars_co2_forcing
+from src.celestials.planets.mars.maps import run_maps, save_maps
+from src.celestials.planets.mars.gcm import radiative_forcing, co2_forcing
 
 # Dry dynamical core (no physics forcing):
 fields = run_maps(truncation="T42", n_layers=25, dt_seconds=600.0, n_steps=300)
 
 # + grey radiative energy balance (diurnal forcing needs dt <= rot/(2*n_lon)):
 fields = run_maps(truncation="T42", n_layers=12, dt_seconds=300.0, n_steps=600,
-                  forcing=mars_radiative_forcing())
+                  forcing=radiative_forcing())
 
 # + CO₂ condensation cycle (adds a seasonal polar cap; fields.co2_ice_pa):
 fields = run_maps(truncation="T42", n_layers=12, dt_seconds=300.0, n_steps=600,
-                  forcing=mars_radiative_forcing(), co2_forcing=mars_co2_forcing())
+                  forcing=radiative_forcing(), co2_forcing=co2_forcing())
 
 save_maps(fields, "outputs/gcm3d_maps")   # PNGs + NetCDF (incl. co2_ice when present)
 # fields.surface_pressure_pa / temperature_k / u_ms / v_ms / co2_ice_pa : (n_lat, n_lon)

@@ -1,4 +1,4 @@
-"""Tests for the Keplerian orbit in src.gcm3d.physics.
+"""Tests for the Keplerian orbit in framework GCM physics.
 
 Covers the orbit-correctness items from the physics review:
   - mean anomaly advances uniformly; Kepler's equation is solved for E; the true
@@ -19,11 +19,12 @@ import pytest
 
 pytest.importorskip("dinosaur")
 
-from src.gcm3d import physics as P  # noqa: E402
+from src.celestials.planets.mars import gcm as mars_gcm  # noqa: E402
+from src.framework.physics import gcm as P  # noqa: E402
 
 
 def _forcing():
-    return P.mars_radiative_forcing()
+    return mars_gcm.radiative_forcing()
 
 
 class TestKeplerSolve:

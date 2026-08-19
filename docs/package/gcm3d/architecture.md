@@ -2,20 +2,25 @@
 
 ## Component Overview
 
-`gcm3d` layers cleanly from a pure-Python base up to output:
+The reusable GCM implementation lives under `src.framework`; Mars-specific
+configuration, data adapters, maps, and outputs live under
+`src.celestials.planets.mars`.
 
 | Layer | Modules | Depends on JAX? |
 |-------|---------|-----------------|
-| Body abstraction | `body.py` (`BodyConstants`, `EARTH`) | No — always importable |
-| Dependency guard | `_dinosaur.py` | — (raises if extra missing) |
-| Discretisation | `coordinates.py` (spectral grid × sigma), `specs.py` (nondimensionalisation) | Yes |
-| Dry dynamical core | `dynamics.py` (`primitive_equations`, `stepper`, `integrate`) | Yes |
-| Column physics | `physics.py` (radiation, surface energy, drag, PBL, convection, CO₂ cycle), `ames_radiation.py` (correlated-k tables) | Yes |
-| Boundary data | `topography.py` (MOLA orography), `surface.py` (albedo/TI), `dust.py` (Ames dust) | topography: Yes; surface/dust: NumPy+xarray |
-| Experiments | `maps.py` (3-D Mars maps), `terraforming_ode.py` (0-D seasonal), `benchmarks.py` (dycore acceptance), `restart.py` (spin-up/averaging), `mcd.py` (MCD validation client) | mostly Yes |
+| Body abstraction | `framework/gcm/body.py` (`BodyConstants`, `EARTH`) | No — always importable |
+| Dependency guard | `framework/gcm/_dinosaur.py` | — (raises if extra missing) |
+| Discretisation | `framework/gcm/coordinates.py` (spectral grid × sigma), `framework/gcm/specs.py` (nondimensionalisation) | Yes |
+| Dry dynamical core | `framework/gcm/dynamics.py` (`primitive_equations`, `stepper`, `integrate`) | Yes |
+| Reusable physics | `framework/physics/gcm.py` (radiation, surface energy, drag, PBL, convection, condensable cycle), `framework/physics/ames_radiation.py` (correlated-k operators/tables) | Yes |
+| Mars configuration | `celestials/planets/mars.py` (`MARS_BODY_3D`) and `celestials/planets/mars_gcm.py` (forcing factories) | factories: Yes |
+| Generic diagnostics | `framework/gcm/benchmarks.py`, `framework/gcm/restart.py` | Yes |
+| Mars boundary data | `celestials/planets/mars/topography.py`, `surface.py`, `dust.py`, `mcd.py` | topography: Yes; surface/dust: NumPy+xarray |
+| Mars experiments | `celestials/planets/mars/maps.py`, `seasonal.py` | Yes |
 
-The Mars instance and the convenience entry point `mars_gcm3d_core()` live in
-`src/celestials/planets/mars.py`, keeping the core planet-agnostic.
+The dependency direction is one-way: Mars imports and configures framework
+operators; framework code never imports `src.celestials`. The pre-release
+top-level `src.gcm3d` package was removed rather than retained as an alias.
 
 ## Flow Diagram — the forced 3-D map run
 
@@ -85,7 +90,8 @@ surface drag + PBL vertical diffusion (momentum), dry convective adjustment
 - **NumPy / xarray**: raster IO, NetCDF export, boundary-field regridding.
 - **matplotlib** (`plot_maps` only, Agg backend).
 - Staged assets: MOLA MEGDR raster (`data/mola/…`), Ames CO₂ 12-band table
-  (`ames_co2_12band.npz`, bundled), optional TES surface + Ames dust NetCDFs.
+  (`framework/physics/ames_co2_12band.npz`, bundled), optional TES surface +
+  Ames dust NetCDFs.
 
 ## Extension Points
 

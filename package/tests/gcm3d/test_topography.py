@@ -1,4 +1,4 @@
-"""Tests for src.gcm3d.topography — MOLA MEGDR → spectral orography
+"""Tests for src.celestials.planets.mars.topography — MOLA MEGDR → spectral orography
 (requires the optional 'gcm3d' extra and the staged MOLA raster).
 
 Covers:
@@ -17,8 +17,9 @@ pytest.importorskip("dinosaur")
 import jax  # noqa: E402
 
 from src.celestials.planets.mars import MARS_BODY_3D  # noqa: E402
-from src.gcm3d import coordinate_system, physics_specs  # noqa: E402
-from src.gcm3d import topography as topo  # noqa: E402
+from src.framework.gcm.coordinates import coordinate_system  # noqa: E402
+from src.framework.gcm.specs import physics_specs  # noqa: E402
+from src.celestials.planets.mars import topography as topo  # noqa: E402
 
 jax.config.update("jax_enable_x64", True)
 

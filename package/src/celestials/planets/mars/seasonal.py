@@ -6,7 +6,8 @@ direction: it takes the existing 0-D coupled ODE physics
 integrated by ``engine.TimeController``) and re-expresses it as a
 ``dinosaur.time_integration.ImplicitExplicitODE`` — the *same* ODE abstraction the
 3-D primitive equations use — so it is integrated by dinosaur's *same* stepper
-(``imex_rk_sil3``) and the *same* scan helper (:func:`src.gcm3d.integrate`).
+(``imex_rk_sil3``) and the same scan helper
+(:func:`src.framework.gcm.dynamics.integrate`).
 
 Why this proves the direction:
   - **Substrate reuse.** Our terraforming physics becomes a first-class dinosaur
@@ -47,7 +48,7 @@ from pathlib import Path
 
 import numpy as np
 
-from src.gcm3d._dinosaur import jax, jnp, time_integration
+from src.framework.gcm._dinosaur import jax, jnp, time_integration
 
 # State layout for the 0-D coupled system, matching the torch model's ``y``.
 T_IDX, P_IDX, MICE_IDX = 0, 1, 2
@@ -179,7 +180,7 @@ def terraforming_ode(f: ZeroDForcing) -> "time_integration.ImplicitExplicitODE":
 def stepper(ode: "time_integration.ImplicitExplicitODE", dt_seconds: float):
     """A single-step function for the 0-D ODE.
 
-    Unlike :func:`src.gcm3d.stepper` (3-D), the 0-D system is dimensional, so
+    Unlike :func:`src.framework.gcm.dynamics.stepper` (3-D), the 0-D system is dimensional, so
     ``dt_seconds`` is passed to dinosaur's stepper directly — no
     nondimensionalisation.
     """

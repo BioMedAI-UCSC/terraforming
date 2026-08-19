@@ -11,12 +11,12 @@ parity to the torch kernel.
 
 ## What was built
 
-`package/src/gcm3d/terraforming_ode.py` (torch-free) re-expresses
+`package/src/celestials/planets/mars/seasonal.py` (torch-free) re-expresses
 `Mars.compute_derivatives` — the `dy/dt` for `y = [T, P, M_ice]` — as a
 `dinosaur.time_integration.ImplicitExplicitODE`. The 0-D system is non-stiff, so
 the implicit side is empty (`implicit_terms = 0`, `implicit_inverse = identity`)
 and dinosaur's `imex_rk_sil3` degenerates to its explicit Runge-Kutta tableau.
-It is stepped by the **same** stepper and the **same** `src.gcm3d.integrate`
+It is stepped by the same framework integration machinery
 scan the 3-D dry dynamics use. Orbital forcing and the polar reservoirs are held
 frozen at an epoch (`ZeroDForcing`); the full port would instead carry `sim_time`
 in state and advance the orbit inside `explicit_terms`.
@@ -52,8 +52,8 @@ Still open for the full port (deliberately out of scope here):
 
 The isolation contract is preserved: `terraforming_ode.py` imports only
 JAX/dinosaur; the torch comparison lives in the tests (the experiment layer). The
-seasonal API is now exported from `src.gcm3d.__init__` under the existing
-dinosaur-guarded block, so it is only importable with the `gcm3d` extra and the
+seasonal API now lives under `src.celestials.planets.mars.seasonal`, so it is
+only importable with the `gcm3d` extra and the
 torch-only CI is unaffected.
 
 ## Seasonal outputs (integrated: orbit advances inside the ODE)
@@ -64,7 +64,7 @@ layout main uses) and rebuilds the orbital forcing from `t` every step — a
 line-for-line port of `BatchedController.advance_orbit` + the two-cap
 `compute_derivatives`:
 
-| Public symbol (`src.gcm3d`) | Role |
+| Public symbol (`src.celestials.planets.mars.seasonal`) | Role |
 |---|---|
 | `SeasonalForcing` | Pure-Python constants **+ Keplerian orbital elements** (no frozen flux/caps). |
 | `seasonal_tendency` / `seasonal_ode` | Two-cap kernel with orbit derived from `t`; parity-tested vs torch at arbitrary phase. |

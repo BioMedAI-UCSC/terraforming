@@ -1,4 +1,4 @@
-"""Tests for src.gcm3d.coordinates (requires the optional 'gcm3d' extra).
+"""Tests for src.framework.gcm.coordinates (requires the optional 'gcm3d' extra).
 
 Skipped when dinosaur/JAX are not installed (the default in the torch-only Tests
 CI); the dedicated gcm3d CI workflow installs the extra and runs these. Covers:
@@ -14,7 +14,7 @@ jax = pytest.importorskip("jax")
 jnp = pytest.importorskip("jax.numpy")
 pytest.importorskip("dinosaur")
 
-from src.gcm3d import coordinate_system, grid  # noqa: E402
+from src.framework.gcm.coordinates import coordinate_system, grid  # noqa: E402
 
 
 class TestCoordinateSystem:

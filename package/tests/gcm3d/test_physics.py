@@ -1,4 +1,4 @@
-"""Tests for src.gcm3d.physics — the per-column radiative energy balance added
+"""Tests for framework GCM physics — the per-column radiative energy balance added
 as an explicit forcing onto dinosaur's 3-D primitive equations (requires the
 optional 'gcm3d' extra).
 
@@ -25,12 +25,13 @@ pytest.importorskip("dinosaur")
 import jax  # noqa: E402
 
 from src.celestials.planets.mars import MARS_BODY_3D  # noqa: E402
-from src.gcm3d import physics  # noqa: E402
-from src.gcm3d._dinosaur import jnp, scales, spherical_harmonic  # noqa: E402
-from src.gcm3d.coordinates import coordinate_system  # noqa: E402
-from src.gcm3d.dynamics import integrate, reference_temperature, stepper  # noqa: E402
-from src.gcm3d.dynamics import primitive_equations as build_dry  # noqa: E402
-from src.gcm3d.specs import physics_specs  # noqa: E402
+from src.celestials.planets.mars import gcm as mars_gcm  # noqa: E402
+from src.framework.physics import gcm as physics  # noqa: E402
+from src.framework.gcm._dinosaur import jnp, scales, spherical_harmonic  # noqa: E402
+from src.framework.gcm.coordinates import coordinate_system  # noqa: E402
+from src.framework.gcm.dynamics import integrate, reference_temperature, stepper  # noqa: E402
+from src.framework.gcm.dynamics import primitive_equations as build_dry  # noqa: E402
+from src.framework.gcm.specs import physics_specs  # noqa: E402
 
 jax.config.update("jax_enable_x64", True)
 _u = scales.units
@@ -44,7 +45,7 @@ def _coords(n_layers: int = 6):
 
 def _rest_state(coords, specs):
     """A rest, isothermal state (zero variation) with sim_time set."""
-    from src.gcm3d._dinosaur import jnp, primitive_equations
+    from src.framework.gcm._dinosaur import jnp, primitive_equations
 
     grid = coords.horizontal
     zeros = jnp.zeros((coords.vertical.layers,) + grid.modal_shape)
@@ -73,7 +74,7 @@ class TestMarsRadiativeForcing:
         """Builder mirrors the package's Mars obliquity/orbit/emissivity."""
         from src.celestials.planets import mars as m
 
-        f = physics.mars_radiative_forcing()
+        f = mars_gcm.radiative_forcing()
         assert f.axial_tilt_rad == pytest.approx(float(m.MARS_AXIAL_TILT))
         assert f.eccentricity == pytest.approx(float(m.MARS_ECCENTRICITY))
         assert f.emissivity == pytest.approx(float(m.MARS_SURFACE_EMISSIVITY))
@@ -81,7 +82,7 @@ class TestMarsRadiativeForcing:
 
     def test_overrides_apply(self):
         """Albedo/greenhouse overrides pass through."""
-        f = physics.mars_radiative_forcing(albedo=0.4, greenhouse_factor=1.5)
+        f = mars_gcm.radiative_forcing(albedo=0.4, greenhouse_factor=1.5)
         assert f.albedo == pytest.approx(0.4)
         assert f.greenhouse_factor == pytest.approx(1.5)
 
@@ -92,7 +93,7 @@ class TestSolarFlux:
 
     def test_perihelion_brighter_than_aphelion(self):
         """Inverse-square law: flux at perihelion (theta=0) exceeds aphelion."""
-        f = physics.mars_radiative_forcing()
+        f = mars_gcm.radiative_forcing()
         peri = float(physics.solar_flux(0.0, f))
         apo = float(physics.solar_flux(f.orbital_period_s / 2.0, f))
         assert peri > apo > 0.0
@@ -106,7 +107,7 @@ class TestCosZenith:
 
     def test_shape_and_nonnegative_diurnal(self):
         coords = _coords()
-        f = physics.mars_radiative_forcing(diurnal=True)
+        f = mars_gcm.radiative_forcing(diurnal=True)
         g = coords.horizontal
         cz = np.asarray(
             physics.cos_zenith_nodal(0.0, g.latitudes, g.longitudes, f)
@@ -120,7 +121,7 @@ class TestCosZenith:
         """Daily-mean insolation is nonzero across most latitudes (except polar
         night) and, unlike the diurnal snapshot, is longitude-independent."""
         coords = _coords()
-        f = physics.mars_radiative_forcing(diurnal=False)
+        f = mars_gcm.radiative_forcing(diurnal=False)
         g = coords.horizontal
         cz = np.asarray(
             physics.cos_zenith_nodal(0.0, g.latitudes, g.longitudes, f)
@@ -140,7 +141,7 @@ class TestHeatingTendency:
     def test_shape_finite_and_surface_forcing_nontrivial(self):
         coords = _coords()
         specs = physics_specs(MARS_BODY_3D)
-        f = physics.mars_radiative_forcing()
+        f = mars_gcm.radiative_forcing()
         state = _column_state(coords, specs)
         h, ds, diagnostic = physics.surface_energy_tendencies(
             state, coords, specs, MARS_BODY_3D, f
@@ -155,7 +156,7 @@ class TestHeatingTendency:
     def test_two_stream_column_fluxes_close(self):
         coords, specs = _coords(), physics_specs(MARS_BODY_3D)
         state = _column_state(coords, specs)
-        f = physics.mars_radiative_forcing(co2_radiation_enabled=True)
+        f = mars_gcm.radiative_forcing(co2_radiation_enabled=True)
         flux = physics.two_stream_radiative_fluxes(
             state, coords, specs, MARS_BODY_3D, f
         )
@@ -168,7 +169,7 @@ class TestHeatingTendency:
     def test_zero_dust_limit_and_positive_dust_heating_response(self):
         coords, specs = _coords(), physics_specs(MARS_BODY_3D)
         state = _column_state(coords, specs)
-        clear = physics.mars_radiative_forcing(co2_radiation_enabled=True)
+        clear = mars_gcm.radiative_forcing(co2_radiation_enabled=True)
         zero = dataclasses.replace(
             clear, dust_visible_optical_depth=0.0, dust_longwave_optical_depth=0.0
         )
@@ -196,7 +197,7 @@ class TestHeatingTendency:
         """The new closure is not a relabeled grey band: local P/T changes fluxes."""
         coords, specs = _coords(), physics_specs(MARS_BODY_3D)
         state = _column_state(coords, specs)
-        f = physics.mars_radiative_forcing(co2_radiation_enabled=True)
+        f = mars_gcm.radiative_forcing(co2_radiation_enabled=True)
         grid = coords.horizontal
 
         def with_pressure(column, pressure_pa):
@@ -242,7 +243,7 @@ class TestHeatingTendency:
         coords, specs = _coords(), physics_specs(MARS_BODY_3D)
         state = _column_state(coords, specs)
         f = dataclasses.replace(
-            physics.mars_radiative_forcing(co2_radiation_enabled=True),
+            mars_gcm.radiative_forcing(co2_radiation_enabled=True),
             co2_shortwave_band_weights=(1.0,),
         )
         with pytest.raises(ValueError, match="shortwave CO2 band tuples"):
@@ -270,7 +271,7 @@ class TestSurfaceMomentumDrag:
             state.dynamics, vorticity=vor, divergence=div
         ))
         drag_vor, drag_div = physics.surface_momentum_tendencies(
-            state, coords, specs, MARS_BODY_3D, physics.mars_radiative_forcing()
+            state, coords, specs, MARS_BODY_3D, mars_gcm.radiative_forcing()
         )
         du_nd, dv_nd = spherical_harmonic.vor_div_to_uv_nodal(
             grid, drag_vor, drag_div
@@ -288,7 +289,7 @@ class TestRegolithConduction:
         coords, specs = _coords(), physics_specs(MARS_BODY_3D)
         default_state = _column_state(coords, specs)
         forcing = dataclasses.replace(
-            physics.mars_radiative_forcing(), regolith_enabled=True,
+            mars_gcm.radiative_forcing(), regolith_enabled=True,
             regolith_layer_skin_depth_fractions=(0.5, 1.5, 4.0),
         )
         state = physics.initial_column_state(
@@ -302,7 +303,7 @@ class TestRegolithConduction:
         coords, specs = _coords(), physics_specs(MARS_BODY_3D)
         state = _column_state(coords, specs)
         forcing = dataclasses.replace(
-            physics.mars_radiative_forcing(), regolith_enabled=True,
+            mars_gcm.radiative_forcing(), regolith_enabled=True,
             regolith_layer_skin_depth_fractions=(1.0, 2.0),
         )
         with pytest.raises(ValueError, match="ground_temperature has 12 layers"):
@@ -315,7 +316,7 @@ class TestRegolithConduction:
         ground = state.ground_temperature.at[0].set(state.ground_temperature[0] - 10.0)
         state = state._replace(ground_temperature=ground)
         f = dataclasses.replace(
-            physics.mars_radiative_forcing(), regolith_enabled=True,
+            mars_gcm.radiative_forcing(), regolith_enabled=True,
             surface_thermal_inertia_tiu=250.0,
         )
         ds, dg = physics.regolith_conduction_tendencies(state, specs, f)
@@ -333,7 +334,7 @@ class TestRegolithConduction:
         assert np.max(np.abs(surface_power + ground_power)) < 1e-10
 
     def test_skin_depth_scales_linearly_with_thermal_inertia(self):
-        f = physics.mars_radiative_forcing()
+        f = mars_gcm.radiative_forcing()
         factor = math.sqrt(f.rotation_period_s / math.pi) / f.regolith_volumetric_heat_capacity_j_m3_k
         assert 500.0 * factor == pytest.approx(2.0 * 250.0 * factor)
 
@@ -344,7 +345,7 @@ class TestBoundaryLayerPhysics:
         coords, specs = _coords(), physics_specs(MARS_BODY_3D)
         state = _column_state(coords, specs)
         f = dataclasses.replace(
-            physics.mars_radiative_forcing(), stability_exchange_enabled=True
+            mars_gcm.radiative_forcing(), stability_exchange_enabled=True
         )
         air = jnp.full(coords.horizontal.nodal_shape, 200.0)
         stable, _, _ = physics._surface_exchange_properties(
@@ -369,7 +370,7 @@ class TestBoundaryLayerPhysics:
             state.dynamics, temperature_variation=grid.to_modal(nodal)
         ))
         f = dataclasses.replace(
-            physics.mars_radiative_forcing(), pbl_diffusion_enabled=True
+            mars_gcm.radiative_forcing(), pbl_diffusion_enabled=True
         )
         _, _, tendency, _ = physics.pbl_vertical_diffusion_tendencies(
             state, coords, specs, MARS_BODY_3D, f
@@ -388,7 +389,7 @@ class TestBoundaryLayerPhysics:
             state.dynamics, tracers={"dust": grid.to_modal(nodal)}
         ))
         f = dataclasses.replace(
-            physics.mars_radiative_forcing(), pbl_diffusion_enabled=True
+            mars_gcm.radiative_forcing(), pbl_diffusion_enabled=True
         )
         *_, tracers = physics.pbl_vertical_diffusion_tendencies(
             state, coords, specs, MARS_BODY_3D, f
@@ -472,7 +473,7 @@ class TestDryConvectiveAdjustment:
         """Internal sensible exchange cancels exactly in the column budget."""
         coords = _coords(n_layers)
         specs = physics_specs(MARS_BODY_3D)
-        f = physics.mars_radiative_forcing()
+        f = mars_gcm.radiative_forcing()
         state = _column_state(coords, specs, surface_temperature_k=220.0)
         g = coords.horizontal
         time_scale_s = 1.0 / float(specs.nondimensionalize(1.0 * _u.second))
@@ -499,7 +500,7 @@ class TestForcedEquations:
     def test_advances_sim_time_and_stays_finite(self):
         coords = _coords()
         specs = physics_specs(MARS_BODY_3D)
-        f = physics.mars_radiative_forcing()
+        f = mars_gcm.radiative_forcing()
         eq = physics.forced_primitive_equations(coords, MARS_BODY_3D, f, specs=specs)
         state = _column_state(coords, specs)
         final = integrate(stepper(eq, 600.0, specs), state, 40)
@@ -522,7 +523,7 @@ class TestForcedEquations:
         assert dry_surf.std() < 1.0
 
         # Forced: surface field develops a hot dayside / cold nightside contrast.
-        f = physics.mars_radiative_forcing()
+        f = mars_gcm.radiative_forcing()
         state = physics.initial_column_state(dry_state, coords, 200.0, specs)
         forced = integrate(
             stepper(physics.forced_primitive_equations(coords, MARS_BODY_3D, f, specs=specs), 600.0, specs),
@@ -539,7 +540,7 @@ class TestForcedEquations:
         coords = _coords(n_layers=4)
         specs = physics_specs(MARS_BODY_3D)
         state = _column_state(coords, specs)
-        base = physics.mars_radiative_forcing()
+        base = mars_gcm.radiative_forcing()
 
         def mean_temp(albedo):
             f = dataclasses.replace(base, albedo=albedo)
@@ -557,7 +558,7 @@ class TestForcedEquations:
 
 def _co2_state():
     """Build coords/specs/forcings and an initial (dyn, ice) tuple at rest."""
-    from src.gcm3d._dinosaur import jnp, primitive_equations
+    from src.framework.gcm._dinosaur import jnp, primitive_equations
 
     coords = _coords(n_layers=6)
     specs = physics_specs(MARS_BODY_3D)
@@ -575,10 +576,10 @@ def _co2_state():
         log_surface_pressure=grid.to_modal(log_sp_nodal),
         sim_time=0.0,
     )
-    f = physics.mars_radiative_forcing()
+    f = mars_gcm.radiative_forcing()
     # Legacy relaxation cases remain regression-tested separately from the
     # production energy-limited, projected path.
-    cf = physics.mars_co2_forcing(escape_rate_kg_s=0.0, energy_limited=False)
+    cf = mars_gcm.co2_forcing(escape_rate_kg_s=0.0, energy_limited=False)
     state = physics.initial_co2_state(
         dyn, coords, ice_pa=0.0, specs=specs, body=MARS_BODY_3D
     )
@@ -707,11 +708,11 @@ class TestDiurnalStabilityGuard:
     def test_run_maps_rejects_too_coarse_diurnal_step(self):
         """run_maps must refuse a step too coarse for the moving terminator rather
         than emit NaN maps (regression for the T42/dt=600 diurnal blow-up)."""
-        from src.gcm3d import maps, topography as topo
+        from src.celestials.planets.mars import maps, topography as topo
 
         if not topo._DEFAULT_MOLA.exists():
             pytest.skip("MOLA raster not staged")
-        f = physics.mars_radiative_forcing(diurnal=True)
+        f = mars_gcm.radiative_forcing(diurnal=True)
         with pytest.raises(ValueError, match="too coarse"):
             maps.run_maps(
                 truncation="T42", n_layers=6, dt_seconds=600.0, n_steps=2, forcing=f
@@ -719,11 +720,11 @@ class TestDiurnalStabilityGuard:
 
     def test_daily_mean_forcing_has_no_terminator_limit(self):
         """diurnal=False (smooth insolation) is not subject to the guard."""
-        from src.gcm3d import maps, topography as topo
+        from src.celestials.planets.mars import maps, topography as topo
 
         if not topo._DEFAULT_MOLA.exists():
             pytest.skip("MOLA raster not staged")
-        f = physics.mars_radiative_forcing(diurnal=False)
+        f = mars_gcm.radiative_forcing(diurnal=False)
         fields = maps.run_maps(
             truncation="T42", n_layers=6, dt_seconds=600.0, n_steps=5, forcing=f
         )

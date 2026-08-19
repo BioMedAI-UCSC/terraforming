@@ -1,4 +1,4 @@
-"""Tests for src.gcm3d.dynamics — the Phase-1 go/no-go, as regression tests.
+"""Tests for framework GCM dynamics — the Phase-1 go/no-go regressions.
 
 Requires the optional 'gcm3d' extra. Builds a dry model for Mars (via
 MARS_BODY_3D) to exercise the planet-agnostic core with a real body. Covers:
@@ -22,14 +22,10 @@ import jax  # noqa: E402
 import jax.numpy as jnp  # noqa: E402
 
 from src.celestials.planets.mars import MARS_BODY_3D  # noqa: E402
-from src.gcm3d import (  # noqa: E402
-    coordinate_system,
-    integrate,
-    physics_specs,
-    primitive_equations,
-    stepper,
-)
-from src.gcm3d._dinosaur import primitive_equations_states, scales  # noqa: E402
+from src.framework.gcm.coordinates import coordinate_system  # noqa: E402
+from src.framework.gcm.dynamics import integrate, primitive_equations, stepper  # noqa: E402
+from src.framework.gcm.specs import physics_specs  # noqa: E402
+from src.framework.gcm._dinosaur import primitive_equations_states, scales  # noqa: E402
 
 _u = scales.units
 

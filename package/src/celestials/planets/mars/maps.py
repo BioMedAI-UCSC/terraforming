@@ -25,13 +25,13 @@ from typing import Callable
 
 import numpy as np
 
-from src.gcm3d._dinosaur import jax, jnp, primitive_equations, scales, spherical_harmonic
-from src.gcm3d.coordinates import coordinate_system
-from src.gcm3d.dynamics import integrate as _integrate
-from src.gcm3d.dynamics import primitive_equations as build_primitive_equations
-from src.gcm3d.dynamics import reference_temperature, stepper
-from src.gcm3d.specs import physics_specs
-from src.gcm3d.topography import mola_modal_orography, regrid_to_nodal
+from src.framework.gcm._dinosaur import jax, jnp, primitive_equations, scales, spherical_harmonic
+from src.framework.gcm.coordinates import coordinate_system
+from src.framework.gcm.dynamics import integrate as _integrate
+from src.framework.gcm.dynamics import primitive_equations as build_primitive_equations
+from src.framework.gcm.dynamics import reference_temperature, stepper
+from src.framework.gcm.specs import physics_specs
+from src.celestials.planets.mars.topography import mola_modal_orography, regrid_to_nodal
 
 _u = scales.units
 
@@ -62,7 +62,7 @@ def resolve_scale(scale: str | None) -> dict:
 
 def forcing_with_surface_properties(forcing, grid, path):
     """Return forcing with explicitly supplied nodal albedo/TES inertia fields."""
-    from src.gcm3d.surface import surface_boundary_fields_on_grid
+    from src.celestials.planets.mars.surface import surface_boundary_fields_on_grid
 
     fields = surface_boundary_fields_on_grid(grid, path)
     updates = dict(
@@ -83,7 +83,7 @@ def forcing_with_surface_properties(forcing, grid, path):
 
 def forcing_with_ames_dust(forcing, grid, path, ls_deg: float):
     """Attach a seasonally and spatially matched Ames prescribed-dust scenario."""
-    from src.gcm3d.dust import seasonal_dust_on_grid
+    from src.celestials.planets.mars.dust import seasonal_dust_on_grid
 
     tau, zmax = seasonal_dust_on_grid(grid, path, ls_deg)
     return dataclasses.replace(
@@ -220,8 +220,8 @@ def run_maps(
     the final modal state to dimensional lat/lon fields (surface pressure,
     near-surface temperature, and near-surface ``u``/``v``).
 
-    Pass ``forcing`` (a :class:`src.gcm3d.physics.RadiativeForcing`, e.g. from
-    :func:`src.gcm3d.physics.mars_radiative_forcing`) to add the per-column
+    Pass ``forcing`` (a :class:`src.framework.physics.gcm.RadiativeForcing`, e.g.
+    from :func:`src.celestials.planets.mars.gcm.radiative_forcing`) to add the per-column
     radiative energy balance on top of the dry dynamics; the fluid then develops
     its own temperature structure instead of holding the isothermal rest profile.
     With ``forcing=None`` this is the dry dynamical core (the previous behaviour).
@@ -260,7 +260,7 @@ def run_maps(
         equation = build_primitive_equations(coords, body, specs=specs, orography=orography)
         physics_label = "dry dynamics; no radiation/CO2/dust"
     else:
-        from src.gcm3d.physics import forced_primitive_equations, initial_column_state
+        from src.framework.physics.gcm import forced_primitive_equations, initial_column_state
 
         equation = forced_primitive_equations(
             coords, body, forcing, specs=specs, orography=orography
@@ -284,7 +284,7 @@ def run_maps(
         )
         physics_label = f"dry dynamics + {radiation_name}{dust_name}"
         if co2_forcing is not None:
-            from src.gcm3d.physics import (
+            from src.framework.physics.gcm import (
                 forced_co2_primitive_equations,
             )
 
@@ -323,7 +323,7 @@ def run_maps(
 
     step = stepper(equation, dt_seconds, specs)
     if co2_forcing is not None and co2_forcing.energy_limited:
-        from src.gcm3d.physics import positivity_preserving_co2_step
+        from src.framework.physics.gcm import positivity_preserving_co2_step
         step = positivity_preserving_co2_step(step, coords, specs)
     if (progress_callback is None and diagnostic_callback is None
             and stop_requested is None):

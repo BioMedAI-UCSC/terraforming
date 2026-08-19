@@ -81,7 +81,7 @@ def main() -> None:
     parser.add_argument("--ames-data", type=Path, default=root / "AmesGCM/data")
     parser.add_argument(
         "--output", type=Path,
-        default=root / "package/src/gcm3d/ames_co2_12band.npz",
+        default=root / "package/src/framework/physics/ames_co2_12band.npz",
     )
     args = parser.parse_args()
     ir_path = args.ames_data / "CO2H2O_IR_12_95_INTEL"

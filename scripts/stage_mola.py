@@ -3,7 +3,7 @@
 
 Downloads the MGS MOLA MEGDR 4-pixel/degree topography (``megt90n000cb.img``)
 from the NASA PDS Geosciences Node, verifies its SHA-256 and size against the
-values pinned in ``src.gcm3d.topography``, and writes it to the configured path
+values pinned in ``src.celestials.planets.mars.topography``, and writes it to the configured path
 (``$MOLA_PATH`` or the repo default ``data/mola/meg004/megt90n000cb.img``).
 
 The download is integrity-checked, so a moved/incorrect mirror or a truncated
@@ -30,7 +30,7 @@ from pathlib import Path
 # Import the pinned provenance so the script and the loader never disagree.
 _REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_REPO / "package" / "src"))
-from src.gcm3d.topography import (  # noqa: E402
+from src.celestials.planets.mars.topography import (  # noqa: E402
     MOLA_SHA256,
     MOLA_SIZE_BYTES,
     MOLA_SOURCE_URL,

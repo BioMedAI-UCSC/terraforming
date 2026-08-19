@@ -12,18 +12,17 @@ import dataclasses
 
 import numpy as np
 
-from src.gcm3d._dinosaur import (
+from src.framework.gcm._dinosaur import (
     jax, jnp, primitive_equations as dinosaur_pe, primitive_equations_states,
     scales, time_integration,
 )
 from dinosaur import xarray_utils
 from dinosaur import held_suarez, spherical_harmonic
 from dinosaur.primitive_equations import div_sec_lat
-from src.gcm3d.dynamics import integrate, primitive_equations, stepper
-from src.gcm3d.specs import physics_specs
+from src.framework.gcm.dynamics import integrate, primitive_equations, stepper
+from src.framework.gcm.specs import physics_specs
 
 _u = scales.units
-
 
 @dataclasses.dataclass(frozen=True)
 class DryDriftDiagnostics:
@@ -164,7 +163,7 @@ def run_resting_atmosphere(
     n_steps: int = 100,
 ):
     """Run Dinosaur's isothermal, flat, resting-atmosphere benchmark."""
-    from src.gcm3d.coordinates import coordinate_system
+    from src.framework.gcm.coordinates import coordinate_system
 
     coords = coordinate_system(truncation, n_layers)
     specs = physics_specs(body)
@@ -194,7 +193,7 @@ def run_solid_body_tracer(
     the primitive equations. For angular speed ``omega=U/a``, the nondivergent
     zonal wind is ``u=U cos(latitude)`` and the analytic return time is ``2*pi/omega``.
     """
-    from src.gcm3d.coordinates import coordinate_system
+    from src.framework.gcm.coordinates import coordinate_system
 
     coords = coordinate_system(truncation, n_layers=1)
     specs = physics_specs(body)
@@ -252,7 +251,7 @@ def run_balanced_jet(
     configuration for this benchmark. The default physical parameters of the
     published test are Earth-specific, so callers should normally pass ``EARTH``.
     """
-    from src.gcm3d.coordinates import coordinate_system
+    from src.framework.gcm.coordinates import coordinate_system
 
     coords = coordinate_system(truncation, n_layers)
     specs = physics_specs(body)
@@ -286,8 +285,8 @@ def run_held_suarez(
     This CI configuration checks the circulation's canonical qualitative regime;
     publication comparisons should extend the integration to the 1000+ day protocol.
     """
-    from src.gcm3d.body import EARTH
-    from src.gcm3d.coordinates import coordinate_system
+    from src.framework.gcm.body import EARTH
+    from src.framework.gcm.coordinates import coordinate_system
 
     coords = coordinate_system(truncation, n_layers)
     specs = physics_specs(EARTH)
@@ -354,7 +353,7 @@ def resting_convergence_matrix(
     duration_seconds: float = 12_000.0,
 ):
     """Return conservation drift for a fixed-duration resolution/timestep matrix."""
-    from src.gcm3d.coordinates import coordinate_system
+    from src.framework.gcm.coordinates import coordinate_system
 
     results = {}
     for truncation in truncations:

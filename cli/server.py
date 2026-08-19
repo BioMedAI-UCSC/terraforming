@@ -169,8 +169,8 @@ def _extract_maps_fields(fields) -> dict:
 def _state_map_snapshot(state, coords, specs, body) -> dict:
     """Convert an in-progress column state to the existing global map contract."""
     import numpy as np
-    from src.gcm3d._dinosaur import scales, spherical_harmonic
-    from src.gcm3d.dynamics import reference_temperature
+    from src.framework.gcm._dinosaur import scales, spherical_harmonic
+    from src.framework.gcm.dynamics import reference_temperature
 
     dyn, grid = state.dynamics, coords.horizontal
     ps = np.asarray(specs.dimensionalize(
@@ -368,7 +368,7 @@ def _matched_mcd_comparison(fields, ls_deg: float, local_time: float | None,
     import numpy as np
     import xarray as xr
 
-    from src.gcm3d import mcd
+    from src.celestials.planets.mars import mcd
 
     local_times = ([float(local_time)] if local_time is not None
                    else [float(hour) for hour in range(0, 24, 2)])
@@ -517,7 +517,7 @@ def _uploaded_netcdf_comparison(model_fields: dict, payload: bytes, filename: st
     import tempfile
     import numpy as np
     import xarray as xr
-    from src.gcm3d import mcd
+    from src.celestials.planets.mars import mcd
 
     aliases = {
         "surface_temperature": ("surface_temperature", "temperature", "tsurf", "ts"),
@@ -594,13 +594,12 @@ def _gcm_snapshot(scale: str, albedo: float, greenhouse: float, ls_deg: float,
     import dataclasses
     import math
 
-    from src.gcm3d.coordinates import coordinate_system
-    from src.gcm3d.maps import resolve_scale, run_maps
-    from src.gcm3d.physics import (
-        mars_co2_forcing, mars_radiative_forcing, mean_anomaly_for_ls,
-    )
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.celestials.planets.mars.maps import resolve_scale, run_maps
+    from src.celestials.planets.mars.gcm import co2_forcing, radiative_forcing
+    from src.framework.physics.gcm import mean_anomaly_for_ls
 
-    forcing = mars_radiative_forcing(
+    forcing = radiative_forcing(
         albedo=albedo, greenhouse_factor=greenhouse, diurnal=diurnal,
         co2_radiation_enabled=True,
     )
@@ -620,7 +619,7 @@ def _gcm_snapshot(scale: str, albedo: float, greenhouse: float, ls_deg: float,
             cfg["dt_seconds"] = cfg["dt_seconds"] / factor
             cfg["n_steps"] = cfg["n_steps"] * factor
     fields = run_maps(
-        forcing=forcing, co2_forcing=mars_co2_forcing(),
+        forcing=forcing, co2_forcing=co2_forcing(),
         p0_pa=pressure_pa, t_ref_k=surface_temp_k,
         progress_callback=progress_callback, diagnostic_callback=diagnostic_callback,
         stop_requested=stop_requested,

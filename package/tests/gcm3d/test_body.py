@@ -1,4 +1,4 @@
-"""Tests for src.gcm3d.body (pure Python — no dinosaur/JAX required).
+"""Tests for framework GCM body constants (no dinosaur/JAX required).
 
 Runs in the standard torch-only Tests CI. Covers the planet-agnostic
 ``BodyConstants`` abstraction:
@@ -14,7 +14,7 @@ import math
 
 import pytest
 
-from src.gcm3d.body import EARTH, BodyConstants
+from src.framework.gcm.body import EARTH, BodyConstants
 
 
 def _body(**overrides):

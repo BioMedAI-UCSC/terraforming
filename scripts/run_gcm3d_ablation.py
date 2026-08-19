@@ -27,12 +27,12 @@ os.environ.setdefault(
 )
 
 import numpy as np
-from src.gcm3d._dinosaur import jax
+from src.framework.gcm._dinosaur import jax
 
-from src.gcm3d.coordinates import coordinate_system
-from src.gcm3d.maps import forcing_with_surface_properties, plot_maps, run_maps, save_netcdf
-from src.gcm3d.physics import mars_co2_forcing, mars_radiative_forcing
-from src.gcm3d.restart import load_restart, save_restart
+from src.framework.gcm.coordinates import coordinate_system
+from src.celestials.planets.mars.maps import forcing_with_surface_properties, plot_maps, run_maps, save_netcdf
+from src.celestials.planets.mars.gcm import co2_forcing, radiative_forcing
+from src.framework.gcm.restart import load_restart, save_restart
 
 
 ABLATIONS = {
@@ -89,7 +89,7 @@ def main() -> int:
 
     configs = list(ABLATIONS) if args.config == "all" else [args.config]
     grid = coordinate_system(args.truncation, args.layers).horizontal
-    base = mars_radiative_forcing(
+    base = radiative_forcing(
         diurnal=False, co2_radiation_enabled=True,
         dust_visible_optical_depth=args.dust_visible,
         dust_longwave_optical_depth=args.dust_longwave,
@@ -122,7 +122,7 @@ def main() -> int:
             fields, state = run_maps(
                 truncation=args.truncation, n_layers=args.layers,
                 dt_seconds=args.dt, n_steps=count, forcing=forcing,
-                co2_forcing=mars_co2_forcing(energy_limited=True),
+                co2_forcing=co2_forcing(energy_limited=True),
                 initial_state=state, return_final_state=True,
             )
             finite = all(

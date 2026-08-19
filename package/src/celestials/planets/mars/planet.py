@@ -87,7 +87,7 @@ MARS_DEFAULT_COMPOSITION: Dict[str, torch.Tensor] = {
 }
 
 # ---------------------------------------------------------------------------
-# Mars body spec for the 3-D GCM core (src.gcm3d)
+# Mars body specification for the reusable framework GCM core.
 # ---------------------------------------------------------------------------
 # The generic 3-D core (gcm3d, built on the NeuralGCM dinosaur dycore) is
 # planet-agnostic: it consumes a BodyConstants. Mars supplies its instance here,
@@ -98,7 +98,7 @@ MARS_DEFAULT_COMPOSITION: Dict[str, torch.Tensor] = {
 # CO2-atmosphere thermodynamics (R_specific = R_universal / M_CO2; cp typical for
 # the thin Mars atmosphere) set kappa = R/cp; the 200 K reference temperature is
 # the semi-implicit linearisation anchor validated to integrate stably.
-from src.gcm3d.body import BodyConstants  # noqa: E402  (pure-Python, no torch/jax)
+from src.framework.gcm.body import BodyConstants  # noqa: E402  (pure-Python, no torch/jax)
 
 MARS_BODY_3D: BodyConstants = BodyConstants(
     name="Mars",
@@ -125,11 +125,13 @@ def mars_gcm3d_core(truncation: str = "T42", n_layers: int = 25):
     tuple
         ``(coordinate_system, physics_specs, primitive_equations)`` for Mars.
     """
-    from src import gcm3d  # lazy: optional 'gcm3d' extra
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.framework.gcm.dynamics import primitive_equations
+    from src.framework.gcm.specs import physics_specs
 
-    coords = gcm3d.coordinate_system(truncation, n_layers)
-    specs = gcm3d.physics_specs(MARS_BODY_3D)
-    equations = gcm3d.primitive_equations(coords, MARS_BODY_3D, specs=specs)
+    coords = coordinate_system(truncation, n_layers)
+    specs = physics_specs(MARS_BODY_3D)
+    equations = primitive_equations(coords, MARS_BODY_3D, specs=specs)
     return coords, specs, equations
 
 

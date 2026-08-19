@@ -7,7 +7,7 @@ from pathlib import Path
 
 import numpy as np
 
-from src.gcm3d._dinosaur import jnp
+from src.framework.gcm._dinosaur import jnp
 
 CO2_COLUMN_FACTOR_PER_MBAR = 3.51e22
 _ASSET = Path(__file__).with_name("ames_co2_12band.npz")
