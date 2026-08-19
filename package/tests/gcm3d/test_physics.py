@@ -183,6 +183,14 @@ class TestHeatingTendency:
             np.asarray(c.atmospheric_convergence_w_m2)
             - np.asarray(a.atmospheric_convergence_w_m2)
         )) > 0.0
+        assert np.mean(np.asarray(c.shortwave_up_w_m2[0])) > np.mean(
+            np.asarray(a.shortwave_up_w_m2[0])
+        )
+        dusty_closed = (
+            np.sum(np.asarray(c.atmospheric_convergence_w_m2), axis=0)
+            + np.asarray(c.surface_net_w_m2)
+        )
+        assert np.allclose(dusty_closed, np.asarray(c.toa_net_down_w_m2), atol=1e-10)
 
     def test_multiband_opacity_responds_to_pressure_and_temperature(self):
         """The new closure is not a relabeled grey band: local P/T changes fluxes."""
@@ -386,6 +394,28 @@ class TestBoundaryLayerPhysics:
 
 
 class TestDryConvectiveAdjustment:
+
+    def test_stable_layers_outside_local_unstable_block_are_unchanged(self):
+        coords, specs = _coords(), physics_specs(MARS_BODY_3D)
+        state = _column_state(coords, specs)
+        grid, n = coords.horizontal, coords.vertical.layers
+        sigma = np.asarray(coords.vertical.centers)[:, None, None]
+        exner = sigma ** MARS_BODY_3D.kappa
+        theta_1d = np.array([300.0, 280.0, 200.0, 220.0, 180.0, 160.0])
+        temperature = np.broadcast_to(
+            theta_1d[:, None, None] * exner, (n,) + grid.nodal_shape
+        )
+        ref = np.asarray(reference_temperature(coords, MARS_BODY_3D)).reshape(n, 1, 1)
+        state = state._replace(dynamics=dataclasses.replace(
+            state.dynamics,
+            temperature_variation=grid.to_modal(jnp.asarray(temperature - ref)),
+        ))
+        adjusted = np.asarray(grid.to_nodal(
+            physics.dry_convective_adjusted_temperature(state, coords, MARS_BODY_3D)
+        )) + ref
+        adjusted_theta = adjusted / exner
+        assert np.allclose(adjusted_theta[[0, 1, 4, 5]], theta_1d[[0, 1, 4, 5], None, None], atol=2e-5)
+        assert np.allclose(adjusted_theta[2], adjusted_theta[3], atol=2e-5)
 
     def test_removes_instability_and_conserves_enthalpy(self):
         coords, specs = _coords(), physics_specs(MARS_BODY_3D)

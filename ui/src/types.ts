@@ -62,7 +62,7 @@ export interface RunConfig {
 
 export interface RunSummary {
   id: string
-  status: 'running' | 'done' | 'error'
+  status: 'running' | 'done' | 'error' | 'stopped'
   progress: number
   config: RunConfig
   label: string
@@ -71,6 +71,11 @@ export interface RunSummary {
   completed_at: string | null
   warning?: string | null       // e.g. partial GCM run (some snapshots failed)
   partial?: boolean
+  eta_seconds?: number | null
+  elapsed_seconds?: number
+  completed_steps?: number
+  total_steps?: number
+  cancel_requested?: boolean
 }
 
 export interface Run extends RunSummary {
@@ -93,6 +98,11 @@ export interface RunFields {
   sigma: number[]
   maps: Record<string, FieldGrid>
   sections: Record<string, FieldGrid>
+  diurnal?: {
+    local_times_hours: number[]
+    snapshots: Record<string, { maps: Record<string, FieldGrid>; comparison?: RunFields['comparison']; benchmarks?: RunFields['benchmarks'] }>
+    metadata: { method:string; samples_in_final_sol:number }
+  }
   comparison?: {
     mcd: Record<string, FieldGrid>
     difference: Record<string, FieldGrid>
@@ -113,6 +123,12 @@ export interface RunFields {
       status: string
     }
   }
+  benchmarks?: Record<string, {
+    reference: Record<string, FieldGrid>
+    difference: Record<string, FieldGrid>
+    metrics: Record<string, Record<string, number>>
+    metadata: Record<string, string | number>
+  }>
   metadata?: {
     fidelity: string
     duration_sols: number

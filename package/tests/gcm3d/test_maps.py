@@ -81,6 +81,18 @@ class TestRunMaps:
         with pytest.raises(ValueError):
             maps.run_maps(truncation="T21", n_layers=8, n_steps=0)
 
+    def test_chunked_run_emits_progress_and_diagnostic_states(self):
+        progress, diagnostics = [], []
+        maps.run_maps(
+            truncation="T21", n_layers=4, dt_seconds=300.0, n_steps=4,
+            progress_chunk_steps=2,
+            progress_callback=lambda done, total: progress.append((done, total)),
+            diagnostic_callback=lambda done, total, state, coords, specs:
+                diagnostics.append((done, total, state is not None, coords.vertical.layers)),
+        )
+        assert progress == [(2, 4), (4, 4)]
+        assert diagnostics == [(2, 4, True, 4), (4, 4, True, 4)]
+
 
 class TestScalePresets:
 

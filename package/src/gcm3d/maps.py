@@ -21,10 +21,11 @@ from __future__ import annotations
 import dataclasses
 import math
 from pathlib import Path
+from typing import Callable
 
 import numpy as np
 
-from src.gcm3d._dinosaur import jnp, primitive_equations, scales, spherical_harmonic
+from src.gcm3d._dinosaur import jax, jnp, primitive_equations, scales, spherical_harmonic
 from src.gcm3d.coordinates import coordinate_system
 from src.gcm3d.dynamics import integrate as _integrate
 from src.gcm3d.dynamics import primitive_equations as build_primitive_equations
@@ -61,18 +62,37 @@ def resolve_scale(scale: str | None) -> dict:
 
 def forcing_with_surface_properties(forcing, grid, path):
     """Return forcing with explicitly supplied nodal albedo/TES inertia fields."""
-    from src.gcm3d.surface import surface_fields_on_grid
+    from src.gcm3d.surface import surface_boundary_fields_on_grid
 
-    albedo, thermal_inertia_tiu = surface_fields_on_grid(grid, path)
-    return dataclasses.replace(
-        forcing,
-        albedo=jnp.asarray(albedo),
-        surface_thermal_inertia_tiu=jnp.asarray(thermal_inertia_tiu),
+    fields = surface_boundary_fields_on_grid(grid, path)
+    updates = dict(
+        albedo=jnp.asarray(fields["albedo"]),
+        surface_thermal_inertia_tiu=jnp.asarray(fields["thermal_inertia"]),
         regolith_enabled=True,
         stability_exchange_enabled=True,
         pbl_diffusion_enabled=True,
         convective_adjustment_enabled=True,
         co2_radiation_enabled=True,
+    )
+    if "emissivity" in fields:
+        updates["emissivity"] = jnp.asarray(fields["emissivity"])
+    if "roughness" in fields:
+        updates["surface_roughness_m"] = jnp.asarray(fields["roughness"])
+    return dataclasses.replace(forcing, **updates)
+
+
+def forcing_with_ames_dust(forcing, grid, path, ls_deg: float):
+    """Attach a seasonally and spatially matched Ames prescribed-dust scenario."""
+    from src.gcm3d.dust import seasonal_dust_on_grid
+
+    tau, zmax = seasonal_dust_on_grid(grid, path, ls_deg)
+    return dataclasses.replace(
+        forcing,
+        dust_visible_optical_depth=jnp.asarray(tau),
+        # Ames input opacity is referenced in the visible; retain the established
+        # compact IR/visible ratio until the spectral aerosol solver is enabled.
+        dust_longwave_optical_depth=jnp.asarray(tau) * 0.33,
+        dust_top_height_km=jnp.asarray(zmax),
     )
 
 
@@ -188,6 +208,10 @@ def run_maps(
     surface_properties_path=None,
     initial_state=None,
     return_final_state: bool = False,
+    progress_callback: Callable[[int, int], None] | None = None,
+    diagnostic_callback: Callable[[int, int, object, object, object], None] | None = None,
+    stop_requested: Callable[[], bool] | None = None,
+    progress_chunk_steps: int = 32,
 ) -> MarsMapFields | tuple[MarsMapFields, object]:
     """Run the Mars dycore over MOLA terrain and return lat/lon map fields.
 
@@ -300,7 +324,41 @@ def run_maps(
     if co2_forcing is not None and co2_forcing.energy_limited:
         from src.gcm3d.physics import positivity_preserving_co2_step
         step = positivity_preserving_co2_step(step, coords, specs)
-    final = _integrate(step, state0, n_steps)
+    if (progress_callback is None and diagnostic_callback is None
+            and stop_requested is None):
+        # Keep the single scan for training/gradient callers. Debugger runs opt
+        # into bounded chunks so progress and cancellation are observable.
+        final = _integrate(step, state0, n_steps)
+    else:
+        if progress_chunk_steps < 1:
+            raise ValueError("progress_chunk_steps must be >= 1")
+        final = state0
+        completed = 0
+        advance_chunk = jax.jit(
+            lambda state: _integrate(step, state, progress_chunk_steps)
+        )
+        while completed < n_steps:
+            if stop_requested is not None and stop_requested():
+                raise InterruptedError("simulation stopped by user")
+            count = min(progress_chunk_steps, n_steps - completed)
+            final = (advance_chunk(final) if count == progress_chunk_steps
+                     else _integrate(step, final, count))
+            # Synchronise here: without it JAX dispatch would make UI progress
+            # describe queued work instead of completed integration steps.
+            jax.block_until_ready(final)
+            completed += count
+            if progress_callback is not None:
+                progress_callback(completed, n_steps)
+            if diagnostic_callback is not None:
+                diagnostic_callback(completed, n_steps, final, coords, specs)
+    if not all(
+        np.isfinite(np.asarray(leaf)).all()
+        for leaf in jax.tree_util.tree_leaves(final)
+    ):
+        raise FloatingPointError(
+            "GCM state became non-finite; reduce the timestep or inspect the "
+            "last progress chunk instead of exporting invalid maps"
+        )
     final_state = final
 
     # Unwrap the JCM-style column state used by all forced integrations.

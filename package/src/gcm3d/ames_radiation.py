@@ -12,6 +12,15 @@ from src.gcm3d._dinosaur import jnp
 CO2_COLUMN_FACTOR_PER_MBAR = 3.51e22
 _ASSET = Path(__file__).with_name("ames_co2_12band.npz")
 
+# Ames fixed-dust optical properties for Reff=1.5 um, Veff=0.5, ordered on the
+# same seven solar and five infrared intervals as the gas tables.
+DUST_SW_EXTINCTION = jnp.array([1.834, 2.296, 2.672, 2.829, 2.698, 2.452, 2.261])
+DUST_SW_SCATTERING = jnp.array([1.695, 2.031, 2.583, 2.744, 2.626, 2.225, 1.525])
+DUST_SW_ASYMMETRY = jnp.array([0.551, 0.640, 0.661, 0.678, 0.690, 0.743, 0.868])
+DUST_IR_EXTINCTION = jnp.array([0.008, 0.262, 0.491, 1.017, 0.444])
+DUST_IR_SCATTERING = jnp.array([0.001, 0.037, 0.122, 0.351, 0.336])
+DUST_IR_ASYMMETRY = jnp.array([0.004, 0.030, 0.095, 0.214, 0.316])
+
 
 @lru_cache(maxsize=1)
 def load_ames_co2_tables() -> dict[str, np.ndarray]:
@@ -22,6 +31,20 @@ def load_ames_co2_tables() -> dict[str, np.ndarray]:
         )
     with np.load(_ASSET, allow_pickle=False) as archive:
         return {name: archive[name] for name in archive.files}
+
+
+def load_ames_co2_tables_jax() -> dict[str, object]:
+    """Trace-safe numeric table fields as device-compatible JAX arrays.
+
+    The underlying NumPy archive is cached. Do not cache this returned mapping:
+    the first call can occur inside ``lax.scan`` tracing, in which case caching
+    would retain escaped tracers and break the next integration chunk.
+    """
+    return {
+        name: jnp.asarray(value)
+        for name, value in load_ames_co2_tables().items()
+        if np.issubdtype(value.dtype, np.number)
+    }
 
 
 def _interp2_log_table(table, temperature_axis, pressure_axis, temperature_k,
@@ -47,7 +70,7 @@ def _interp2_log_table(table, temperature_axis, pressure_axis, temperature_k,
 
 def correlated_k_optical_depths(temperature_k, pressure_mid_pa, delta_pressure_pa):
     """Return SW/LW gas optical depths as ``(band, g, layer, lon, lat)``."""
-    data = load_ames_co2_tables()
+    data = load_ames_co2_tables_jax()
     pressure_mbar = pressure_mid_pa / 100.0
     delta_mbar = delta_pressure_pa / 100.0
     common = (data["temperature_k"], data["pressure_mbar"], temperature_k,
@@ -67,18 +90,18 @@ def correlated_k_optical_depths(temperature_k, pressure_mid_pa, delta_pressure_p
 
 def channel_weights(clear_fraction):
     """Ames split-Gaussian weights plus the clear-spectrum channel."""
-    data = load_ames_co2_tables()
+    data = load_ames_co2_tables_jax()
     clear = jnp.asarray(clear_fraction)
     absorbing = ((1.0 - clear)[:, None]
-                 * jnp.asarray(data["gauss_weights"])[None, :])
+                 * data["gauss_weights"][None, :])
     return jnp.concatenate([absorbing, clear[:, None]], axis=1)
 
 
 def planck_band_fractions(temperature_k):
     """Linearly interpolate normalized five-band Planck flux fractions."""
-    data = load_ames_co2_tables()
-    axis = jnp.asarray(data["planck_temperature_k"])
-    values = jnp.asarray(data["planck_fraction_ir"])
+    data = load_ames_co2_tables_jax()
+    axis = data["planck_temperature_k"]
+    values = data["planck_fraction_ir"]
     t = jnp.clip(temperature_k, axis[0], axis[-1])
     index = jnp.clip(jnp.searchsorted(axis, t, side="right") - 1, 0, axis.size - 2)
     fraction = (t - axis[index]) / (axis[index + 1] - axis[index])

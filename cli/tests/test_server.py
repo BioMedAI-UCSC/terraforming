@@ -65,12 +65,13 @@ class TestExtractMapsFields:
         assert "co2_ice" not in server._extract_maps_fields(_fake_fields(False))["maps"]
 
 
-def test_matched_mcd_comparison_uses_requested_parameters(monkeypatch):
+def test_matched_mcd_comparison_uses_requested_parameters(monkeypatch, tmp_path):
     import xarray as xr
     from src.gcm3d import mcd
 
     calls = []
     server._mcd_ascii_cache.clear()
+    monkeypatch.setattr(server, "_BENCHMARK_DATA_DIR", tmp_path / "outputs" / "data")
     reference = xr.Dataset({
         "temperature": (("lat", "lon"), np.full((4, 6), 205.0)),
         "surface_pressure": (("lat", "lon"), np.full((4, 6), 600.0)),
@@ -94,6 +95,81 @@ def test_matched_mcd_comparison_uses_requested_parameters(monkeypatch):
     assert out["metadata"]["local_times_hours"] == [14.0]
     assert out["metrics"]["temperature"]["bias"] == pytest.approx(5.0)
     assert out["mcd"]["temperature"]["data"][0][0] == pytest.approx(205.0)
+    assert len(list((tmp_path / "outputs" / "data").glob("*.txt"))) == 1
+    assert len(list((tmp_path / "outputs" / "data").glob("*.json"))) == 1
+
+    # A new server process has an empty memory cache but must reuse disk data.
+    server._mcd_ascii_cache.clear()
+    server._matched_mcd_comparison(
+        _fake_fields(), ls_deg=90.0, local_time=14.0, dust=3
+    )
+    assert len(calls) == 1
+
+
+def test_uploaded_ames_netcdf_is_aligned_and_compared():
+    import xarray as xr
+
+    fields = server._extract_maps_fields(_fake_fields())
+    reference = xr.Dataset({
+        "temperature": (("lat", "lon"), np.full((4, 6), 205.0), {"units": "K"}),
+        "ps": (("lat", "lon"), np.full((4, 6), 600.0), {"units": "Pa"}),
+    }, coords={"lat": fields["lat"], "lon": fields["lon"]})
+    out = server._uploaded_netcdf_comparison(
+        fields, reference.to_netcdf(), "ames-test.nc"
+    )
+    assert set(out["metrics"]) == {"surface_temperature", "surface_pressure"}
+    assert out["metrics"]["surface_temperature"]["bias"] == pytest.approx(5.0)
+    assert out["metadata"]["filename"] == "ames-test.nc"
+
+
+def test_fixed_local_time_maps_reuse_global_snapshot_contract():
+    fields = server._extract_maps_fields(_fake_fields())
+    names = ("surface_temperature", "near_surface_air_temperature",
+             "surface_pressure", "surface_zonal_wind", "surface_meridional_wind",
+             "surface_wind_speed", "co2_ice")
+    raw = []
+    rotation = 88_775.244
+    for hour in range(0, 24, 2):
+        raw.append({
+            "elapsed_seconds": hour / 24 * rotation,
+            "arrays": {name: np.full((4, 6), hour, dtype=float) for name in names},
+        })
+    out = server._assemble_fixed_local_time_maps(raw, fields, rotation)
+    assert out["local_times_hours"] == list(range(0, 24, 3))
+    assert set(out["snapshots"]["12"]["maps"]) >= {
+        "surface_temperature", "surface_pressure", "surface_wind_speed", "elevation"
+    }
+    assert np.asarray(out["snapshots"]["12"]["maps"]["surface_temperature"]["data"]).shape == (4, 6)
+    fields["diurnal"] = out
+    import xarray as xr
+    from io import BytesIO
+    payload = server._fields_netcdf_bytes(fields)
+    with xr.open_dataset(BytesIO(payload)) as ds:
+        assert ds.sizes["local_time"] == 8
+        assert "diurnal_surface_temperature" in ds
+    restored = server._imported_netcdf_fields(payload, "saved-run.nc")
+    assert restored["metadata"]["source_filename"] == "saved-run.nc"
+    assert restored["diurnal"]["local_times_hours"] == list(range(0, 24, 3))
+    assert "surface_pressure" in restored["maps"]
+
+
+def test_attach_mcd_auto_matches_all_diurnal_local_times(monkeypatch):
+    fields = server._extract_maps_fields(_fake_fields())
+    template = {name: fields["maps"][name] for name in (
+        "surface_temperature", "surface_pressure", "surface_wind_speed", "co2_ice"
+    )}
+    fields["diurnal"] = {
+        "local_times_hours": [0, 3, 6],
+        "snapshots": {str(hour): {"maps": template.copy()} for hour in (0, 3, 6)},
+    }
+    calls = []
+    monkeypatch.setattr(server, "_mcd_comparison_for_maps", lambda f, m, ls, lt, dust:
+                        calls.append((ls, lt, dust)) or {"metadata": {"ls_deg": ls}})
+    matched = server._attach_mcd_benchmark(fields, 90.0, None, 3)
+    assert matched == [0.0, 3.0, 6.0]
+    assert calls == [(90.0, 0.0, 3), (90.0, 3.0, 3), (90.0, 6.0, 3)]
+    assert all("comparison" in fields["diurnal"]["snapshots"][str(hour)]
+               for hour in (0, 3, 6))
 
 
 # ── _snapshot_years (pure) ────────────────────────────────────────────────────

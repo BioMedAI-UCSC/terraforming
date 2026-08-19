@@ -18,6 +18,31 @@ seasonal dust
   -> winds, thermal tides, pressure, and polar frost
 ```
 
+## JAX execution status
+
+The deterministic physics remains expressed with static-shape, differentiable
+JAX operations, but the expensive vertical kernels no longer build unnecessarily
+large compiled programs:
+
+- Boundary-layer diffusion uses a batched Thomas tridiagonal solve. Runtime and
+  compiled graph size scale linearly with vertical layer count, rather than using
+  a dense `L x L` solve.
+- Local convection uses an exact weighted PAVA stack driven by a fixed `2L-1`
+  `lax.scan`; its pushes and merges are O(L), and stable disconnected layers are
+  retained.
+- Shortwave and thermal two-stream vertical recurrences use `lax.scan`, avoiding
+  Python-unrolled radiation graphs.
+- Each forced-equation evaluation computes nodal wind, temperature, and surface
+  pressure once and shares them among surface energy, drag, PBL, convection,
+  radiation, and CO2 exchange.
+- Numeric Ames lookup tables are converted to JAX arrays once through a cached
+  loader. Small immutable optical constants are native JAX arrays, so they do not
+  trigger repeated host-to-device conversion.
+
+These changes improve compilation and execution scaling; they do not change the
+calibration or add physical fidelity by themselves. Physics acceptance remains
+based on conservation tests and MCD/profile benchmarks.
+
 ## Important qualification
 
 AmesGCM contains more physics than its standard configuration enables. Its
@@ -42,13 +67,13 @@ Primary local references:
 | Property | What it means | AmesGCM | Current `gcm3d` | Main visible effect |
 |---|---|---|---|---|
 | Dynamical core | Moves air, heat, and momentum | FV3 finite-volume cubed sphere | Dinosaur spectral primitive equations | Pressure, waves, and global winds |
-| Gas radiation | Where CO2 absorbs sunlight and emits infrared | Multiband lookup-table radiation | One near-IR and one thermal CO2 band | Temperature profile, tides, and winds |
-| Dust radiation | Dust heats air and shades the ground | Spectral and particle-size-aware | Prescribed visible/IR optical depths | Daytime temperature and circulation |
-| Dust distribution | Dust location by height, season, and geography | Seasonal scenarios and Conrath profiles; interactive mode optional | Mostly uniform prescribed optical depth | Seasonal and latitudinal temperature structure |
-| Surface energy | Heat stored during day and released later | Deep multilayer soil with restart state | Four ground layers | Diurnal range and seasonal lag |
-| Surface properties | Albedo, emissivity, thermal inertia, and roughness | Spatial fields for each | TES albedo/TI supported; other fields mostly scalar | Regional temperature and surface wind |
-| Boundary layer | Turbulent exchange between ground and atmosphere | Mellor-Yamada-style closure with implicit solve | Bulk-Richardson stability and diffusion | Near-surface wind and night inversions |
-| Convection | Mixes vertically unstable air | Whole-column and surface-connected algorithms | Whole column mixed after any unstable pair | Vertical temperature and wind smoothness |
+| Gas radiation | Where CO2 absorbs sunlight and emits infrared | Multiband lookup-table radiation | Ames-derived correlated-k bands with two-stream fluxes | Temperature profile, tides, and winds |
+| Dust radiation | Dust heats air and shades the ground | Spectral and particle-size-aware | Ames/Wolff band optics with absorption and scattering | Daytime temperature and circulation |
+| Dust distribution | Dust location by height, season, and geography | Seasonal scenarios and Conrath profiles; interactive mode optional | Prescribed seasonal scenarios and Conrath vertical profiles | Seasonal and latitudinal temperature structure |
+| Surface energy | Heat stored during day and released later | Deep multilayer soil with restart state | Twelve prognostic ground layers with restart state | Diurnal range and seasonal lag |
+| Surface properties | Albedo, emissivity, thermal inertia, and roughness | Spatial fields for each | Spatial albedo, TI, emissivity, and roughness | Regional temperature and surface wind |
+| Boundary layer | Turbulent exchange between ground and atmosphere | Mellor-Yamada-style closure with implicit solve | Richardson/mixing-length closure with implicit tridiagonal solve | Near-surface wind and night inversions |
+| Convection | Mixes vertically unstable air | Whole-column and surface-connected algorithms | Local conservative PAVA adjustment | Vertical temperature and wind smoothness |
 | Surface CO2 frost | Polar atmosphere freezes onto and returns from surface | Coupled seasonal mass and energy exchange | Energy-limited exchange with mass projection | Ice caps and seasonal pressure |
 | Atmospheric CO2 condensation | CO2 freezes in cold atmospheric layers | Enabled in standard setup | Missing | Polar atmospheric temperatures |
 | CO2 clouds | Suspended atmospheric CO2 ice | Available, disabled by default | Missing | Mainly early/thick Mars climates |
@@ -283,8 +308,11 @@ preserved. Tests pin source hashes and decoded coefficient values and cover tabl
 dimensions, quadrature normalization, pressure response, temperature gradients,
 configuration validation, dust-limit behavior, and column closure. The remaining
 scientific gap is comparison against flux/heating outputs from a running Ames
-column, because our current absorption-only flux propagation is simpler than the
-complete Ames scattering two-stream solver.
+column. The solar solver now carries upward and downward flux and uses
+energy-conserving hemispheric layer reflection/transmission with the Ames fixed-
+dust extinction, scattering, and asymmetry parameters. Thermal dust scattering
+is represented through its absorption fraction; reproducing the complete Ames IR
+scattering solver remains part of direct column validation.
 
 **Import from Ames:** the division into solar and thermal spectral bands, the
 pressure/temperature dependence of gaseous optical depth, two-stream flux
@@ -309,6 +337,13 @@ radiative heating is deposited at the wrong heights.
 
 #### 2. Prescribed seasonal dust with a Conrath vertical profile
 
+**Status: implemented; climate validation pending.** `gcm3d.dust` reads the Ames
+seasonal scenario, interpolates periodic solar longitude and longitude plus
+latitude, and supplies nodal column opacity and dust-top height. Radiation uses
+the Ames new-Conrath pressure profile and normalizes layer opacity to the requested
+column total. Seven-band Ames fixed-dust solar optics drive two-stream scattering;
+five-band IR extinction and absorption drive thermal heating.
+
 **Import from Ames:** the prescribed-dust workflow, seasonal scenario convention,
 Conrath-type pressure profile, and wavelength-dependent dust optical properties.
 
@@ -322,12 +357,19 @@ surface temperature, thermal tides, and winds.
 
 **Acceptance criteria:**
 
-- [ ] Integrated layer opacity recovers the requested column opacity.
+- [x] Integrated layer opacity recovers the requested column opacity.
 - [ ] Dust-free, background-dust, and dusty-column tests match Ames flux changes.
-- [ ] Dust varies with season and location rather than using one global constant.
+- [x] Dust varies with season and location rather than using one global constant.
 - [ ] MCD temperature and wind errors are reported separately by dust scenario.
 
 #### 3. Multilayer soil and consistent surface fields
+
+**Status: implemented; spin-up validation pending.** The prognostic soil now has
+12 geometrically deepening layers extending beyond the annual thermal skin depth.
+The existing restart format already persists every ground layer. Surface loading
+now optionally threads nodal emissivity and roughness in addition to TES albedo
+and thermal inertia; scalar values remain explicit fallbacks when a dataset lacks
+those variables.
 
 **Import from Ames:** geometrically deepening soil layers, deep-temperature restart,
 semi-implicit conductive coupling, and spatial albedo, emissivity, thermal inertia,
@@ -343,13 +385,19 @@ learned model may memorize instead of learning unresolved atmospheric physics.
 
 **Acceptance criteria:**
 
-- [ ] Conductive energy is conserved between the surface and soil layers.
+- [x] Conductive energy is conserved between the surface and soil layers.
 - [ ] Diurnal and annual skin-depth tests match the analytic diffusion solution.
-- [ ] Restarting a run does not reset deep-soil memory.
+- [x] Restarting a run does not reset deep-soil memory.
 - [ ] TES fields and their checksums appear in output metadata.
 - [ ] Deep-soil drift is small before an MCD climate comparison is accepted.
 
 #### 4. Level-resolved boundary-layer mixing
+
+**Status: implemented; global wind validation pending.** Each interface diagnoses
+gradient Richardson number from resolved shear and potential temperature, applies
+stable/unstable mixing-length factors, uses separate heat and momentum rates via
+a turbulent Prandtl number, and solves both implicitly. Momentum dissipation is
+returned as heat and tracers use the conservative implicit heat-mixing operator.
 
 **Import from Ames:** the stability-, shear-, and mixing-length dependence of the
 Ames PBL, separate heat and momentum diffusivities, and its implicit tridiagonal
@@ -367,11 +415,16 @@ upward and how momentum is transferred downward.
 
 - [ ] A convective daytime column mixes deeply while a stable nighttime column
       remains weakly mixed.
-- [ ] Momentum diffusion cannot create column momentum without surface stress.
-- [ ] Dissipated kinetic energy is returned as heat or explicitly diagnosed.
+- [x] Momentum diffusion cannot create column momentum without surface stress.
+- [x] Dissipated kinetic energy is returned as heat or explicitly diagnosed.
 - [ ] Near-surface wind error improves without degrading free-atmosphere winds.
 
 #### 5. Local dry convective adjustment
+
+**Status: implemented.** The whole-column switch has been replaced by exact
+weighted decreasing isotonic regression, the block/PAVA solution. It mixes only
+connected unstable blocks, uses sigma/Exner weights that conserve column enthalpy,
+and is static-shape JAX composed of piecewise-differentiable min/max operations.
 
 **Import from Ames:** the surface-connected/contiguous convective-zone logic and
 mass-weighted mixing principles in `update_mars_atmos.F90`.
@@ -384,10 +437,10 @@ can erase the vertical structure that the radiation and PBL schemes create.
 
 **Acceptance criteria:**
 
-- [ ] Stable layers outside the adjusted block remain unchanged.
-- [ ] Column enthalpy is conserved to numerical tolerance.
-- [ ] The final potential-temperature profile is statically stable.
-- [ ] The operation has finite JAX gradients or a documented differentiable
+- [x] Stable layers outside the adjusted block remain unchanged.
+- [x] Column enthalpy is conserved to numerical tolerance.
+- [x] The final potential-temperature profile is statically stable.
+- [x] The operation has finite JAX gradients or a documented differentiable
       approximation at switching boundaries.
 
 #### 6. Complete CO2 condensation coupling
