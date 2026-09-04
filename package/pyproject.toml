@@ -10,9 +10,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Planet-agnostic differentiable 3-D GCM core (src/gcm3d), built on the NeuralGCM
-# dinosaur dycore. JAX-based and OPTIONAL: the core package is torch-only and
-# never imports src.gcm3d, so base installs and the Tests CI are unaffected.
+# Planet-agnostic differentiable 3-D GCM core (src/framework/gcm), built on the
+# NeuralGCM Dinosaur dycore. JAX-based and optional: importing the lightweight
+# body schema does not require the GCM stack.
 #   pip install 'terraforming[gcm3d]'
 gcm3d = [
     "dinosaur==1.3.6",
