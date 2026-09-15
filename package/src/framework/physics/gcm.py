@@ -145,6 +145,10 @@ class RadiativeForcing:
     # Prescribed visible/IR dust column opacity. May be a scalar or nodal field.
     dust_visible_optical_depth: object = 0.0
     dust_longwave_optical_depth: object = 0.0
+    # Optional seasonally varying nodal climatology, shaped (season, lon, lat).
+    dust_climatology_ls_deg: object | None = None
+    dust_visible_climatology: object | None = None
+    dust_longwave_climatology: object | None = None
     dust_single_scattering_albedo: float = 0.92
     dust_conrath_parameter: float = 0.003
     dust_top_height_km: object = 35.0
@@ -203,6 +207,36 @@ def mean_anomaly_for_ls(ls_rad: float, f: RadiativeForcing) -> float:
         math.sqrt(1.0 + e) * math.cos(nu / 2.0),
     )
     return E - e * math.sin(E)
+
+
+def dust_optical_depths(t_s, f: RadiativeForcing):
+    """Return static or periodically interpolated nodal dust column opacities."""
+    if f.dust_climatology_ls_deg is None:
+        return (
+            jnp.asarray(f.dust_visible_optical_depth),
+            jnp.asarray(f.dust_longwave_optical_depth),
+        )
+    if f.dust_visible_climatology is None or f.dust_longwave_climatology is None:
+        raise ValueError("seasonal dust requires visible and longwave climatology arrays")
+    nodes = jnp.asarray(f.dust_climatology_ls_deg)
+    visible = jnp.asarray(f.dust_visible_climatology)
+    longwave = jnp.asarray(f.dust_longwave_climatology)
+    ls_deg = jnp.mod(
+        (_true_anomaly(t_s, f) + f.ls_perihelion_rad) * 180.0 / math.pi,
+        360.0,
+    )
+    right_unwrapped = jnp.searchsorted(nodes, ls_deg, side="right")
+    left = jnp.mod(right_unwrapped - 1, nodes.shape[0])
+    right = jnp.mod(right_unwrapped, nodes.shape[0])
+    left_ls = nodes[left] - jnp.where(right_unwrapped == 0, 360.0, 0.0)
+    right_ls = nodes[right] + jnp.where(
+        right_unwrapped == nodes.shape[0], 360.0, 0.0
+    )
+    fraction = (ls_deg - left_ls) / jnp.clip(right_ls - left_ls, 1.0e-12, None)
+    return (
+        visible[left] + fraction * (visible[right] - visible[left]),
+        longwave[left] + fraction * (longwave[right] - longwave[left]),
+    )
 
 
 def solar_flux(t_s, f: RadiativeForcing):
@@ -417,6 +451,7 @@ def two_stream_radiative_fluxes(
     t_s = dyn.sim_time * time_scale_s
     cz = cos_zenith_nodal(t_s, grid.latitudes, grid.longitudes, f)
     incoming = solar_flux(t_s, f) * cz
+    dust_visible, dust_longwave = dust_optical_depths(t_s, f)
     if surface_pressure_pa is None:
         ps_nd = jnp.exp(grid.to_nodal(dyn.log_surface_pressure))[0]
         ps_pa = ps_nd * float(specs.dimensionalize(1.0, _u.pascal).magnitude)
@@ -484,7 +519,7 @@ def two_stream_radiative_fluxes(
         # Fixed-size Ames/Wolff dust optics are spectral by gas-table band and
         # applied consistently to every correlated-k channel in that band.
         reference_extinction = ames_radiation.DUST_SW_EXTINCTION[5]
-        dust_column = jnp.asarray(f.dust_visible_optical_depth) * column_pressure_ratio
+        dust_column = dust_visible * column_pressure_ratio
         dust_ext_sw = (
             dust_column[None, None, None] * dust_layer_fraction[None, None]
             * ames_radiation.DUST_SW_EXTINCTION[:, None, None, None, None]
@@ -588,7 +623,7 @@ def two_stream_radiative_fluxes(
             f.co2_shortwave_band_strengths,
             f.co2_shortwave_pressure_exponents,
             f.co2_shortwave_temperature_exponents,
-            jnp.asarray(f.dust_visible_optical_depth)
+            dust_visible
             * (1.0 - f.dust_single_scattering_albedo)
             * column_pressure_ratio * dust_layer_fraction,
         )
@@ -597,7 +632,7 @@ def two_stream_radiative_fluxes(
             f.co2_longwave_band_strengths,
             f.co2_longwave_pressure_exponents,
             f.co2_longwave_temperature_exponents,
-            jnp.asarray(f.dust_longwave_optical_depth) * column_pressure_ratio
+            dust_longwave * column_pressure_ratio
             * dust_layer_fraction,
         )
         sw_trans = jnp.exp(-jnp.clip(sw_tau, 0.0, 50.0))

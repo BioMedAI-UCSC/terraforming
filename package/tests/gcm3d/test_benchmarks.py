@@ -4,6 +4,7 @@ import pytest
 
 pytest.importorskip("dinosaur")
 
+from src.framework.gcm._dinosaur import jax  # noqa: E402
 from src.celestials.planets.mars import MARS_BODY_3D  # noqa: E402
 from src.framework.gcm.body import EARTH  # noqa: E402
 from src.framework.gcm.benchmarks import (  # noqa: E402
@@ -13,6 +14,11 @@ from src.framework.gcm.benchmarks import (  # noqa: E402
     run_held_suarez,
     resting_convergence_matrix,
 )
+
+# Conservation acceptance thresholds are explicitly float64/roundoff-level.
+# Set precision in this module so isolated benchmark runs do not depend on
+# another test module having mutated JAX's global configuration first.
+jax.config.update("jax_enable_x64", True)
 
 
 def test_resting_atmosphere_drift_thresholds():

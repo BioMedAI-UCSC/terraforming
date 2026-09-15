@@ -160,6 +160,9 @@ class MarsMapFields:
     physics: str = "dry dynamics; no radiation/CO2/dust"
     co2_ice_pa: np.ndarray | None = None  # (n_lat, n_lon) surface CO2 frost, Pa-equiv
     rotation_period_s: float = 88775.244  # for the duration diagnostic
+    solar_longitude_deg: float | None = None
+    insolation_sampling: str = "none"
+    temperature_kind: str = "lowest_layer_air"
 
     @property
     def wind_speed_ms(self) -> np.ndarray:
@@ -273,7 +276,12 @@ def run_maps(
                 forcing=forcing,
             )
         radiation_name = (
-            "two-stream CO2-band radiation" if forcing.co2_radiation_enabled
+            (
+                "Ames correlated-k CO2 radiation"
+                if forcing.ames_correlated_k_enabled
+                else "compact-band two-stream CO2 radiation"
+            )
+            if forcing.co2_radiation_enabled
             else "grey radiative energy balance"
         )
         dust_name = (
@@ -418,6 +426,13 @@ def run_maps(
         """(n_lon, n_lat) → (n_lat, n_lon)."""
         return np.asarray(field_lonlat).T
 
+    solar_longitude_deg = None
+    if forcing is not None:
+        from src.framework.physics.gcm import _true_anomaly
+
+        solar_longitude_deg = float(np.degrees(
+            float(_true_anomaly(elapsed_seconds, forcing)) + forcing.ls_perihelion_rad
+        ) % 360)
     fields = MarsMapFields(
         lon_deg=np.degrees(np.asarray(grid.longitudes)),
         lat_deg=np.degrees(np.asarray(grid.latitudes)),
@@ -434,6 +449,9 @@ def run_maps(
         physics=physics_label,
         co2_ice_pa=co2_ice_map,
         rotation_period_s=body.rotation_period_s,
+        solar_longitude_deg=solar_longitude_deg,
+        insolation_sampling=("diurnal" if forcing.diurnal else "daily_mean") if forcing else "none",
+        temperature_kind="surface_skin" if forcing else "lowest_layer_air",
     )
     return (fields, final_state) if return_final_state else fields
 
@@ -456,7 +474,7 @@ def save_netcdf(fields: MarsMapFields, path) -> Path:
         {
             "elevation": (dims, fields.elevation_m, {"units": "m", "long_name": "MOLA elevation"}),
             "surface_pressure": (dims, fields.surface_pressure_pa, {"units": "Pa"}),
-            "temperature": (dims, fields.temperature_k, {"units": "K", "long_name": "near-surface temperature"}),
+            "temperature": (dims, fields.temperature_k, {"units": "K", "long_name": fields.temperature_kind}),
             "u": (dims, fields.u_ms, {"units": "m/s", "long_name": "zonal wind"}),
             "v": (dims, fields.v_ms, {"units": "m/s", "long_name": "meridional wind"}),
             "wind_speed": (dims, fields.wind_speed_ms, {"units": "m/s"}),
@@ -476,6 +494,11 @@ def save_netcdf(fields: MarsMapFields, path) -> Path:
             "fidelity": fields.physics,
             "wind_level_sigma": fields.wind_level_sigma,
             "approximate_wind_height_m": fields.approximate_wind_height_m,
+            "solar_longitude_deg": fields.solar_longitude_deg if fields.solar_longitude_deg is not None else float("nan"),
+            "insolation_sampling": fields.insolation_sampling,
+            "temperature_kind": fields.temperature_kind,
+            "temporal_sampling": "instantaneous_final_state",
+            "climate_status": "equilibration_not_established",
         },
     )
     ds.lat.attrs.update(units="degrees_north")

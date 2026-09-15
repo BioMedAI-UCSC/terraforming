@@ -86,6 +86,23 @@ class TestMarsRadiativeForcing:
         assert f.albedo == pytest.approx(0.4)
         assert f.greenhouse_factor == pytest.approx(1.5)
 
+    @pytest.mark.parametrize(
+        ("ls_deg", "expected"),
+        [(50.0, 1.0 + 40.0 / 90.0), (350.0, 3.0 - 2.0 * 50.0 / 70.0)],
+    )
+    def test_seasonal_dust_interpolates_periodically(self, ls_deg, expected):
+        base = mars_gcm.radiative_forcing()
+        forcing = dataclasses.replace(
+            base,
+            init_orbital_angle_rad=physics.mean_anomaly_for_ls(math.radians(ls_deg), base),
+            dust_climatology_ls_deg=jnp.asarray([10.0, 100.0, 300.0]),
+            dust_visible_climatology=jnp.asarray([1.0, 2.0, 3.0])[:, None, None],
+            dust_longwave_climatology=jnp.asarray([10.0, 20.0, 30.0])[:, None, None],
+        )
+        visible, longwave = physics.dust_optical_depths(0.0, forcing)
+        assert float(visible[0, 0]) == pytest.approx(expected)
+        assert float(longwave[0, 0]) == pytest.approx(10.0 * expected)
+
 
 # ── solar_flux ────────────────────────────────────────────────────────────────
 

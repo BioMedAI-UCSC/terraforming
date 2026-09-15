@@ -16,9 +16,11 @@ from __future__ import annotations
 
 import argparse
 import html
+import hashlib
 import http.client
 import json
 import math
+import os
 import re
 import sys
 import urllib.error
@@ -27,6 +29,10 @@ import urllib.request
 import time
 from pathlib import Path
 
+os.environ.setdefault("MPLCONFIGDIR", str(Path("outputs/.matplotlib").resolve()))
+
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
@@ -154,9 +160,19 @@ def interpolate_periodic(reference: xr.Dataset, target: xr.Dataset) -> xr.Datase
 
 
 def weighted_metrics(model: np.ndarray, reference: np.ndarray, lat: np.ndarray) -> dict[str, float]:
-    weights = np.broadcast_to(np.cos(np.deg2rad(lat))[:, None], model.shape)
+    # Dinosaur uses Gaussian latitudes: cos(latitude) is not its quadrature.
+    nodes, gaussian_weights = np.polynomial.legendre.leggauss(len(lat))
+    order = np.argsort(lat)
+    if np.allclose(np.sin(np.deg2rad(np.asarray(lat)[order])), nodes, atol=1e-6):
+        latitude_weights = np.empty_like(gaussian_weights)
+        latitude_weights[order] = gaussian_weights
+    else:
+        latitude_weights = np.cos(np.deg2rad(lat))
+    weights = np.broadcast_to(latitude_weights[:, None], model.shape)
     valid = np.isfinite(model) & np.isfinite(reference) & (weights > 0)
     x, y, w = model[valid], reference[valid], weights[valid]
+    if not len(w):
+        raise ValueError("No valid overlapping reference/model cells")
     w = w / w.sum()
     error = x - y
     x_mean, y_mean = np.sum(w * x), np.sum(w * y)
@@ -191,7 +207,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("model", type=Path, help="gcm3d map NetCDF")
     parser.add_argument("--output-dir", type=Path, required=True)
-    parser.add_argument("--ls", type=float, default=0.0)
+    parser.add_argument("--ls", type=float, help="defaults to the exported model season; required for legacy maps")
     parser.add_argument("--local-times", default="0,2,4,6,8,10,12,14,16,18,20,22")
     parser.add_argument("--dust", type=int, default=1, help="MCD scenario 1 = climatology/average EUV")
     parser.add_argument("--altitude-m", type=float, help="MCD wind height; defaults to the model NetCDF diagnostic height")
@@ -203,12 +219,19 @@ def main() -> int:
     args = parser.parse_args()
 
     with xr.open_dataset(args.model) as metadata:
+        model_ls = float(metadata.attrs.get("solar_longitude_deg", float("nan")))
+        if args.ls is None:
+            if not np.isfinite(model_ls):
+                parser.error("legacy map has no season metadata; specify --ls explicitly")
+            args.ls = model_ls
+        elif np.isfinite(model_ls) and abs((args.ls - model_ls + 180) % 360 - 180) > 1.0:
+            parser.error("requested MCD season differs from model season by more than 1 degree")
         if args.altitude_m is None:
             args.altitude_m = float(metadata.attrs.get("approximate_wind_height_m", 10.0))
 
     local_times = [float(value) for value in args.local_times.split(",")]
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    samples, sources = [], []
+    samples, sources, provenance = [], [], []
     for local_time in local_times:
         cache_root = args.cache_dir or args.output_dir
         cache = cache_root / f"mcd_ls{args.ls:g}_lt{local_time:g}_z{args.altitude_m:g}m.txt"
@@ -233,6 +256,10 @@ def main() -> int:
             cache.write_text(text)
         samples.append(parse_mcd_ascii(text))
         sources.append(source)
+        provenance.append(dict(cache=str(cache), sha256=hashlib.sha256(text.encode()).hexdigest(),
+                               requested_query=mcd_query(args.ls, local_time, args.dust,
+                                                         not args.no_high_res, args.altitude_m),
+                               cache_query_verified=source != "cache"))
 
     mcd_native = xr.concat(samples, dim=xr.IndexVariable("local_time", local_times)).mean("local_time")
     mcd_native.attrs.update(
@@ -258,6 +285,14 @@ def main() -> int:
         "high_resolution_topography": not args.no_high_res,
         "co2_ice_conversion": f"MCD kg/m2 multiplied by Mars gravity {MARS_GRAVITY_M_S2} m/s2",
         "metrics": metrics, "source_urls": sources,
+        "response_provenance": provenance,
+        "model_sha256": hashlib.sha256(args.model.read_bytes()).hexdigest(),
+        "comparison_limitations": [
+            "Final model snapshot is not a temporal climatology or a local-time mean.",
+            "Wind height is a reference-atmosphere estimate, not a matched pressure level.",
+            "Cached legacy query scenario is unverified without its original metadata.",
+            "MCD is a model reference, not observational truth.",
+        ],
     }
     report_path = args.output_dir / "benchmark.json"
     report_path.write_text(json.dumps(report, indent=2, allow_nan=True) + "\n")
