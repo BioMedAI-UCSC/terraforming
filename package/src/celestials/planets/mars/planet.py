@@ -59,6 +59,9 @@ MARS_LS_PERIHELION: torch.Tensor      = torch.tensor(251.0 * math.pi / 180.0, dt
 MARS_SURFACE_EMISSIVITY: torch.Tensor = torch.tensor(0.95,     dtype=TF_DTYPE)
 MARS_THERMAL_INERTIA: torch.Tensor    = torch.tensor(6.0e4,    dtype=TF_DTYPE)  # J K⁻¹ m⁻²
 MARS_MAVEN_ESCAPE_RATE: torch.Tensor  = torch.tensor(0.2,      dtype=TF_DTYPE)  # kg s⁻¹
+# Empirical constant-mode fallback. It is intentionally not identical to the
+# pressure-dependent Clausius--Clapeyron value (~147.7 K at 610 Pa); switching
+# ``use_pressure_frost`` therefore changes the threshold by ~1.3 K at reference p.
 MARS_CO2_FROST_POINT: torch.Tensor    = torch.tensor(149.0,    dtype=TF_DTYPE)  # K
 MARS_CO2_LATENT_HEAT: torch.Tensor    = torch.tensor(5.7e5,    dtype=TF_DTYPE)  # J kg⁻¹
 # Effective fractional surface area of each seasonal CO2 cap, per pole. Sets the
@@ -82,6 +85,54 @@ MARS_DEFAULT_COMPOSITION: Dict[str, torch.Tensor] = {
     "O2":  torch.tensor(0.8,   dtype=TF_DTYPE),
     "CO":  torch.tensor(0.4,   dtype=TF_DTYPE),
 }
+
+# ---------------------------------------------------------------------------
+# Mars body specification for the reusable framework GCM core.
+# ---------------------------------------------------------------------------
+# The generic 3-D core (gcm3d, built on the NeuralGCM dinosaur dycore) is
+# planet-agnostic: it consumes a BodyConstants. Mars supplies its instance here,
+# derived from the MARS_* constants above so there is a single source of truth.
+# BodyConstants is pure Python (no JAX), so this import is safe on the torch side
+# and does not pull the optional 'gcm3d' extra.
+#
+# CO2-atmosphere thermodynamics (R_specific = R_universal / M_CO2; cp typical for
+# the thin Mars atmosphere) set kappa = R/cp; the 200 K reference temperature is
+# the semi-implicit linearisation anchor validated to integrate stably.
+from src.framework.gcm.body import BodyConstants  # noqa: E402  (pure-Python, no torch/jax)
+
+MARS_BODY_3D: BodyConstants = BodyConstants(
+    name="Mars",
+    radius_m=float(MARS_RADIUS),
+    gravity_m_s2=float(MARS_GRAVITY),
+    rotation_period_s=float(MARS_ROTATION_PERIOD),
+    gas_constant_j_kg_k=188.92,   # 8.314462618 / 0.0440095 (CO2)
+    cp_j_kg_k=770.0,              # isobaric heat capacity, thin CO2 atmosphere
+    reference_temperature_k=200.0,
+    reference_surface_pressure_pa=610.0,
+)
+
+
+def mars_gcm3d_core(truncation: str = "T42", n_layers: int = 25):
+    """Build the 3-D GCM core (coords, physics-specs, dry equations) for Mars.
+
+    Convenience entry point wiring ``MARS_BODY_3D`` into the planet-agnostic
+    ``gcm3d`` core — the "utilised in mars" path. Requires the optional ``gcm3d``
+    extra (dinosaur + jax); the heavy imports are deferred so importing this
+    module never pulls JAX.
+
+    Returns
+    -------
+    tuple
+        ``(coordinate_system, physics_specs, primitive_equations)`` for Mars.
+    """
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.framework.gcm.dynamics import primitive_equations
+    from src.framework.gcm.specs import physics_specs
+
+    coords = coordinate_system(truncation, n_layers)
+    specs = physics_specs(MARS_BODY_3D)
+    equations = primitive_equations(coords, MARS_BODY_3D, specs=specs)
+    return coords, specs, equations
 
 
 class Mars(Planet):
@@ -323,9 +374,8 @@ class Mars(Planet):
         │  dT/dt  = [ Q_in − Q_out ] / C                             │
         │         = [(1−α) F π R² − ε σ (T/f_gh)⁴ 4π R²] / C        │
         │                                                              │
-        │  dP/dt  = −Ṁ_escape g / (4π R²)                            │
-        │         where Ṁ_escape = 4π R² n(R) v_th exp(−λ)           │
-        │         λ = G M m_CO2 / (k T R_exo)                         │
+        │  dP/dt  = −[Ṁ_MAVEN + dM_N/dt + dM_S/dt] g / (4π R²)      │
+        │         where Ṁ_MAVEN is the prescribed non-thermal loss   │
         │                                                              │
         │  dM_ice/dt = −(sublimation rate)                            │
         │            = −A_cap L_sub⁻¹ σ T⁴   (simplified)            │
@@ -337,7 +387,7 @@ class Mars(Planet):
         References
         ----------
         Stefan-Boltzmann law : https://en.wikipedia.org/wiki/Stefan–Boltzmann_law
-        Jeans escape         : https://en.wikipedia.org/wiki/Atmospheric_escape
+        MAVEN escape         : https://doi.org/10.1126/science.aan5015
         """
         s = self
 

@@ -1,211 +1,275 @@
 <div align="center">
 
-<img src="docs/assets/logo.svg" alt="Terraforming — planetary physics framework" width="560">
+<img src="docs/assets/logo.svg" alt="Terraforming — differentiable planetary climate framework" width="560">
 
-<h1>Terraforming</h1>
+# Terraforming
 
-<h3>A physics-based simulation framework for terraforming planets, moons, and solar systems</h3>
+### A reusable differentiable framework for building planetary general circulation models
 
 [![Tests](https://github.com/BioMedAI-UCSC/terraforming/actions/workflows/tests.yml/badge.svg)](https://github.com/BioMedAI-UCSC/terraforming/actions/workflows/tests.yml)
 [![Deploy Docs](https://github.com/BioMedAI-UCSC/terraforming/actions/workflows/docs-deploy.yml/badge.svg)](https://github.com/BioMedAI-UCSC/terraforming/actions/workflows/docs-deploy.yml)
-[![Documentation](https://img.shields.io/badge/docs-terraforming--docs-2f9e6f)](https://biomedai-ucsc.github.io/terraforming-docs/)
+[![Documentation](https://img.shields.io/badge/docs-project_documentation-2f9e6f)](https://biomedai-ucsc.github.io/terraforming-docs/)
 [![Python](https://img.shields.io/badge/python-3.12-3776ab?logo=python&logoColor=white)](https://www.python.org/)
-[![uv](https://img.shields.io/badge/managed%20with-uv-de5fe9?logo=uv&logoColor=white)](https://docs.astral.sh/uv/)
-[![License](https://img.shields.io/badge/license-TBD-lightgrey)](#license)
+[![JAX](https://img.shields.io/badge/JAX-differentiable_GCM-orange)](https://github.com/jax-ml/jax)
 
 **[Documentation](https://biomedai-ucsc.github.io/terraforming-docs/)** ·
-[Quickstart](https://biomedai-ucsc.github.io/terraforming-docs/getting-started/quickstart/) ·
-[CLI Reference](https://biomedai-ucsc.github.io/terraforming-docs/cli/commands/) ·
-[Architecture](https://biomedai-ucsc.github.io/terraforming-docs/architecture/planet/)
+**[GCM architecture](docs/package/gcm3d/architecture.md)** ·
+**[Physics status and limitations](docs/ideas/gcm3d-physics-limitations.md)** ·
+**[AmesGCM comparison](docs/ideas/amesgcm-comparison.md)**
 
 </div>
 
 ---
 
-## Overview
+## What this project is
 
-**Terraforming** is the hypothetical process of deliberately modifying a world's
-atmosphere, temperature, surface, and ecology to make it habitable for Earth life.
-The core challenge is an **energy-balance problem**: enough heat must be retained by
-the atmosphere to sustain liquid water and breathable pressures at the surface.
+Terraforming is an experimental framework for constructing differentiable,
+three-dimensional planetary climate models. It provides the shared dynamics,
+physical operators, state coupling, integration, diagnostics, and data interfaces
+needed to assemble a GCM without baking one planet's constants or datasets into
+the numerical core.
 
-This project is a physics-based simulation framework that models these processes for
-**planets, moons, and eventually whole solar systems**. It represents any body as a
-**state vector** of thermodynamic and atmospheric quantities that evolve continuously
-under physical forcing:
+The framework builds on [Dinosaur](https://github.com/neuralgcm/dinosaur), the
+spectral primitive-equation dynamical core used by NeuralGCM. Its intended use is
+to combine conventional differentiable physics with learned residual tendencies,
+gradient-based parameter calibration, and eventually carefully bounded planetary
+intervention studies.
 
-$$\mathbf{y}(t) = \bigl(T,\; P,\; M_\text{ice},\; \ldots\bigr)$$
+**Mars is the first and currently the only supported planet.** It serves as the
+reference implementation used to develop and validate the generic interfaces. The
+current Mars model supplies:
 
-The framework defines *how* that state changes — balancing incoming solar radiation,
-outgoing thermal emission, greenhouse retention, orbital mechanics, and any engineered
-interventions — without prescribing body-specific constants. Each celestial body supplies
-its own orbital parameters, atmospheric composition, and physical constants while
-inheriting the shared integration infrastructure.
+- spectral primitive-equation dynamics on terrain-following sigma levels;
+- MOLA topography and spatial surface properties;
+- diurnal and eccentric-orbit solar forcing;
+- multiband CO₂ correlated-k radiation and radiatively active prescribed dust;
+- prognostic surface temperature and multilayer regolith conduction;
+- surface heat and momentum exchange, boundary-layer mixing, and dry convection;
+- surface CO₂ condensation and sublimation with latent heat and atmospheric-mass
+  exchange;
+- restartable JAX integrations, NetCDF output, maps, diurnal diagnostics, and
+  MCD comparison tooling.
 
-The command-line tool that drives the framework is called **`tform`**.
+Supporting another planet requires a new celestial package containing its body
+constants, composition, optical properties, surface datasets, condensable cycles,
+and model assembly. It should reuse the framework dynamics and applicable physical
+operators rather than fork them.
 
-## Highlights
+The repository also retains a simpler Torch-based global-mean Mars model for fast
+experiments and intervention prototypes. It is a separate numerical model, not a
+replacement for or continuation of the 3-D JAX state.
 
-- **Generic celestial framework** — abstract planet, atmosphere, orbital, thermal, and
-  radiation models that extend to any body in the solar system.
-- **Intervention engine** — super-greenhouse gas injection (SF₆, CF₄, C₂F₆, …) with a
-  radiative-forcing registry and injection scheduler for multi-decade campaigns.
-- **Fast + accurate integrators** — an RK4 accurate mode and a reduced-order fast path,
-  with a batched controller for multi-site sweeps.
-- **Batteries-included CLI** — presets, YAML configs, CSV output, and plots via `tform`.
-- **Live visualizer** — a browser UI that streams each physics step in real time.
+## Current implementation: Mars
 
-## Modules
+The generic framework is exercised through a present-day Mars GCM. This is research
+software under active development, not yet a validated Mars climatology. The
+deterministic physics components and their local conservation properties are
+substantially implemented, but the coupled model still needs seasonal spin-up and
+quantitative validation.
 
-| Package | Description |
-|---------|-------------|
-| `src.framework` | Abstract planet, atmosphere, and orbital-mechanics base classes |
-| `src.celestials` | Concrete body implementations (currently Mars) — solar flux, climate ODE, polar caps |
-| `src.engine` | RK4 / fast-path integrators and the batched simulation controller |
-| `src.interventions` | GHG compound registry, radiative forcing, and injection scheduler |
+The validation order is:
+
+1. Viking Lander 1 and 2 seasonal surface-pressure cycles;
+2. global atmospheric-plus-cap CO₂ conservation;
+3. MCS zonal-mean atmospheric temperature;
+4. TES/THEMIS surface-temperature cycles;
+5. MCD three-dimensional temperature and wind diagnostics;
+6. matched AmesGCM runs for model-to-model debugging.
+
+MCD and AmesGCM are model references, not observational truth. Short GCM runs are
+labelled as spin-up transients and should not be interpreted as equilibrated
+climatology. Water, water-ice clouds, CO₂-cloud microphysics, interactive dust
+lifting, photochemistry, and thermospheric escape are not part of the current
+three-dimensional baseline.
+
+## Architecture
+
+Reusable numerical machinery and physical operators are kept separate from each
+planet's configuration and datasets:
+
+```text
+package/src/
+├── framework/
+│   ├── gcm/                    # Dinosaur adapter, coordinates, dynamics,
+│   │                           # units, integration, restart and benchmarks
+│   └── physics/                # Reusable differentiable column operators
+│                               # and correlated-k radiation machinery;
+│                               # currently bundles the Mars/Ames reference table
+├── celestials/
+│   └── planets/
+│       └── mars/               # Mars constants, forcing, MOLA/TES/dust/MCD,
+│                               # maps and seasonal model
+├── engine/                     # Separate Torch global-mean integration path
+└── interventions/              # Experimental intervention definitions
+```
+
+The dependency direction is deliberate:
+
+```text
+Planet implementation (currently Mars)
+              ↓
+Reusable framework physics
+              ↓
+Framework GCM and Dinosaur/JAX
+```
+
+Framework modules do not import Mars. Mars depends on the framework and composes
+the generic pieces with Mars-specific physics and data. There is no top-level
+`src.gcm3d` package.
+
+## Extending the framework
+
+A new planet implementation should provide:
+
+- a `BodyConstants` instance for dynamics and nondimensionalisation;
+- atmospheric thermodynamic and radiative properties;
+- orbital and stellar forcing;
+- surface, terrain, and aerosol datasets where available;
+- planet-specific condensable or volatile cycles;
+- an assembly module that selects reusable framework operators;
+- validation observations and explicit acceptance criteria.
+
+Generic solvers belong under `src.framework`; planet-specific coefficients,
+parameterizations, and datasets belong under `src.celestials.planets.<planet>`.
+The currently bundled Ames coefficient asset is colocated with the generic
+correlated-k loader for reproducibility; moving optical tables behind an injected
+planet-data interface remains an architectural cleanup. Framework code otherwise
+does not import a concrete celestial implementation.
 
 ## Installation
 
-The project uses [uv](https://docs.astral.sh/uv/) for environment and package management.
+The repository uses [uv](https://docs.astral.sh/uv/) and Python 3.12.
 
 ```bash
-# 1. Install uv (macOS / Linux)
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# 2. Clone and sync
 git clone https://github.com/BioMedAI-UCSC/terraforming.git
 cd terraforming
-uv sync --dev
+
+# Install the workspace, development tools, and optional Dinosaur GCM stack.
+uv sync --dev --all-extras
 ```
 
-## Command-line interface (`tform`)
-
-`tform` is the primary way to run simulations. Commands follow the pattern
-`tform <body> <command> [options]`, with built-in presets, YAML configs, CSV output,
-and automatic plotting.
+The base package can be installed without Dinosaur when only the Torch model is
+needed. The three-dimensional model requires the `gcm3d` optional dependency:
 
 ```bash
-# Single sol (diurnal cycle) at Gale Crater
-tform mars run --preset gale-crater --type sol
-
-# One Martian year of the current Mars baseline
-tform mars run --preset current-mars --type year
-
-# Multi-latitude run (45°N, equator, 40°S)
-tform mars run --preset equatorial --type multi
-
-# Four landmark sites in one run
-tform mars run --preset landmark-spots --type spots
-
-# Terraforming intervention: GHG injection over years
-tform mars run --preset terraforming-phase1 --type intervention
+pip install 'terraforming[gcm3d]'
 ```
 
-Runs can also be driven entirely from a custom YAML config:
+External MOLA and surface datasets are staged separately. See
+[the data-staging guide](docs/scripts/gcm3d-data.md).
+
+## Run the Mars GCM
+
+The command-line interface is `tform`:
 
 ```bash
-tform mars config validate my-sim.yaml
-tform mars run --config my-sim.yaml
+# Default Mars GCM map run with deterministic physics.
+uv run tform mars maps
+
+# Select resolution, vertical layers, season and duration.
+uv run tform mars maps \
+  --truncation T21 \
+  --layers 12 \
+  --ls 270 \
+  --dt 300 \
+  --steps 1000
+
+# Resolve the moving day/night terminator.
+uv run tform mars maps --diurnal --dt 300
+
+# Explicit dry-dycore diagnostic.
+uv run tform mars maps --no-physics
 ```
 
-Results are written to `outputs/` as CSV and plotted automatically (pass `--no-plot` to
-suppress). Run `tform man` or `tform --help` for the full command and flag reference, or
-see the [CLI Reference](https://biomedai-ucsc.github.io/terraforming-docs/cli/commands/).
+Outputs are written under `outputs/gcm3d_maps/` and include plotted fields and a
+NetCDF dataset suitable for analysis or benchmark comparison. Long integrations
+use separate versioned restart checkpoints.
 
-## Visualizer
-
-An interactive browser-based visualizer streams simulations live as they run. It is a
-React + Vite + Recharts front end served by a FastAPI backend that runs each simulation
-in a thread pool and pushes every physics step to the browser over Server-Sent Events.
+For restartable long-running physics ablations:
 
 ```bash
-# Start the visualizer and open it in your browser
-tform serve
-
-# Custom port, or hand off to a Vite dev server on :5173
-tform serve --port 9000
-tform serve --dev
-tform serve --no-browser
+uv run python scripts/run_gcm3d_ablation.py \
+  path/to/surface_properties.nc \
+  --laptop \
+  --resume
 ```
 
-The UI lets you configure a run, launch it, and watch temperature, pressure, and ice-mass
-trajectories update in real time; completed runs are also saved as CSV under
-`outputs/server/`.
+## Visualizer and benchmarks
 
-## Mars
-
-Mars is the framework's first fully-implemented target and its primary current focus. The
-Mars model (`src.celestials`) includes:
-
-- **Realistic orbital forcing** — eccentricity ($e = 0.0934$) and axial tilt ($25.19°$)
-  driving seasonal solar flux across a full Martian year (~687 Earth days).
-- **Climate ODE** — coupled surface temperature, atmospheric pressure, and polar CO₂-ice
-  mass, with cap sublimation/deposition and pressure seasonality.
-- **Elevation-aware sites** — landmark presets such as Olympus Mons, Elysium Mons,
-  Hellas Basin, and the South Polar Cap with elevation-corrected initial conditions.
-- **Terraforming campaigns** — multi-year super-greenhouse-gas injection scenarios that
-  track radiative-forcing accumulation and the resulting temperature/pressure trajectory.
-
-See the [Mars wiki](https://biomedai-ucsc.github.io/terraforming-docs/wiki/mars/) for the
-full solar-flux, climate, and intervention models.
-
-## Goals
-
-The project aims to be a rigorous, extensible sandbox for asking *what would it actually
-take* to make another world habitable:
-
-- **Ground terraforming in physics, not hand-waving.** Every intervention resolves to a
-  radiative-forcing and mass-balance change with traceable units and assumptions.
-- **A reusable, body-agnostic framework.** Mars is the first target, but the
-  state-vector / forcing architecture is designed to generalise across the solar system.
-- **Honest energy and mass accounting.** Track volatile reservoirs, polar caps, and
-  atmospheric column budgets so that "it warms up" is always backed by conserved quantities.
-- **Reproducible experiments.** Presets, YAML configs, and CSV outputs make every run
-  auditable and repeatable.
-
-## Roadmap
-
-- **Differentiable framework** — end-to-end differentiable integration to optimise
-  intervention schedules against habitability targets *(planned)*.
-- **More celestial bodies** — additional planets and moons on top of the shared framework.
-- **Solar-system-scale modelling** — coupled multi-body scenarios beyond a single world.
-- **Richer atmospheric chemistry** — coupled photochemistry and multi-species evolution.
-- **Magnetic-field interventions** — artificial magnetosphere modelling for atmospheric
-  retention.
-- **Scenario tooling & UI** — richer visualisation and comparison of terraforming pathways.
-
-See [`docs/`](docs/) and open issues for detailed design notes and in-progress work.
-
-## Documentation
-
-Full documentation — concepts wiki, CLI reference, architecture, and API — lives at:
-
-**➡️ https://biomedai-ucsc.github.io/terraforming-docs/**
-
-Docs are built with MkDocs Material. Preview locally with:
+The browser UI can run or stop GCM simulations, display the evolving field grid,
+inspect diurnal outputs, load existing NetCDF runs, and compare matched fields
+against MCD or uploaded reference data.
 
 ```bash
-uv run mkdocs serve
+uv run tform serve
 ```
+
+MCD downloads are cached beneath the selected output directory so matching data
+can be reused. Maps and comparison figures can be exported as PNG with legends.
+
+## Python API
+
+The canonical imports make the generic/Mars boundary explicit:
+
+```python
+from src.celestials.planets.mars import MARS_BODY_3D
+from src.celestials.planets.mars.gcm import co2_forcing, radiative_forcing
+from src.celestials.planets.mars.maps import run_maps, save_netcdf
+
+forcing = radiative_forcing(
+    diurnal=True,
+    co2_radiation_enabled=True,
+)
+
+fields = run_maps(
+    body=MARS_BODY_3D,
+    forcing=forcing,
+    co2_forcing=co2_forcing(),
+    truncation="T21",
+    n_layers=12,
+    dt_seconds=300.0,
+    n_steps=1000,
+)
+
+save_netcdf(fields, "outputs/mars_gcm.nc")
+```
+
+Generic GCM components are available from `src.framework.gcm`; reusable column
+operators and state containers are under `src.framework.physics`.
 
 ## Development
 
 ```bash
-uv sync --dev
+uv sync --dev --all-extras
 
-# Package tests (framework, engine, celestials, interventions)
-cd package && uv run python -m pytest tests/ -v -m "not slow"
+# Core package tests, excluding long integrations.
+uv run --project package python -m pytest package/tests -m "not slow"
 
-# CLI tests
-cd cli && uv run python -m pytest tests/ -v
+# CLI and server tests.
+uv run python -m pytest cli/tests -m "not slow"
 
-# Type checking
+# Documentation preview and static checking.
+uv run mkdocs serve
 uv run pyright
 ```
 
-Tests and docs are validated in CI on every pull request — see the badges above.
+JAX compilation can be expensive on laptops. Prefer the supplied low-resolution
+or `--laptop` configurations for smoke tests and use restart checkpoints for
+seasonal integrations.
+
+## Project scope
+
+The long-term goal is a reusable framework for differentiable climate modelling
+across planets and moons. The near-term milestone is narrower: demonstrate that
+framework with a validated dry-Mars GCM and a defensible experiment such as
+gradient-based calibration of soil, dust, or boundary-layer parameters against
+observations.
+
+The near-term goal is not a terraforming bifurcation result. Intervention forcing
+becomes scientifically meaningful only after the supported planet model closes its
+coupled energy and mass budgets and passes a documented validation scorecard.
 
 ## License
 
-License is to be determined. Until a license is added, all rights are reserved by the
-authors ([BioMedAI-UCSC](https://github.com/BioMedAI-UCSC)).
+The license is currently undetermined. Until a license is added, all rights are
+reserved by the authors ([BioMedAI-UCSC](https://github.com/BioMedAI-UCSC)).

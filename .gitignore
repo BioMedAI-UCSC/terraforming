@@ -23,6 +23,8 @@ share/python-wheels/
 *.egg
 MANIFEST
 .tokensave
+AmesGCM
+d-gcm
 
 # Virtual Environments
 .env

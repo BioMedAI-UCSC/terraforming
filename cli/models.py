@@ -20,6 +20,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 class Accuracy(str, Enum):
     fast     = "fast"
     accurate = "accurate"
+    gcm      = "gcm"        # 3-D gcm3d maps backend (dinosaur dycore + physics)
 
 
 class ExpType(str, Enum):

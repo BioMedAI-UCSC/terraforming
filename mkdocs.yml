@@ -99,3 +99,10 @@ nav:
       - Mars: api/celestials.md
       - Engine: api/engine.md
       - Interventions: api/interventions.md
+  - Package · gcm3d (3-D GCM):
+      - Overview: package/gcm3d/README.md
+      - Philosophy: package/gcm3d/philosophy.md
+      - Architecture: package/gcm3d/architecture.md
+      - API Reference: package/gcm3d/api.md
+      - Implementation & Physics: package/gcm3d/implementation.md
+      - Data & validation scripts: scripts/gcm3d-data.md

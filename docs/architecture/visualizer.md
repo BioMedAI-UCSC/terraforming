@@ -180,6 +180,22 @@ Temperature uses an `AreaChart` with a min/max band for intervention runs, where
 `InterventionSnapshot` carries `temp_min` and `temp_max` from the annual
 integration.
 
+### GCM map and MCD comparison mode
+
+The top-left model selector defaults to **GCM**. A single map run renders all
+available surface fields in a responsive grid: temperature, pressure, zonal and
+scalar wind, CO₂ frost, and MOLA elevation. The run form controls season (`Ls`),
+duration, pressure, temperature, albedo, greenhouse factor, and GCM resolution.
+
+Selecting **GCM + MCD comparison** keeps the GCM run as the model result and asks
+the server for MCD v6.1 maps at the same requested `Ls`, dust scenario, and the
+diagnostic height of the GCM's lowest layer. Daily-mean comparisons assemble the
+12 fixed-local-time MCD samples. The field viewer can switch among **GCM**,
+**MCD**, and **GCM − MCD** grids and reports cosine-latitude-weighted bias, MAE,
+RMSE, correlation, and area means. MCD responses are cached in memory by their
+season/time/dust/height key. These are diagnostic transient-versus-climatology
+comparisons until the GCM run has completed a seasonal spin-up.
+
 ---
 
 ## Development workflow

@@ -41,7 +41,7 @@ export function RunList({ runs, selectedId, onSelect }: Props) {
 }
 
 function StatusDot({ status }: { status: RunSummary['status'] }) {
-  const color = status === 'running' ? '#f5a623' : status === 'done' ? '#4caf50' : '#e53935'
+  const color = status === 'running' ? '#f5a623' : status === 'done' ? '#4caf50' : status === 'stopped' ? '#777' : '#e53935'
   return (
     <span style={{ width: 7, height: 7, borderRadius: '50%', background: color, flexShrink: 0,
       boxShadow: status === 'running' ? `0 0 6px ${color}` : 'none' }} />
