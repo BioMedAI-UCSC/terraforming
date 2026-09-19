@@ -50,6 +50,7 @@ def main() -> int:
     if not samples:
         parser.error("no model checkpoints exist in the evaluation year")
     model = xr.concat(samples, dim="sample")
+    model_insolation = str(model.attrs.get("insolation_sampling", "unknown"))
     with xr.open_dataset(args.ames_reference) as opened:
         ames = opened.load()
     targets = [float(item) % 360.0 for item in args.targets.split(",")]
@@ -61,7 +62,10 @@ def main() -> int:
         "half_width_ls_deg": args.half_width,
         "seasons": {},
         "limitations": [
-            "Model checkpoints are instantaneous states under daily-mean sunlight; Ames fields are five-sol averages.",
+            (
+                "Model seasonal means average instantaneous checkpoints under "
+                f"{model_insolation} insolation; Ames fields are five-sol averages."
+            ),
             "Wind compares each model's lowest layer; their effective heights are not identical.",
             "Ames dust opacity is prescribed to Dinosaur piecewise at checkpoint cadence, so dust is a matched boundary condition rather than an independent target.",
             "Ames MGCM and MCD are model references, not observational truth.",

@@ -37,18 +37,26 @@ def main() -> int:
     parser.add_argument("--targets", default="0,90,180,270")
     parser.add_argument("--half-width", type=float, default=6.0)
     parser.add_argument("--evaluation-start-sol", type=float, default=668.0)
+    parser.add_argument("--evaluation-end-sol", type=float)
     parser.add_argument("--dt", type=float, default=300.0)
+    parser.add_argument("--diurnal", action="store_true")
+    parser.add_argument("--hyperdiffusion-tau-sols", type=float, default=0.1)
+    parser.add_argument("--co2-lw-scale", type=float, default=1.0)
+    parser.add_argument("--dust-lw-scale", type=float, default=1.0)
     args = parser.parse_args()
     jax.config.update("jax_enable_x64", True)
 
     coords = coordinate_system("T21", 12)
     specs = physics_specs(MARS_BODY_3D)
     base = radiative_forcing(
-        diurnal=False, co2_radiation_enabled=True,
+        diurnal=args.diurnal, co2_radiation_enabled=True,
         dust_visible_optical_depth=0.3, dust_longwave_optical_depth=0.1,
     )
     base = dataclasses.replace(
-        base, init_orbital_angle_rad=mean_anomaly_for_ls(0.0, base)
+        base,
+        init_orbital_angle_rad=mean_anomaly_for_ls(0.0, base),
+        ames_co2_longwave_opacity_scale=args.co2_lw_scale,
+        ames_dust_longwave_opacity_scale=args.dust_lw_scale,
     )
     base = forcing_with_surface_properties(
         base, coords.horizontal, args.surface_properties
@@ -72,7 +80,14 @@ def main() -> int:
         ls_deg = float(np.degrees(
             float(_true_anomaly(elapsed_seconds, forcing)) + forcing.ls_perihelion_rad
         ) % 360.0)
-        if elapsed_sols >= args.evaluation_start_sol and circular_distance(ls_deg, targets) <= args.half_width:
+        inside_interval = (
+            elapsed_sols >= args.evaluation_start_sol
+            and (
+                args.evaluation_end_sol is None
+                or elapsed_sols <= args.evaluation_end_sol
+            )
+        )
+        if inside_interval and circular_distance(ls_deg, targets) <= args.half_width:
             selected.append((path, state, elapsed_sols, ls_deg))
     if not selected:
         parser.error("no evaluation-year checkpoints fall inside target windows")
@@ -82,6 +97,9 @@ def main() -> int:
             truncation="T21", n_layers=12, dt_seconds=args.dt, n_steps=1,
             forcing=forcing, co2_forcing=co2_forcing(energy_limited=True),
             initial_state=state,
+            hyperdiffusion_tau_seconds=(
+                args.hyperdiffusion_tau_sols * MARS_BODY_3D.rotation_period_s
+            ),
         )
         output = args.output_dir / f"sample_{int(round(elapsed_sols * 1000)):09d}.nc"
         save_netcdf(fields, output)

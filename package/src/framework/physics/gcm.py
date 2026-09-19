@@ -131,6 +131,14 @@ class RadiativeForcing:
     # Use the bundled Ames 12-band correlated-k coefficients. Disable only for
     # compact-scheme ablations or installations without the staged asset.
     ames_correlated_k_enabled: bool = True
+    # Apply the zenith-angle air-mass factor to direct solar optical paths.
+    # Retained as an explicit switch for regression against the legacy vertical-
+    # path approximation.
+    solar_slant_path_enabled: bool = True
+    # Explicit calibration multipliers for the Ames thermal optical depths.
+    # Keeping gas and dust separate makes reference-data tuning auditable.
+    ames_co2_longwave_opacity_scale: float = 1.0
+    ames_dust_longwave_opacity_scale: float = 1.0
     co2_longwave_optical_depth: float = 0.35
     co2_near_ir_optical_depth: float = 0.08
     co2_reference_temperature_k: float = 200.0
@@ -285,6 +293,42 @@ def cos_zenith_nodal(t_s, lat_rad, lon_rad, f: RadiativeForcing):
     return jnp.broadcast_to(mean_cz[None, :], (n_lon, mean_cz.shape[0]))
 
 
+def solar_path_cosine_nodal(t_s, lat_rad, lon_rad, f: RadiativeForcing):
+    """Effective cosine for direct-beam optical path length.
+
+    For resolved local time this is the instantaneous positive zenith cosine.
+    Daily-mean forcing needs a flux-weighted path cosine rather than its mean
+    insolation cosine: ``mu_eff = <mu^2> / <mu>`` over the illuminated part of
+    the sol. This preserves the daily-mean incoming energy while accounting for
+    the longer atmospheric path at morning, evening, and high latitude.
+    """
+    if f.diurnal:
+        return cos_zenith_nodal(t_s, lat_rad, lon_rad, f)
+
+    delta = _declination(t_s, f)
+    lat = jnp.asarray(lat_rad)
+    sin_lat, cos_lat = jnp.sin(lat), jnp.cos(lat)
+    sin_d, cos_d = jnp.sin(delta), jnp.cos(delta)
+    a = sin_lat * sin_d
+    b = cos_lat * cos_d
+    x = jnp.clip(-jnp.tan(lat) * (sin_d / jnp.clip(cos_d, 1e-6, None)), -1.0, 1.0)
+    h0 = jnp.arccos(x)
+    mean_mu = jnp.clip((h0 * a + b * jnp.sin(h0)) / math.pi, 0.0, None)
+    mean_mu2 = jnp.clip(
+        (
+            h0 * a**2
+            + 2.0 * a * b * jnp.sin(h0)
+            + b**2 * (0.5 * h0 + 0.25 * jnp.sin(2.0 * h0))
+        )
+        / math.pi,
+        0.0,
+        None,
+    )
+    effective = jnp.where(mean_mu > 1.0e-12, mean_mu2 / mean_mu, 0.0)
+    n_lon = jnp.asarray(lon_rad).shape[0]
+    return jnp.broadcast_to(effective[None, :], (n_lon, effective.shape[0]))
+
+
 class ColumnPhysicsState(NamedTuple):
     """JAX-pytree state for the dycore plus non-advected surface reservoirs.
 
@@ -321,6 +365,13 @@ class RadiativeFluxDiagnostics(NamedTuple):
 
 def _validate_radiative_bands(f: RadiativeForcing) -> None:
     """Fail early when static spectral configuration has inconsistent lengths."""
+    for name in (
+        "ames_co2_longwave_opacity_scale",
+        "ames_dust_longwave_opacity_scale",
+    ):
+        value = getattr(f, name)
+        if not np.isfinite(value) or value < 0.0:
+            raise ValueError(f"{name} must be finite and non-negative")
     sw_lengths = {
         len(f.co2_shortwave_band_weights),
         len(f.co2_shortwave_band_strengths),
@@ -451,6 +502,17 @@ def two_stream_radiative_fluxes(
     t_s = dyn.sim_time * time_scale_s
     cz = cos_zenith_nodal(t_s, grid.latitudes, grid.longitudes, f)
     incoming = solar_flux(t_s, f) * cz
+    # Convert vertical optical depth to the direct-beam slant path. A small
+    # lower bound is immaterial in darkness (incoming is zero) and prevents
+    # singular paths at the terminator.
+    solar_path_factor = (
+        1.0 / jnp.clip(
+            solar_path_cosine_nodal(t_s, grid.latitudes, grid.longitudes, f),
+            0.05,
+            1.0,
+        )
+        if f.solar_slant_path_enabled else jnp.ones_like(cz)
+    )
     dust_visible, dust_longwave = dust_optical_depths(t_s, f)
     if surface_pressure_pa is None:
         ps_nd = jnp.exp(grid.to_nodal(dyn.log_surface_pressure))[0]
@@ -509,6 +571,7 @@ def two_stream_radiative_fluxes(
         sw_tau, lw_tau = ames_radiation.correlated_k_optical_depths(
             air_k, pressure_mid_pa, delta_pressure_pa
         )
+        lw_tau = lw_tau * f.ames_co2_longwave_opacity_scale
         data = ames_radiation.load_ames_co2_tables_jax()
         sw_channel_weights = ames_radiation.channel_weights(
             data["clear_fraction_sw"]
@@ -536,20 +599,25 @@ def two_stream_radiative_fluxes(
         # and backward scattered fractions plus true absorption sum to unity.
         attenuation = jnp.exp(-jnp.clip(
             jnp.sqrt(3.0 * (1.0 - omega_sw) * (1.0 - omega_sw * g_sw))
-            * total_sw_tau, 0.0, 50.0
+            * total_sw_tau * solar_path_factor[None, None, None], 0.0, 50.0
         ))
         layer_reflect = 0.5 * omega_sw * (1.0 - g_sw) * (1.0 - attenuation)
         layer_transmit = attenuation + 0.5 * omega_sw * (1.0 + g_sw) * (1.0 - attenuation)
 
+        # The prescribed IR opacity is a separate Ames field; do not infer it
+        # from visible opacity. Normalize the five spectral extinction values to
+        # the 9-micron-like reference interval used by the column product.
+        reference_ir_extinction = ames_radiation.DUST_IR_EXTINCTION[3]
+        dust_ir_column = dust_longwave * column_pressure_ratio
         dust_ext_ir = (
-            dust_column[None, None, None] * dust_layer_fraction[None, None]
+            dust_ir_column[None, None, None] * dust_layer_fraction[None, None]
             * ames_radiation.DUST_IR_EXTINCTION[:, None, None, None, None]
-            / reference_extinction
+            / reference_ir_extinction
         )
         dust_abs_ir = dust_ext_ir * (1.0 - (
             ames_radiation.DUST_IR_SCATTERING / ames_radiation.DUST_IR_EXTINCTION
         )[:, None, None, None, None])
-        lw_tau = lw_tau + dust_abs_ir
+        lw_tau = lw_tau + dust_abs_ir * f.ames_dust_longwave_opacity_scale
         lw_trans = jnp.exp(-jnp.clip(lw_tau / 0.5, 0.0, 50.0))
         solar_weights = data["solar_weights"]
         flux_toa = (incoming[None, None] * solar_weights[:, None, None, None]
@@ -635,7 +703,9 @@ def two_stream_radiative_fluxes(
             dust_longwave * column_pressure_ratio
             * dust_layer_fraction,
         )
-        sw_trans = jnp.exp(-jnp.clip(sw_tau, 0.0, 50.0))
+        sw_trans = jnp.exp(-jnp.clip(
+            sw_tau * solar_path_factor[None, None], 0.0, 50.0
+        ))
         lw_trans = jnp.exp(-jnp.clip(lw_tau, 0.0, 50.0))
         sw_weights = jnp.asarray(f.co2_shortwave_band_weights)
         sw_weights = sw_weights / jnp.sum(sw_weights)
@@ -1455,10 +1525,66 @@ def project_co2_reservoirs(state: ColumnPhysicsState, coords, specs):
     )
 
 
-def positivity_preserving_co2_step(step_fn, coords, specs):
-    """Wrap an IMEX step with the conservative CO2-reservoir projection."""
+def positivity_preserving_co2_step(
+    step_fn,
+    coords,
+    specs,
+    *,
+    body: BodyConstants | None = None,
+    co2_forcing: CO2Forcing | None = None,
+    dt_seconds: float | None = None,
+):
+    """Wrap an IMEX step with positivity and global CO2-mass projections.
+
+    The phase-change tendency is conservative in pressure coordinates, but the
+    dynamical state advances ``log(p_s)``. A finite Runge--Kutta step therefore
+    does not preserve ``p_s + p_ice`` exactly even when its instantaneous
+    tendency does. The small one-step error accumulates over a Mars year and can
+    become a material artificial source of atmospheric mass.
+
+    After repairing negative frost, rescale atmospheric pressure by one global
+    factor so the Gaussian-quadrature integral of atmosphere plus surface frost
+    matches the inventory before the step. If non-thermal escape is configured,
+    subtract its exact pressure-equivalent loss. The rescaling preserves the
+    resolved spatial pressure pattern and keeps pressure positive.
+    """
+    grid = coords.horizontal
+    weights = jnp.asarray(grid.quadrature_weights)
+    pressure_scale = float(specs.dimensionalize(1.0, _u.pascal).magnitude)
+
+    escape_pa = 0.0
+    if co2_forcing is not None and co2_forcing.escape_rate_kg_s != 0.0:
+        if body is None or dt_seconds is None:
+            raise ValueError(
+                "body and dt_seconds are required when CO2 escape is non-zero"
+            )
+        escape_pa = (
+            co2_forcing.escape_rate_kg_s
+            * body.gravity_m_s2
+            / body.surface_area_m2
+            * dt_seconds
+        )
+
+    def total_pressure_integral(state):
+        ps_nd = jnp.exp(grid.to_nodal(state.dynamics.log_surface_pressure))[0]
+        return jnp.sum((ps_nd + state.co2_ice[0]) * weights)
+
     def step(state):
-        return project_co2_reservoirs(step_fn(state), coords, specs)
+        target_total = total_pressure_integral(state)
+        target_total = target_total - escape_pa / pressure_scale * jnp.sum(weights)
+        projected = project_co2_reservoirs(step_fn(state), coords, specs)
+
+        ps_nd = jnp.exp(grid.to_nodal(projected.dynamics.log_surface_pressure))
+        ice_integral = jnp.sum(projected.co2_ice[0] * weights)
+        atmosphere_integral = jnp.sum(ps_nd[0] * weights)
+        target_atmosphere = jnp.maximum(target_total - ice_integral, 1.0e-15)
+        pressure_factor = target_atmosphere / atmosphere_integral
+        corrected = dataclasses.replace(
+            projected.dynamics,
+            log_surface_pressure=grid.to_modal(jnp.log(ps_nd * pressure_factor)),
+        )
+        return projected._replace(dynamics=corrected)
+
     return step
 
 
