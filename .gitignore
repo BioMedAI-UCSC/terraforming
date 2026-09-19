@@ -25,6 +25,7 @@ MANIFEST
 .tokensave
 AmesGCM
 d-gcm
+paper
 
 # Virtual Environments
 .env

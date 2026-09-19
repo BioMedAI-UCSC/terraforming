@@ -86,6 +86,23 @@ class TestMarsRadiativeForcing:
         assert f.albedo == pytest.approx(0.4)
         assert f.greenhouse_factor == pytest.approx(1.5)
 
+    @pytest.mark.parametrize(
+        ("ls_deg", "expected"),
+        [(50.0, 1.0 + 40.0 / 90.0), (350.0, 3.0 - 2.0 * 50.0 / 70.0)],
+    )
+    def test_seasonal_dust_interpolates_periodically(self, ls_deg, expected):
+        base = mars_gcm.radiative_forcing()
+        forcing = dataclasses.replace(
+            base,
+            init_orbital_angle_rad=physics.mean_anomaly_for_ls(math.radians(ls_deg), base),
+            dust_climatology_ls_deg=jnp.asarray([10.0, 100.0, 300.0]),
+            dust_visible_climatology=jnp.asarray([1.0, 2.0, 3.0])[:, None, None],
+            dust_longwave_climatology=jnp.asarray([10.0, 20.0, 30.0])[:, None, None],
+        )
+        visible, longwave = physics.dust_optical_depths(0.0, forcing)
+        assert float(visible[0, 0]) == pytest.approx(expected)
+        assert float(longwave[0, 0]) == pytest.approx(10.0 * expected)
+
 
 # ── solar_flux ────────────────────────────────────────────────────────────────
 
@@ -132,6 +149,24 @@ class TestCosZenith:
         # equatorial daily-mean insolation is positive
         eq = len(g.latitudes) // 2
         assert cz[0, eq] > 0.0
+
+    def test_daily_mean_direct_beam_uses_flux_weighted_path(self):
+        """At equinox, mu_eff=<mu^2>/<mu>=pi*cos(latitude)/4."""
+        coords = _coords()
+        base = mars_gcm.radiative_forcing(diurnal=False)
+        f = dataclasses.replace(
+            base,
+            init_orbital_angle_rad=physics.mean_anomaly_for_ls(0.0, base),
+        )
+        g = coords.horizontal
+        path_cosine = np.asarray(
+            physics.solar_path_cosine_nodal(0.0, g.latitudes, g.longitudes, f)
+        )
+        expected = math.pi * np.cos(np.asarray(g.latitudes)) / 4.0
+        assert path_cosine.shape == (len(g.longitudes), len(g.latitudes))
+        assert np.allclose(path_cosine, expected[None], rtol=1e-6, atol=1e-7)
+        assert np.all(path_cosine > 0.0)
+        assert np.all(path_cosine <= 1.0)
 
 
 # ── radiative_heating_tendency ────────────────────────────────────────────────
@@ -193,6 +228,30 @@ class TestHeatingTendency:
         )
         assert np.allclose(dusty_closed, np.asarray(c.toa_net_down_w_m2), atol=1e-10)
 
+    def test_longwave_dust_uses_prescribed_ir_opacity(self):
+        coords, specs = _coords(), physics_specs(MARS_BODY_3D)
+        state = _column_state(coords, specs)
+        base = mars_gcm.radiative_forcing(
+            co2_radiation_enabled=True,
+            dust_visible_optical_depth=0.5,
+            dust_longwave_optical_depth=0.05,
+        )
+        thicker_ir = dataclasses.replace(base, dust_longwave_optical_depth=0.3)
+        a = physics.two_stream_radiative_fluxes(
+            state, coords, specs, MARS_BODY_3D, base
+        )
+        b = physics.two_stream_radiative_fluxes(
+            state, coords, specs, MARS_BODY_3D, thicker_ir
+        )
+        assert np.array_equal(
+            np.asarray(a.shortwave_down_w_m2),
+            np.asarray(b.shortwave_down_w_m2),
+        )
+        assert np.max(np.abs(
+            np.asarray(a.longwave_down_w_m2)
+            - np.asarray(b.longwave_down_w_m2)
+        )) > 0.0
+
     def test_multiband_opacity_responds_to_pressure_and_temperature(self):
         """The new closure is not a relabeled grey band: local P/T changes fluxes."""
         coords, specs = _coords(), physics_specs(MARS_BODY_3D)
@@ -238,6 +297,35 @@ class TestHeatingTendency:
         gradient = float(jax.grad(toa_longwave)(0.0))
         assert math.isfinite(gradient)
         assert abs(gradient) > 1.0e-6
+
+    def test_ames_longwave_scale_reduces_downwelling_flux(self):
+        coords, specs = _coords(), physics_specs(MARS_BODY_3D)
+        state = _column_state(coords, specs)
+        full = mars_gcm.radiative_forcing(
+            co2_radiation_enabled=True,
+            dust_visible_optical_depth=0.3,
+            dust_longwave_optical_depth=0.1,
+        )
+        quarter = dataclasses.replace(
+            full,
+            ames_co2_longwave_opacity_scale=0.25,
+            ames_dust_longwave_opacity_scale=0.25,
+        )
+        a = physics.two_stream_radiative_fluxes(
+            state, coords, specs, MARS_BODY_3D, full
+        )
+        b = physics.two_stream_radiative_fluxes(
+            state, coords, specs, MARS_BODY_3D, quarter
+        )
+        assert np.mean(np.asarray(b.longwave_down_w_m2[-1])) < np.mean(
+            np.asarray(a.longwave_down_w_m2[-1])
+        )
+
+        invalid = dataclasses.replace(full, ames_co2_longwave_opacity_scale=-0.1)
+        with pytest.raises(ValueError, match="must be finite and non-negative"):
+            physics.two_stream_radiative_fluxes(
+                state, coords, specs, MARS_BODY_3D, invalid
+            )
 
     def test_invalid_multiband_configuration_fails_early(self):
         coords, specs = _coords(), physics_specs(MARS_BODY_3D)
@@ -628,16 +716,24 @@ class TestCO2Cycle:
         assert after == pytest.approx(before, rel=1e-7)
 
     def test_projected_energy_limited_rollout_keeps_frost_nonnegative(self):
-        coords, specs, _, f, cf, state = _co2_state()
+        coords, specs, grid, f, cf, state = _co2_state()
         cf = dataclasses.replace(cf, energy_limited=True)
         equation = physics.forced_co2_primitive_equations(
             coords, MARS_BODY_3D, f, cf, specs=specs
         )
         advance = physics.positivity_preserving_co2_step(
-            stepper(equation, 600.0, specs), coords, specs
+            stepper(equation, 600.0, specs),
+            coords,
+            specs,
+            body=MARS_BODY_3D,
+            co2_forcing=cf,
+            dt_seconds=600.0,
         )
+        total0 = sum(_column_masses(grid, state))
         final = integrate(advance, state, 200)
+        total1 = sum(_column_masses(grid, final))
         assert np.min(np.asarray(final.co2_ice)) >= 0.0
+        assert total1 == pytest.approx(total0, rel=2e-10)
 
     def test_energy_limited_latent_heat_cancels_surface_deficit(self):
         coords, specs, _, _, cf, state = _co2_state()
@@ -652,6 +748,40 @@ class TestCO2Cycle:
         latent_flux = np.asarray(latent)[0] / time_scale * cf.thermal_inertia
         assert np.all(np.asarray(dice) >= 0.0)
         assert np.allclose(latent_flux, 100.0, rtol=1e-5)
+
+    def test_projected_rollout_applies_configured_escape_exactly(self):
+        coords, specs, grid, f, cf, state = _co2_state()
+        dt_seconds = 600.0
+        steps = 20
+        cf = dataclasses.replace(
+            cf, energy_limited=True, escape_rate_kg_s=10_000.0
+        )
+        equation = physics.forced_co2_primitive_equations(
+            coords, MARS_BODY_3D, f, cf, specs=specs
+        )
+        advance = physics.positivity_preserving_co2_step(
+            stepper(equation, dt_seconds, specs),
+            coords,
+            specs,
+            body=MARS_BODY_3D,
+            co2_forcing=cf,
+            dt_seconds=dt_seconds,
+        )
+        total0 = sum(_column_masses(grid, state))
+        final = integrate(advance, state, steps)
+        total1 = sum(_column_masses(grid, final))
+        pressure_scale = float(specs.dimensionalize(1.0, _u.pascal).magnitude)
+        expected_loss = (
+            cf.escape_rate_kg_s
+            * MARS_BODY_3D.gravity_m_s2
+            / MARS_BODY_3D.surface_area_m2
+            * dt_seconds
+            * steps
+            / pressure_scale
+            * 4.0
+            * np.pi
+        )
+        assert total1 == pytest.approx(total0 - expected_loss, rel=2e-10)
 
     def test_conserves_total_mass_with_escape_off(self):
         """With escape=0 the CO2 cycle only *moves* mass atmosphere<->frost, so

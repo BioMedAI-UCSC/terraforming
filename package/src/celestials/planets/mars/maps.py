@@ -25,7 +25,14 @@ from typing import Callable
 
 import numpy as np
 
-from src.framework.gcm._dinosaur import jax, jnp, primitive_equations, scales, spherical_harmonic
+from src.framework.gcm._dinosaur import (
+    jax,
+    jnp,
+    primitive_equations,
+    scales,
+    spherical_harmonic,
+    time_integration,
+)
 from src.framework.gcm.coordinates import coordinate_system
 from src.framework.gcm.dynamics import integrate as _integrate
 from src.framework.gcm.dynamics import primitive_equations as build_primitive_equations
@@ -160,6 +167,9 @@ class MarsMapFields:
     physics: str = "dry dynamics; no radiation/CO2/dust"
     co2_ice_pa: np.ndarray | None = None  # (n_lat, n_lon) surface CO2 frost, Pa-equiv
     rotation_period_s: float = 88775.244  # for the duration diagnostic
+    solar_longitude_deg: float | None = None
+    insolation_sampling: str = "none"
+    temperature_kind: str = "lowest_layer_air"
 
     @property
     def wind_speed_ms(self) -> np.ndarray:
@@ -212,6 +222,7 @@ def run_maps(
     diagnostic_callback: Callable[[int, int, object, object, object], None] | None = None,
     stop_requested: Callable[[], bool] | None = None,
     progress_chunk_steps: int = 32,
+    hyperdiffusion_tau_seconds: float | None = None,
 ) -> MarsMapFields | tuple[MarsMapFields, object]:
     """Run the Mars dycore over MOLA terrain and return lat/lon map fields.
 
@@ -234,6 +245,14 @@ def run_maps(
         raise ValueError(f"n_steps must be >= 1, got {n_steps}")
     if not np.isfinite(dt_seconds) or dt_seconds <= 0:
         raise ValueError(f"dt_seconds must be finite and > 0, got {dt_seconds}")
+    if hyperdiffusion_tau_seconds is not None and (
+        not np.isfinite(hyperdiffusion_tau_seconds)
+        or hyperdiffusion_tau_seconds <= 0
+    ):
+        raise ValueError(
+            "hyperdiffusion_tau_seconds must be finite and > 0 when enabled, "
+            f"got {hyperdiffusion_tau_seconds}"
+        )
     if co2_forcing is not None and forcing is None:
         raise ValueError(
             "co2_forcing requires a radiative `forcing` (the CO2 cycle is driven "
@@ -273,7 +292,12 @@ def run_maps(
                 forcing=forcing,
             )
         radiation_name = (
-            "two-stream CO2-band radiation" if forcing.co2_radiation_enabled
+            (
+                "Ames correlated-k CO2 radiation"
+                if forcing.ames_correlated_k_enabled
+                else "compact-band two-stream CO2 radiation"
+            )
+            if forcing.co2_radiation_enabled
             else "grey radiative energy balance"
         )
         dust_name = (
@@ -296,11 +320,19 @@ def run_maps(
             physics_label = (
                 f"dry dynamics + {radiation_name} + CO2 condensation cycle{dust_name}"
             )
-        if spatial_surface:
-            physics_label += (
-                " + explicit spatial albedo/TI + multilayer regolith"
-                " + Richardson/PBL diffusion + dry convective adjustment"
-            )
+        surface_components = []
+        if spatial_surface or np.ndim(np.asarray(forcing.albedo)) > 0:
+            surface_components.append("explicit spatial albedo/TI")
+        if forcing.regolith_enabled:
+            surface_components.append("multilayer regolith")
+        if forcing.stability_exchange_enabled:
+            surface_components.append("Richardson surface exchange")
+        if forcing.pbl_diffusion_enabled:
+            surface_components.append("PBL diffusion")
+        if forcing.convective_adjustment_enabled:
+            surface_components.append("dry convective adjustment")
+        if surface_components:
+            physics_label += " + " + " + ".join(surface_components)
 
         # Diurnal-terminator CFL: the subsolar point sweeps 360° per rotation, so
         # the day/night terminator crosses one longitude cell in
@@ -322,9 +354,40 @@ def run_maps(
                 )
 
     step = stepper(equation, dt_seconds, specs)
+    if hyperdiffusion_tau_seconds is not None:
+        # Spectral primitive-equation models need scale-selective dissipation to
+        # prevent enstrophy from accumulating at the truncation limit. Fourth-
+        # order horizontal diffusion strongly damps only the shortest resolved
+        # waves while leaving planetary scales nearly unchanged. Nodal surface,
+        # frost, and soil reservoirs have different shapes and are deliberately
+        # untouched by Dinosaur's shape-preserving tree filter.
+        dt_nd = float(specs.nondimensionalize(dt_seconds * _u.second))
+        tau_nd = float(
+            specs.nondimensionalize(hyperdiffusion_tau_seconds * _u.second)
+        )
+        dynamics_diffusion = time_integration.horizontal_diffusion_step_filter(
+            grid, dt_nd, tau_nd, order=4
+        )
+
+        def diffusion(_state, next_state):
+            if hasattr(next_state, "dynamics"):
+                filtered = dynamics_diffusion(
+                    _state.dynamics, next_state.dynamics
+                )
+                return next_state._replace(dynamics=filtered)
+            return dynamics_diffusion(_state, next_state)
+
+        step = time_integration.step_with_filters(step, [diffusion])
     if co2_forcing is not None and co2_forcing.energy_limited:
         from src.framework.physics.gcm import positivity_preserving_co2_step
-        step = positivity_preserving_co2_step(step, coords, specs)
+        step = positivity_preserving_co2_step(
+            step,
+            coords,
+            specs,
+            body=body,
+            co2_forcing=co2_forcing,
+            dt_seconds=dt_seconds,
+        )
     if (progress_callback is None and diagnostic_callback is None
             and stop_requested is None):
         # Keep the single scan for training/gradient callers. Debugger runs opt
@@ -418,6 +481,13 @@ def run_maps(
         """(n_lon, n_lat) → (n_lat, n_lon)."""
         return np.asarray(field_lonlat).T
 
+    solar_longitude_deg = None
+    if forcing is not None:
+        from src.framework.physics.gcm import _true_anomaly
+
+        solar_longitude_deg = float(np.degrees(
+            float(_true_anomaly(elapsed_seconds, forcing)) + forcing.ls_perihelion_rad
+        ) % 360)
     fields = MarsMapFields(
         lon_deg=np.degrees(np.asarray(grid.longitudes)),
         lat_deg=np.degrees(np.asarray(grid.latitudes)),
@@ -434,6 +504,9 @@ def run_maps(
         physics=physics_label,
         co2_ice_pa=co2_ice_map,
         rotation_period_s=body.rotation_period_s,
+        solar_longitude_deg=solar_longitude_deg,
+        insolation_sampling=("diurnal" if forcing.diurnal else "daily_mean") if forcing else "none",
+        temperature_kind="surface_skin" if forcing else "lowest_layer_air",
     )
     return (fields, final_state) if return_final_state else fields
 
@@ -456,7 +529,7 @@ def save_netcdf(fields: MarsMapFields, path) -> Path:
         {
             "elevation": (dims, fields.elevation_m, {"units": "m", "long_name": "MOLA elevation"}),
             "surface_pressure": (dims, fields.surface_pressure_pa, {"units": "Pa"}),
-            "temperature": (dims, fields.temperature_k, {"units": "K", "long_name": "near-surface temperature"}),
+            "temperature": (dims, fields.temperature_k, {"units": "K", "long_name": fields.temperature_kind}),
             "u": (dims, fields.u_ms, {"units": "m/s", "long_name": "zonal wind"}),
             "v": (dims, fields.v_ms, {"units": "m/s", "long_name": "meridional wind"}),
             "wind_speed": (dims, fields.wind_speed_ms, {"units": "m/s"}),
@@ -476,6 +549,11 @@ def save_netcdf(fields: MarsMapFields, path) -> Path:
             "fidelity": fields.physics,
             "wind_level_sigma": fields.wind_level_sigma,
             "approximate_wind_height_m": fields.approximate_wind_height_m,
+            "solar_longitude_deg": fields.solar_longitude_deg if fields.solar_longitude_deg is not None else float("nan"),
+            "insolation_sampling": fields.insolation_sampling,
+            "temperature_kind": fields.temperature_kind,
+            "temporal_sampling": "instantaneous_final_state",
+            "climate_status": "equilibration_not_established",
         },
     )
     ds.lat.attrs.update(units="degrees_north")
