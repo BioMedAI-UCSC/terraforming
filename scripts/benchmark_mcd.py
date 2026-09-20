@@ -219,7 +219,11 @@ def main() -> int:
     args = parser.parse_args()
 
     with xr.open_dataset(args.model) as metadata:
-        model_ls = float(metadata.attrs.get("solar_longitude_deg", float("nan")))
+        model_ls = (
+            float(metadata.solar_longitude.isel(time=0))
+            if "solar_longitude" in metadata
+            else float(metadata.attrs.get("solar_longitude_deg", float("nan")))
+        )
         if args.ls is None:
             if not np.isfinite(model_ls):
                 parser.error("legacy map has no season metadata; specify --ls explicitly")
@@ -266,13 +270,26 @@ def main() -> int:
         title="MCD v6.1 diurnal mean assembled from fixed-local-time maps",
         ls_deg=args.ls, local_times_hours=",".join(f"{x:g}" for x in local_times),
         altitude_m_above_surface=args.altitude_m,
-        dust_scenario=args.dust, high_resolution_topography=not args.no_high_res,
+        dust_scenario=args.dust,
+        high_resolution_topography=int(not args.no_high_res),
     )
     native_path = args.output_dir / "mcd_diurnal_mean_native.nc"
     mcd_native.to_netcdf(native_path)
 
     with xr.open_dataset(args.model) as opened:
-        model = opened[list(FIELDS)].load()
+        if "surface_temperature" in opened:
+            model = xr.Dataset(
+                {
+                    "surface_pressure": opened.surface_pressure.isel(time=0),
+                    "temperature": opened.surface_temperature.isel(time=0),
+                    "u": opened.eastward_wind.isel(time=0, sigma=-1),
+                    "v": opened.northward_wind.isel(time=0, sigma=-1),
+                    "wind_speed": opened.wind_speed.isel(time=0, sigma=-1),
+                    "co2_ice": opened.co2_frost.isel(time=0),
+                }
+            ).load()
+        else:
+            model = opened[list(FIELDS)].load()
         model_attrs = dict(opened.attrs)
     mcd = interpolate_periodic(mcd_native, model)
     metrics = {name: weighted_metrics(model[name].values, mcd[name].values, model.lat.values) for name in FIELDS}

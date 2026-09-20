@@ -103,6 +103,42 @@ def forcing_with_ames_dust(forcing, grid, path, ls_deg: float):
     )
 
 
+def forcing_with_ames_dust_climatology(forcing, grid, path):
+    """Attach the complete periodic Ames visible/IR dust climatology.
+
+    This is the production forcing used by long UI runs; radiation interpolates
+    the regridded table at the model's evolving solar longitude.
+    """
+    import xarray as xr
+
+    with xr.open_dataset(path) as opened:
+        dust = opened[[
+            "dust_visible_optical_depth", "dust_longwave_optical_depth"
+        ]].load()
+    periodic = xr.concat(
+        [
+            dust.isel(lon=-1).assign_coords(lon=float(dust.lon[-1]) - 360.0),
+            dust,
+            dust.isel(lon=0).assign_coords(lon=float(dust.lon[0]) + 360.0),
+        ],
+        dim="lon",
+    )
+    target = periodic.interp(
+        lon=np.mod(np.degrees(np.asarray(grid.longitudes)), 360.0),
+        lat=np.degrees(np.asarray(grid.latitudes)),
+    )
+    return dataclasses.replace(
+        forcing,
+        dust_climatology_ls_deg=jnp.asarray(np.asarray(target.ls)),
+        dust_visible_climatology=jnp.asarray(np.asarray(
+            target.dust_visible_optical_depth.transpose("ls", "lon", "lat")
+        )),
+        dust_longwave_climatology=jnp.asarray(np.asarray(
+            target.dust_longwave_optical_depth.transpose("ls", "lon", "lat")
+        )),
+    )
+
+
 def hydrostatic_surface_pressure_pa(elevation_m, body, t_ref_k=None, p0_pa=None):
     """Mars-hydrostatic surface pressure over terrain (Pa).
 
@@ -512,6 +548,104 @@ def run_maps(
 
 
 # ── Output: NetCDF export + lat/lon map plots ─────────────────────────────────
+
+def state_to_comparison_dataset(state, coords, specs, body, forcing):
+    """Convert a prognostic state to the full Mars-reference schema."""
+    import xarray as xr
+    from src.framework.physics.gcm import _true_anomaly
+
+    grid = coords.horizontal
+    dyn = state.dynamics
+    pressure_scale = float(specs.dimensionalize(1.0, _u.pascal).magnitude)
+    temperature_scale = float(specs.dimensionalize(1.0, _u.kelvin).magnitude)
+    velocity_scale = float(
+        specs.dimensionalize(1.0, _u.meter / _u.second).magnitude
+    )
+    time_scale_s = 1.0 / float(specs.nondimensionalize(1.0 * _u.second))
+    elapsed_seconds = float(dyn.sim_time) * time_scale_s
+    elapsed_sols = elapsed_seconds / body.rotation_period_s
+    lon = np.mod(np.degrees(np.asarray(grid.longitudes)), 360.0)
+    lat = np.degrees(np.asarray(grid.latitudes))
+    sigma = np.asarray(coords.vertical.centers)
+    surface_pressure = (
+        np.exp(np.asarray(grid.to_nodal(dyn.log_surface_pressure))[0])
+        * pressure_scale
+    )
+    reference = np.asarray(reference_temperature(coords, body)).reshape(-1, 1, 1)
+    air_temperature = (
+        np.asarray(grid.to_nodal(dyn.temperature_variation)) + reference
+    ) * temperature_scale
+    u_nd, v_nd = spherical_harmonic.vor_div_to_uv_nodal(
+        grid, dyn.vorticity, dyn.divergence
+    )
+    u_ms = np.asarray(u_nd) * velocity_scale
+    v_ms = np.asarray(v_nd) * velocity_scale
+    surface_temperature = np.asarray(state.surface_temperature)[0] * temperature_scale
+    co2_ice = np.asarray(state.co2_ice)[0] * pressure_scale
+    ground_temperature = np.asarray(state.ground_temperature) * temperature_scale
+    ls_deg = float(np.degrees(
+        float(_true_anomaly(elapsed_seconds, forcing)) + forcing.ls_perihelion_rad
+    ) % 360.0)
+    hour_angle = np.asarray(grid.longitudes) + 2.0 * np.pi * (
+        elapsed_seconds / forcing.rotation_period_s
+    )
+    local_solar_time = np.mod(12.0 + 12.0 * hour_angle / np.pi, 24.0)
+
+    def level_field(values):
+        return values.transpose(0, 2, 1)[None, ...]
+
+    def surface_field(values):
+        return values.T[None, ...]
+
+    return xr.Dataset(
+        data_vars={
+            "surface_pressure": (("time", "lat", "lon"), surface_field(surface_pressure), {"units": "Pa"}),
+            "surface_temperature": (("time", "lat", "lon"), surface_field(surface_temperature), {"units": "K"}),
+            "air_temperature": (("time", "sigma", "lat", "lon"), level_field(air_temperature), {"units": "K"}),
+            "eastward_wind": (("time", "sigma", "lat", "lon"), level_field(u_ms), {"units": "m s-1"}),
+            "northward_wind": (("time", "sigma", "lat", "lon"), level_field(v_ms), {"units": "m s-1"}),
+            "wind_speed": (("time", "sigma", "lat", "lon"), level_field(np.hypot(u_ms, v_ms)), {"units": "m s-1"}),
+            "air_pressure": (
+                ("time", "sigma", "lat", "lon"),
+                level_field(sigma[:, None, None] * surface_pressure[None, ...]),
+                {"units": "Pa", "description": "sigma midpoint times surface pressure"},
+            ),
+            "co2_frost": (("time", "lat", "lon"), surface_field(co2_ice), {"units": "Pa-equivalent"}),
+            "soil_temperature": (
+                ("time", "soil_layer", "lat", "lon"),
+                ground_temperature.transpose(0, 2, 1)[None, ...], {"units": "K"},
+            ),
+            "local_solar_time": (("time", "lon"), local_solar_time[None, ...], {"units": "hour"}),
+            "solar_longitude": (("time",), [ls_deg], {"units": "degree"}),
+        },
+        coords={
+            "time": ("time", [elapsed_sols], {"units": "sol"}),
+            "sigma": ("sigma", sigma, {"units": "1", "positive": "down"}),
+            "soil_layer": np.arange(ground_temperature.shape[0]),
+            "lat": ("lat", lat, {"units": "degrees_north"}),
+            "lon": ("lon", lon, {"units": "degrees_east"}),
+        },
+        attrs={
+            "title": "Differentiable Mars GCM comparison state",
+            "temporal_sampling": "instantaneous",
+            "n_layers": len(sigma),
+            "reference_role": "model output; not observational truth",
+        },
+    )
+
+
+def save_comparison_netcdf(state, coords, specs, body, forcing, path) -> Path:
+    """Write a compressed full-state comparison dataset."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    dataset = state_to_comparison_dataset(state, coords, specs, body, forcing)
+    encoding = {
+        name: {"zlib": True, "complevel": 4, "shuffle": True}
+        for name in dataset.data_vars
+    }
+    dataset.to_netcdf(path, engine="h5netcdf", encoding=encoding)
+    return path
+
 
 def save_netcdf(fields: MarsMapFields, path) -> Path:
     """Write all map fields to a NetCDF file (lat/lon coords) via xarray.

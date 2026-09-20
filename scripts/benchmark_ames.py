@@ -30,7 +30,7 @@ def main() -> int:
     parser.add_argument("model_samples", type=Path)
     parser.add_argument("ames_reference", type=Path)
     parser.add_argument("--output-dir", type=Path, required=True)
-    parser.add_argument("--targets", default="0,90,180,270")
+    parser.add_argument("--targets", default="45,135,225,315")
     parser.add_argument("--half-width", type=float, default=5.0)
     parser.add_argument("--evaluation-start-sol", type=float, default=668.0)
     args = parser.parse_args()
@@ -39,13 +39,34 @@ def main() -> int:
     samples = []
     for path in paths:
         with xr.open_dataset(path) as opened:
-            sols = float(opened.attrs["n_steps"]) * float(opened.attrs["dt_seconds"]) / 88775.244
+            if "surface_temperature" in opened:
+                sols = float(opened.time.isel(time=0))
+                ls = float(opened.solar_longitude.isel(time=0))
+                sample = xr.Dataset(
+                    {
+                        "surface_pressure": opened.surface_pressure.isel(time=0),
+                        "temperature": opened.surface_temperature.isel(time=0),
+                        "u": opened.eastward_wind.isel(time=0, sigma=-1),
+                        "v": opened.northward_wind.isel(time=0, sigma=-1),
+                        "wind_speed": opened.wind_speed.isel(time=0, sigma=-1),
+                        "co2_ice": opened.co2_frost.isel(time=0),
+                    }
+                ).load()
+                insolation = "diurnal"
+            else:
+                sols = (
+                    float(opened.attrs["n_steps"])
+                    * float(opened.attrs["dt_seconds"]) / 88775.244
+                )
+                ls = float(opened.attrs["solar_longitude_deg"])
+                sample = opened[list(FIELDS) + ["u", "v"]].load()
+                insolation = str(opened.attrs.get("insolation_sampling", "unknown"))
             if sols >= args.evaluation_start_sol:
-                sample = opened[list(FIELDS) + ["u", "v", "elevation"]].load()
                 sample = sample.expand_dims(sample=[len(samples)]).assign_coords(
-                    ls=("sample", [float(opened.attrs["solar_longitude_deg"])]),
+                    ls=("sample", [ls]),
                     elapsed_sols=("sample", [sols]),
                 )
+                sample.attrs["insolation_sampling"] = insolation
                 samples.append(sample)
     if not samples:
         parser.error("no model checkpoints exist in the evaluation year")

@@ -109,6 +109,11 @@ class RadiativeForcing:
     # Neutral bulk aerodynamic surface drag.  The coefficient is diagnosed from
     # the logarithmic surface-layer law at the centre of the lowest sigma layer.
     surface_roughness_m: float = 0.01
+    # Auditable scalar for physical-parameter calibration.  It multiplies the
+    # diagnosed bulk transfer coefficient, so momentum and sensible-heat
+    # exchange stay internally consistent while the spatial roughness map is
+    # left unchanged.
+    surface_exchange_multiplier: float = 1.0
     von_karman_constant: float = 0.4
     minimum_wind_ms: float = 0.1
     # Regolith properties. Thermal inertia may be replaced by a nodal TES field.
@@ -368,9 +373,17 @@ def _validate_radiative_bands(f: RadiativeForcing) -> None:
     for name in (
         "ames_co2_longwave_opacity_scale",
         "ames_dust_longwave_opacity_scale",
+        "surface_exchange_multiplier",
     ):
         value = getattr(f, name)
-        if not np.isfinite(value) or value < 0.0:
+        # Calibration passes JAX tracers through these fields. Bounds are then
+        # enforced by the optimizer's parameter transform; retain eager checks
+        # for ordinary user/config values without concretizing a tracer.
+        try:
+            static_value = float(value)
+        except (TypeError, ValueError):
+            continue
+        if not np.isfinite(static_value) or static_value < 0.0:
             raise ValueError(f"{name} must be finite and non-negative")
     sw_lengths = {
         len(f.co2_shortwave_band_weights),
@@ -898,6 +911,7 @@ def _surface_exchange_properties(
         cd = neutral_cd * jnp.where(ri >= 0.0, stable, unstable)
     else:
         cd = neutral_cd
+    cd = cd * jnp.asarray(f.surface_exchange_multiplier)
     if ps_pa is None:
         ps_nd = jnp.exp(grid.to_nodal(state.dynamics.log_surface_pressure))[0]
         ps_pa = ps_nd * float(specs.dimensionalize(1.0, _u.pascal).magnitude)

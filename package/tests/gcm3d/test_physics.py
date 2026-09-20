@@ -327,6 +327,27 @@ class TestHeatingTendency:
                 state, coords, specs, MARS_BODY_3D, invalid
             )
 
+        def differentiable_flux(scale):
+            calibrated = dataclasses.replace(
+                full, ames_co2_longwave_opacity_scale=scale
+            )
+            flux = physics.two_stream_radiative_fluxes(
+                state, coords, specs, MARS_BODY_3D, calibrated
+            )
+            return jnp.mean(flux.longwave_down_w_m2[-1])
+
+        gradient = float(jax.grad(differentiable_flux)(0.25))
+        assert math.isfinite(gradient)
+        assert gradient != 0.0
+
+        invalid_exchange = dataclasses.replace(
+            full, surface_exchange_multiplier=-0.1
+        )
+        with pytest.raises(ValueError, match="must be finite and non-negative"):
+            physics.two_stream_radiative_fluxes(
+                state, coords, specs, MARS_BODY_3D, invalid_exchange
+            )
+
     def test_invalid_multiband_configuration_fails_early(self):
         coords, specs = _coords(), physics_specs(MARS_BODY_3D)
         state = _column_state(coords, specs)

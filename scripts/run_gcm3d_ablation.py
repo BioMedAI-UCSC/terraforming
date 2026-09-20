@@ -256,6 +256,7 @@ def main() -> int:
     parser.add_argument("--dust-longwave", type=float, default=0.1)
     parser.add_argument("--co2-lw-scale", type=float, default=1.0)
     parser.add_argument("--dust-lw-scale", type=float, default=1.0)
+    parser.add_argument("--surface-exchange-multiplier", type=float, default=1.0)
     parser.add_argument("--ames-dust-reference", type=Path,
                         help="seasonally prescribe visible/IR dust from a staged Ames surface reference")
     parser.add_argument(
@@ -274,7 +275,7 @@ def main() -> int:
     for key in ("sols", "chunk_sols", "dt", "hyperdiffusion_tau_sols"):
         if not np.isfinite(getattr(args, key)) or getattr(args, key) <= 0:
             parser.error(f"--{key.replace('_', '-')} must be finite and positive")
-    for key in ("co2_lw_scale", "dust_lw_scale"):
+    for key in ("co2_lw_scale", "dust_lw_scale", "surface_exchange_multiplier"):
         if not np.isfinite(getattr(args, key)) or getattr(args, key) < 0:
             parser.error(f"--{key.replace('_', '-')} must be finite and non-negative")
     if not np.isfinite(args.initial_ls):
@@ -303,6 +304,7 @@ def main() -> int:
         base,
         ames_co2_longwave_opacity_scale=args.co2_lw_scale,
         ames_dust_longwave_opacity_scale=args.dust_lw_scale,
+        surface_exchange_multiplier=args.surface_exchange_multiplier,
     )
     base = dataclasses.replace(base, init_orbital_angle_rad=mean_anomaly_for_ls(
         np.deg2rad(args.initial_ls), base
@@ -338,6 +340,7 @@ def main() -> int:
                       solar_slant_path_enabled=True,
                       co2_lw_scale=args.co2_lw_scale,
                       dust_lw_scale=args.dust_lw_scale,
+                      surface_exchange_multiplier=args.surface_exchange_multiplier,
                       physics=name, float64=True,
                       surface_sha256=hashlib.sha256(args.surface_properties.read_bytes()).hexdigest(),
                       ames_dust_reference=(str(args.ames_dust_reference) if args.ames_dust_reference else None),
@@ -346,7 +349,13 @@ def main() -> int:
         if restart_path.exists():
             if not args.resume:
                 raise ValueError(f"{restart_path} exists; use --resume or a new output directory")
-            if not config_path.exists() or json.loads(config_path.read_text()) != config:
+            existing_config = (
+                json.loads(config_path.read_text()) if config_path.exists() else {}
+            )
+            # Restarts produced before this explicit calibration control used
+            # the mathematically identical multiplier of one.
+            existing_config.setdefault("surface_exchange_multiplier", 1.0)
+            if existing_config != config:
                 raise ValueError("Restart configuration is missing or differs; use a new output directory")
         root.mkdir(parents=True, exist_ok=True)
         config_path.write_text(json.dumps(config, indent=2) + "\n")

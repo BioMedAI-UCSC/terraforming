@@ -222,3 +222,12 @@ Built-in defaults → Preset YAML → --config FILE → CLI flags
 ```
 
 This means `--lat 45` always wins over whatever latitude is in the YAML file.
+
+## Reference comparison report
+
+`tform mars compare --config cli/configs/reference-comparison.json --output outputs/reference-comparison-new`
+
+Produces an offline HTML report, four-season comparison/difference grids, MOLA
+terrain, parameter and metric CSVs, source hashes, and AmesCAP map exports from
+cached model/Ames/MCD/ARCO NetCDFs. See [reference comparisons](reference-comparison.md)
+for matching limitations and CAP usage. This command does not run a simulation.

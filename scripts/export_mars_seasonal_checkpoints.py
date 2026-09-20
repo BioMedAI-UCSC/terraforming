@@ -4,17 +4,15 @@ from __future__ import annotations
 
 import argparse
 import dataclasses
-import math
 from pathlib import Path
 
 import numpy as np
 
 from src.celestials.planets.mars import MARS_BODY_3D
-from src.celestials.planets.mars.gcm import co2_forcing, radiative_forcing
+from src.celestials.planets.mars.gcm import radiative_forcing
 from src.celestials.planets.mars.maps import (
     forcing_with_surface_properties,
-    run_maps,
-    save_netcdf,
+    save_comparison_netcdf,
 )
 from src.framework.gcm._dinosaur import jax, jnp, scales
 from src.framework.gcm.coordinates import coordinate_system
@@ -43,6 +41,7 @@ def main() -> int:
     parser.add_argument("--hyperdiffusion-tau-sols", type=float, default=0.1)
     parser.add_argument("--co2-lw-scale", type=float, default=1.0)
     parser.add_argument("--dust-lw-scale", type=float, default=1.0)
+    parser.add_argument("--surface-exchange-multiplier", type=float, default=1.0)
     args = parser.parse_args()
     jax.config.update("jax_enable_x64", True)
 
@@ -57,6 +56,7 @@ def main() -> int:
         init_orbital_angle_rad=mean_anomaly_for_ls(0.0, base),
         ames_co2_longwave_opacity_scale=args.co2_lw_scale,
         ames_dust_longwave_opacity_scale=args.dust_lw_scale,
+        surface_exchange_multiplier=args.surface_exchange_multiplier,
     )
     base = forcing_with_surface_properties(
         base, coords.horizontal, args.surface_properties
@@ -93,16 +93,10 @@ def main() -> int:
         parser.error("no evaluation-year checkpoints fall inside target windows")
     args.output_dir.mkdir(parents=True, exist_ok=True)
     for path, state, elapsed_sols, ls_deg in selected:
-        fields = run_maps(
-            truncation="T21", n_layers=12, dt_seconds=args.dt, n_steps=1,
-            forcing=forcing, co2_forcing=co2_forcing(energy_limited=True),
-            initial_state=state,
-            hyperdiffusion_tau_seconds=(
-                args.hyperdiffusion_tau_sols * MARS_BODY_3D.rotation_period_s
-            ),
-        )
         output = args.output_dir / f"sample_{int(round(elapsed_sols * 1000)):09d}.nc"
-        save_netcdf(fields, output)
+        save_comparison_netcdf(
+            state, coords, specs, MARS_BODY_3D, forcing, output
+        )
         print(f"{path.name}: sol={elapsed_sols:.3f}, Ls={ls_deg:.3f} -> {output}")
     return 0
 

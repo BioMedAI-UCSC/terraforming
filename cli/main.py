@@ -735,6 +735,21 @@ def _echo_run_summary(cfg: SimConfig, preset: str | None) -> None:
     click.echo(_divider())
 
 
+@mars_group.command("compare")
+@click.option("--config", type=click.Path(exists=True, dir_okay=False), required=True,
+              help="JSON declaring source files, seasonal selection, sampling and units.")
+@click.option("--output", type=click.Path(), required=True,
+              help="New directory for HTML, maps, tables, provenance and AmesCAP exports.")
+def mars_compare(config, output):
+    """Compare cached model/Ames/MCD/ARCO maps without running a simulation."""
+    from cli.comparison import build_report
+    try:
+        report = build_report(config, output)
+    except (ValueError, OSError, KeyError) as exc:
+        raise click.ClickException(str(exc)) from exc
+    click.echo(f"Comparison report: {report.resolve()}")
+
+
 # ── mars maps (3-D gcm3d over MOLA terrain) ─────────────────────────────────────
 
 @mars_group.command("maps")

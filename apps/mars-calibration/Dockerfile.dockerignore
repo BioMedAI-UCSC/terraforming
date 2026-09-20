@@ -1,0 +1,9 @@
+**
+!package/
+!package/**
+!apps/
+!apps/mars-calibration/
+!apps/mars-calibration/**
+**/__pycache__/
+**/.pytest_cache/
+**/*.egg-info/
