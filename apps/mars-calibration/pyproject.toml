@@ -17,6 +17,7 @@ dependencies = [
 
 [project.scripts]
 mars-calibration = "mars_calibration.launch:main"
+mars-paper-experiments = "mars_calibration.paper:main"
 
 [tool.setuptools.packages.find]
 include = ["mars_calibration*"]

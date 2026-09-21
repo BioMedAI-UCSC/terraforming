@@ -139,21 +139,30 @@ def _forcing(surface: Path, dust: Path, grid, parameters):
     )
 
 
-def _advance(initial, coords, specs, forcing, steps: int, dt_seconds: float):
-    elevation = regrid_to_nodal(coords)
-    orography = mola_modal_orography(coords, specs, elevation_nodal_m=elevation)
-    equation = forced_co2_primitive_equations(
+def _build_step(coords, specs, forcing, dt_seconds: float, *,
+                orography=None, co2_exchange=True, diffusion_sols=0.1):
+    """Shared physical step; optional controls support paired paper experiments."""
+    from src.framework.physics.gcm import forced_primitive_equations
+
+    if orography is None:
+        elevation = regrid_to_nodal(coords)
+        orography = mola_modal_orography(coords, specs, elevation_nodal_m=elevation)
+    # These are closure/limiter intervals, not the outer integrator timestep.
+    # Keep them fixed so a dt sweep changes numerics, not the physical operator.
+    cf = co2_forcing(energy_limited=True)
+    equation_factory = forced_co2_primitive_equations if co2_exchange else forced_primitive_equations
+    equation = equation_factory(
         coords,
         MARS_BODY_3D,
         forcing,
-        co2_forcing(energy_limited=True),
+        *([cf] if co2_exchange else []),
         specs=specs,
         orography=orography,
     )
     advance = stepper(equation, dt_seconds, specs)
     dt_nd = float(specs.nondimensionalize(dt_seconds * scales.units.second))
     tau_nd = float(specs.nondimensionalize(
-        0.1 * MARS_BODY_3D.rotation_period_s * scales.units.second
+        diffusion_sols * MARS_BODY_3D.rotation_period_s * scales.units.second
     ))
     dynamics_filter = time_integration.horizontal_diffusion_step_filter(
         coords.horizontal, dt_nd, tau_nd, order=4
@@ -170,14 +179,17 @@ def _advance(initial, coords, specs, forcing, steps: int, dt_seconds: float):
         coords,
         specs,
         body=MARS_BODY_3D,
-        co2_forcing=co2_forcing(energy_limited=True),
+        co2_forcing=cf,
         dt_seconds=dt_seconds,
     )
     # Reverse-mode differentiation through a multi-sol scan otherwise retains
     # every timestep's intermediates.  Rematerializing the step keeps memory
     # bounded if this driver is used with reverse mode.
-    advance = jax.checkpoint(advance)
-    return integrate(advance, initial, steps)
+    return jax.checkpoint(advance)
+
+
+def _advance(initial, coords, specs, forcing, steps: int, dt_seconds: float):
+    return integrate(_build_step(coords, specs, forcing, dt_seconds), initial, steps)
 
 
 def _target(path: Path, index: int):

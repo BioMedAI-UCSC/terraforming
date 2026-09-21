@@ -1,5 +1,10 @@
 # Short-horizon Mars calibration on Nautilus
 
+For the separate trajectory-recovery, controlled-ablation, and timing workflow,
+see [the paper experiment guide](../../docs/ideas/paper-experiments.md).
+`paper-experiment.json` and `paper-smoke.json` do not change the frozen Phase-1
+`experiment.json` protocol described below.
+
 This standalone application installs the repository framework as
 `terraforming[gcm3d]`. It runs a real coupled **0.25-sol / 74-step** rollout at
 **T21/L12, dt=300 s, float64**, retaining diurnal/orbital forcing, correlated-k
