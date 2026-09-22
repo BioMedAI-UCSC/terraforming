@@ -134,21 +134,55 @@ def synchronized_update(loss_fn, learning_rate, devices):
     return jax.pmap(update, axis_name="devices", devices=devices)
 
 
-def examples(experiment, ds, warmup, skip=0):
+def device_batch(examples, devices):
+    """Place one example/replica on each selected device explicitly."""
+    if len(examples) != len(devices):
+        raise ValueError("batch must contain one example per device")
+    sharding = jax.sharding.NamedSharding(
+        jax.sharding.Mesh(np.asarray(devices), ("devices",)),
+        jax.sharding.PartitionSpec("devices"),
+    )
+    return jax.tree_util.tree_map(
+        lambda *xs: jax.device_put(np.stack([np.asarray(x) for x in xs]), sharding),
+        *examples,
+    )
+
+
+def parallel_prepare(experiment, devices):
+    """Run each trajectory's physical warmup on its own GPU, outside AD."""
+    def prepare(example):
+        state, context, target, mass, _ = example
+        state = experiment.advance(state, context, None, experiment.spinup)
+        return state, context, target, mass, experiment.features(state, context)
+    return jax.pmap(prepare, devices=devices)
+
+
+def verify_device_placement(tree, devices, stage):
+    expected = set(devices)
+    for leaf in jax.tree_util.tree_leaves(tree):
+        if leaf.devices() != expected:
+            raise RuntimeError(f"{stage} is not distributed over all selected devices")
+    event("device_placement_verified", stage=stage, devices=[str(d) for d in devices])
+
+
+def examples(experiment, ds, warmup, skip=0, *, defer_warmup=False):
     grid = experiment.coords.horizontal
     area = jnp.asarray(grid.quadrature_weights)
     dsigma = jnp.asarray(np.diff(experiment.coords.vertical.boundaries))[:, None, None]
     for i in range(skip, ds.sizes["time"] - experiment.spinup - experiment.horizon):
         state, context = experiment.snapshot(ds, i)
-        with phase("example_prepare", snapshot=i, spinup_intervals=experiment.spinup):
-            state = jax.block_until_ready(warmup(state, context))
+        if not defer_warmup:
+            with phase("example_prepare", snapshot=i, spinup_intervals=experiment.spinup):
+                state = jax.block_until_ready(warmup(state, context))
         start = i + experiment.spinup + 1
         selection = ds.isel(time=slice(start, start + experiment.horizon))
         target = jnp.stack([jnp.asarray(selection[name].transpose("time", "lev", "lon", "lat").values)
                             for name in ("temp", "uwind", "vwind")], axis=1)
         ps = jnp.asarray(selection.psurf.transpose("time", "lon", "lat").values)
         mass = ps[:, None] / BODY.gravity_m_s2 * dsigma * area
-        yield state, context, target, mass, experiment.features(state, context)
+        features = (jnp.zeros((experiment.coords.vertical.layers - 1, *grid.nodal_shape, 13))
+                    if defer_warmup else experiment.features(state, context))
+        yield state, context, target, mass, features
 
 
 def validation_subset(cache, experiment, warmup, count):
@@ -231,7 +265,9 @@ def main():
             event("staging_progress", first_sol=float(ds.time[0]), last_sol=float(ds.time[-1]))
         return
     devices = jax.local_devices()[:args.devices]
-    event("devices_selected", devices=[str(d) for d in devices], global_batch_size=len(devices))
+    event("devices_selected", devices=[str(d) for d in devices], global_batch_size=len(devices),
+          parallel_stages=["parallel_warmup", "training_update"],
+          single_device_stages=["normalization", "validation", "snapshot_construction"])
     if len(devices) != args.devices or (not args.cpu and any(d.platform != "gpu" for d in devices)):
         p.error(f"requested {args.devices} GPUs; available devices: {jax.local_devices()}")
     args.output.mkdir(parents=True, exist_ok=True)
@@ -348,10 +384,14 @@ def run(args, cache, devices):
     check_validation(params, completed, None if args.preflight_only else initial_checkpoint)
     if args.preflight_only:
         return
-    replicate = lambda tree: jax.tree_util.tree_map(lambda x: jnp.broadcast_to(x, (len(devices),) + np.shape(x)), tree)
+    replicate = lambda tree: device_batch([tree] * len(devices), devices)
     params, first, second = map(replicate, (params, first, second))
     count = replicate(jnp.asarray(completed))
     update = synchronized_update(loss_fn, args.learning_rate, devices)
+    prepare = parallel_prepare(experiment, devices)
+    event("execution_layout", training="one trajectory per device with averaged gradients",
+          physical_warmup="parallel across selected devices",
+          normalization_and_validation="single device", devices=[str(d) for d in devices])
     selections = windows("train")[:args.chunks]
     if sum(max(0, stop - start - args.spinup - args.horizon)
            for start, stop in selections) < len(devices):
@@ -366,11 +406,20 @@ def run(args, cache, devices):
             available = max(0, ds.sizes["time"] - args.spinup - args.horizon)
             skip = min(available, max(0, position - seen))
             seen += skip
-            for example in examples(experiment, ds, warmup, skip):
+            for example in examples(experiment, ds, warmup, skip, defer_warmup=True):
                 seen += 1
+                pending.append(example)
+                if len(pending) != len(devices):
+                    continue
+                batch = device_batch(pending, devices)
+                with phase("parallel_warmup", step=completed + 1, devices=len(devices),
+                           spinup_intervals=args.spinup):
+                    batch = jax.block_until_ready(prepare(batch))
                 if not checked:
+                    verify_device_placement(batch, devices, "physical_warmup")
+                    first_example = jax.tree_util.tree_map(lambda x: np.asarray(x[0]), batch)
                     with phase("physical_preflight"):
-                        score = float(baseline(example))
+                        score = float(baseline(first_example))
                     if not np.isfinite(score):
                         raise ValueError("physical initialization rollout is nonfinite; optimization refused")
                     atomic_bytes(args.output / "physical_preflight.json", json.dumps({"loss": score,
@@ -379,13 +428,11 @@ def run(args, cache, devices):
                                  "terrain": "flat", "dust": "initial snapshot held fixed; longwave=visible/3"}).encode())
                     event("physical_preflight_passed", loss=score)
                     checked = True
-                pending.append(example)
-                if len(pending) != len(devices):
-                    continue
-                batch = jax.tree_util.tree_map(lambda *xs: jnp.stack(xs), *pending)
                 update_started = time.monotonic()
-                with phase("training_update", step=completed + 1, first_update_this_process=completed == session_start_step, includes_jit_compilation=completed == session_start_step):
+                with phase("training_update", step=completed + 1, devices=len(devices), first_update_this_process=completed == session_start_step, includes_jit_compilation=completed == session_start_step):
                     result = jax.block_until_ready(update(params, first, second, count, batch))
+                if completed == session_start_step:
+                    verify_device_placement(result, devices, "training_update")
                 params, first, second, count, losses, norms = result
                 host = jax.tree_util.tree_map(lambda x: np.asarray(x[0]), result)
                 if not all(np.isfinite(x).all() for x in jax.tree_util.tree_leaves(host)):
