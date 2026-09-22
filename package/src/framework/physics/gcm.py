@@ -932,9 +932,15 @@ def _surface_exchange_properties(
 
 
 def pbl_vertical_diffusion_tendencies(
-    state, coords, specs, body, f, wind_nodal=None, temperature_nodal=None, ps_pa=None
+    state, coords, specs, body, f, wind_nodal=None, temperature_nodal=None, ps_pa=None,
+    neural_closure=None, feature_sink=None,
 ):
-    """Mass-conserving adjacent-layer diffusion of momentum and temperature."""
+    """Mass-conserving adjacent-layer diffusion of momentum and temperature.
+
+    ``neural_closure`` optionally adjusts diffusivity and Prandtl number before
+    the conservative solve. ``feature_sink`` receives raw interface features
+    during the offline, training-only normalization sampling pass.
+    """
     dyn, grid = state.dynamics, coords.horizontal
     zeros = jnp.zeros_like(dyn.temperature_variation)
     if not f.pbl_diffusion_enabled:
@@ -1019,6 +1025,19 @@ def pbl_vertical_diffusion_tendencies(
             + (1.0 - stable_weight) * unstable_factor
         )
         diffusivity *= stability_factor
+        correction = None
+        if neural_closure is not None or feature_sink is not None:
+            from src.framework.physics.neural_pbl import interface_features, multipliers
+            features = interface_features(
+                actual_t[k], actual_t[k + 1], u_ms[k], u_ms[k + 1],
+                v_ms[k], v_ms[k + 1], theta[k], theta[k + 1],
+                ustar, ri_gradient, interface_z, dz_local, sigma[k],
+            )
+            if feature_sink is not None:
+                feature_sink(features)
+            if neural_closure is not None:
+                correction = multipliers(neural_closure, features)
+                diffusivity = diffusivity * correction[..., 0]
         uncapped_rate = diffusivity / dz_local**2
         rate_cap = 1.0 / 1800.0
         rate_width = rate_cap * 1.0e-4
@@ -1037,6 +1056,8 @@ def pbl_vertical_diffusion_tendencies(
             )
             + (1.0 - stable_weight) * 0.7
         )
+        if correction is not None:
+            prandtl = prandtl * correction[..., 1]
         momentum_rates.append(rate)
         heat_rates.append(rate / prandtl)
     rates_si = jnp.stack(momentum_rates)
@@ -1324,6 +1345,7 @@ def forced_primitive_equations(
     forcing: RadiativeForcing,
     specs=None,
     orography=None,
+    neural_closure=None,
 ) -> "time_integration.ImplicitExplicitODE":
     """dinosaur dry dynamics with the radiative energy balance added as forcing.
 
@@ -1358,7 +1380,8 @@ def forced_primitive_equations(
             temperature_nodal=temperature_nodal, ps_pa=ps_pa,
         )
         mix_vor, mix_div, mix_heat, mix_tracers = pbl_vertical_diffusion_tendencies(
-            state, coords, specs, body, forcing, wind_nodal=wind_nodal,
+            state, coords, specs, body, forcing,
+            neural_closure=neural_closure, wind_nodal=wind_nodal,
             temperature_nodal=temperature_nodal, ps_pa=ps_pa,
         )
         convection = dry_convective_adjustment_tendency(
@@ -1562,6 +1585,7 @@ def forced_co2_primitive_equations(
     co2_forcing: CO2Forcing,
     specs=None,
     orography=None,
+    neural_closure=None,
 ) -> "time_integration.ImplicitExplicitODE":
     """Dry dynamics + radiative forcing + CO2 condensation cycle on a tuple state.
 
@@ -1604,7 +1628,8 @@ def forced_co2_primitive_equations(
             temperature_nodal=temperature_nodal, ps_pa=ps_pa,
         )
         mix_vor, mix_div, mix_heat, mix_tracers = pbl_vertical_diffusion_tendencies(
-            state, coords, specs, body, forcing, wind_nodal=wind_nodal,
+            state, coords, specs, body, forcing,
+            neural_closure=neural_closure, wind_nodal=wind_nodal,
             temperature_nodal=temperature_nodal, ps_pa=ps_pa,
         )
         convection = dry_convective_adjustment_tendency(
