@@ -13,6 +13,8 @@ import fsspec
 import numpy as np
 import xarray as xr
 
+from neural_logging import event, phase
+
 from stage_arco_macda import _to_dinosaur_grid, DEFAULT_VARIABLES
 
 SPLITS = {"train": (24, 25, 26, 27, 29, 30, 31), "validation": (32, 33),
@@ -57,7 +59,8 @@ def validate(ds, split, *, prepared=False):
 @contextmanager
 def locked(path):
     with open(path, "a") as stream:
-        fcntl.flock(stream, fcntl.LOCK_EX)
+        with phase("lock_wait", path=str(path)):
+            fcntl.flock(stream, fcntl.LOCK_EX)
         yield
 
 
@@ -88,8 +91,10 @@ class NativeCache:
         start, stop = window
         path = self.root / f"{start:06d}-{stop:06d}.nc"
         manifest = path.with_suffix(".json")
+        event("chunk_requested", split=split, window=window, path=str(path))
         with locked(path.with_suffix(".lock")):
             if path.exists() and manifest.exists():
+                event("cache_hit", path=str(path), bytes=path.stat().st_size)
                 meta = json.loads(manifest.read_text())
                 if meta != {"sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
                             "revision": self.revision, "window": [start, stop]}:
@@ -97,10 +102,14 @@ class NativeCache:
             else:
                 if self.source is None:
                     url = f"https://huggingface.co/datasets/ananyo01/ARCO-MACDA/resolve/{self.revision}/macda_combined.zarr"
-                    self.source = xr.open_zarr(fsspec.get_mapper(url), consolidated=True, decode_times=False)
-                ds = self.source[[*DEFAULT_VARIABLES, "Ls", "MY_Ls"]].isel(time=slice(start, stop)).load()
+                    with phase("dataset_metadata", revision=self.revision, url=url):
+                        self.source = xr.open_zarr(fsspec.get_mapper(url), consolidated=True, decode_times=False)
+                with phase("download", split=split, window=window, snapshots=stop-start, variables=DEFAULT_VARIABLES):
+                    ds = self.source[[*DEFAULT_VARIABLES, "Ls", "MY_Ls"]].isel(time=slice(start, stop)).load()
+                event("download_loaded", window=window, decoded_bytes=ds.nbytes)
                 validate(ds, split)
-                ds = _to_dinosaur_grid(ds, "T21", 12).transpose("time", "lev", "lat", "lon", missing_dims="ignore")
+                with phase("regrid", window=window, grid="T21/L12"):
+                    ds = _to_dinosaur_grid(ds, "T21", 12).transpose("time", "lev", "lat", "lon", missing_dims="ignore")
                 ds.time.attrs["long_name"] = "Native Martian sols since MY24 start"
                 validate(ds, split, prepared=True)
                 # Write in the same directory; readers only see a complete file.
@@ -114,9 +123,11 @@ class NativeCache:
                         os.unlink(temp)
                 atomic_bytes(manifest, json.dumps({"sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
                              "revision": self.revision, "window": [start, stop]}).encode())
+            event("cache_verified", path=str(path), bytes=path.stat().st_size)
             with xr.open_dataset(path, decode_times=False) as opened:
                 ds = opened.load()
             validate(ds, split, prepared=True)
+            event("chunk_ready", split=split, window=window, snapshots=ds.sizes["time"], first_sol=float(ds.time[0]), last_sol=float(ds.time[-1]))
             return ds
 
     def iterate(self, selections, split):
@@ -128,5 +139,7 @@ class NativeCache:
             while pending is not None:
                 ds = pending.result()
                 following = next(iterator, None)
+                if following is not None:
+                    event("prefetch_queued", split=split, window=following)
                 pending = None if following is None else pool.submit(self.get, following, split)
                 yield ds

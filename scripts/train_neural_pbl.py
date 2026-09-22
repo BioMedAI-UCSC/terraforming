@@ -8,6 +8,10 @@ import json
 import math
 from pathlib import Path
 import pickle
+import time
+import sys
+
+from neural_logging import LOGGER, configure, event, phase
 from itertools import islice
 
 import numpy as np
@@ -136,7 +140,8 @@ def examples(experiment, ds, warmup, skip=0):
     dsigma = jnp.asarray(np.diff(experiment.coords.vertical.boundaries))[:, None, None]
     for i in range(skip, ds.sizes["time"] - experiment.spinup - experiment.horizon):
         state, context = experiment.snapshot(ds, i)
-        state = warmup(state, context)
+        with phase("example_prepare", snapshot=i, spinup_intervals=experiment.spinup):
+            state = jax.block_until_ready(warmup(state, context))
         start = i + experiment.spinup + 1
         selection = ds.isel(time=slice(start, start + experiment.horizon))
         target = jnp.stack([jnp.asarray(selection[name].transpose("time", "lev", "lon", "lat").values)
@@ -161,7 +166,12 @@ def validation_subset(cache, experiment, warmup, count):
 
 
 def validation_report(params, subset, evaluate, physical_scores, step, steps_per_epoch):
-    scores = np.asarray([float(evaluate(params, example)) for example in subset])
+    scores = []
+    for index, example in enumerate(subset, 1):
+        with phase("validation_example", step=step, example=index, total=len(subset)):
+            scores.append(float(evaluate(params, example)))
+        event("validation_progress", step=step, completed=index, total=len(subset), neural_loss=scores[-1])
+    scores = np.asarray(scores)
     if not len(scores) or not np.isfinite(scores).all() or not np.isfinite(physical_scores).all():
         raise ValueError("empty/nonfinite small validation; training stopped")
     return dict(step=step, epoch=step / steps_per_epoch, split="validation",
@@ -212,13 +222,16 @@ def main():
         p.error("learning rate must be positive and regularization nonnegative")
     if args.horizon + args.spinup >= 120:
         p.error("spinup plus horizon must be less than the 120-snapshot chunk")
+    configure(args.output)
+    event("run_start", arguments=vars(args), python=sys.version, executable=sys.executable, jax_version=jax.__version__)
     jax.config.update("jax_enable_x64", True)
     cache = NativeCache(args.cache, args.revision)
     if args.stage:
         for ds in cache.iterate(windows(args.stage)[:args.chunks], args.stage):
-            print(f"staged {float(ds.time[0]):.6f} to {float(ds.time[-1]):.6f}", flush=True)
+            event("staging_progress", first_sol=float(ds.time[0]), last_sol=float(ds.time[-1]))
         return
     devices = jax.local_devices()[:args.devices]
+    event("devices_selected", devices=[str(d) for d in devices], global_batch_size=len(devices))
     if len(devices) != args.devices or (not args.cpu and any(d.platform != "gpu" for d in devices)):
         p.error(f"requested {args.devices} GPUs; available devices: {jax.local_devices()}")
     args.output.mkdir(parents=True, exist_ok=True)
@@ -235,6 +248,7 @@ def run(args, cache, devices):
     checkpoint = args.output / "checkpoint.pkl"
     if args.resume or args.evaluate:
         # Only load checkpoints produced locally by this training command.
+        event("checkpoint_loading", path=str(checkpoint))
         saved = pickle.loads(checkpoint.read_bytes())
         if args.evaluate:
             contract["chunks"] = saved["contract"]["chunks"]
@@ -245,6 +259,7 @@ def run(args, cache, devices):
         completed, position = saved["completed"], saved["position"]
         rng = np.random.default_rng()
         rng.bit_generator.state = saved["rng"]
+        event("checkpoint_loaded", step=completed, position=position, normalization="frozen")
     else:
         if checkpoint.exists():
             raise ValueError("output already contains checkpoint; use --resume")
@@ -253,15 +268,18 @@ def run(args, cache, devices):
         selections = windows("train")[:args.chunks]
         ids = np.linspace(0, len(selections) - 1, args.normalization_chunks, dtype=int)
         total, squares, count = np.zeros(13), np.zeros(13), 0
-        for ds in cache.iterate([selections[i] for i in ids], "train"):
+        event("normalization_start", split="train", chunks=len(ids), windows=[selections[i] for i in ids])
+        for chunk_number, ds in enumerate(cache.iterate([selections[i] for i in ids], "train"), 1):
             for i in range(0, ds.sizes["time"], 12):
                 state, context = experiment.snapshot(ds, i)
                 x = np.asarray(experiment.features(state, context)).reshape(-1, 13)
                 total += x.sum(0); squares += (x*x).sum(0); count += len(x)
+                event("normalization_progress", chunk=chunk_number, total_chunks=len(ids), snapshot=i, feature_rows=count)
         mean = total / count
         scale = np.maximum(np.sqrt(np.maximum(squares / count - mean**2, 0)), 1e-6)
         atomic_bytes(args.output / "normalization.json", json.dumps({"mean": mean.tolist(), "scale": scale.tolist(),
                      "split": "train", "windows": [selections[i] for i in ids], "contract": contract}).encode())
+        event("normalization_complete", feature_rows=count, path=str(args.output / "normalization.json"))
         params = initialize(jax.random.key(args.seed), constant=args.constant)
         first = second = jax.tree_util.tree_map(jnp.zeros_like, params)
         completed, position = 0, 0
@@ -270,26 +288,36 @@ def run(args, cache, devices):
     baseline = jax.jit(lambda batch: experiment.loss(initialize(jax.random.key(0), constant=True), batch, mean, scale, 0.))
     if args.evaluate:
         scores = []
+        event("evaluation_start", split=args.evaluate)
         for ds in cache.iterate(windows(args.evaluate)[:args.chunks], args.evaluate):
             for example in examples(experiment, ds, warmup):
-                scores.append([float(baseline(example)), float(evaluate(params, example))])
+                with phase("evaluation_example", example=len(scores) + 1):
+                    scores.append([float(baseline(example)), float(evaluate(params, example))])
+                event("evaluation_progress", examples=len(scores), physical_loss=scores[-1][0], neural_loss=scores[-1][1])
         values = np.asarray(scores)
         if not len(values) or not np.isfinite(values).all():
             raise ValueError("empty/nonfinite evaluation")
         report = {"split": args.evaluate, "examples": len(values), "physical_loss": float(values[:, 0].mean()),
                   "neural_loss": float(values[:, 1].mean()), "contract": contract}
         atomic_bytes(args.output / f"{args.evaluate}.json", json.dumps(report, indent=2).encode())
-        print(json.dumps(report), flush=True)
+        event("evaluation_complete", **report)
         return
     selections = windows("train")[:args.chunks]
     steps_per_epoch = sum(max(0, stop - start - args.spinup - args.horizon)
                           for start, stop in selections) // len(devices)
     if not steps_per_epoch:
         raise ValueError("training selection cannot fill one global batch")
-    subset, validation_windows = validation_subset(cache, experiment, warmup, args.validation_examples)
-    physical_scores = [float(baseline(example)) for example in subset]
+    event("training_plan", steps_per_epoch=steps_per_epoch, target_steps=args.steps, completed_steps=completed, dt_seconds=experiment.dt, horizon=args.horizon, validate_every_epochs=args.validate_every_epochs, validate_every_steps=args.validate_every_steps)
+    with phase("validation_prepare", examples=args.validation_examples):
+        subset, validation_windows = validation_subset(cache, experiment, warmup, args.validation_examples)
+    physical_scores = []
+    for index, example in enumerate(subset, 1):
+        with phase("physical_validation", example=index, total=len(subset)):
+            physical_scores.append(float(baseline(example)))
+        event("physical_validation_progress", example=index, loss=physical_scores[-1])
 
     def check_validation(current_params, step, state=None):
+        event("validation_start", step=step, examples=len(subset))
         report = validation_report(current_params, subset, evaluate, physical_scores, step, steps_per_epoch)
         report.update(windows=validation_windows, revision=args.revision,
                       spinup_snapshots=args.spinup, horizon=args.horizon)
@@ -305,7 +333,8 @@ def run(args, cache, devices):
                                               for key in ("windows", "examples", "revision", "spinup_snapshots", "horizon"))
         if state is not None and (not comparable or report["neural_loss"] < best["validation"]["neural_loss"]):
             atomic_bytes(best_path, pickle.dumps(dict(state, validation=report)))
-        print(json.dumps(dict(event="small_validation", **report)), flush=True)
+            event("best_checkpoint_saved", step=step, path=str(best_path), neural_loss=report["neural_loss"])
+        event("small_validation", **report)
 
     if args.resume:
         order = saved["order"]
@@ -329,7 +358,10 @@ def run(args, cache, devices):
         raise ValueError("training selection cannot fill one global batch")
     pending, seen = [], 0
     checked = False
+    session_started = time.monotonic()
+    session_start_step = completed
     while completed < args.steps:
+        event("epoch_start", epoch=completed // steps_per_epoch + 1, resumed_position=position)
         for ds in cache.iterate([selections[i] for i in order], "train"):
             available = max(0, ds.sizes["time"] - args.spinup - args.horizon)
             skip = min(available, max(0, position - seen))
@@ -337,19 +369,23 @@ def run(args, cache, devices):
             for example in examples(experiment, ds, warmup, skip):
                 seen += 1
                 if not checked:
-                    score = float(baseline(example))
+                    with phase("physical_preflight"):
+                        score = float(baseline(example))
                     if not np.isfinite(score):
                         raise ValueError("physical initialization rollout is nonfinite; optimization refused")
                     atomic_bytes(args.output / "physical_preflight.json", json.dumps({"loss": score,
                                  "dt_seconds": experiment.dt, "spinup_snapshots": args.spinup,
                                  "soil": "isothermal at initial observed surface temperature",
                                  "terrain": "flat", "dust": "initial snapshot held fixed; longwave=visible/3"}).encode())
+                    event("physical_preflight_passed", loss=score)
                     checked = True
                 pending.append(example)
                 if len(pending) != len(devices):
                     continue
                 batch = jax.tree_util.tree_map(lambda *xs: jnp.stack(xs), *pending)
-                result = update(params, first, second, count, batch)
+                update_started = time.monotonic()
+                with phase("training_update", step=completed + 1, first_update_this_process=completed == session_start_step, includes_jit_compilation=completed == session_start_step):
+                    result = jax.block_until_ready(update(params, first, second, count, batch))
                 params, first, second, count, losses, norms = result
                 host = jax.tree_util.tree_map(lambda x: np.asarray(x[0]), result)
                 if not all(np.isfinite(x).all() for x in jax.tree_util.tree_leaves(host)):
@@ -360,20 +396,30 @@ def run(args, cache, devices):
                 saved = dict(contract=contract, params=host[0], first=host[1], second=host[2], mean=mean, scale=scale,
                              completed=completed, position=position, order=order, rng=rng.bit_generator.state)
                 atomic_bytes(checkpoint, pickle.dumps(saved))
-                record = dict(step=completed, loss=float(host[4]), gradient_norm=float(host[5]), position=position)
+                event("checkpoint_saved", step=completed, path=str(checkpoint), bytes=checkpoint.stat().st_size)
+                elapsed = time.monotonic() - session_started
+                seconds_per_step = elapsed / (completed - session_start_step)
+                record = dict(step=completed, total_steps=args.steps, epoch=completed / steps_per_epoch, loss=float(host[4]), gradient_norm=float(host[5]), position=position, learning_rate=args.learning_rate, update_seconds=time.monotonic() - update_started, elapsed_seconds=elapsed, eta_seconds=(args.steps-completed)*seconds_per_step, eta_scope="session average including compilation, data preparation and completed validation")
                 with open(args.output / "training.jsonl", "a") as stream:
                     stream.write(json.dumps(record) + "\n")
-                print(json.dumps(record), flush=True)
+                event("training_progress", **record)
                 if validation_due(completed, steps_per_epoch, args.validate_every_epochs,
                                   args.validate_every_steps, args.steps):
                     check_validation(host[0], completed, saved)
                 if completed >= args.steps:
                     return
         # Drop the incomplete final batch consistently; next epoch is shuffled.
+        event("epoch_complete", completed_steps=completed, dropped_examples=len(pending))
         pending.clear()
         position = seen = 0
         order = rng.permutation(len(selections)).tolist()
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except (Exception, KeyboardInterrupt):
+        LOGGER.exception("run_failed")
+        raise
+    else:
+        event("run_complete")
