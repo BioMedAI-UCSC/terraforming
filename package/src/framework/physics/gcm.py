@@ -1346,6 +1346,7 @@ def forced_primitive_equations(
     specs=None,
     orography=None,
     neural_closure=None,
+    neural_tendencies=None,
 ) -> "time_integration.ImplicitExplicitODE":
     """dinosaur dry dynamics with the radiative energy balance added as forcing.
 
@@ -1387,6 +1388,13 @@ def forced_primitive_equations(
         convection = dry_convective_adjustment_tendency(
             state, coords, specs, body, forcing, temperature_nodal=temperature_nodal
         )
+        # Frozen modal residuals in nondimensional tendency units. Atmospheric
+        # heat/momentum sources only; no learned pressure or reservoir tendency.
+        if neural_tendencies is not None:
+            residual_vor, residual_div, residual_heat = neural_tendencies
+            mix_vor = mix_vor + residual_vor
+            mix_div = mix_div + residual_div
+            mix_heat = mix_heat + residual_heat
         ground_surface, ground = regolith_conduction_tendencies(state, specs, forcing)
         return ColumnPhysicsTendencies(
             drag_vor + mix_vor,
@@ -1586,6 +1594,7 @@ def forced_co2_primitive_equations(
     specs=None,
     orography=None,
     neural_closure=None,
+    neural_tendencies=None,
 ) -> "time_integration.ImplicitExplicitODE":
     """Dry dynamics + radiative forcing + CO2 condensation cycle on a tuple state.
 
@@ -1635,6 +1644,13 @@ def forced_co2_primitive_equations(
         convection = dry_convective_adjustment_tendency(
             state, coords, specs, body, forcing, temperature_nodal=temperature_nodal
         )
+        # Frozen modal residuals in nondimensional tendency units. Atmospheric
+        # heat/momentum sources only; no learned pressure or reservoir tendency.
+        if neural_tendencies is not None:
+            residual_vor, residual_div, residual_heat = neural_tendencies
+            mix_vor = mix_vor + residual_vor
+            mix_div = mix_div + residual_div
+            mix_heat = mix_heat + residual_heat
         return ColumnPhysicsTendencies(
             drag_vor + mix_vor, drag_div + mix_div,
             heat + mix_heat + convection, d_logsp,
