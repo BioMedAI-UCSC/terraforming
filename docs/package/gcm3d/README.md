@@ -12,6 +12,7 @@ topography, and is differentiable and batchable end-to-end via JAX.
 - [Architecture](architecture.md) — module map, data flow, the dynamics⊕physics seam.
 - [API Reference](api.md) — every public function/class and its signature.
 - [Implementation Details](implementation.md) — the algorithms and physics, derived and explained.
+- [Neural experiments](neural-experiments.md) — trainable components, parameter recovery, and neural radiation examples.
 
 ## Related design notes (`docs/ideas/`)
 - [`dinosaur-backbone-prototype.md`](../../ideas/dinosaur-backbone-prototype.md) — the 0-D ODE-on-dinosaur proof of concept.

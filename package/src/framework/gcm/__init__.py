@@ -12,6 +12,7 @@ try:  # Keep BodyConstants importable without the optional JAX/Dinosaur extra.
         stepper,
     )
     from src.framework.gcm.specs import nondimensionalization_scale, physics_specs
+    from src.framework.gcm.learning import Rollout, make_parameterized_step, rollout
 
     __all__ += [
         "integrate",
@@ -20,6 +21,9 @@ try:  # Keep BodyConstants importable without the optional JAX/Dinosaur extra.
         "primitive_equations",
         "reference_temperature",
         "stepper",
+        "Rollout",
+        "make_parameterized_step",
+        "rollout",
     ]
 except ModuleNotFoundError:
     pass

@@ -105,4 +105,5 @@ nav:
       - Architecture: package/gcm3d/architecture.md
       - API Reference: package/gcm3d/api.md
       - Implementation & Physics: package/gcm3d/implementation.md
+      - Neural experiments: package/gcm3d/neural-experiments.md
       - Data & validation scripts: scripts/gcm3d-data.md

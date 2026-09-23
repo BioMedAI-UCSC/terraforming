@@ -532,8 +532,6 @@ def two_stream_radiative_fluxes(
         ps_pa = ps_nd * float(specs.dimensionalize(1.0, _u.pascal).magnitude)
     else:
         ps_pa = surface_pressure_pa
-    dsigma = jnp.asarray(np.diff(np.asarray(coords.vertical.boundaries)))[:, None, None]
-
     ref = np.asarray(reference_temperature(coords, body)).reshape(n, 1, 1)
     air_k = jnp.clip(
         grid.to_nodal(dyn.temperature_variation) + ref
@@ -542,9 +540,45 @@ def two_stream_radiative_fluxes(
     )
     surface_k = jnp.clip(state.surface_temperature[0], 1.0, None)
 
+    return column_radiative_fluxes(
+        air_k, surface_k, ps_pa, incoming, solar_path_factor,
+        dust_visible, dust_longwave, coords.vertical.boundaries, body, f,
+    )
+
+
+def column_radiative_fluxes(
+    air_k, surface_k, ps_pa, incoming, solar_path_factor,
+    dust_visible, dust_longwave, sigma_boundaries, body, f,
+) -> RadiativeFluxDiagnostics:
+    """Pure array radiation kernel shared by column experiments and the GCM.
+
+    Temperatures are kelvin, pressure Pa, incoming solar W/m²; air has shape
+    (layer, column_x, column_y), surface fields broadcast to (column_x, column_y).
+    Sigma boundaries are static, ordered from top to surface. Optical depths and
+    path factors are dimensionless. No state conversion or file I/O occurs here.
+    """
+    _validate_radiative_bands(f)
+    air_k = jnp.asarray(air_k)
+    if air_k.ndim != 3:
+        raise ValueError("air temperature must have shape (layer, column_x, column_y)")
+    ps_pa = jnp.broadcast_to(jnp.asarray(ps_pa), air_k.shape[1:])
+    incoming = jnp.broadcast_to(jnp.asarray(incoming), air_k.shape[1:])
+    solar_path_factor = jnp.broadcast_to(jnp.asarray(solar_path_factor), air_k.shape[1:])
+    dust_visible, dust_longwave = jnp.asarray(dust_visible), jnp.asarray(dust_longwave)
+    surface_k = jnp.broadcast_to(jnp.asarray(surface_k), air_k.shape[1:])
+    n = air_k.shape[0]
+    if len(sigma_boundaries) != n + 1:
+        raise ValueError("sigma boundaries do not match the atmospheric layers")
+    boundaries = np.asarray(sigma_boundaries)
+    if boundaries[0] != 0 or boundaries[-1] != 1 or not np.all(np.diff(boundaries) > 0):
+        raise ValueError("sigma boundaries must increase from 0 to 1")
+    air_k = jnp.clip(air_k, 1.0, None)
+    surface_k = jnp.clip(surface_k, 1.0, None)
+    dsigma = jnp.asarray(np.diff(np.asarray(sigma_boundaries)))[:, None, None]
+
     sigma_mid = jnp.asarray(
-        0.5 * (np.asarray(coords.vertical.boundaries[:-1])
-               + np.asarray(coords.vertical.boundaries[1:]))
+        0.5 * (np.asarray(sigma_boundaries[:-1])
+               + np.asarray(sigma_boundaries[1:]))
     )[:, None, None]
     local_pressure_ratio = jnp.clip(
         sigma_mid * ps_pa[None] / body.reference_surface_pressure_pa, 1.0e-6, None
@@ -749,10 +783,24 @@ def two_stream_radiative_fluxes(
         lw_down = jnp.sum(jnp.stack(down_bands), axis=0)
         sw_up = jnp.zeros_like(sw).at[-1].set(jnp.asarray(f.albedo) * sw[-1])
 
+    return radiative_flux_diagnostics(sw, sw_up, lw_up, lw_down)
+
+
+def radiative_flux_diagnostics(sw, sw_up, lw_up, lw_down):
+    """Derive conservative energy exchanges from interface fluxes in W/m².
+
+    The leading axis runs from top of atmosphere to surface. Directional flux
+    magnitudes use positive values. Sum of atmospheric convergence plus surface
+    input equals top-of-atmosphere net input, including any imposed downward IR.
+    """
+    if not (sw.shape == sw_up.shape == lw_up.shape == lw_down.shape):
+        raise ValueError("directional flux shapes must match")
+    if sw.shape[0] < 2:
+        raise ValueError("at least two layer interfaces are required")
     net_up = lw_up + sw_up - lw_down - sw
     convergence = net_up[1:] - net_up[:-1]
-    surface_net = sw[-1] - sw_up[-1] + lw_down[-1] - surface_emission
-    toa_net_down = sw[0] - sw_up[0] - lw_up[0]
+    surface_net = -net_up[-1]
+    toa_net_down = -net_up[0]
     return RadiativeFluxDiagnostics(
         sw, sw_up, lw_up, lw_down, convergence, surface_net, toa_net_down
     )
@@ -760,13 +808,17 @@ def two_stream_radiative_fluxes(
 
 def surface_energy_tendencies(state: ColumnPhysicsState, coords, specs,
                               body: BodyConstants, f: RadiativeForcing,
-                              wind_nodal=None, temperature_nodal=None, ps_pa=None):
+                              wind_nodal=None, temperature_nodal=None, ps_pa=None,
+                              *, radiation_component=None):
     """Conservative surface/atmosphere energy exchange.
 
     Solar and longwave fluxes act once on a prognostic surface reservoir. A bulk
     sensible flux transfers energy to the lowest atmospheric sigma layer, divided
     by its actual areal heat capacity ``cp * dp/g``. Thus the surface loss and
     atmospheric gain cancel exactly and do not depend on the number of layers.
+    An optional radiation_component implements the two_stream_radiative_fluxes
+    call signature and replaces that call, including both surface and atmospheric
+    energy contributions. It requires co2_radiation_enabled=True.
     """
     grid = coords.horizontal
     n_layers = coords.vertical.layers
@@ -789,8 +841,12 @@ def surface_energy_tendencies(state: ColumnPhysicsState, coords, specs,
         1.0, None,
     )
     surface_k = jnp.clip(state.surface_temperature[0], 1.0, None)
+    if radiation_component is not None and not f.co2_radiation_enabled:
+        raise ValueError("radiation_component requires co2_radiation_enabled=True")
     if f.co2_radiation_enabled:
-        radiation = two_stream_radiative_fluxes(
+        radiation_fn = (two_stream_radiative_fluxes if radiation_component is None
+                        else radiation_component)
+        radiation = radiation_fn(
             state, coords, specs, body, f,
             air_temperature_k=air_k, surface_pressure_pa=ps_pa,
         )
@@ -1324,6 +1380,8 @@ def forced_primitive_equations(
     forcing: RadiativeForcing,
     specs=None,
     orography=None,
+    *,
+    radiation_component=None,
 ) -> "time_integration.ImplicitExplicitODE":
     """dinosaur dry dynamics with the radiative energy balance added as forcing.
 
@@ -1334,9 +1392,13 @@ def forced_primitive_equations(
     :func:`src.framework.gcm.dynamics.integrate` exactly like the
     dry equations; the only requirement is that the state carries ``sim_time`` (set
     it to ``0.0``) so the diurnal/seasonal forcing advances.
+    Pass radiation_component to replace the conventional flux calculation with
+    a compatible callable (including one with bound trainable JAX parameters).
     """
     if specs is None:
         specs = physics_specs(body)
+    if radiation_component is not None and not forcing.co2_radiation_enabled:
+        raise ValueError("radiation_component requires co2_radiation_enabled=True")
     base = _build_primitive_equations(coords, body, specs=specs, orography=orography)
 
     def parameterization(state):
@@ -1352,6 +1414,7 @@ def forced_primitive_equations(
         heat, surface_tendency, _ = surface_energy_tendencies(
             state, coords, specs, body, forcing, wind_nodal=wind_nodal,
             temperature_nodal=temperature_nodal, ps_pa=ps_pa,
+            radiation_component=radiation_component,
         )
         drag_vor, drag_div = surface_momentum_tendencies(
             state, coords, specs, body, forcing, wind_nodal=wind_nodal,
@@ -1562,6 +1625,8 @@ def forced_co2_primitive_equations(
     co2_forcing: CO2Forcing,
     specs=None,
     orography=None,
+    *,
+    radiation_component=None,
 ) -> "time_integration.ImplicitExplicitODE":
     """Dry dynamics + radiative forcing + CO2 condensation cycle on a tuple state.
 
@@ -1573,6 +1638,8 @@ def forced_co2_primitive_equations(
     """
     if specs is None:
         specs = physics_specs(body)
+    if radiation_component is not None and not forcing.co2_radiation_enabled:
+        raise ValueError("radiation_component requires co2_radiation_enabled=True")
     base = _build_primitive_equations(coords, body, specs=specs, orography=orography)
 
     def parameterization(state):
@@ -1588,6 +1655,7 @@ def forced_co2_primitive_equations(
         heat, dsurface, _ = surface_energy_tendencies(
             state, coords, specs, body, forcing, wind_nodal=wind_nodal,
             temperature_nodal=temperature_nodal, ps_pa=ps_pa,
+            radiation_component=radiation_component,
         )
         ground_surface, ground = regolith_conduction_tendencies(state, specs, forcing)
         time_scale = 1.0 / float(specs.nondimensionalize(1.0 * _u.second))

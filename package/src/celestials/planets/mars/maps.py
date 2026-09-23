@@ -259,6 +259,7 @@ def run_maps(
     stop_requested: Callable[[], bool] | None = None,
     progress_chunk_steps: int = 32,
     hyperdiffusion_tau_seconds: float | None = None,
+    radiation_component=None,
 ) -> MarsMapFields | tuple[MarsMapFields, object]:
     """Run the Mars dycore over MOLA terrain and return lat/lon map fields.
 
@@ -272,11 +273,16 @@ def run_maps(
     radiative energy balance on top of the dry dynamics; the fluid then develops
     its own temperature structure instead of holding the isothermal rest profile.
     With ``forcing=None`` this is the dry dynamical core (the previous behaviour).
+    ``radiation_component`` optionally replaces the radiative flux callable when
+    forcing.co2_radiation_enabled is true. Use the lower-level parameterized
+    rollout API for training; map conversion and reporting are host operations.
     """
     if body is None:
         from src.celestials.planets.mars import MARS_BODY_3D
 
         body = MARS_BODY_3D
+    if radiation_component is not None and forcing is None:
+        raise ValueError("radiation_component requires radiative forcing")
     if n_steps < 1:
         raise ValueError(f"n_steps must be >= 1, got {n_steps}")
     if not np.isfinite(dt_seconds) or dt_seconds <= 0:
@@ -318,7 +324,8 @@ def run_maps(
         from src.framework.physics.gcm import forced_primitive_equations, initial_column_state
 
         equation = forced_primitive_equations(
-            coords, body, forcing, specs=specs, orography=orography
+            coords, body, forcing, specs=specs, orography=orography,
+            radiation_component=radiation_component,
         )
         # sim_time must be present (0.0) for the diurnal/seasonal forcing to advance.
         if initial_state is None:
@@ -336,6 +343,8 @@ def run_maps(
             if forcing.co2_radiation_enabled
             else "grey radiative energy balance"
         )
+        if radiation_component is not None:
+            radiation_name = "user-supplied radiation component"
         dust_name = (
             " + prescribed radiatively active dust"
             if (np.any(np.asarray(forcing.dust_visible_optical_depth) != 0.0)
@@ -349,7 +358,8 @@ def run_maps(
             )
 
             equation = forced_co2_primitive_equations(
-                coords, body, forcing, co2_forcing, specs=specs, orography=orography
+                coords, body, forcing, co2_forcing, specs=specs, orography=orography,
+                radiation_component=radiation_component,
             )
             # The radiation-only state already contains the surface reservoir;
             # enabling CO2 simply uses its existing zero frost field.
