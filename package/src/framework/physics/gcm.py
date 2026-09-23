@@ -468,6 +468,32 @@ def column_primitive_equations(base, parameterization):
     )
 
 
+def compose_column_parameterizations(*parameterizations):
+    """Add optional column-physics callables while preserving reservoir fields.
+
+    Each callable receives the same :class:`ColumnPhysicsState` and returns
+    :class:`ColumnPhysicsTendencies`. This is the public seam for bounded neural
+    residuals: conventional physics remains the first contribution and learned
+    tendencies are explicit additions.
+    """
+    active = tuple(p for p in parameterizations if p is not None)
+    if not active:
+        return None
+
+    def combined(state):
+        values = [p(state) for p in active]
+        first = values[0]
+        return ColumnPhysicsTendencies(
+            *(sum((getattr(v, name) for v in values), jnp.zeros_like(getattr(first, name)))
+              for name in ("vorticity", "divergence", "temperature_variation",
+                           "log_surface_pressure", "surface_temperature", "co2_ice",
+                           "ground_temperature")),
+            {name: sum((v.tracers.get(name, 0.0) for v in values), 0.0)
+             for name in first.tracers},
+        )
+    return combined
+
+
 def initial_column_state(dyn_state, coords, surface_temperature_k: float, specs,
                          ice_pa: float = 0.0,
                          forcing: RadiativeForcing | None = None) -> ColumnPhysicsState:
@@ -1382,6 +1408,7 @@ def forced_primitive_equations(
     orography=None,
     *,
     radiation_component=None,
+    neural_tendency=None,
 ) -> "time_integration.ImplicitExplicitODE":
     """dinosaur dry dynamics with the radiative energy balance added as forcing.
 
@@ -1394,6 +1421,8 @@ def forced_primitive_equations(
     it to ``0.0``) so the diurnal/seasonal forcing advances.
     Pass radiation_component to replace the conventional flux calculation with
     a compatible callable (including one with bound trainable JAX parameters).
+    Pass neural_tendency to add a bounded learned residual to the conventional
+    column tendencies; it is applied after radiation and other physical terms.
     """
     if specs is None:
         specs = physics_specs(body)
@@ -1438,7 +1467,8 @@ def forced_primitive_equations(
             ground,
             mix_tracers,
         )
-    return column_primitive_equations(base, parameterization)
+    extra = compose_column_parameterizations(parameterization, neural_tendency)
+    return column_primitive_equations(base, extra)
 
 
 # ==============================================================================
@@ -1627,6 +1657,7 @@ def forced_co2_primitive_equations(
     orography=None,
     *,
     radiation_component=None,
+    neural_tendency=None,
 ) -> "time_integration.ImplicitExplicitODE":
     """Dry dynamics + radiative forcing + CO2 condensation cycle on a tuple state.
 
@@ -1686,7 +1717,8 @@ def forced_co2_primitive_equations(
             ground,
             mix_tracers,
         )
-    return column_primitive_equations(base, parameterization)
+    extra = compose_column_parameterizations(parameterization, neural_tendency)
+    return column_primitive_equations(base, extra)
 
 
 def project_co2_reservoirs(state: ColumnPhysicsState, coords, specs):

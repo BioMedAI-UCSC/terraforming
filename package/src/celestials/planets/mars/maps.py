@@ -260,6 +260,7 @@ def run_maps(
     progress_chunk_steps: int = 32,
     hyperdiffusion_tau_seconds: float | None = None,
     radiation_component=None,
+    neural_tendency=None,
 ) -> MarsMapFields | tuple[MarsMapFields, object]:
     """Run the Mars dycore over MOLA terrain and return lat/lon map fields.
 
@@ -326,6 +327,7 @@ def run_maps(
         equation = forced_primitive_equations(
             coords, body, forcing, specs=specs, orography=orography,
             radiation_component=radiation_component,
+            neural_tendency=neural_tendency,
         )
         # sim_time must be present (0.0) for the diurnal/seasonal forcing to advance.
         if initial_state is None:
@@ -360,6 +362,7 @@ def run_maps(
             equation = forced_co2_primitive_equations(
                 coords, body, forcing, co2_forcing, specs=specs, orography=orography,
                 radiation_component=radiation_component,
+                neural_tendency=neural_tendency,
             )
             # The radiation-only state already contains the surface reservoir;
             # enabling CO2 simply uses its existing zero frost field.

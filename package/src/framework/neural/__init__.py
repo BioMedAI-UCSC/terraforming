@@ -10,10 +10,12 @@ from .radiation import (
 )
 from .checkpoints import load_checkpoint, save_checkpoint
 from .training import adam_init, adam_update, directional_gradient_check, weighted_mse
+from .tendency import NeuralTendency, state_feature_schema, state_features
 
 __all__ = [
     "ColumnMLP", "Normalization", "fit_normalization", "ColumnInputs", "NeuralRadiation",
     "column_features", "feature_schema", "heating_rates", "inputs_from_state",
     "radiation_budget_residual", "reference_fluxes", "load_checkpoint", "save_checkpoint",
     "adam_init", "adam_update", "directional_gradient_check", "weighted_mse",
+    "NeuralTendency", "state_feature_schema", "state_features",
 ]

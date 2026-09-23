@@ -234,6 +234,26 @@ speedup; both are valid outcomes and must be reported.
 Trajectory fine-tuning improving held-out rollouts is a hypothesis. Matching a
 reference model does not demonstrate greater real-world physical accuracy.
 
+### Example 3: neural atmospheric control
+
+The most complete neural capability example is a bounded state-dependent control
+policy. `NeuralTendency` consumes current local atmospheric temperatures, surface
+state, winds, location and insolation, then emits a bounded temperature-heating
+residual. The residual is added to conventional physical tendencies inside the
+existing GCM; it does not overwrite state variables or bypass the integrator.
+
+Generate a conventional T21 reference rollout, define a synthetic target state
+by applying a documented temperature shift, and optimize the policy only from a
+multi-step final-state loss. Include an L2 policy penalty, the hard heating bound,
+finite-state checks, and a comparison with no control and a fixed scalar control.
+Report initial versus final target RMSE, maximum applied heating, gradient checks,
+rollout stability and optimization cost. Repeat on different initial states and
+seasonal phases before making a generalization claim.
+
+The runnable implementation is
+`examples/neural/optimize_atmospheric_control.py`. Its generated target is a
+capability test, not an observational result or a recommended Mars intervention.
+
 ## Evidence and paper structure
 
 Organize the paper around the component interface, verified numerical behavior,

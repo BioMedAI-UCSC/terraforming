@@ -19,6 +19,7 @@ from src.framework.neural import (
     NeuralRadiation, ColumnInputs, fit_normalization, column_features,
     inputs_from_state, reference_fluxes, radiation_budget_residual, heating_rates,
     feature_schema, save_checkpoint, load_checkpoint, directional_gradient_check,
+    NeuralTendency, state_features, state_feature_schema,
 )
 from src.framework.neural.columns import initial_column, make_column_step, column_energy
 from src.framework.neural.training import adam_init, adam_update, weighted_mse
@@ -221,6 +222,34 @@ def test_custom_model_and_full_gcm_parameter_gradient(global_state, forcing):
     assert check["relative_error"] < 1e-4
     final = jax.jit(lambda p: rollout(step, p, initial, 2).final_state)(.2)
     assert all(np.isfinite(x).all() for x in jax.tree.leaves(final))
+
+
+def test_bounded_neural_tendency_in_full_gcm(global_state):
+    coords, specs, initial = global_state
+    forcing = dataclasses.replace(radiative_forcing(), co2_radiation_enabled=False)
+    policy = NeuralTendency(coords.vertical.layers, maximum_heating_k_s=1e-5, hidden_sizes=(8,))
+    features = state_features(initial, coords, specs, BODY, forcing)
+    normalization = fit_normalization(features, split="train")
+    params = policy.init(jax.random.PRNGKey(4))
+    component = policy.bind(params, normalization, coords=coords, specs=specs,
+                            body=BODY, forcing=forcing)
+    tendency = component(initial)
+    heating = coords.horizontal.to_nodal(tendency.temperature_variation)
+    # The nondimensional conversion is positive, and the SI bound is enforced
+    # before conversion. Verify the corresponding output in SI.
+    time_scale = 1.0 / float(specs.nondimensionalize(1.0 * scales.units.second))
+    heating_si = heating / time_scale
+    assert float(jnp.max(jnp.abs(heating_si))) <= policy.maximum_heating_k_s * (1 + 1e-10)
+    assert all(jnp.all(x == 0) for x in (tendency.vorticity, tendency.divergence,
+                                         tendency.log_surface_pressure, tendency.surface_temperature,
+                                         tendency.co2_ice, tendency.ground_temperature))
+    equation = forced_primitive_equations(coords, BODY, forcing, specs=specs,
+                                          neural_tendency=component)
+    step = make_parameterized_step(lambda _: equation, 10., specs)
+    loss = lambda p: jnp.mean(rollout(step, p, initial, 1).final_state.surface_temperature)
+    check = directional_gradient_check(loss, params,
+                                       jax.tree.map(lambda x: jnp.ones_like(x)*.01, params), epsilon=1e-4)
+    assert np.isfinite(check["autodiff"]) and check["relative_error"] < 1e-3
 
 
 def test_invalid_loss_weights_are_visible():

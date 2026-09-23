@@ -1,10 +1,18 @@
 # Neural components and differentiable experiments
 
 The optional JAX GCM stack now supports explicit trainable parameters, sampled
-rollouts, a small column MLP, and replaceable radiation. Two generated-data
-examples demonstrate physical parameter recovery and neural radiation training.
+rollouts, a small column MLP, replaceable radiation, and bounded neural
+tendencies. Three generated-data examples demonstrate physical parameter
+recovery, neural radiation training, and multi-step atmospheric control.
 No MACDA or terrain download is required. These examples do not establish
 observational accuracy on Mars or long-term climate stability.
+
+The atmospheric-control example is the most complete neural capability
+demonstration. It trains a bounded `NeuralTendency` through a multi-step T21
+Mars rollout using only a final-state objective. The target is a synthetic
+temperature shift from a conventional reference rollout. This exercises neural
+parameters, state features, bounded physical tendencies, GCM integration,
+reverse-mode gradients, and optimizer updates in one experiment.
 
 ## Install and run
 
@@ -14,6 +22,7 @@ Run from the repository root in your active Python 3.12+ environment:
 rtk proxy python -m pip install -e './package[gcm3d]'
 rtk proxy env JAX_PLATFORMS=cpu python examples/neural/recover_parameter.py
 rtk proxy env JAX_PLATFORMS=cpu python examples/neural/train_radiation.py
+rtk proxy env JAX_PLATFORMS=cpu python examples/neural/optimize_atmospheric_control.py
 ```
 
 The scripts use the active environment's `python`, including mamba environments.
@@ -30,6 +39,9 @@ rtk proxy env JAX_PLATFORMS=cpu python examples/neural/train_radiation.py \
   --epochs 20 --fine-tune-epochs 5 --columns 24 --layers 2 \
   --steps 4 --long-steps 8 --coupled-steps 2 \
   --output outputs/neural_framework/radiation_smoke
+rtk proxy env JAX_PLATFORMS=cpu python examples/neural/optimize_atmospheric_control.py \
+  --iterations 12 --steps 3 --layers 2 \
+  --output outputs/neural_framework/control_smoke
 ```
 
 Use `--ames` to train against the bundled Ames correlated-k radiation instead of
@@ -49,6 +61,11 @@ Outputs include `report.json`, `report.md`, and a plot. The radiation example
 also writes three inference checkpoints and `predictions.npz`. Its reports retain
 failure counts and represent nonfinite metrics as null. Check `coupled_status`
 and the individual `failed` fields, not just whether a report file exists.
+
+The control example writes `control_trajectory.npz` and reports initial and final
+target RMSE, maximum bounded heating, finite-state status and optimization
+history. It intentionally uses no MOLA or observational data. The target shift
+is a test objective, not a recommended Mars intervention.
 
 ## Public interfaces
 
@@ -164,6 +181,25 @@ The recovery example estimates a multiplier on a bulk conductance of 2 W/m²/K.
 It does not recover the GCM's stability-dependent aerodynamic coefficient.
 The separate T21 evaluation in the radiation example uses the actual GCM
 stepper and shared radiation hook.
+
+### Bounded neural tendencies
+
+`NeuralTendency(n_layers, maximum_heating_k_s, hidden_sizes)` builds a generic
+state-dependent residual component. Bind it with the simulation context using
+`bind(params, normalization, coords=coords, specs=specs, body=body, forcing=forcing)`.
+The resulting callable can be passed as `neural_tendency`
+to `forced_primitive_equations`. Current
+support is a temperature-heating residual in K/s. The output is bounded by
+`maximum_heating_k_s * tanh(raw)` before conversion into the solver's
+nondimensional tendency units. Vorticity, divergence, pressure, surface,
+regolith and tracer residuals are zero, so conventional reservoirs remain
+responsible for those quantities.
+
+The policy features are current local atmospheric temperatures, surface
+temperature, surface pressure, lowest-layer wind, latitude/longitude sinusoids,
+and instantaneous insolation. No future or target fields enter the policy. The
+state feature schema is explicit and normalization must be fitted on training
+states only.
 
 ## Interpreting the demonstrations
 
