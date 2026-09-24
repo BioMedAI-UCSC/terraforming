@@ -195,9 +195,11 @@ class Model:
         if not np.allclose(offsets, np.round(offsets), rtol=0, atol=1e-9):
             raise ValueError("Trajectory observations must align exactly to timestep")
         counts = d.jnp.asarray(np.diff(np.r_[0, np.round(offsets)]).astype(np.int32))
+        initial = self.initial
+        base_forcing = self.forcing
 
         def run(parameters):
-            forcing = dataclasses.replace(self.forcing,
+            forcing = dataclasses.replace(base_forcing,
                 ames_co2_longwave_opacity_scale=parameters[0],
                 ames_dust_longwave_opacity_scale=parameters[1],
                 surface_exchange_multiplier=parameters[2], **(overrides or {}))
@@ -209,7 +211,7 @@ class Model:
                 next_state = d.jax.lax.fori_loop(0, count, lambda _, carry: step(carry), state)
                 return next_state, next_state if states else self.observe(next_state)
 
-            return d.jax.lax.scan(sample, self.initial, counts)[1]
+            return d.jax.lax.scan(sample, initial, counts)[1]
         return run
 
     def loss(self, predicted, target, normalization):

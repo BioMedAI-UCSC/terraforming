@@ -140,7 +140,8 @@ def _forcing(surface: Path, dust: Path, grid, parameters):
 
 
 def _build_step(coords, specs, forcing, dt_seconds: float, *,
-                orography=None, co2_exchange=True, diffusion_sols=0.1):
+                orography=None, co2_exchange=True, diffusion_sols=0.1,
+                neural_tendency=None):
     """Shared physical step; optional controls support paired paper experiments."""
     from src.framework.physics.gcm import forced_primitive_equations
 
@@ -158,6 +159,7 @@ def _build_step(coords, specs, forcing, dt_seconds: float, *,
         *([cf] if co2_exchange else []),
         specs=specs,
         orography=orography,
+        neural_tendency=neural_tendency,
     )
     advance = stepper(equation, dt_seconds, specs)
     dt_nd = float(specs.nondimensionalize(dt_seconds * scales.units.second))

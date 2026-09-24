@@ -54,18 +54,14 @@ def spinup_soil(history, forcing, interval):
     return ground.reshape((n,) + history.shape[1:])
 
 
-def forecast(window, record, contract):
+def initialize(window, record, contract):
     # Imported only inside a masked worker, after device environment is set.
     from src.framework.gcm._dinosaur import jax, jnp, scales, spherical_harmonic, primitive_equations
     from src.framework.gcm.coordinates import coordinate_system
     from src.framework.gcm.specs import physics_specs
     from src.framework.gcm.dynamics import reference_temperature
     from src.celestials.planets.mars import MARS_BODY_3D as body
-    from src.celestials.planets.mars.gcm import co2_forcing
-    from src.celestials.planets.mars.topography import regrid_to_nodal
-    from src.celestials.planets.mars.maps import run_maps, state_to_comparison_dataset
-    from src.framework.physics.gcm import (ColumnPhysicsState, mean_anomaly_for_ls,
-        _true_anomaly, cos_zenith_nodal, solar_flux)
+    from src.framework.physics.gcm import ColumnPhysicsState, mean_anomaly_for_ls
     jax.config.update("jax_enable_x64", True)
     coords, specs = coordinate_system("T21", 12), physics_specs(body)
     grid, u = coords.horizontal, scales.units
@@ -91,6 +87,22 @@ def forecast(window, record, contract):
     soil = spinup_soil(history, forcing, contract["lead_seconds"])
     state = ColumnPhysicsState(state, nd(field("tsurf")[None], u.kelvin),
                                nd(field("co2ice")[None] * body.gravity_m_s2, u.pascal), nd(soil, u.kelvin))
+    return coords, specs, forcing, state
+
+
+def forecast(window, record, contract):
+    from src.celestials.planets.mars import MARS_BODY_3D as body
+    from src.celestials.planets.mars.gcm import co2_forcing
+    from src.celestials.planets.mars.topography import regrid_to_nodal
+    from src.celestials.planets.mars.maps import run_maps, state_to_comparison_dataset
+    from src.framework.physics.gcm import _true_anomaly, cos_zenith_nodal, solar_flux
+    coords, specs, forcing, state = initialize(window, record, contract)
+    grid = coords.horizontal
+    ts = (record["start_sol"] + .5) * body.rotation_period_s
+    start = window.isel(time=12)
+    def field(name, ds=start):
+        dims = ("lev", "lon", "lat") if "lev" in ds[name].dims else ("lon", "lat")
+        return np.asarray(ds[name].transpose(*dims))
     _, final = run_maps(truncation="T21", n_layers=12, dt_seconds=contract["dt_seconds"],
         n_steps=contract["steps"], mola_path=contract["terrain_path"], forcing=forcing,
         co2_forcing=co2_forcing(), initial_state=state, return_final_state=True)
