@@ -1,0 +1,11 @@
+{
+  "inputs": "outputs/nautilus-calibration-inputs",
+  "config": "apps/mars-calibration/paper-experiment.json",
+  "output": "outputs/paper-ablations-gpu",
+  "task": "ablations",
+  "cases": null,
+  "reference_config": null,
+  "external_timings": null,
+  "require_gpu": true,
+  "validate_only": false
+}

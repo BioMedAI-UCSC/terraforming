@@ -1,0 +1,85 @@
+{
+  "status": "model_reference_comparison_not_observational_validation",
+  "model": "Dinosaur/JAX T21L12, second simulated Mars year",
+  "reference": "NASA Ames MGCM FV3 Beta Output Release 1 surface reference",
+  "half_width_ls_deg": 25.0,
+  "seasons": {
+    "ls000": {
+      "model_sample_count": 8,
+      "ames_sample_count": 19,
+      "model_ls_deg": [
+        2.554717279879799,
+        5.089107004112223,
+        7.6037790471142355,
+        10.099361299794886,
+        12.576497330262486,
+        15.035844246521165,
+        17.478070753455068,
+        19.903855395516057
+      ],
+      "ames_ls_deg": [
+        1.2867431640625,
+        3.8515625,
+        6.390625,
+        8.9100341796875,
+        11.4102783203125,
+        13.89208984375,
+        16.3560791015625,
+        18.8028564453125,
+        21.233154296875,
+        23.647705078125,
+        335.583251953125,
+        338.36328125,
+        341.118896484375,
+        343.85009765625,
+        346.55712890625,
+        349.240478515625,
+        351.900634765625,
+        354.5380859375,
+        357.153076171875
+      ],
+      "metrics": {
+        "surface_pressure": {
+          "bias": 40.018390798983035,
+          "mae": 43.38020767658337,
+          "rmse": 55.960866471556415,
+          "spatial_correlation": 0.9814027068880107,
+          "model_area_mean": 668.4169922371461,
+          "ames_area_mean": 628.398601438163
+        },
+        "temperature": {
+          "bias": 9.162150347750574,
+          "mae": 10.941760395629135,
+          "rmse": 15.231345031874472,
+          "spatial_correlation": 0.8078615864892404,
+          "model_area_mean": 215.93124330721662,
+          "ames_area_mean": 206.76909295946604
+        },
+        "wind_speed": {
+          "bias": 4.8181555420730895,
+          "mae": 4.9500829971480655,
+          "rmse": 5.877285352555905,
+          "spatial_correlation": 0.059208085221775175,
+          "model_area_mean": 7.65779113414097,
+          "ames_area_mean": 2.839635592067881
+        },
+        "co2_ice": {
+          "bias": -74.01220801384487,
+          "mae": 75.23025699208569,
+          "rmse": 346.7139722229853,
+          "spatial_correlation": -0.007097412403748117,
+          "model_area_mean": 1.3321443904836956,
+          "ames_area_mean": 75.34435240432856
+        }
+      },
+      "model_sha256": "3ae5f3f3ba3e3d06919404f30b848ad0ea37e9b68ec0526e170ccaefa631ef5e",
+      "ames_regridded_sha256": "713b739d19d18a7148de92b75f5402f5e3cffcf78482a31cc8babd06c63811a7"
+    }
+  },
+  "limitations": [
+    "Model checkpoints are instantaneous states under daily-mean sunlight; Ames fields are five-sol averages.",
+    "Wind compares each model's lowest layer; their effective heights are not identical.",
+    "Ames dust opacity is prescribed to Dinosaur in five-sol piecewise-constant chunks, so dust is a matched boundary condition rather than an independent target.",
+    "Ames MGCM and MCD are model references, not observational truth."
+  ]
+}

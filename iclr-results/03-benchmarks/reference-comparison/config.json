@@ -1,0 +1,77 @@
+{
+  "root": "../..",
+  "seasons": [
+    45,
+    135,
+    225,
+    315
+  ],
+  "half_width": 5,
+  "mola": "data/mola/meg004/megt90n000cb.img",
+  "limitations": [
+    "This compares the existing physical baseline, not the pending 0.25-sol gradient-calibration result.",
+    "Model fields average sparse instantaneous seasonal checkpoints; Ames uses five-sol means; ARCO uses daily means; MCD here averages only local times 0, 6, 12 and 18 h.",
+    "Ames and MCD are model references; ARCO-MACDA is a reanalysis, not direct observational truth.",
+    "Wind compares lowest atmospheric levels with MCD at 10 m; heights are not identical.",
+    "MCD cached seasons are near the labeled target (up to about 1.2 degrees apart); original attributes and hashes are recorded. Legacy cached dust-query provenance is not independently verified.",
+    "MOLA is common geographic context, not evidence that all reference models use the same terrain.",
+    "Model parameter values below are the declared baseline configuration from the progress report; they are not independently recoverable from every seasonal NetCDF.",
+    "All reference maps are linearly regridded onto the model grid. Missing fields are unavailable, never zero-filled.",
+    "MCD CO2 frost is a monthly mean statistic, which differs from the model and other reference sampling."
+  ],
+  "sources": [
+    {
+      "name": "Physical GCM",
+      "role": "deterministic physical baseline",
+      "paths": [
+        "outputs/deterministic_reference_samples/ames_year3/model_ls{season:03d}.nc"
+      ],
+      "sampling": "mean of 4 instantaneous checkpoints within \u00b15\u00b0 Ls",
+      "vertical": "lowest model sigma layer",
+      "dust": "prescribed Ames seasonal visible/IR opacity",
+      "parameters": {
+        "co2_lw": 0.25,
+        "dust_lw": 0.25,
+        "exchange": 1.0
+      }
+    },
+    {
+      "name": "NASA Ames",
+      "role": "Ames FV3 model reference",
+      "paths": [
+        "outputs/deterministic_reference_samples/ames_year3/ames_ls{season:03d}_on_model_grid.nc"
+      ],
+      "sampling": "duration-weighted five-sol means within \u00b15\u00b0 Ls",
+      "vertical": "lowest archived layer",
+      "dust": "Ames FV3 reference simulation"
+    },
+    {
+      "name": "MCD 6.1",
+      "role": "model-derived climatology",
+      "paths": [
+        "outputs/deterministic_reference_samples/mcd_ls{season:03d}/mcd_diurnal_mean_native.nc"
+      ],
+      "sampling": "mean of LT 0, 6, 12, 18 h at nearby Ls",
+      "vertical": "10 m above surface for wind",
+      "dust": "scenario 1 requested; legacy cache verification limited"
+    },
+    {
+      "name": "ARCO-MACDA",
+      "role": "MY34\u201335 reanalysis",
+      "paths": [
+        "data/arco_macda/macda_my34_ls{season:03d}_10sol_daily_t21_l12.nc",
+        "data/arco_macda/macda_my35_ls{season:03d}_10sol_daily_t21_l12.nc"
+      ],
+      "season_variable": "Ls",
+      "mean_dims": [
+        "time"
+      ],
+      "isel": {
+        "lev": -1
+      },
+      "sampling": "daily means from MY34\u201335 within \u00b15\u00b0 Ls",
+      "vertical": "lowest regridded sigma layer",
+      "dust": "assimilated-year MACDA dust; not matched to Ames"
+    }
+  ]
+}

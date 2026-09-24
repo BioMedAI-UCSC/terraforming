@@ -1,0 +1,15 @@
+{
+  "inputs": "outputs/nautilus-calibration-inputs",
+  "config": "apps/mars-calibration/paper-ablations-year.json",
+  "output": "outputs/paper-year-gpu2",
+  "task": "ablations",
+  "cases": [
+    "co2_longwave_opacity_scale_0.8",
+    "co2_longwave_opacity_scale_1.2",
+    "dust_longwave_opacity_scale_0.8"
+  ],
+  "reference_config": null,
+  "external_timings": null,
+  "require_gpu": true,
+  "validate_only": false
+}

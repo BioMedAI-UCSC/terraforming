@@ -1,0 +1,5 @@
+source,role,sampling,wind level,dust,CO2 LW scale,dust LW scale,exchange scale
+Physical GCM,deterministic physical baseline,mean of 4 instantaneous checkpoints within ±5° Ls,lowest model sigma layer,prescribed Ames seasonal visible/IR opacity,0.25,0.25,1.0
+NASA Ames,Ames FV3 model reference,duration-weighted five-sol means within ±5° Ls,lowest archived layer,Ames FV3 reference simulation,not comparable / not supplied,not comparable / not supplied,not comparable / not supplied
+MCD 6.1,model-derived climatology,"mean of LT 0, 6, 12, 18 h at nearby Ls",10 m above surface for wind,scenario 1 requested; legacy cache verification limited,not comparable / not supplied,not comparable / not supplied,not comparable / not supplied
+ARCO-MACDA,MY34–35 reanalysis,daily means from MY34–35 within ±5° Ls,lowest regridded sigma layer,assimilated-year MACDA dust; not matched to Ames,not comparable / not supplied,not comparable / not supplied,not comparable / not supplied

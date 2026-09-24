@@ -1,0 +1,154 @@
+{
+  "status": "diagnostic_only_transient_vs_climatology",
+  "warning": "dry dynamics + Ames correlated-k CO2 radiation + CO2 condensation cycle + prescribed radiatively active dust | TRANSIENT: 1.0-sol spin-up snapshot, NOT a seasonally-equilibrated climatology (needs >= 1 Mars year)",
+  "model": "outputs/iclr_validation/ls0_t21_l12_dt300/convection/sample_000000296.nc",
+  "mcd_version": "6.1",
+  "ls_deg": 0.0,
+  "local_times_hours": [
+    0.0,
+    2.0,
+    4.0,
+    6.0,
+    8.0,
+    10.0,
+    12.0,
+    14.0,
+    16.0,
+    18.0,
+    20.0,
+    22.0
+  ],
+  "dust_scenario": 1,
+  "mcd_wind_altitude_m_above_surface": 432.1892492930971,
+  "high_resolution_topography": true,
+  "co2_ice_conversion": "MCD kg/m2 multiplied by Mars gravity 3.72076 m/s2",
+  "metrics": {
+    "temperature": {
+      "bias": 10.900189887775909,
+      "mae": 11.020422117598361,
+      "rmse": 14.986644556964917,
+      "spatial_correlation": 0.908119329461113,
+      "model_area_mean": 214.78383883623235,
+      "mcd_area_mean": 203.88364894845643
+    },
+    "surface_pressure": {
+      "bias": 46.04069931930999,
+      "mae": 51.32415125906426,
+      "rmse": 64.40271262809446,
+      "spatial_correlation": 0.9782597827925066,
+      "model_area_mean": 669.707715227227,
+      "mcd_area_mean": 623.667015907917
+    },
+    "wind_speed": {
+      "bias": -4.235651052001326,
+      "mae": 4.738896082843834,
+      "rmse": 5.685869303887544,
+      "spatial_correlation": 0.298155723750457,
+      "model_area_mean": 5.24006841381728,
+      "mcd_area_mean": 9.475719465818607
+    },
+    "co2_ice": {
+      "bias": -86.75792195625904,
+      "mae": 86.75792195625904,
+      "rmse": 381.17061326457605,
+      "spatial_correlation": NaN,
+      "model_area_mean": 0.0,
+      "mcd_area_mean": 86.75792195625904
+    }
+  },
+  "source_urls": [
+    "cache",
+    "cache",
+    "cache",
+    "cache",
+    "cache",
+    "cache",
+    "cache",
+    "cache",
+    "cache",
+    "cache",
+    "cache",
+    "cache"
+  ],
+  "response_provenance": [
+    {
+      "cache": "outputs/gcm3d_maps/current-p1-drag_mcd/mcd_ls0_lt0_z432.189m.txt",
+      "sha256": "b6e848648ee5fe530dbcdb2d44b3e73970663a4428cf39c2db44b3344c2aa8eb",
+      "requested_query": "https://www-mars.lmd.jussieu.fr/mcd_python/cgi-bin/mcdcgi.py?var1=tsurf&var2=ps&var3=wind&var4=co2ice&datekeyhtml=1&ls=0&localtime=0&latitude=all&longitude=all&altitude=432.189&zkey=3&dust=1&hrkey=1&averaging=off&isfixedlt=on&animation=off&animframes=12&dpi=160&islog=off&colorm=jet&proj=cyl&iswind=off",
+      "cache_query_verified": false
+    },
+    {
+      "cache": "outputs/gcm3d_maps/current-p1-drag_mcd/mcd_ls0_lt2_z432.189m.txt",
+      "sha256": "dfec19ff1ef55223d8c10f2c1993ebfd1e9aa6865afc272a3ab446eb19668517",
+      "requested_query": "https://www-mars.lmd.jussieu.fr/mcd_python/cgi-bin/mcdcgi.py?var1=tsurf&var2=ps&var3=wind&var4=co2ice&datekeyhtml=1&ls=0&localtime=2&latitude=all&longitude=all&altitude=432.189&zkey=3&dust=1&hrkey=1&averaging=off&isfixedlt=on&animation=off&animframes=12&dpi=160&islog=off&colorm=jet&proj=cyl&iswind=off",
+      "cache_query_verified": false
+    },
+    {
+      "cache": "outputs/gcm3d_maps/current-p1-drag_mcd/mcd_ls0_lt4_z432.189m.txt",
+      "sha256": "fcbfae0084b0f37c6ea0e4a1930dde31a1ce87cce70a9056835ae07b0fb6f871",
+      "requested_query": "https://www-mars.lmd.jussieu.fr/mcd_python/cgi-bin/mcdcgi.py?var1=tsurf&var2=ps&var3=wind&var4=co2ice&datekeyhtml=1&ls=0&localtime=4&latitude=all&longitude=all&altitude=432.189&zkey=3&dust=1&hrkey=1&averaging=off&isfixedlt=on&animation=off&animframes=12&dpi=160&islog=off&colorm=jet&proj=cyl&iswind=off",
+      "cache_query_verified": false
+    },
+    {
+      "cache": "outputs/gcm3d_maps/current-p1-drag_mcd/mcd_ls0_lt6_z432.189m.txt",
+      "sha256": "7b93f6d4cf55d157571121eb113882835e758ac8d33058060c5057bca1baf16f",
+      "requested_query": "https://www-mars.lmd.jussieu.fr/mcd_python/cgi-bin/mcdcgi.py?var1=tsurf&var2=ps&var3=wind&var4=co2ice&datekeyhtml=1&ls=0&localtime=6&latitude=all&longitude=all&altitude=432.189&zkey=3&dust=1&hrkey=1&averaging=off&isfixedlt=on&animation=off&animframes=12&dpi=160&islog=off&colorm=jet&proj=cyl&iswind=off",
+      "cache_query_verified": false
+    },
+    {
+      "cache": "outputs/gcm3d_maps/current-p1-drag_mcd/mcd_ls0_lt8_z432.189m.txt",
+      "sha256": "2d7f49c134c42f1d99d1868c1b5c5c096081b46f5b8e875c060ec3a9df761bc0",
+      "requested_query": "https://www-mars.lmd.jussieu.fr/mcd_python/cgi-bin/mcdcgi.py?var1=tsurf&var2=ps&var3=wind&var4=co2ice&datekeyhtml=1&ls=0&localtime=8&latitude=all&longitude=all&altitude=432.189&zkey=3&dust=1&hrkey=1&averaging=off&isfixedlt=on&animation=off&animframes=12&dpi=160&islog=off&colorm=jet&proj=cyl&iswind=off",
+      "cache_query_verified": false
+    },
+    {
+      "cache": "outputs/gcm3d_maps/current-p1-drag_mcd/mcd_ls0_lt10_z432.189m.txt",
+      "sha256": "0312a7a714c9f5d42f7709957ffd9296b5cddfd02237fc7c16bcd4ff73cd7742",
+      "requested_query": "https://www-mars.lmd.jussieu.fr/mcd_python/cgi-bin/mcdcgi.py?var1=tsurf&var2=ps&var3=wind&var4=co2ice&datekeyhtml=1&ls=0&localtime=10&latitude=all&longitude=all&altitude=432.189&zkey=3&dust=1&hrkey=1&averaging=off&isfixedlt=on&animation=off&animframes=12&dpi=160&islog=off&colorm=jet&proj=cyl&iswind=off",
+      "cache_query_verified": false
+    },
+    {
+      "cache": "outputs/gcm3d_maps/current-p1-drag_mcd/mcd_ls0_lt12_z432.189m.txt",
+      "sha256": "153f51fdae65a99257f9405a760c0ce08bb9496d0fc1e6bbf919e9051b6dd9ee",
+      "requested_query": "https://www-mars.lmd.jussieu.fr/mcd_python/cgi-bin/mcdcgi.py?var1=tsurf&var2=ps&var3=wind&var4=co2ice&datekeyhtml=1&ls=0&localtime=12&latitude=all&longitude=all&altitude=432.189&zkey=3&dust=1&hrkey=1&averaging=off&isfixedlt=on&animation=off&animframes=12&dpi=160&islog=off&colorm=jet&proj=cyl&iswind=off",
+      "cache_query_verified": false
+    },
+    {
+      "cache": "outputs/gcm3d_maps/current-p1-drag_mcd/mcd_ls0_lt14_z432.189m.txt",
+      "sha256": "410a130143650c7dce2d54b5bff296356f8f3a7bb1339a0614f1ec99845e6dc8",
+      "requested_query": "https://www-mars.lmd.jussieu.fr/mcd_python/cgi-bin/mcdcgi.py?var1=tsurf&var2=ps&var3=wind&var4=co2ice&datekeyhtml=1&ls=0&localtime=14&latitude=all&longitude=all&altitude=432.189&zkey=3&dust=1&hrkey=1&averaging=off&isfixedlt=on&animation=off&animframes=12&dpi=160&islog=off&colorm=jet&proj=cyl&iswind=off",
+      "cache_query_verified": false
+    },
+    {
+      "cache": "outputs/gcm3d_maps/current-p1-drag_mcd/mcd_ls0_lt16_z432.189m.txt",
+      "sha256": "6048fbaf781cf13687396a50219c1b8226caca749e002f73845d0925ddea6f7d",
+      "requested_query": "https://www-mars.lmd.jussieu.fr/mcd_python/cgi-bin/mcdcgi.py?var1=tsurf&var2=ps&var3=wind&var4=co2ice&datekeyhtml=1&ls=0&localtime=16&latitude=all&longitude=all&altitude=432.189&zkey=3&dust=1&hrkey=1&averaging=off&isfixedlt=on&animation=off&animframes=12&dpi=160&islog=off&colorm=jet&proj=cyl&iswind=off",
+      "cache_query_verified": false
+    },
+    {
+      "cache": "outputs/gcm3d_maps/current-p1-drag_mcd/mcd_ls0_lt18_z432.189m.txt",
+      "sha256": "f3eea864bd90e83a4617c7a0ddc2a4e3ee438a47178e0c815da95aee228ccc55",
+      "requested_query": "https://www-mars.lmd.jussieu.fr/mcd_python/cgi-bin/mcdcgi.py?var1=tsurf&var2=ps&var3=wind&var4=co2ice&datekeyhtml=1&ls=0&localtime=18&latitude=all&longitude=all&altitude=432.189&zkey=3&dust=1&hrkey=1&averaging=off&isfixedlt=on&animation=off&animframes=12&dpi=160&islog=off&colorm=jet&proj=cyl&iswind=off",
+      "cache_query_verified": false
+    },
+    {
+      "cache": "outputs/gcm3d_maps/current-p1-drag_mcd/mcd_ls0_lt20_z432.189m.txt",
+      "sha256": "58b711b7fdcadfdd41384390bcd42f7583880a1dc77422b2e37a823e265a53fb",
+      "requested_query": "https://www-mars.lmd.jussieu.fr/mcd_python/cgi-bin/mcdcgi.py?var1=tsurf&var2=ps&var3=wind&var4=co2ice&datekeyhtml=1&ls=0&localtime=20&latitude=all&longitude=all&altitude=432.189&zkey=3&dust=1&hrkey=1&averaging=off&isfixedlt=on&animation=off&animframes=12&dpi=160&islog=off&colorm=jet&proj=cyl&iswind=off",
+      "cache_query_verified": false
+    },
+    {
+      "cache": "outputs/gcm3d_maps/current-p1-drag_mcd/mcd_ls0_lt22_z432.189m.txt",
+      "sha256": "7b59ec29a06b1922cdc28595b703cd7f6c076d230649c4c619afab148712816a",
+      "requested_query": "https://www-mars.lmd.jussieu.fr/mcd_python/cgi-bin/mcdcgi.py?var1=tsurf&var2=ps&var3=wind&var4=co2ice&datekeyhtml=1&ls=0&localtime=22&latitude=all&longitude=all&altitude=432.189&zkey=3&dust=1&hrkey=1&averaging=off&isfixedlt=on&animation=off&animframes=12&dpi=160&islog=off&colorm=jet&proj=cyl&iswind=off",
+      "cache_query_verified": false
+    }
+  ],
+  "model_sha256": "ef0cb7287953a3c686661db98c69305e70e21633e8a4c8a790c015f99230b14d",
+  "comparison_limitations": [
+    "Final model snapshot is not a temporal climatology or a local-time mean.",
+    "Wind height is a reference-atmosphere estimate, not a matched pressure level.",
+    "Cached legacy query scenario is unverified without its original metadata.",
+    "MCD is a model reference, not observational truth."
+  ]
+}

@@ -1,0 +1,128 @@
+{
+  "provenance": {
+    "arguments": {
+      "output": "outputs/neural_framework/control_final_smoke",
+      "iterations": 12,
+      "steps": 3,
+      "layers": 2,
+      "seed": 0,
+      "target_shift_k": -1.5
+    },
+    "python": "3.12.3",
+    "jax": "0.11.0",
+    "numpy": "2.4.2",
+    "devices": [
+      "cpu:0"
+    ],
+    "x64": true,
+    "git_revision": "3c0faeb0b8e512dae3da8f5b80655ee4d32beb07",
+    "working_tree_dirty": true,
+    "source_sha256": {
+      "examples/neural/train_radiation.py": "d726b725ecb910b2258e163e87476fe06b4bfdc8f8a3dbc82f6f25be825a346d",
+      "examples/neural/common.py": "b1f0bec4b7d5f0463b0c48a41f00ed12472a545bf02ad3f6b218f5fc90bb9193",
+      "examples/neural/optimize_atmospheric_control.py": "f99d241388fb43e8445516e9d45715fff5d22daf404294bf9e390302a14f677b",
+      "examples/neural/recover_parameter.py": "b74ad8401b4ab43da4f3417880465078548a4601d6225a0ed26fe778e0f3eb77",
+      "package/src/framework/neural/models.py": "9ae49e1c19014c94f5fbfd253a0f259ed2534e54400b9896673feeb01e5c7eda",
+      "package/src/framework/neural/__init__.py": "2d4b98ec72ad9017856ce2aa5a5def59f9d3800294e9393c8b5a74feb051ce17",
+      "package/src/framework/neural/checkpoints.py": "0bd023bbfc8c6d4db787ae2bf57ade7da7b6cfa5e324e387eb2e51214066284d",
+      "package/src/framework/neural/tendency.py": "f518112bee1cd39830d1233aeadbd9405538d3a2f34516b51fe2aa8c131065d8",
+      "package/src/framework/neural/columns.py": "242539d36a418204c11a37fffbc7883629d75df619d005dba5214ee18d5a21e1",
+      "package/src/framework/neural/radiation.py": "c7e69ddb159e21d4c4de568e559d83ae01caeb8d5102b2e4d7eb7636b4203237",
+      "package/src/framework/neural/training.py": "8891170a38ab9957df3ffff60974e9974fe4653e15350a8bff804e032902a06f",
+      "package/src/framework/physics/gcm.py": "bfb14176e40347c2f9c63f68ed47fddbd6ebf0a455fd7130644240413ee4ff11",
+      "package/src/framework/gcm/learning.py": "171a402dfc4c1ab85aa6e181b1ef6f89683b6876844e037ae57b81cad13b6f65"
+    },
+    "reference": "generated using the framework radiation kernel",
+    "seed": 0
+  },
+  "purpose": "synthetic neural inverse-control capability demonstration",
+  "configuration": {
+    "truncation": "T21",
+    "layers": 2,
+    "dt_seconds": 30.0,
+    "steps": 3,
+    "target_shift_k": -1.5,
+    "feature_schema": [
+      "air_temperature_k[0]",
+      "air_temperature_k[1]",
+      "surface_temperature_k",
+      "surface_pressure_pa",
+      "eastward_wind_ms",
+      "northward_wind_ms",
+      "sin_latitude",
+      "cos_latitude",
+      "sin_longitude",
+      "cos_longitude",
+      "insolation_w_m2"
+    ],
+    "maximum_heating_k_s": 0.0002
+  },
+  "initial_objective": 2.2446101094929873,
+  "final_objective": 2.2109340430779856,
+  "initial_rmse_k": 1.4718313341402984,
+  "final_rmse_k": 1.4825477186397238,
+  "max_abs_policy_heating_k_s": 0.0001923665326801364,
+  "finite_rollout": true,
+  "history": [
+    {
+      "iteration": 1,
+      "loss_before_update": 2.2446101100069633,
+      "gradient_norm": 0.140368022270457
+    },
+    {
+      "iteration": 2,
+      "loss_before_update": 2.2437899649742206,
+      "gradient_norm": 0.03134008637238617
+    },
+    {
+      "iteration": 3,
+      "loss_before_update": 2.234721742572712,
+      "gradient_norm": 0.3252575584076082
+    },
+    {
+      "iteration": 4,
+      "loss_before_update": 2.2302460515184213,
+      "gradient_norm": 0.02186493454736374
+    },
+    {
+      "iteration": 5,
+      "loss_before_update": 2.224439448836814,
+      "gradient_norm": 0.010957584678193452
+    },
+    {
+      "iteration": 6,
+      "loss_before_update": 2.22097015421662,
+      "gradient_norm": 0.010214807083688602
+    },
+    {
+      "iteration": 7,
+      "loss_before_update": 2.218779190897519,
+      "gradient_norm": 0.009502614881291333
+    },
+    {
+      "iteration": 8,
+      "loss_before_update": 2.2168966701915003,
+      "gradient_norm": 0.008824672263425605
+    },
+    {
+      "iteration": 9,
+      "loss_before_update": 2.2152853561389354,
+      "gradient_norm": 0.008191052495850759
+    },
+    {
+      "iteration": 10,
+      "loss_before_update": 2.2139122305970944,
+      "gradient_norm": 0.007616045017387615
+    },
+    {
+      "iteration": 11,
+      "loss_before_update": 2.2127475974728794,
+      "gradient_norm": 0.007113484438377138
+    },
+    {
+      "iteration": 12,
+      "loss_before_update": 2.211763731439733,
+      "gradient_norm": 0.006692112925208635
+    }
+  ]
+}

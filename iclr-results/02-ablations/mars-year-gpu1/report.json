@@ -1,0 +1,36 @@
+{
+  "execution_status": "complete",
+  "profile": "paper-ablations-mars-year",
+  "model": {
+    "truncation": "T21",
+    "layers": 12,
+    "integrator": "IMEX-RK-SIL3",
+    "pbl_closure_interval_seconds": 1800.0,
+    "co2_supply_limiter_interval_seconds": 24000.0
+  },
+  "tasks": {
+    "ablations": "complete"
+  },
+  "recovery_acceptance_pass": null,
+  "external_timings_supplied": false,
+  "process_peak_rss_bytes": 3283701760,
+  "process_peak_rss_scope": "whole process including compilation; not accelerator peak",
+  "artifacts": {
+    "weaker_diffusion-restart.npz": "d1eee3afd0d63312cbd005832a8dffbd46eff05a44aeb6253af535da2d8fa808",
+    "no_co2_exchange.nc": "cf7f0f72a3f8426c3e579dcf69521c6e666072489374fa90c455217eabc5bdb4",
+    "full.nc": "261e13a990e37666f62c784fbe6c40a12c3bc6566d960e440f15d98b2bd14af5",
+    "progress.jsonl": "c95797fe4ab3e08563923462bb85ef8e1fe2b58b8b34b77fdd651c45260a441a",
+    "invocation.json": "ffb7c02fa69b3f6cb55e5db601d251cfc941553ba5439ec1a5b41cffa5d10450",
+    "weaker_diffusion.nc": "482b55d50ffb5df96202afbed66825458ebc4e2bbf324c28ade13d7983de3d95",
+    "source-hashes.json": "429656bbd3b8be5a945d453794280eb9f722d7ba6546f97d10fe6c78b490b488",
+    "input-manifest.json": "ea371313353309296819d7056914e5a457915776b88efbd1260eb7a0fb472829",
+    "no_co2_exchange-restart.npz": "a9e655f34577c45e8fa9d0744a968450aa6f5098c33c4370067df42d83172b5e",
+    "ablations.csv": "6299792e853812c0bc7e9bc92a51719f28323015b92f605c24f3a0d09b760277",
+    "surface_exchange_multiplier_0.8-restart.npz": "66a9cf0bf8d29bbd4d341d8680ddc9adda7985419945fe932d576747c846b5f9",
+    "environment.json": "90fb2c28fab621ef8f5a42eac857f986751d551c9935c2c437115f5cd9ddcd73",
+    "full-restart.npz": "80cdc7bb292d2f29a25f28220c2372d7074d0eca9cca9b3e5fec2d2c3d1a2c2f",
+    "config.json": "99a75e193765dc31b385a1f9670c76007de9c50261533c14732b0ea52bc27f34",
+    "surface_exchange_multiplier_0.8.nc": "1f293832a659d0ee2249ba03e5a582d4b5ad971633d6dbc640ad049c0a5481a7",
+    "ablations.json": "2654e30735f978c8c9e0b576cde20173bfd46b94f5b21bd4c77bf641666bebf8"
+  }
+}

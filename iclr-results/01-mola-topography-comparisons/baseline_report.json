@@ -1,0 +1,137 @@
+{
+  "status": "stable_completed_requested_duration",
+  "completed_sols": 668.0004168718351,
+  "all_exported_and_checkpoint_values_finite": true,
+  "model_solar_longitude_deg": 359.6826713093274,
+  "arco_reference": {
+    "mars_year": 24.0,
+    "daily_mean_solar_longitude_deg": 0.2775026261806488,
+    "absolute_season_offset_deg": 0.5948313168532309,
+    "wind_sigma": 0.9583333730697632,
+    "model_wind_sigma": 0.9583333333333334
+  },
+  "metrics": {
+    "surface_pressure": {
+      "model_area_mean": 589.5130177494826,
+      "reference_area_mean": 603.6340590825968,
+      "bias": -14.12104133311415,
+      "mae": 23.57471226147257,
+      "rmse": 29.713829301521333,
+      "relative_mae_percent_of_reference_mean_absolute": 3.905464230646863,
+      "normalized_rmse_percent_of_reference_spatial_std": 19.855930039359237,
+      "spatial_correlation": 0.9871737385512792
+    },
+    "temperature": {
+      "model_area_mean": 216.59457842903174,
+      "reference_area_mean": 203.19707878003646,
+      "bias": 13.397499648995293,
+      "mae": 13.402552916004545,
+      "rmse": 15.051153006683366,
+      "relative_mae_percent_of_reference_mean_absolute": 6.5958393676087175,
+      "normalized_rmse_percent_of_reference_spatial_std": 68.61226238283703,
+      "spatial_correlation": 0.9531228838573942
+    },
+    "u": {
+      "model_area_mean": -0.7342149566972097,
+      "reference_area_mean": 0.4292105932937217,
+      "bias": -1.1634255499909312,
+      "mae": 5.482253574664392,
+      "rmse": 7.582983566190957,
+      "relative_mae_percent_of_reference_mean_absolute": 112.80782130917993,
+      "normalized_rmse_percent_of_reference_spatial_std": 116.10841286713028,
+      "spatial_correlation": 0.46901720460827595
+    },
+    "v": {
+      "model_area_mean": -1.9136016545286894,
+      "reference_area_mean": -0.5320519849427445,
+      "bias": -1.381549669585945,
+      "mae": 5.456363998494775,
+      "rmse": 7.161034316428331,
+      "relative_mae_percent_of_reference_mean_absolute": 177.7518919240876,
+      "normalized_rmse_percent_of_reference_spatial_std": 181.47808364882974,
+      "spatial_correlation": 0.3610175889188367
+    },
+    "wind_speed": {
+      "model_area_mean": 9.797175638997196,
+      "reference_area_mean": 6.349863839061786,
+      "bias": 3.447311799935409,
+      "mae": 4.70598564738941,
+      "rmse": 5.964361858402701,
+      "relative_mae_percent_of_reference_mean_absolute": 74.11159934548667,
+      "normalized_rmse_percent_of_reference_spatial_std": 139.15698341264337,
+      "spatial_correlation": 0.45481849961398557
+    },
+    "co2_ice": {
+      "model_area_mean": 80.15955408259639,
+      "reference_area_mean": 127.4872304274007,
+      "bias": -47.327676344804324,
+      "mae": 54.73973592329324,
+      "rmse": 231.44884050846008,
+      "relative_mae_percent_of_reference_mean_absolute": 42.937426548351844,
+      "normalized_rmse_percent_of_reference_spatial_std": 48.73638073059354,
+      "spatial_correlation": 0.8883356435652204
+    }
+  },
+  "mola_topography": {
+    "minimum": -7260.527443945057,
+    "maximum": 14478.380348353257,
+    "area_weighted_mean": -560.3769201267478,
+    "area_weighted_std": 2892.3164831456447,
+    "surface_pressure_elevation_correlation": -0.9604591836315415,
+    "surface_pressure_slope_pa_per_km": -52.581979119763865,
+    "fitted_log_pressure_scale_height_m": 10951.312675996867,
+    "representation": "MOLA elevation regridded and spectrally represented on the T21 Gaussian grid"
+  },
+  "co2_mass_conservation": {
+    "initial_total_co2_mass_kg": 2.5984358235794388e+16,
+    "final_total_co2_mass_kg": 2.598435820403596e+16,
+    "final_drift_kg": -31758428.0,
+    "final_relative_drift": -1.222213291235018e-09,
+    "final_drift_percent": -1.222213291235018e-07,
+    "maximum_absolute_checkpoint_drift_kg": 31758428.0,
+    "maximum_absolute_checkpoint_relative_drift": 1.222213291235018e-09,
+    "checkpoint_count": 135
+  },
+  "final_state_ranges": {
+    "surface_pressure": {
+      "minimum": 221.8219463679297,
+      "maximum": 1078.7640725962656
+    },
+    "temperature": {
+      "minimum": 144.32745506276785,
+      "maximum": 241.22142363155785
+    },
+    "wind_speed": {
+      "minimum": 0.2033374008346508,
+      "maximum": 30.016631500217574
+    },
+    "co2_ice": {
+      "minimum": 0.0,
+      "maximum": 2845.4227941965755
+    }
+  },
+  "artifacts": {
+    "model_netcdf": "outputs/branch_physical_baseline_t21_l12_dt300_hyperdiff01/convection/maps.nc",
+    "model_sha256": "614103d9cbfe94f48f8b4bcab7c68dd649e51c9b95be6fa7dd0de9a5fec3d3bd",
+    "arco_netcdf": "data/arco_macda/macda_my24_sols0000-0009_daily_t21_l12.nc",
+    "arco_sha256": "158c2b1fd4bd191af1226eee3589e4107f7ea0760d3cc87c681caac8e7f35d5f",
+    "diagnostics_csv": "outputs/branch_physical_baseline_t21_l12_dt300_hyperdiff01/convection/checkpoint_diagnostics.csv",
+    "diagnostics_sha256": "0244018c726574e63d76e66449ead50c2f9e6f00cb74a155a656cb2fd7214e00",
+    "normalized_diagnostics_csv": "outputs/branch_physical_baseline_t21_l12_dt300_hyperdiff01/evaluation/checkpoint_diagnostics_normalized.csv",
+    "normalized_diagnostics_sha256": "0244018c726574e63d76e66449ead50c2f9e6f00cb74a155a656cb2fd7214e00",
+    "comparison_plot": "outputs/branch_physical_baseline_t21_l12_dt300_hyperdiff01/evaluation/arco_macda_comparison.png",
+    "mola_plot": "outputs/branch_physical_baseline_t21_l12_dt300_hyperdiff01/evaluation/mola_topography_pressure.png"
+  },
+  "metric_definitions": {
+    "weighting": "Gaussian spherical quadrature on the T21 latitude grid",
+    "relative_mae": "100 * area-weighted MAE / area-weighted mean absolute reference",
+    "normalized_rmse": "100 * area-weighted RMSE / reference spatial standard deviation"
+  },
+  "limitations": [
+    "ARCO-MACDA is a data-assimilating reanalysis and not direct observational truth.",
+    "The model field is one instantaneous final state under daily-mean solar forcing; ARCO-MACDA is a daily mean.",
+    "A completed first Mars year demonstrates numerical stability, not climatological equilibration.",
+    "ARCO-MACDA was linearly regridded from 35 sigma levels and 36x72 cells to T21/L12, which smooths extremes.",
+    "The MY24 sample is a pipeline and diagnostic comparison; it is not a held-out test score."
+  ]
+}

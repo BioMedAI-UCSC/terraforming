@@ -1,0 +1,28 @@
+{
+  "execution_status": "complete",
+  "profile": "paper",
+  "model": {
+    "truncation": "T21",
+    "layers": 12,
+    "integrator": "IMEX-RK-SIL3",
+    "pbl_closure_interval_seconds": 1800.0,
+    "co2_supply_limiter_interval_seconds": 24000.0
+  },
+  "tasks": {
+    "benchmark": "complete"
+  },
+  "recovery_acceptance_pass": null,
+  "external_timings_supplied": false,
+  "process_peak_rss_bytes": 3171094528,
+  "process_peak_rss_scope": "whole process including compilation; not accelerator peak",
+  "artifacts": {
+    "progress.jsonl": "f1a3ca69faf2691a137bcb9cc823d32bf49024ac7c5cfac0f804744ad378fdb0",
+    "invocation.json": "ecc7e576854e007d183d28d58a2a024d33abacd7869daa54b80b26bb3ee3d264",
+    "source-hashes.json": "429656bbd3b8be5a945d453794280eb9f722d7ba6546f97d10fe6c78b490b488",
+    "input-manifest.json": "ea371313353309296819d7056914e5a457915776b88efbd1260eb7a0fb472829",
+    "environment.json": "4e2629c20aa0d9bcb855091f34d44999e01eaccdecda6d0d033cf2ccc06b5070",
+    "timing.json": "63d6f3c20496d1a66f375023523587513d928dc3e0df5659a5570d4ad03b8d70",
+    "config.json": "2a5352f9ad3150db6b4341a286e223bdc062be5d837e8b978167cc7c94ffc737",
+    "timing.csv": "07c9c264152f3f42d811509bc5140aca1624844c3afc9f1cf971bb37766bb287"
+  }
+}
