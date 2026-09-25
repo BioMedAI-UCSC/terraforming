@@ -55,8 +55,10 @@ def _bar_labels(ax, bars, fmt="{:.2f}", pad=3):
 # --------------------------------------------------------------------------- #
 # ablations
 # --------------------------------------------------------------------------- #
-def fig_ablations(root: Path, out: Path):
-    df = _read_csv(root / "02-ablations/short-paper-suite/ablations.csv")
+def fig_ablations(root: Path, out: Path, *, csv_path=None,
+                  title="Short-paper physics ablation suite"):
+    source = Path(csv_path) if csv_path is not None else root / "02-ablations/short-paper-suite/ablations.csv"
+    df = _read_csv(source)
     if df is None:
         return
     df = df[df["case"] != "full"].copy()
@@ -79,8 +81,8 @@ def fig_ablations(root: Path, out: Path):
     axes[1].set_xlabel("Wind-vector RMSE vs full (m s$^{-1}$)")
     axes[1].set_title("Physics ablation: wind sensitivity")
     _bar_labels(axes[1], b2)
-    fig.suptitle("Short-paper physics ablation suite", fontsize=13, weight="bold")
-    ps.annotate_provenance(fig, "02-ablations/short-paper-suite/ablations.csv — " + CAVEAT)
+    fig.suptitle(title, fontsize=13, weight="bold")
+    ps.annotate_provenance(fig, "02-ablations/short-paper-suite/ablations.csv — " + CAVEAT if csv_path is None else source.name + " — " + CAVEAT)
     fig.tight_layout(rect=(0, 0.02, 1, 0.97))
     print("  wrote", *[p.name for p in ps.save(fig, out, "ablations_rmse")])
 
