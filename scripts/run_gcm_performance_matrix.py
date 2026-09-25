@@ -151,7 +151,8 @@ def main() -> int:
             "--output-dir", str(output), "--config", "convection",
             "--truncation", "T21", "--layers", str(args.layers),
             "--dt", str(dt), "--initial-ls", "0", "--diurnal",
-            "--sols", str(args.sols), "--performance-mode",
+            "--sols", str(args.sols), "--chunk-sols", "5",
+            "--performance-mode",
             "--precision", precision, "--physics-evaluation", physics_evaluation,
             "--ames-dust-reference",
             str(args.ames_dust_reference),
@@ -223,8 +224,11 @@ def main() -> int:
                 "--candidate", str(output / "convection" / "checkpoint_diagnostics.csv"),
                 "--output", str(comparison),
             ], check=False)
-            status = "pass" if result.returncode == 0 else "fail"
-            comparison_report = json.loads(comparison.read_text())
+            if comparison.exists():
+                status = "pass" if result.returncode == 0 else "fail"
+                comparison_report = json.loads(comparison.read_text())
+            else:
+                status = "comparison_failed"
         timing = json.loads(manifest.read_text())["runs"]["convection"]
         integration_seconds = timing.get("integration_seconds")
         end_to_end_seconds = timing.get("invocation_elapsed_seconds")
@@ -259,10 +263,17 @@ def main() -> int:
                 reference_seconds / float(record["integration_seconds"])
             )
     failed = sum(record["status"] == "execution_failed" for record in records)
+    comparison_failures = sum(
+        record["status"] == "comparison_failed" for record in records
+    )
     summary = {
-        "status": "complete_with_failures" if failed else "complete",
+        "status": (
+            "complete_with_failures"
+            if failed or comparison_failures else "complete"
+        ),
         "reference": "dt300-float64-stage",
         "execution_failures": failed,
+        "comparison_failures": comparison_failures,
         "runs": records,
     }
     (args.output_dir / "matrix.json").write_text(
@@ -273,6 +284,7 @@ def main() -> int:
     print(json.dumps({
         "status": summary["status"],
         "execution_failures": failed,
+        "comparison_failures": comparison_failures,
         "output": str(args.output_dir / "matrix.json"),
     }))
     return 0

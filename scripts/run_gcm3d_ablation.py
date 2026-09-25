@@ -297,8 +297,8 @@ def main() -> int:
     parser.add_argument(
         "--performance-mode", action="store_true",
         help=(
-            "remove artificial cooldowns and checkpoint no more often than every "
-            "50 sols; timed integration still includes restart/diagnostic writes"
+            "remove artificial cooldowns; checkpoint spacing remains controlled "
+            "by --chunk-sols and timing includes restart/diagnostic writes"
         ),
     )
     parser.add_argument(
@@ -333,7 +333,6 @@ def main() -> int:
         args.cooldown_seconds = max(args.cooldown_seconds, 15.0)
     if args.performance_mode:
         args.cooldown_seconds = 0.0
-        args.chunk_sols = max(args.chunk_sols, 50.0)
     if args.cooldown_seconds < 0:
         parser.error("--cooldown-seconds must be non-negative")
     for key in ("sols", "chunk_sols", "dt", "hyperdiffusion_tau_sols"):

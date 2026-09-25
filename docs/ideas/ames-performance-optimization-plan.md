@@ -90,7 +90,7 @@ synchronization at each timing boundary.
 ## Phase 1: freeze baselines
 
 - [x] Archive the current T21/L12/dt300/float64 configuration and artifacts.
-- [x] Add a performance mode with zero cooldown and 50-sol checkpoint spacing.
+- [x] Add a performance mode with zero cooldown and explicit checkpoint spacing.
 - [ ] Run dry-dynamics and full-physics JAX baselines.
 - [ ] Build Ames v3.2.1 with recorded compiler and MPI configuration.
 - [ ] Run the Ames C24/L56 default case with matched output cadence.
@@ -121,7 +121,7 @@ in measured cost order.
 ## Phase 3: remove measurement overhead
 
 - [x] Set checkpoint cooldown to zero for GPU performance runs.
-- [x] Save full restarts every 50 sols rather than every 10 sols.
+- [x] Make restart spacing configurable independently of performance mode.
 - [ ] Compute frequent scalar diagnostics as device reductions.
 - [ ] Transfer only reduced diagnostics during the timed interval.
 - [ ] Keep plots and NetCDF creation outside kernel-only timing.
@@ -163,7 +163,7 @@ A 600 s timestep should approach a twofold speedup if per-step cost is unchanged
 The first 30-sol GPU matrix established that T21/L12 with a 600 s timestep and
 stage-evaluated full physics is not stable for the requested window. A nonfinite
 state was detected at the final callback, before step 4439, corresponding to the
-30-sol boundary. Because performance mode used one 50-sol chunk, this establishes
+30-sol boundary. Because the original performance run used one 50-sol chunk, this establishes
 only that the failure occurred somewhere within the 30-sol integration; it does
 not locate the first failing timestep. The 300 s
 reference and 450 s stage-evaluated candidate completed, and the 450 s candidate
@@ -183,6 +183,10 @@ different stability behavior. The runner records failed executions in
 `failure.json`, marks them red in the plots, and continues with later candidates.
 The climate runner now reports the exact pytree state leaves containing nonfinite
 values so a repeated failure can be attributed more precisely.
+
+The matrix now uses five-sol checkpoints. Float32 and float64 checkpoint times
+are compared on a shared interpolation grid, avoiding false "insufficient
+overlapping coverage" failures caused by sub-ulp endpoint differences.
 
 To locate the first failing interval, rerun that configuration without
 performance mode, using one-sol checkpoints and no cooldown:

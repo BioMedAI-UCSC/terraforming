@@ -56,12 +56,13 @@ def compare(reference, candidate, gates):
 
     start = max(reference[0]["elapsed_sols"], candidate[0]["elapsed_sols"])
     stop = min(reference[-1]["elapsed_sols"], candidate[-1]["elapsed_sols"])
-    candidate_times = np.asarray([
-        row["elapsed_sols"] for row in candidate
-        if start <= row["elapsed_sols"] <= stop
-    ])
-    if candidate_times.size < 2:
-        raise ValueError("reference and candidate have insufficient overlapping coverage")
+    if stop <= start:
+        raise ValueError("reference and candidate have no overlapping coverage")
+    # Use a shared interpolation grid rather than selecting exact checkpoint
+    # timestamps. Float32 sim_time can differ from float64 by a few ulps at the
+    # nominally identical final checkpoint, leaving only the initial sample.
+    sample_count = max(2, min(len(reference), len(candidate)))
+    candidate_times = np.linspace(start, stop, sample_count)
 
     ref_temp = interpolate(reference, candidate_times, "mean_surface_temperature_k")
     cand_temp = interpolate(candidate, candidate_times, "mean_surface_temperature_k")

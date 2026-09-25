@@ -41,3 +41,12 @@ def test_short_run_omits_seasonal_phase_gate():
     candidate = rows()[:2]
     report = MODULE.compare(reference, candidate, MODULE.DEFAULT_GATES)
     assert "seasonal_peak_ls_deg" not in report["checks"]
+
+
+def test_float32_endpoint_rounding_still_has_shared_coverage():
+    reference = rows()
+    candidate = rows()
+    candidate[-1]["elapsed_sols"] += 1e-5
+    report = MODULE.compare(reference, candidate, MODULE.DEFAULT_GATES)
+    assert report["sample_count"] >= 2
+    assert report["status"] == "pass"
