@@ -227,11 +227,13 @@ def build_report(config_path, output):
                          max(float(ds[name].max()) for ds in aligned.values() if name in ds))
                   for name in FIELDS if any(name in ds for ds in aligned.values())}
         fig, axes = plt.subplots(4, len(aligned), figsize=(4.4*len(aligned), 11), squeeze=False, constrained_layout=True)
-        diff_fig, diff_axes = plt.subplots(4, len(aligned)-1, figsize=(4.4*(len(aligned)-1), 11), squeeze=False, constrained_layout=True)
+        diff_fig, diff_axes = plt.subplots(4, len(aligned), figsize=(4.4*len(aligned), 11), squeeze=False, constrained_layout=True)
         season_rows = []
         for row, (field, (label, units, cmap)) in enumerate(FIELDS.items()):
-            differences = [model[field] - ds[field] for ds in list(aligned.values())[1:] if field in model and field in ds]
-            limit = max([float(abs(v).max()) for v in differences] or [1]) or 1
+            available = [ds[field] for ds in aligned.values() if field in ds]
+            ensemble_mean = sum(available[1:], available[0]) / len(available) if available else None
+            source_anomalies = [ds[field] - ensemble_mean for ds in aligned.values() if field in ds]
+            limit = max([float(abs(v).max()) for v in source_anomalies] or [1]) or 1
             for column, (name, ds) in enumerate(aligned.items()):
                 ax = axes[row, column]
                 ax.set_title(f"{name} · {label}", fontsize=9)
@@ -243,19 +245,21 @@ def build_report(config_path, output):
                     ax.contour(model.lon, model.lat, terrain, levels=[0], colors="white", linewidths=.35, alpha=.6)
                     fig.colorbar(im, ax=ax, label=units, shrink=.75)
                 ax.set(xlabel="Longitude (°E)", ylabel="Latitude (°N)")
+                dax = diff_axes[row, column]
+                dax.set(title=f"{name} − ensemble mean\n{label}", xlabel="Longitude (°E)", ylabel="Latitude (°N)")
+                if field in ds and ensemble_mean is not None:
+                    anomaly = ds[field] - ensemble_mean
+                    im = dax.pcolormesh(model.lon, model.lat, anomaly.transpose("lat", "lon"), cmap="RdBu_r", vmin=-limit, vmax=limit, shading="auto", rasterized=True)
+                    diff_fig.colorbar(im, ax=dax, label=units, shrink=.75)
+                else:
+                    dax.text(.5, .5, "Unavailable", transform=dax.transAxes, ha="center")
                 if column:
-                    dax = diff_axes[row, column-1]
-                    dax.set(title=f"Model − {name} · {label}", xlabel="Longitude (°E)", ylabel="Latitude (°N)")
                     if field in model and field in ds:
                         values = metrics(model[field].transpose("lat", "lon").values, ds[field].transpose("lat", "lon").values, model.lat.values)
                         record = {"Ls": season, "reference": name, "field": label, "units": units, **values}
                         rows.append(record); season_rows.append(record)
-                        im = dax.pcolormesh(model.lon, model.lat, (model[field]-ds[field]).transpose("lat", "lon"), cmap="RdBu_r", vmin=-limit, vmax=limit, shading="auto", rasterized=True)
-                        diff_fig.colorbar(im, ax=dax, label=units, shrink=.75)
-                    else:
-                        dax.text(.5, .5, "Unavailable", transform=dax.transAxes, ha="center")
         fig.suptitle(f"Ls ≈ {season}° · diagnostic comparison · shared scale within each row")
-        diff_fig.suptitle(f"Ls ≈ {season}° · model minus reference · sampling/height mismatches remain")
+        diff_fig.suptitle(f"Ls ≈ {season}° · source minus four-source ensemble mean · sampling/height mismatches remain")
         fig.savefig(output / f"{tag}_grid.png", dpi=150)
         diff_fig.savefig(output / f"{tag}_differences.png", dpi=150)
         plt.close(fig); plt.close(diff_fig)

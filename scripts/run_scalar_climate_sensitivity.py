@@ -15,6 +15,8 @@ from pathlib import Path
 import sys
 import time
 
+os.environ.setdefault("MPLBACKEND", "Agg")
+os.environ.setdefault("MPLCONFIGDIR", "outputs/mpl-cache")
 os.environ.setdefault("XLA_FLAGS", "--xla_cpu_multi_thread_eigen=false intra_op_parallelism_threads=2")
 
 import matplotlib.pyplot as plt
@@ -32,6 +34,21 @@ PARAMETERS = {
     "surface_exchange_multiplier": 2,
 }
 
+REQUIRED_INPUTS = ("manifest.json", "restart.npz", "target.nc", "surface.nc", "dust.nc", "mola.img")
+
+
+def validate_input_bundle(path: Path):
+    """Fail with an actionable message before the hash validator opens files."""
+    missing = [name for name in REQUIRED_INPUTS if not (path / name).is_file()]
+    if missing:
+        listing = ", ".join(missing)
+        raise FileNotFoundError(
+            f"{path} is not a staged Mars calibration input bundle; missing: {listing}. "
+            "Pass the directory containing restart.npz, target.nc, surface.nc, "
+            "dust.nc, mola.img, and their manifest.json."
+        )
+    return p.validate_inputs(path)
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -45,22 +62,30 @@ def main() -> int:
     parser.add_argument("--epsilon", type=float, default=1e-3)
     parser.add_argument("--require-gpu", action="store_true")
     args = parser.parse_args()
-    if (args.sols != sorted(set(args.sols)) or min(args.sols) <= 0 or args.dt <= 0
+    if (not np.isfinite([*args.sols, args.dt, args.epsilon, args.value]).all()
+            or args.sols != sorted(set(args.sols)) or min(args.sols) <= 0 or args.dt <= 0
             or args.dt > 300 or args.epsilon <= 0):
         parser.error("sols must be positive, sorted and unique; require 0 < dt <= 300 and epsilon > 0")
     index = PARAMETERS[args.parameter]
     if not d.LOWER_BOUNDS[index] < args.value < d.UPPER_BOUNDS[index]:
         parser.error("parameter value must lie strictly inside its calibration bounds")
+    if not (d.LOWER_BOUNDS[index] < args.value - args.epsilon
+            and args.value + args.epsilon < d.UPPER_BOUNDS[index]):
+        parser.error("finite-difference perturbations must remain inside parameter bounds")
+    if args.output_dir.exists():
+        parser.error("output directory already exists; choose a new output directory")
 
     d.jax.config.update("jax_enable_x64", True)
     if args.require_gpu and d.jax.default_backend() != "gpu":
         raise RuntimeError("GPU required; refusing CPU fallback")
     os.environ["MOLA_PATH"] = str((args.inputs / "mola.img").resolve())
-    inputs_manifest = p.validate_inputs(args.inputs)
+    inputs_manifest = validate_input_bundle(args.inputs)
     model = p.Model(args.inputs)
     seconds = np.asarray(args.sols) * d.MARS_BODY_3D.rotation_period_s
     # Sampling must land on exact integration steps.
     steps = np.rint(seconds / args.dt).astype(int)
+    if steps[0] < 1 or np.any(np.diff(steps) <= 0):
+        parser.error("horizons must round to distinct positive integration steps")
     seconds = steps * args.dt
     actual_sols = seconds / d.MARS_BODY_3D.rotation_period_s
     run = model.trajectory(seconds, args.dt, states=True)
@@ -82,7 +107,15 @@ def main() -> int:
         ], axis=1)
 
     started = time.perf_counter()
-    value_and_tangent = d.jax.jit(lambda x: (diagnostics(x), d.jax.jacfwd(diagnostics)(x)))
+    def diagnostics_with_aux(x):
+        values = diagnostics(x)
+        return values, values
+
+    tangent = d.jax.jacfwd(diagnostics_with_aux, has_aux=True)
+    def value_and_derivative(x):
+        derivative, values = tangent(x)
+        return values, derivative
+    value_and_tangent = d.jax.jit(value_and_derivative)
     values, derivatives = p.block(value_and_tangent(args.value))
     compile_and_first_seconds = time.perf_counter() - started
     started = time.perf_counter()
