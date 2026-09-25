@@ -249,7 +249,7 @@ def main() -> int:
             "integration_speedup_vs_reference": None,
             "max_temperature_error_k": checks.get("mean_surface_temperature_k", {}).get("value"),
             "max_pressure_relative_error": checks.get("mean_surface_pressure_relative", {}).get("value"),
-            "co2_drift_factor": checks.get("co2_mass_relative_drift_factor", {}).get("value"),
+            "co2_relative_drift": checks.get("co2_mass_relative_drift", {}).get("value"),
             "seasonal_peak_error_deg": checks.get("seasonal_peak_ls_deg", {}).get("value"),
             "comparison": str(comparison) if comparison else None,
         })

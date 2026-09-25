@@ -317,7 +317,8 @@ Derive final acceptance thresholds from the observed 300-versus-150 s or
 final optimized annual result is inspected. Starting candidate gates are:
 
 - no NaNs, infinities, negative reservoirs or atmospheric collapse;
-- relative total CO2 drift no materially worse than the reference;
+- relative total CO2 drift no greater than `1e-5` over the 30-sol pilot, with
+  the reference drift and candidate/reference ratio retained as diagnostics;
 - annual global-mean surface-temperature difference below 1 K;
 - global-mean pressure difference below 1%;
 - seasonal pressure-amplitude difference below 5%;

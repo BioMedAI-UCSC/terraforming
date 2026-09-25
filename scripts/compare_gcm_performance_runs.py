@@ -15,7 +15,7 @@ import numpy as np
 DEFAULT_GATES = {
     "mean_surface_temperature_k": 1.0,
     "mean_surface_pressure_relative": 0.01,
-    "co2_mass_relative_drift_factor": 2.0,
+    "co2_mass_relative_drift": 1.0e-5,
     "seasonal_peak_ls_deg": 5.0,
 }
 
@@ -104,12 +104,13 @@ def compare(reference, candidate, gates):
             "limit": gates["mean_surface_pressure_relative"],
             "pass": pressure_error <= gates["mean_surface_pressure_relative"],
         },
-        "co2_mass_relative_drift_factor": {
-            "value": drift_factor,
+        "co2_mass_relative_drift": {
+            "value": cand_drift,
             "candidate_relative_drift": cand_drift,
             "reference_relative_drift": ref_drift,
-            "limit": gates["co2_mass_relative_drift_factor"],
-            "pass": drift_factor <= gates["co2_mass_relative_drift_factor"],
+            "candidate_over_reference": drift_factor,
+            "limit": gates["co2_mass_relative_drift"],
+            "pass": cand_drift <= gates["co2_mass_relative_drift"],
         },
     }
     if peak_phase_error is not None:
