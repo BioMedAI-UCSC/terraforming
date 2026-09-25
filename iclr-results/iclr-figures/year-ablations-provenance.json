@@ -1,0 +1,133 @@
+{
+  "source_directories": [
+    "outputs/Untitled",
+    "outputs/paper-year-gpu1",
+    "outputs/paper-year-gpu2",
+    "outputs/paper-year-gpu3"
+  ],
+  "cases_including_baseline": 13,
+  "duration_seconds": 59356800,
+  "independent_initial_states": 1,
+  "repeated_baselines": 4,
+  "config": {
+    "schema_version": 1,
+    "dt_seconds": 300,
+    "train_seconds": [
+      6000,
+      12000,
+      22200
+    ],
+    "validation_seconds": [
+      30000,
+      44400,
+      88800,
+      444000,
+      888000,
+      1776000,
+      2664000,
+      3552000,
+      4440000,
+      5328000,
+      6216000,
+      7104000,
+      7992000,
+      8880000,
+      9768000,
+      10656000,
+      11544000,
+      12432000,
+      13320000,
+      14208000,
+      15096000,
+      15984000,
+      16872000,
+      17760000,
+      18648000,
+      19536000,
+      20424000,
+      21312000,
+      22200000,
+      23088000,
+      23976000,
+      24864000,
+      25752000,
+      26640000,
+      27528000,
+      28416000,
+      29304000,
+      30192000,
+      31080000,
+      31968000,
+      32856000,
+      33744000,
+      34632000,
+      35520000,
+      36408000,
+      37296000,
+      38184000,
+      39072000,
+      39960000,
+      40848000,
+      41736000,
+      42624000,
+      43512000,
+      44400000,
+      45288000,
+      46176000,
+      47064000,
+      47952000,
+      48840000,
+      49728000,
+      50616000,
+      51504000,
+      52392000,
+      53280000,
+      54168000,
+      55056000,
+      55944000,
+      56832000,
+      57720000,
+      58608000,
+      59356800
+    ],
+    "truth": [
+      0.6,
+      0.8,
+      1.4
+    ],
+    "starts": [
+      [
+        0.3,
+        0.4,
+        0.7
+      ],
+      [
+        1,
+        1.2,
+        2.2
+      ],
+      [
+        0.9,
+        0.5,
+        1.8
+      ]
+    ],
+    "active_sets": [
+      [
+        2
+      ],
+      [
+        0,
+        1,
+        2
+      ]
+    ],
+    "max_evaluations": 100,
+    "benchmark_repeats": 3,
+    "parameter_relative_tolerance": 0.05,
+    "gradient_relative_tolerance": 0.0001,
+    "gradient_absolute_tolerance": 1e-10,
+    "profile": "paper-ablations-mars-year"
+  },
+  "scope": "Sample-averaged transient sensitivity; no equilibrium or observational accuracy claim"
+}

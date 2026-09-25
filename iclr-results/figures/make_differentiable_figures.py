@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Plot new experiment artifacts using the existing paper palette and export style."""
 import argparse
+import json
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -10,12 +11,75 @@ import matplotlib.pyplot as plt
 import plotstyle as ps
 
 
+def annual_ablations(roots, out):
+    """Combine compatible annual partitions without treating GPUs as replicates."""
+    frames, contract = [], None
+    for root in roots:
+        read = lambda name: json.loads((root / name).read_text())
+        config, report = read("config.json"), read("report.json")
+        if report.get("execution_status") != "complete" or report.get("tasks", {}).get("ablations") != "complete":
+            raise ValueError(f"Incomplete annual partition: {root}")
+        if config["validation_seconds"][-1] != 59356800:
+            raise ValueError(f"Expected a complete 59,356,800-second Mars year: {root}")
+        identity = (config,
+                    {k: v["sha256"] for k, v in read("input-manifest.json")["files"].items()},
+                    sorted(read("source-hashes.json").values()))
+        if contract is not None and identity != contract:
+            raise ValueError(f"Incompatible annual configuration, inputs or source: {root}")
+        contract = identity
+        df = pd.read_csv(root / "ablations.csv")
+        if not df.status.eq("finite").all() or df['case'].duplicated().any():
+            raise ValueError(f"Nonfinite or duplicate case: {root}")
+        df["source_directory"] = str(root)
+        frames.append(df)
+    combined = pd.concat(frames, ignore_index=True)
+    full = combined[combined['case'] == 'full']
+    numeric = [c for c in frames[0].select_dtypes(include=np.number).columns
+               if c not in ('wall_seconds', 'compile_seconds')]
+    if len(full) != len(roots) or not np.allclose(full[numeric], full[numeric].iloc[0], rtol=1e-10, atol=1e-12):
+        raise ValueError("Partition baselines do not match")
+    cases = combined[combined['case'] != 'full']
+    expected = {'no_pbl', 'no_convection', 'no_regolith', 'no_co2_exchange',
+                'weaker_diffusion', 'half_timestep'} | {
+                    f'{parameter}_{factor}' for parameter in
+                    ('co2_longwave_opacity_scale', 'dust_longwave_opacity_scale', 'surface_exchange_multiplier')
+                    for factor in ('0.8', '1.2')}
+    if cases['case'].duplicated().any() or set(cases['case']) != expected:
+        raise ValueError("Expected all 12 distinct annual ablation cases")
+    cases = cases.sort_values('temperature_rmse_vs_full_k')
+    fig, axes = plt.subplots(1, 3, figsize=(14, 6), sharey=True)
+    labels = [ps.prettify_case(c) for c in cases['case']]
+    for ax, column, title, unit, color in zip(axes,
+            ('temperature_rmse_vs_full_k', 'u_rmse_vs_full_ms', 'v_rmse_vs_full_ms'),
+            ('Temperature', 'Zonal wind', 'Meridional wind'), ('K', 'm s$^{-1}$', 'm s$^{-1}$'),
+            ('blue', 'orange', 'green')):
+        ax.barh(np.arange(len(cases)), cases[column], color=ps.PALETTE[color])
+        ax.set(title=title, xlabel=f'RMSE vs full physics ({unit})')
+    axes[0].set_yticks(np.arange(len(cases)), labels)
+    fig.suptitle('One-Mars-year physical ablation sensitivity', weight='bold')
+    ps.annotate_provenance(fig, 'GPU0–3 partitions; one common restart. Sample-averaged transient differences; not observational error or ensemble uncertainty.')
+    fig.tight_layout(rect=(0, .04, 1, .95))
+    ps.save(fig, out, 'year-ablations')
+    pd.concat([full.iloc[:1], cases]).to_csv(out / 'year-ablations.csv', index=False)
+    (out / 'year-ablations-provenance.json').write_text(json.dumps({
+        'source_directories': list(map(str, roots)), 'cases_including_baseline': 13,
+        'duration_seconds': 59356800, 'independent_initial_states': 1,
+        'repeated_baselines': len(full), 'config': contract[0],
+        'scope': 'Sample-averaged transient sensitivity; no equilibrium or observational accuracy claim'}, indent=2)+'\n')
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--runs", nargs="+", type=Path, required=True)
+    ap.add_argument("--runs", nargs="+", type=Path, default=[])
+    ap.add_argument("--year-runs", nargs="+", type=Path, default=[],
+                    help="Complete compatible annual ablation partitions, including GPU0")
     ap.add_argument("--out", type=Path, default=Path("iclr-results/figures/out"))
     args = ap.parse_args()
+    if not args.runs and not args.year_runs:
+        ap.error("Supply --runs or --year-runs")
     ps.apply_style()
+    if args.year_runs:
+        annual_ablations(args.year_runs, args.out)
     for root in args.runs:
         found = False
         for name in ("gradients", "training", "skill", "ablations", "climate", "observations", "scaling"):
