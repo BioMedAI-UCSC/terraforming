@@ -261,6 +261,7 @@ def run_maps(
     hyperdiffusion_tau_seconds: float | None = None,
     radiation_component=None,
     neural_tendency=None,
+    physics_evaluation: str = "stage",
 ) -> MarsMapFields | tuple[MarsMapFields, object]:
     """Run the Mars dycore over MOLA terrain and return lat/lon map fields.
 
@@ -284,6 +285,10 @@ def run_maps(
         body = MARS_BODY_3D
     if radiation_component is not None and forcing is None:
         raise ValueError("radiation_component requires radiative forcing")
+    if physics_evaluation not in ("stage", "step"):
+        raise ValueError("physics_evaluation must be 'stage' or 'step'")
+    if physics_evaluation == "step" and forcing is None:
+        raise ValueError("step-held physics requires radiative forcing")
     if n_steps < 1:
         raise ValueError(f"n_steps must be >= 1, got {n_steps}")
     if not np.isfinite(dt_seconds) or dt_seconds <= 0:
@@ -328,6 +333,7 @@ def run_maps(
             coords, body, forcing, specs=specs, orography=orography,
             radiation_component=radiation_component,
             neural_tendency=neural_tendency,
+            return_components=physics_evaluation == "step",
         )
         # sim_time must be present (0.0) for the diurnal/seasonal forcing to advance.
         if initial_state is None:
@@ -363,6 +369,7 @@ def run_maps(
                 coords, body, forcing, co2_forcing, specs=specs, orography=orography,
                 radiation_component=radiation_component,
                 neural_tendency=neural_tendency,
+                return_components=physics_evaluation == "step",
             )
             # The radiation-only state already contains the surface reservoir;
             # enabling CO2 simply uses its existing zero frost field.
@@ -402,7 +409,15 @@ def run_maps(
                     f"forcing with diurnal=False (daily-mean insolation)."
                 )
 
-    step = stepper(equation, dt_seconds, specs)
+    if physics_evaluation == "step":
+        from src.framework.physics.gcm import step_with_held_physics
+
+        base_equation, parameterization = equation
+        step = step_with_held_physics(
+            base_equation, parameterization, dt_seconds, specs
+        )
+    else:
+        step = stepper(equation, dt_seconds, specs)
     if hyperdiffusion_tau_seconds is not None:
         # Spectral primitive-equation models need scale-selective dissipation to
         # prevent enstrophy from accumulating at the truncation limit. Fourth-

@@ -13,8 +13,12 @@ import csv
 import dataclasses
 import functools
 import hashlib
+import importlib.metadata
 import json
 import os
+import platform
+import subprocess
+import sys
 import time
 from pathlib import Path
 
@@ -67,6 +71,36 @@ ABLATIONS = {
     "convection": dict(regolith_enabled=True, stability_exchange_enabled=True,
                        pbl_diffusion_enabled=True, convective_adjustment_enabled=True),
 }
+
+
+def _environment() -> dict[str, object]:
+    def git(*arguments: str) -> str:
+        try:
+            return subprocess.check_output(
+                ["git", *arguments], text=True, stderr=subprocess.DEVNULL
+            ).strip()
+        except (OSError, subprocess.CalledProcessError):
+            return "unavailable"
+
+    packages = {}
+    for name in ("jax", "jaxlib", "dinosaur", "numpy", "scipy"):
+        try:
+            packages[name] = importlib.metadata.version(name)
+        except importlib.metadata.PackageNotFoundError:
+            packages[name] = "unavailable"
+    return {
+        "python": sys.version,
+        "platform": platform.platform(),
+        "processor": platform.processor(),
+        "cpu_count": os.cpu_count(),
+        "backend": jax.default_backend(),
+        "devices": [str(device) for device in jax.devices()],
+        "packages": packages,
+        "git_commit": git("rev-parse", "HEAD"),
+        "git_status": git("status", "--short"),
+        "xla_flags": os.environ.get("XLA_FLAGS"),
+        "jax_enable_x64": bool(jax.config.jax_enable_x64),
+    }
 
 
 def _checkpoint_diagnostics(state, coords, specs, dt_seconds: float) -> dict[str, float | int]:
@@ -251,6 +285,24 @@ def main() -> int:
         "--cooldown-seconds", type=float, default=5.0,
         help="idle time after every checkpoint to limit sustained laptop load",
     )
+    parser.add_argument(
+        "--performance-mode", action="store_true",
+        help=(
+            "remove artificial cooldowns and checkpoint no more often than every "
+            "50 sols; timed integration still includes restart/diagnostic writes"
+        ),
+    )
+    parser.add_argument(
+        "--precision", choices=("float64", "float32"), default="float64",
+        help="JAX numerical precision for the experiment (default: float64)",
+    )
+    parser.add_argument(
+        "--physics-evaluation", choices=("stage", "step"), default="stage",
+        help=(
+            "evaluate column physics at every IMEX stage (reference) or once "
+            "per complete timestep and hold its tendency through the stages"
+        ),
+    )
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--dust-visible", type=float, default=0.3)
     parser.add_argument("--dust-longwave", type=float, default=0.1)
@@ -270,6 +322,9 @@ def main() -> int:
         args.dt = 300.0
         args.chunk_sols = min(args.chunk_sols, 5.0)
         args.cooldown_seconds = max(args.cooldown_seconds, 15.0)
+    if args.performance_mode:
+        args.cooldown_seconds = 0.0
+        args.chunk_sols = max(args.chunk_sols, 50.0)
     if args.cooldown_seconds < 0:
         parser.error("--cooldown-seconds must be non-negative")
     for key in ("sols", "chunk_sols", "dt", "hyperdiffusion_tau_sols"):
@@ -282,9 +337,15 @@ def main() -> int:
         parser.error("--initial-ls must be finite")
     if args.ames_dust_reference is not None and not args.ames_dust_reference.exists():
         parser.error(f"Ames dust reference does not exist: {args.ames_dust_reference}")
-    jax.config.update("jax_enable_x64", True)
+    jax.config.update("jax_enable_x64", args.precision == "float64")
 
-    verified_dt = {"T42": 450.0, "T85": 300.0, "T106": 225.0, "T170": 150.0}
+    verified_dt = {
+        "T21": 675.0,
+        "T42": 450.0,
+        "T85": 300.0,
+        "T106": 225.0,
+        "T170": 150.0,
+    }
     if args.truncation in verified_dt and args.dt > verified_dt[args.truncation]:
         parser.error(
             f"--dt={args.dt:g} s exceeds the verified {args.truncation} limit "
@@ -324,6 +385,9 @@ def main() -> int:
     steps_chunk = max(1, round(args.chunk_sols * base.rotation_period_s / args.dt))
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
+    (args.output_dir / "environment.json").write_text(
+        json.dumps(_environment(), indent=2) + "\n"
+    )
     manifest = {"sols": args.sols, "dt_seconds": args.dt,
                 "truncation": args.truncation, "layers": args.layers, "runs": {}}
     for name in configs:
@@ -341,7 +405,8 @@ def main() -> int:
                       co2_lw_scale=args.co2_lw_scale,
                       dust_lw_scale=args.dust_lw_scale,
                       surface_exchange_multiplier=args.surface_exchange_multiplier,
-                      physics=name, float64=True,
+                      physics=name, precision=args.precision,
+                      physics_evaluation=args.physics_evaluation,
                       surface_sha256=hashlib.sha256(args.surface_properties.read_bytes()).hexdigest(),
                       ames_dust_reference=(str(args.ames_dust_reference) if args.ames_dust_reference else None),
                       ames_dust_sha256=(hashlib.sha256(args.ames_dust_reference.read_bytes()).hexdigest()
@@ -355,6 +420,11 @@ def main() -> int:
             # Restarts produced before this explicit calibration control used
             # the mathematically identical multiplier of one.
             existing_config.setdefault("surface_exchange_multiplier", 1.0)
+            if "float64" in existing_config and "precision" not in existing_config:
+                existing_config["precision"] = (
+                    "float64" if existing_config.pop("float64") else "float32"
+                )
+            existing_config.setdefault("physics_evaluation", "stage")
             if existing_config != config:
                 raise ValueError("Restart configuration is missing or differs; use a new output directory")
         root.mkdir(parents=True, exist_ok=True)
@@ -380,6 +450,11 @@ def main() -> int:
             record = _checkpoint_diagnostics(
                 checkpoint_state, coords, specs, args.dt
             )
+            elapsed_seconds = float(checkpoint_state.dynamics.sim_time) * time_scale_s
+            record["solar_longitude_deg"] = float(np.degrees(
+                float(_true_anomaly(elapsed_seconds, forcing))
+                + forcing.ls_perihelion_rad
+            ) % 360.0)
             if args.ames_dust_reference is not None:
                 dust_visible, dust_longwave = dust_optical_depths(
                     checkpoint_state.dynamics.sim_time * time_scale_s, forcing
@@ -449,10 +524,7 @@ def main() -> int:
             )
             record = diagnostic_record(checkpoint_state)
             _append_checkpoint_diagnostics(diagnostics_path, record)
-            elapsed_seconds = float(checkpoint_state.dynamics.sim_time) * time_scale_s
-            ls_deg = float(np.degrees(
-                float(_true_anomaly(elapsed_seconds, forcing)) + forcing.ls_perihelion_rad
-            ) % 360.0)
+            ls_deg = record["solar_longitude_deg"]
             print(
                 f"{name}: {absolute_step}/{steps_total} steps; Ls={ls_deg:.3f}",
                 flush=True,
@@ -461,6 +533,7 @@ def main() -> int:
                 time.sleep(args.cooldown_seconds)
 
         remaining = steps_total - completed
+        integration_started = time.perf_counter()
         fields, state = run_maps(
             truncation=args.truncation, n_layers=args.layers,
             dt_seconds=args.dt, n_steps=remaining, forcing=forcing,
@@ -471,7 +544,9 @@ def main() -> int:
             hyperdiffusion_tau_seconds=(
                 args.hyperdiffusion_tau_sols * MARS_BODY_3D.rotation_period_s
             ),
+            physics_evaluation=args.physics_evaluation,
         )
+        integration_seconds = time.perf_counter() - integration_started
         completed = steps_total
         save_netcdf(fields, root / f"sample_{completed:09d}.nc")
         nc = save_netcdf(fields, root / "maps.nc")
@@ -486,6 +561,12 @@ def main() -> int:
             "invocation_start_step": invocation_start_step,
             "invocation_steps": invocation_steps,
             "invocation_elapsed_seconds": elapsed_seconds,
+            "integration_seconds": integration_seconds,
+            "timed_region": (
+                "run_maps including compilation, checkpoint synchronization, "
+                "restart writes, diagnostics, and final field decoding; excludes "
+                "final NetCDF and plots"
+            ),
             "simulated_sols_per_wall_hour": (
                 simulated_sols * 3600.0 / elapsed_seconds
                 if elapsed_seconds > 0.0 else None

@@ -93,6 +93,24 @@ class TestRunMaps:
         assert progress == [(2, 4), (4, 4)]
         assert diagnostics == [(2, 4, True, 4), (4, 4, True, 4)]
 
+    def test_step_held_physics_runs_and_remains_finite(self):
+        from src.celestials.planets.mars.gcm import radiative_forcing
+
+        fields = maps.run_maps(
+            truncation="T21", n_layers=4, dt_seconds=300.0, n_steps=3,
+            forcing=radiative_forcing(diurnal=False),
+            physics_evaluation="step",
+        )
+        assert np.all(np.isfinite(fields.temperature_k))
+        assert np.all(np.isfinite(fields.surface_pressure_pa))
+
+    def test_step_held_physics_rejects_dry_run(self):
+        with pytest.raises(ValueError, match="requires radiative forcing"):
+            maps.run_maps(
+                truncation="T21", n_layers=4, dt_seconds=300.0, n_steps=1,
+                physics_evaluation="step",
+            )
+
 
 class TestScalePresets:
 

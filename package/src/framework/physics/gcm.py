@@ -468,6 +468,29 @@ def column_primitive_equations(base, parameterization):
     )
 
 
+def step_with_held_physics(base, parameterization, dt_seconds: float, specs):
+    """Build an IMEX step that evaluates column physics once per full step.
+
+    Dinosaur's ordinary IMEX step evaluates ``explicit_terms`` at every internal
+    Runge--Kutta stage. That is appropriate for tightly coupled dynamics but can
+    make expensive column physics dominate runtime. This variant diagnoses the
+    physics tendency from the step-start state, holds it fixed through the IMEX
+    stages, and still evaluates the dry dynamical tendency at every stage. It is
+    the first level of an Ames-style split cadence; callers must validate the
+    held-tendency approximation against stage-evaluated physics.
+    """
+    if not np.isfinite(dt_seconds) or dt_seconds <= 0:
+        raise ValueError(f"dt_seconds must be finite and positive, got {dt_seconds}")
+    dt = specs.nondimensionalize(dt_seconds * _u.second)
+
+    def advance(state):
+        held = parameterization(state)
+        equation = column_primitive_equations(base, lambda _stage_state: held)
+        return time_integration.imex_rk_sil3(equation, dt)(state)
+
+    return advance
+
+
 def compose_column_parameterizations(*parameterizations):
     """Add optional column-physics callables while preserving reservoir fields.
 
@@ -1409,6 +1432,7 @@ def forced_primitive_equations(
     *,
     radiation_component=None,
     neural_tendency=None,
+    return_components: bool = False,
 ) -> "time_integration.ImplicitExplicitODE":
     """dinosaur dry dynamics with the radiative energy balance added as forcing.
 
@@ -1468,6 +1492,8 @@ def forced_primitive_equations(
             mix_tracers,
         )
     extra = compose_column_parameterizations(parameterization, neural_tendency)
+    if return_components:
+        return base, extra
     return column_primitive_equations(base, extra)
 
 
@@ -1658,6 +1684,7 @@ def forced_co2_primitive_equations(
     *,
     radiation_component=None,
     neural_tendency=None,
+    return_components: bool = False,
 ) -> "time_integration.ImplicitExplicitODE":
     """Dry dynamics + radiative forcing + CO2 condensation cycle on a tuple state.
 
@@ -1718,6 +1745,8 @@ def forced_co2_primitive_equations(
             mix_tracers,
         )
     extra = compose_column_parameterizations(parameterization, neural_tendency)
+    if return_components:
+        return base, extra
     return column_primitive_equations(base, extra)
 
 
