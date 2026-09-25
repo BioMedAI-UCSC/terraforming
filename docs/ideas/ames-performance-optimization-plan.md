@@ -158,6 +158,45 @@ Run one sol first, then 30 sols. Compare:
 Advance a timestep to the annual run only if it passes predetermined tolerances.
 A 600 s timestep should approach a twofold speedup if per-step cost is unchanged.
 
+### Observed 600 s stage-physics failure
+
+The first 30-sol GPU matrix established that T21/L12 with a 600 s timestep and
+stage-evaluated full physics is not stable for the requested window. A nonfinite
+state was detected at the final callback, before step 4439, corresponding to the
+30-sol boundary. Because performance mode used one 50-sol chunk, this establishes
+only that the failure occurred somewhere within the 30-sol integration; it does
+not locate the first failing timestep. The 300 s
+reference and 450 s stage-evaluated candidate completed, and the 450 s candidate
+passed the configured scalar numerical gates.
+
+This is a numerical integration failure: one or more prognostic arrays contain
+NaN or infinity. It is not a Matplotlib-cache, SSH, Mamba, or GPU-memory failure.
+The geometric moving-terminator bound of about 690 s at T21 is a necessary
+sampling limit, not a guarantee that the fully coupled nonlinear radiation,
+surface, PBL, convection, regolith and CO2 system remains stable up to that
+limit. The empirical stable timestep can be lower.
+
+Do not use 600 or 675 s for an annual performance claim unless a subsequent
+configuration completes the pilot and passes the numerical gates. Continue the
+matrix because step-held physics and float32 are separate configurations with
+different stability behavior. The runner records failed executions in
+`failure.json`, marks them red in the plots, and continues with later candidates.
+The climate runner now reports the exact pytree state leaves containing nonfinite
+values so a repeated failure can be attributed more precisely.
+
+To locate the first failing interval, rerun that configuration without
+performance mode, using one-sol checkpoints and no cooldown:
+
+```bash
+python scripts/run_gcm3d_ablation.py \
+  data/tes/mgs_tes_surface_1deg.nc \
+  --output-dir outputs/performance/dt600-stage-diagnostic \
+  --config convection --truncation T21 --layers 12 --dt 600 \
+  --initial-ls 0 --diurnal --sols 30 --chunk-sols 1 --cooldown-seconds 0 \
+  --precision float64 --physics-evaluation stage \
+  --ames-dust-reference data/ames/fv3betaout1/ames_surface_reference.nc
+```
+
 The runner now accepts the full T21 matrix through 675 s and records precision
 and solar longitude in its configuration/diagnostic artifacts. Run a candidate
 with, for example:

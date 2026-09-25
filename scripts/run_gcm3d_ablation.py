@@ -203,6 +203,15 @@ def _append_checkpoint_diagnostics(path: Path, record: dict[str, float | int]) -
         writer.writerow(record)
 
 
+def _nonfinite_state_paths(state) -> list[str]:
+    """Return readable pytree paths for leaves containing NaN or infinity."""
+    failed = []
+    for path, leaf in jax.tree_util.tree_flatten_with_path(state)[0]:
+        if not np.isfinite(np.asarray(leaf)).all():
+            failed.append(jax.tree_util.keystr(path) or "<root>")
+    return failed
+
+
 @functools.lru_cache(maxsize=2)
 def _load_ames_dust(path: Path):
     import xarray as xr
@@ -506,12 +515,11 @@ def main() -> int:
 
         def checkpoint(done, _total, checkpoint_state, _coords, _specs):
             absolute_step = completed + done
-            if not all(
-                np.isfinite(np.asarray(leaf)).all()
-                for leaf in jax.tree_util.tree_leaves(checkpoint_state)
-            ):
+            nonfinite_paths = _nonfinite_state_paths(checkpoint_state)
+            if nonfinite_paths:
                 raise FloatingPointError(
                     f"{name} became non-finite before step {absolute_step}; "
+                    f"affected state leaves: {', '.join(nonfinite_paths)}; "
                     "the last saved restart remains valid"
                 )
             save_restart(checkpoint_state, restart_path)

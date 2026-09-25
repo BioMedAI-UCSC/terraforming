@@ -6,16 +6,18 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import os
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 MARS_SOL_SECONDS = 88_775.244
 
 
-def run(command: list[str]) -> None:
+def run(command: list[str]) -> int:
     print(" ".join(command), flush=True)
-    subprocess.run(command, check=True)
+    return subprocess.run(command, check=False).returncode
 
 
 def write_csv(path: Path, rows: list[dict[str, object]]) -> None:
@@ -36,10 +38,11 @@ def plot_results(path: Path, rows: list[dict[str, object]]) -> None:
     positions = np.arange(len(rows))
     colors = ["#4c78a8" if row["status"] in ("reference", "pass") else "#e45756"
               for row in rows]
-    integration = np.asarray([float(row["integration_seconds"]) for row in rows])
-    end_to_end = np.asarray([float(row["end_to_end_seconds"]) for row in rows])
-    throughput = np.asarray([float(row["integration_sols_per_wall_hour"]) for row in rows])
-    speedup = np.asarray([float(row["integration_speedup_vs_reference"]) for row in rows])
+    numeric = lambda value: np.nan if value is None else float(value)
+    integration = np.asarray([numeric(row["integration_seconds"]) for row in rows])
+    end_to_end = np.asarray([numeric(row["end_to_end_seconds"]) for row in rows])
+    throughput = np.asarray([numeric(row["integration_sols_per_wall_hour"]) for row in rows])
+    speedup = np.asarray([numeric(row["integration_speedup_vs_reference"]) for row in rows])
 
     fig, axes = plt.subplots(2, 2, figsize=(max(11, 1.4 * len(rows)), 8.5))
     width = 0.38
@@ -74,6 +77,13 @@ def plot_results(path: Path, rows: list[dict[str, object]]) -> None:
     axes[1, 1].set_title("Maximum scalar diagnostic error")
     axes[1, 1].legend(frameon=False)
 
+    for index, row in enumerate(rows):
+        if row["status"] == "execution_failed":
+            for axis in axes.flat:
+                axis.text(index, 0.02, "FAILED", rotation=90, color="#e45756",
+                          ha="center", va="bottom", transform=axis.get_xaxis_transform(),
+                          fontsize=8, fontweight="bold")
+
     for axis in axes.flat:
         axis.set_xticks(positions)
         axis.set_xticklabels(labels, rotation=35, ha="right", fontsize=8)
@@ -100,6 +110,10 @@ def main() -> int:
         default=["stage", "step"],
     )
     parser.add_argument("--resume", action="store_true")
+    parser.add_argument(
+        "--retry-failed", action="store_true",
+        help="retry configurations previously recorded in failure.json",
+    )
     args = parser.parse_args()
 
     if args.sols <= 0 or args.layers <= 0:
@@ -111,6 +125,10 @@ def main() -> int:
             parser.error(f"required input does not exist: {path}")
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
+    # Keep caches on the same writable filesystem as all other artifacts. This
+    # also overrides macOS-specific /private/tmp paths inherited on Linux SSH hosts.
+    os.environ["MPLCONFIGDIR"] = str(args.output_dir / "matplotlib-cache")
+    os.environ.setdefault("XDG_CACHE_HOME", str(args.output_dir / "xdg-cache"))
     runner = Path(__file__).with_name("run_gcm3d_ablation.py")
     comparator = Path(__file__).with_name("compare_gcm_performance_runs.py")
     records = []
@@ -127,6 +145,7 @@ def main() -> int:
         label = f"dt{dt:g}-{precision}-{physics_evaluation}"
         output = args.output_dir / label
         manifest = output / "manifest.json"
+        failure = output / "failure.json"
         command = [
             sys.executable, str(runner), str(args.surface_properties),
             "--output-dir", str(output), "--config", "convection",
@@ -139,8 +158,59 @@ def main() -> int:
         ]
         if args.resume:
             command.append("--resume")
-        if not manifest.exists():
-            run(command)
+        execution_failure = None
+        if not manifest.exists() and failure.exists() and not args.retry_failed:
+            execution_failure = json.loads(failure.read_text())
+        elif (
+            not manifest.exists()
+            and output.exists()
+            and any(output.iterdir())
+            and not args.resume
+            and not args.retry_failed
+        ):
+            execution_failure = {
+                "status": "execution_failed",
+                "reason": "incomplete output from a previous invocation",
+                "configuration": label,
+                "command": command,
+            }
+            failure.write_text(json.dumps(execution_failure, indent=2) + "\n")
+        elif not manifest.exists():
+            if args.retry_failed and failure.exists():
+                failure.unlink()
+            started = time.perf_counter()
+            returncode = run(command)
+            if returncode:
+                execution_failure = {
+                    "status": "execution_failed",
+                    "reason": f"runner exited with status {returncode}",
+                    "returncode": returncode,
+                    "elapsed_wall_seconds": time.perf_counter() - started,
+                    "configuration": label,
+                    "command": command,
+                }
+                output.mkdir(parents=True, exist_ok=True)
+                failure.write_text(json.dumps(execution_failure, indent=2) + "\n")
+
+        if execution_failure is not None or not manifest.exists():
+            records.append({
+                "configuration": label,
+                "dt_seconds": dt,
+                "precision": precision,
+                "physics_evaluation": physics_evaluation,
+                "status": "execution_failed",
+                "integration_seconds": None,
+                "end_to_end_seconds": execution_failure.get("elapsed_wall_seconds"),
+                "integration_sols_per_wall_hour": None,
+                "end_to_end_sols_per_wall_hour": None,
+                "integration_speedup_vs_reference": None,
+                "max_temperature_error_k": None,
+                "max_pressure_relative_error": None,
+                "co2_drift_factor": None,
+                "seasonal_peak_error_deg": None,
+                "comparison": None,
+            })
+            continue
 
         comparison = None
         comparison_report = None
@@ -180,14 +250,19 @@ def main() -> int:
             "comparison": str(comparison) if comparison else None,
         })
 
+    if records[0]["status"] == "execution_failed":
+        raise RuntimeError("the dt300 float64 stage reference failed; comparison is impossible")
     reference_seconds = float(records[0]["integration_seconds"])
     for record in records:
-        record["integration_speedup_vs_reference"] = (
-            reference_seconds / float(record["integration_seconds"])
-        )
+        if record["integration_seconds"] is not None:
+            record["integration_speedup_vs_reference"] = (
+                reference_seconds / float(record["integration_seconds"])
+            )
+    failed = sum(record["status"] == "execution_failed" for record in records)
     summary = {
-        "status": "complete",
+        "status": "complete_with_failures" if failed else "complete",
         "reference": "dt300-float64-stage",
+        "execution_failures": failed,
         "runs": records,
     }
     (args.output_dir / "matrix.json").write_text(
@@ -195,7 +270,11 @@ def main() -> int:
     )
     write_csv(args.output_dir / "performance.csv", records)
     plot_results(args.output_dir / "performance", records)
-    print(json.dumps({"status": "complete", "output": str(args.output_dir / "matrix.json")}))
+    print(json.dumps({
+        "status": summary["status"],
+        "execution_failures": failed,
+        "output": str(args.output_dir / "matrix.json"),
+    }))
     return 0
 
 
