@@ -7,6 +7,11 @@ recovery, neural radiation training, and multi-step atmospheric control.
 No MACDA or terrain download is required. These examples do not establish
 observational accuracy on Mars or long-term climate stability.
 
+For aligned reference windows and physical fitting, see the
+[differentiable experiment runbook](../../differentiable-experiments.md).
+The [temperature-only pipeline](temperature-only.md) is a separate cached-forecast
+postprocessor. It does not insert a tendency into the coupled solver.
+
 The atmospheric-control example is the most complete neural capability
 demonstration. It trains a bounded `NeuralTendency` through a multi-step T21
 Mars rollout using only a final-state objective. The target is a synthetic
@@ -194,6 +199,9 @@ support is a temperature-heating residual in K/s. The output is bounded by
 nondimensional tendency units. Vorticity, divergence, pressure, surface,
 regolith and tracer residuals are zero, so conventional reservoirs remain
 responsible for those quantities.
+
+The bound limits each local heating rate; it does not force zero column/global
+mean heating. The residual can add net energy and must be reported as a source.
 
 The policy features are current local atmospheric temperatures, surface
 temperature, surface pressure, lowest-layer wind, latitude/longitude sinusoids,

@@ -1,5 +1,10 @@
 # Presets
 
+!!! warning "Deprecated global-mean workflow"
+    This page documents the deprecated torch model or its dependent intervention
+    workflow. Use the [3-D GCM](../package/gcm3d/README.md) for new simulations.
+
+
 Built-in presets are YAML configs bundled with the CLI. They cover representative Mars scenarios from baseline current state to active terraforming.
 
 ## Listing Presets

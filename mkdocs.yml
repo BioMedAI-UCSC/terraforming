@@ -1,8 +1,12 @@
-site_name: Terraforming
-site_description: Mars terraforming physics framework — planets, atmospheres, orbital mechanics
+site_name: Terraforming · Mars GCM
+site_description: Differentiable three-dimensional Mars climate model — dynamics, physics, calibration and neural experiments
 repo_url: https://github.com/BioMedAI-UCSC/terraforming
 repo_name: BioMedAI-UCSC/terraforming
 edit_uri: edit/main/docs/
+
+validation:
+  links:
+    anchors: warn
 
 theme:
   name: material
@@ -35,7 +39,11 @@ theme:
 markdown_extensions:
   - admonition
   - pymdownx.details
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.inlinehilite
@@ -73,14 +81,36 @@ extra_css:
   - stylesheets/mars.css
 
 nav:
-  - Home: index.md
+  - 3-D GCM:
+      - Start here: index.md
+      - Model overview: package/gcm3d/README.md
+      - Python quickstart: package/gcm3d/quickstart.md
+      - Implementation & physics: package/gcm3d/implementation.md
+      - Calibration & ablations: package/gcm3d/calibration.md
+      - Neural experiments: package/gcm3d/neural-experiments.md
+      - Temperature-only postprocessing: package/gcm3d/temperature-only.md
+      - Differentiable experiment runbook: differentiable-experiments.md
+      - Temperature-only runbook: neural-temp-only-runbook.md
+      - Data & validation scripts: scripts/gcm3d-data.md
+      - Validation & limitations: package/gcm3d/validation.md
+      - Physics ledger: ideas/gcm3d-physics-limitations.md
   - Getting Started:
       - What is tform?: getting-started/what-is-tform.md
       - Installation: getting-started/installation.md
       - Quickstart: getting-started/quickstart.md
-  - CLI Reference:
+  - Architecture:
+      - GCM system: architecture/planet.md
+      - Mars configuration: architecture/mars.md
+      - Component architecture: package/gcm3d/architecture.md
+      - Design philosophy: package/gcm3d/philosophy.md
+      - Browser visualizer: architecture/visualizer.md
+  - API Reference:
+      - GCM interfaces: package/gcm3d/api.md
+      - Framework: api/framework.md
+      - Mars: api/celestials.md
+  - CLI & Comparisons:
       - Commands: cli/commands.md
-      - Presets: cli/presets.md
+      - Reference comparisons: cli/reference-comparison.md
   - Wiki:
       - Orbital Mechanics: wiki/orbital-mechanics.md
       - Solar Radiation: wiki/solar-radiation.md
@@ -89,21 +119,13 @@ nav:
           - Overview: wiki/mars/index.md
           - Solar Flux Model: wiki/mars/solar-flux.md
           - Climate Model: wiki/mars/climate-model.md
-          - GHG Interventions: wiki/mars/interventions.md
-  - Architecture:
-      - Planet Framework: architecture/planet.md
-      - Mars Model: architecture/mars.md
-      - Interventions: architecture/interventions.md
-  - API Reference:
-      - Framework: api/framework.md
-      - Mars: api/celestials.md
-      - Engine: api/engine.md
-      - Interventions: api/interventions.md
-  - Package · gcm3d (3-D GCM):
-      - Overview: package/gcm3d/README.md
-      - Philosophy: package/gcm3d/philosophy.md
-      - Architecture: package/gcm3d/architecture.md
-      - API Reference: package/gcm3d/api.md
-      - Implementation & Physics: package/gcm3d/implementation.md
-      - Neural experiments: package/gcm3d/neural-experiments.md
-      - Data & validation scripts: scripts/gcm3d-data.md
+  - Deprecated global-mean model:
+      - Deprecation and migration: deprecated-global-mean.md
+      - Torch planet architecture: architecture/global-mean-planet.md
+      - Torch Mars derivation: architecture/global-mean-mars.md
+      - Archived climate notes: wiki/mars/global-mean-climate-model.md
+      - Global-mean presets: cli/presets.md
+      - Global-mean engine: api/engine.md
+      - Intervention architecture: architecture/interventions.md
+      - Intervention API: api/interventions.md
+      - GHG intervention theory: wiki/mars/interventions.md

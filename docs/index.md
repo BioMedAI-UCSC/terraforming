@@ -1,39 +1,44 @@
-# Terraforming
+# Differentiable Mars GCM
 
-**Terraforming** is the hypothetical process of deliberately modifying a planet's atmosphere, temperature, surface topography, or ecology to make it habitable for Earth life. The core challenge is an energy balance problem: enough heat must be retained by the atmosphere to sustain liquid water and breathable pressures at the surface.
+**tform** models Mars's spatial atmosphere and surface with a differentiable
+three-dimensional general-circulation model. The primary workflow uses JAX and
+Dinosaur to evolve circulation, radiation, surface temperature, regolith and CO₂
+frost over MOLA terrain.
 
-**tform** is a physics-based simulation framework for modelling terraforming processes. It provides a generic planetary state model — tracking how a planet's temperature, pressure, and volatile reservoirs evolve over time under external forcings — and implements planet-specific physics on top of that foundation. Mars is the first and primary target.
+Start with [installation](getting-started/installation.md), then
+[run your first GCM map](getting-started/quickstart.md). For how a simulation is
+built, read the [architecture overview](architecture/planet.md) and
+[Mars configuration](architecture/mars.md).
 
----
+## What you can do
 
-## Framework design
+| Workflow | Guide |
+| --- | --- |
+| Generate pressure, temperature, wind and frost maps | [GCM quickstart](package/gcm3d/quickstart.md) |
+| Explore fields and controls in a browser | [Visualizer](architecture/visualizer.md) |
+| Differentiate and calibrate physical controls | [Calibration and ablations](package/gcm3d/calibration.md) |
+| Train replacement radiation or bounded heating | [Neural experiments](package/gcm3d/neural-experiments.md) |
+| Fit a temperature correction to frozen forecasts | [Temperature-only postprocessing](package/gcm3d/temperature-only.md) |
+| Compare against Ames, MCD and ARCO-MACDA | [Reference diagnostics](cli/reference-comparison.md) |
+| Assess numerical and scientific evidence | [Validation and limitations](package/gcm3d/validation.md) |
 
-A planet in tform is described by a **state vector** of thermodynamic and atmospheric quantities that evolve continuously under physical forcing:
+## Implementation
 
-$$
-\mathbf{y}(t) = \bigl(T,\; P,\; \ldots\bigr)
-$$
+| Module | Role |
+| --- | --- |
+| `src.framework.gcm` | Body constants, spectral/sigma coordinates, dry dynamics, restart and parameterized integration |
+| `src.framework.physics` | Radiation, surface exchange, regolith, PBL, convection and CO₂ exchange |
+| `src.framework.neural` | Column models, radiation adapters, bounded heating and inference checkpoints |
+| `src.celestials.planets.mars` | Mars constants, forcing factories, terrain/boundary data and map exports |
+| `apps/mars-calibration` | Coupled physical calibration and reproducible experiment protocols |
+| `cli` and `ui` | Map commands, comparison reports and browser visualization |
 
-The framework defines how that state changes — balancing incoming solar radiation, outgoing thermal emission, greenhouse retention, and any engineered interventions — without prescribing the planet-specific constants. Each planet subclass supplies its own orbital parameters, atmospheric composition, and physical constants, while inheriting the integration infrastructure.
+Software tests and reference diagnostics support specific implementation claims.
+They do not establish observational accuracy, fully equilibrated climate or
+predictive high-pressure terraforming behavior. Read the validation guide before
+interpreting simulated maps as Mars climate predictions.
 
----
-
-## Modules
-
-| Package | Description |
-|---------|-------------|
-| `src.framework` | Abstract planet, atmosphere, orbital mechanics base classes |
-| `src.celestials` | Mars implementation — solar flux, climate ODE, polar cap model |
-| `src.engine` | RK4 and fast-path integrators, batched simulation controller |
-| `src.interventions` | GHG compound registry, radiative forcing, injection scheduler |
-
----
-
-## Quick links
-
-- [What is tform?](getting-started/what-is-tform.md) — full feature overview
-- [Installation](getting-started/installation.md) — uv setup on any OS
-- [Quickstart](getting-started/quickstart.md) — run your first simulation
-- [CLI Reference](cli/commands.md) — all flags and experiment types
-- [GHG Interventions](wiki/mars/interventions.md) — radiative forcing model
-- [API Reference](api/framework.md) — full Python interface
+!!! warning "Deprecated global-mean model"
+    The torch global-mean model and its `fast`/`accurate` ODE workflows are
+    deprecated. Use the GCM for new work. Their documentation remains available
+    under [Deprecated global-mean model](deprecated-global-mean.md) for existing users.

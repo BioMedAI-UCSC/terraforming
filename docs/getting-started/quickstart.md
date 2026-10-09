@@ -1,102 +1,65 @@
-# Quickstart
+# Run your first Mars GCM
 
-## CLI: Run a preset simulation
+Complete [installation](installation.md), including the GCM extra and MOLA
+staging. Run commands from the repository root using the installed environment.
 
-The fastest way to run a simulation is with a built-in preset:
-
-```bash
-# Single sol (diurnal cycle) at Gale Crater
-tform mars run --preset gale-crater --type sol
-
-# One Martian year at current Mars baseline
-tform mars run --preset current-mars --type year
-
-# Multi-latitude run (45°N, equator, 40°S)
-tform mars run --preset equatorial --type multi
-
-# 4 landmark sites in one run
-tform mars run --preset landmark-spots --type spots
-
-# Terraforming intervention: GHG injection over many years
-tform mars run --preset terraforming-phase1 --type intervention
-```
-
-Results are saved as CSV in `outputs/` and plots are shown automatically. Pass `--no-plot` to suppress plots.
-
-## CLI: Custom YAML config
-
-Create a config file:
-
-```yaml
-# my-sim.yaml
-planet:
-  surface_temperature: 210.0   # K
-  surface_pressure: 636.0      # Pa
-  albedo: 0.25
-  greenhouse_factor: 1.0
-  ice_mass: 3.0e15             # kg
-  latitude: 0.0
-  longitude: 137.0
-
-experiment:
-  type: year
-  sols: 687
-  accuracy: accurate
-```
-
-Run it:
+## 1. Export a first map
 
 ```bash
-tform mars run --config my-sim.yaml
+rtk proxy .venv/bin/python -m cli.main mars maps \
+  --scale fast --truncation T21 --layers 12 --dt 300 --steps 100 \
+  --name first-gcm-map
 ```
 
-Validate without running:
+This short T21/L12 run uses daily-mean grey radiation and energy-limited CO₂
+exchange. Outputs appear under `outputs/gcm3d_maps/first-gcm-map/` as PNGs and
+NetCDF. It verifies the workflow; it is not a climatology or the full browser
+physical baseline. `fast` is a resolution preset, distinct from the deprecated
+global-mean model's `Accuracy.FAST` integrator.
+
+## 2. Understand the fields
+
+| Output | Units | Interpretation |
+| --- | --- | --- |
+| Temperature | K | Surface skin in forced runs; lowest-layer air in dry runs |
+| Pressure | Pa | Terrain-dependent surface pressure |
+| `u`, `v`, wind speed | m/s | Lowest sigma-layer winds, not fixed 10 m height |
+| CO₂ frost | Pa-equivalent | Surface reservoir; mass per area is this value divided by gravity |
+| Elevation | m | Regridded MOLA lower boundary |
+
+Read `temperature_kind`, `insolation_sampling`, wind-height and climate-status
+metadata before comparing references. The final map is an instantaneous sample.
+
+## 3. Explore in the browser
 
 ```bash
-tform mars config validate my-sim.yaml
+rtk proxy .venv/bin/python -m cli.main serve --no-browser
 ```
 
-## Python API: Basic simulation
+Open `http://127.0.0.1:8000` and select GCM. The server enables correlated-k CO₂
+radiation, regolith, stability exchange, PBL diffusion and dry convection,
+with spectral diffusion and available TES/seasonal Ames dust data. Its explicit
+CO₂/dust longwave multipliers are 0.25 and surface exchange multiplier is 1.0.
+This differs from the simple CLI map configuration.
 
-```python
-from src.celestials import Mars
-from src.engine import TimeController, Accuracy, Snapshot
+## 4. Configure Python and restart
 
-# Create Mars with default (current) state
-planet = Mars()
+The [Python GCM quickstart](../package/gcm3d/quickstart.md) contains complete
+forcing, map/export and restart examples. Use `run_maps` for reporting/deployment,
+and parameterized step/rollout kernels for differentiated objectives.
+Start with float64 and an explicit stable timestep.
 
-# Integrate for 1 Martian year (~687 Earth days)
-tc = TimeController(planet, accuracy=Accuracy.ACCURATE)
-snapshots: list[Snapshot] = tc.run(n_sols=687)
+## 5. Choose the next experiment
 
-# Access results
-for snap in snapshots[-10:]:
-    print(f"Day {snap.time:.1f}: T={snap.surface_temperature:.1f} K, "
-          f"P={snap.surface_pressure:.1f} Pa")
-```
+- [Physical calibration and paired ablations](../package/gcm3d/calibration.md).
+- [Neural radiation and bounded heating](../package/gcm3d/neural-experiments.md).
+- [Frozen temperature-only postprocessing](../package/gcm3d/temperature-only.md).
+- [Reference comparisons](../cli/reference-comparison.md).
+- [Validation and limitations](../package/gcm3d/validation.md).
 
-## Python API: GHG intervention
+A Mars year is about 668.62 sols. Equilibrium needs matched-phase convergence,
+including deep soil, rather than elapsed duration alone.
 
-```python
-from src.celestials import Mars
-from src.interventions import InterventionController
-
-planet = Mars()
-ctrl = InterventionController(planet)
-
-# Inject 1e9 kg/year of SF6 for 50 years
-results = ctrl.run(
-    schedule={"SF6": 1e9},  # kg/year
-    n_years=50,
-)
-
-print(f"Final temperature: {results[-1].surface_temperature:.1f} K")
-print(f"Temperature gain:  {results[-1].surface_temperature - 210:.1f} K")
-```
-
-## Explore available presets
-
-```bash
-tform mars config list
-tform mars config show terraforming-phase1
-```
+!!! warning "Deprecated global-mean model"
+    Use GCM workflows for new simulations. `tform mars run` and torch ODE
+    examples are retained under [deprecated documentation](../deprecated-global-mean.md).

@@ -1,5 +1,7 @@
 # Solar Radiation
 
+The primary GCM uses layer-interface shortwave/longwave fluxes with grey or resolved CO₂/dust configurations. Scalar transmittance examples below illustrate general concepts rather than the full solver. See [GCM radiation](../package/gcm3d/implementation.md) and [Mars solar forcing](mars/solar-flux.md). The global-mean model is deprecated.
+
 Solar radiation is the primary energy input to any planetary climate system. This page covers the geometry and physics of how solar energy reaches a planetary surface, from the top of atmosphere down to the ground. These relations are applied in the Mars model but hold generically for any planet.
 
 ---

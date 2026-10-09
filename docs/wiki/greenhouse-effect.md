@@ -1,5 +1,7 @@
 # Greenhouse Effect
 
+For new simulations use the [3-D GCM radiation scheme](../package/gcm3d/implementation.md), which computes gas/dust fluxes by layer. The scalar greenhouse-factor and trace-gas injection workflow belongs to the deprecated global-mean model; it is not a validated composition-dependent 3-D radiative model.
+
 The greenhouse effect is the mechanism by which atmospheric gases trap outgoing thermal infrared radiation and re-emit part of it back toward the surface, raising surface temperatures above the bare-rock radiative equilibrium. It is fundamental to understanding both the current Martian climate and the warming trajectory under any terraforming scenario.
 
 ---

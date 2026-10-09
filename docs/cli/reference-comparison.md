@@ -21,7 +21,7 @@ sources; difference maps use shared symmetric limits centered at zero.
 ## Meaning of the comparisons
 
 The included configuration uses the existing physical baseline. It does not use
-or imply results from the pending 0.25-sol calibration. That calibration writes
+or imply results from the separate 0.25-sol calibration. That calibration writes
 parameters and losses, not a seasonal climate dataset. To compare calibrated
 climate, freeze the selected parameters, run a separate physical evaluation with
 the same averaging protocol as the baseline, export its fields, and add it to a

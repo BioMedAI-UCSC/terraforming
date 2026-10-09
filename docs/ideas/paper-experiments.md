@@ -7,7 +7,7 @@ external simulator speedups without measurements.
 
 ## Protocol
 
-The frozen [paper configuration](../../apps/mars-calibration/paper-experiment.json)
+The frozen [paper configuration](https://github.com/BioMedAI-UCSC/terraforming/blob/iclr-26/apps/mars-calibration/paper-experiment.json)
 uses T21/L12, 300-second steps, all current physical operators, diurnal forcing,
 MOLA, TES and prescribed Ames seasonal dust. It reads the hashed existing
 `outputs/nautilus-calibration-inputs` bundle. The ARCO `target.nc` is integrity
@@ -156,7 +156,7 @@ rtk proxy .venv/bin/python -m pytest apps/mars-calibration/tests -q
 
 ## Verified implementation run — 2026-09-21
 
-The corrected [smoke report](../../outputs/paper-protocol-smoke-v2/report.json)
+The corrected smoke report (`outputs/paper-protocol-smoke-v2/report.json`, local artifact)
 completed recovery, all 13 ablations, timing, and the four-season cached
 reference report. This uses the existing 1,800-second PBL closure interval and
 24,000-second CO₂ supply-limiter interval, unchanged across outer timestep

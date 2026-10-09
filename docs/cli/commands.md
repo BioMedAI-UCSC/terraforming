@@ -1,6 +1,141 @@
 # CLI Commands
 
-The `tform` command-line tool provides an interactive interface to the Mars climate simulation framework.
+The primary commands are [`tform mars maps`](#tform-mars-maps) for 3-D output,
+[`tform serve`](#tform-serve) for browser GCM exploration and
+[`tform mars compare`](#reference-comparison-report) for cached reference reports.
+Start with the [GCM quickstart](../getting-started/quickstart.md).
+
+!!! warning "Deprecated global-mean commands"
+    `tform mars run`, its global-mean presets and `fast`/`accurate` ODE modes are
+    deprecated. They remain documented for compatibility. GCM resolution presets
+    and its IMEX solver are separate from these integration modes.
+
+## `tform mars maps`
+
+Generate 3-D pressure, temperature, winds and frost over MOLA terrain. Requires
+the `gcm3d` extra and staged MOLA raster.
+
+```bash
+rtk proxy .venv/bin/python -m cli.main mars maps --scale fast --name first-map
+rtk proxy .venv/bin/python -m cli.main mars maps --diurnal --dt 300 --steps 100 --name diurnal-smoke
+```
+
+| Option | Default | Purpose |
+| --- | --- | --- |
+| `--scale` | `fast` | Resolution/layer/timestep/step preset |
+| `--truncation`, `--layers`, `--dt`, `--steps` | Preset | Explicit overrides |
+| `--physics/--no-physics` | Physics | Grey radiation versus dry dynamics |
+| `--co2/--no-co2` | CO₂ | Energy-limited frost exchange; requires physics |
+| `--diurnal/--daily-mean` | Daily mean | Illumination sampling |
+| `--surface-properties` | None | Staged TES-style surface NetCDF |
+| `--albedo`, `--greenhouse-factor` | 0.25, 1.02 | Scalar surface/radiation settings |
+| `--ls` | 0 degrees | Starting solar longitude |
+| `--name` | `mars` | Output folder under `outputs/gcm3d_maps/` |
+
+The defaults do not reproduce the browser's full correlated-k baseline.
+See [GCM quickstart](../package/gcm3d/quickstart.md) for Python configuration,
+data requirements, output units and restart. The diurnal timestep guard is
+necessary but does not establish stability or climate equilibrium.
+## `tform serve`
+
+The browser GCM uses correlated-k CO₂ radiation, regolith, stability exchange,
+PBL diffusion, dry convection and conservative CO₂ exchange. It attaches TES and
+seasonal Ames dust when available and uses a 0.1-sol spectral diffusion timescale.
+Its baseline CO₂/dust longwave scales are 0.25, with surface exchange 1.0;
+the UI exposes bounded calibration controls. See the
+[GCM overview](../package/gcm3d/README.md) for how this differs from CLI maps.
+
+Start the tform visualisation web server.
+
+```bash
+tform serve [OPTIONS]
+```
+
+Launches a FastAPI server that accepts simulation run requests from the browser UI,
+streams per-step physics data back in real time via Server-Sent Events, and serves
+the pre-built React app from `cli/static/`.  A browser tab opens automatically
+after one second.
+
+### Options
+
+| Flag | Type | Default | Description |
+|------|------|---------|-------------|
+| `--port N` | int | `8000` | Port to bind the server to |
+| `--host ADDR` | str | `127.0.0.1` | Host address to bind |
+| `--no-browser` | flag | — | Don't open a browser tab automatically |
+| `--dev` | flag | — | Also start the Vite dev server from `ui/` on port 5173 |
+
+### Examples
+
+```bash
+# Start the server and open the UI (default)
+tform serve
+
+# Use a custom port
+tform serve --port 9000
+
+# Development mode — starts FastAPI on :8000 and Vite on :5173
+tform serve --dev
+
+# Headless (useful on a remote machine)
+tform serve --no-browser
+```
+
+### API endpoints
+
+The server exposes a REST + SSE API consumed by the React UI:
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/runs` | Create and start a simulation run |
+| `GET` | `/api/runs` | List all runs (metadata, no data arrays) |
+| `GET` | `/api/runs/{id}` | Get full run including all data points |
+| `GET` | `/api/runs/{id}/events` | SSE stream — emits data points as they are computed |
+| `GET` | `/api/presets` | List available Mars presets |
+| `GET` | `/api/compounds` | List available GHG compounds |
+| `GET` | `/api/docs` | Interactive Swagger UI |
+
+### Data flow
+
+Every integration step in the physics engine fires a callback.  That callback
+writes one data point to an in-memory list.  The SSE generator polls the list
+with a cursor and pushes new points to the browser, where Recharts re-renders
+the chart in real time.
+
+```
+TimeController.step() → callback(planet, t) → _runs[id].data.append()
+                                                     ↓
+                                              SSE /events stream
+                                                     ↓
+                                            React state → Recharts
+```
+
+For intervention runs the natural granularity is one point per Mars year
+(via `InterventionController`'s per-year callback).  For sol/year runs the
+per-step callback is throttled to at most 2 000 chart points.
+
+### Requirements
+
+`fastapi` and `uvicorn` are included in the standard `cli` dependencies.
+No separate install step is required beyond the usual `uv sync`.
+
+To build the UI from source (only needed when modifying the frontend):
+
+```bash
+cd ui && npm install && npm run build
+# built assets are written to cli/static/ automatically
+```
+
+---
+
+## Reference comparison report
+
+`tform mars compare --config cli/configs/reference-comparison.json --output outputs/reference-comparison-new`
+
+Produces an offline HTML report, four-season comparison/difference grids, MOLA
+terrain, parameter and metric CSVs, source hashes, and AmesCAP map exports from
+cached model/Ames/MCD/ARCO NetCDFs. See [reference comparisons](reference-comparison.md)
+for matching limitations and CAP usage. This command does not run a simulation.
 
 ## Global Options
 
@@ -13,6 +148,11 @@ Options:
 ```
 
 ---
+
+
+## Deprecated global-mean command reference
+
+The following commands are retained for existing users. Use GCM maps for new work.
 
 ## `tform mars run`
 
@@ -112,91 +252,6 @@ tform mars config validate experiments/my-run.yaml
 
 ---
 
-## `tform serve`
-
-Start the tform visualisation web server.
-
-```bash
-tform serve [OPTIONS]
-```
-
-Launches a FastAPI server that accepts simulation run requests from the browser UI,
-streams per-step physics data back in real time via Server-Sent Events, and serves
-the pre-built React app from `cli/static/`.  A browser tab opens automatically
-after one second.
-
-### Options
-
-| Flag | Type | Default | Description |
-|------|------|---------|-------------|
-| `--port N` | int | `8000` | Port to bind the server to |
-| `--host ADDR` | str | `127.0.0.1` | Host address to bind |
-| `--no-browser` | flag | — | Don't open a browser tab automatically |
-| `--dev` | flag | — | Also start the Vite dev server from `ui/` on port 5173 |
-
-### Examples
-
-```bash
-# Start the server and open the UI (default)
-tform serve
-
-# Use a custom port
-tform serve --port 9000
-
-# Development mode — starts FastAPI on :8000 and Vite on :5173
-tform serve --dev
-
-# Headless (useful on a remote machine)
-tform serve --no-browser
-```
-
-### API endpoints
-
-The server exposes a REST + SSE API consumed by the React UI:
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/api/runs` | Create and start a simulation run |
-| `GET` | `/api/runs` | List all runs (metadata, no data arrays) |
-| `GET` | `/api/runs/{id}` | Get full run including all data points |
-| `GET` | `/api/runs/{id}/events` | SSE stream — emits data points as they are computed |
-| `GET` | `/api/presets` | List available Mars presets |
-| `GET` | `/api/compounds` | List available GHG compounds |
-| `GET` | `/api/docs` | Interactive Swagger UI |
-
-### Data flow
-
-Every integration step in the physics engine fires a callback.  That callback
-writes one data point to an in-memory list.  The SSE generator polls the list
-with a cursor and pushes new points to the browser, where Recharts re-renders
-the chart in real time.
-
-```
-TimeController.step() → callback(planet, t) → _runs[id].data.append()
-                                                     ↓
-                                              SSE /events stream
-                                                     ↓
-                                            React state → Recharts
-```
-
-For intervention runs the natural granularity is one point per Mars year
-(via `InterventionController`'s per-year callback).  For sol/year runs the
-per-step callback is throttled to at most 2 000 chart points.
-
-### Requirements
-
-`fastapi` and `uvicorn` are included in the standard `cli` dependencies.
-No separate install step is required beyond the usual `uv sync`.
-
-To build the UI from source (only needed when modifying the frontend):
-
-```bash
-cd ui && npm install && npm run build
-# built assets are written to cli/static/ automatically
-```
-
----
-
 ## `tform man`
 
 Show reference information for a planet or subsystem.
@@ -222,12 +277,3 @@ Built-in defaults → Preset YAML → --config FILE → CLI flags
 ```
 
 This means `--lat 45` always wins over whatever latitude is in the YAML file.
-
-## Reference comparison report
-
-`tform mars compare --config cli/configs/reference-comparison.json --output outputs/reference-comparison-new`
-
-Produces an offline HTML report, four-season comparison/difference grids, MOLA
-terrain, parameter and metric CSVs, source hashes, and AmesCAP map exports from
-cached model/Ames/MCD/ARCO NetCDFs. See [reference comparisons](reference-comparison.md)
-for matching limitations and CAP usage. This command does not run a simulation.

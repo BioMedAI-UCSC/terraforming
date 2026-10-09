@@ -201,7 +201,7 @@ only by float64 rounding.
 
 ## Cross-references
 - [tanh-ice-sublimation-gate.md](tanh-ice-sublimation-gate.md) — same clamp/gate class
-- [docs/ideas/master-task-list.md](../ideas/master-task-list.md) — Track A-3 task 18 (F2)
+- docs/ideas/master-task-list.md (historical note `ideas/master-task-list.md`, unavailable in this checkout) — Track A-3 task 18 (F2)
 - Pressure audit (session record) — verified bugs #1, #2, #4, #5 fixed here
 
 ## References

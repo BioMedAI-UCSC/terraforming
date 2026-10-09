@@ -3,8 +3,9 @@
 Reusable imports live under `src.framework.gcm` and `src.framework.physics`.
 Mars forcing, maps, datasets, and seasonal components live under
 `src.celestials.planets.mars`. There is no top-level `src.gcm3d` package.
-`BodyConstants`/`EARTH` are always available; everything else requires the
-`gcm3d` extra. Signatures reflect the current implementation.
+`BodyConstants`/`EARTH` are always available; dynamics and physics kernels require
+the `gcm3d` extra. Dataset adapters may require xarray or the `arco` extra.
+The entries below summarize interfaces; full signatures are available in source.
 
 ## Body abstraction — `body.py`
 
@@ -53,16 +54,27 @@ Length = radius, time = 1/(2Ω), mass = 1 kg, temperature = 1 K.
 Radiative + orbital + surface-scheme constants for the per-column energy balance.
 `src.celestials.planets.mars.gcm.radiative_forcing` supplies Mars's
 obliquity/precession/orbit/emissivity/thermal-inertia. Key toggles: `diurnal`, `co2_radiation_enabled`,
-`ames_correlated_k_enabled` (default True), `regolith_enabled`,
+`ames_correlated_k_enabled` (default True, used only with resolved radiation), `regolith_enabled`,
 `stability_exchange_enabled`, `pbl_diffusion_enabled`,
 `convective_adjustment_enabled`, dust fields (`dust_visible_optical_depth`,
 `dust_longwave_optical_depth`, `dust_top_height_km`, `dust_conrath_parameter`).
+
+The advanced surface flags and `co2_radiation_enabled` default to False in the
+generic forcing. Use `dataclasses.replace` for fields outside the Mars factory's
+arguments. Calibration fields are `ames_co2_longwave_opacity_scale`,
+`ames_dust_longwave_opacity_scale` and `surface_exchange_multiplier` (all 1.0).
+`solar_slant_path_enabled=True` applies solar air-mass correction. Seasonal dust
+uses `dust_climatology_ls_deg`, `dust_visible_climatology` and
+`dust_longwave_climatology`. See [configuration examples](quickstart.md).
 
 ### `CO2Forcing` (dataclass) / Mars `co2_forcing(...) -> CO2Forcing`
 Constants for the 3-D CO₂ condensation/sublimation cycle. `energy_limited=True`
 drives phase change off the surface-energy residual (no tunable relaxation rate);
 `use_pressure_frost` uses the Clausius–Clapeyron frost point; `escape_rate_kg_s`
 is a uniform non-thermal mass sink.
+
+The Mars factory defaults to `energy_limited=True`; the generic dataclass defaults
+to False. These defaults are distinct.
 
 ### State & tendency containers
 - `ColumnPhysicsState(dynamics, surface_temperature, co2_ice, ground_temperature)` — JAX pytree.
@@ -73,13 +85,20 @@ is a uniform non-thermal mass sink.
 - `forced_primitive_equations(coords, body, forcing, specs=None, orography=None) -> ImplicitExplicitODE` — dry dynamics + radiative energy balance.
 - `forced_co2_primitive_equations(coords, body, forcing, co2_forcing, specs=None, orography=None) -> ImplicitExplicitODE` — the above + CO₂ cycle.
 - `column_primitive_equations(base, parameterization) -> ImplicitExplicitODE` — the generic dynamics⊕physics seam (conventional or learned).
+- `compose_column_parameterizations(*parameterizations)` — sum matching tendency trees.
+- Both forced equation builders accept `radiation_component=None` and
+  `neural_tendency=None`; these bind replacement radiation and additive heating.
 - `initial_column_state(dyn_state, coords, surface_temperature_k, specs, ice_pa=0.0, forcing=None) -> ColumnPhysicsState` — pass the run's `RadiativeForcing` when using a custom regolith layer layout.
 
 ### Physics functions
 - `two_stream_radiative_fluxes(state, coords, specs, body, f, *, air_temperature_k=None, surface_pressure_pa=None) -> RadiativeFluxDiagnostics`.
 - `surface_energy_tendencies(state, coords, specs, body, f, …) -> (atm_modal, surface_nd, diagnostics)`.
 - `radiative_heating_tendency(state, coords, specs, body, f)` — atmospheric-only accessor; requires a `ColumnPhysicsState`.
-- `positivity_preserving_co2_step(step_fn, coords, specs) -> step_fn` and `project_co2_reservoirs(state, coords, specs)` — enforce frost ≥ 0.
+- `project_co2_reservoirs(state, coords, specs)` — repair frost while balancing
+  the local pressure deficit.
+- `positivity_preserving_co2_step(step_fn, coords, specs, *, body=None,
+  co2_forcing=None, dt_seconds=None)` — also restore global CO₂ inventory;
+  `body` and `dt_seconds` are required for nonzero escape.
 
 ### Orbit / geometry helpers
 - `cos_zenith_nodal(t_s, lat_rad, lon_rad, f)` — cos(zenith) on the `(n_lon, n_lat)` grid; diurnal terminator or daily-mean.
@@ -92,13 +111,28 @@ is a uniform non-thermal mass sink.
 - Fixed-dust optics constants: `DUST_SW_EXTINCTION`, `DUST_IR_EXTINCTION`, etc. (Reff=1.5 µm).
 
 ## 3-D maps — `maps.py`
-- `run_maps(body=None, truncation="T42", n_layers=25, dt_seconds=600.0, n_steps=200, *, forcing=None, co2_forcing=None, surface_properties_path=None, mola_path=None, initial_state=None, return_final_state=False, progress_callback=None, diagnostic_callback=None, stop_requested=None, …) -> MarsMapFields | (MarsMapFields, state)`.
+- `run_maps(body=None, truncation="T42", n_layers=25, dt_seconds=600.0,
+  n_steps=200, ..., forcing=None, co2_forcing=None, initial_state=None,
+  return_final_state=False, hyperdiffusion_tau_seconds=None,
+  radiation_component=None, neural_tendency=None)` returns `MarsMapFields` or
+  `(fields, final_state)`. These options are not keyword-only in the current API.
 - `MarsMapFields` — lat/lon fields (`surface_pressure_pa`, `temperature_k`, `u_ms`, `v_ms`, `co2_ice_pa`, `elevation_m`) + provenance; properties `wind_speed_ms`, `duration_sols`, `is_transient`, `approximate_wind_height_m`.
 - `save_netcdf(fields, path)`, `plot_maps(fields, outdir, prefix="mars")`, `save_maps(fields, outdir, prefix="mars")`.
 - Scale presets: `MAP_SCALES` (`fast`/`balanced`/`high`/`ultra`), `DEFAULT_SCALE`, `resolve_scale(name)`.
+- `forcing_with_surface_properties`, `forcing_with_ames_dust` and
+  `forcing_with_ames_dust_climatology` attach boundary data. The climatology helper
+  retains separate visible/IR fields throughout evolving seasons.
+- `state_to_comparison_dataset` and `save_comparison_netcdf` export full-state
+  comparison fields, coordinates and forcing provenance.
+
+Map metadata includes `temperature_kind`, `insolation_sampling` and solar
+longitude; full-state comparison exports also retain forcing controls.
+Forced temperature maps are surface temperature;
+dry maps are lowest-layer air temperature. Lowest-layer winds are not fixed-height
+10 m diagnostics. `is_transient` is a duration heuristic, not equilibrium acceptance.
 **Raises**: `ValueError` for a diurnal timestep coarser than the terminator CFL; `FloatingPointError` if the state becomes non-finite.
 
-## 0-D seasonal ODE — `terraforming_ode.py`
+## 0-D seasonal ODE — `celestials/planets/mars/seasonal.py`
 - `SeasonalForcing` (dataclass), `initial_seasonal_state(T, P, ice_north, ice_south, t0_s=0.0)`.
 - `seasonal_tendency(y, f)`, `seasonal_ode(f)`, `solar_flux(t, f)`, `solar_longitude(t, f)`.
 - `run_seasonal(f, y0, dt_seconds, n_steps, sample_every=1) -> SeasonalTrajectory` — **Raises** if `dt_seconds > rotation_period/8` (diurnal aliasing) or bad sampling.
@@ -107,6 +141,22 @@ is a uniform non-thermal mass sink.
 ## Restart / averaging — `restart.py`
 - `RESTART_FORMAT_VERSION`, `save_restart(state, path)`, `load_restart(path)` — NPZ+JSON, version-checked, no pickle.
 - `integrate_with_averaging(step_fn, initial_state, spinup_steps, average_steps, sample_every=1, diagnostic_fn=…) -> (final, time_mean)`.
+
+Keep the associated grid, forcing, units, diffusion and precision configuration
+with the restart; serialization stores state rather than experiment settings.
+
+## Parameterized integration and neural interfaces
+
+- `make_parameterized_step(equation_fn, dt_seconds, specs)`
+  from `framework.gcm.learning` creates `step(params, state)`.
+- `rollout(step_fn, params, initial_state, n_steps, save_every=None, *, remat=False)`
+  returns final state, sampled trajectory and step indices.
+- `framework.neural` provides `ColumnMLP`, `NeuralRadiation`, `NeuralTendency`,
+  train-only normalization and NPZ inference checkpoint helpers.
+
+See [neural experiments](neural-experiments.md) for shape, feature, flux and
+checkpoint contracts, and [temperature-only](temperature-only.md) for the separate
+cached postprocessing workflow.
 
 ## Topography — `topography.py`
 - `load_mola_meg(path=None) -> (elevation_m, lats_deg, lons_deg)` — SHA-256-verified MEGDR raster.

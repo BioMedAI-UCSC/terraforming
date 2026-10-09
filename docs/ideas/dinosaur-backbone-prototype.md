@@ -1,5 +1,10 @@
 # Prototype: the terraforming ODE on the dinosaur substrate
 
+!!! note "Historical design record"
+    For current interfaces and defaults, use the [3-D GCM documentation](../package/gcm3d/README.md).
+    The torch global-mean model is [deprecated](../deprecated-global-mean.md).
+
+
 **Question this answers.** Can dinosaur be the *backbone* of the engine — i.e.
 can our terraforming physics live inside dinosaur's ODE/coordinate/time-stepping
 machinery rather than beside it — before we commit to porting the whole engine

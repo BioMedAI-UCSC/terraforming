@@ -1,5 +1,10 @@
 # Interventions API
 
+!!! warning "Deprecated global-mean workflow"
+    This page documents the deprecated torch model or its dependent intervention
+    workflow. Use the [3-D GCM](../package/gcm3d/README.md) for new simulations.
+
+
 The `src.interventions` module models super-greenhouse gas (GHG) injection and its radiative effects on the Martian climate. Radiative forcing efficiencies are calibrated to Mars conditions (Marinova et al. 2005) — they differ from Earth IPCC values because Mars lacks water-vapour overlap bands and has a much thinner CO₂ column.
 
 ## Radiative Forcing Model
