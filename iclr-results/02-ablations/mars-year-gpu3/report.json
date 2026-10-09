@@ -1,0 +1,36 @@
+{
+  "execution_status": "complete",
+  "profile": "paper-ablations-mars-year",
+  "model": {
+    "truncation": "T21",
+    "layers": 12,
+    "integrator": "IMEX-RK-SIL3",
+    "pbl_closure_interval_seconds": 1800.0,
+    "co2_supply_limiter_interval_seconds": 24000.0
+  },
+  "tasks": {
+    "ablations": "complete"
+  },
+  "recovery_acceptance_pass": null,
+  "external_timings_supplied": false,
+  "process_peak_rss_bytes": 3131813888,
+  "process_peak_rss_scope": "whole process including compilation; not accelerator peak",
+  "artifacts": {
+    "half_timestep-restart.npz": "dedf1ffd9bf8678b719d95824576095dfc1fdc344fa7e130c31d3c4e394f7c2e",
+    "surface_exchange_multiplier_1.2-restart.npz": "f11c379ecc1aa1a0fe6c36510ced15e130d75802c28da0b9e1673adf7ba43008",
+    "dust_longwave_opacity_scale_1.2-restart.npz": "786c02f1d3208b36b758e8fe75be182ea230209a6e99a78143cb0d0e10b0d09a",
+    "full.nc": "261e13a990e37666f62c784fbe6c40a12c3bc6566d960e440f15d98b2bd14af5",
+    "half_timestep.nc": "b0dfe691105323f2b1f5a31ee06e5f39c1de432896143ed6f45b811174c66e82",
+    "progress.jsonl": "0c8fcbad8babfacaf7d7e4f14fad97acd756649edf9253b0c24a1f287319effd",
+    "surface_exchange_multiplier_1.2.nc": "8841934f6739e048053253ff00166df2c7818033108a13d2d091003c7291e144",
+    "invocation.json": "6ca1174378b4c8361c041b33d44b9ba8f2871598e2b76af486c5a5cd5a3d124b",
+    "source-hashes.json": "429656bbd3b8be5a945d453794280eb9f722d7ba6546f97d10fe6c78b490b488",
+    "input-manifest.json": "ea371313353309296819d7056914e5a457915776b88efbd1260eb7a0fb472829",
+    "ablations.csv": "bd96c27b0bc77dc9417387ce2226fefab55514b18675374b12e97b477819ca6c",
+    "environment.json": "90fb2c28fab621ef8f5a42eac857f986751d551c9935c2c437115f5cd9ddcd73",
+    "full-restart.npz": "80cdc7bb292d2f29a25f28220c2372d7074d0eca9cca9b3e5fec2d2c3d1a2c2f",
+    "dust_longwave_opacity_scale_1.2.nc": "993eb35017064ad2d78ca7dc7753311720b67c60ffbe2786d92ad901c5799f39",
+    "config.json": "99a75e193765dc31b385a1f9670c76007de9c50261533c14732b0ea52bc27f34",
+    "ablations.json": "88d4b8fefc6b064f3cfaf39ebac1039eea9585c70ad3a23c51f9a63fbfaa2265"
+  }
+}

@@ -182,6 +182,14 @@ integration.
 
 ### GCM map and MCD comparison mode
 
+For the current physical configuration, calibration controls and output units,
+see the [GCM overview](../package/gcm3d/README.md) and
+[quickstart](../package/gcm3d/quickstart.md). The server enables correlated-k
+radiation, regolith, stability exchange, PBL and dry convection, with conservative
+CO₂ exchange and spectral diffusion. TES and prescribed seasonal dust are attached
+when their staged files exist. GCM intervention snapshots are independent spin-ups
+along a global-mean trajectory; they are not continuous 3-D intervention forecasts.
+
 The top-left model selector defaults to **GCM**. A single map run renders all
 available surface fields in a responsive grid: temperature, pressure, zonal and
 scalar wind, CO₂ frost, and MOLA elevation. The run form controls season (`Ls`),

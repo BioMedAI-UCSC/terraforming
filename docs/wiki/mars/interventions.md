@@ -1,5 +1,10 @@
 # GHG Interventions on Mars
 
+!!! warning "Deprecated global-mean workflow"
+    This page documents the deprecated torch model or its dependent intervention
+    workflow. Use the [3-D GCM](../../package/gcm3d/README.md) for new simulations.
+
+
 Warming Mars to temperatures compatible with liquid water requires raising the surface temperature by at least $\sim 60\,\text{K}$ (from $\sim 210\,\text{K}$ to $\sim 273\,\text{K}$). The most practical near-term pathway is injecting synthetic super-greenhouse gases (GHGs) into the Martian atmosphere — a strategy first rigorously analysed by [Marinova, McKay, & Hashimoto (2005)](https://doi.org/10.1029/2004JD005027) and [McKay et al. (1991)](https://doi.org/10.1038/352489a0).
 
 ---

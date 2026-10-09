@@ -13,7 +13,7 @@ All values from the [NASA Mars Fact Sheet](https://nssdc.gsfc.nasa.gov/planetary
 | Mass | $M$ | $6.4171 \times 10^{23}$ | kg |
 | Mean radius | $R$ | $3\,389\,500$ | m |
 | Surface gravity | $g$ | $3.721$ | m s⁻² |
-| Rotation period | — | $88\,642.66$ | s (~24h 37m) |
+| Sidereal rotation period | — | $88\,642.66$ | s (~24h 37m) |
 | Orbital period | — | $686.97$ | Earth days |
 | Semi-major axis | $a$ | $1.524$ | AU |
 | Orbital eccentricity | $e$ | $0.0934$ | — |
@@ -35,15 +35,26 @@ Mars today has a surface pressure of approximately $636\,\text{Pa}$ — less tha
 
 Mean surface temperature is approximately $210\,\text{K}$ ($-63°\text{C}$), with diurnal swings of 60–100 K and seasonal swings driven by CO₂ cap cycling.
 
+The implementation uses `MARS_ROTATION_PERIOD = 88775.244 s` as its model sol
+and `MARS_ORBITAL_PERIOD = 59356800 s` (about 668.62 model sols). These differ
+from the sidereal rotation value in the fact-sheet table; use the model constants
+when reproducing its clock and timestep settings.
+
 ---
 
 ## Mars in tform
 
+The [3-D GCM](../../package/gcm3d/README.md) is the primary model. It evolves
+spatial circulation, atmospheric/surface temperature, pressure and frost over
+MOLA terrain. Start with [GCM setup](../../getting-started/quickstart.md) and
+read [validation limits](../../package/gcm3d/validation.md). The torch global-mean
+model and its injection workflows are deprecated.
+
 | Topic | Page |
 |-------|------|
 | Solar flux and zenith angle model | [Solar Flux](solar-flux.md) |
-| Surface temperature ODE | [Climate Model](climate-model.md) |
-| GHG injection and radiative forcing | [GHG Interventions](interventions.md) |
+| Spatial dynamics and column physics | [Climate Model](climate-model.md) |
+| Deprecated global-mean GHG injection | [GHG Interventions](interventions.md) |
 | API reference | [Mars API](../../api/celestials.md) |
 | Architecture | [Mars Architecture](../../architecture/mars.md) |
 

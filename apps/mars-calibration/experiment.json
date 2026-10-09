@@ -1,0 +1,10 @@
+{
+  "name": "mars-short-horizon-t21-l12",
+  "rollout_sols": 0.25,
+  "expected_steps": 74,
+  "dt_seconds": 300.0,
+  "max_evaluations": 20,
+  "target_index": 5,
+  "initial": "0.25,0.25,1.0",
+  "claim_scope": "single-window short-horizon coupled calibration, not equilibrium tuning"
+}

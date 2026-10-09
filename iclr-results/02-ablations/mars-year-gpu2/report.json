@@ -1,0 +1,36 @@
+{
+  "execution_status": "complete",
+  "profile": "paper-ablations-mars-year",
+  "model": {
+    "truncation": "T21",
+    "layers": 12,
+    "integrator": "IMEX-RK-SIL3",
+    "pbl_closure_interval_seconds": 1800.0,
+    "co2_supply_limiter_interval_seconds": 24000.0
+  },
+  "tasks": {
+    "ablations": "complete"
+  },
+  "recovery_acceptance_pass": null,
+  "external_timings_supplied": false,
+  "process_peak_rss_bytes": 2812510208,
+  "process_peak_rss_scope": "whole process including compilation; not accelerator peak",
+  "artifacts": {
+    "co2_longwave_opacity_scale_1.2-restart.npz": "273b1208e1dd53b683f74fa66b0fd8dbf387be66f3adfff11c8ea5ee4c364c2d",
+    "co2_longwave_opacity_scale_1.2.nc": "45abf2a8173f1e3760d6e31b41601ddda98aa07d8380666152af46c34dedcd66",
+    "full.nc": "261e13a990e37666f62c784fbe6c40a12c3bc6566d960e440f15d98b2bd14af5",
+    "progress.jsonl": "85453a0a194f1553b01fad0e1be3cc8ed3621465533be3245ad248fe0bd7c7cc",
+    "dust_longwave_opacity_scale_0.8-restart.npz": "df3b4db369a036b9f1f93958729a064f9f258f7b572362936637c4648e63f805",
+    "invocation.json": "2d8bf175403d92da64a2b69d500ae596f9dbaf803ca41a54f8866a1939eef172",
+    "co2_longwave_opacity_scale_0.8-restart.npz": "c9f2119a8fbe6489d26156e1273ddadedaa04ada7249037a735cfc2e706fb005",
+    "source-hashes.json": "429656bbd3b8be5a945d453794280eb9f722d7ba6546f97d10fe6c78b490b488",
+    "input-manifest.json": "ea371313353309296819d7056914e5a457915776b88efbd1260eb7a0fb472829",
+    "co2_longwave_opacity_scale_0.8.nc": "ff6035846901c39e13bccb1b881ac41dda4c1ca6af0741f6631b33d90f46e775",
+    "ablations.csv": "2336ed4688e4ebc848ec4f4e131bd4aaaa95692854d73cfe865a1f1f0e0627f8",
+    "environment.json": "90fb2c28fab621ef8f5a42eac857f986751d551c9935c2c437115f5cd9ddcd73",
+    "full-restart.npz": "80cdc7bb292d2f29a25f28220c2372d7074d0eca9cca9b3e5fec2d2c3d1a2c2f",
+    "config.json": "99a75e193765dc31b385a1f9670c76007de9c50261533c14732b0ea52bc27f34",
+    "ablations.json": "02f0af0553ddafa207c948ed81dad02ecbf148e4eedd14249c078ac36d2caef9",
+    "dust_longwave_opacity_scale_0.8.nc": "f213044af218f7935bf6255f5d73f0290a956e0ba8bd1edf2f5163ff8c53793c"
+  }
+}

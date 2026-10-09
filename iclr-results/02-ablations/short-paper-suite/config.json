@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "dt_seconds": 300,
+  "train_seconds": [
+    6000,
+    12000,
+    22200
+  ],
+  "validation_seconds": [
+    30000,
+    44400
+  ],
+  "truth": [
+    0.6,
+    0.8,
+    1.4
+  ],
+  "starts": [
+    [
+      0.3,
+      0.4,
+      0.7
+    ],
+    [
+      1.0,
+      1.2,
+      2.2
+    ],
+    [
+      0.9,
+      0.5,
+      1.8
+    ]
+  ],
+  "active_sets": [
+    [
+      2
+    ],
+    [
+      0,
+      1,
+      2
+    ]
+  ],
+  "max_evaluations": 100,
+  "benchmark_repeats": 3,
+  "parameter_relative_tolerance": 0.05,
+  "gradient_relative_tolerance": 0.0001,
+  "gradient_absolute_tolerance": 1e-10,
+  "profile": "paper"
+}

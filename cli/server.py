@@ -33,7 +33,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 app = FastAPI(title="tform visualizer", docs_url="/api/docs")
 
@@ -52,6 +52,9 @@ MAX_CHART_POINTS = 2000  # throttle cap for sol/year runs
 _STATIC_DIR  = Path(__file__).parent / "static"
 _OUTPUTS_DIR = Path(__file__).parent.parent / "outputs" / "server"
 _BENCHMARK_DATA_DIR = Path(__file__).parent.parent / "outputs" / "data"
+_PROJECT_DATA_DIR = Path(__file__).parent.parent / "data"
+_TES_SURFACE_PATH = _PROJECT_DATA_DIR / "tes" / "mgs_tes_surface_1deg.nc"
+_AMES_DUST_PATH = _PROJECT_DATA_DIR / "ames" / "fv3betaout1" / "ames_surface_reference.nc"
 
 
 # ── Request model ──────────────────────────────────────────────────────────────
@@ -81,6 +84,11 @@ class RunRequest(BaseModel):
     compare_mcd: bool = False
     mcd_local_time: float | None = None  # None = 12-sample diurnal mean
     mcd_dust: int = 1
+    # Interpretable differentiable-physics controls.  Defaults reproduce the
+    # nominal deterministic baseline and keep older saved requests valid.
+    co2_lw_scale: float = Field(default=0.25, ge=0.05, le=2.0)
+    dust_lw_scale: float = Field(default=0.25, ge=0.05, le=2.0)
+    surface_exchange_multiplier: float = Field(default=1.0, ge=0.25, le=4.0)
 
 
 class MCDBenchmarkRequest(BaseModel):
@@ -274,7 +282,17 @@ def _fields_netcdf_bytes(fields: dict) -> bytes:
                 ("local_time", "lat", "lon"), stack,
                 {"units": grid["units"], "long_name": grid["label"].split(" · LT")[0]},
             )
-    ds = xr.Dataset(variables, coords=coords, attrs=fields.get("metadata", {}))
+    # NetCDF attributes are scalar/string values.  h5netcdf rejects booleans
+    # and nested dictionaries, both of which are useful in the browser contract.
+    attrs = {}
+    for key, value in fields.get("metadata", {}).items():
+        if isinstance(value, bool):
+            attrs[key] = int(value)
+        elif isinstance(value, (dict, list, tuple)):
+            attrs[key] = json.dumps(value, sort_keys=True)
+        else:
+            attrs[key] = value
+    ds = xr.Dataset(variables, coords=coords, attrs=attrs)
     if "local_time" in ds.coords:
         ds.local_time.attrs.update(units="hour", long_name="local mean solar time")
     return ds.to_netcdf()
@@ -580,6 +598,9 @@ def _gcm_snapshot(scale: str, albedo: float, greenhouse: float, ls_deg: float,
                   compare_mcd: bool = False, mcd_local_time: float | None = None,
                   mcd_dust: int = 1, surface_temp_k: float | None = None,
                   duration_sols: float | None = None,
+                  co2_lw_scale: float = 0.25,
+                  dust_lw_scale: float = 0.25,
+                  surface_exchange_multiplier: float = 1.0,
                   progress_callback=None, diagnostic_callback=None,
                   stop_requested=None) -> dict:
     """Run one 3-D gcm3d map at the given atmosphere state; return field grids.
@@ -595,24 +616,45 @@ def _gcm_snapshot(scale: str, albedo: float, greenhouse: float, ls_deg: float,
     import math
 
     from src.framework.gcm.coordinates import coordinate_system
-    from src.celestials.planets.mars.maps import resolve_scale, run_maps
+    from src.celestials.planets.mars.maps import (
+        forcing_with_ames_dust_climatology,
+        resolve_scale,
+        run_maps,
+    )
     from src.celestials.planets.mars.gcm import co2_forcing, radiative_forcing
     from src.framework.physics.gcm import mean_anomaly_for_ls
 
     forcing = radiative_forcing(
         albedo=albedo, greenhouse_factor=greenhouse, diurnal=diurnal,
         co2_radiation_enabled=True,
+        dust_visible_optical_depth=0.3,
+        dust_longwave_optical_depth=0.1,
     )
     forcing = dataclasses.replace(
-        forcing, init_orbital_angle_rad=mean_anomaly_for_ls(math.radians(ls_deg), forcing),
+        forcing,
+        init_orbital_angle_rad=mean_anomaly_for_ls(math.radians(ls_deg), forcing),
+        regolith_enabled=True,
+        stability_exchange_enabled=True,
+        pbl_diffusion_enabled=True,
+        convective_adjustment_enabled=True,
+        ames_co2_longwave_opacity_scale=co2_lw_scale,
+        ames_dust_longwave_opacity_scale=dust_lw_scale,
+        surface_exchange_multiplier=surface_exchange_multiplier,
     )
     cfg = resolve_scale(scale)
+    grid = coordinate_system(
+        cfg["truncation"], n_layers=cfg["n_layers"]
+    ).horizontal
+    if _AMES_DUST_PATH.exists():
+        forcing = forcing_with_ames_dust_climatology(
+            forcing, grid, _AMES_DUST_PATH
+        )
     if duration_sols is not None:
         cfg["n_steps"] = max(1, round(
             duration_sols * forcing.rotation_period_s / cfg["dt_seconds"]
         ))
     if diurnal:
-        n_lon = len(coordinate_system(cfg["truncation"], n_layers=1).horizontal.longitudes)
+        n_lon = len(grid.longitudes)
         max_dt = forcing.rotation_period_s / (2.0 * n_lon)
         if cfg["dt_seconds"] > max_dt:
             factor = math.ceil(cfg["dt_seconds"] / max_dt)
@@ -621,12 +663,29 @@ def _gcm_snapshot(scale: str, albedo: float, greenhouse: float, ls_deg: float,
     fields = run_maps(
         forcing=forcing, co2_forcing=co2_forcing(),
         p0_pa=pressure_pa, t_ref_k=surface_temp_k,
+        surface_properties_path=(
+            _TES_SURFACE_PATH if _TES_SURFACE_PATH.exists() else None
+        ),
+        hyperdiffusion_tau_seconds=0.1 * forcing.rotation_period_s,
         progress_callback=progress_callback, diagnostic_callback=diagnostic_callback,
         stop_requested=stop_requested,
         progress_chunk_steps=(max(1, cfg["n_steps"] // 48) if diurnal else 32),
         **cfg,
     )
     extracted = _extract_maps_fields(fields)
+    extracted["metadata"]["physical_parameters"] = {
+        "co2_lw_scale": co2_lw_scale,
+        "dust_lw_scale": dust_lw_scale,
+        "surface_exchange_multiplier": surface_exchange_multiplier,
+    }
+    extracted["metadata"]["surface_properties"] = (
+        "TES spatial fields" if _TES_SURFACE_PATH.exists() else "uniform fallback"
+    )
+    extracted["metadata"]["dust_forcing"] = (
+        "Ames seasonal visible/IR climatology"
+        if _AMES_DUST_PATH.exists() else "scalar fallback"
+    )
+    extracted["metadata"]["hyperdiffusion_tau_sols"] = 0.1
     if compare_mcd:
         extracted["comparison"] = _matched_mcd_comparison(
             fields, ls_deg, mcd_local_time, mcd_dust
@@ -664,6 +723,9 @@ def _run_gcm_maps(run, req: RunRequest, cfg) -> None:
         mcd_dust=req.mcd_dust,
         surface_temp_k=p.surface_temperature,
         duration_sols=req.sols,
+        co2_lw_scale=req.co2_lw_scale,
+        dust_lw_scale=req.dust_lw_scale,
+        surface_exchange_multiplier=req.surface_exchange_multiplier,
         progress_callback=progress,
         diagnostic_callback=sample_global_maps if req.diurnal else None,
         stop_requested=lambda: bool(run.get("cancel_requested")),
@@ -831,6 +893,9 @@ def _run_intervention(run, req, mars, cfg, accuracy, capture_gcm: bool = False) 
                     mcd_local_time=req.mcd_local_time,
                     mcd_dust=req.mcd_dust,
                     surface_temp_k=_v(snap.surface_temperature),
+                    co2_lw_scale=req.co2_lw_scale,
+                    dust_lw_scale=req.dust_lw_scale,
+                    surface_exchange_multiplier=req.surface_exchange_multiplier,
                 )
                 run["field_snapshots"][str(snap.year)] = fld
                 run["fields"] = fld  # latest successful snapshot is the headline

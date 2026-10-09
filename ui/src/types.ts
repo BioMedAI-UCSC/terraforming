@@ -58,6 +58,9 @@ export interface RunConfig {
   compare_mcd?: boolean
   mcd_local_time?: number | null
   mcd_dust?: number
+  co2_lw_scale?: number
+  dust_lw_scale?: number
+  surface_exchange_multiplier?: number
 }
 
 export interface RunSummary {
@@ -135,5 +138,10 @@ export interface RunFields {
     is_transient: boolean
     truncation: string
     n_layers: number
+    physical_parameters?: {
+      co2_lw_scale: number
+      dust_lw_scale: number
+      surface_exchange_multiplier: number
+    }
   }
 }

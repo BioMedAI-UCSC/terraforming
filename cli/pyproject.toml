@@ -28,4 +28,4 @@ where = [".."]
 include = ["cli"]
 
 [tool.setuptools.package-data]
-cli = ["configs/*.yaml"]
+cli = ["configs/*.yaml", "configs/*.json"]

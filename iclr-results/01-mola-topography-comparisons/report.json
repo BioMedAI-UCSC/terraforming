@@ -1,0 +1,1113 @@
+{
+  "status": "diagnostic_comparison_not_observational_validation",
+  "config": {
+    "root": "../..",
+    "seasons": [
+      45,
+      135,
+      225,
+      315
+    ],
+    "half_width": 5,
+    "mola": "data/mola/meg004/megt90n000cb.img",
+    "limitations": [
+      "This compares the existing physical baseline, not the pending 0.25-sol gradient-calibration result.",
+      "Model fields average sparse instantaneous seasonal checkpoints; Ames uses five-sol means; ARCO uses daily means; MCD here averages only local times 0, 6, 12 and 18 h.",
+      "Ames and MCD are model references; ARCO-MACDA is a reanalysis, not direct observational truth.",
+      "Wind compares lowest atmospheric levels with MCD at 10 m; heights are not identical.",
+      "MCD cached seasons are near the labeled target (up to about 1.2 degrees apart); original attributes and hashes are recorded. Legacy cached dust-query provenance is not independently verified.",
+      "MOLA is common geographic context, not evidence that all reference models use the same terrain.",
+      "Model parameter values below are the declared baseline configuration from the progress report; they are not independently recoverable from every seasonal NetCDF.",
+      "All reference maps are linearly regridded onto the model grid. Missing fields are unavailable, never zero-filled.",
+      "MCD CO2 frost is a monthly mean statistic, which differs from the model and other reference sampling."
+    ],
+    "sources": [
+      {
+        "name": "Physical GCM",
+        "role": "deterministic physical baseline",
+        "paths": [
+          "outputs/deterministic_reference_samples/ames_year3/model_ls{season:03d}.nc"
+        ],
+        "sampling": "mean of 4 instantaneous checkpoints within \u00b15\u00b0 Ls",
+        "vertical": "lowest model sigma layer",
+        "dust": "prescribed Ames seasonal visible/IR opacity",
+        "parameters": {
+          "co2_lw": 0.25,
+          "dust_lw": 0.25,
+          "exchange": 1.0
+        }
+      },
+      {
+        "name": "NASA Ames",
+        "role": "Ames FV3 model reference",
+        "paths": [
+          "outputs/deterministic_reference_samples/ames_year3/ames_ls{season:03d}_on_model_grid.nc"
+        ],
+        "sampling": "duration-weighted five-sol means within \u00b15\u00b0 Ls",
+        "vertical": "lowest archived layer",
+        "dust": "Ames FV3 reference simulation"
+      },
+      {
+        "name": "MCD 6.1",
+        "role": "model-derived climatology",
+        "paths": [
+          "outputs/deterministic_reference_samples/mcd_ls{season:03d}/mcd_diurnal_mean_native.nc"
+        ],
+        "sampling": "mean of LT 0, 6, 12, 18 h at nearby Ls",
+        "vertical": "10 m above surface for wind",
+        "dust": "scenario 1 requested; legacy cache verification limited"
+      },
+      {
+        "name": "ARCO-MACDA",
+        "role": "MY34\u201335 reanalysis",
+        "paths": [
+          "data/arco_macda/macda_my34_ls{season:03d}_10sol_daily_t21_l12.nc",
+          "data/arco_macda/macda_my35_ls{season:03d}_10sol_daily_t21_l12.nc"
+        ],
+        "season_variable": "Ls",
+        "mean_dims": [
+          "time"
+        ],
+        "isel": {
+          "lev": -1
+        },
+        "sampling": "daily means from MY34\u201335 within \u00b15\u00b0 Ls",
+        "vertical": "lowest regridded sigma layer",
+        "dust": "assimilated-year MACDA dust; not matched to Ames"
+      }
+    ]
+  },
+  "mola_sha256": "25f16fb7aaf857898dcf98bc4f841341a24f8b9f7e98453ca083bc45d897ca2c",
+  "metrics": [
+    {
+      "Ls": 45,
+      "reference": "NASA Ames",
+      "field": "Surface temperature",
+      "units": "K",
+      "model_mean": 204.10468080089055,
+      "reference_mean": 199.36750508748685,
+      "bias": 4.7371757134036905,
+      "mae": 14.85731496918574,
+      "rmse": 18.358150901202663,
+      "correlation": 0.793281885605775
+    },
+    {
+      "Ls": 45,
+      "reference": "MCD 6.1",
+      "field": "Surface temperature",
+      "units": "K",
+      "model_mean": 204.10468080089055,
+      "reference_mean": 196.2526878464189,
+      "bias": 7.851992954471666,
+      "mae": 14.935578856224486,
+      "rmse": 19.121375248477488,
+      "correlation": 0.8015656654248904
+    },
+    {
+      "Ls": 45,
+      "reference": "ARCO-MACDA",
+      "field": "Surface temperature",
+      "units": "K",
+      "model_mean": 204.10468080089055,
+      "reference_mean": 196.2890892134077,
+      "bias": 7.815591587482878,
+      "mae": 16.063950110797247,
+      "rmse": 20.748414995930762,
+      "correlation": 0.7534562580793859
+    },
+    {
+      "Ls": 45,
+      "reference": "NASA Ames",
+      "field": "Surface pressure",
+      "units": "Pa",
+      "model_mean": 640.1790705413916,
+      "reference_mean": 650.7311175548416,
+      "bias": -10.552047013449915,
+      "mae": 20.535711808539375,
+      "rmse": 29.44344409661424,
+      "correlation": 0.9872693226556373
+    },
+    {
+      "Ls": 45,
+      "reference": "MCD 6.1",
+      "field": "Surface pressure",
+      "units": "Pa",
+      "model_mean": 640.1790705413916,
+      "reference_mean": 655.3754669803391,
+      "bias": -15.196396438947465,
+      "mae": 24.81109267789114,
+      "rmse": 37.625340439598205,
+      "correlation": 0.979967317583057
+    },
+    {
+      "Ls": 45,
+      "reference": "ARCO-MACDA",
+      "field": "Surface pressure",
+      "units": "Pa",
+      "model_mean": 640.1790705413916,
+      "reference_mean": 636.7720932653776,
+      "bias": 3.4069772760140626,
+      "mae": 18.23606425894899,
+      "rmse": 25.180717925479453,
+      "correlation": 0.9894112064394006
+    },
+    {
+      "Ls": 45,
+      "reference": "NASA Ames",
+      "field": "Near-surface wind speed",
+      "units": "m/s",
+      "model_mean": 10.313945323154998,
+      "reference_mean": 2.7878008029072943,
+      "bias": 7.526144520247705,
+      "mae": 7.602237316171355,
+      "rmse": 9.418805491011037,
+      "correlation": 0.4317346652069159
+    },
+    {
+      "Ls": 45,
+      "reference": "MCD 6.1",
+      "field": "Near-surface wind speed",
+      "units": "m/s",
+      "model_mean": 10.313945323154998,
+      "reference_mean": 5.599097444954289,
+      "bias": 4.71484787820071,
+      "mae": 5.842699731312787,
+      "rmse": 7.730915011485437,
+      "correlation": 0.20091341221945405
+    },
+    {
+      "Ls": 45,
+      "reference": "ARCO-MACDA",
+      "field": "Near-surface wind speed",
+      "units": "m/s",
+      "model_mean": 10.313945323154998,
+      "reference_mean": 8.10430912736551,
+      "bias": 2.2096361957894883,
+      "mae": 5.2592991879881605,
+      "rmse": 6.906814141460808,
+      "correlation": 0.4044815358074331
+    },
+    {
+      "Ls": 45,
+      "reference": "NASA Ames",
+      "field": "Surface CO2 frost",
+      "units": "Pa-equivalent",
+      "model_mean": 29.493500572651048,
+      "reference_mean": 52.770062245597416,
+      "bias": -23.27656167294636,
+      "mae": 33.33795867282935,
+      "rmse": 201.51915990720906,
+      "correlation": 0.5337918920946682
+    },
+    {
+      "Ls": 45,
+      "reference": "MCD 6.1",
+      "field": "Surface CO2 frost",
+      "units": "Pa-equivalent",
+      "model_mean": 29.493500572651048,
+      "reference_mean": 63.143617987676194,
+      "bias": -33.65011741502515,
+      "mae": 41.682813572519,
+      "rmse": 232.13681122794972,
+      "correlation": 0.5135227698518626
+    },
+    {
+      "Ls": 45,
+      "reference": "ARCO-MACDA",
+      "field": "Surface CO2 frost",
+      "units": "Pa-equivalent",
+      "model_mean": 29.493500572651048,
+      "reference_mean": 95.78289604033642,
+      "bias": -66.28939546768538,
+      "mae": 67.37477818721057,
+      "rmse": 311.79845458373256,
+      "correlation": 0.576648742178316
+    },
+    {
+      "Ls": 135,
+      "reference": "NASA Ames",
+      "field": "Surface temperature",
+      "units": "K",
+      "model_mean": 207.68295606072707,
+      "reference_mean": 203.4087704747984,
+      "bias": 4.274185585928662,
+      "mae": 15.510696679951305,
+      "rmse": 18.8212323158852,
+      "correlation": 0.8182619926187796
+    },
+    {
+      "Ls": 135,
+      "reference": "MCD 6.1",
+      "field": "Surface temperature",
+      "units": "K",
+      "model_mean": 207.68295606072707,
+      "reference_mean": 201.91820645261691,
+      "bias": 5.764749608110142,
+      "mae": 15.403964188940112,
+      "rmse": 19.072732412987925,
+      "correlation": 0.8212983620496432
+    },
+    {
+      "Ls": 135,
+      "reference": "ARCO-MACDA",
+      "field": "Surface temperature",
+      "units": "K",
+      "model_mean": 207.68295606072707,
+      "reference_mean": 201.02251916877384,
+      "bias": 6.660436891953212,
+      "mae": 15.707560331777653,
+      "rmse": 19.59522589278672,
+      "correlation": 0.8158554827379519
+    },
+    {
+      "Ls": 135,
+      "reference": "NASA Ames",
+      "field": "Surface pressure",
+      "units": "Pa",
+      "model_mean": 482.79919185940196,
+      "reference_mean": 543.9922494936795,
+      "bias": -61.19305763427748,
+      "mae": 61.7131177888161,
+      "rmse": 66.6991817450229,
+      "correlation": 0.9869434857863463
+    },
+    {
+      "Ls": 135,
+      "reference": "MCD 6.1",
+      "field": "Surface pressure",
+      "units": "Pa",
+      "model_mean": 482.79919185940196,
+      "reference_mean": 548.745000260151,
+      "bias": -65.94580840074893,
+      "mae": 66.71606692320408,
+      "rmse": 73.41427882002287,
+      "correlation": 0.9765705289669325
+    },
+    {
+      "Ls": 135,
+      "reference": "ARCO-MACDA",
+      "field": "Surface pressure",
+      "units": "Pa",
+      "model_mean": 482.79919185940196,
+      "reference_mean": 486.2315957101089,
+      "bias": -3.4324038507068355,
+      "mae": 13.675535394872128,
+      "rmse": 19.3256584172396,
+      "correlation": 0.9890811199332425
+    },
+    {
+      "Ls": 135,
+      "reference": "NASA Ames",
+      "field": "Near-surface wind speed",
+      "units": "m/s",
+      "model_mean": 11.38229594135705,
+      "reference_mean": 2.9849886666749033,
+      "bias": 8.397307274682145,
+      "mae": 8.471309122121308,
+      "rmse": 10.55950814264972,
+      "correlation": 0.4560327441509939
+    },
+    {
+      "Ls": 135,
+      "reference": "MCD 6.1",
+      "field": "Near-surface wind speed",
+      "units": "m/s",
+      "model_mean": 11.38229594135705,
+      "reference_mean": 5.928900180318051,
+      "bias": 5.453395761039,
+      "mae": 6.5342508594370745,
+      "rmse": 8.797033884624673,
+      "correlation": 0.223794304105718
+    },
+    {
+      "Ls": 135,
+      "reference": "ARCO-MACDA",
+      "field": "Near-surface wind speed",
+      "units": "m/s",
+      "model_mean": 11.38229594135705,
+      "reference_mean": 8.640668705993235,
+      "bias": 2.741627235363816,
+      "mae": 5.741434478214923,
+      "rmse": 7.726485966956925,
+      "correlation": 0.5056354035354103
+    },
+    {
+      "Ls": 135,
+      "reference": "NASA Ames",
+      "field": "Surface CO2 frost",
+      "units": "Pa-equivalent",
+      "model_mean": 186.8733790898248,
+      "reference_mean": 159.05289830524595,
+      "bias": 27.82048078457883,
+      "mae": 33.736888604436125,
+      "rmse": 123.0359347661494,
+      "correlation": 0.9943890194133459
+    },
+    {
+      "Ls": 135,
+      "reference": "MCD 6.1",
+      "field": "Surface CO2 frost",
+      "units": "Pa-equivalent",
+      "model_mean": 186.8733790898248,
+      "reference_mean": 161.5496200666123,
+      "bias": 25.323759023212464,
+      "mae": 46.1218426192224,
+      "rmse": 164.02386846715427,
+      "correlation": 0.9868957714638704
+    },
+    {
+      "Ls": 135,
+      "reference": "ARCO-MACDA",
+      "field": "Surface CO2 frost",
+      "units": "Pa-equivalent",
+      "model_mean": 186.8733790898248,
+      "reference_mean": 244.89732404303626,
+      "bias": -58.02394495321145,
+      "mae": 67.67303687972169,
+      "rmse": 322.5825359045445,
+      "correlation": 0.945097316689857
+    },
+    {
+      "Ls": 225,
+      "reference": "NASA Ames",
+      "field": "Surface temperature",
+      "units": "K",
+      "model_mean": 218.7307635229412,
+      "reference_mean": 216.3755239300287,
+      "bias": 2.3552395929125236,
+      "mae": 19.12813471250105,
+      "rmse": 23.492435813195513,
+      "correlation": 0.763810265097688
+    },
+    {
+      "Ls": 225,
+      "reference": "MCD 6.1",
+      "field": "Surface temperature",
+      "units": "K",
+      "model_mean": 218.7307635229412,
+      "reference_mean": 211.2844501699935,
+      "bias": 7.446313352947714,
+      "mae": 19.73552147394741,
+      "rmse": 25.037744598636664,
+      "correlation": 0.7486961804809824
+    },
+    {
+      "Ls": 225,
+      "reference": "ARCO-MACDA",
+      "field": "Surface temperature",
+      "units": "K",
+      "model_mean": 218.7307635229412,
+      "reference_mean": 210.51155222485266,
+      "bias": 8.219211298088553,
+      "mae": 20.002679374243165,
+      "rmse": 26.086424456128356,
+      "correlation": 0.732057251772904
+    },
+    {
+      "Ls": 225,
+      "reference": "NASA Ames",
+      "field": "Surface pressure",
+      "units": "Pa",
+      "model_mean": 637.4462751544181,
+      "reference_mean": 655.9206827621438,
+      "bias": -18.474407607725617,
+      "mae": 25.495639358025507,
+      "rmse": 33.50889569879944,
+      "correlation": 0.9849417855244504
+    },
+    {
+      "Ls": 225,
+      "reference": "MCD 6.1",
+      "field": "Surface pressure",
+      "units": "Pa",
+      "model_mean": 637.4462751544181,
+      "reference_mean": 653.3550249815812,
+      "bias": -15.908749827163112,
+      "mae": 26.984932496366447,
+      "rmse": 38.88894435507879,
+      "correlation": 0.9754009953266934
+    },
+    {
+      "Ls": 225,
+      "reference": "ARCO-MACDA",
+      "field": "Surface pressure",
+      "units": "Pa",
+      "model_mean": 637.4462751544181,
+      "reference_mean": 577.648206683381,
+      "bias": 59.79806847103704,
+      "mae": 60.4984492258217,
+      "rmse": 66.39476202429034,
+      "correlation": 0.985195117497489
+    },
+    {
+      "Ls": 225,
+      "reference": "NASA Ames",
+      "field": "Near-surface wind speed",
+      "units": "m/s",
+      "model_mean": 16.62080822068294,
+      "reference_mean": 4.232908797691352,
+      "bias": 12.387899422991588,
+      "mae": 12.453284039329663,
+      "rmse": 14.784885698078968,
+      "correlation": 0.3876363466606046
+    },
+    {
+      "Ls": 225,
+      "reference": "MCD 6.1",
+      "field": "Near-surface wind speed",
+      "units": "m/s",
+      "model_mean": 16.62080822068294,
+      "reference_mean": 7.0385521563509315,
+      "bias": 9.582256064332007,
+      "mae": 10.15313268308168,
+      "rmse": 12.793711271854024,
+      "correlation": 0.22497319459808474
+    },
+    {
+      "Ls": 225,
+      "reference": "ARCO-MACDA",
+      "field": "Near-surface wind speed",
+      "units": "m/s",
+      "model_mean": 16.62080822068294,
+      "reference_mean": 12.425161712150235,
+      "bias": 4.195646508532705,
+      "mae": 7.227781046662545,
+      "rmse": 9.329211709155189,
+      "correlation": 0.39449461397913177
+    },
+    {
+      "Ls": 225,
+      "reference": "NASA Ames",
+      "field": "Surface CO2 frost",
+      "units": "Pa-equivalent",
+      "model_mean": 32.22629564099289,
+      "reference_mean": 46.91441601209151,
+      "bias": -14.688120371098613,
+      "mae": 28.490984310455694,
+      "rmse": 132.88217834002538,
+      "correlation": 0.861395954536299
+    },
+    {
+      "Ls": 225,
+      "reference": "MCD 6.1",
+      "field": "Surface CO2 frost",
+      "units": "Pa-equivalent",
+      "model_mean": 32.22629564099289,
+      "reference_mean": 66.3147777142274,
+      "bias": -34.08848207323452,
+      "mae": 43.81581825299254,
+      "rmse": 194.90203894405354,
+      "correlation": 0.8406330104510092
+    },
+    {
+      "Ls": 225,
+      "reference": "ARCO-MACDA",
+      "field": "Surface CO2 frost",
+      "units": "Pa-equivalent",
+      "model_mean": 32.22629564099289,
+      "reference_mean": 154.5136830178758,
+      "bias": -122.28738737688293,
+      "mae": 122.64037724877957,
+      "rmse": 631.3296157017518,
+      "correlation": 0.7830455285794109
+    },
+    {
+      "Ls": 315,
+      "reference": "NASA Ames",
+      "field": "Surface temperature",
+      "units": "K",
+      "model_mean": 216.56807834124098,
+      "reference_mean": 214.08046497682335,
+      "bias": 2.487613364417658,
+      "mae": 17.53331758627676,
+      "rmse": 21.889292848567866,
+      "correlation": 0.780204941596151
+    },
+    {
+      "Ls": 315,
+      "reference": "MCD 6.1",
+      "field": "Surface temperature",
+      "units": "K",
+      "model_mean": 216.56807834124098,
+      "reference_mean": 209.13428493096046,
+      "bias": 7.433793410280539,
+      "mae": 18.02539266125196,
+      "rmse": 23.100216735704812,
+      "correlation": 0.7771362249762874
+    },
+    {
+      "Ls": 315,
+      "reference": "ARCO-MACDA",
+      "field": "Surface temperature",
+      "units": "K",
+      "model_mean": 216.56807834124098,
+      "reference_mean": 209.58761946693488,
+      "bias": 6.980458874306098,
+      "mae": 17.89906041490459,
+      "rmse": 22.63640718054364,
+      "correlation": 0.7847395418944935
+    },
+    {
+      "Ls": 315,
+      "reference": "NASA Ames",
+      "field": "Surface pressure",
+      "units": "Pa",
+      "model_mean": 562.0973974749265,
+      "reference_mean": 635.5688146463613,
+      "bias": -73.47141717143472,
+      "mae": 73.90770550647672,
+      "rmse": 79.81561980893308,
+      "correlation": 0.986257381252843
+    },
+    {
+      "Ls": 315,
+      "reference": "MCD 6.1",
+      "field": "Surface pressure",
+      "units": "Pa",
+      "model_mean": 562.0973974749265,
+      "reference_mean": 631.2977438744846,
+      "bias": -69.20034639955799,
+      "mae": 70.05259997364374,
+      "rmse": 78.80448289245601,
+      "correlation": 0.9779216821012452
+    },
+    {
+      "Ls": 315,
+      "reference": "ARCO-MACDA",
+      "field": "Surface pressure",
+      "units": "Pa",
+      "model_mean": 562.0973974749265,
+      "reference_mean": 608.1489760335894,
+      "bias": -46.05157855866294,
+      "mae": 46.887011983619786,
+      "rmse": 51.96248666333056,
+      "correlation": 0.9880966378561972
+    },
+    {
+      "Ls": 315,
+      "reference": "NASA Ames",
+      "field": "Near-surface wind speed",
+      "units": "m/s",
+      "model_mean": 14.395949149140101,
+      "reference_mean": 3.7116771970600597,
+      "bias": 10.684271952080042,
+      "mae": 10.765354574399186,
+      "rmse": 12.885051561422635,
+      "correlation": 0.49227707349930383
+    },
+    {
+      "Ls": 315,
+      "reference": "MCD 6.1",
+      "field": "Near-surface wind speed",
+      "units": "m/s",
+      "model_mean": 14.395949149140101,
+      "reference_mean": 6.521289121352702,
+      "bias": 7.874660027787401,
+      "mae": 8.510680619633689,
+      "rmse": 10.785504630604935,
+      "correlation": 0.40207422092876766
+    },
+    {
+      "Ls": 315,
+      "reference": "ARCO-MACDA",
+      "field": "Near-surface wind speed",
+      "units": "m/s",
+      "model_mean": 14.395949149140101,
+      "reference_mean": 11.945675473302996,
+      "bias": 2.4502736758371038,
+      "mae": 5.793282065653203,
+      "rmse": 7.5624896340558445,
+      "correlation": 0.5126123591319965
+    },
+    {
+      "Ls": 315,
+      "reference": "NASA Ames",
+      "field": "Surface CO2 frost",
+      "units": "Pa-equivalent",
+      "model_mean": 107.57517321397003,
+      "reference_mean": 68.1799957694766,
+      "bias": 39.39517744449345,
+      "mae": 53.84802798484845,
+      "rmse": 216.49123478024342,
+      "correlation": 0.8734687512846883
+    },
+    {
+      "Ls": 315,
+      "reference": "MCD 6.1",
+      "field": "Surface CO2 frost",
+      "units": "Pa-equivalent",
+      "model_mean": 107.57517321397003,
+      "reference_mean": 87.93998032676154,
+      "bias": 19.635192887208486,
+      "mae": 46.79445061587763,
+      "rmse": 194.0693452657473,
+      "correlation": 0.8829794142733993
+    },
+    {
+      "Ls": 315,
+      "reference": "ARCO-MACDA",
+      "field": "Surface CO2 frost",
+      "units": "Pa-equivalent",
+      "model_mean": 107.57517321397003,
+      "reference_mean": 123.15685692900497,
+      "bias": -15.581683715034924,
+      "mae": 35.98153206364309,
+      "rmse": 207.64592554425312,
+      "correlation": 0.8755011243951109
+    }
+  ],
+  "provenance": [
+    {
+      "season": 45,
+      "sources": [
+        {
+          "source": "Physical GCM",
+          "inputs": [
+            {
+              "path": "/Users/sameerkashyap/code/terraforming/outputs/deterministic_reference_samples/ames_year3/model_ls045.nc",
+              "sha256": "0f8d2a5e04c61e6825d1b11408ee8afca456d52807cf72c7a4168d426daa3f64",
+              "selected_ls_range": null,
+              "attributes": {
+                "insolation_sampling": "diurnal",
+                "solar_longitude_deg": "45.0",
+                "temporal_sampling": "mean of 4 checkpoints within +/-5 deg Ls",
+                "climate_status": "second-year seasonal evaluation window"
+              }
+            }
+          ]
+        },
+        {
+          "source": "NASA Ames",
+          "inputs": [
+            {
+              "path": "/Users/sameerkashyap/code/terraforming/outputs/deterministic_reference_samples/ames_year3/ames_ls045_on_model_grid.nc",
+              "sha256": "90dd66cd629b73e7edc1ee4b5edacc3188d10934b7a89fc7b8b2e9be7c57538c",
+              "selected_ls_range": null,
+              "attributes": {
+                "title": "NASA Ames MGCM FV3 Beta Output Release 1 surface reference",
+                "source": "data/ames/fv3betaout1/03340.atmos_average_zstd.nc",
+                "source_sha256": "d315aac8e9b054f0b86b3dcf2427fe8bc8ad0a3c7b6a79b1a478d19d4f4725c3",
+                "source_code_release": "2022.02",
+                "source_simulation": "c48 reference, sixth simulated year, 2-degree output",
+                "temporal_sampling": "five-sol averages",
+                "co2_ice_conversion": "kg/m2 multiplied by Mars gravity 3.72076 m/s2"
+              }
+            }
+          ]
+        },
+        {
+          "source": "MCD 6.1",
+          "inputs": [
+            {
+              "path": "/Users/sameerkashyap/code/terraforming/outputs/deterministic_reference_samples/mcd_ls045/mcd_diurnal_mean_native.nc",
+              "sha256": "dc9b3866fe04479e3b27b30445639caa7d08ce26a18d9b32f53bc724d5c9de2e",
+              "selected_ls_range": null,
+              "attributes": {
+                "title": "MCD v6.1 diurnal mean assembled from fixed-local-time maps",
+                "ls_deg": "46.1363661077399",
+                "local_times_hours": "0,6,12,18",
+                "altitude_m_above_surface": "10.0",
+                "dust_scenario": "1",
+                "high_resolution_topography": "1"
+              }
+            }
+          ]
+        },
+        {
+          "source": "ARCO-MACDA",
+          "inputs": [
+            {
+              "path": "/Users/sameerkashyap/code/terraforming/data/arco_macda/macda_my34_ls045_10sol_daily_t21_l12.nc",
+              "sha256": "e5b9371ce1e1cef2259c3fe4d56996a15883a63fca53602a893887ab403492df",
+              "selected_ls_range": [
+                43.134586334228516,
+                47.252872467041016
+              ],
+              "attributes": {
+                "title": "ARCO-MACDA daily means on the Dinosaur grid",
+                "source_url": "https://huggingface.co/datasets/ananyo01/ARCO-MACDA/resolve/main/macda_combined.zarr",
+                "source_doi": "10.57967/hf/8771",
+                "underlying_macda_doi": "10.5285/cd037a9ea387438fabf4d674dbe53088",
+                "source_license": "CC BY 4.0; underlying MACDA v2.0 OGL v3.0",
+                "mars_year": "34",
+                "source_start_index": "81299",
+                "source_stop_index_exclusive": "81419",
+                "source_samples_per_sol": "12",
+                "temporal_reduction": "arithmetic daily mean; circular mean for solar longitude",
+                "vertical_regridding": "linear interpolation in sigma",
+                "horizontal_regridding": "periodic bilinear latitude-longitude interpolation",
+                "target_truncation": "T21",
+                "target_layers": "12",
+                "retrieved_utc": "2026-09-19T18:17:45.809247+00:00"
+              }
+            },
+            {
+              "path": "/Users/sameerkashyap/code/terraforming/data/arco_macda/macda_my35_ls045_10sol_daily_t21_l12.nc",
+              "sha256": "4bcb164d64985a726ff6530450c41bfd58ece7776337b4a9e52099d323afd4e3",
+              "selected_ls_range": [
+                42.70594024658203,
+                46.82700729370117
+              ],
+              "attributes": {
+                "title": "ARCO-MACDA daily means on the Dinosaur grid",
+                "source_url": "https://huggingface.co/datasets/ananyo01/ARCO-MACDA/resolve/main/macda_combined.zarr",
+                "source_doi": "10.57967/hf/8771",
+                "underlying_macda_doi": "10.5285/cd037a9ea387438fabf4d674dbe53088",
+                "source_license": "CC BY 4.0; underlying MACDA v2.0 OGL v3.0",
+                "mars_year": "35",
+                "source_start_index": "89311",
+                "source_stop_index_exclusive": "89431",
+                "source_samples_per_sol": "12",
+                "temporal_reduction": "arithmetic daily mean; circular mean for solar longitude",
+                "vertical_regridding": "linear interpolation in sigma",
+                "horizontal_regridding": "periodic bilinear latitude-longitude interpolation",
+                "target_truncation": "T21",
+                "target_layers": "12",
+                "retrieved_utc": "2026-09-19T18:19:20.408918+00:00"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "season": 135,
+      "sources": [
+        {
+          "source": "Physical GCM",
+          "inputs": [
+            {
+              "path": "/Users/sameerkashyap/code/terraforming/outputs/deterministic_reference_samples/ames_year3/model_ls135.nc",
+              "sha256": "ec418a5aebf3ae168cf84afd2f712ee093a64293351a349f3a53fbdbf33bc869",
+              "selected_ls_range": null,
+              "attributes": {
+                "insolation_sampling": "diurnal",
+                "solar_longitude_deg": "135.0",
+                "temporal_sampling": "mean of 4 checkpoints within +/-5 deg Ls",
+                "climate_status": "second-year seasonal evaluation window"
+              }
+            }
+          ]
+        },
+        {
+          "source": "NASA Ames",
+          "inputs": [
+            {
+              "path": "/Users/sameerkashyap/code/terraforming/outputs/deterministic_reference_samples/ames_year3/ames_ls135_on_model_grid.nc",
+              "sha256": "2f538375c080c61644dae0658e04cec4cdcaadc94595ec26305ebadfb6da33e5",
+              "selected_ls_range": null,
+              "attributes": {
+                "title": "NASA Ames MGCM FV3 Beta Output Release 1 surface reference",
+                "source": "data/ames/fv3betaout1/03340.atmos_average_zstd.nc",
+                "source_sha256": "d315aac8e9b054f0b86b3dcf2427fe8bc8ad0a3c7b6a79b1a478d19d4f4725c3",
+                "source_code_release": "2022.02",
+                "source_simulation": "c48 reference, sixth simulated year, 2-degree output",
+                "temporal_sampling": "five-sol averages",
+                "co2_ice_conversion": "kg/m2 multiplied by Mars gravity 3.72076 m/s2"
+              }
+            }
+          ]
+        },
+        {
+          "source": "MCD 6.1",
+          "inputs": [
+            {
+              "path": "/Users/sameerkashyap/code/terraforming/outputs/deterministic_reference_samples/mcd_ls135/mcd_diurnal_mean_native.nc",
+              "sha256": "cfe02d4693839540ff5a856d3dfd7d5eddda1cabb5106cbdf2a273c71d0b4306",
+              "selected_ls_range": null,
+              "attributes": {
+                "title": "MCD v6.1 diurnal mean assembled from fixed-local-time maps",
+                "ls_deg": "133.83847832091365",
+                "local_times_hours": "0,6,12,18",
+                "altitude_m_above_surface": "10.0",
+                "dust_scenario": "1",
+                "high_resolution_topography": "1"
+              }
+            }
+          ]
+        },
+        {
+          "source": "ARCO-MACDA",
+          "inputs": [
+            {
+              "path": "/Users/sameerkashyap/code/terraforming/data/arco_macda/macda_my34_ls135_10sol_daily_t21_l12.nc",
+              "sha256": "ad425aa1c01edf6b71649b969b103c4d0230e29611c11613f610fb32abe95001",
+              "selected_ls_range": [
+                132.56314086914062,
+                137.07955932617188
+              ],
+              "attributes": {
+                "title": "ARCO-MACDA daily means on the Dinosaur grid",
+                "source_url": "https://huggingface.co/datasets/ananyo01/ARCO-MACDA/resolve/main/macda_combined.zarr",
+                "source_doi": "10.57967/hf/8771",
+                "underlying_macda_doi": "10.5285/cd037a9ea387438fabf4d674dbe53088",
+                "source_license": "CC BY 4.0; underlying MACDA v2.0 OGL v3.0",
+                "mars_year": "34",
+                "source_start_index": "83627",
+                "source_stop_index_exclusive": "83747",
+                "source_samples_per_sol": "12",
+                "temporal_reduction": "arithmetic daily mean; circular mean for solar longitude",
+                "vertical_regridding": "linear interpolation in sigma",
+                "horizontal_regridding": "periodic bilinear latitude-longitude interpolation",
+                "target_truncation": "T21",
+                "target_layers": "12",
+                "retrieved_utc": "2026-09-19T18:17:47.142300+00:00"
+              }
+            },
+            {
+              "path": "/Users/sameerkashyap/code/terraforming/data/arco_macda/macda_my35_ls135_10sol_daily_t21_l12.nc",
+              "sha256": "e403891681450d6a1ddb816abff176e94b6df85f768cc040570a103b9880d5a6",
+              "selected_ls_range": [
+                132.5963134765625,
+                137.11328125
+              ],
+              "attributes": {
+                "title": "ARCO-MACDA daily means on the Dinosaur grid",
+                "source_url": "https://huggingface.co/datasets/ananyo01/ARCO-MACDA/resolve/main/macda_combined.zarr",
+                "source_doi": "10.57967/hf/8771",
+                "underlying_macda_doi": "10.5285/cd037a9ea387438fabf4d674dbe53088",
+                "source_license": "CC BY 4.0; underlying MACDA v2.0 OGL v3.0",
+                "mars_year": "35",
+                "source_start_index": "91651",
+                "source_stop_index_exclusive": "91771",
+                "source_samples_per_sol": "12",
+                "temporal_reduction": "arithmetic daily mean; circular mean for solar longitude",
+                "vertical_regridding": "linear interpolation in sigma",
+                "horizontal_regridding": "periodic bilinear latitude-longitude interpolation",
+                "target_truncation": "T21",
+                "target_layers": "12",
+                "retrieved_utc": "2026-09-19T18:23:42.288913+00:00"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "season": 225,
+      "sources": [
+        {
+          "source": "Physical GCM",
+          "inputs": [
+            {
+              "path": "/Users/sameerkashyap/code/terraforming/outputs/deterministic_reference_samples/ames_year3/model_ls225.nc",
+              "sha256": "cd3cbd67321831961c454d64e7dc087d7d2ff4475329572e8e1cd6db91685f98",
+              "selected_ls_range": null,
+              "attributes": {
+                "insolation_sampling": "diurnal",
+                "solar_longitude_deg": "225.0",
+                "temporal_sampling": "mean of 3 checkpoints within +/-5 deg Ls",
+                "climate_status": "second-year seasonal evaluation window"
+              }
+            }
+          ]
+        },
+        {
+          "source": "NASA Ames",
+          "inputs": [
+            {
+              "path": "/Users/sameerkashyap/code/terraforming/outputs/deterministic_reference_samples/ames_year3/ames_ls225_on_model_grid.nc",
+              "sha256": "f7bf9ed99f51c74ffaa629beb15a29185ba96141e626ca6e37c22f3bc661ce28",
+              "selected_ls_range": null,
+              "attributes": {
+                "title": "NASA Ames MGCM FV3 Beta Output Release 1 surface reference",
+                "source": "data/ames/fv3betaout1/03340.atmos_average_zstd.nc",
+                "source_sha256": "d315aac8e9b054f0b86b3dcf2427fe8bc8ad0a3c7b6a79b1a478d19d4f4725c3",
+                "source_code_release": "2022.02",
+                "source_simulation": "c48 reference, sixth simulated year, 2-degree output",
+                "temporal_sampling": "five-sol averages",
+                "co2_ice_conversion": "kg/m2 multiplied by Mars gravity 3.72076 m/s2"
+              }
+            }
+          ]
+        },
+        {
+          "source": "MCD 6.1",
+          "inputs": [
+            {
+              "path": "/Users/sameerkashyap/code/terraforming/outputs/deterministic_reference_samples/mcd_ls225/mcd_diurnal_mean_native.nc",
+              "sha256": "dce4ef215719a6fc6a3311cea3837ad8a7f34b162ac60f3eee608b19f6041c4a",
+              "selected_ls_range": null,
+              "attributes": {
+                "title": "MCD v6.1 diurnal mean assembled from fixed-local-time maps",
+                "ls_deg": "225.50513237926273",
+                "local_times_hours": "0,6,12,18",
+                "altitude_m_above_surface": "10.0",
+                "dust_scenario": "1",
+                "high_resolution_topography": "1"
+              }
+            }
+          ]
+        },
+        {
+          "source": "ARCO-MACDA",
+          "inputs": [
+            {
+              "path": "/Users/sameerkashyap/code/terraforming/data/arco_macda/macda_my34_ls225_10sol_daily_t21_l12.nc",
+              "sha256": "cd86c94a962b793d7117832698ff9b53ed652eba07ee31ec3efc608288bb7712",
+              "selected_ls_range": [
+                221.97357177734375,
+                227.74209594726562
+              ],
+              "attributes": {
+                "title": "ARCO-MACDA daily means on the Dinosaur grid",
+                "source_url": "https://huggingface.co/datasets/ananyo01/ARCO-MACDA/resolve/main/macda_combined.zarr",
+                "source_doi": "10.57967/hf/8771",
+                "underlying_macda_doi": "10.5285/cd037a9ea387438fabf4d674dbe53088",
+                "source_license": "CC BY 4.0; underlying MACDA v2.0 OGL v3.0",
+                "mars_year": "34",
+                "source_start_index": "85511",
+                "source_stop_index_exclusive": "85631",
+                "source_samples_per_sol": "12",
+                "temporal_reduction": "arithmetic daily mean; circular mean for solar longitude",
+                "vertical_regridding": "linear interpolation in sigma",
+                "horizontal_regridding": "periodic bilinear latitude-longitude interpolation",
+                "target_truncation": "T21",
+                "target_layers": "12",
+                "retrieved_utc": "2026-09-19T18:19:12.657280+00:00"
+              }
+            },
+            {
+              "path": "/Users/sameerkashyap/code/terraforming/data/arco_macda/macda_my35_ls225_10sol_daily_t21_l12.nc",
+              "sha256": "634f9d5ed96969fa6a04a6405b9a357adb88155e60ef81eacc07bcc93312b023",
+              "selected_ls_range": [
+                222.01632690429688,
+                227.7849884033203
+              ],
+              "attributes": {
+                "title": "ARCO-MACDA daily means on the Dinosaur grid",
+                "source_url": "https://huggingface.co/datasets/ananyo01/ARCO-MACDA/resolve/main/macda_combined.zarr",
+                "source_doi": "10.57967/hf/8771",
+                "underlying_macda_doi": "10.5285/cd037a9ea387438fabf4d674dbe53088",
+                "source_license": "CC BY 4.0; underlying MACDA v2.0 OGL v3.0",
+                "mars_year": "35",
+                "source_start_index": "93535",
+                "source_stop_index_exclusive": "93655",
+                "source_samples_per_sol": "12",
+                "temporal_reduction": "arithmetic daily mean; circular mean for solar longitude",
+                "vertical_regridding": "linear interpolation in sigma",
+                "horizontal_regridding": "periodic bilinear latitude-longitude interpolation",
+                "target_truncation": "T21",
+                "target_layers": "12",
+                "retrieved_utc": "2026-09-19T18:23:41.640697+00:00"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "season": 315,
+      "sources": [
+        {
+          "source": "Physical GCM",
+          "inputs": [
+            {
+              "path": "/Users/sameerkashyap/code/terraforming/outputs/deterministic_reference_samples/ames_year3/model_ls315.nc",
+              "sha256": "dd610ba11fa924e9a689eb400b60215be690385df5ef4f666aba8ff8d55f042d",
+              "selected_ls_range": null,
+              "attributes": {
+                "insolation_sampling": "diurnal",
+                "solar_longitude_deg": "315.0",
+                "temporal_sampling": "mean of 3 checkpoints within +/-5 deg Ls",
+                "climate_status": "second-year seasonal evaluation window"
+              }
+            }
+          ]
+        },
+        {
+          "source": "NASA Ames",
+          "inputs": [
+            {
+              "path": "/Users/sameerkashyap/code/terraforming/outputs/deterministic_reference_samples/ames_year3/ames_ls315_on_model_grid.nc",
+              "sha256": "05226c177ae44c1e74bdfb6c1be21a41e49eea364c092c2b51cc3404c0f1ee5d",
+              "selected_ls_range": null,
+              "attributes": {
+                "title": "NASA Ames MGCM FV3 Beta Output Release 1 surface reference",
+                "source": "data/ames/fv3betaout1/03340.atmos_average_zstd.nc",
+                "source_sha256": "d315aac8e9b054f0b86b3dcf2427fe8bc8ad0a3c7b6a79b1a478d19d4f4725c3",
+                "source_code_release": "2022.02",
+                "source_simulation": "c48 reference, sixth simulated year, 2-degree output",
+                "temporal_sampling": "five-sol averages",
+                "co2_ice_conversion": "kg/m2 multiplied by Mars gravity 3.72076 m/s2"
+              }
+            }
+          ]
+        },
+        {
+          "source": "MCD 6.1",
+          "inputs": [
+            {
+              "path": "/Users/sameerkashyap/code/terraforming/outputs/deterministic_reference_samples/mcd_ls315/mcd_diurnal_mean_native.nc",
+              "sha256": "9bc34b4c7ba8b0b9b29a88af374e90e6afc5f2428aca68111cbe078dcbd86268",
+              "selected_ls_range": null,
+              "attributes": {
+                "title": "MCD v6.1 diurnal mean assembled from fixed-local-time maps",
+                "ls_deg": "314.5125351489803",
+                "local_times_hours": "0,6,12,18",
+                "altitude_m_above_surface": "10.0",
+                "dust_scenario": "1",
+                "high_resolution_topography": "1"
+              }
+            }
+          ]
+        },
+        {
+          "source": "ARCO-MACDA",
+          "inputs": [
+            {
+              "path": "/Users/sameerkashyap/code/terraforming/data/arco_macda/macda_my34_ls315_10sol_daily_t21_l12.nc",
+              "sha256": "8fb479e75f77ccceb5156a4f8899e7f5423a8ea7ffa683d6ecb931e4f5417e9a",
+              "selected_ls_range": [
+                312.3833312988281,
+                317.69989013671875
+              ],
+              "attributes": {
+                "title": "ARCO-MACDA daily means on the Dinosaur grid",
+                "source_url": "https://huggingface.co/datasets/ananyo01/ARCO-MACDA/resolve/main/macda_combined.zarr",
+                "source_doi": "10.57967/hf/8771",
+                "underlying_macda_doi": "10.5285/cd037a9ea387438fabf4d674dbe53088",
+                "source_license": "CC BY 4.0; underlying MACDA v2.0 OGL v3.0",
+                "mars_year": "34",
+                "source_start_index": "87215",
+                "source_stop_index_exclusive": "87335",
+                "source_samples_per_sol": "12",
+                "temporal_reduction": "arithmetic daily mean; circular mean for solar longitude",
+                "vertical_regridding": "linear interpolation in sigma",
+                "horizontal_regridding": "periodic bilinear latitude-longitude interpolation",
+                "target_truncation": "T21",
+                "target_layers": "12",
+                "retrieved_utc": "2026-09-19T18:19:15.981596+00:00"
+              }
+            },
+            {
+              "path": "/Users/sameerkashyap/code/terraforming/data/arco_macda/macda_my35_ls315_10sol_daily_t21_l12.nc",
+              "sha256": "ebc2df224ad3e0d969b58331b5fac879f76d8a99fb715bf9f0af0e404031f374",
+              "selected_ls_range": [
+                312.42303466796875,
+                317.7388916015625
+              ],
+              "attributes": {
+                "title": "ARCO-MACDA daily means on the Dinosaur grid",
+                "source_url": "https://huggingface.co/datasets/ananyo01/ARCO-MACDA/resolve/main/macda_combined.zarr",
+                "source_doi": "10.57967/hf/8771",
+                "underlying_macda_doi": "10.5285/cd037a9ea387438fabf4d674dbe53088",
+                "source_license": "CC BY 4.0; underlying MACDA v2.0 OGL v3.0",
+                "mars_year": "35",
+                "source_start_index": "95239",
+                "source_stop_index_exclusive": "95359",
+                "source_samples_per_sol": "12",
+                "temporal_reduction": "arithmetic daily mean; circular mean for solar longitude",
+                "vertical_regridding": "linear interpolation in sigma",
+                "horizontal_regridding": "periodic bilinear latitude-longitude interpolation",
+                "target_truncation": "T21",
+                "target_layers": "12",
+                "retrieved_utc": "2026-09-19T18:23:41.418726+00:00"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

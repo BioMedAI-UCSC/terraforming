@@ -1,0 +1,26 @@
+{
+  "sols": 0.02,
+  "dt_seconds": 300.0,
+  "truncation": "T21",
+  "layers": 4,
+  "runs": {
+    "convection": {
+      "steps": 6,
+      "restart": "outputs/iclr_diagnostics_smoke/convection/restart.npz",
+      "netcdf": "outputs/iclr_diagnostics_smoke/convection/maps.nc",
+      "plots": [
+        "outputs/iclr_diagnostics_smoke/convection/convection_topography.png",
+        "outputs/iclr_diagnostics_smoke/convection/convection_surface_pressure.png",
+        "outputs/iclr_diagnostics_smoke/convection/convection_temperature.png",
+        "outputs/iclr_diagnostics_smoke/convection/convection_wind_speed.png",
+        "outputs/iclr_diagnostics_smoke/convection/convection_co2_ice.png"
+      ],
+      "physics": "dry dynamics + Ames correlated-k CO2 radiation + CO2 condensation cycle + prescribed radiatively active dust | TRANSIENT: 0.0-sol spin-up snapshot, NOT a seasonally-equilibrated climatology (needs >= 1 Mars year)",
+      "checkpoint_diagnostics": "outputs/iclr_diagnostics_smoke/convection/checkpoint_diagnostics.csv",
+      "invocation_start_step": 0,
+      "invocation_steps": 6,
+      "invocation_elapsed_seconds": 9.4031476250384,
+      "simulated_sols_per_wall_hour": 7.762647704604586
+    }
+  }
+}

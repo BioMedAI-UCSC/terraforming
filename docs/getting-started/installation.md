@@ -1,189 +1,72 @@
-# Installation
+# Install the Mars GCM
 
-tform uses [uv](https://docs.astral.sh/uv/) as its package and environment manager. uv is a fast, modern Python tool that replaces pip, venv, and pyenv in a single command.
-
----
-
-## Step 1 — Install uv
-
-Choose the command for your operating system.
-
-=== "macOS / Linux"
-
-    ```bash
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-    ```
-
-    Then restart your terminal (or run `source ~/.bashrc` / `source ~/.zshrc`).
-
-=== "Windows (PowerShell)"
-
-    ```powershell
-    powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-    ```
-
-    Then restart your terminal.
-
-=== "Homebrew (macOS)"
-
-    ```bash
-    brew install uv
-    ```
-
-=== "pip (any OS)"
-
-    ```bash
-    pip install uv
-    ```
-
-Verify installation:
+The primary simulation stack is Python 3.12+, JAX and Dinosaur. The repository
+uses [uv](https://docs.astral.sh/uv/getting-started/installation/) for dependencies.
+Install uv using its platform instructions, then clone the repository:
 
 ```bash
-uv --version
-```
-
-You should see something like `uv 0.5.x`. If the command is not found, check that `~/.cargo/bin` (the default install path) is on your `PATH`.
-
-Full documentation: [docs.astral.sh/uv/getting-started/installation](https://docs.astral.sh/uv/getting-started/installation/)
-
----
-
-## Step 2 — Clone the repository
-
-```bash
-git clone https://github.com/BioMedAI-UCSC/terraforming
+rtk proxy git clone https://github.com/BioMedAI-UCSC/terraforming
 cd terraforming
+rtk proxy uv sync --all-packages --extra gcm3d --dev
 ```
 
----
+Commands here run from the repository root. RTK is optional for readers; remove
+`rtk proxy` if it is unavailable. `--all-packages` installs both the physics
+package and CLI; `--extra gcm3d` installs the optional GCM dependencies.
+Use the installed environment explicitly so another sync does not remove extras.
 
-## Step 3 — Install dependencies
+## Verify the installation
 
 ```bash
-uv sync
+rtk proxy .venv/bin/python -c 'import jax; from src.framework.gcm import BodyConstants; print(jax.devices())'
+rtk proxy .venv/bin/python -m cli.main mars maps --help
 ```
 
-This creates a `.venv/` directory in the project root and installs all dependencies for both the `terraforming` physics package and the `tform` CLI. You do not need to create a virtual environment manually.
+CPU JAX is sufficient for first maps and generated neural examples. A CUDA GPU
+requires a compatible JAX CUDA plugin and driver; the GCM extra alone does not
+select a GPU. Check `jax.devices()` on the intended machine before long workloads.
+The GPU cache and `--require-gpu` experiment commands reject CPU fallback.
 
----
-
-## Step 4 — Verify tform works
+## Stage terrain and boundary data
 
 ```bash
-uv run tform --version
-uv run tform man mars
+rtk proxy .venv/bin/python scripts/stage_mola.py
 ```
 
-Using `uv run` is the recommended way to call tform — it automatically uses the project's virtual environment without you needing to activate it.
+MOLA terrain is required for Mars map runs and verified against a pinned checksum.
+The Ames correlated-k radiation table is bundled. TES surface and Ames dust data
+are separate inputs for richer configurations; see
+[data staging](../scripts/gcm3d-data.md). Existing `outputs/` experiment bundles
+referenced in runbooks are not supplied by a fresh checkout.
 
----
-
-## Activating the virtual environment (optional)
-
-If you prefer to activate the environment so you can run `tform` directly without `uv run`:
-
-=== "macOS / Linux"
-
-    ```bash
-    source .venv/bin/activate
-    tform --version
-    ```
-
-=== "Windows (PowerShell)"
-
-    ```powershell
-    .venv\Scripts\Activate.ps1
-    tform --version
-    ```
-
-=== "Windows (CMD)"
-
-    ```cmd
-    .venv\Scripts\activate.bat
-    tform --version
-    ```
-
-To deactivate:
+For ARCO-MACDA streaming, install its extra while retaining GCM dependencies:
 
 ```bash
-deactivate
+rtk proxy uv sync --all-packages --extra gcm3d --extra arco --dev
 ```
 
----
+For the calibration application:
+
+```bash
+rtk proxy uv pip install -e ./apps/mars-calibration
+```
+
+## First run and browser
+
+Continue to the [quickstart](quickstart.md). The prebuilt UI is served by the CLI;
+Node is needed only to modify/build the frontend. Source builds use `npm install`
+and `npm run build` from `ui/`, producing assets under `cli/static/`.
 
 ## Troubleshooting
 
-### `tform: command not found`
+| Symptom | Check |
+| --- | --- |
+| Missing Dinosaur/JAX | Repeat sync with `--extra gcm3d`; use the project's Python |
+| Missing or corrupt MOLA | Rerun terrain staging; inspect its path and checksum |
+| Only CPU devices on a GPU host | Check matching JAX plugin and driver before launching |
+| Missing xarray/Zarr streaming dependencies | Retain both `gcm3d` and `arco` extras |
+| Diurnal timestep rejected | Use a timestep below `rotation_period/(2*n_lon)` and check stability |
 
-The most common cause is that the virtual environment is not active and you are not using `uv run`. Fix with either:
-
-```bash
-# Option A: always prefix with uv run
-uv run tform man mars
-
-# Option B: activate the venv first, then use tform directly
-source .venv/bin/activate
-tform man mars
-```
-
-### `uv: command not found` after installation
-
-The uv installer adds itself to `~/.local/bin` (Linux) or `~/.cargo/bin` (macOS). Make sure that directory is on your `PATH`:
-
-```bash
-# Add to ~/.bashrc or ~/.zshrc
-export PATH="$HOME/.local/bin:$PATH"
-
-# Then reload
-source ~/.bashrc
-```
-
-On Windows, restart your terminal after installation — the installer updates the system PATH automatically.
-
-### `uv sync` fails with Python version error
-
-tform requires Python 3.12 or later. uv can install the right Python version automatically:
-
-```bash
-uv python install 3.12
-uv sync
-```
-
-### `.venv` exists but tform still not found
-
-The venv may be stale. Remove it and resync:
-
-```bash
-rm -rf .venv
-uv sync
-```
-
-### `ModuleNotFoundError: No module named 'torch'`
-
-PyTorch was not installed correctly. Run:
-
-```bash
-uv sync --reinstall
-```
-
-If you need a CUDA-enabled build of PyTorch, install it manually after sync:
-
-```bash
-uv pip install torch --index-url https://download.pytorch.org/whl/cu121
-```
-
----
-
-## GPU support (optional)
-
-The simulator uses PyTorch for all tensor operations. If a CUDA GPU is available, pass `device="cuda"` when constructing objects directly in Python:
-
-```python
-from src.celestials import Mars
-from src.engine import TimeController, Accuracy
-
-planet = Mars(device="cuda")
-tc = TimeController(planet, accuracy=Accuracy.ACCURATE)
-```
-
-The CLI always runs on CPU; GPU acceleration is only available through the Python API.
+!!! warning "Deprecated model"
+    The torch global-mean model is deprecated. Its dependencies remain in the
+    package for existing APIs; installation does not make it the recommended workflow.

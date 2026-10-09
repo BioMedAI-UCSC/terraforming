@@ -172,8 +172,69 @@ def test_surface_fields_are_threaded_into_radiation_and_regolith(tmp_path):
     assert forcing.convective_adjustment_enabled
 
 
+def test_ames_dust_climatology_is_regridded_for_seasonal_forcing(tmp_path):
+    import xarray as xr
+
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.celestials.planets.mars.gcm import radiative_forcing
+
+    grid = coordinate_system("T21", 4).horizontal
+    path = tmp_path / "ames_dust.nc"
+    shape = (3, 5, 8)
+    xr.Dataset(
+        {
+            "dust_visible_optical_depth": (
+                ("ls", "lat", "lon"), np.full(shape, 0.3)
+            ),
+            "dust_longwave_optical_depth": (
+                ("ls", "lat", "lon"), np.full(shape, 0.1)
+            ),
+        },
+        coords={
+            "ls": [0.0, 120.0, 240.0],
+            "lat": np.linspace(-90.0, 90.0, shape[1]),
+            "lon": np.linspace(0.0, 315.0, shape[2]),
+        },
+    ).to_netcdf(path)
+    forcing = maps.forcing_with_ames_dust_climatology(
+        radiative_forcing(), grid, path
+    )
+    assert np.asarray(forcing.dust_climatology_ls_deg).shape == (3,)
+    assert np.asarray(forcing.dust_visible_climatology).shape == (
+        3, *grid.nodal_shape
+    )
+    assert np.allclose(np.asarray(forcing.dust_longwave_climatology), 0.1)
+
+
 @needs_mola
 class TestOutputs:
+
+    def test_full_state_comparison_schema(self):
+        from src.celestials.planets.mars.gcm import radiative_forcing
+        from src.framework.gcm.coordinates import coordinate_system
+        from src.framework.gcm.specs import physics_specs
+
+        forcing = radiative_forcing(diurnal=True)
+        _, state = maps.run_maps(
+            truncation="T21", n_layers=4, dt_seconds=300.0, n_steps=2,
+            forcing=forcing, return_final_state=True,
+        )
+        coords = coordinate_system("T21", 4)
+        dataset = maps.state_to_comparison_dataset(
+            state, coords, physics_specs(MARS_BODY_3D), MARS_BODY_3D, forcing
+        )
+        assert dataset.sizes == {
+            "time": 1, "lat": 32, "lon": 64, "sigma": 4,
+            "soil_layer": 12,
+        }
+        assert set((
+            "surface_pressure", "surface_temperature", "air_temperature",
+            "eastward_wind", "northward_wind", "wind_speed", "air_pressure",
+            "co2_frost", "soil_temperature", "local_solar_time",
+            "solar_longitude",
+        )).issubset(dataset.data_vars)
+        assert np.isfinite(dataset.to_array()).all()
+        assert np.all((dataset.local_solar_time >= 0.0) & (dataset.local_solar_time < 24.0))
 
     def test_save_netcdf_and_plots(self, tmp_path):
         f = maps.run_maps(truncation="T21", n_layers=8, dt_seconds=600.0, n_steps=20)

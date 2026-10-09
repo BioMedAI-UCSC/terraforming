@@ -71,3 +71,19 @@ def test_staged_arco_time_is_martian_sol_not_cf_datetime(tmp_path):
     with xr.open_dataset(path) as reopened:
         assert reopened.time.attrs["units"] == "sol"
         assert np.array_equal(reopened.time.values, [0.5])
+
+
+def test_arco_ls_window_avoids_source_time_gap():
+    stage = _script("stage_arco_macda")
+    regular = np.arange(72, dtype=np.float64) / stage.SAMPLES_PER_SOL
+    regular[36:] += 30.0
+    source = xr.Dataset(
+        {"Ls": ("time", np.linspace(0.0, 60.0, 72))},
+        coords={"time": ("time", regular)},
+    )
+    start, stop = stage._nearest_contiguous_window(
+        source, 0, 72, center_ls=30.0, sols=2
+    )
+    selected = np.asarray(source.time.isel(time=slice(start, stop)))
+    assert stop - start == 2 * stage.SAMPLES_PER_SOL
+    assert np.allclose(np.diff(selected), 1.0 / stage.SAMPLES_PER_SOL)

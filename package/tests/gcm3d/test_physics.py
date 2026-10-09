@@ -327,6 +327,27 @@ class TestHeatingTendency:
                 state, coords, specs, MARS_BODY_3D, invalid
             )
 
+        def differentiable_flux(scale):
+            calibrated = dataclasses.replace(
+                full, ames_co2_longwave_opacity_scale=scale
+            )
+            flux = physics.two_stream_radiative_fluxes(
+                state, coords, specs, MARS_BODY_3D, calibrated
+            )
+            return jnp.mean(flux.longwave_down_w_m2[-1])
+
+        gradient = float(jax.grad(differentiable_flux)(0.25))
+        assert math.isfinite(gradient)
+        assert gradient != 0.0
+
+        invalid_exchange = dataclasses.replace(
+            full, surface_exchange_multiplier=-0.1
+        )
+        with pytest.raises(ValueError, match="must be finite and non-negative"):
+            physics.two_stream_radiative_fluxes(
+                state, coords, specs, MARS_BODY_3D, invalid_exchange
+            )
+
     def test_invalid_multiband_configuration_fails_early(self):
         coords, specs = _coords(), physics_specs(MARS_BODY_3D)
         state = _column_state(coords, specs)
@@ -555,6 +576,56 @@ class TestDryConvectiveAdjustment:
         # Nodal adjustment is algebraically exact; modal round-trip is limited by
         # Dinosaur's float32 spectral basis even with JAX x64 enabled.
         assert np.max(np.abs(after - before)) < 2e-5
+
+    def test_smooth_tendency_conserves_enthalpy_and_matches_finite_difference(self):
+        coords, specs = _coords(), physics_specs(MARS_BODY_3D)
+        state = _column_state(coords, specs)
+        grid, n = coords.horizontal, coords.vertical.layers
+        sigma = jnp.asarray(coords.vertical.centers).reshape(n, 1, 1)
+        exner = sigma ** MARS_BODY_3D.kappa
+        ref = jnp.asarray(reference_temperature(coords, MARS_BODY_3D)).reshape(
+            n, 1, 1
+        )
+        base_theta = jnp.asarray(
+            [250.0, 240.0, 230.0, 230.02, 210.0, 200.0]
+        ).reshape(n, 1, 1)
+        forcing = dataclasses.replace(
+            mars_gcm.radiative_forcing(), convective_adjustment_enabled=True
+        )
+        time_scale = 1.0 / float(specs.nondimensionalize(1.0 * _u.second))
+
+        def tendency_si(offset):
+            theta = base_theta.at[3].add(offset)
+            temperature_variation = jnp.broadcast_to(
+                theta * exner - ref, (n,) + grid.nodal_shape
+            )
+            tendency = physics.dry_convective_adjustment_tendency(
+                state,
+                coords,
+                specs,
+                MARS_BODY_3D,
+                forcing,
+                temperature_nodal=temperature_variation,
+            )
+            return grid.to_nodal(tendency) / time_scale
+
+        def scalar_tendency(offset):
+            return jnp.mean(tendency_si(offset) ** 2)
+
+        offset = 0.0
+        weights = jnp.asarray(
+            np.diff(np.asarray(coords.vertical.boundaries))
+        ).reshape(n, 1, 1)
+        # Every interface transfer must cancel in the column heat budget.
+        residual = jnp.sum(weights * tendency_si(offset), axis=0)
+        assert float(jnp.max(jnp.abs(residual))) < 1e-9
+        autodiff = float(jax.grad(scalar_tendency)(offset))
+        epsilon = 1.0e-4
+        finite_difference = float(
+            (scalar_tendency(offset + epsilon) - scalar_tendency(offset - epsilon))
+            / (2.0 * epsilon)
+        )
+        assert autodiff == pytest.approx(finite_difference, rel=1e-5, abs=1e-12)
 
     @pytest.mark.parametrize("n_layers", [4, 8])
     def test_surface_atmosphere_exchange_conserves_energy(self, n_layers):

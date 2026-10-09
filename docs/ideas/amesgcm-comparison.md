@@ -1,5 +1,10 @@
 # AmesGCM physics comparison
 
+!!! note "Historical design record"
+    For current interfaces and defaults, use the [3-D GCM documentation](../package/gcm3d/README.md).
+    The torch global-mean model is [deprecated](../deprecated-global-mean.md).
+
+
 ## Purpose
 
 This document compares the NASA Ames Mars GCM physics in `AmesGCM/` with the

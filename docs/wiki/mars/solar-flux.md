@@ -1,85 +1,47 @@
-# Solar Flux at Mars
+# Solar forcing in the Mars GCM
 
-This page derives the solar flux model used at each timestep in the Mars climate simulation. The general theory is in [Solar Radiation](../solar-radiation.md); this page applies it to Mars-specific conditions with calibrated numerical values.
+The GCM computes solar geometry for each horizontal grid cell from its own
+simulation clock and Mars orbital/rotation constants. These fields drive surface
+and atmospheric radiation; see [column physics](../../package/gcm3d/implementation.md).
 
----
+## Keplerian season and distance
 
-## Orbital distance
+Mean anomaly advances uniformly: `M(t) = M0 + 2*pi*t/T_orb`. Six Newton iterations
+solve `M = E - e*sin(E)`, then `r = a*(1-e*cos(E))` and true anomaly determine
+solar longitude `Ls = true_anomaly + Ls_perihelion`. Solar irradiance is
+`S_1AU*(AU/r)**2`.
 
-Mars's distance from the Sun at solar longitude $L_s$ ([Allison & McEwen, 2000](https://doi.org/10.1016/S0032-0633(99)00092-6)):
+Solar longitude is measured from northern spring equinox, not perihelion. Set an
+epoch with `mean_anomaly_for_ls`; do not treat an Ls value as the mean anomaly or
+insert it directly into a perihelion-centered orbital-distance formula.
 
-$$
-r(L_s) = \frac{a\,(1 - e^2)}{1 + e\cos L_s}
-$$
+## Illumination and optical path
 
-With $a = 1.524\,\text{AU}$ and $e = 0.0934$:
+Declination is `asin(sin(obliquity)*sin(Ls))`. Diurnal illumination uses local
+longitude and the rotating hour angle to obtain positive cosine of zenith;
+daily-mean mode integrates illumination across daylight. Polar day/night are
+handled by the geometry. `solar_slant_path_enabled` applies a zenith-dependent
+direct-solar optical path, distinct from the projected incident energy.
 
-| $L_s$ | Event | $r$ (AU) |
-|--------|-------|----------|
-| $0°$ | N. spring equinox | $1.517$ |
-| $71°$ | Aphelion | $1.666$ |
-| $180°$ | N. autumn equinox | $1.517$ |
-| $251°$ | Perihelion | $1.381$ |
+The resolved radiation solver computes absorption/scattering through layers with
+CO₂ and prescribed visible dust, then surface reflection. A fixed scalar
+transmittance is not the correlated-k solver. Albedo may be scalar or a TES field.
+Visible and infrared dust remain separate in the evolving Ames climatology.
 
----
+## Entry points and stability
 
-## Top-of-atmosphere incident flux
+Mars `radiative_forcing()` is diurnal by default; `tform mars maps` instead defaults
+to daily mean. The browser uses its request's sampling and adjusts timestep to
+retain duration when enforcing `dt <= rotation_period/(2*n_lon)`. Passing that
+guard is necessary, but finiteness and dynamical stability still need checks.
 
-The TOA incident shortwave flux on a horizontal surface ([Wikipedia: Solar irradiance](https://en.wikipedia.org/wiki/Solar_irradiance)):
+Use `insolation_sampling`, season and temporal-sampling metadata when matching
+references. Daily means and instantaneous snapshots are different observables.
+See [reference comparisons](../../cli/reference-comparison.md).
 
-$$
-F_\text{TOA} = \frac{S_{1\,\text{AU}}}{r(L_s)^2}\,\max\!\bigl(0,\,\cos\theta_z\bigr)
-$$
+## Related guides
 
-where $S_{1\,\text{AU}} = 1361\,\text{W\,m}^{-2}$ ([Kopp & Lean, 2011](https://doi.org/10.1029/2010GL045777)) and $\theta_z$ is the solar zenith angle. The normal-incidence TOA flux at $L_s \approx 0°$ is:
-
-$$
-F_\text{normal} = \frac{1361}{1.517^2} \approx 591.5\,\text{W\,m}^{-2}
-$$
-
-At perihelion ($r = 1.381\,\text{AU}$) this rises to $\approx 713\,\text{W\,m}^{-2}$, a 21% increase.
-
----
-
-## Surface incident flux
-
-The Martian atmosphere (thin, dusty CO₂) transmits a fraction $\tau_\text{atm}$ of the TOA flux to the surface ([Haberle et al., 1993](https://doi.org/10.1029/92JE02679)):
-
-$$
-F_\text{sfc} = F_\text{TOA} \cdot \tau_\text{atm}
-$$
-
-The baseline value $\tau_\text{atm} = 0.55$ is representative of moderate dust opacity ($\tau_\text{dust} \approx 0.5$). During global dust storms, $\tau_\text{atm}$ can drop below $0.2$.
-
----
-
-## Reflected shortwave
-
-The surface reflects a fraction $\alpha$ of incident shortwave ([Wikipedia: Albedo](https://en.wikipedia.org/wiki/Albedo)):
-
-$$
-F_\text{refl} = \alpha \cdot F_\text{sfc}
-$$
-
-Mars's global mean albedo is $\alpha \approx 0.25$, though regional values range from $0.10$ (dark basalt) to $0.45$ (bright dust, polar caps) ([Christensen et al., 2001](https://doi.org/10.1029/2000JE001368)).
-
----
-
-## Zenith-angle reference table
-
-At $L_s \approx 0°$ ($F_\text{normal} = 591.5\,\text{W\,m}^{-2}$), $\tau_\text{atm} = 0.55$, $\alpha = 0.25$:
-
-| $\theta_z$ | $F_\text{TOA}$ | $F_\text{sfc}$ | $F_\text{abs}$ |
-|-----------|---------------|---------------|---------------|
-| $0°$ | $591.5\,\text{W\,m}^{-2}$ | $325.3\,\text{W\,m}^{-2}$ | $244.0\,\text{W\,m}^{-2}$ |
-| $30°$ | $512.1\,\text{W\,m}^{-2}$ | $281.7\,\text{W\,m}^{-2}$ | $211.3\,\text{W\,m}^{-2}$ |
-| $60°$ | $295.8\,\text{W\,m}^{-2}$ | $162.7\,\text{W\,m}^{-2}$ | $122.0\,\text{W\,m}^{-2}$ |
-| $90°$ | $\approx 0$ | $\approx 0$ | $\approx 0$ |
-
-At perihelion with $r = 1.381\,\text{AU}$ the $0°$ values increase to $F_\text{TOA} \approx 713\,\text{W\,m}^{-2}$, matching the baseline used in the evolve-1hr diagnostic.
-
----
-
-## Implementation
-
-This model is computed at each integration timestep in the Mars ODE. See [`src.celestials`](../../api/celestials.md) for the implementation and [`src.framework.orbital`](../../api/framework.md) for the orbital distance calculation.
+- [GCM quickstart](../../getting-started/quickstart.md).
+- [Radiation implementation](../../package/gcm3d/implementation.md).
+- [General solar radiation](../solar-radiation.md) and [orbital mechanics](../orbital-mechanics.md).
+- [Deprecated global-mean Mars equations](../../architecture/global-mean-mars.md).

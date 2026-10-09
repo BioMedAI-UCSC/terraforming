@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "dt_seconds": 300,
+  "train_seconds": [300, 600],
+  "validation_seconds": [900, 1200],
+  "truth": [0.6, 0.8, 1.4],
+  "starts": [[0.3, 0.4, 0.7]],
+  "active_sets": [[2]],
+  "max_evaluations": 8,
+  "benchmark_repeats": 2,
+  "parameter_relative_tolerance": 0.05,
+  "gradient_relative_tolerance": 0.0001,
+  "gradient_absolute_tolerance": 1e-10,
+  "profile": "integration_smoke_not_paper_evidence"
+}

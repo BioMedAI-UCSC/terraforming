@@ -1,0 +1,613 @@
+{
+  "bundles": [
+    {
+      "folder": "outputs/Untitled",
+      "passed": true,
+      "failures": [],
+      "artifact_hashes_checked": 16,
+      "input_hashes_checked": 5,
+      "endpoint_seconds": 59356800,
+      "cases": [
+        {
+          "case": "full",
+          "temperature_rmse_vs_full_k": 0.0,
+          "u_rmse_vs_full_ms": 0.0,
+          "v_rmse_vs_full_ms": 0.0,
+          "max_relative_co2_drift": 4.284988919245336e-09,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 0.002425268292427063,
+          "min_air_temperature_k": 93.26257000421154,
+          "max_air_temperature_k": 269.1218241080961,
+          "max_wind_ms": 236.0459976970617
+        },
+        {
+          "case": "no_pbl",
+          "temperature_rmse_vs_full_k": 3.949879893695735,
+          "u_rmse_vs_full_ms": 9.827109527206803,
+          "v_rmse_vs_full_ms": 9.728638921643919,
+          "max_relative_co2_drift": 4.147677090671209e-09,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 0.002425268292427063,
+          "min_air_temperature_k": 89.28719630355458,
+          "max_air_temperature_k": 270.91645287440633,
+          "max_wind_ms": 226.43566156620315
+        },
+        {
+          "case": "no_convection",
+          "temperature_rmse_vs_full_k": 3.791622552140458,
+          "u_rmse_vs_full_ms": 9.012922811064382,
+          "v_rmse_vs_full_ms": 9.316716379403365,
+          "max_relative_co2_drift": 4.258427166448087e-09,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 0.002425268292427063,
+          "min_air_temperature_k": 88.34931304337451,
+          "max_air_temperature_k": 268.3312072722549,
+          "max_wind_ms": 233.24031712808784
+        },
+        {
+          "case": "no_regolith",
+          "temperature_rmse_vs_full_k": 4.144342706702032,
+          "u_rmse_vs_full_ms": 9.627351542865387,
+          "v_rmse_vs_full_ms": 9.726937189080195,
+          "max_relative_co2_drift": 4.134695030799662e-09,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 0.002425268292427063,
+          "min_air_temperature_k": 87.63465483347585,
+          "max_air_temperature_k": 273.81014823898147,
+          "max_wind_ms": 228.89878730300643
+        }
+      ],
+      "current_source_matches": {
+        "apps/mars-calibration/mars_calibration/paper.py": true,
+        "apps/mars-calibration/mars_calibration/driver.py": true,
+        "package/src/framework/physics/gcm.py": false,
+        "package/src/framework/gcm/dynamics.py": true
+      }
+    },
+    {
+      "folder": "outputs/paper-year-gpu1",
+      "passed": true,
+      "failures": [],
+      "artifact_hashes_checked": 16,
+      "input_hashes_checked": 5,
+      "endpoint_seconds": 59356800,
+      "cases": [
+        {
+          "case": "full",
+          "temperature_rmse_vs_full_k": 0.0,
+          "u_rmse_vs_full_ms": 0.0,
+          "v_rmse_vs_full_ms": 0.0,
+          "max_relative_co2_drift": 4.284988919245336e-09,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 0.002425268292427063,
+          "min_air_temperature_k": 93.26257000421154,
+          "max_air_temperature_k": 269.1218241080961,
+          "max_wind_ms": 236.0459976970617
+        },
+        {
+          "case": "no_co2_exchange",
+          "temperature_rmse_vs_full_k": 5.009108028194972,
+          "u_rmse_vs_full_ms": 10.522211913699723,
+          "v_rmse_vs_full_ms": 9.901835303032382,
+          "max_relative_co2_drift": 3.949909510581051e-09,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 0.002425268292427063,
+          "min_air_temperature_k": 78.55288172946426,
+          "max_air_temperature_k": 267.6266733863241,
+          "max_wind_ms": 236.25479219860148
+        },
+        {
+          "case": "weaker_diffusion",
+          "temperature_rmse_vs_full_k": 3.764896119847519,
+          "u_rmse_vs_full_ms": 9.145053141790587,
+          "v_rmse_vs_full_ms": 9.387681407709762,
+          "max_relative_co2_drift": 4.231372585650206e-09,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 0.002425268292427063,
+          "min_air_temperature_k": 96.04894986487948,
+          "max_air_temperature_k": 268.29789424946784,
+          "max_wind_ms": 222.69919415894267
+        },
+        {
+          "case": "surface_exchange_multiplier_0.8",
+          "temperature_rmse_vs_full_k": 3.6869687699824554,
+          "u_rmse_vs_full_ms": 8.740540634780983,
+          "v_rmse_vs_full_ms": 8.984397847182883,
+          "max_relative_co2_drift": 4.30103841431162e-09,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 0.002425268292427063,
+          "min_air_temperature_k": 93.83192411563495,
+          "max_air_temperature_k": 267.58403487984526,
+          "max_wind_ms": 226.52856613976934
+        }
+      ],
+      "current_source_matches": {
+        "apps/mars-calibration/mars_calibration/paper.py": true,
+        "apps/mars-calibration/mars_calibration/driver.py": true,
+        "package/src/framework/physics/gcm.py": false,
+        "package/src/framework/gcm/dynamics.py": true
+      }
+    },
+    {
+      "folder": "outputs/paper-year-gpu2",
+      "passed": true,
+      "failures": [],
+      "artifact_hashes_checked": 16,
+      "input_hashes_checked": 5,
+      "endpoint_seconds": 59356800,
+      "cases": [
+        {
+          "case": "full",
+          "temperature_rmse_vs_full_k": 0.0,
+          "u_rmse_vs_full_ms": 0.0,
+          "v_rmse_vs_full_ms": 0.0,
+          "max_relative_co2_drift": 4.284988919245336e-09,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 0.002425268292427063,
+          "min_air_temperature_k": 93.26257000421154,
+          "max_air_temperature_k": 269.1218241080961,
+          "max_wind_ms": 236.0459976970617
+        },
+        {
+          "case": "co2_longwave_opacity_scale_0.8",
+          "temperature_rmse_vs_full_k": 3.7622271366851527,
+          "u_rmse_vs_full_ms": 8.739443856151249,
+          "v_rmse_vs_full_ms": 9.209377198194812,
+          "max_relative_co2_drift": 4.2514995968190306e-09,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 0.002425268292427063,
+          "min_air_temperature_k": 83.74282591026629,
+          "max_air_temperature_k": 268.39790929953256,
+          "max_wind_ms": 221.18538012792732
+        },
+        {
+          "case": "co2_longwave_opacity_scale_1.2",
+          "temperature_rmse_vs_full_k": 3.5311976407001655,
+          "u_rmse_vs_full_ms": 8.546118005886084,
+          "v_rmse_vs_full_ms": 8.75380300417281,
+          "max_relative_co2_drift": 4.277502907434894e-09,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 0.002425268292427063,
+          "min_air_temperature_k": 91.0925089630072,
+          "max_air_temperature_k": 268.9079398787194,
+          "max_wind_ms": 220.7700026831402
+        },
+        {
+          "case": "dust_longwave_opacity_scale_0.8",
+          "temperature_rmse_vs_full_k": 3.7198361072834727,
+          "u_rmse_vs_full_ms": 8.828985852339132,
+          "v_rmse_vs_full_ms": 9.138986213604861,
+          "max_relative_co2_drift": 4.257430075149671e-09,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 0.002425268292427063,
+          "min_air_temperature_k": 95.43922149769624,
+          "max_air_temperature_k": 268.91385529915954,
+          "max_wind_ms": 226.55445371681236
+        }
+      ],
+      "current_source_matches": {
+        "apps/mars-calibration/mars_calibration/paper.py": true,
+        "apps/mars-calibration/mars_calibration/driver.py": true,
+        "package/src/framework/physics/gcm.py": false,
+        "package/src/framework/gcm/dynamics.py": true
+      }
+    },
+    {
+      "folder": "outputs/paper-year-gpu3",
+      "passed": true,
+      "failures": [],
+      "artifact_hashes_checked": 16,
+      "input_hashes_checked": 5,
+      "endpoint_seconds": 59356800,
+      "cases": [
+        {
+          "case": "full",
+          "temperature_rmse_vs_full_k": 0.0,
+          "u_rmse_vs_full_ms": 0.0,
+          "v_rmse_vs_full_ms": 0.0,
+          "max_relative_co2_drift": 4.284988919245336e-09,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 0.002425268292427063,
+          "min_air_temperature_k": 93.26257000421154,
+          "max_air_temperature_k": 269.1218241080961,
+          "max_wind_ms": 236.0459976970617
+        },
+        {
+          "case": "half_timestep",
+          "temperature_rmse_vs_full_k": 3.6999994063805985,
+          "u_rmse_vs_full_ms": 8.760542501614019,
+          "v_rmse_vs_full_ms": 9.148374277225267,
+          "max_relative_co2_drift": 8.54180959297679e-09,
+          "paired_clock_error_seconds": 0.005084963133300335,
+          "offset_clock_error_seconds": 0.0026591867208480835,
+          "min_air_temperature_k": 84.11333127323023,
+          "max_air_temperature_k": 268.922311891133,
+          "max_wind_ms": 237.80986632679083
+        },
+        {
+          "case": "dust_longwave_opacity_scale_1.2",
+          "temperature_rmse_vs_full_k": 3.6162868964787123,
+          "u_rmse_vs_full_ms": 8.534804687981367,
+          "v_rmse_vs_full_ms": 8.867247260847593,
+          "max_relative_co2_drift": 4.256465180318969e-09,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 0.002425268292427063,
+          "min_air_temperature_k": 83.92181650109019,
+          "max_air_temperature_k": 269.0421112505883,
+          "max_wind_ms": 239.79956930073882
+        },
+        {
+          "case": "surface_exchange_multiplier_1.2",
+          "temperature_rmse_vs_full_k": 3.8672741902736463,
+          "u_rmse_vs_full_ms": 9.120325022509377,
+          "v_rmse_vs_full_ms": 9.248094939274813,
+          "max_relative_co2_drift": 4.2179643111595055e-09,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 0.002425268292427063,
+          "min_air_temperature_k": 89.4703895948669,
+          "max_air_temperature_k": 269.54556261230516,
+          "max_wind_ms": 239.3518398656771
+        }
+      ],
+      "current_source_matches": {
+        "apps/mars-calibration/mars_calibration/paper.py": true,
+        "apps/mars-calibration/mars_calibration/driver.py": true,
+        "package/src/framework/physics/gcm.py": false,
+        "package/src/framework/gcm/dynamics.py": true
+      }
+    },
+    {
+      "folder": "outputs/paper-ablations-gpu",
+      "passed": true,
+      "failures": [],
+      "artifact_hashes_checked": 34,
+      "input_hashes_checked": 5,
+      "endpoint_seconds": 44400,
+      "cases": [
+        {
+          "case": "full",
+          "temperature_rmse_vs_full_k": 0.0,
+          "u_rmse_vs_full_ms": 0.0,
+          "v_rmse_vs_full_ms": 0.0,
+          "max_relative_co2_drift": 2.5350832544290824e-12,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 1.5586847439408302e-06,
+          "min_air_temperature_k": 102.3761982673468,
+          "max_air_temperature_k": 243.92114661537718,
+          "max_wind_ms": 166.57577158727466
+        },
+        {
+          "case": "no_pbl",
+          "temperature_rmse_vs_full_k": 0.6728569189308261,
+          "u_rmse_vs_full_ms": 1.6594892075636112,
+          "v_rmse_vs_full_ms": 1.5681662355936976,
+          "max_relative_co2_drift": 2.5052182550666657e-12,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 1.5586847439408302e-06,
+          "min_air_temperature_k": 102.37935447414624,
+          "max_air_temperature_k": 246.0113134735082,
+          "max_wind_ms": 166.58038548500627
+        },
+        {
+          "case": "no_convection",
+          "temperature_rmse_vs_full_k": 0.32012803349253605,
+          "u_rmse_vs_full_ms": 0.4349601674211734,
+          "v_rmse_vs_full_ms": 0.40993556056344965,
+          "max_relative_co2_drift": 2.5096591471651664e-12,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 1.5586847439408302e-06,
+          "min_air_temperature_k": 102.38216515267929,
+          "max_air_temperature_k": 244.4709773662131,
+          "max_wind_ms": 166.5770751399514
+        },
+        {
+          "case": "no_regolith",
+          "temperature_rmse_vs_full_k": 0.7318401823772023,
+          "u_rmse_vs_full_ms": 0.5997946680141576,
+          "v_rmse_vs_full_ms": 0.6093534745245939,
+          "max_relative_co2_drift": 2.5121016378193417e-12,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 1.5586847439408302e-06,
+          "min_air_temperature_k": 102.37604243199904,
+          "max_air_temperature_k": 246.78252358365108,
+          "max_wind_ms": 166.5782754864583
+        },
+        {
+          "case": "no_co2_exchange",
+          "temperature_rmse_vs_full_k": 0.16778161998263916,
+          "u_rmse_vs_full_ms": 0.2788547126942173,
+          "v_rmse_vs_full_ms": 0.23886208535353665,
+          "max_relative_co2_drift": 2.3893109712957994e-12,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 1.5586847439408302e-06,
+          "min_air_temperature_k": 102.33802838833326,
+          "max_air_temperature_k": 243.92120252492623,
+          "max_wind_ms": 166.5229315091267
+        },
+        {
+          "case": "weaker_diffusion",
+          "temperature_rmse_vs_full_k": 0.18535587247965077,
+          "u_rmse_vs_full_ms": 0.6094272059088475,
+          "v_rmse_vs_full_ms": 0.6209484842346268,
+          "max_relative_co2_drift": 2.440048163521169e-12,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 1.5586847439408302e-06,
+          "min_air_temperature_k": 101.8844701681486,
+          "max_air_temperature_k": 243.90021575817013,
+          "max_wind_ms": 166.91527806217366
+        },
+        {
+          "case": "half_timestep",
+          "temperature_rmse_vs_full_k": 0.004213688447182398,
+          "u_rmse_vs_full_ms": 0.008917739821990447,
+          "v_rmse_vs_full_ms": 0.009834385170885484,
+          "max_relative_co2_drift": 5.026201677083009e-12,
+          "paired_clock_error_seconds": 3.7948088611301503e-06,
+          "offset_clock_error_seconds": 1.7314960132353008e-06,
+          "min_air_temperature_k": 102.37761892350775,
+          "max_air_temperature_k": 243.9253230196873,
+          "max_wind_ms": 166.5760129813278
+        },
+        {
+          "case": "co2_longwave_opacity_scale_0.8",
+          "temperature_rmse_vs_full_k": 0.09948166366087755,
+          "u_rmse_vs_full_ms": 0.05475826785961196,
+          "v_rmse_vs_full_ms": 0.05516828289974209,
+          "max_relative_co2_drift": 2.5123236824242667e-12,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 1.5586847439408302e-06,
+          "min_air_temperature_k": 102.37978832506823,
+          "max_air_temperature_k": 243.904109366817,
+          "max_wind_ms": 166.61036482868136
+        },
+        {
+          "case": "co2_longwave_opacity_scale_1.2",
+          "temperature_rmse_vs_full_k": 0.08407785996277951,
+          "u_rmse_vs_full_ms": 0.04513046741851465,
+          "v_rmse_vs_full_ms": 0.045523229878197506,
+          "max_relative_co2_drift": 2.5150992399858296e-12,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 1.5586847439408302e-06,
+          "min_air_temperature_k": 102.37266436593754,
+          "max_air_temperature_k": 243.94308291493678,
+          "max_wind_ms": 166.54738278535555
+        },
+        {
+          "case": "dust_longwave_opacity_scale_0.8",
+          "temperature_rmse_vs_full_k": 0.08115176424469438,
+          "u_rmse_vs_full_ms": 0.05434228646215252,
+          "v_rmse_vs_full_ms": 0.0615883554502576,
+          "max_relative_co2_drift": 2.4699131628835858e-12,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 1.5586847439408302e-06,
+          "min_air_temperature_k": 102.37762875543064,
+          "max_air_temperature_k": 243.9281202917429,
+          "max_wind_ms": 166.59648919609532
+        },
+        {
+          "case": "dust_longwave_opacity_scale_1.2",
+          "temperature_rmse_vs_full_k": 0.07925554729093168,
+          "u_rmse_vs_full_ms": 0.05333514425679984,
+          "v_rmse_vs_full_ms": 0.060521874814076004,
+          "max_relative_co2_drift": 2.5444091278359338e-12,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 1.5586847439408302e-06,
+          "min_air_temperature_k": 102.37477938619578,
+          "max_air_temperature_k": 243.9147391712107,
+          "max_wind_ms": 166.55541493446023
+        },
+        {
+          "case": "surface_exchange_multiplier_0.8",
+          "temperature_rmse_vs_full_k": 0.27650113176727875,
+          "u_rmse_vs_full_ms": 0.3269897661750142,
+          "v_rmse_vs_full_ms": 0.3088856970438879,
+          "max_relative_co2_drift": 2.5467405961876466e-12,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 1.5586847439408302e-06,
+          "min_air_temperature_k": 102.37167991688787,
+          "max_air_temperature_k": 243.49546953945708,
+          "max_wind_ms": 166.5741813042713
+        },
+        {
+          "case": "surface_exchange_multiplier_1.2",
+          "temperature_rmse_vs_full_k": 0.23694243469721096,
+          "u_rmse_vs_full_ms": 0.27876780540091906,
+          "v_rmse_vs_full_ms": 0.26217954367865015,
+          "max_relative_co2_drift": 2.5444091278359338e-12,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 1.5586847439408302e-06,
+          "min_air_temperature_k": 102.37976830113828,
+          "max_air_temperature_k": 244.31467312674263,
+          "max_wind_ms": 166.57740312684942
+        }
+      ],
+      "current_source_matches": {
+        "apps/mars-calibration/mars_calibration/paper.py": true,
+        "apps/mars-calibration/mars_calibration/driver.py": true,
+        "package/src/framework/physics/gcm.py": false,
+        "package/src/framework/gcm/dynamics.py": true
+      }
+    },
+    {
+      "folder": "outputs/paper-protocol-smoke-v2",
+      "passed": true,
+      "failures": [],
+      "artifact_hashes_checked": 79,
+      "input_hashes_checked": 5,
+      "endpoint_seconds": 1200,
+      "cases": [
+        {
+          "case": "full",
+          "temperature_rmse_vs_full_k": 0.0,
+          "u_rmse_vs_full_ms": 0.0,
+          "v_rmse_vs_full_ms": 0.0,
+          "max_relative_co2_drift": 2.942091015256665e-14,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 3.637399004219333e-08,
+          "min_air_temperature_k": 102.86677487423587,
+          "max_air_temperature_k": 244.21979812819657,
+          "max_wind_ms": 169.1913988919516
+        },
+        {
+          "case": "no_pbl",
+          "temperature_rmse_vs_full_k": 0.1269670446941663,
+          "u_rmse_vs_full_ms": 0.0851836142594361,
+          "v_rmse_vs_full_ms": 0.07634949599790905,
+          "max_relative_co2_drift": 1.1657341758564144e-14,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 3.637399004219333e-08,
+          "min_air_temperature_k": 102.86666438902748,
+          "max_air_temperature_k": 244.8851852627294,
+          "max_wind_ms": 169.19140300175837
+        },
+        {
+          "case": "no_convection",
+          "temperature_rmse_vs_full_k": 0.05226809340787913,
+          "u_rmse_vs_full_ms": 0.004636069406729968,
+          "v_rmse_vs_full_ms": 0.0034333291176537597,
+          "max_relative_co2_drift": 1.9984014443252818e-14,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 3.637399004219333e-08,
+          "min_air_temperature_k": 102.86667901933272,
+          "max_air_temperature_k": 244.42681321128646,
+          "max_wind_ms": 169.19141186161156
+        },
+        {
+          "case": "no_regolith",
+          "temperature_rmse_vs_full_k": 0.006187970332105098,
+          "u_rmse_vs_full_ms": 0.0016814561116424492,
+          "v_rmse_vs_full_ms": 0.0012108947506618796,
+          "max_relative_co2_drift": 1.4876988529977098e-14,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 3.637399004219333e-08,
+          "min_air_temperature_k": 102.86690448190703,
+          "max_air_temperature_k": 244.22494006762503,
+          "max_wind_ms": 169.19139873076716
+        },
+        {
+          "case": "no_co2_exchange",
+          "temperature_rmse_vs_full_k": 0.0006681297978830162,
+          "u_rmse_vs_full_ms": 0.002543147881411311,
+          "v_rmse_vs_full_ms": 0.003564589138725988,
+          "max_relative_co2_drift": 7.66053886991358e-15,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 3.637399004219333e-08,
+          "min_air_temperature_k": 102.86762524717972,
+          "max_air_temperature_k": 244.21969986051232,
+          "max_wind_ms": 169.19135331667195
+        },
+        {
+          "case": "weaker_diffusion",
+          "temperature_rmse_vs_full_k": 0.015886004356785412,
+          "u_rmse_vs_full_ms": 0.04455707195138916,
+          "v_rmse_vs_full_ms": 0.05239083542958516,
+          "max_relative_co2_drift": 4.107825191113079e-15,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 3.637399004219333e-08,
+          "min_air_temperature_k": 102.87063743576678,
+          "max_air_temperature_k": 244.22834226640651,
+          "max_wind_ms": 169.20347066933758
+        },
+        {
+          "case": "half_timestep",
+          "temperature_rmse_vs_full_k": 0.0027473013502422616,
+          "u_rmse_vs_full_ms": 0.012536862445901681,
+          "v_rmse_vs_full_ms": 0.01663086511661698,
+          "max_relative_co2_drift": 3.375077994860476e-14,
+          "paired_clock_error_seconds": 8.074061406659894e-08,
+          "offset_clock_error_seconds": 2.957779088319512e-08,
+          "min_air_temperature_k": 102.86412928927999,
+          "max_air_temperature_k": 244.22167589338224,
+          "max_wind_ms": 169.19190919319666
+        },
+        {
+          "case": "co2_longwave_opacity_scale_0.8",
+          "temperature_rmse_vs_full_k": 0.0055900920344736866,
+          "u_rmse_vs_full_ms": 0.0002395065671736435,
+          "v_rmse_vs_full_ms": 0.00025119465349913354,
+          "max_relative_co2_drift": 1.021405182655144e-14,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 3.637399004219333e-08,
+          "min_air_temperature_k": 102.86697999780348,
+          "max_air_temperature_k": 244.21629099446776,
+          "max_wind_ms": 169.19145977915005
+        },
+        {
+          "case": "co2_longwave_opacity_scale_1.2",
+          "temperature_rmse_vs_full_k": 0.004657372516103468,
+          "u_rmse_vs_full_ms": 0.00019636158580885985,
+          "v_rmse_vs_full_ms": 0.00020725789416747593,
+          "max_relative_co2_drift": 2.275957200481571e-14,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 3.637399004219333e-08,
+          "min_air_temperature_k": 102.86656711713653,
+          "max_air_temperature_k": 244.22569802572139,
+          "max_wind_ms": 169.19134584021174
+        },
+        {
+          "case": "dust_longwave_opacity_scale_0.8",
+          "temperature_rmse_vs_full_k": 0.004266590115966398,
+          "u_rmse_vs_full_ms": 0.00022390100853097062,
+          "v_rmse_vs_full_ms": 0.00024065631566322517,
+          "max_relative_co2_drift": 2.020605904817785e-14,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 3.637399004219333e-08,
+          "min_air_temperature_k": 102.86670768989397,
+          "max_air_temperature_k": 244.2281338207888,
+          "max_wind_ms": 169.19141272628582
+        },
+        {
+          "case": "dust_longwave_opacity_scale_1.2",
+          "temperature_rmse_vs_full_k": 0.004211076566256627,
+          "u_rmse_vs_full_ms": 0.0002202173719872968,
+          "v_rmse_vs_full_ms": 0.00023665898037736766,
+          "max_relative_co2_drift": 4.3298697960381105e-15,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 3.637399004219333e-08,
+          "min_air_temperature_k": 102.86684093424026,
+          "max_air_temperature_k": 244.21501685460612,
+          "max_wind_ms": 169.19138510912987
+        },
+        {
+          "case": "surface_exchange_multiplier_0.8",
+          "temperature_rmse_vs_full_k": 0.03557110747334922,
+          "u_rmse_vs_full_ms": 0.025125764697653673,
+          "v_rmse_vs_full_ms": 0.017760626096911005,
+          "max_relative_co2_drift": 1.3655743202889425e-14,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 3.637399004219333e-08,
+          "min_air_temperature_k": 102.86670857233973,
+          "max_air_temperature_k": 244.18023798372835,
+          "max_wind_ms": 169.19137942492213
+        },
+        {
+          "case": "surface_exchange_multiplier_1.2",
+          "temperature_rmse_vs_full_k": 0.03496455910544881,
+          "u_rmse_vs_full_ms": 0.02431710053304726,
+          "v_rmse_vs_full_ms": 0.01708819121997353,
+          "max_relative_co2_drift": 6.8833827526759706e-15,
+          "paired_clock_error_seconds": 0.0,
+          "offset_clock_error_seconds": 3.637399004219333e-08,
+          "min_air_temperature_k": 102.8668384759032,
+          "max_air_temperature_k": 244.34856804258027,
+          "max_wind_ms": 169.19141840534783
+        }
+      ],
+      "current_source_matches": {
+        "apps/mars-calibration/mars_calibration/paper.py": true,
+        "apps/mars-calibration/mars_calibration/driver.py": true,
+        "package/src/framework/physics/gcm.py": false,
+        "package/src/framework/gcm/dynamics.py": true
+      }
+    }
+  ],
+  "annual_cross_checks": {
+    "annual_case_count": 13,
+    "same_baseline_restart": true,
+    "same_baseline_netcdf": true,
+    "same_config": true,
+    "same_input_manifest": true,
+    "same_source_hashes": true
+  },
+  "scope": "Saved-output and implementation audit; no new long integration or observational validation"
+}

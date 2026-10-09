@@ -1,0 +1,1140 @@
+{
+  "status": "complete",
+  "initial_diagnostics": {
+    "co2_mass_kg": 2.5984358170141188e+16,
+    "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 240195480.1363625,
+    "atmospheric_aam_kg_m_s_sr": 906999876357.2854,
+    "min_air_temperature_k": 102.92618877345033,
+    "max_air_temperature_k": 244.22167996022495,
+    "max_wind_ms": 169.18129221962846,
+    "min_surface_temperature_k": 142.05906613041566,
+    "max_surface_temperature_k": 267.08100159103367,
+    "mean_deep_soil_temperature_k": 200.67891217407436,
+    "min_frost_pa": 0.0
+  },
+  "records": [
+    {
+      "case": {
+        "name": "full",
+        "parameters": [
+          0.6,
+          0.8,
+          1.4
+        ],
+        "dt": 300
+      },
+      "status": "finite",
+      "seconds": [
+        6000,
+        12000,
+        22200,
+        30000,
+        44400
+      ],
+      "diagnostics": [
+        {
+          "co2_mass_kg": 2.5984358170132036e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 240077762.9272706,
+          "atmospheric_aam_kg_m_s_sr": 906824287673.3859,
+          "min_air_temperature_k": 102.56536647912202,
+          "max_air_temperature_k": 243.92114661537718,
+          "max_wind_ms": 166.57577158727466,
+          "min_surface_temperature_k": 141.91490924151023,
+          "max_surface_temperature_k": 265.76142607466187,
+          "mean_deep_soil_temperature_k": 200.678978632703,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.598435817012344e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239980135.80288464,
+          "atmospheric_aam_kg_m_s_sr": 906348589590.7246,
+          "min_air_temperature_k": 102.3761982673468,
+          "max_air_temperature_k": 242.81779637512926,
+          "max_wind_ms": 160.56459746254583,
+          "min_surface_temperature_k": 141.8663803509132,
+          "max_surface_temperature_k": 262.9427949516373,
+          "mean_deep_soil_temperature_k": 200.67904509302628,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.5984358170108052e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239880975.3894864,
+          "atmospheric_aam_kg_m_s_sr": 905565188934.0762,
+          "min_air_temperature_k": 103.6808512948101,
+          "max_air_temperature_k": 238.37921017892924,
+          "max_wind_ms": 158.1867545591709,
+          "min_surface_temperature_k": 141.81611315127896,
+          "max_surface_temperature_k": 264.09128363777666,
+          "mean_deep_soil_temperature_k": 200.67915807946326,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.5984358170096496e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239855980.18039536,
+          "atmospheric_aam_kg_m_s_sr": 904974274138.7385,
+          "min_air_temperature_k": 103.41045751689363,
+          "max_air_temperature_k": 240.43746690248776,
+          "max_wind_ms": 158.60765199907433,
+          "min_surface_temperature_k": 141.800551298305,
+          "max_surface_temperature_k": 268.3216240383073,
+          "mean_deep_soil_temperature_k": 200.67924448415795,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.5984358170075316e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239900458.97653294,
+          "atmospheric_aam_kg_m_s_sr": 904734306013.5494,
+          "min_air_temperature_k": 102.41567895398829,
+          "max_air_temperature_k": 243.6325922532731,
+          "max_wind_ms": 148.61117670768385,
+          "min_surface_temperature_k": 141.77940501442194,
+          "max_surface_temperature_k": 266.88763572328173,
+          "mean_deep_soil_temperature_k": 200.67940400803062,
+          "min_frost_pa": 0.0
+        }
+      ],
+      "preparation": {
+        "compile_seconds": 13.38442795863375,
+        "warmup_seconds": 4.27983720973134
+      }
+    },
+    {
+      "case": {
+        "name": "no_pbl",
+        "parameters": [
+          0.6,
+          0.8,
+          1.4
+        ],
+        "dt": 300,
+        "overrides": {
+          "pbl_diffusion_enabled": false
+        }
+      },
+      "status": "finite",
+      "seconds": [
+        6000,
+        12000,
+        22200,
+        30000,
+        44400
+      ],
+      "diagnostics": [
+        {
+          "co2_mass_kg": 2.5984358170132052e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 240040998.6139722,
+          "atmospheric_aam_kg_m_s_sr": 906837151889.4832,
+          "min_air_temperature_k": 102.56638203173793,
+          "max_air_temperature_k": 246.0113134735082,
+          "max_wind_ms": 166.58038548500627,
+          "min_surface_temperature_k": 141.91489430312703,
+          "max_surface_temperature_k": 266.0625900507746,
+          "mean_deep_soil_temperature_k": 200.678978632703,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.598435817012363e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239898973.49592707,
+          "atmospheric_aam_kg_m_s_sr": 906409842868.7944,
+          "min_air_temperature_k": 102.37935447414624,
+          "max_air_temperature_k": 244.37551059907338,
+          "max_wind_ms": 160.56899004420995,
+          "min_surface_temperature_k": 141.86630502269531,
+          "max_surface_temperature_k": 263.43677348833705,
+          "mean_deep_soil_temperature_k": 200.67904509302628,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.59843581701082e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239733135.69913292,
+          "atmospheric_aam_kg_m_s_sr": 905755897231.3726,
+          "min_air_temperature_k": 103.68195542141233,
+          "max_air_temperature_k": 240.28873824391962,
+          "max_wind_ms": 158.1850930716238,
+          "min_surface_temperature_k": 141.81573815664657,
+          "max_surface_temperature_k": 264.3712091155616,
+          "mean_deep_soil_temperature_k": 200.67915807946326,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.5984358170096936e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239657748.790817,
+          "atmospheric_aam_kg_m_s_sr": 905266768234.9352,
+          "min_air_temperature_k": 103.42049828816248,
+          "max_air_temperature_k": 243.1707300150443,
+          "max_wind_ms": 158.6582814774612,
+          "min_surface_temperature_k": 141.7998064221932,
+          "max_surface_temperature_k": 268.7631038271572,
+          "mean_deep_soil_temperature_k": 200.67924448415795,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.5984358170076092e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239615609.21292457,
+          "atmospheric_aam_kg_m_s_sr": 904934748475.3386,
+          "min_air_temperature_k": 102.45200085062683,
+          "max_air_temperature_k": 245.5533339993147,
+          "max_wind_ms": 148.76711318269207,
+          "min_surface_temperature_k": 141.77822958684317,
+          "max_surface_temperature_k": 267.28687301159533,
+          "mean_deep_soil_temperature_k": 200.67940400803062,
+          "min_frost_pa": 0.0
+        }
+      ],
+      "preparation": {
+        "compile_seconds": 6.43563196901232,
+        "warmup_seconds": 3.9063669866882265
+      }
+    },
+    {
+      "case": {
+        "name": "no_convection",
+        "parameters": [
+          0.6,
+          0.8,
+          1.4
+        ],
+        "dt": 300,
+        "overrides": {
+          "convective_adjustment_enabled": false
+        }
+      },
+      "status": "finite",
+      "seconds": [
+        6000,
+        12000,
+        22200,
+        30000,
+        44400
+      ],
+      "diagnostics": [
+        {
+          "co2_mass_kg": 2.598435817013221e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 240063072.37970296,
+          "atmospheric_aam_kg_m_s_sr": 906825525576.0493,
+          "min_air_temperature_k": 102.56598150091993,
+          "max_air_temperature_k": 244.4709773662131,
+          "max_wind_ms": 166.5770751399514,
+          "min_surface_temperature_k": 141.91488356381785,
+          "max_surface_temperature_k": 265.91995304327804,
+          "mean_deep_soil_temperature_k": 200.678978632703,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.59843581701234e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239947760.86363733,
+          "atmospheric_aam_kg_m_s_sr": 906356655415.1204,
+          "min_air_temperature_k": 102.38216515267929,
+          "max_air_temperature_k": 242.93544257813568,
+          "max_wind_ms": 160.5595181978252,
+          "min_surface_temperature_k": 141.86635248419643,
+          "max_surface_temperature_k": 263.2041550193354,
+          "mean_deep_soil_temperature_k": 200.67904509302628,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.59843581701084e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239821351.4276327,
+          "atmospheric_aam_kg_m_s_sr": 905595421161.6139,
+          "min_air_temperature_k": 103.69796338716088,
+          "max_air_temperature_k": 238.96359119921541,
+          "max_wind_ms": 158.19290390092698,
+          "min_surface_temperature_k": 141.81623893657274,
+          "max_surface_temperature_k": 264.2399128559042,
+          "mean_deep_soil_temperature_k": 200.67915807946326,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.598435817009667e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239779689.68696472,
+          "atmospheric_aam_kg_m_s_sr": 904998601285.5635,
+          "min_air_temperature_k": 103.42597903919184,
+          "max_air_temperature_k": 241.28655287387969,
+          "max_wind_ms": 158.59369889504302,
+          "min_surface_temperature_k": 141.80062030446297,
+          "max_surface_temperature_k": 268.5190123913822,
+          "mean_deep_soil_temperature_k": 200.67924448415795,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.5984358170075976e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239800361.87921095,
+          "atmospheric_aam_kg_m_s_sr": 904713639700.2637,
+          "min_air_temperature_k": 102.4204953456168,
+          "max_air_temperature_k": 243.60304682832515,
+          "max_wind_ms": 148.67699193856936,
+          "min_surface_temperature_k": 141.7794177307877,
+          "max_surface_temperature_k": 267.12981981445654,
+          "mean_deep_soil_temperature_k": 200.67940400803062,
+          "min_frost_pa": 0.0
+        }
+      ],
+      "preparation": {
+        "compile_seconds": 14.85899010580033,
+        "warmup_seconds": 4.292927784845233
+      }
+    },
+    {
+      "case": {
+        "name": "no_regolith",
+        "parameters": [
+          0.6,
+          0.8,
+          1.4
+        ],
+        "dt": 300,
+        "overrides": {
+          "regolith_enabled": false
+        }
+      },
+      "status": "finite",
+      "seconds": [
+        6000,
+        12000,
+        22200,
+        30000,
+        44400
+      ],
+      "diagnostics": [
+        {
+          "co2_mass_kg": 2.598435817013287e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 240103858.59355098,
+          "atmospheric_aam_kg_m_s_sr": 906808569681.915,
+          "min_air_temperature_k": 102.56468631963675,
+          "max_air_temperature_k": 244.41702827280523,
+          "max_wind_ms": 166.5782754864583,
+          "min_surface_temperature_k": 141.91192683180586,
+          "max_surface_temperature_k": 269.8323723905626,
+          "mean_deep_soil_temperature_k": 200.67891217407436,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.59843581701242e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 240049195.34508246,
+          "atmospheric_aam_kg_m_s_sr": 906302665914.9785,
+          "min_air_temperature_k": 102.37604243199904,
+          "max_air_temperature_k": 243.55081336059757,
+          "max_wind_ms": 160.57349378765667,
+          "min_surface_temperature_k": 141.8628175033573,
+          "max_surface_temperature_k": 264.9900882445511,
+          "mean_deep_soil_temperature_k": 200.67891217407436,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.5984358170108404e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 240016958.4938978,
+          "atmospheric_aam_kg_m_s_sr": 905418429396.4731,
+          "min_air_temperature_k": 103.69054380128586,
+          "max_air_temperature_k": 240.69294951515434,
+          "max_wind_ms": 158.1142331708182,
+          "min_surface_temperature_k": 141.8131623517496,
+          "max_surface_temperature_k": 268.79997265787387,
+          "mean_deep_soil_temperature_k": 200.67891217407436,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.598435817009629e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 240052548.41259784,
+          "atmospheric_aam_kg_m_s_sr": 904727238106.6486,
+          "min_air_temperature_k": 103.39021061978754,
+          "max_air_temperature_k": 242.80925615977011,
+          "max_wind_ms": 158.45757248336952,
+          "min_surface_temperature_k": 141.7981173491565,
+          "max_surface_temperature_k": 277.5618553344151,
+          "mean_deep_soil_temperature_k": 200.67891217407436,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.598435817007591e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 240263314.57076025,
+          "atmospheric_aam_kg_m_s_sr": 904458539237.4257,
+          "min_air_temperature_k": 102.45101715636139,
+          "max_air_temperature_k": 246.78252358365108,
+          "max_wind_ms": 148.6091570668831,
+          "min_surface_temperature_k": 141.7773325619495,
+          "max_surface_temperature_k": 275.93314558857594,
+          "mean_deep_soil_temperature_k": 200.67891217407436,
+          "min_frost_pa": 0.0
+        }
+      ],
+      "preparation": {
+        "compile_seconds": 13.057684891857207,
+        "warmup_seconds": 4.28809709334746
+      }
+    },
+    {
+      "case": {
+        "name": "no_co2_exchange",
+        "parameters": [
+          0.6,
+          0.8,
+          1.4
+        ],
+        "dt": 300,
+        "co2_exchange": false
+      },
+      "status": "finite",
+      "seconds": [
+        6000,
+        12000,
+        22200,
+        30000,
+        44400
+      ],
+      "diagnostics": [
+        {
+          "co2_mass_kg": 2.5984358170132324e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 240090523.22578076,
+          "atmospheric_aam_kg_m_s_sr": 906836498884.7751,
+          "min_air_temperature_k": 102.55189861908474,
+          "max_air_temperature_k": 243.92120252492623,
+          "max_wind_ms": 166.5229315091267,
+          "min_surface_temperature_k": 140.23477547870945,
+          "max_surface_temperature_k": 265.7615258652626,
+          "mean_deep_soil_temperature_k": 200.678978632703,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.598435817012421e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 240006573.45375627,
+          "atmospheric_aam_kg_m_s_sr": 906377911046.3069,
+          "min_air_temperature_k": 102.33802838833326,
+          "max_air_temperature_k": 242.81946647229412,
+          "max_wind_ms": 160.42657126132593,
+          "min_surface_temperature_k": 138.60104282958753,
+          "max_surface_temperature_k": 262.9438924164371,
+          "mean_deep_soil_temperature_k": 200.67904509302628,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.5984358170109656e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239928910.34763375,
+          "atmospheric_aam_kg_m_s_sr": 905631517198.4323,
+          "min_air_temperature_k": 103.68355728922613,
+          "max_air_temperature_k": 238.36117503864955,
+          "max_wind_ms": 158.08152279101148,
+          "min_surface_temperature_k": 136.04460007605155,
+          "max_surface_temperature_k": 264.0928256847399,
+          "mean_deep_soil_temperature_k": 200.67915807946326,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.5984358170099172e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239919314.52960712,
+          "atmospheric_aam_kg_m_s_sr": 905078529400.752,
+          "min_air_temperature_k": 103.38728326896516,
+          "max_air_temperature_k": 240.41954812036587,
+          "max_wind_ms": 158.45234311147476,
+          "min_surface_temperature_k": 134.25353429079766,
+          "max_surface_temperature_k": 268.32085696513656,
+          "mean_deep_soil_temperature_k": 200.67924448415795,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.5984358170079104e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239981757.4025425,
+          "atmospheric_aam_kg_m_s_sr": 904935802615.7532,
+          "min_air_temperature_k": 102.36712459522045,
+          "max_air_temperature_k": 243.62984129697344,
+          "max_wind_ms": 148.5972046017383,
+          "min_surface_temperature_k": 131.29761197730087,
+          "max_surface_temperature_k": 266.88509276243303,
+          "mean_deep_soil_temperature_k": 200.67940400803062,
+          "min_frost_pa": 0.0
+        }
+      ],
+      "preparation": {
+        "compile_seconds": 15.11013948591426,
+        "warmup_seconds": 4.362931451294571
+      }
+    },
+    {
+      "case": {
+        "name": "weaker_diffusion",
+        "parameters": [
+          0.6,
+          0.8,
+          1.4
+        ],
+        "dt": 300,
+        "diffusion_sols": 0.2
+      },
+      "status": "finite",
+      "seconds": [
+        6000,
+        12000,
+        22200,
+        30000,
+        44400
+      ],
+      "diagnostics": [
+        {
+          "co2_mass_kg": 2.598435817013225e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 240079055.9236279,
+          "atmospheric_aam_kg_m_s_sr": 906838022754.9985,
+          "min_air_temperature_k": 102.38634802817378,
+          "max_air_temperature_k": 243.90021575817013,
+          "max_wind_ms": 166.91527806217366,
+          "min_surface_temperature_k": 141.91392246149587,
+          "max_surface_temperature_k": 265.7633999252242,
+          "mean_deep_soil_temperature_k": 200.678978632703,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.598435817012319e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239981210.1349335,
+          "atmospheric_aam_kg_m_s_sr": 906375064144.7485,
+          "min_air_temperature_k": 102.38236659485597,
+          "max_air_temperature_k": 242.75703047968443,
+          "max_wind_ms": 161.88431459789282,
+          "min_surface_temperature_k": 141.8648114128808,
+          "max_surface_temperature_k": 262.93519532789236,
+          "mean_deep_soil_temperature_k": 200.67904509302628,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.5984358170109136e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239883096.04617316,
+          "atmospheric_aam_kg_m_s_sr": 905614027466.6707,
+          "min_air_temperature_k": 103.71318670695003,
+          "max_air_temperature_k": 238.43681106073046,
+          "max_wind_ms": 158.4521002758093,
+          "min_surface_temperature_k": 141.81502661989083,
+          "max_surface_temperature_k": 264.0960285395419,
+          "mean_deep_soil_temperature_k": 200.67915807946326,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.5984358170098296e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239860024.25431633,
+          "atmospheric_aam_kg_m_s_sr": 905027044438.9092,
+          "min_air_temperature_k": 102.74688817171196,
+          "max_air_temperature_k": 240.39565760122136,
+          "max_wind_ms": 158.89501697466625,
+          "min_surface_temperature_k": 141.7998285582533,
+          "max_surface_temperature_k": 268.32388880163256,
+          "mean_deep_soil_temperature_k": 200.67924448415795,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.5984358170077784e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239906535.75228694,
+          "atmospheric_aam_kg_m_s_sr": 904786741559.542,
+          "min_air_temperature_k": 101.8844701681486,
+          "max_air_temperature_k": 243.40842539773658,
+          "max_wind_ms": 148.59133401042794,
+          "min_surface_temperature_k": 141.77847978600826,
+          "max_surface_temperature_k": 266.96126373202543,
+          "mean_deep_soil_temperature_k": 200.67940400803062,
+          "min_frost_pa": 0.0
+        }
+      ],
+      "preparation": {
+        "compile_seconds": 14.246150145307183,
+        "warmup_seconds": 4.425216923002154
+      }
+    },
+    {
+      "case": {
+        "name": "half_timestep",
+        "parameters": [
+          0.6,
+          0.8,
+          1.4
+        ],
+        "dt": 150.0
+      },
+      "status": "finite",
+      "seconds": [
+        6000,
+        12000,
+        22200,
+        30000,
+        44400
+      ],
+      "diagnostics": [
+        {
+          "co2_mass_kg": 2.5984358170125056e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 240077940.08509272,
+          "atmospheric_aam_kg_m_s_sr": 906824227088.425,
+          "min_air_temperature_k": 102.56096902554025,
+          "max_air_temperature_k": 243.9253230196873,
+          "max_wind_ms": 166.5760129813278,
+          "min_surface_temperature_k": 141.91495680374862,
+          "max_surface_temperature_k": 265.7615914899366,
+          "mean_deep_soil_temperature_k": 200.678978632703,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.5984358170106996e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239980391.24919516,
+          "atmospheric_aam_kg_m_s_sr": 906348350823.9714,
+          "min_air_temperature_k": 102.37761892350775,
+          "max_air_temperature_k": 242.8221135061269,
+          "max_wind_ms": 160.51776664983893,
+          "min_surface_temperature_k": 141.86641479162677,
+          "max_surface_temperature_k": 262.94333973282147,
+          "mean_deep_soil_temperature_k": 200.67904509302628,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.598435817007529e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239881190.96696186,
+          "atmospheric_aam_kg_m_s_sr": 905565467052.177,
+          "min_air_temperature_k": 103.67986450164177,
+          "max_air_temperature_k": 238.38282977078322,
+          "max_wind_ms": 158.20877968046145,
+          "min_surface_temperature_k": 141.81613320660423,
+          "max_surface_temperature_k": 264.0918603531711,
+          "mean_deep_soil_temperature_k": 200.67915807946326,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.5984358170052052e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239856243.66392428,
+          "atmospheric_aam_kg_m_s_sr": 904974090659.0537,
+          "min_air_temperature_k": 103.41175363372778,
+          "max_air_temperature_k": 240.44440811966535,
+          "max_wind_ms": 158.6095960973174,
+          "min_surface_temperature_k": 141.80056771772095,
+          "max_surface_temperature_k": 268.3218792106803,
+          "mean_deep_soil_temperature_k": 200.67924448415795,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.5984358170010584e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239900755.42766583,
+          "atmospheric_aam_kg_m_s_sr": 904734496691.3157,
+          "min_air_temperature_k": 102.41597130276405,
+          "max_air_temperature_k": 243.64293710026163,
+          "max_wind_ms": 148.60422009844262,
+          "min_surface_temperature_k": 141.7794163590642,
+          "max_surface_temperature_k": 266.8885430580665,
+          "mean_deep_soil_temperature_k": 200.6794040080306,
+          "min_frost_pa": 0.0
+        }
+      ],
+      "preparation": {
+        "compile_seconds": 14.144739446695894,
+        "warmup_seconds": 8.790849459823221
+      }
+    },
+    {
+      "case": {
+        "name": "co2_longwave_opacity_scale_0.8",
+        "parameters": [
+          0.48,
+          0.8,
+          1.4
+        ],
+        "dt": 300
+      },
+      "status": "finite",
+      "seconds": [
+        6000,
+        12000,
+        22200,
+        30000,
+        44400
+      ],
+      "diagnostics": [
+        {
+          "co2_mass_kg": 2.5984358170132596e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 240095875.78648418,
+          "atmospheric_aam_kg_m_s_sr": 906823730437.3842,
+          "min_air_temperature_k": 102.56519005560405,
+          "max_air_temperature_k": 243.904109366817,
+          "max_wind_ms": 166.61036482868136,
+          "min_surface_temperature_k": 141.91463461217293,
+          "max_surface_temperature_k": 265.69223342861864,
+          "mean_deep_soil_temperature_k": 200.678978632703,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.598435817012358e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 240013081.73596555,
+          "atmospheric_aam_kg_m_s_sr": 906348202285.6368,
+          "min_air_temperature_k": 102.37978832506823,
+          "max_air_temperature_k": 242.81482776465944,
+          "max_wind_ms": 160.65875671546587,
+          "min_surface_temperature_k": 141.8660537085644,
+          "max_surface_temperature_k": 262.8442801538414,
+          "mean_deep_soil_temperature_k": 200.67904509302628,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.59843581701082e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239932348.0745532,
+          "atmospheric_aam_kg_m_s_sr": 905565425721.26,
+          "min_air_temperature_k": 103.68662524050315,
+          "max_air_temperature_k": 238.36120325371405,
+          "max_wind_ms": 158.33194256742954,
+          "min_surface_temperature_k": 141.8157978183496,
+          "max_surface_temperature_k": 263.93654617559713,
+          "mean_deep_soil_temperature_k": 200.67915807946326,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.5984358170096852e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239916540.86750227,
+          "atmospheric_aam_kg_m_s_sr": 904972486852.7288,
+          "min_air_temperature_k": 103.42160410390265,
+          "max_air_temperature_k": 240.39192015255827,
+          "max_wind_ms": 158.73156224503833,
+          "min_surface_temperature_k": 141.80024909269866,
+          "max_surface_temperature_k": 268.174279819772,
+          "mean_deep_soil_temperature_k": 200.67924448415795,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.5984358170075908e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239973385.30760473,
+          "atmospheric_aam_kg_m_s_sr": 904733951030.8838,
+          "min_air_temperature_k": 102.44494775858912,
+          "max_air_temperature_k": 243.6252250001089,
+          "max_wind_ms": 148.93817046907435,
+          "min_surface_temperature_k": 141.77917414883856,
+          "max_surface_temperature_k": 266.7250781616671,
+          "mean_deep_soil_temperature_k": 200.67940400803062,
+          "min_frost_pa": 0.0
+        }
+      ],
+      "preparation": {
+        "compile_seconds": 3.155926061794162,
+        "warmup_seconds": 4.338938327040523
+      }
+    },
+    {
+      "case": {
+        "name": "co2_longwave_opacity_scale_1.2",
+        "parameters": [
+          0.72,
+          0.8,
+          1.4
+        ],
+        "dt": 300
+      },
+      "status": "finite",
+      "seconds": [
+        6000,
+        12000,
+        22200,
+        30000,
+        44400
+      ],
+      "diagnostics": [
+        {
+          "co2_mass_kg": 2.5984358170132532e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 240062346.28085893,
+          "atmospheric_aam_kg_m_s_sr": 906824719694.5608,
+          "min_air_temperature_k": 102.56552626735028,
+          "max_air_temperature_k": 243.94308291493678,
+          "max_wind_ms": 166.54738278535555,
+          "min_surface_temperature_k": 141.9151367192155,
+          "max_surface_temperature_k": 265.8205491757255,
+          "mean_deep_soil_temperature_k": 200.678978632703,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.5984358170123596e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239952045.85822797,
+          "atmospheric_aam_kg_m_s_sr": 906348886991.8212,
+          "min_air_temperature_k": 102.37266436593754,
+          "max_air_temperature_k": 242.8319222643416,
+          "max_wind_ms": 160.48546191586723,
+          "min_surface_temperature_k": 141.86666060302315,
+          "max_surface_temperature_k": 263.0278697432364,
+          "mean_deep_soil_temperature_k": 200.67904509302628,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.5984358170108844e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239836908.2186278,
+          "atmospheric_aam_kg_m_s_sr": 905565043439.5056,
+          "min_air_temperature_k": 103.67494166352165,
+          "max_air_temperature_k": 238.4002167378863,
+          "max_wind_ms": 158.06093683599252,
+          "min_surface_temperature_k": 141.81637533269972,
+          "max_surface_temperature_k": 264.22307975976776,
+          "mean_deep_soil_temperature_k": 200.67915807946326,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.5984358170097924e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239803735.24570936,
+          "atmospheric_aam_kg_m_s_sr": 904975982907.3372,
+          "min_air_temperature_k": 103.40007218775412,
+          "max_air_temperature_k": 240.49060362740045,
+          "max_wind_ms": 158.50052998676915,
+          "min_surface_temperature_k": 141.80079818211868,
+          "max_surface_temperature_k": 268.44560428091364,
+          "mean_deep_soil_temperature_k": 200.67924448415795,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.5984358170075836e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239837332.76879787,
+          "atmospheric_aam_kg_m_s_sr": 904734204631.6251,
+          "min_air_temperature_k": 102.38974141362307,
+          "max_air_temperature_k": 243.64401938877143,
+          "max_wind_ms": 148.3122985517183,
+          "min_surface_temperature_k": 141.77960523334872,
+          "max_surface_temperature_k": 267.0254170687528,
+          "mean_deep_soil_temperature_k": 200.67940400803062,
+          "min_frost_pa": 0.0
+        }
+      ],
+      "preparation": {
+        "compile_seconds": 2.9707590020261705,
+        "warmup_seconds": 4.328134866897017
+      }
+    },
+    {
+      "case": {
+        "name": "dust_longwave_opacity_scale_0.8",
+        "parameters": [
+          0.6,
+          0.6400000000000001,
+          1.4
+        ],
+        "dt": 300
+      },
+      "status": "finite",
+      "seconds": [
+        6000,
+        12000,
+        22200,
+        30000,
+        44400
+      ],
+      "diagnostics": [
+        {
+          "co2_mass_kg": 2.598435817013215e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 240094925.68837214,
+          "atmospheric_aam_kg_m_s_sr": 906823937131.4248,
+          "min_air_temperature_k": 102.56555662660637,
+          "max_air_temperature_k": 243.9281202917429,
+          "max_wind_ms": 166.59648919609532,
+          "min_surface_temperature_k": 141.91486770523017,
+          "max_surface_temperature_k": 265.7159210958782,
+          "mean_deep_soil_temperature_k": 200.678978632703,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.5984358170123916e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 240011836.76533353,
+          "atmospheric_aam_kg_m_s_sr": 906349113421.131,
+          "min_air_temperature_k": 102.37762875543064,
+          "max_air_temperature_k": 242.84238565539965,
+          "max_wind_ms": 160.60990222392658,
+          "min_surface_temperature_k": 141.86637378444303,
+          "max_surface_temperature_k": 262.8973310588284,
+          "mean_deep_soil_temperature_k": 200.67904509302628,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.5984358170108416e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239930644.87347037,
+          "atmospheric_aam_kg_m_s_sr": 905569074225.6816,
+          "min_air_temperature_k": 103.68311671558955,
+          "max_air_temperature_k": 238.39278492722505,
+          "max_wind_ms": 158.243671378156,
+          "min_surface_temperature_k": 141.8163061124958,
+          "max_surface_temperature_k": 263.9680046148769,
+          "mean_deep_soil_temperature_k": 200.67915807946326,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.5984358170097204e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239913021.58589387,
+          "atmospheric_aam_kg_m_s_sr": 904979355550.4438,
+          "min_air_temperature_k": 103.41597395947728,
+          "max_air_temperature_k": 240.44079692945138,
+          "max_wind_ms": 158.67640667225126,
+          "min_surface_temperature_k": 141.8008161709895,
+          "max_surface_temperature_k": 268.1896449925423,
+          "mean_deep_soil_temperature_k": 200.67924448415795,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.598435817007701e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239963625.7563041,
+          "atmospheric_aam_kg_m_s_sr": 904743742292.9075,
+          "min_air_temperature_k": 102.41402657721942,
+          "max_air_temperature_k": 243.6855907824255,
+          "max_wind_ms": 148.75541296732507,
+          "min_surface_temperature_k": 141.7798199163316,
+          "max_surface_temperature_k": 266.72125579949267,
+          "mean_deep_soil_temperature_k": 200.67940400803062,
+          "min_frost_pa": 0.0
+        }
+      ],
+      "preparation": {
+        "compile_seconds": 3.151009077206254,
+        "warmup_seconds": 4.334530022926629
+      }
+    },
+    {
+      "case": {
+        "name": "dust_longwave_opacity_scale_1.2",
+        "parameters": [
+          0.6,
+          0.96,
+          1.4
+        ],
+        "dt": 300
+      },
+      "status": "finite",
+      "seconds": [
+        6000,
+        12000,
+        22200,
+        30000,
+        44400
+      ],
+      "diagnostics": [
+        {
+          "co2_mass_kg": 2.5984358170133428e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 240060864.08413714,
+          "atmospheric_aam_kg_m_s_sr": 906824637878.4475,
+          "min_air_temperature_k": 102.56518742854412,
+          "max_air_temperature_k": 243.9147391712107,
+          "max_wind_ms": 166.55541493446023,
+          "min_surface_temperature_k": 141.9149507653201,
+          "max_surface_temperature_k": 265.80664840898066,
+          "mean_deep_soil_temperature_k": 200.678978632703,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.598435817012455e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239949067.36152363,
+          "atmospheric_aam_kg_m_s_sr": 906348087466.9799,
+          "min_air_temperature_k": 102.37477938619578,
+          "max_air_temperature_k": 242.79447510850264,
+          "max_wind_ms": 160.5202281963773,
+          "min_surface_temperature_k": 141.86638695092216,
+          "max_surface_temperature_k": 262.9881224530126,
+          "mean_deep_soil_temperature_k": 200.67904509302628,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.5984358170108904e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239832652.55537778,
+          "atmospheric_aam_kg_m_s_sr": 905561409449.3999,
+          "min_air_temperature_k": 103.67861144080157,
+          "max_air_temperature_k": 238.3669107283814,
+          "max_wind_ms": 158.13143922812148,
+          "min_surface_temperature_k": 141.815921787564,
+          "max_surface_temperature_k": 264.21357054481456,
+          "mean_deep_soil_temperature_k": 200.67915807946326,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.5984358170096932e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239800800.82152584,
+          "atmospheric_aam_kg_m_s_sr": 904969335319.6746,
+          "min_air_temperature_k": 103.40503515368307,
+          "max_air_temperature_k": 240.43767561884988,
+          "max_wind_ms": 158.54071103308345,
+          "min_surface_temperature_k": 141.80028912154498,
+          "max_surface_temperature_k": 268.45245814028283,
+          "mean_deep_soil_temperature_k": 200.67924448415795,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.598435817007507e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239839996.5757054,
+          "atmospheric_aam_kg_m_s_sr": 904725109129.8202,
+          "min_air_temperature_k": 102.41720509828824,
+          "max_air_temperature_k": 243.58428091621687,
+          "max_wind_ms": 148.47079219714024,
+          "min_surface_temperature_k": 141.77899703966656,
+          "max_surface_temperature_k": 267.0523629962895,
+          "mean_deep_soil_temperature_k": 200.67940400803062,
+          "min_frost_pa": 0.0
+        }
+      ],
+      "preparation": {
+        "compile_seconds": 2.8536364883184433,
+        "warmup_seconds": 4.32957367785275
+      }
+    },
+    {
+      "case": {
+        "name": "surface_exchange_multiplier_0.8",
+        "parameters": [
+          0.6,
+          0.8,
+          1.1199999999999999
+        ],
+        "dt": 300
+      },
+      "status": "finite",
+      "seconds": [
+        6000,
+        12000,
+        22200,
+        30000,
+        44400
+      ],
+      "diagnostics": [
+        {
+          "co2_mass_kg": 2.598435817013188e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 240027732.85147116,
+          "atmospheric_aam_kg_m_s_sr": 906834488526.6436,
+          "min_air_temperature_k": 102.56523063937965,
+          "max_air_temperature_k": 243.49546953945708,
+          "max_wind_ms": 166.5741813042713,
+          "min_surface_temperature_k": 141.9153414448927,
+          "max_surface_temperature_k": 266.09952204404306,
+          "mean_deep_soil_temperature_k": 200.678978632703,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.598435817012254e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239896425.61781687,
+          "atmospheric_aam_kg_m_s_sr": 906373320691.8743,
+          "min_air_temperature_k": 102.37167991688787,
+          "max_air_temperature_k": 242.45924077239945,
+          "max_wind_ms": 160.5510925757074,
+          "min_surface_temperature_k": 141.8665888420726,
+          "max_surface_temperature_k": 263.3859539264949,
+          "mean_deep_soil_temperature_k": 200.67904509302628,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.5984358170107068e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239746682.7580993,
+          "atmospheric_aam_kg_m_s_sr": 905650604600.7374,
+          "min_air_temperature_k": 103.68867036778404,
+          "max_air_temperature_k": 237.67872838878588,
+          "max_wind_ms": 158.14369241314648,
+          "min_surface_temperature_k": 141.8146904059449,
+          "max_surface_temperature_k": 264.5929044895957,
+          "mean_deep_soil_temperature_k": 200.67915807946326,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.5984358170095756e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239684850.37365946,
+          "atmospheric_aam_kg_m_s_sr": 905082046540.2494,
+          "min_air_temperature_k": 103.41249280993301,
+          "max_air_temperature_k": 239.30914972920948,
+          "max_wind_ms": 158.63358411164282,
+          "min_surface_temperature_k": 141.7982468825465,
+          "max_surface_temperature_k": 268.9027252517692,
+          "mean_deep_soil_temperature_k": 200.67924448415795,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.5984358170075012e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239672208.18625915,
+          "atmospheric_aam_kg_m_s_sr": 904833136916.9061,
+          "min_air_temperature_k": 102.43806946443146,
+          "max_air_temperature_k": 242.82166800611125,
+          "max_wind_ms": 148.7344619941013,
+          "min_surface_temperature_k": 141.77566325359234,
+          "max_surface_temperature_k": 267.40206826901704,
+          "mean_deep_soil_temperature_k": 200.67940400803062,
+          "min_frost_pa": 0.0
+        }
+      ],
+      "preparation": {
+        "compile_seconds": 3.092067855875939,
+        "warmup_seconds": 4.337861523963511
+      }
+    },
+    {
+      "case": {
+        "name": "surface_exchange_multiplier_1.2",
+        "parameters": [
+          0.6,
+          0.8,
+          1.68
+        ],
+        "dt": 300
+      },
+      "status": "finite",
+      "seconds": [
+        6000,
+        12000,
+        22200,
+        30000,
+        44400
+      ],
+      "diagnostics": [
+        {
+          "co2_mass_kg": 2.5984358170132104e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 240123861.0072955,
+          "atmospheric_aam_kg_m_s_sr": 906815806604.1328,
+          "min_air_temperature_k": 102.56549259883006,
+          "max_air_temperature_k": 244.31467312674263,
+          "max_wind_ms": 166.57740312684942,
+          "min_surface_temperature_k": 141.91450558520248,
+          "max_surface_temperature_k": 265.4505952049914,
+          "mean_deep_soil_temperature_k": 200.678978632703,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.5984358170122908e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 240055207.93114102,
+          "atmospheric_aam_kg_m_s_sr": 906327993666.7998,
+          "min_air_temperature_k": 102.37976830113828,
+          "max_air_temperature_k": 243.1311000885267,
+          "max_wind_ms": 160.5782123424195,
+          "min_surface_temperature_k": 141.86618512527696,
+          "max_surface_temperature_k": 262.5497845765598,
+          "mean_deep_soil_temperature_k": 200.67904509302628,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.598435817010742e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 239998915.61237323,
+          "atmospheric_aam_kg_m_s_sr": 905492084174.7932,
+          "min_air_temperature_k": 103.67478776745851,
+          "max_air_temperature_k": 239.25636936705146,
+          "max_wind_ms": 158.22361713380596,
+          "min_surface_temperature_k": 141.81723962618784,
+          "max_surface_temperature_k": 263.6492392089653,
+          "mean_deep_soil_temperature_k": 200.67915807946326,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.598435817009627e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 240005142.42239898,
+          "atmospheric_aam_kg_m_s_sr": 904882821365.8605,
+          "min_air_temperature_k": 103.41026259276478,
+          "max_air_temperature_k": 241.3908746580072,
+          "max_wind_ms": 158.5857428263662,
+          "min_surface_temperature_k": 141.8023676805821,
+          "max_surface_temperature_k": 267.8125734369716,
+          "mean_deep_soil_temperature_k": 200.67924448415795,
+          "min_frost_pa": 0.0
+        },
+        {
+          "co2_mass_kg": 2.598435817007507e+16,
+          "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": 240098151.542486,
+          "atmospheric_aam_kg_m_s_sr": 904650413899.7397,
+          "min_air_temperature_k": 102.39505662730603,
+          "max_air_temperature_k": 244.30400366095077,
+          "max_wind_ms": 148.51534359771128,
+          "min_surface_temperature_k": 141.7823075654742,
+          "max_surface_temperature_k": 266.4446864353158,
+          "mean_deep_soil_temperature_k": 200.67940400803062,
+          "min_frost_pa": 0.0
+        }
+      ],
+      "preparation": {
+        "compile_seconds": 2.9624371202662587,
+        "warmup_seconds": 4.529938825871795
+      }
+    }
+  ],
+  "limitations": [
+    "Paired transient sensitivities from identical initial state, not equilibrated accuracy.",
+    "Energy and angular momentum changes are diagnostics, not closed forced budgets.",
+    "Only IMEX-RK-SIL3 is exposed; half-timestep is not an alternative-integrator test.",
+    "The no-CO2 case removes paired mass/latent tendencies and freezes frost; global mass projection remains.",
+    "The no-regolith case removes both surface and soil conductive tendencies."
+  ]
+}

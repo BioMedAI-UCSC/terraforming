@@ -26,6 +26,10 @@ MANIFEST
 AmesGCM
 d-gcm
 paper
+# Track the AEGIS manuscript while leaving other paper scratch work ignored.
+# !/paper/
+# /paper/*
+# !/paper/aegis/
 
 # Virtual Environments
 .env

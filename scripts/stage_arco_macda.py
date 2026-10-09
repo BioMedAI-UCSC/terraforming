@@ -69,6 +69,35 @@ def _mars_year_bounds(dataset: xr.Dataset, mars_year: int) -> tuple[int, int]:
     return start, stop
 
 
+def _nearest_contiguous_window(
+    dataset: xr.Dataset, year_start: int, year_stop: int, center_ls: float, sols: int
+) -> tuple[int, int]:
+    """Return the nearest complete daily-aligned window, avoiding source gaps."""
+    count = sols * SAMPLES_PER_SOL
+    time = np.asarray(
+        dataset.time.isel(time=slice(year_start, year_stop)).compute(),
+        dtype=np.float64,
+    )
+    ls = np.asarray(
+        dataset.Ls.isel(time=slice(year_start, year_stop)).compute(),
+        dtype=np.float64,
+    )
+    expected = 1.0 / SAMPLES_PER_SOL
+    candidates = []
+    for start in range(0, len(time) - count + 1, SAMPLES_PER_SOL):
+        stop = start + count
+        if np.allclose(np.diff(time[start:stop]), expected, rtol=0.0, atol=1e-9):
+            midpoint = start + count // 2
+            distance = abs((ls[midpoint] - center_ls + 180.0) % 360.0 - 180.0)
+            candidates.append((distance, start, stop))
+    if not candidates:
+        raise ValueError(
+            f"MY selection contains no contiguous {sols}-sol window"
+        )
+    _, start, stop = min(candidates)
+    return year_start + start, year_start + stop
+
+
 def _daily_mean(sample: xr.Dataset) -> xr.Dataset:
     if sample.sizes["time"] % SAMPLES_PER_SOL:
         raise ValueError("sample length must contain complete 12-state sols")
@@ -192,6 +221,10 @@ def main() -> int:
     parser.add_argument("--source-url", default=DEFAULT_URL)
     parser.add_argument("--mars-year", type=int, default=24)
     parser.add_argument("--start-sol", type=int, default=0)
+    parser.add_argument(
+        "--center-ls", type=float,
+        help="choose the sol window centered nearest this solar longitude",
+    )
     parser.add_argument("--sols", type=int, default=10)
     parser.add_argument("--truncation", default="T21")
     parser.add_argument("--layers", type=int, default=12)
@@ -212,8 +245,16 @@ def main() -> int:
         parser.error(f"variables absent from ARCO-MACDA: {missing}")
 
     year_start, year_stop = _mars_year_bounds(source, args.mars_year)
-    start = year_start + args.start_sol * SAMPLES_PER_SOL
-    stop = start + args.sols * SAMPLES_PER_SOL
+    if args.center_ls is not None:
+        target_ls = args.center_ls % 360.0
+        start, stop = _nearest_contiguous_window(
+            source, year_start, year_stop, target_ls, args.sols
+        )
+        first_time = _scalar_at(source.time, year_start)
+        args.start_sol = int(round(_scalar_at(source.time, start) - first_time))
+    else:
+        start = year_start + args.start_sol * SAMPLES_PER_SOL
+        stop = start + args.sols * SAMPLES_PER_SOL
     if stop > year_stop:
         available_sols = (year_stop - year_start) // SAMPLES_PER_SOL
         parser.error(
@@ -270,6 +311,7 @@ def main() -> int:
             "mars_year": args.mars_year,
             "start_sol": args.start_sol,
             "sols": args.sols,
+            "requested_center_ls_deg": args.center_ls,
             "source_index_range": [start, stop],
         },
         "target": {

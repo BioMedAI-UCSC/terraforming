@@ -6,6 +6,12 @@ output is mistaken for validated climatology. It is maintained against the physi
 review checklist. Dates are absolute; "deferred" means not yet implemented, not
 "impossible".
 
+For current entry-point defaults, test results and equilibrium evidence, see the
+[GCM overview](../package/gcm3d/README.md) and
+[validation guide](../package/gcm3d/validation.md). The roadmap below retains
+separate acceptance requirements; an implemented operator does not automatically
+complete its scientific validation requirement.
+
 ## Implementation roadmap (execute in order)
 
 This is the working P0–P2 checklist. A box is checked only when the implementation,
@@ -345,19 +351,23 @@ prognostic soil-layer temperature so future long spin-ups remain continuous.
   (no depth-varying \(k\) or subsurface ice table), and a zero-flux lower boundary.
   With `regolith_enabled=False` (the default) the model falls back to
   `thermal_inertia` as an effective areal heat capacity with no subsurface layers.
-- **Atmospheric mass coupling is partial (P1).** Evolving surface pressure enters
-  the hydrostatic state and the CO₂ supply gate, but does **not** yet modulate heat
-  capacity, radiative optical depth, or surface exchange. Injected compounds change
+- **Atmospheric composition coupling is partial.** Evolving pressure enters
+  layer heat capacity, radiative optical depth, density-dependent exchange and
+  the CO₂ supply gate, but composition-dependent gas properties and trace-gas
+  opacity are not implemented. Injected compounds change
   only a scalar greenhouse factor (and pressure) at snapshots — not cp, R, opacity,
   or atmospheric mass in the 3-D physics.
 - **Runs are short transients, not climatology (P0).** `run_maps` results are
   spin-up snapshots (e.g. `fast` = 700×450 s ≈ 3.6 sols). Fields flagged
   `is_transient=True` and the `physics` label says so. A seasonally-equilibrated
   interpretation needs ≥ 1 Mars year (668 sols) + spin-up + an averaging window;
-  restart/checkpoint support is **not yet implemented**.
+  restart/checkpoint support is implemented in `src.framework.gcm.restart`.
+  `is_transient` is only a duration heuristic and cannot certify equilibrium.
+  Recorded multi-year runs passed atmospheric/surface repeatability thresholds
+  but failed deep-soil convergence; see the validation guide above.
 - **Scale presets are resolution tiers, not converged results.** `fast/balanced/
-  high/ultra` set grid/steps only. No timestep- or resolution-convergence study has
-  been run, so "high"/"ultra" denote grid size, **not** demonstrated convergence.
+  high/ultra` set computational settings. Dry resting-atmosphere convergence
+  tests exist, but do not establish a converged Mars climate for each preset.
 
 ## Opt-in and absent processes (explicitly declared)
 
@@ -395,14 +405,14 @@ pressure and greenhouse factor; winds, 3-D temperature, frost, and model time ar
 requested Ls. Continuous integration/restart is the preferred future design and is
 deferred.
 
-## Validation status (P2, deferred)
+## Validation status
 
-The current `tests/` are primarily **implementation tests** (shapes, finiteness,
-invariants and parity), not scientific validation. Dry-dycore benchmarks and an
-MCD map-comparison harness now exist, but the MCD result is a short transient versus
-climatology diagnostic—not validation. Viking/TES/MCS comparisons, equilibrated
-seasonal runs and quantitative acceptance thresholds remain outstanding. Until
-those exist, gcm3d output is **not** validated against Mars observations.
+Tests verify implementation, dry-dycore benchmarks, invariants, restart and
+gradients. Recorded multi-year physical runs and Ames/MCD/ARCO seasonal diagnostic
+reports now exist. They expose deep-soil equilibration and wind/frost limitations;
+they do not establish independent Viking/TES/MCS observational accuracy. See the
+[validation guide](../package/gcm3d/validation.md) for the measured gates,
+source-hash limitations and reproducible checks.
 
 ## Primary references
 

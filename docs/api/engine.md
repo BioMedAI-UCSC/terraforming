@@ -1,5 +1,10 @@
 # Engine API
 
+!!! warning "Deprecated global-mean workflow"
+    This page documents the deprecated torch model or its dependent intervention
+    workflow. Use the [3-D GCM](../package/gcm3d/README.md) for new simulations.
+
+
 The `src.engine` module handles numerical integration of planetary state. The integration strategy is fully decoupled from the physics model — `Planet` knows *what* equations to use, `TimeController` knows *how* to integrate them.
 
 ## Accuracy Modes

@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mars-calibration-data
+  labels:
+    app.kubernetes.io/name: mars-calibration
+    app.kubernetes.io/component: data-transfer
+spec:
+  restartPolicy: Never
+  activeDeadlineSeconds: 3600
+  automountServiceAccountToken: false
+  terminationGracePeriodSeconds: 5
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: topology.kubernetes.io/region
+                operator: In
+                values: [us-west]
+  containers:
+    - name: transfer
+      image: busybox:1.37
+      command: ["sh", "-c", "mkdir -p /data/inputs /data/results; sleep 3600"]
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+          ephemeral-storage: 64Mi
+        limits:
+          cpu: "1"
+          memory: 256Mi
+          ephemeral-storage: 256Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: [ALL]
+      volumeMounts:
+        - {name: data, mountPath: /data}
+  volumes:
+    - name: data
+      persistentVolumeClaim: {claimName: mars-calibration-data}

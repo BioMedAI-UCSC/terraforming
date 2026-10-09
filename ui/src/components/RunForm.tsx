@@ -14,6 +14,9 @@ export function RunForm({ onSubmit, benchmarkMode }: Props) {
   const [diurnal, setDiurnal] = useState(false)
   const [mcdLocalTime, setMcdLocalTime] = useState('')
   const [mcdDust, setMcdDust] = useState(1)
+  const [co2LwScale, setCo2LwScale] = useState(0.25)
+  const [dustLwScale, setDustLwScale] = useState(0.25)
+  const [surfaceExchange, setSurfaceExchange] = useState(1)
   const [running, setRunning] = useState(false)
 
   async function submit(e: React.FormEvent) {
@@ -27,6 +30,8 @@ export function RunForm({ onSubmit, benchmarkMode }: Props) {
         compare_mcd: benchmarkMode,
         mcd_local_time: mcdLocalTime.trim() ? Number(mcdLocalTime) : null,
         mcd_dust: mcdDust,
+        co2_lw_scale: co2LwScale, dust_lw_scale: dustLwScale,
+        surface_exchange_multiplier: surfaceExchange,
       })
     } finally { setRunning(false) }
   }
@@ -64,6 +69,20 @@ export function RunForm({ onSubmit, benchmarkMode }: Props) {
     <label style={s.check}><input type="checkbox" checked={diurnal}
       onChange={e => setDiurnal(e.target.checked)} /> Resolve day/night cycle</label>
 
+    <details style={s.physics}>
+      <summary style={s.summary}>Physical calibration parameters</summary>
+      <div style={s.hint}>Corrected nominal baseline = 0.25 / 0.25 / 1.0. Values use the bounded calibration domain.</div>
+      <label style={s.label}>CO₂ longwave opacity scale</label>
+      <input style={s.input} type="number" min="0.05" max="2" step="0.05" value={co2LwScale}
+             onChange={e => setCo2LwScale(Number(e.target.value))} />
+      <label style={s.label}>Dust longwave opacity scale</label>
+      <input style={s.input} type="number" min="0.05" max="2" step="0.05" value={dustLwScale}
+             onChange={e => setDustLwScale(Number(e.target.value))} />
+      <label style={s.label}>Surface exchange multiplier</label>
+      <input style={s.input} type="number" min="0.25" max="4" step="0.05" value={surfaceExchange}
+             onChange={e => setSurfaceExchange(Number(e.target.value))} />
+    </details>
+
     {benchmarkMode && <div style={s.benchmark}>
       <div style={s.title}>MCD benchmark</div>
       <div style={s.hint}>Season and model wind height are matched automatically.</div>
@@ -92,5 +111,7 @@ const s: Record<string, React.CSSProperties> = {
   check: { color:'#9da7b1', fontSize:11, display:'flex', gap:7, alignItems:'center' },
   benchmark: { display:'flex', flexDirection:'column', gap:6, padding:10, marginTop:6, background:'#10151a', border:'1px solid #26313c', borderRadius:6 },
   hint: { color:'#66717d', fontSize:10, lineHeight:1.4 },
+  physics: { display:'flex', flexDirection:'column', gap:6, padding:10, marginTop:6, background:'#111318', border:'1px solid #252a31', borderRadius:6 },
+  summary: { color:'#9da7b1', fontSize:11, cursor:'pointer', marginBottom:6 },
   run: { marginTop:6, background:'#c64d22', color:'white', border:0, borderRadius:5, padding:9, fontWeight:700, cursor:'pointer' },
 }

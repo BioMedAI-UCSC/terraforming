@@ -1,5 +1,10 @@
 # Mars maps on the dinosaur dycore (dry dynamics, over MOLA terrain)
 
+!!! note "Historical design record"
+    For current interfaces and defaults, use the [3-D GCM documentation](../package/gcm3d/README.md).
+    The torch global-mean model is [deprecated](../deprecated-global-mean.md).
+
+
 **Goal.** Produce lat/lon maps of each variable — surface pressure, near-surface
 temperature, and winds — that are *comparable in form* to the NASA Ames MGCM and
 LMD PCM, which both run over real Mars topography. This is the 3-D counterpart to

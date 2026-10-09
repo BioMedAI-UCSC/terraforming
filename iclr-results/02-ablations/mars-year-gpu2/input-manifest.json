@@ -1,0 +1,25 @@
+{
+  "description": "MY32 Ls45 single-window calibration; daily-mean target index 5",
+  "files": {
+    "restart.npz": {
+      "source": "outputs/branch_physical_diurnal_lw025_t21_l12_dt300/convection/checkpoints/restart_000477393.npz",
+      "sha256": "1145fc8ef0dcea8bcdd146c75ba68a8bde8a6ad24dd2563815fc0d3078f7aa53"
+    },
+    "target.nc": {
+      "source": "data/arco_macda/macda_my32_ls045_10sol_daily_t21_l12.nc",
+      "sha256": "b4b459f5cb632e745b00a4cba647eb0bf38b1fa2d730be03ec29aecef17dbb98"
+    },
+    "surface.nc": {
+      "source": "data/tes/mgs_tes_surface_1deg.nc",
+      "sha256": "01d772af41e12f54c99236d32c5711da1dcfcff52569ce845712f3b8289ad16e"
+    },
+    "dust.nc": {
+      "source": "data/ames/fv3betaout1/ames_surface_reference.nc",
+      "sha256": "6a4dd4fd9da051c95505175a825a18877dd87fe29917d09f490746a843953833"
+    },
+    "mola.img": {
+      "source": "data/mola/meg004/megt90n000cb.img",
+      "sha256": "25f16fb7aaf857898dcf98bc4f841341a24f8b9f7e98453ca083bc45d897ca2c"
+    }
+  }
+}

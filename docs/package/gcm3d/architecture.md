@@ -13,10 +13,13 @@ configuration, data adapters, maps, and outputs live under
 | Discretisation | `framework/gcm/coordinates.py` (spectral grid × sigma), `framework/gcm/specs.py` (nondimensionalisation) | Yes |
 | Dry dynamical core | `framework/gcm/dynamics.py` (`primitive_equations`, `stepper`, `integrate`) | Yes |
 | Reusable physics | `framework/physics/gcm.py` (radiation, surface energy, drag, PBL, convection, condensable cycle), `framework/physics/ames_radiation.py` (correlated-k operators/tables) | Yes |
-| Mars configuration | `celestials/planets/mars.py` (`MARS_BODY_3D`) and `celestials/planets/mars_gcm.py` (forcing factories) | factories: Yes |
+| Mars configuration | `celestials/planets/mars/planet.py` (`MARS_BODY_3D`) and `celestials/planets/mars/gcm.py` (forcing factories) | Yes |
 | Generic diagnostics | `framework/gcm/benchmarks.py`, `framework/gcm/restart.py` | Yes |
 | Mars boundary data | `celestials/planets/mars/topography.py`, `surface.py`, `dust.py`, `mcd.py` | topography: Yes; surface/dust: NumPy+xarray |
 | Mars experiments | `celestials/planets/mars/maps.py`, `seasonal.py` | Yes |
+| Parameterized rollouts | `framework/gcm/learning.py` | Yes |
+| Neural components | `framework/neural/` (MLP, radiation, heating, checkpoints) | Yes |
+| Calibration application | `apps/mars-calibration/mars_calibration/` | Yes |
 
 The dependency direction is one-way: Mars imports and configures framework
 operators; framework code never imports `src.celestials`. The pre-release
@@ -42,7 +45,8 @@ flowchart TD
 
     STATE0 --> SCAN[stepper imex_rk_sil3<br/>integrate = jax.lax.scan]
     EQ --> SCAN
-    SCAN -->|per step| PROJ[positivity_preserving_co2_step<br/>project frost ≥ 0]
+    SCAN --> FILTER[optional spectral diffusion]
+    FILTER -->|per step| PROJ[positivity_preserving_co2_step<br/>frost positivity + global CO2 inventory]
     PROJ --> FINAL[final ColumnPhysicsState]
     FINAL --> MAPS[MarsMapFields<br/>modal→nodal, dimensionalize]
     MAPS --> OUT[save_netcdf + plot_maps]
@@ -77,9 +81,11 @@ surface drag + PBL vertical diffusion (momentum), dry convective adjustment
 4. **CO₂ mass exchange changes atmospheric mass through `log_surface_pressure`.**
    - **Why**: condensing CO₂ to frost removes atmospheric mass locally; the
      tendency is applied as `d(ln p_s)/dt` on the dycore's own prognostic surface
-     pressure, and a per-step projection enforces frost ≥ 0 with exact per-cell
-     mass conservation `d(p_s) = −d(ice) − escape`. (This is the "deeper dycore
-     patch" a one-line tendency could not provide.)
+     pressure. Phase exchange balances atmosphere and frost instantaneously.
+     After each complete energy-limited step, local frost repair and a
+     Gaussian-quadrature global pressure rescaling restore the inventory while
+     retaining configured escape. This corrects finite-step drift from advancing
+     `log(p_s)`; it is not a guarantee of exact local discrete transport.
 
 ## Dependencies
 
@@ -95,7 +101,9 @@ surface drag + PBL vertical diffusion (momentum), dry convective adjustment
 
 ## Extension Points
 
-- **New body**: define a `BodyConstants`; everything else is generic.
+- **New body**: define `BodyConstants` for the generic dry core, then supply
+  appropriate forcing and boundary data. Mars-specific radiation and frost
+  parameters do not become valid for other compositions automatically.
 - **New / learned column physics**: implement a `parameterization(state) ->
   ColumnPhysicsTendencies` and wrap with `column_primitive_equations` — the
   NeuralGCM-style residual-tendency seam.
@@ -103,3 +111,16 @@ surface drag + PBL vertical diffusion (momentum), dry convective adjustment
   closure; correlated-k coefficients replace it without changing callers.
 - **New surface/dust data**: `surface.py` / `dust.py` interpolate any conforming
   dataset onto the grid.
+
+## Training and deployment
+
+Use `make_parameterized_step` and `rollout` from `framework.gcm.learning` for
+parameter gradients and sampled/rematerialized trajectories. The reporting and
+dataset I/O in `run_maps` belong outside differentiated training objectives.
+Radiation hooks replace a flux calculation; bounded neural tendencies compose
+with conventional physics. See [neural interfaces](neural-experiments.md).
+
+The [temperature-only pipeline](temperature-only.md) trains on cached forecasts
+and does not modify the timestep. [Calibration](calibration.md) differentiates
+physical controls through coupled integration. Keep these experiment contracts
+separate when comparing results.

@@ -106,6 +106,44 @@ def test_matched_mcd_comparison_uses_requested_parameters(monkeypatch, tmp_path)
     assert len(calls) == 1
 
 
+def test_gcm_request_physical_parameter_defaults_and_bounds():
+    request = server.RunRequest()
+    assert request.co2_lw_scale == 0.25
+    assert request.dust_lw_scale == 0.25
+    assert request.surface_exchange_multiplier == 1.0
+    with pytest.raises(ValueError):
+        server.RunRequest(co2_lw_scale=0.01)
+    with pytest.raises(ValueError):
+        server.RunRequest(surface_exchange_multiplier=4.1)
+
+
+def test_gcm_map_runner_threads_physical_parameters(monkeypatch):
+    captured = {}
+
+    def snapshot(*args, **kwargs):
+        captured.update(kwargs)
+        return server._extract_maps_fields(_fake_fields())
+
+    monkeypatch.setattr(server, "_gcm_snapshot", snapshot)
+    req = server.RunRequest(
+        exp_type="sol", accuracy="gcm", co2_lw_scale=0.4,
+        dust_lw_scale=0.6, surface_exchange_multiplier=1.5,
+    )
+    cfg = SimpleNamespace(planet=SimpleNamespace(
+        albedo=0.25, greenhouse_factor=1.02, initial_ls_deg=45.0,
+        surface_pressure=610.0, surface_temperature=210.0,
+    ))
+    run = {}
+    server._run_gcm_maps(run, req, cfg)
+    assert captured["co2_lw_scale"] == 0.4
+    assert captured["dust_lw_scale"] == 0.6
+    assert captured["surface_exchange_multiplier"] == 1.5
+    assert set(run["fields"]["maps"]) >= {
+        "surface_temperature", "surface_pressure", "surface_zonal_wind",
+        "surface_meridional_wind", "surface_wind_speed", "co2_ice", "elevation",
+    }
+
+
 def test_uploaded_ames_netcdf_is_aligned_and_compared():
     import xarray as xr
 

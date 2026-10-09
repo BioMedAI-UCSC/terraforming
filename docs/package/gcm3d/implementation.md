@@ -9,13 +9,13 @@
 | `specs.py` | Body-anchored nondimensionalisation → dinosaur `SimUnits`. |
 | `coordinates.py` | Spectral grid (`T21…T170`) × equidistant sigma levels. |
 | `dynamics.py` | Dry `PrimitiveEquationsSigma`, semi-implicit stepper, scan integrator. |
-| `physics.py` | All Mars column physics: orbit, insolation, two-stream radiation, surface energy, drag, PBL diffusion, dry convection, regolith conduction, CO₂ cycle. |
+| `framework/physics/gcm.py` | Reusable column physics: orbit, radiation, surface exchange, PBL, convection, regolith, CO₂ cycle. |
 | `ames_radiation.py` | Bilinear interpolation of the bundled Ames 12-band correlated-k CO₂ tables + fixed dust optics. |
 | `topography.py` | MOLA MEGDR raster → nodal → modal orography (SHA-256 verified). |
 | `surface.py` | Interpolate an albedo/thermal-inertia (TES) dataset to the grid. |
 | `dust.py` | Interpolate an Ames seasonal dust (τ, z_max) scenario to the grid. |
 | `maps.py` | End-to-end 3-D Mars map run + NetCDF/PNG output + scale presets. |
-| `terraforming_ode.py` | 0-D terraforming physics re-expressed as a dinosaur ODE (frozen-epoch and time-advancing seasonal variants). |
+| `celestials/planets/mars/seasonal.py` | Frozen-epoch and time-advancing 0-D seasonal ODE variants. |
 | `restart.py` | Versioned NPZ restart files; spin-up + time-averaging helper. |
 | `benchmarks.py` | Planet-aware dry-dycore acceptance tests + conserved-quantity drift. |
 | `mcd.py` | Mars Climate Database v6.1 web client + area-weighted comparison metrics. |
@@ -39,7 +39,7 @@ factor `⟨cz⟩ = (H₀ sinφ sinδ + cosφ cosδ sin H₀)/π`, `H₀ = arccos
 Two solar bands (Beer–Lambert transmission) and three thermal bands (hemispheric
 two-stream). Optical depth per layer scales with local pressure ratio and a
 temperature ratio raised to per-band exponents. Two closures:
-- **Ames correlated-k (default, `ames_correlated_k_enabled`)**: gas SW/LW optical
+- **Ames correlated-k (when `co2_radiation_enabled` and `ames_correlated_k_enabled`)**: gas SW/LW optical
   depths from `correlated_k_optical_depths` (bilinear in T and log-p over the
   bundled `ames_co2_12band.npz` table), split into split-Gaussian channels
   (`channel_weights`). Dust adds an energy-conserving hemispheric two-stream layer
@@ -48,8 +48,16 @@ temperature ratio raised to per-band exponents. Two closures:
   (`planck_band_fractions`). Adding-doubling via two `jax.lax.scan`s
   (`add_layer`, `propagate_solar`) builds the multiple-scattering solar field;
   a thermal `propagate_thermal` scan builds up/down longwave.
-- **Compact multiband fallback**: the same structure with the analytic band
-  optical-depth model — used for ablations and installations without the asset.
+- **Compact multiband**: analytic optical depths selected explicitly by disabling
+  `ames_correlated_k_enabled`. Missing correlated-k data are not an automatic
+  switch to a scientifically different scheme. With resolved CO₂ radiation off,
+  the model uses its grey surface balance.
+
+Direct solar paths use zenith-angle air mass when `solar_slant_path_enabled` is
+true. Prescribed visible and infrared dust are separate fields; an attached
+climatology interpolates both at evolving solar longitude. Gas and dust thermal
+optical depths have independent calibration multipliers, both 1.0 in the generic
+dataclass and 0.25 in the server baseline.
 
 Its principal contract is **exact discrete energy closure**:
 `net_up = lw_up + sw_up − lw_down − sw`, layer convergence is the finite
@@ -74,23 +82,28 @@ number of layers — a deliberate conservation property.
   momentum, heat and tracers between adjacent layers, solved implicitly
   (backward-Euler, batched O(L) Thomas solve in `_implicit_vertical_diffusion_tendency`).
   Dissipated kinetic energy is returned to the column as heat (resolved-budget conservation).
-- `dry_convective_adjusted_temperature`: conservative pair-mixing that neutralises
-  only adjacent statically-unstable layers — a differentiable, fixed-work (O(L),
-  `2L−1`-step scan) approximation to block/PAVA isotonic regression, conserving
-  σ-mass-weighted enthalpy per merge.
+- `dry_convective_adjusted_temperature`: weighted block/PAVA isotonic adjustment
+  with a fixed `2L−1` scan, conserving sigma-mass-weighted enthalpy and leaving
+  disconnected stable layers unchanged. The production relaxation tendency uses
+  smooth adjacent-layer gates for differentiation through physical thresholds.
 
-### 5. CO₂ condensation cycle (`co2_forcing_tendencies`)
+### 5. CO₂ condensation cycle (`_co2_surface_tendencies`)
 The winter-pole physics the dry+radiation run is missing (without it the winter
 pole cools to an unphysical ~66 K). Per cell: when the prognostic surface T falls
 below the frost point, CO₂ condenses (releasing latent heat and **removing local
 atmospheric mass** → p_s drops); deposited frost sublimes back when insolation
 warms it, restoring mass. Frost `co2_ice` is stored in **pressure-equivalent**
-units so per-cell mass conservation is exact: `d(p_s) = −d(ice) − escape`. The
+units so the phase-change tendency balances `d(p_s) = −d(ice) − escape`. The
 frost point is either constant or the Clausius–Clapeyron curve
 `T_sat = 3182.48/(23.3494 − ln p_hPa)` (`co2_frost_point_k`). `energy_limited`
 mode ties the rate to the surface-energy residual (no tuned relaxation constant).
 Because multistage IMEX does not preserve positivity, `positivity_preserving_co2_step`
-projects frost ≥ 0 after each *complete* step, moving any deficit back to the column.
+repairs frost after each complete step by removing a negative-frost deficit from
+atmospheric pressure. It then rescales the pressure field by a single factor so
+the Gaussian-quadrature global atmosphere/frost integral matches the pre-step
+inventory minus exact configured escape. This corrects drift from advancing
+logarithmic pressure; it does not impose exact local transport conservation.
+Pass `body`, `co2_forcing` and `dt_seconds` to the wrapper when escape is nonzero.
 
 ### 6. The dynamics⊕physics composition
 `forced_co2_primitive_equations` builds a `parameterization(state)` that sums all
@@ -114,7 +127,8 @@ state's own `sim_time` field (initialise to 0.0).
 
 - Sensible-flux surface loss ≡ lowest-layer atmospheric gain (layer-count-independent).
 - Radiative fluxes satisfy exact discrete energy closure.
-- CO₂ mass: `d(p_s) = −d(ice) − escape` per cell; positivity projection preserves total column CO₂.
+- CO₂ phase exchange balances local reservoir tendencies; the complete-step
+  wrapper restores global inventory while retaining escape and positive frost.
 - Rollouts are pure `jax.lax.scan` → differentiable (`jax.grad`) and batchable (`jax.vmap`); tests verify gradient flow.
 - `dry_conserved_quantities` measures mass / total energy / axial angular-momentum drift for acceptance.
 
@@ -125,7 +139,9 @@ state's own `sim_time` field (initialise to 0.0).
   correlated-k, not line-by-line. No moist processes. See
   [`gcm3d-physics-limitations.md`](../../ideas/gcm3d-physics-limitations.md).
 - **Transient vs climatology**: runs < 668 sols are spin-up snapshots; outputs
-  self-label this (`MarsMapFields.is_transient`, physics string suffix).
+  self-label this (`MarsMapFields.is_transient`, physics string suffix). This
+  duration heuristic does not certify equilibrium for longer runs; see
+  [validation](validation.md).
 - **Diurnal CFL**: diurnal forcing needs ≥ 2 steps per longitude cell
   (`dt ≤ T_rot/(2 n_lon)`); the seasonal 0-D ODE needs `dt ≤ T_rot/8`. Both are
   enforced with a hard `ValueError` rather than emitting NaN/aliased output.
@@ -135,6 +151,9 @@ state's own `sim_time` field (initialise to 0.0).
   rejected with a descriptive error.
 
 ## Testing Notes
+
+The [validation guide](validation.md) records the complete test results and
+distinguishes numerical verification from reference diagnostics and equilibrium.
 
 Tests mirror the source tree under `package/tests/gcm3d/`. Coverage includes:
 - **Parity**: `terraforming_ode.tendency` matches the torch `compute_derivatives`

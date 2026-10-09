@@ -1,5 +1,7 @@
 # Orbital Mechanics
 
+The primary GCM advances a Keplerian mean anomaly and solves for eccentric anomaly, true anomaly and distance in `src.framework.physics.gcm`. Use `mean_anomaly_for_ls` to initialize a season; see the [GCM solar geometry](mars/solar-flux.md). The torch global-mean model is deprecated.
+
 Planetary orbits are described by [Keplerian orbital elements](https://en.wikipedia.org/wiki/Orbital_elements). For a planet on an elliptical orbit, the key elements are the semi-major axis $a$, orbital eccentricity $e$, and the true anomaly $\nu$ (the angle from perihelion). In tform the true anomaly is parameterised through the **solar longitude** $L_s$, which is the standard convention in Mars science ([Allison & McEwen, 2000](https://doi.org/10.1016/S0032-0633(99)00092-6)).
 
 ---

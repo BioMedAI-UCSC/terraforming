@@ -1,0 +1,44 @@
+{
+  "description": "Curated copy of paper-facing results. Originals remain under outputs/; nothing was moved or deleted. Raw NetCDF trajectories, restart checkpoints and downloaded source archives are intentionally excluded.",
+  "claims": {
+    "01-mola-topography-comparisons": {
+      "source": "outputs/reference-comparison",
+      "extra_sources": [
+        "outputs/gcm3d_maps",
+        "outputs/iclr_diagnostics_smoke"
+      ],
+      "paper_use": "Topography and MOLA/Ames/MCD/ARCO cross-reference figures. Not observational validation."
+    },
+    "02-ablations": {
+      "short-paper-suite": "outputs/paper-ablations-gpu",
+      "mars-year-gpu1": "outputs/paper-year-gpu1",
+      "mars-year-gpu2": "outputs/paper-year-gpu2",
+      "mars-year-gpu3": "outputs/paper-year-gpu3",
+      "ablation-verification-audit.json": "outputs/ablation-verification/audit.json",
+      "paper_use": "Physics sensitivity, timestep and one-year stability evidence. RMSE is relative to each run's full case, not independent truth."
+    },
+    "03-benchmarks": {
+      "reference-comparison": "outputs/reference-comparison",
+      "physical-vs-ames": "outputs/reference-comparison (physical vs Ames benchmark.json)",
+      "mcd-diagnostics": "outputs/reference-comparison (MCD benchmark.json)",
+      "performance-timing": "outputs/paper-timing-gpu",
+      "manifest.json/progress.json/checkpoint_diagnostics.csv": "outputs/iclr_diagnostics_smoke",
+      "paper_use": "Benchmark, performance and reproducibility tables. Model/reference comparisons are diagnostics, not observational truth."
+    },
+    "04-neural-experiments": {
+      "radiation": "outputs/neural_framework/radiation",
+      "parameter-recovery": "outputs/neural_framework/recovery",
+      "control": "outputs/neural_framework/control_final_smoke",
+      "paper_use": "Framework neural-capability demonstrations on generated data. No Mars forecast skill established."
+    },
+    "05-paper-docs": {
+      "source": "docs/",
+      "paper_use": "Methods, limitations and claim boundaries."
+    }
+  },
+  "excluded": [
+    "*.nc (raw NetCDF trajectories)",
+    "*-restart.npz / restart.npz (restart checkpoints)",
+    "downloaded source archives"
+  ]
+}

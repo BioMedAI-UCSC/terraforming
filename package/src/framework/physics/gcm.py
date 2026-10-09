@@ -109,6 +109,11 @@ class RadiativeForcing:
     # Neutral bulk aerodynamic surface drag.  The coefficient is diagnosed from
     # the logarithmic surface-layer law at the centre of the lowest sigma layer.
     surface_roughness_m: float = 0.01
+    # Auditable scalar for physical-parameter calibration.  It multiplies the
+    # diagnosed bulk transfer coefficient, so momentum and sensible-heat
+    # exchange stay internally consistent while the spatial roughness map is
+    # left unchanged.
+    surface_exchange_multiplier: float = 1.0
     von_karman_constant: float = 0.4
     minimum_wind_ms: float = 0.1
     # Regolith properties. Thermal inertia may be replaced by a nodal TES field.
@@ -368,9 +373,17 @@ def _validate_radiative_bands(f: RadiativeForcing) -> None:
     for name in (
         "ames_co2_longwave_opacity_scale",
         "ames_dust_longwave_opacity_scale",
+        "surface_exchange_multiplier",
     ):
         value = getattr(f, name)
-        if not np.isfinite(value) or value < 0.0:
+        # Calibration passes JAX tracers through these fields. Bounds are then
+        # enforced by the optimizer's parameter transform; retain eager checks
+        # for ordinary user/config values without concretizing a tracer.
+        try:
+            static_value = float(value)
+        except (TypeError, ValueError):
+            continue
+        if not np.isfinite(static_value) or static_value < 0.0:
             raise ValueError(f"{name} must be finite and non-negative")
     sw_lengths = {
         len(f.co2_shortwave_band_weights),
@@ -455,6 +468,32 @@ def column_primitive_equations(base, parameterization):
     )
 
 
+def compose_column_parameterizations(*parameterizations):
+    """Add optional column-physics callables while preserving reservoir fields.
+
+    Each callable receives the same :class:`ColumnPhysicsState` and returns
+    :class:`ColumnPhysicsTendencies`. This is the public seam for bounded neural
+    residuals: conventional physics remains the first contribution and learned
+    tendencies are explicit additions.
+    """
+    active = tuple(p for p in parameterizations if p is not None)
+    if not active:
+        return None
+
+    def combined(state):
+        values = [p(state) for p in active]
+        first = values[0]
+        return ColumnPhysicsTendencies(
+            *(sum((getattr(v, name) for v in values), jnp.zeros_like(getattr(first, name)))
+              for name in ("vorticity", "divergence", "temperature_variation",
+                           "log_surface_pressure", "surface_temperature", "co2_ice",
+                           "ground_temperature")),
+            {name: sum((v.tracers.get(name, 0.0) for v in values), 0.0)
+             for name in first.tracers},
+        )
+    return combined
+
+
 def initial_column_state(dyn_state, coords, surface_temperature_k: float, specs,
                          ice_pa: float = 0.0,
                          forcing: RadiativeForcing | None = None) -> ColumnPhysicsState:
@@ -519,8 +558,6 @@ def two_stream_radiative_fluxes(
         ps_pa = ps_nd * float(specs.dimensionalize(1.0, _u.pascal).magnitude)
     else:
         ps_pa = surface_pressure_pa
-    dsigma = jnp.asarray(np.diff(np.asarray(coords.vertical.boundaries)))[:, None, None]
-
     ref = np.asarray(reference_temperature(coords, body)).reshape(n, 1, 1)
     air_k = jnp.clip(
         grid.to_nodal(dyn.temperature_variation) + ref
@@ -529,9 +566,45 @@ def two_stream_radiative_fluxes(
     )
     surface_k = jnp.clip(state.surface_temperature[0], 1.0, None)
 
+    return column_radiative_fluxes(
+        air_k, surface_k, ps_pa, incoming, solar_path_factor,
+        dust_visible, dust_longwave, coords.vertical.boundaries, body, f,
+    )
+
+
+def column_radiative_fluxes(
+    air_k, surface_k, ps_pa, incoming, solar_path_factor,
+    dust_visible, dust_longwave, sigma_boundaries, body, f,
+) -> RadiativeFluxDiagnostics:
+    """Pure array radiation kernel shared by column experiments and the GCM.
+
+    Temperatures are kelvin, pressure Pa, incoming solar W/m²; air has shape
+    (layer, column_x, column_y), surface fields broadcast to (column_x, column_y).
+    Sigma boundaries are static, ordered from top to surface. Optical depths and
+    path factors are dimensionless. No state conversion or file I/O occurs here.
+    """
+    _validate_radiative_bands(f)
+    air_k = jnp.asarray(air_k)
+    if air_k.ndim != 3:
+        raise ValueError("air temperature must have shape (layer, column_x, column_y)")
+    ps_pa = jnp.broadcast_to(jnp.asarray(ps_pa), air_k.shape[1:])
+    incoming = jnp.broadcast_to(jnp.asarray(incoming), air_k.shape[1:])
+    solar_path_factor = jnp.broadcast_to(jnp.asarray(solar_path_factor), air_k.shape[1:])
+    dust_visible, dust_longwave = jnp.asarray(dust_visible), jnp.asarray(dust_longwave)
+    surface_k = jnp.broadcast_to(jnp.asarray(surface_k), air_k.shape[1:])
+    n = air_k.shape[0]
+    if len(sigma_boundaries) != n + 1:
+        raise ValueError("sigma boundaries do not match the atmospheric layers")
+    boundaries = np.asarray(sigma_boundaries)
+    if boundaries[0] != 0 or boundaries[-1] != 1 or not np.all(np.diff(boundaries) > 0):
+        raise ValueError("sigma boundaries must increase from 0 to 1")
+    air_k = jnp.clip(air_k, 1.0, None)
+    surface_k = jnp.clip(surface_k, 1.0, None)
+    dsigma = jnp.asarray(np.diff(np.asarray(sigma_boundaries)))[:, None, None]
+
     sigma_mid = jnp.asarray(
-        0.5 * (np.asarray(coords.vertical.boundaries[:-1])
-               + np.asarray(coords.vertical.boundaries[1:]))
+        0.5 * (np.asarray(sigma_boundaries[:-1])
+               + np.asarray(sigma_boundaries[1:]))
     )[:, None, None]
     local_pressure_ratio = jnp.clip(
         sigma_mid * ps_pa[None] / body.reference_surface_pressure_pa, 1.0e-6, None
@@ -736,10 +809,24 @@ def two_stream_radiative_fluxes(
         lw_down = jnp.sum(jnp.stack(down_bands), axis=0)
         sw_up = jnp.zeros_like(sw).at[-1].set(jnp.asarray(f.albedo) * sw[-1])
 
+    return radiative_flux_diagnostics(sw, sw_up, lw_up, lw_down)
+
+
+def radiative_flux_diagnostics(sw, sw_up, lw_up, lw_down):
+    """Derive conservative energy exchanges from interface fluxes in W/m².
+
+    The leading axis runs from top of atmosphere to surface. Directional flux
+    magnitudes use positive values. Sum of atmospheric convergence plus surface
+    input equals top-of-atmosphere net input, including any imposed downward IR.
+    """
+    if not (sw.shape == sw_up.shape == lw_up.shape == lw_down.shape):
+        raise ValueError("directional flux shapes must match")
+    if sw.shape[0] < 2:
+        raise ValueError("at least two layer interfaces are required")
     net_up = lw_up + sw_up - lw_down - sw
     convergence = net_up[1:] - net_up[:-1]
-    surface_net = sw[-1] - sw_up[-1] + lw_down[-1] - surface_emission
-    toa_net_down = sw[0] - sw_up[0] - lw_up[0]
+    surface_net = -net_up[-1]
+    toa_net_down = -net_up[0]
     return RadiativeFluxDiagnostics(
         sw, sw_up, lw_up, lw_down, convergence, surface_net, toa_net_down
     )
@@ -747,13 +834,17 @@ def two_stream_radiative_fluxes(
 
 def surface_energy_tendencies(state: ColumnPhysicsState, coords, specs,
                               body: BodyConstants, f: RadiativeForcing,
-                              wind_nodal=None, temperature_nodal=None, ps_pa=None):
+                              wind_nodal=None, temperature_nodal=None, ps_pa=None,
+                              *, radiation_component=None):
     """Conservative surface/atmosphere energy exchange.
 
     Solar and longwave fluxes act once on a prognostic surface reservoir. A bulk
     sensible flux transfers energy to the lowest atmospheric sigma layer, divided
     by its actual areal heat capacity ``cp * dp/g``. Thus the surface loss and
     atmospheric gain cancel exactly and do not depend on the number of layers.
+    An optional radiation_component implements the two_stream_radiative_fluxes
+    call signature and replaces that call, including both surface and atmospheric
+    energy contributions. It requires co2_radiation_enabled=True.
     """
     grid = coords.horizontal
     n_layers = coords.vertical.layers
@@ -776,8 +867,12 @@ def surface_energy_tendencies(state: ColumnPhysicsState, coords, specs,
         1.0, None,
     )
     surface_k = jnp.clip(state.surface_temperature[0], 1.0, None)
+    if radiation_component is not None and not f.co2_radiation_enabled:
+        raise ValueError("radiation_component requires co2_radiation_enabled=True")
     if f.co2_radiation_enabled:
-        radiation = two_stream_radiative_fluxes(
+        radiation_fn = (two_stream_radiative_fluxes if radiation_component is None
+                        else radiation_component)
+        radiation = radiation_fn(
             state, coords, specs, body, f,
             air_temperature_k=air_k, surface_pressure_pa=ps_pa,
         )
@@ -893,11 +988,23 @@ def _surface_exchange_properties(
         ri = body.gravity_m_s2 * height * (air_k - surface_k) / (
             jnp.clip(air_k, 50.0, None) * speed**2
         )
-        stable = jnp.clip(1.0 - 5.0 * ri, 0.1, 1.0) ** 2
-        unstable = jnp.sqrt(jnp.clip(1.0 - 16.0 * ri, 1.0, None))
-        cd = neutral_cd * jnp.where(ri >= 0.0, stable, unstable)
+        ri_width = 5.0e-2
+        stable_weight = 0.5 * (1.0 + jnp.tanh(ri / ri_width))
+        positive_ri = 0.5 * (ri + jnp.sqrt(ri**2 + ri_width**2))
+        negative_ri = 0.5 * (-ri + jnp.sqrt(ri**2 + ri_width**2))
+        stable_raw = 1.0 - 5.0 * positive_ri
+        stable_floor_width = 1.0e-3
+        stable_base = 0.1 + stable_floor_width * jax.nn.softplus(
+            (stable_raw - 0.1) / stable_floor_width
+        )
+        stable = stable_base**2
+        unstable = jnp.sqrt(1.0 + 16.0 * negative_ri)
+        cd = neutral_cd * (
+            stable_weight * stable + (1.0 - stable_weight) * unstable
+        )
     else:
         cd = neutral_cd
+    cd = cd * jnp.asarray(f.surface_exchange_multiplier)
     if ps_pa is None:
         ps_nd = jnp.exp(grid.to_nodal(state.dynamics.log_surface_pressure))[0]
         ps_pa = ps_nd * float(specs.dimensionalize(1.0, _u.pascal).magnitude)
@@ -949,10 +1056,19 @@ def pbl_vertical_diffusion_tendencies(
         shape = max(0.0, 1.0 - interface_z / f.pbl_height_m) ** 2
         diffusivity = f.von_karman_constant * ustar * max(interface_z, 1.0) * shape
         dz_local = max(z[k] - z[k + 1], 1.0)
+        # A differentiable Richardson-number closure is essential when this
+        # operator sits inside a tangent rollout.  The previous hard switch at
+        # Ri=0 made otherwise negligible parameter perturbations select
+        # different stable/unstable branches in thousands of columns.  Forward
+        # AD followed one branch while centered finite differences sampled both,
+        # and the discrepancy compounded after only a few physical steps.
         shear2 = (
             ((u_ms[k] - u_ms[k + 1]) / dz_local) ** 2
             + ((v_ms[k] - v_ms[k + 1]) / dz_local) ** 2
-            + 1.0e-10
+            # 0.01 s^-1 corresponds to a 10 m/s change over 1 km.  Below this
+            # resolved shear the bulk closure should not infer arbitrarily
+            # large Richardson sensitivities from spectral roundoff.
+            + 1.0e-4
         )
         ri_gradient = (
             body.gravity_m_s2
@@ -960,16 +1076,48 @@ def pbl_vertical_diffusion_tendencies(
             * ((theta[k] - theta[k + 1]) / dz_local)
             / shear2
         )
-        stable_factor = 1.0 / (1.0 + 5.0 * jnp.clip(ri_gradient, 0.0, None)) ** 2
-        unstable_factor = jnp.clip(
-            jnp.sqrt(jnp.clip(1.0 - 16.0 * ri_gradient, 1.0, None)), 1.0, 4.0
+        # A width of 0.05 Richardson number spans the physically uncertain
+        # near-neutral regime while remaining narrow relative to the usual
+        # turbulent cutoff near Ri=0.25.
+        ri_transition_width = 5.0e-2
+        stable_weight = 0.5 * (
+            1.0 + jnp.tanh(ri_gradient / ri_transition_width)
         )
-        diffusivity *= jnp.where(ri_gradient >= 0.0, stable_factor, unstable_factor)
-        rate = jnp.minimum(diffusivity / dz_local**2, 1.0 / 1800.0)
+        positive_ri = 0.5 * (
+            ri_gradient
+            + jnp.sqrt(ri_gradient**2 + ri_transition_width**2)
+        )
+        negative_ri = 0.5 * (
+            -ri_gradient
+            + jnp.sqrt(ri_gradient**2 + ri_transition_width**2)
+        )
+        stable_factor = 1.0 / (1.0 + 5.0 * positive_ri) ** 2
+        unstable_uncapped = jnp.sqrt(1.0 + 16.0 * negative_ri)
+        unstable_factor = unstable_uncapped - 1.0e-4 * jax.nn.softplus(
+            (unstable_uncapped - 4.0) / 1.0e-4
+        )
+        stability_factor = (
+            stable_weight * stable_factor
+            + (1.0 - stable_weight) * unstable_factor
+        )
+        diffusivity *= stability_factor
+        uncapped_rate = diffusivity / dz_local**2
+        rate_cap = 1.0 / 1800.0
+        rate_width = rate_cap * 1.0e-4
+        rate = uncapped_rate - rate_width * jax.nn.softplus(
+            (uncapped_rate - rate_cap) / rate_width
+        )
         # Stable air transports heat less efficiently than momentum; convective
         # air uses a turbulent Prandtl number near 0.7.
-        prandtl = jnp.where(
-            ri_gradient >= 0.0, 1.0 + 5.0 * jnp.clip(ri_gradient, 0.0, 2.0), 0.7
+        prandtl = (
+            stable_weight * (
+                1.0 + 5.0 * (
+                    positive_ri - 1.0e-4 * jax.nn.softplus(
+                        (positive_ri - 2.0) / 1.0e-4
+                    )
+                )
+            )
+            + (1.0 - stable_weight) * 0.7
         )
         momentum_rates.append(rate)
         heat_rates.append(rate / prandtl)
@@ -988,7 +1136,9 @@ def pbl_vertical_diffusion_tendencies(
     # uniformly to the mixed air column as heat, preserving the resolved budget.
     old_ke = jnp.sum(jnp.asarray(dsigma)[:, None, None] * (u_ms**2 + v_ms**2) / 2.0, axis=0)
     new_ke = jnp.sum(jnp.asarray(dsigma)[:, None, None] * (u_new**2 + v_new**2) / 2.0, axis=0)
-    heat_si = jnp.clip(old_ke - new_ke, 0.0, None) / (
+    dissipated_ke = old_ke - new_ke
+    smooth_dissipated_ke = 1.0e-8 * jax.nn.softplus(dissipated_ke / 1.0e-8)
+    heat_si = smooth_dissipated_ke / (
         body.cp_j_kg_k * jnp.sum(jnp.asarray(dsigma)) * f.pbl_implicit_timestep_s
     )
     dt = dt + heat_si[None] * time_scale
@@ -1061,9 +1211,8 @@ def _implicit_vertical_diffusion_tendency(
 def dry_convective_adjusted_temperature(state, coords, body, temperature_nodal=None):
     """Conservatively neutralize only adjacent unstable parts of each column.
 
-    Repeated local pair mixing is a differentiable, fixed-work approximation to
-    block/PAVA adjustment. It leaves disconnected stable layers untouched and
-    conserves sigma-mass-weighted enthalpy in every pair operation.
+    Weighted decreasing isotonic regression leaves disconnected stable layers
+    untouched and conserves sigma-mass-weighted enthalpy in every mixed block.
     """
     grid = coords.horizontal
     n = coords.vertical.layers
@@ -1077,10 +1226,6 @@ def dry_convective_adjusted_temperature(state, coords, body, temperature_nodal=N
     theta = temperature / exner
     weights = np.diff(np.asarray(coords.vertical.boundaries))
     w = jnp.asarray(weights).reshape(n, 1, 1)
-    # Weighted decreasing isotonic regression is the exact block/PAVA solution.
-    # A fixed-buffer stack takes at most L pushes and L-1 merges. Driving those
-    # operations with a fixed 2L-1 scan keeps work and compiled graph size O(L)
-    # while preserving reverse-mode AD.
     enthalpy_weight = w * exner
 
     def pava_column(values, level_weights):
@@ -1088,8 +1233,8 @@ def dry_convective_adjusted_temperature(state, coords, body, temperature_nodal=N
         block_weights = jnp.zeros_like(level_weights)
         block_counts = jnp.zeros((n,), dtype=jnp.int32)
 
-        def stack_step(state, _):
-            vals, weights_, counts, size, input_index = state
+        def stack_step(stack_state, _):
+            vals, weights_, counts, size, input_index = stack_state
             left = jnp.maximum(size - 2, 0)
             right = jnp.maximum(size - 1, 0)
             violates = (size >= 2) & (vals[left] < vals[right])
@@ -1097,8 +1242,9 @@ def dry_convective_adjusted_temperature(state, coords, body, temperature_nodal=N
             def merge(args):
                 vals, weights_, counts, size, input_index = args
                 total_weight = weights_[left] + weights_[right]
-                mean = (vals[left] * weights_[left]
-                        + vals[right] * weights_[right]) / total_weight
+                mean = (
+                    vals[left] * weights_[left] + vals[right] * weights_[right]
+                ) / total_weight
                 vals = vals.at[left].set(mean).at[right].set(0.0)
                 weights_ = weights_.at[left].set(total_weight).at[right].set(0.0)
                 counts = counts.at[left].add(counts[right]).at[right].set(0)
@@ -1118,12 +1264,17 @@ def dry_convective_adjusted_temperature(state, coords, body, temperature_nodal=N
                     input_index < n, push, lambda push_args: push_args, args
                 )
 
-            state = jax.lax.cond(violates, merge, push_or_finish, state)
-            return state, None
+            stack_state = jax.lax.cond(
+                violates, merge, push_or_finish, stack_state
+            )
+            return stack_state, None
 
         initial = (
-            block_values, block_weights, block_counts,
-            jnp.int32(0), jnp.int32(0),
+            block_values,
+            block_weights,
+            block_counts,
+            jnp.int32(0),
+            jnp.int32(0),
         )
         (block_values, _, block_counts, _, _), _ = jax.lax.scan(
             stack_step, initial, None, length=2 * n - 1
@@ -1147,13 +1298,51 @@ def dry_convective_adjustment_tendency(
 ):
     if not f.convective_adjustment_enabled:
         return jnp.zeros_like(state.dynamics.temperature_variation)
-    target = dry_convective_adjusted_temperature(
-        state, coords, body, temperature_nodal=temperature_nodal
+
+    # Apply convection as smooth, conservative heat exchange across unstable
+    # interfaces.  Calling the exact PAVA projection here makes its discrete
+    # block membership part of every physical timestep: infinitesimal forcing
+    # changes can then select different blocks, so a tangent rollout and a
+    # centered finite difference follow different maps.  The soft positive
+    # part below has the same dry-static-stability trigger but remains smooth
+    # through neutral stratification.
+    grid = coords.horizontal
+    n = coords.vertical.layers
+    ref = np.asarray(reference_temperature(coords, body)).reshape(n, 1, 1)
+    temperature = (
+        grid.to_nodal(state.dynamics.temperature_variation)
+        if temperature_nodal is None else temperature_nodal
+    ) + ref
+    sigma = jnp.asarray(coords.vertical.centers).reshape(n, 1, 1)
+    exner = sigma ** body.kappa
+    theta = temperature / exner
+    layer_weights = jnp.asarray(
+        np.diff(np.asarray(coords.vertical.boundaries))
+    ).reshape(n, 1, 1)
+    enthalpy_weights = layer_weights * exner
+
+    transition_k = 0.1
+    violation = transition_k * jax.nn.softplus(
+        (theta[1:] - theta[:-1]) / transition_k
     )
+    lower_weight = enthalpy_weights[:-1]
+    upper_weight = enthalpy_weights[1:]
+    # This is the weighted heat transfer that would remove each interface's
+    # instability, relaxed over the configured convective timescale.  Adding
+    # it below and subtracting it above cancels exactly in the column budget.
+    heat_flux = (
+        violation
+        * lower_weight
+        * upper_weight
+        / (lower_weight + upper_weight)
+        / f.convective_relaxation_s
+    )
+    theta_tendency = jnp.zeros_like(theta)
+    theta_tendency = theta_tendency.at[:-1].add(heat_flux / lower_weight)
+    theta_tendency = theta_tendency.at[1:].add(-heat_flux / upper_weight)
+    temperature_tendency_si = theta_tendency * exner
     time_scale = 1.0 / float(specs.nondimensionalize(1.0 * _u.second))
-    return (
-        target - state.dynamics.temperature_variation
-    ) * time_scale / f.convective_relaxation_s
+    return grid.to_modal(temperature_tendency_si) * time_scale
 
 
 def regolith_conduction_tendencies(
@@ -1217,6 +1406,9 @@ def forced_primitive_equations(
     forcing: RadiativeForcing,
     specs=None,
     orography=None,
+    *,
+    radiation_component=None,
+    neural_tendency=None,
 ) -> "time_integration.ImplicitExplicitODE":
     """dinosaur dry dynamics with the radiative energy balance added as forcing.
 
@@ -1227,9 +1419,15 @@ def forced_primitive_equations(
     :func:`src.framework.gcm.dynamics.integrate` exactly like the
     dry equations; the only requirement is that the state carries ``sim_time`` (set
     it to ``0.0``) so the diurnal/seasonal forcing advances.
+    Pass radiation_component to replace the conventional flux calculation with
+    a compatible callable (including one with bound trainable JAX parameters).
+    Pass neural_tendency to add a bounded learned residual to the conventional
+    column tendencies; it is applied after radiation and other physical terms.
     """
     if specs is None:
         specs = physics_specs(body)
+    if radiation_component is not None and not forcing.co2_radiation_enabled:
+        raise ValueError("radiation_component requires co2_radiation_enabled=True")
     base = _build_primitive_equations(coords, body, specs=specs, orography=orography)
 
     def parameterization(state):
@@ -1245,6 +1443,7 @@ def forced_primitive_equations(
         heat, surface_tendency, _ = surface_energy_tendencies(
             state, coords, specs, body, forcing, wind_nodal=wind_nodal,
             temperature_nodal=temperature_nodal, ps_pa=ps_pa,
+            radiation_component=radiation_component,
         )
         drag_vor, drag_div = surface_momentum_tendencies(
             state, coords, specs, body, forcing, wind_nodal=wind_nodal,
@@ -1268,7 +1467,8 @@ def forced_primitive_equations(
             ground,
             mix_tracers,
         )
-    return column_primitive_equations(base, parameterization)
+    extra = compose_column_parameterizations(parameterization, neural_tendency)
+    return column_primitive_equations(base, extra)
 
 
 # ==============================================================================
@@ -1379,20 +1579,35 @@ def _co2_surface_tendencies(
     frost_k = (co2_frost_point_k(ps_pa[0]) if cf.use_pressure_frost
                else cf.frost_point_k)
     supply_gate = jnp.tanh(ps_pa[0] / cf.supply_scale_pa)
-    ice_gate = jnp.tanh(jnp.clip(ice_pa[0], 0.0, None) / cf.ice_ref_pa)
+    ice_gate = jnp.tanh(
+        (1.0e-6 * jax.nn.softplus(ice_pa[0] / 1.0e-6)) / cf.ice_ref_pa
+    )
     if cf.energy_limited:
         if available_surface_flux_w_m2 is None:
             raise ValueError("energy-limited CO2 exchange requires the surface-energy residual")
         residual = jnp.asarray(available_surface_flux_w_m2)
         pa_per_watt = cf.gravity_m_s2 / cf.latent_heat_j_kg
-        cond_pa_s = jnp.where(
-            t_surf_k <= frost_k, jnp.clip(-residual, 0.0, None) * pa_per_watt * supply_gate, 0.0
+        # A finite frost transition represents sub-grid surface-temperature
+        # variation and avoids a discrete set of condensing grid cells in a
+        # tangent rollout.  The flux softplus likewise removes the kink at a
+        # zero surface-energy residual while becoming the ordinary positive
+        # part outside a narrow 0.1 W m^-2 interval.
+        frost_transition_k = 0.1
+        cond_gate = jax.nn.sigmoid(
+            (frost_k - t_surf_k) / frost_transition_k
         )
-        subl_pa_s = jnp.where(
-            (t_surf_k >= frost_k) & (ice_pa[0] > 0.0),
-            jnp.clip(residual, 0.0, None) * pa_per_watt * ice_gate,
-            0.0,
+        subl_gate = jax.nn.sigmoid(
+            (t_surf_k - frost_k) / frost_transition_k
         )
+        flux_transition_w_m2 = 0.1
+        cond_energy = flux_transition_w_m2 * jax.nn.softplus(
+            -residual / flux_transition_w_m2
+        )
+        subl_energy = flux_transition_w_m2 * jax.nn.softplus(
+            residual / flux_transition_w_m2
+        )
+        cond_pa_s = cond_gate * cond_energy * pa_per_watt * supply_gate
+        subl_pa_s = subl_gate * subl_energy * pa_per_watt * ice_gate
     else:
         below = jnp.clip(frost_k - t_surf_k, 0.0, None)
         above = jnp.clip(t_surf_k - frost_k, 0.0, None)
@@ -1440,6 +1655,9 @@ def forced_co2_primitive_equations(
     co2_forcing: CO2Forcing,
     specs=None,
     orography=None,
+    *,
+    radiation_component=None,
+    neural_tendency=None,
 ) -> "time_integration.ImplicitExplicitODE":
     """Dry dynamics + radiative forcing + CO2 condensation cycle on a tuple state.
 
@@ -1451,6 +1669,8 @@ def forced_co2_primitive_equations(
     """
     if specs is None:
         specs = physics_specs(body)
+    if radiation_component is not None and not forcing.co2_radiation_enabled:
+        raise ValueError("radiation_component requires co2_radiation_enabled=True")
     base = _build_primitive_equations(coords, body, specs=specs, orography=orography)
 
     def parameterization(state):
@@ -1466,6 +1686,7 @@ def forced_co2_primitive_equations(
         heat, dsurface, _ = surface_energy_tendencies(
             state, coords, specs, body, forcing, wind_nodal=wind_nodal,
             temperature_nodal=temperature_nodal, ps_pa=ps_pa,
+            radiation_component=radiation_component,
         )
         ground_surface, ground = regolith_conduction_tendencies(state, specs, forcing)
         time_scale = 1.0 / float(specs.nondimensionalize(1.0 * _u.second))
@@ -1496,7 +1717,8 @@ def forced_co2_primitive_equations(
             ground,
             mix_tracers,
         )
-    return column_primitive_equations(base, parameterization)
+    extra = compose_column_parameterizations(parameterization, neural_tendency)
+    return column_primitive_equations(base, extra)
 
 
 def project_co2_reservoirs(state: ColumnPhysicsState, coords, specs):

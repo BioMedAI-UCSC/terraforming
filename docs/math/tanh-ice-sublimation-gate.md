@@ -72,7 +72,7 @@ $$
 and it is undefined (a jump) at the switching surface `M_ice = 0`. A
 gradient-based optimizer therefore receives no signal from the cap-depletion
 regime — the motivating defect (audit item D1,
-[iclr2027-workplan.md](../ideas/iclr2027-workplan.md)).
+iclr2027-workplan.md (historical note `ideas/iclr2027-workplan.md`, unavailable in this checkout)).
 
 ### Step 2: The smooth gate
 
@@ -132,7 +132,7 @@ exactly. Present-day cap inventories in the model are ~2.5×10¹⁵ kg
 
 ### Step 5: Why tanh and not the sigmoid of the original spec
 
-The feature spec ([differentiable-framework-features.md](../ideas/differentiable-framework-features.md),
+The feature spec (differentiable-framework-features.md (historical note `ideas/differentiable-framework-features.md`, unavailable in this checkout),
 A3) proposed $\sigma(M_{ice}/M_{ref})$ with $\sigma(x) = 1/(1+e^{-x})$. But
 $\sigma(0) = \tfrac12$: an **empty** cap would keep sublimating at half rate
 indefinitely, creating CO₂ from nothing. Quantitatively (worked example below),
@@ -284,9 +284,9 @@ Boundary derivative check (autograd, float64): at `M_ice = 0`,
   moment when a pole crosses sublimation ↔ condensation.
 
 ## Cross-references
-- [docs/ideas/iclr2027-workplan.md](../ideas/iclr2027-workplan.md) — audit item D1, task T5
-- [docs/ideas/differentiable-framework-features.md](../ideas/differentiable-framework-features.md) — feature A3
-- [docs/ideas/master-task-list.md](../ideas/master-task-list.md) — Track A-1, task 6
+- docs/ideas/iclr2027-workplan.md (historical note `ideas/iclr2027-workplan.md`, unavailable in this checkout) — audit item D1, task T5
+- docs/ideas/differentiable-framework-features.md (historical note `ideas/differentiable-framework-features.md`, unavailable in this checkout) — feature A3
+- docs/ideas/master-task-list.md (historical note `ideas/master-task-list.md`, unavailable in this checkout) — Track A-1, task 6
 
 ## References
 - Leighton, R. B. & Murray, B. C. (1966). *Science* 153, 136–144.

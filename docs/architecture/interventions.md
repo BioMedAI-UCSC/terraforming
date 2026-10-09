@@ -1,5 +1,10 @@
 # Super-Greenhouse Gas (GHG) Intervention Layer
 
+!!! warning "Deprecated global-mean workflow"
+    This page documents the deprecated torch model or its dependent intervention
+    workflow. Use the [3-D GCM](../package/gcm3d/README.md) for new simulations.
+
+
 Complete derivation, architecture, equations, and worked examples for the
 terraforming intervention system in [`src.interventions`](../api/interventions.md)
 and its CLI integration in [`cli`](../cli/commands.md).
@@ -10,12 +15,12 @@ and its CLI integration in [`cli`](../cli/commands.md).
 
 1. [Unified State Space](#1-unified-state-space)
 2. [Compounds Registry](#2-compounds-registry)
-3. [Atmospheric Concentration — ppb Formula](#3-atmospheric-concentration--ppb-formula)
-4. [Radiative Forcing — ΔF](#4-radiative-forcing--f)
-5. [Greenhouse Factor Update — GHF Formula](#5-greenhouse-factor-update--ghf-formula)
+3. [Atmospheric Concentration — ppb Formula](#3-atmospheric-concentration-ppb-formula)
+4. [Radiative Forcing — ΔF](#4-radiative-forcing-f)
+5. [Greenhouse Factor Update — GHF Formula](#5-greenhouse-factor-update-ghf-formula)
 6. [Exponential Decay](#6-exponential-decay)
 7. [Annual Simulation Loop](#7-annual-simulation-loop)
-8. [Baseline OLR — Why It Must Be Cached](#8-baseline-olr--why-it-must-be-cached)
+8. [Baseline OLR — Why It Must Be Cached](#8-baseline-olr-why-it-must-be-cached)
 9. [Architecture Diagram](#9-architecture-diagram)
 10. [Module Map](#10-module-map)
 11. [CLI Integration](#11-cli-integration)
@@ -79,7 +84,7 @@ Both methods call `_recompute_greenhouse_factor()` afterwards, so
 | `mars.atmosphere.composition` | Partial pressures (Pa) of **all** gases including injected GHGs |
 | `mars.thermal.greenhouse_factor` | Current GHF — always recomputed after inject/decay |
 | `mars.delta_F` | Property: $\Delta F$ derived on-the-fly from composition |
-| `mars._baseline_ghf` / `mars._baseline_olr` | Cached at first injection (see [Section 8](#8-baseline-olr--why-it-must-be-cached)) |
+| `mars._baseline_ghf` / `mars._baseline_olr` | Cached at first injection (see [Section 8](#8-baseline-olr-why-it-must-be-cached)) |
 | `controller._cumulative_injected_kg` | Reporting-only: total kg ever injected per compound |
 
 ### Role of InterventionController
@@ -120,7 +125,7 @@ state of its own:
   No cross-device copies occur in the simulation loop.
 - **Cumulative, not incremental.** GHF is always computed relative to the fixed
   CO₂-only baseline (cached at first injection), never by modifying the current
-  GHF. This prevents compounding (see [Section 8](#8-baseline-olr--why-it-must-be-cached)
+  GHF. This prevents compounding (see [Section 8](#8-baseline-olr-why-it-must-be-cached)
   and [Section 12](#12-bugs-found-and-fixed)).
 
 ---
@@ -173,7 +178,7 @@ that required hard-coding $\overline{MW}_\text{atm} = 43.45$ g/mol. The
 pressure-based formula is both simpler and more accurate.
 
 **Why ppb and not ppm?** Realistic injection rates over 50–100 year horizons
-produce concentrations in the ppb range. The linear forcing formula ([Section 4](#4-radiative-forcing--f))
+produce concentrations in the ppb range. The linear forcing formula ([Section 4](#4-radiative-forcing-f))
 is valid at trace concentrations; ppm-scale would require the logarithmic
 correction used for CO₂ on Earth.
 
@@ -188,7 +193,7 @@ Total radiative forcing from all injected GHGs ([Marinova et al., 2005](https://
 $$\Delta F = \sum_i \eta_i \cdot C_i \quad [\text{W\,m}^{-2}]$$
 
 where $\eta_i$ is the radiative forcing efficiency (W m⁻² ppb⁻¹) from the compound
-registry and $C_i$ is the ppb concentration from [Section 3](#3-atmospheric-concentration--ppb-formula).
+registry and $C_i$ is the ppb concentration from [Section 3](#3-atmospheric-concentration-ppb-formula).
 
 This is the **linear (optically thin) approximation**. It is appropriate for
 trace gases at concentrations below ~1 000 ppb. At these concentrations, forcing
@@ -597,7 +602,7 @@ versus year 1's:
 $$\text{GHF}_\text{new} = 1.02 \times (1 + 1738/97)^{0.25} \approx 2.13$$
 
 **Fix:** Cache $F_\text{in,base}$ on the Mars instance (`mars._baseline_olr`) once at
-`mars._init_ghg`, using $T_0 = 210$ K. See [Section 8](#8-baseline-olr--why-it-must-be-cached) for full details.
+`mars._init_ghg`, using $T_0 = 210$ K. See [Section 8](#8-baseline-olr-why-it-must-be-cached) for full details.
 
 ---
 

@@ -34,7 +34,7 @@ _u = scales.units
 # staging rather than silently loading corrupt data.
 MOLA_SOURCE_URL = (
     "https://pds-geosciences.wustl.edu/mgs/mgs-m-mola-5-megdr-l3-v1/"
-    "mgsl_300x/meg/megt90n000cb.img"
+    "mgsl_300x/meg004/megt90n000cb.img"
 )
 MOLA_LABEL_URL = MOLA_SOURCE_URL[:-4] + ".lbl"
 MOLA_SHA256 = "25f16fb7aaf857898dcf98bc4f841341a24f8b9f7e98453ca083bc45d897ca2c"
