@@ -330,6 +330,7 @@ def _wizard_mars(
             (ExpType.year,  "Full Martian year (668 sols)"),
             (ExpType.multi, "3 latitudes simultaneously  (45°N / equator / 40°S)"),
             (ExpType.spots, "4 landmark sites  (Olympus Mons / Elysium / Hellas / South Pole)"),
+            (ExpType.intervention, "Annual GHG injection over N Mars years"),
         ]
         for i, (key, desc) in enumerate(type_choices, 1):
             click.echo(
@@ -338,7 +339,8 @@ def _wizard_mars(
                 + _c(f"  {desc}", "bright_black")
             )
         idx      = click.prompt(click.style("\n  Select type", fg="bright_white"),
-                                type=click.IntRange(1, 4), default=1, show_default=True)
+                                type=click.IntRange(1, len(type_choices)),
+                                default=1, show_default=True)
         exp_type = type_choices[idx - 1][0]
     wizard_updates["exp_type"] = exp_type
 
@@ -400,6 +402,70 @@ def _wizard_mars(
                             default=default, type=float, show_default=True)
         if val != default:
             wizard_updates[field] = val
+
+    if exp_type == ExpType.intervention:
+        iv = base.intervention
+        if given_flags.n_years is not None:
+            click.echo(
+                _label("  years    ") + _c(str(given_flags.n_years), "bright_white")
+                + _c("  (from --years flag)", "bright_black")
+            )
+        else:
+            n_years = click.prompt(
+                click.style("    Mars years", fg="bright_white"),
+                default=iv.n_years, type=click.IntRange(1), show_default=True,
+            )
+            if n_years != iv.n_years:
+                wizard_updates["n_years"] = n_years
+
+        if given_flags.inject is not None:
+            injections = "  ".join(
+                f"{name} {rate:.2e} kg/yr"
+                for name, rate in given_flags.inject.items()
+            ) or "none"
+            click.echo(
+                _label("  inject   ") + _c(injections, "bright_white")
+                + _c("  (from --inject flag)", "bright_black")
+            )
+        else:
+            injection = dict(iv.injection)
+            if injection:
+                click.echo(
+                    _label("  inject   ")
+                    + _c("  ".join(
+                        f"{name} {rate:.2e} kg/yr"
+                        for name, rate in injection.items()
+                    ), "bright_white")
+                    + _c("  (currently configured)", "bright_black")
+                )
+            available_compounds = _list_compounds()
+            click.echo(
+                _c("  Annual injections", "bright_white", bold=True)
+                + _c("  (COMPOUND:KG_PER_YEAR; Enter to finish; optional for a baseline run)",
+                     "bright_black")
+            )
+            click.echo(_c(f"    Available: {', '.join(available_compounds)}", "bright_black"))
+            while True:
+                item = click.prompt(
+                    click.style("    Injection", fg="bright_white"),
+                    default="", show_default=False,
+                ).strip()
+                if not item:
+                    break
+                try:
+                    compound, kg_str = item.split(":", 1)
+                    compound = compound.strip().upper()
+                    if compound not in available_compounds:
+                        raise ValueError(
+                            f"unknown compound {compound!r}; available: "
+                            + ", ".join(available_compounds)
+                        )
+                    injection[compound] = float(kg_str.strip())
+                except ValueError as exc:
+                    click.echo(_c(f"  ✖  Invalid injection '{item}': {exc}", "bright_red"))
+                    continue
+            if injection != iv.injection:
+                wizard_updates["inject"] = injection
 
     def _ask_accuracy() -> None:
         if given_flags.accuracy is not None:
