@@ -1812,6 +1812,7 @@ def positivity_preserving_co2_step(
     weights = jnp.asarray(grid.quadrature_weights)
     pressure_scale = float(specs.dimensionalize(1.0, _u.pascal).magnitude)
     weight_sum = jnp.sum(weights)
+    uniform_log_pressure = grid.to_modal(jnp.ones(coords.surface_nodal_shape))
 
     has_escape = co2_forcing is not None and co2_forcing.escape_rate_kg_s != 0.0
     if has_escape or external_co2_mass_change_kg is not None:
@@ -1865,9 +1866,20 @@ def positivity_preserving_co2_step(
             & jnp.isfinite(external_mass)
         )
         pressure_factor = jnp.where(valid, target_atmosphere / atmosphere_integral, jnp.nan)
+        # A global pressure factor is a spatially constant addition to log(p).
+        # Do not round-trip the entire log-pressure field through another
+        # nodal->modal transform: that perturbs its spatial pattern and adds
+        # avoidable inventory error, particularly across CPU backends.
+        log_factor = jnp.where(
+            valid,
+            jnp.log1p((target_atmosphere - atmosphere_integral) / atmosphere_integral),
+            jnp.nan,
+        )
         corrected = dataclasses.replace(
             projected.dynamics,
-            log_surface_pressure=grid.to_modal(jnp.log(ps_nd * pressure_factor)),
+            log_surface_pressure=(
+                projected.dynamics.log_surface_pressure + log_factor * uniform_log_pressure
+            ),
         )
         final = projected._replace(dynamics=corrected)
         if not return_diagnostics:
