@@ -10,6 +10,8 @@ Covers:
 
 from __future__ import annotations
 
+import dataclasses
+
 import numpy as np
 import pytest
 
@@ -19,6 +21,7 @@ import jax  # noqa: E402
 from src.celestials.planets.mars import MARS_BODY_3D  # noqa: E402
 from src.celestials.planets.mars import maps  # noqa: E402
 from src.celestials.planets.mars import topography as topo  # noqa: E402
+from src.framework.gcm.dynamics import horizontal_hyperdiffusion_filter  # noqa: E402
 
 jax.config.update("jax_enable_x64", True)
 
@@ -99,7 +102,11 @@ class TestScalePresets:
     def test_known_presets_resolve(self):
         for name in ("fast", "balanced", "high", "ultra"):
             cfg = maps.resolve_scale(name)
-            assert set(cfg) == {"truncation", "n_layers", "dt_seconds", "n_steps"}
+            assert set(cfg) == {
+                "truncation", "n_layers", "dt_seconds", "n_steps",
+                "hyperdiffusion_tau_seconds",
+            }
+            assert cfg["hyperdiffusion_tau_seconds"] == "auto"
             assert cfg["n_layers"] > 0 and cfg["n_steps"] > 0
 
     def test_default_and_ordering(self):
@@ -113,6 +120,50 @@ class TestScalePresets:
     def test_unknown_scale_raises(self):
         with pytest.raises(ValueError, match="unknown scale"):
             maps.resolve_scale("gigantic")
+
+
+@pytest.mark.parametrize("tau", ["auto", None, 1000.0])
+def test_map_runner_applies_and_reports_damping_without_changing_inventories(monkeypatch, tmp_path, tau):
+    import jax.numpy as jnp
+    import xarray as xr
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.framework.gcm.specs import physics_specs
+
+    coords = coordinate_system("T21", 4)
+    specs = physics_specs(MARS_BODY_3D)
+    grid = coords.horizontal
+    terrain = np.zeros(grid.nodal_shape)
+    monkeypatch.setattr(maps, "regrid_to_nodal", lambda *args, **kwargs: terrain)
+    monkeypatch.setattr(maps, "mola_modal_orography", lambda *args, **kwargs: jnp.zeros(grid.modal_shape))
+    initial = maps.initial_rest_state(coords, specs, MARS_BODY_3D, terrain)
+    initial = dataclasses.replace(
+        initial,
+        temperature_variation=initial.temperature_variation.at[:, 0, -1].set(1.0),
+    )
+    # Exercise the real runner/filter, but isolate the damping from PE evolution.
+    monkeypatch.setattr(
+        maps, "stepper",
+        lambda equation, dt_seconds, specs, **kwargs:
+            (lambda state: state) if kwargs["hyperdiffusion_tau_seconds"] is None else
+            (lambda state: horizontal_hyperdiffusion_filter(
+                coords, dt_seconds, specs, kwargs["hyperdiffusion_tau_seconds"]
+            )(state, state)),
+    )
+    fields, final = maps.run_maps(
+        truncation="T21", n_layers=4, dt_seconds=100.0, n_steps=3,
+        initial_state=initial, hyperdiffusion_tau_seconds=tau, return_final_state=True,
+    )
+    expected_tau = 0.2 * MARS_BODY_3D.rotation_period_s if tau == "auto" else tau
+    expected_decay = 1.0 if expected_tau is None else np.exp(-300.0 / expected_tau)
+    assert float(final.temperature_variation[0, 0, -1]) == pytest.approx(expected_decay)
+    np.testing.assert_array_equal(final.log_surface_pressure, initial.log_surface_pressure)
+    assert fields.hyperdiffusion_tau_seconds == expected_tau
+    maps.save_netcdf(fields, tmp_path / "maps.nc")
+    with xr.open_dataset(tmp_path / "maps.nc") as dataset:
+        if expected_tau is None:
+            assert np.isnan(dataset.attrs["hyperdiffusion_tau_seconds"])
+        else:
+            assert dataset.attrs["hyperdiffusion_tau_seconds"] == expected_tau
 
 
 def test_explicit_surface_fields_match_grid_and_physical_bounds(tmp_path):

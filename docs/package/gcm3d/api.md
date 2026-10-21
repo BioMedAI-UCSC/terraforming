@@ -45,7 +45,7 @@ Length = radius, time = 1/(2Ω), mass = 1 kg, temperature = 1 K.
 
 - `primitive_equations(coords, body, specs=None, orography=None) -> PrimitiveEquationsSigma` — dry `ImplicitExplicitODE`; flat orography by default.
 - `reference_temperature(coords, body) -> np.ndarray[n_layers]` — constant linearisation profile (nondimensional).
-- `stepper(equation, dt_seconds, specs) -> step_fn` — semi-implicit IMEX-RK-SIL3; nondimensionalises `dt`.
+- `stepper(equation, dt_seconds, specs, *, coords=None, hyperdiffusion_tau_seconds=None) -> step_fn` — semi-implicit IMEX-RK-SIL3; nondimensionalises `dt`. Optional eighth-order wind/temperature damping requires `coords`; it leaves pressure, tracers and surface reservoirs untouched.
 - `integrate(step_fn, state, n_steps) -> state` — `jax.lax.scan` rollout; differentiable. **Raises** `ValueError` if `n_steps < 1`.
 
 ## Column physics — `framework/physics/gcm.py`
@@ -137,7 +137,7 @@ mixture thermodynamics remain separate work.
 ## 3-D maps — `maps.py`
 - `run_maps(body=None, truncation="T42", n_layers=25, dt_seconds=600.0,
   n_steps=200, ..., forcing=None, co2_forcing=None, initial_state=None,
-  return_final_state=False, hyperdiffusion_tau_seconds=None,
+  return_final_state=False, hyperdiffusion_tau_seconds="auto",
   radiation_component=None, neural_tendency=None)` returns `MarsMapFields` or
   `(fields, final_state)`. These options are not keyword-only in the current API.
 - `MarsMapFields` — lat/lon fields (`surface_pressure_pa`, `temperature_k`, `u_ms`, `v_ms`, `co2_ice_pa`, `elevation_m`) + provenance; properties `wind_speed_ms`, `duration_sols`, `is_transient`, `approximate_wind_height_m`.
@@ -151,6 +151,9 @@ mixture thermodynamics remain separate work.
 
 Map metadata includes `temperature_kind`, `insolation_sampling` and solar
 longitude; full-state comparison exports also retain forcing controls.
+Map output also records the resolved `hyperdiffusion_tau_seconds` and Laplacian
+order. Automatic damping uses 0.1 rotations at T42, scaled by 42/truncation;
+pass a positive time in seconds to override it or `None` to disable it.
 Forced temperature maps are surface temperature;
 dry maps are lowest-layer air temperature. Lowest-layer winds are not fixed-height
 10 m diagnostics. `is_transient` is a duration heuristic, not equilibrium acceptance.

@@ -21,6 +21,8 @@ linearisation anchor, and orography is the lower boundary (flat by default).
 
 from __future__ import annotations
 
+import dataclasses
+
 import numpy as np
 
 from src.framework.gcm._dinosaur import jax
@@ -74,14 +76,65 @@ def primitive_equations(coords, body: BodyConstants, specs=None, orography=None)
     return _pe.PrimitiveEquationsSigma(ref_temp, oro, coords, specs)
 
 
-def stepper(equation, dt_seconds: float, specs):
+def horizontal_hyperdiffusion_filter(coords, dt_seconds: float, specs,
+                                    tau_seconds: float, order: int = 4):
+    """Post-step damping of modal winds and temperature, leaving inventories alone.
+
+    The shortest mode decays by ``exp(-dt_seconds / tau_seconds)`` per step.
+    ``order`` is the power of the Laplacian: 4 means eighth-order diffusion.
+    Pressure, tracers, time, and nodal surface reservoirs are not filtered:
+    filtering log pressure or a mixing ratio does not conserve material mass.
+    Tracers require their own conservative, positivity-preserving transport.
+    """
+    for name, value in (("dt_seconds", dt_seconds), ("tau_seconds", tau_seconds)):
+        if not np.isfinite(value) or value <= 0:
+            raise ValueError(f"{name} must be finite and > 0, got {value}")
+    if not isinstance(order, int) or isinstance(order, bool) or order < 1:
+        raise ValueError("hyperdiffusion order must be a positive integer")
+    dt = float(specs.nondimensionalize(dt_seconds * _u.second))
+    tau = float(specs.nondimensionalize(tau_seconds * _u.second))
+    filter_dynamics = time_integration.horizontal_diffusion_step_filter(
+        coords.horizontal, dt, tau, order=order
+    )
+
+    def apply(previous, next_state):
+        column = hasattr(next_state, "dynamics")
+        dynamics = next_state.dynamics if column else next_state
+        previous_dynamics = previous.dynamics if column else previous
+        filtered = filter_dynamics(previous_dynamics, dynamics)
+        dynamics = dataclasses.replace(
+            dynamics,
+            vorticity=filtered.vorticity,
+            divergence=filtered.divergence,
+            temperature_variation=filtered.temperature_variation,
+        )
+        return next_state._replace(dynamics=dynamics) if column else dynamics
+
+    return apply
+
+
+def stepper(equation, dt_seconds: float, specs, *, coords=None,
+            hyperdiffusion_tau_seconds: float | None = None):
     """Semi-implicit (IMEX-RK-SIL3) time-step function for ``equation``.
 
     ``dt_seconds`` is physical; it is nondimensionalised with ``specs`` before
-    being handed to dinosaur's stepper.
+    being handed to dinosaur's stepper. Pass ``coords`` and a positive
+    ``hyperdiffusion_tau_seconds`` to damp unresolved-scale wind/temperature
+    noise after each step. Low-level dynamics benchmarks retain the explicit
+    opt-in; the user-facing Mars map runner enables damping by default.
     """
+    if not np.isfinite(dt_seconds) or dt_seconds <= 0:
+        raise ValueError(f"dt_seconds must be finite and > 0, got {dt_seconds}")
+    if hyperdiffusion_tau_seconds is not None and coords is None:
+        raise ValueError("coords is required when hyperdiffusion is enabled")
     dt = specs.nondimensionalize(dt_seconds * _u.second)
-    return time_integration.imex_rk_sil3(equation, dt)
+    step = time_integration.imex_rk_sil3(equation, dt)
+    if hyperdiffusion_tau_seconds is not None:
+        diffusion = horizontal_hyperdiffusion_filter(
+            coords, dt_seconds, specs, hyperdiffusion_tau_seconds
+        )
+        step = time_integration.step_with_filters(step, [diffusion])
+    return step
 
 
 def integrate(step_fn, state, n_steps: int):

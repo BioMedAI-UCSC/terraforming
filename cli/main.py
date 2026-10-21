@@ -765,6 +765,10 @@ def mars_compare(config, output):
               help="Override the preset's timestep in seconds.")
 @click.option("--steps", "n_steps", type=int, default=None,
               help="Override the preset's number of integration steps.")
+@click.option("--hyperdiffusion/--no-hyperdiffusion", default=True, show_default=True,
+              help="Damp small-scale wind/temperature noise after each step.")
+@click.option("--hyperdiffusion-tau-seconds", type=click.FloatRange(min=0, min_open=True),
+              default=None, help="Shortest-mode damping time; default 0.1 rotations at T42, scaled by 42/T.")
 @click.option("--physics/--no-physics", default=True, show_default=True,
               help="Add the grey radiative energy balance (else dry dynamics only).")
 @click.option("--co2/--no-co2", "co2", default=True, show_default=True,
@@ -784,6 +788,7 @@ def mars_compare(config, output):
 def mars_maps(
     scale: str, truncation: str | None, n_layers: int | None,
     dt_seconds: float | None, n_steps: int | None,
+    hyperdiffusion: bool, hyperdiffusion_tau_seconds: float | None,
     physics: bool, co2: bool, diurnal: bool, albedo: float, surface_properties: str | None,
     greenhouse_factor: float, ls: float, name: str | None,
 ) -> None:
@@ -822,6 +827,12 @@ def mars_maps(
     if n_layers is not None:   cfg["n_layers"] = n_layers
     if dt_seconds is not None: cfg["dt_seconds"] = dt_seconds
     if n_steps is not None:    cfg["n_steps"] = n_steps
+    if not hyperdiffusion:
+        if hyperdiffusion_tau_seconds is not None:
+            raise click.UsageError("--hyperdiffusion-tau-seconds conflicts with --no-hyperdiffusion")
+        cfg["hyperdiffusion_tau_seconds"] = None
+    elif hyperdiffusion_tau_seconds is not None:
+        cfg["hyperdiffusion_tau_seconds"] = hyperdiffusion_tau_seconds
     truncation = cfg["truncation"]; n_layers = cfg["n_layers"]
     dt_seconds = cfg["dt_seconds"]; n_steps = cfg["n_steps"]
 
@@ -852,6 +863,7 @@ def mars_maps(
         fields = run_maps(
             truncation=truncation, n_layers=n_layers, dt_seconds=dt_seconds,
             n_steps=n_steps, forcing=forcing, co2_forcing=co2_forcing,
+            hyperdiffusion_tau_seconds=cfg["hyperdiffusion_tau_seconds"],
             surface_properties_path=surface_properties,
         )
     except ValueError as exc:
