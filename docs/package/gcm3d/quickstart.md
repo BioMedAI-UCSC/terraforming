@@ -20,6 +20,14 @@ daily-mean grey radiation and CO₂ exchange, rather than the server's full
 physical baseline. `--surface-properties` attaches staged TES data and its surface
 physics. Use `--ls` for the starting season and `mars maps --help` for overrides.
 
+Wind/temperature hyperdiffusion is enabled by default: a shortest-mode damping
+time of 0.1 rotations at T42, scaled by 42/truncation. It leaves pressure,
+tracers and nodal surface reservoirs unchanged. Python callers can set
+`hyperdiffusion_tau_seconds` explicitly or pass `None` to disable it; CLI callers
+use `--hyperdiffusion-tau-seconds` or `--no-hyperdiffusion`. NetCDF attributes
+record the resolved numerical setting. This is a stability control, not proof of
+equilibrium or climate accuracy.
+
 ```bash
 rtk proxy .venv/bin/python -m cli.main mars maps --diurnal --dt 300 --steps 100 --name diurnal-smoke
 rtk proxy .venv/bin/python -m cli.main mars maps --no-physics --steps 100 --name dry-smoke

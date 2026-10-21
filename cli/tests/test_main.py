@@ -22,6 +22,38 @@ def test_mars_maps_help_exits_zero():
     assert "--truncation" in result.output
     assert "--co2" in result.output
     assert "--no-physics" in result.output
+    assert "--no-hyperdiffusion" in result.output
+    assert "--hyperdiffusion-tau-seconds" in result.output
+
+
+@pytest.mark.parametrize("flags,expected", [
+    ([], "auto"),
+    (["--no-hyperdiffusion"], None),
+    (["--hyperdiffusion-tau-seconds", "1200"], 1200.0),
+])
+def test_maps_cli_threads_damping_to_runner(monkeypatch, flags, expected):
+    pytest.importorskip("dinosaur")
+    from src.celestials.planets.mars import maps
+
+    captured = {}
+
+    def stop_after_config(**kwargs):
+        captured.update(kwargs)
+        raise ValueError("configuration captured")
+
+    monkeypatch.setattr(maps, "run_maps", stop_after_config)
+    result = CliRunner().invoke(cli, ["mars", "maps", *flags])
+    assert result.exit_code == 1
+    assert "configuration captured" in result.output
+    assert captured["hyperdiffusion_tau_seconds"] == expected
+
+
+def test_maps_cli_rejects_conflicting_damping_flags():
+    result = CliRunner().invoke(cli, [
+        "mars", "maps", "--no-hyperdiffusion", "--hyperdiffusion-tau-seconds", "1200",
+    ])
+    assert result.exit_code == 2
+    assert "conflicts" in result.output
 
 
 @pytest.mark.slow
