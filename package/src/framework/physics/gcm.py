@@ -40,7 +40,7 @@ from __future__ import annotations
 
 import dataclasses
 import math
-from typing import NamedTuple
+from typing import Callable, NamedTuple
 
 import numpy as np
 
@@ -1747,6 +1747,26 @@ def project_co2_reservoirs(state: ColumnPhysicsState, coords, specs):
     )
 
 
+class CO2ProjectionDiagnostics(NamedTuple):
+    """Global mass accounting for one projected step, in SI units.
+
+    These are numerical-correction diagnostics, not an energy-closure proof.
+    ``negative_frost_repair_kg`` is an internal atmosphere-to-frost transfer;
+    ``atmospheric_rescale_kg`` is the mass subsequently added/removed by the
+    global pressure projection. Neither is a declared physical source.
+    """
+
+    raw_total_mass_kg: object
+    target_total_mass_kg: object
+    corrected_total_mass_kg: object
+    external_co2_mass_change_kg: object
+    escape_mass_kg: object
+    negative_frost_repair_kg: object
+    atmospheric_rescale_kg: object
+    pressure_factor: object
+    valid_inventory: object
+
+
 def positivity_preserving_co2_step(
     step_fn,
     coords,
@@ -1755,6 +1775,8 @@ def positivity_preserving_co2_step(
     body: BodyConstants | None = None,
     co2_forcing: CO2Forcing | None = None,
     dt_seconds: float | None = None,
+    external_co2_mass_change_kg: Callable[[ColumnPhysicsState, float], object] | None = None,
+    return_diagnostics: bool = False,
 ):
     """Wrap an IMEX step with positivity and global CO2-mass projections.
 
@@ -1766,20 +1788,48 @@ def positivity_preserving_co2_step(
 
     After repairing negative frost, rescale atmospheric pressure by one global
     factor so the Gaussian-quadrature integral of atmosphere plus surface frost
-    matches the inventory before the step. If non-thermal escape is configured,
-    subtract its exact pressure-equivalent loss. The rescaling preserves the
-    resolved spatial pressure pattern and keeps pressure positive.
+    matches the inventory before the step plus declared external CO2 sources,
+    less configured escape. The rescaling preserves the resolved spatial
+    pressure pattern and keeps pressure positive for feasible inventories.
+
+    ``external_co2_mass_change_kg(state_before, dt_seconds)`` returns a scalar
+    global CO2 mass change for the entire step (positive source, negative sink),
+    excluding ``co2_forcing.escape_rate_kg_s``. The underlying ``step_fn`` must
+    apply that source/sink and its thermal/momentum effects; this callback only
+    declares the conservation target and must not inject material a second time.
+    It must be pure and JAX-compatible; schedule times should be derived from
+    the persisted simulation clock, not mutable Python counters. ``sim_time``
+    in the dynamics is nondimensional and must be converted with ``specs``.
+
+    This is a CO2-only budget, not a gas-mixture or suspended-aerosol model.
+    New species require independent inventories and validated thermodynamics.
+    With ``return_diagnostics=True`` each call returns ``(state, diagnostics)``
+    instead of just state; callers must explicitly accumulate/check diagnostics.
+    Impossible or non-finite inventory targets produce a non-finite pressure
+    state (and ``valid_inventory=False``), rather than silently inventing mass.
     """
     grid = coords.horizontal
     weights = jnp.asarray(grid.quadrature_weights)
     pressure_scale = float(specs.dimensionalize(1.0, _u.pascal).magnitude)
+    weight_sum = jnp.sum(weights)
+
+    has_escape = co2_forcing is not None and co2_forcing.escape_rate_kg_s != 0.0
+    if has_escape or external_co2_mass_change_kg is not None:
+        if body is None or dt_seconds is None:
+            raise ValueError("body and dt_seconds are required for external CO2 sources/sinks or escape")
+        if not np.isfinite(dt_seconds) or dt_seconds <= 0:
+            raise ValueError("dt_seconds must be finite and > 0")
+    if return_diagnostics and body is None:
+        raise ValueError("body is required for CO2 projection diagnostics in SI units")
+    mass_per_integral = (
+        body.surface_area_m2 * pressure_scale / (body.gravity_m_s2 * weight_sum)
+        if body is not None else None
+    )
 
     escape_pa = 0.0
-    if co2_forcing is not None and co2_forcing.escape_rate_kg_s != 0.0:
-        if body is None or dt_seconds is None:
-            raise ValueError(
-                "body and dt_seconds are required when CO2 escape is non-zero"
-            )
+    if has_escape:
+        if not np.isfinite(co2_forcing.escape_rate_kg_s) or co2_forcing.escape_rate_kg_s < 0:
+            raise ValueError("escape_rate_kg_s must be finite and >= 0")
         escape_pa = (
             co2_forcing.escape_rate_kg_s
             * body.gravity_m_s2
@@ -1792,20 +1842,49 @@ def positivity_preserving_co2_step(
         return jnp.sum((ps_nd + state.co2_ice[0]) * weights)
 
     def step(state):
+        external_mass = jnp.asarray(
+            0.0 if external_co2_mass_change_kg is None
+            else external_co2_mass_change_kg(state, dt_seconds)
+        )
+        if external_mass.ndim != 0:
+            raise ValueError("external_co2_mass_change_kg must return a scalar global mass")
         target_total = total_pressure_integral(state)
-        target_total = target_total - escape_pa / pressure_scale * jnp.sum(weights)
-        projected = project_co2_reservoirs(step_fn(state), coords, specs)
+        if external_co2_mass_change_kg is not None:
+            target_total = target_total + external_mass / mass_per_integral
+        target_total = target_total - escape_pa / pressure_scale * weight_sum
+        raw = step_fn(state)
+        projected = project_co2_reservoirs(raw, coords, specs)
 
         ps_nd = jnp.exp(grid.to_nodal(projected.dynamics.log_surface_pressure))
         ice_integral = jnp.sum(projected.co2_ice[0] * weights)
         atmosphere_integral = jnp.sum(ps_nd[0] * weights)
-        target_atmosphere = jnp.maximum(target_total - ice_integral, 1.0e-15)
-        pressure_factor = target_atmosphere / atmosphere_integral
+        target_atmosphere = target_total - ice_integral
+        valid = (
+            jnp.isfinite(target_atmosphere) & (target_atmosphere > 0.0)
+            & jnp.isfinite(atmosphere_integral) & (atmosphere_integral > 0.0)
+            & jnp.isfinite(external_mass)
+        )
+        pressure_factor = jnp.where(valid, target_atmosphere / atmosphere_integral, jnp.nan)
         corrected = dataclasses.replace(
             projected.dynamics,
             log_surface_pressure=grid.to_modal(jnp.log(ps_nd * pressure_factor)),
         )
-        return projected._replace(dynamics=corrected)
+        final = projected._replace(dynamics=corrected)
+        if not return_diagnostics:
+            return final
+        negative_frost_integral = jnp.sum(jnp.maximum(-raw.co2_ice[0], 0.0) * weights)
+        diagnostics = CO2ProjectionDiagnostics(
+            raw_total_mass_kg=total_pressure_integral(raw) * mass_per_integral,
+            target_total_mass_kg=target_total * mass_per_integral,
+            corrected_total_mass_kg=total_pressure_integral(final) * mass_per_integral,
+            external_co2_mass_change_kg=external_mass,
+            escape_mass_kg=escape_pa / pressure_scale * weight_sum * mass_per_integral,
+            negative_frost_repair_kg=negative_frost_integral * mass_per_integral,
+            atmospheric_rescale_kg=(target_atmosphere - atmosphere_integral) * mass_per_integral,
+            pressure_factor=pressure_factor,
+            valid_inventory=valid,
+        )
+        return final, diagnostics
 
     return step
 
