@@ -97,8 +97,32 @@ to False. These defaults are distinct.
 - `project_co2_reservoirs(state, coords, specs)` — repair frost while balancing
   the local pressure deficit.
 - `positivity_preserving_co2_step(step_fn, coords, specs, *, body=None,
-  co2_forcing=None, dt_seconds=None)` — also restore global CO₂ inventory;
-  `body` and `dt_seconds` are required for nonzero escape.
+  co2_forcing=None, dt_seconds=None, external_co2_mass_change_kg=None,
+  return_diagnostics=False)` — restore global CO₂ inventory including declared
+  external CO₂ changes, less configured escape. `body` and positive finite
+  `dt_seconds` are required for external sources/sinks or nonzero escape.
+
+`external_co2_mass_change_kg(state_before, dt_seconds)` is a pure JAX-compatible
+callback returning one global scalar **mass for the whole step**, in kg, with
+positive injection and negative removal. It excludes the already-configured
+escape. The underlying step must apply the physical source/sink and its
+thermal/momentum effects; declaring the budget does not inject it again. Derive
+schedules from the persisted simulation clock (Dinosaur `sim_time` is
+nondimensional), not Python counters, so restarts retain the same schedule.
+
+Setting `return_diagnostics=True` requires `body` and returns
+`(state, CO2ProjectionDiagnostics)` from each step. Diagnostics contain SI raw,
+target and corrected total masses, declared external/escape amounts, negative
+frost transfers, global atmospheric rescale, pressure factor and inventory
+validity. Accumulate these explicitly in a scan or experiment ledger; the default
+state-only return remains compatible with `integrate`. Impossible/non-finite
+targets return non-finite pressure and a false validity flag instead of silently
+creating a minimum positive atmosphere. Host runners must reject such states.
+
+This interface supports CO₂ bookkeeping, not arbitrary gas mixtures or particle
+loading. Numerical repair masses are not physical sources, and their diagnostics
+do not establish energy/momentum closure. Full experiment-ledger persistence and
+mixture thermodynamics remain separate work.
 
 ### Orbit / geometry helpers
 - `cos_zenith_nodal(t_s, lat_rad, lon_rad, f)` — cos(zenith) on the `(n_lon, n_lat)` grid; diurnal terminator or daily-mean.
