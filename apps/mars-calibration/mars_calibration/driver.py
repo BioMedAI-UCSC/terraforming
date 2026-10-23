@@ -166,7 +166,7 @@ def _build_step(coords, specs, forcing, dt_seconds: float, *,
     # ratios, changing their integrated inventories before the CO2 projection.
     advance = stepper(
         equation, dt_seconds, specs, coords=coords,
-        hyperdiffusion_tau_seconds=diffusion_sols * MARS_BODY_3D.rotation_period_s,
+        hyperdiffusion_tau_seconds=diffusion_sols * MARS_BODY_3D.solar_day_seconds,
     )
     advance = positivity_preserving_co2_step(
         advance,
@@ -277,7 +277,7 @@ def main() -> int:
     specs = physics_specs(MARS_BODY_3D)
     initial = load_restart(args.restart)
     target = _target(args.target, args.target_index)
-    steps = round(args.rollout_sols * MARS_BODY_3D.rotation_period_s / args.dt)
+    steps = round(args.rollout_sols * MARS_BODY_3D.solar_day_seconds / args.dt)
     if steps < 1:
         parser.error("rollout must contain at least one physical step")
     for leaf in jax.tree_util.tree_leaves(initial):
@@ -430,7 +430,7 @@ def main() -> int:
                                  ("terraforming", "dinosaur", "jaxlib", "numpy", "scipy")}},
         "surface_properties": {"path": str(args.surface_properties), "sha256": _sha256(args.surface_properties)},
         "dust_reference": {"path": str(args.ames_dust_reference), "sha256": _sha256(args.ames_dust_reference)},
-        "actual_rollout_sols": steps * args.dt / MARS_BODY_3D.rotation_period_s,
+        "actual_rollout_sols": steps * args.dt / MARS_BODY_3D.solar_day_seconds,
         "status": "pass" if (
             all(item["pass"] for item in gradient_checks) and calibration_passed and budget_passed
         ) else "fail",
