@@ -204,7 +204,8 @@ class MarsMapFields:
     dt_seconds: float
     physics: str = "dry dynamics; no radiation/CO2/dust"
     co2_ice_pa: np.ndarray | None = None  # (n_lat, n_lon) surface CO2 frost, Pa-equiv
-    rotation_period_s: float = 88775.244  # for the duration diagnostic
+    rotation_period_s: float = 88775.244  # legacy field name: solar clock for duration
+    sidereal_rotation_period_s: float = 88642.663
     solar_longitude_deg: float | None = None
     insolation_sampling: str = "none"
     temperature_kind: str = "lowest_layer_air"
@@ -519,7 +520,7 @@ def run_maps(
     else:
         elapsed_seconds = n_steps * dt_seconds
         total_steps = n_steps
-    duration_sols = elapsed_seconds / body.rotation_period_s
+    duration_sols = elapsed_seconds / body.solar_day_seconds
     if duration_sols < 668.0:
         physics_label += (
             f" | TRANSIENT: {duration_sols:.1f}-sol spin-up snapshot, "
@@ -553,7 +554,8 @@ def run_maps(
         physics=physics_label,
         hyperdiffusion_tau_seconds=hyperdiffusion_tau_seconds,
         co2_ice_pa=co2_ice_map,
-        rotation_period_s=body.rotation_period_s,
+        rotation_period_s=body.solar_day_seconds,
+        sidereal_rotation_period_s=body.rotation_period_s,
         solar_longitude_deg=solar_longitude_deg,
         insolation_sampling=("diurnal" if forcing.diurnal else "daily_mean") if forcing else "none",
         temperature_kind="surface_skin" if forcing else "lowest_layer_air",
@@ -577,7 +579,7 @@ def state_to_comparison_dataset(state, coords, specs, body, forcing):
     )
     time_scale_s = 1.0 / float(specs.nondimensionalize(1.0 * _u.second))
     elapsed_seconds = float(dyn.sim_time) * time_scale_s
-    elapsed_sols = elapsed_seconds / body.rotation_period_s
+    elapsed_sols = elapsed_seconds / body.solar_day_seconds
     lon = np.mod(np.degrees(np.asarray(grid.longitudes)), 360.0)
     lat = np.degrees(np.asarray(grid.latitudes))
     sigma = np.asarray(coords.vertical.centers)
@@ -641,6 +643,8 @@ def state_to_comparison_dataset(state, coords, specs, body, forcing):
         },
         attrs={
             "title": "Differentiable Mars GCM comparison state",
+            "sidereal_rotation_period_s": body.rotation_period_s,
+            "solar_day_s": body.solar_day_seconds,
             "temporal_sampling": "instantaneous",
             "n_layers": len(sigma),
             "reference_role": "model output; not observational truth",
@@ -701,6 +705,8 @@ def save_netcdf(fields: MarsMapFields, path) -> Path:
             "hyperdiffusion_laplacian_order": (
                 4 if fields.hyperdiffusion_tau_seconds is not None else 0
             ),
+            "solar_day_s": fields.rotation_period_s,
+            "sidereal_rotation_period_s": fields.sidereal_rotation_period_s,
             "fidelity": fields.physics,
             "wind_level_sigma": fields.wind_level_sigma,
             "approximate_wind_height_m": fields.approximate_wind_height_m,

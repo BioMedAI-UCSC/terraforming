@@ -49,6 +49,10 @@ MARS_MASS: torch.Tensor             = torch.tensor(6.4171e23,   dtype=TF_DTYPE) 
 MARS_RADIUS: torch.Tensor           = torch.tensor(3.3895e6,    dtype=TF_DTYPE)  # m
 MARS_GRAVITY: torch.Tensor          = torch.tensor(3.72076,     dtype=TF_DTYPE)  # m s⁻²
 MARS_ROTATION_PERIOD: torch.Tensor  = torch.tensor(88_775.244,  dtype=TF_DTYPE)  # s  (1 sol)
+# NASA Mars Fact Sheet: sidereal rotation 24.6229 h; solar day 24.6597 h.
+# https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html
+# Keep the historical constant above as the solar clock for the 0-D model.
+MARS_SIDEREAL_ROTATION_PERIOD: torch.Tensor = torch.tensor(88_642.663, dtype=TF_DTYPE)
 MARS_SEMI_MAJOR_AXIS: torch.Tensor  = torch.tensor(2.27939200e11, dtype=TF_DTYPE) # m  (1.524 AU)
 MARS_ECCENTRICITY: torch.Tensor     = torch.tensor(0.0934,      dtype=TF_DTYPE)  # dimensionless
 MARS_ORBITAL_PERIOD: torch.Tensor   = torch.tensor(5.93568e7,   dtype=TF_DTYPE)  # s  (~687 d)
@@ -104,7 +108,8 @@ MARS_BODY_3D: BodyConstants = BodyConstants(
     name="Mars",
     radius_m=float(MARS_RADIUS),
     gravity_m_s2=float(MARS_GRAVITY),
-    rotation_period_s=float(MARS_ROTATION_PERIOD),
+    rotation_period_s=float(MARS_SIDEREAL_ROTATION_PERIOD),
+    solar_day_s=float(MARS_ROTATION_PERIOD),
     gas_constant_j_kg_k=188.92,   # 8.314462618 / 0.0440095 (CO2)
     cp_j_kg_k=770.0,              # isobaric heat capacity, thin CO2 atmosphere
     reference_temperature_k=200.0,

@@ -119,7 +119,7 @@ def _checkpoint_diagnostics(state, coords, specs, dt_seconds: float) -> dict[str
     )
     return {
         "step": step,
-        "elapsed_sols": elapsed_seconds / MARS_BODY_3D.rotation_period_s,
+        "elapsed_sols": elapsed_seconds / MARS_BODY_3D.solar_day_seconds,
         "mean_surface_pressure_pa": mean_pressure_pa,
         "mean_co2_ice_pa": mean_ice_pa,
         "atmosphere_plus_surface_reservoir_mass_kg": co2_mass_kg,
@@ -469,7 +469,7 @@ def main() -> int:
             diagnostic_callback=checkpoint,
             progress_chunk_steps=steps_chunk,
             hyperdiffusion_tau_seconds=(
-                args.hyperdiffusion_tau_sols * MARS_BODY_3D.rotation_period_s
+                args.hyperdiffusion_tau_sols * MARS_BODY_3D.solar_day_seconds
             ),
         )
         completed = steps_total

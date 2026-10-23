@@ -70,7 +70,7 @@ def initialize(window, record, contract):
         dims = ("lev", "lon", "lat") if "lev" in ds[name].dims else ("lon", "lat")
         return np.asarray(ds[name].transpose(*dims))
     # MACDA epoch is midnight at lon=0; solver t=0 is local noon.
-    ts = (record["start_sol"] + .5) * body.rotation_period_s
+    ts = (record["start_sol"] + .5) * body.solar_day_seconds
     forcing = physical_forcing()
     forcing = dataclasses.replace(forcing,
         init_orbital_angle_rad=mean_anomaly_for_ls(np.deg2rad(record["ls"]), forcing) - 2 * np.pi * ts / forcing.orbital_period_s,
@@ -98,7 +98,7 @@ def forecast(window, record, contract):
     from src.framework.physics.gcm import _true_anomaly, cos_zenith_nodal, solar_flux
     coords, specs, forcing, state = initialize(window, record, contract)
     grid = coords.horizontal
-    ts = (record["start_sol"] + .5) * body.rotation_period_s
+    ts = (record["start_sol"] + .5) * body.solar_day_seconds
     start = window.isel(time=12)
     def field(name, ds=start):
         dims = ("lev", "lon", "lat") if "lev" in ds[name].dims else ("lon", "lat")

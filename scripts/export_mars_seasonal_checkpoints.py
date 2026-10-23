@@ -76,7 +76,7 @@ def main() -> int:
     for path in sorted(args.checkpoints.glob("restart_*.npz")):
         state = load_restart(path)
         elapsed_seconds = float(state.dynamics.sim_time) * time_scale_s
-        elapsed_sols = elapsed_seconds / MARS_BODY_3D.rotation_period_s
+        elapsed_sols = elapsed_seconds / MARS_BODY_3D.solar_day_seconds
         ls_deg = float(np.degrees(
             float(_true_anomaly(elapsed_seconds, forcing)) + forcing.ls_perihelion_rad
         ) % 360.0)

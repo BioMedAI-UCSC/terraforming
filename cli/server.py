@@ -732,7 +732,7 @@ def _run_gcm_maps(run, req: RunRequest, cfg) -> None:
     if req.diurnal:
         from src.celestials.planets.mars import MARS_BODY_3D
         run["fields"]["diurnal"] = _assemble_fixed_local_time_maps(
-            raw_diurnal, run["fields"], MARS_BODY_3D.rotation_period_s
+            raw_diurnal, run["fields"], MARS_BODY_3D.solar_day_seconds
         )
         if req.compare_mcd:
             _attach_mcd_benchmark(

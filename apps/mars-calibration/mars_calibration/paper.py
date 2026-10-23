@@ -491,7 +491,7 @@ def benchmark(model, config, output, external):
         memory = function.memory_analysis()
         records.append({"workload": name, **cost, "execution_seconds": samples,
                         "median_seconds": median,
-                        "simulated_sols_per_wall_hour": config["train_seconds"][-1] / d.MARS_BODY_3D.rotation_period_s / median * 3600,
+                        "simulated_sols_per_wall_hour": config["train_seconds"][-1] / d.MARS_BODY_3D.solar_day_seconds / median * 3600,
                         "compiled_temporary_bytes": getattr(memory, "temp_size_in_bytes", None),
                         "peak_device_memory_bytes": None})
     report = {"status": "complete", "measurements": records, "external": external,

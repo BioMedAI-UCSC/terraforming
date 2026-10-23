@@ -46,6 +46,9 @@ class BodyConstants:
         Reference temperature for the semi-implicit linearisation (K).
     reference_surface_pressure_pa : float
         Representative global-mean surface pressure (Pa).
+    solar_day_s : float, optional
+        Solar day for illumination and duration reporting; defaults to rotation
+        for backward compatibility with bodies that do not supply both clocks.
     """
 
     name: str
@@ -56,8 +59,13 @@ class BodyConstants:
     cp_j_kg_k: float
     reference_temperature_k: float = 250.0
     reference_surface_pressure_pa: float = 1.0e5
+    solar_day_s: float | None = None
 
     def __post_init__(self) -> None:
+        if self.solar_day_s is not None and not (
+            math.isfinite(self.solar_day_s) and self.solar_day_s > 0
+        ):
+            raise ValueError("solar_day_s must be finite and positive")
         for field_name in (
             "radius_m",
             "gravity_m_s2",
@@ -70,6 +78,11 @@ class BodyConstants:
             value = getattr(self, field_name)
             if not (value > 0.0):
                 raise ValueError(f"{field_name} must be positive, got {value!r}")
+
+    @property
+    def solar_day_seconds(self) -> float:
+        """Solar clock for forcing/reporting; legacy bodies fall back to rotation."""
+        return self.rotation_period_s if self.solar_day_s is None else self.solar_day_s
 
     @property
     def angular_velocity_s(self) -> float:
@@ -94,6 +107,7 @@ EARTH = BodyConstants(
     radius_m=6.371220e6,
     gravity_m_s2=9.80616,
     rotation_period_s=86_164.0905,  # sidereal day
+    solar_day_s=86_400.0,
     gas_constant_j_kg_k=287.04,  # dry air
     cp_j_kg_k=1004.6,  # dry air; kappa = R/cp ~ 2/7
     reference_temperature_k=288.0,
