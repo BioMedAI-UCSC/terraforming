@@ -74,7 +74,7 @@ def test_step_factory_preserves_phase1_closure_intervals(monkeypatch):
     specs = d.physics_specs(d.MARS_BODY_3D)
     monkeypatch.setattr(d, "forced_co2_primitive_equations",
                         lambda coords, body, f, cf, **kw: captured.append((f, cf)))
-    monkeypatch.setattr(d, "stepper", lambda *args: lambda state: state)
+    monkeypatch.setattr(d, "stepper", lambda *args, **kwargs: lambda state: state)
     for dt in (300, 150):
         d._build_step(coords, specs, forcing, dt, orography=np.zeros(coords.horizontal.modal_shape))
     for f, cf in captured:

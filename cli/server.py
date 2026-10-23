@@ -666,7 +666,6 @@ def _gcm_snapshot(scale: str, albedo: float, greenhouse: float, ls_deg: float,
         surface_properties_path=(
             _TES_SURFACE_PATH if _TES_SURFACE_PATH.exists() else None
         ),
-        hyperdiffusion_tau_seconds=0.1 * forcing.rotation_period_s,
         progress_callback=progress_callback, diagnostic_callback=diagnostic_callback,
         stop_requested=stop_requested,
         progress_chunk_steps=(max(1, cfg["n_steps"] // 48) if diurnal else 32),

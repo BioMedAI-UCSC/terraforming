@@ -24,6 +24,8 @@ rtk proxy .venv/bin/python -m cli.main mars maps --diurnal --dt 300 --steps 100 
 | --- | --- | --- |
 | `--scale` | `fast` | Resolution/layer/timestep/step preset |
 | `--truncation`, `--layers`, `--dt`, `--steps` | Preset | Explicit overrides |
+| `--hyperdiffusion/--no-hyperdiffusion` | Enabled | Eighth-order spectral damping of winds and temperature |
+| `--hyperdiffusion-tau-seconds` | Automatic | Shortest-mode e-folding time: 0.1 rotations at T42, scaled by 42/truncation |
 | `--physics/--no-physics` | Physics | Grey radiation versus dry dynamics |
 | `--co2/--no-co2` | CO₂ | Energy-limited frost exchange; requires physics |
 | `--diurnal/--daily-mean` | Daily mean | Illumination sampling |
@@ -36,11 +38,18 @@ The defaults do not reproduce the browser's full correlated-k baseline.
 See [GCM quickstart](../package/gcm3d/quickstart.md) for Python configuration,
 data requirements, output units and restart. The diurnal timestep guard is
 necessary but does not establish stability or climate equilibrium.
+
+Damping leaves surface pressure, particle/gas tracers, surface temperature, frost
+and soil untouched. Its resolved timescale is recorded in the physics description
+and NetCDF attributes. Use `--no-hyperdiffusion` only for explicit numerical
+comparisons; a finite short run does not establish long-term stability.
+
 ## `tform serve`
 
 The browser GCM uses correlated-k CO₂ radiation, regolith, stability exchange,
 PBL diffusion, dry convection and conservative CO₂ exchange. It attaches TES and
-seasonal Ames dust when available and uses a 0.1-sol spectral diffusion timescale.
+seasonal Ames dust when available and uses the same resolution-dependent spectral
+diffusion default as CLI maps (0.1 rotations at T42).
 Its baseline CO₂/dust longwave scales are 0.25, with surface exchange 1.0;
 the UI exposes bounded calibration controls. See the
 [GCM overview](../package/gcm3d/README.md) for how this differs from CLI maps.
