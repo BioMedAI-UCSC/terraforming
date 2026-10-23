@@ -41,10 +41,15 @@ forecast skill.
 
 ## Neural result snapshot
 
-The recorded default atmospheric-control smoke run used T21, two layers, three
-30-second steps, one seed and a synthetic `-0.2 K` target shift. It reduced target
-RMSE from approximately `0.174 K` to `0.020 K`, remained finite, and respected a
-`0.002 K/s` maximum heating bound. This is an integration demonstration. It has
+The archived atmospheric-control run in `04-neural-experiments/control/` used
+T21, two layers, three 30-second steps, seed 0 and a synthetic `-1.5 K` target
+shift, with a `0.0002 K/s` heating bound. Its uncontrolled final-state baseline
+is `1.500 K` and the controlled final RMSE is `1.482548 K`: an improvement of
+`0.017452 K`. The original report's `initial_rmse_k=1.471831 K` compared the
+initial-time state against a final-time target; see the archived metric erratum.
+The previously described `-0.2 K` smoke run is a different experiment, whose
+artifacts are not included here. Current example defaults also differ from the
+archived run. This is an integration demonstration. It has
 no held-out initial state, observational target, MOLA topography or long-horizon
 stability result.
 
