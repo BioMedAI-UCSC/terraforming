@@ -34,7 +34,7 @@ from src.celestials.planets.mars import MARS_BODY_3D
 from src.celestials.planets.mars.gcm import co2_forcing, radiative_forcing
 from src.celestials.planets.mars.maps import forcing_with_surface_properties
 from src.celestials.planets.mars.topography import mola_modal_orography, regrid_to_nodal
-from src.framework.gcm._dinosaur import jax, jnp, scales, spherical_harmonic, time_integration
+from src.framework.gcm._dinosaur import jax, jnp, scales, spherical_harmonic
 from src.framework.gcm.coordinates import coordinate_system
 from src.framework.gcm.dynamics import integrate, reference_temperature, stepper
 from src.framework.gcm.restart import load_restart
@@ -161,21 +161,13 @@ def _build_step(coords, specs, forcing, dt_seconds: float, *,
         orography=orography,
         neural_tendency=neural_tendency,
     )
-    advance = stepper(equation, dt_seconds, specs)
-    dt_nd = float(specs.nondimensionalize(dt_seconds * scales.units.second))
-    tau_nd = float(specs.nondimensionalize(
-        diffusion_sols * MARS_BODY_3D.rotation_period_s * scales.units.second
-    ))
-    dynamics_filter = time_integration.horizontal_diffusion_step_filter(
-        coords.horizontal, dt_nd, tau_nd, order=4
+    # Reuse the inventory-preserving core filter. Applying Dinosaur's filter
+    # to the entire dynamics pytree also filters log(p_s) and tracer mixing
+    # ratios, changing their integrated inventories before the CO2 projection.
+    advance = stepper(
+        equation, dt_seconds, specs, coords=coords,
+        hyperdiffusion_tau_seconds=diffusion_sols * MARS_BODY_3D.rotation_period_s,
     )
-
-    def diffusion(previous, following):
-        return following._replace(
-            dynamics=dynamics_filter(previous.dynamics, following.dynamics)
-        )
-
-    advance = time_integration.step_with_filters(advance, [diffusion])
     advance = positivity_preserving_co2_step(
         advance,
         coords,
