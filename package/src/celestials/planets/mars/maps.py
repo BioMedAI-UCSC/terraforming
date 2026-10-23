@@ -297,7 +297,7 @@ def run_maps(
 
         build_grid(truncation)
         hyperdiffusion_tau_seconds = (
-            0.1 * body.rotation_period_s * 42 / int(truncation[1:])
+            0.1 * body.solar_day_seconds * 42 / int(truncation[1:])
         )
     if radiation_component is not None and forcing is None:
         raise ValueError("radiation_component requires radiative forcing")

@@ -153,7 +153,7 @@ def test_map_runner_applies_and_reports_damping_without_changing_inventories(mon
         truncation="T21", n_layers=4, dt_seconds=100.0, n_steps=3,
         initial_state=initial, hyperdiffusion_tau_seconds=tau, return_final_state=True,
     )
-    expected_tau = 0.2 * MARS_BODY_3D.rotation_period_s if tau == "auto" else tau
+    expected_tau = 0.2 * MARS_BODY_3D.solar_day_seconds if tau == "auto" else tau
     expected_decay = 1.0 if expected_tau is None else np.exp(-300.0 / expected_tau)
     assert float(final.temperature_variation[0, 0, -1]) == pytest.approx(expected_decay)
     np.testing.assert_array_equal(final.log_surface_pressure, initial.log_surface_pressure)

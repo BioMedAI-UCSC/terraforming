@@ -32,7 +32,7 @@ def test_calibration_filter_excludes_pressure_and_tracers_before_projection(monk
     advance = driver._build_step(coords, specs, driver.radiative_forcing(), 300.,
                                  orography=driver.jnp.zeros(grid.modal_shape), diffusion_sols=.1)
     result = driver.jax.jit(advance)(column)
-    expected_decay = np.exp(-300 / (.1 * driver.MARS_BODY_3D.rotation_period_s))
+    expected_decay = np.exp(-300 / (.1 * driver.MARS_BODY_3D.solar_day_seconds))
     np.testing.assert_allclose(result.dynamics.temperature_variation[:, 0, -1], expected_decay)
     np.testing.assert_array_equal(result.dynamics.log_surface_pressure, pressure)
     np.testing.assert_array_equal(result.dynamics.tracers["dust"], modes)
