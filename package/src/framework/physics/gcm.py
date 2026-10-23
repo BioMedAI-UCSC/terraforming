@@ -1040,10 +1040,11 @@ def pbl_vertical_diffusion_tendencies(
     v_ms = specs.dimensionalize(v, velocity_unit).magnitude
     ref = np.asarray(reference_temperature(coords, body)).reshape(coords.vertical.layers, 1, 1)
     actual_t = temperature + ref
-    theta = actual_t / jnp.asarray(sigma[:, None, None]) ** body.kappa
+    exner = jnp.asarray(sigma, dtype=actual_t.dtype) ** body.kappa
+    theta = actual_t / exner[:, None, None]
     _, cd, speed = _surface_exchange_properties(
         state, coords, specs, body, f,
-        jnp.ones(grid.nodal_shape) * body.reference_temperature_k,
+        actual_t[-1],
         state.surface_temperature[0],
         ps_pa=ps_pa,
         wind_nodal=wind_nodal,
@@ -1123,9 +1124,15 @@ def pbl_vertical_diffusion_tendencies(
         heat_rates.append(rate / prandtl)
     rates_si = jnp.stack(momentum_rates)
     heat_rates_si = jnp.stack(heat_rates)
-    dt, _ = _implicit_vertical_diffusion_tendency(
-        temperature, heat_rates_si, dsigma, f.pbl_implicit_timestep_s, specs
+    # Mix potential temperature, with enthalpy capacities dsigma * Exner.
+    # This leaves a dry-neutral column stationary while conserving sum(dsigma*T).
+    # The interface conductance is capacity[k] * rate[k], as in the momentum
+    # solve; retain capacities in float64 to avoid a neutral-profile heat leak.
+    dtheta, _ = _implicit_vertical_diffusion_tendency(
+        theta, heat_rates_si, jnp.asarray(dsigma) * exner,
+        f.pbl_implicit_timestep_s, specs
     )
+    dt = dtheta * exner[:, None, None]
     du, u_new = _implicit_vertical_diffusion_tendency(
         u_ms, rates_si, dsigma, f.pbl_implicit_timestep_s, specs, velocity=True
     )
