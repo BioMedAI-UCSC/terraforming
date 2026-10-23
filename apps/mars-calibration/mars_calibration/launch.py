@@ -54,7 +54,7 @@ def main():
         shutil.copyfile("/opt/environment.txt", args.output / "environment.txt")
     print(json.dumps({"phase": "initializing_gpu", "config": config}), flush=True)
     from . import driver
-    steps = round(config["rollout_sols"] * driver.MARS_BODY_3D.rotation_period_s / config["dt_seconds"])
+    steps = round(config["rollout_sols"] * driver.MARS_BODY_3D.solar_day_seconds / config["dt_seconds"])
     if steps != config["expected_steps"]:
         raise ValueError(f"Expected 74 steps, got {steps}")
     sys.argv = ["mars-calibration", *[str(args.inputs / name) for name in FILES[:4]],

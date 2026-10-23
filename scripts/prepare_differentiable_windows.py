@@ -51,7 +51,7 @@ def main():
             np.savez_compressed(force, init_orbital_angle_rad=forcing.init_orbital_angle_rad,
                                 dust_visible=forcing.dust_visible_optical_depth,
                                 dust_longwave=forcing.dust_longwave_optical_depth)
-            start = record["start_sol"] * d.MARS_BODY_3D.rotation_period_s
+            start = record["start_sol"] * d.MARS_BODY_3D.solar_day_seconds
             windows.append(dict(id=stem, split=split, block=record["block"],
                 source=contract["source_url"] + "@" + contract["source_revision"],
                 reference_kind="reanalysis", start_seconds=start,

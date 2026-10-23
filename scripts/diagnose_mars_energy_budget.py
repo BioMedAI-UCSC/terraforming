@@ -171,7 +171,7 @@ def main() -> int:
     report = {
         "restart": str(args.restart),
         "restart_sha256": hashlib.sha256(args.restart.read_bytes()).hexdigest(),
-        "elapsed_sols": elapsed_seconds / MARS_BODY_3D.rotation_period_s,
+        "elapsed_sols": elapsed_seconds / MARS_BODY_3D.solar_day_seconds,
         "solar_longitude_deg": float(np.degrees(
             float(_true_anomaly(elapsed_seconds, forcing))
             + forcing.ls_perihelion_rad
