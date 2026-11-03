@@ -57,6 +57,29 @@ def test_source_band_quadrature_converges_and_mass_scales():
     assert np.all(np.asarray(one['lw_extinction'])>=np.asarray(one['lw_scattering']))
 
 
+@pytest.mark.parametrize('temperature',[100.,215.,350.])
+def test_planck_band_against_independent_adaptive_quadrature(temperature):
+    from scipy.integrate import quad
+    from src.terraforming.aerosols.optics import planck_lambda
+    table=rod_table(aluminium_rod())
+    lo,hi=8e-6,24e-6
+    knots=table.wavelength_m[(table.wavelength_m>lo)&(table.wavelength_m<hi)]
+    # Scale the integrand to avoid absolute-tolerance dominance for SI spectra.
+    norm=quad(lambda x:float(planck_lambda(x,temperature)),lo,hi,points=knots,epsabs=1e-12)[0]
+    expected=quad(lambda x:float(planck_lambda(x,temperature))*
+        np.interp(x,table.wavelength_m,table.absorption_m2)*1e12,
+        lo,hi,points=knots,epsabs=1e-12)[0]/norm/1e12
+    actual=integrate_band(table,lo,hi,temperature,tail='source_constant')[0]
+    assert actual==pytest.approx(expected,rel=1e-8)
+
+
+def test_cross_section_and_mass_opacity_are_consistent():
+    particle=aluminium_rod();table=rod_table(particle)
+    burden=2e-6;number=burden/particle.mass_kg
+    cross=table.absorption_m2+table.scattering_m2
+    np.testing.assert_allclose(cross/particle.mass_kg*burden,cross*number,rtol=2e-15)
+
+
 def test_coupled_ames_zero_loading_parity_and_energy_budget():
     from src.framework.physics.gcm import column_radiative_fluxes, RadiativeForcing
     from src.celestials.planets.mars import MARS_BODY_3D
