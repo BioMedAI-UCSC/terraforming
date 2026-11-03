@@ -25,6 +25,7 @@ import scipy.optimize
 
 from . import driver as d
 from .launch import FILES, sha256
+from .provenance import hardware
 from src.framework.gcm.benchmarks import dry_conserved_quantities
 from src.framework.gcm.restart import save_restart
 from src.celestials.planets.mars.maps import state_to_comparison_dataset
@@ -507,10 +508,12 @@ def benchmark(model, config, output, external):
 def environment():
     def git(*args):
         try:
-            return subprocess.check_output(["git", *args], text=True, stderr=subprocess.DEVNULL).strip()
+            return subprocess.check_output(["git", *args], cwd=Path(__file__).resolve().parents[3],
+                                           text=True, stderr=subprocess.DEVNULL).strip()
         except (OSError, subprocess.CalledProcessError):
             return "unavailable"
     return {"python": sys.version, "platform": platform.platform(), "processor": platform.processor(),
+            "hardware": hardware(d.jax.devices()),
             "cpu_count": os.cpu_count(), "backend": d.jax.default_backend(),
             "devices": [str(device) for device in d.jax.devices()],
             "packages": {name: importlib.metadata.version(name) for name in ("jax", "jaxlib", "dinosaur", "numpy", "scipy")},
