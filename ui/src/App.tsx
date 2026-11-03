@@ -84,7 +84,9 @@ export function App() {
 
   const watch = useCallback((id: string) => {
     streams.current[id]?.()
-    streams.current[id] = subscribeToRun(id, () => {}, async status => {
+    streams.current[id] = subscribeToRun(id, point => {
+      if (point.injected_mass_kg != null) setRuns(old=>old.map(run=>run.id===id ? {...run,aerosol_report:point} : run))
+    }, async status => {
       await refresh()
       if (status === 'done') saveCompleted(id).catch(e => setError(`Auto-save failed: ${e}`))
       delete streams.current[id]
@@ -193,7 +195,14 @@ export function App() {
               {view === 'benchmarks' && selected.status === 'done' && <label className="upload-button">Add AmesGCM .nc<input type="file" accept=".nc,.nc4,.cdf" hidden onChange={e => e.target.files?.[0] && upload(selected.id, e.target.files[0])} /></label>}
             </div>
             {amesError && <div className="error-box">{amesError}</div>}
-            {selected.status === 'done' ? <FieldMap runId={selected.id} benchmarkMode={view === 'benchmarks'} exportLabel={selected.label} /> :
+            {selected.config.aerosol && <div style={{padding:12,fontSize:12,lineHeight:1.8}}>
+              <div>Screening experiment · climate baseline and particle lifetime remain unverified.</div>
+              <div>Injected: {selected.aerosol_report?.injected_mass_kg?.toPrecision(5) ?? '…'} kg ·
+                Suspended: {selected.aerosol_report?.suspended_mass_kg?.toPrecision(5) ?? '…'} kg ·
+                Deposited: {selected.aerosol_report?.deposited_mass_kg?.toPrecision(5) ?? '…'} kg</div>
+              <div>Production energy: {selected.aerosol_report?.production_energy_j == null ? 'unknown' : `${selected.aerosol_report.production_energy_j.toPrecision(5)} J`}</div>
+            </div>}
+            {(selected.status === 'done' || (selected.status === 'stopped' && selected.config.aerosol)) ? <FieldMap runId={selected.id} benchmarkMode={view === 'benchmarks'} exportLabel={selected.label} /> :
               <PendingOutputs status={selected.status} />}
           </section> : <div className="empty-state">Start or select a run to inspect every output.</div>}
         </>}
