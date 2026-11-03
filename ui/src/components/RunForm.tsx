@@ -31,7 +31,7 @@ export function RunForm({ onSubmit, benchmarkMode }: Props) {
     try {
       await onSubmit({
         exp_type: aerosols ? 'intervention' : 'sol', accuracy: 'gcm', preset: 'current-mars', sols, scale,
-        label: label.trim() || `DMGCM ${sols} sol ${scale}`,
+        label: label.trim() || (aerosols ? `${material} ${aerosolMode} ${sols} sol` : `DMGCM ${sols} sol ${scale}`),
         ls: Number(ls) || 0, diurnal,
         compare_mcd: benchmarkMode && !aerosols,
         mcd_local_time: mcdLocalTime.trim() ? Number(mcdLocalTime) : null,

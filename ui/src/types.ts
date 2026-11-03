@@ -32,6 +32,12 @@ export interface DataPoint {
   sol?: number
   mars_year?: number
   solar_flux?: number
+  injected_mass_kg?: number
+  suspended_mass_kg?: number
+  deposited_mass_kg?: number
+  collected_mass_kg?: number
+  material_budget_error_kg?: number
+  production_energy_j?: number | null
 }
 
 export interface RunConfig {
@@ -90,6 +96,7 @@ export interface RunSummary {
   completed_steps?: number
   total_steps?: number
   cancel_requested?: boolean
+  aerosol_report?: Partial<DataPoint>
 }
 
 export interface Run extends RunSummary {

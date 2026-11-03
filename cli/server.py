@@ -124,6 +124,8 @@ def _v(t) -> float:
 
 
 def _default_label(req: RunRequest) -> str:
+    if req.aerosol is not None:
+        return f'{req.aerosol.material} {req.aerosol.mode} {req.aerosol.duration_s:g}s'
     if req.exp_type == "intervention":
         compounds = "+".join(req.inject.keys()) or "baseline"
         return f"{req.years}yr {compounds}"
@@ -881,6 +883,7 @@ def _run_aerosols(run_id,run,req,cfg):
         run['data'].append(dict(year=elapsed/MARS_ORBITAL_PERIOD,
             temperature_k=report['surface_temperature_k'],**report))
         run['fields']=fields
+        run['aerosol_report']=report
         run['progress']=min(elapsed/req.aerosol.duration_s,1.)
         run['elapsed_seconds']=elapsed
     report=run_aerosols(req.aerosol,cfg.planet,output,callback=progress,
