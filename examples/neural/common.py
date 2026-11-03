@@ -73,6 +73,14 @@ def write_report(out, report, title):
 def provenance(args):
     import platform
     import subprocess
+    cpu_model = platform.processor() or platform.machine()
+    if platform.system() == "Darwin":
+        try:
+            cpu_model = subprocess.check_output(
+                ["sysctl", "-n", "machdep.cpu.brand_string"], text=True,
+                stderr=subprocess.DEVNULL, timeout=5).strip()
+        except (OSError, subprocess.SubprocessError):
+            pass
     try:
         revision = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
         dirty = bool(subprocess.check_output(["git", "status", "--porcelain"], text=True).strip())
@@ -86,6 +94,9 @@ def provenance(args):
     return {"arguments": vars(args), "python": platform.python_version(), "jax": jax.__version__,
             "numpy": np.__version__,
             "devices": [str(d) for d in jax.devices()], "x64": bool(jax.config.jax_enable_x64),
+            "hardware": {"cpu_model": cpu_model, "machine": platform.machine(),
+                         "devices": [{"platform": d.platform, "kind": d.device_kind}
+                                     for d in jax.devices()]},
             "git_revision": revision, "working_tree_dirty": dirty,
             "source_sha256": {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest() for p in sources},
             "reference": "generated using the framework radiation kernel", "seed": args.seed}
