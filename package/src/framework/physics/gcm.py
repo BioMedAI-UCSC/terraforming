@@ -1683,6 +1683,7 @@ def forced_co2_primitive_equations(
     *,
     radiation_component=None,
     neural_tendency=None,
+    conserved_particle_tracers=(),
 ) -> "time_integration.ImplicitExplicitODE":
     """Dry dynamics + radiative forcing + CO2 condensation cycle on a tuple state.
 
@@ -1731,6 +1732,13 @@ def forced_co2_primitive_equations(
             state, coords, specs, body, forcing, wind_nodal=wind_nodal,
             temperature_nodal=temperature_nodal, ps_pa=ps_pa,
         )
+        # Phase exchange changes the carrier gas, not suspended solid material.
+        # Use the exact same phase tendency as pressure, including energy limits.
+        mix_tracers = dict(mix_tracers)
+        for key in conserved_particle_tracers:
+            q = grid.to_nodal(state.dynamics.tracers[key])
+            compensation = grid.to_modal(-q * grid.to_nodal(d_logsp))
+            mix_tracers[key] = mix_tracers.get(key, 0.) + compensation
         convection = dry_convective_adjustment_tendency(
             state, coords, specs, body, forcing, temperature_nodal=temperature_nodal
         )
