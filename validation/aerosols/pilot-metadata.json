@@ -1,0 +1,19 @@
+{
+  "classification": "bounded software integration evidence; not a Mars climate or lifetime validation",
+  "duration_s": 300,
+  "initial_climate": "uniform surface 210 K, air reference 200 K, surface pressure 610 Pa; flat terrain, no spinup",
+  "particle": "Ansari 2024 randomly oriented aluminium rods, 9 x 0.16 x 0.16 micrometres",
+  "release": "5 kg/s globally, from 0 to 150 SI seconds; double-dose case uses 10 kg/s",
+  "radiation": "Ames bands; CO2 and dust opacity controls 1/1, surface exchange 1, surface emissivity 1",
+  "paired_controls": "independent off run at each timestep/layer combination; all start from identical climate fields",
+  "precision": "JAX float64, CPU; Apple M3 Pro",
+  "executed_source": "working-tree numerical implementation equivalent to commit 418d20d; run preceded final reporting-only changes, not a clean released artifact",
+  "reproduce": "PYTHONPATH=package:. python scripts/run_aerosol_pilot_matrix.py --output OUTPUT --seconds 300",
+  "limitations": [
+    "Not a horizontal-grid convergence study",
+    "No complete Mars year, seasonal mean or long-term threshold confirmation",
+    "No validation of aggregate optics, realistic dust/cloud feedbacks or physical retention lifetime",
+    "Existing GCM budget, damping, clock and PBL PRs are not included in the pilot baseline",
+    "Numerical mass projection is diagnosed; post-correction closure is not independent proof of tracer conservation"
+  ]
+}
