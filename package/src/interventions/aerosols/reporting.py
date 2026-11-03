@@ -47,7 +47,11 @@ def stream_run(state,step,n_steps,coords,specs,body,particle,*,report_every=100,
         report=diagnostics(candidate,coords,specs,body,particle)
         if report['status']=='invalid_regime' or not all(
             math.isfinite(v) for v in report.values() if isinstance(v,float)):
-            report['status']='invalid_regime' if bool(candidate.ledger.invalid) else 'numerical_failure'
+            failure='invalid_regime' if bool(candidate.ledger.invalid) else 'numerical_failure'
+            attempted_time=float(candidate.elapsed_seconds)
+            report=diagnostics(state,coords,specs,body,particle)
+            report['status']=failure
+            report['attempted_elapsed_seconds']=attempted_time
             report['last_valid_elapsed_seconds']=float(state.elapsed_seconds)
             yield state,report
             return
