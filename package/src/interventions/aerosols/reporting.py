@@ -11,6 +11,7 @@ class WarmingWindow:
         if not math.isfinite(orbital_period_s) or orbital_period_s<=0:
             raise ValueError('orbital period must be positive SI seconds')
         self.duration=3*orbital_period_s
+        self.year=orbital_period_s
         self.samples=deque()
         self.last_time=None
 
@@ -26,8 +27,25 @@ class WarmingWindow:
         covered=sum(max(0,b-max(a,cutoff)) for a,b,_ in self.samples)
         mean=sum(max(0,b-max(a,cutoff))*x for a,b,x in self.samples)/covered
         complete=covered>=self.duration*(1-1e-12)
+        annual=[]
+        if complete:
+            for i in range(3):
+                end=stop_s-i*self.year;start=end-self.year
+                annual.append(sum(max(0,min(b,end)-max(a,start))*x
+                    for a,b,x in self.samples)/self.year)
         return dict(complete_three_mars_years=complete,paired_warming_k=mean,
-            sustained_thresholds_k={str(k):bool(complete and mean>=k) for k in (5,10,20)})
+            consecutive_annual_warming_k=annual,
+            sustained_thresholds_k={str(k):bool(complete and all(x>=k for x in annual)) for k in (5,10,20)})
+
+    def snapshot(self):
+        return dict(orbital_period_s=self.year,samples=list(self.samples),last_time=self.last_time)
+
+    @classmethod
+    def restore(cls,snapshot):
+        window=cls(snapshot['orbital_period_s'])
+        for a,b,x in snapshot['samples']: window.add(a,b,0.,x)
+        if window.last_time!=snapshot['last_time']: raise ValueError('invalid warming checkpoint')
+        return window
 
 
 def stream_run(state,step,n_steps,coords,specs,body,particle,*,report_every=100,

@@ -95,8 +95,10 @@ def coupled_step(coords,specs,body,forcing,co2_forcing,particle,sources,options,
         mass,number,cm,cn=remove_fraction(mass,number,options.collection_rate_s,dt)
         ledger=ledger._replace(collected_mass_kg_m2=ledger.collected_mass_kg_m2+jnp.sum(cm,axis=0),
             collected_number_m2=ledger.collected_number_m2+jnp.sum(cn,axis=0))
-        invalid=(jnp.any(~jnp.isfinite(air))|jnp.any(air<=0)|
-            jnp.any(mass/gas>particle.max_mass_loading)|jnp.any(~jnp.isfinite(mass)))
+        invalid=(jnp.any(~jnp.isfinite(air))|jnp.any((air<100.)|(air>350.))|
+            jnp.any((pressure<1.)|(pressure>2000.))|
+            jnp.any(mass/gas>particle.max_mass_loading)|jnp.any(~jnp.isfinite(mass))|
+            jnp.any(~jnp.isfinite(number))|jnp.any(number<0))
         ledger=ledger._replace(invalid=ledger.invalid|invalid)
         return state._replace(climate=put_burdens(state.climate,mass,number,coords,specs,body),
             ledger=ledger,elapsed_seconds=state.elapsed_seconds+dt)
