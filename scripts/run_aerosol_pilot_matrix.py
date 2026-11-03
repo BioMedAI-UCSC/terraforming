@@ -25,7 +25,8 @@ def main():
     matrix=[]
     cases=[('off','off',60.,4,1.),('passive','passive',60.,4,1.),
            ('active','active',60.,4,1.),('double_dose','active',60.,4,2.),
-           ('half_dt','active',30.,4,1.),('double_layers','active',60.,8,1.)]
+           ('off_half_dt','off',30.,4,1.),('half_dt','active',30.,4,1.),
+           ('off_double_layers','off',60.,8,1.),('double_layers','active',60.,8,1.)]
     for name,mode,dt,layers,dose in cases:
         state,step,context=prepare(mode=mode,dt_s=dt,n_layers=layers,sources=[
             dict(start_s=0.,stop_s=args.seconds/2,rate=5*dose,unit='kg/s')])
@@ -37,9 +38,9 @@ def main():
                 if report['status'] in ('invalid_regime','numerical_failure'): break
         save(folder/'restart.npz',state,config)
         matrix.append(dict(case=name,mode=mode,dt_s=dt,n_layers=layers,dose=dose,**report))
-    baseline=matrix[0]['surface_temperature_k']
+    baselines={(x['dt_s'],x['n_layers']):x['surface_temperature_k'] for x in matrix if x['mode']=='off'}
     for entry in matrix:
-        entry['paired_final_surface_difference_k']=entry['surface_temperature_k']-baseline
+        entry['paired_final_surface_difference_k']=entry['surface_temperature_k']-baselines[(entry['dt_s'],entry['n_layers'])]
         entry['confirmed_long_term_warming']=False
         entry['interpretation']='short numerical pilot; no equilibrated-climate/source-warming validation'
     (args.output/'matrix.json').write_text(json.dumps(matrix,indent=2,allow_nan=False))
