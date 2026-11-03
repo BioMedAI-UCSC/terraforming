@@ -36,7 +36,7 @@ def test_server_uses_continuous_aerosol_runner(tmp_path,monkeypatch):
     monkeypatch.setattr(server,'_OUTPUTS_DIR',tmp_path)
     req=server.RunRequest(exp_type='intervention',accuracy='gcm',aerosol=dict(
         duration_s=5,dt_s=5,n_layers=4,sources=[dict(start_s=1,stop_s=4,rate=10)]))
-    rid='aerosol-server-test'
+    rid='a10b20c3'
     server._runs[rid]=dict(id=rid,status='running',progress=0.,data=[],label='aerosol',error=None)
     try:
         server._run_simulation(rid,req)
@@ -45,5 +45,13 @@ def test_server_uses_continuous_aerosol_runner(tmp_path,monkeypatch):
         assert result['data'][-1]['injected_mass_kg']==pytest.approx(30.)
         assert 'aerosol_burden' in result['fields']['maps']
         assert (tmp_path/'aerosols'/rid/'restart.npz').is_file()
+        resumed=server.RunRequest(**{**req.model_dump(),
+            'aerosol':{**req.aerosol.model_dump(),'duration_s':10},'aerosol_resume_run_id':rid})
+        server._runs['resumed']=dict(id='resumed',status='running',progress=0.,data=[],label='resume',error=None)
+        server._run_simulation('resumed',resumed)
+        assert server._runs['resumed']['status']=='done',server._runs['resumed'].get('error')
+        assert server._runs['resumed']['data'][-1]['injected_mass_kg']==pytest.approx(30.)
+        assert server._runs['resumed']['data'][-1]['elapsed_seconds']==10.
     finally:
         server._runs.pop(rid,None)
+        server._runs.pop('resumed',None)
