@@ -114,7 +114,13 @@ def diagnostics(state,coords,specs,body,particle):
     surface=jnp.asarray(state.climate.surface_temperature)[0]
     return dict(elapsed_seconds=float(state.elapsed_seconds),suspended_mass_kg=float(mass),
         suspended_number=float(number),deposited_mass_kg=float(deposited),collected_mass_kg=float(collected),
+        deposited_number=float(jnp.sum(state.ledger.deposited_number_m2*w)),
+        collected_number=float(jnp.sum(state.ledger.collected_number_m2*w)),
         injected_mass_kg=float(state.ledger.injected_mass_kg),
+        injected_solid_volume_m3=float(state.ledger.injected_mass_kg)/particle.density_kg_m3,
+        mean_aggregate_multiplicity=None if float(number)==0 else float(mass/number)/particle.mass_kg,
+        aggregate_drag_assumption='compact volume scaling; screening closure, not measured aggregate mobility',
+        source_energy_momentum_assumption='release equilibrates with local air; industrial/release plume energy and momentum are not resolved',
         material_budget_error_kg=float(mass+deposited+collected-expected),
         maximum_raw_relative_mass_error=float(state.ledger.maximum_raw_relative_mass_error),
         numerical_mass_correction_kg=float(state.ledger.numerical_mass_correction_kg),
