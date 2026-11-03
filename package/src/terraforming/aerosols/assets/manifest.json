@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "source_doi": "10.1126/sciadv.adn4650",
+  "source_table": "Supplementary Table 1, pages 28-29",
+  "source_pdf_sha256": "73d375d70746a7a80ef716cadca8cb5ab4fd2d8e0478501c6f338b13a3d0eb50",
+  "retrieval_url": "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC11305381/supplementaryFiles",
+  "license": "CC BY 4.0 (article and supplementary material)",
+  "data_sha256": "e4185674c8ec284cb6d97d68f9f9fa6aafb0e46f400b70dd4cd8731e41b57e10",
+  "rows": 75,
+  "orientation": "randomly oriented; orientation-averaged FDTD simulation, not measured Mars climate response",
+  "geometry": {
+    "length_m": 9e-06,
+    "width_m": 1.6e-07,
+    "height_m": 1.6e-07
+  },
+  "units": "SI; source wavelength x1e-4 m, cross sections x1e-10 m2",
+  "spectral_domain_m": [
+    2.4e-07,
+    5.500000000000001e-05
+  ],
+  "longwave_tail": "source supplement holds properties constant beyond 55 um; must be explicitly selected and reported",
+  "uncertainty": "tabulated simulated single-monomer optics; aggregation/graphene/charging optics not supplied",
+  "roadmap": {
+    "url": "https://arxiv.org/pdf/2604.02242",
+    "sha256": "4bb362991267b3d465ff9eec1b9361e69a15b330ebce98f6f44a140ffac1cc1e"
+  },
+  "cost_archive": "Zenodo 19266763 contains cost estimates, not these spectra"
+}
