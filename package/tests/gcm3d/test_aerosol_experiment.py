@@ -65,3 +65,18 @@ def test_incomplete_warming_is_never_success():
     result=window.add(200,300,200,225)
     assert result['complete_three_mars_years']
     assert all(result['sustained_thresholds_k'].values())
+
+
+def test_zero_particles_preserve_gcm_step():
+    from src.framework.physics.gcm import forced_co2_primitive_equations,positivity_preserving_co2_step
+    from src.framework.gcm.dynamics import stepper
+    coords,specs,climate=setup_state();particle=aluminium_rod()
+    forcing=dataclasses.replace(mars_gcm.radiative_forcing(co2_radiation_enabled=True),emissivity=1.)
+    co2=mars_gcm.co2_forcing()
+    reference=positivity_preserving_co2_step(stepper(forced_co2_primitive_equations(
+        coords,BODY,forcing,co2,specs=specs),5.,specs),coords,specs)(climate)
+    step=coupled_step(coords,specs,BODY,forcing,co2,particle,[],ExperimentOptions(mode='off',dt_s=5.))
+    actual=step(initialize(climate,coords,specs,BODY,particle)).climate
+    actual=actual._replace(dynamics=dataclasses.replace(actual.dynamics,tracers={}))
+    for a,b in zip(jax.tree_util.tree_leaves(reference),jax.tree_util.tree_leaves(actual)):
+        np.testing.assert_allclose(a,b,atol=1e-12,rtol=1e-12)
