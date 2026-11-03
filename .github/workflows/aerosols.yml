@@ -8,6 +8,8 @@ on:
       - 'package/src/framework/physics/**'
       - 'package/pyproject.toml'
       - '.github/workflows/aerosols.yml'
+      - 'cli/**'
+      - 'ui/**'
   workflow_dispatch:
 
 permissions:
@@ -25,3 +27,21 @@ jobs:
         env:
           PYTHONPATH: package:.
         run: uv run --no-sync python -m pytest -c package/pyproject.toml package/tests/gcm3d/test_aerosol* -m 'not slow' -q
+      - name: CLI and server aerosol checks
+        env:
+          PYTHONPATH: package:.
+          MPLBACKEND: Agg
+        run: uv run --no-sync python -m pytest cli/tests/test_aerosols.py -q
+  ui-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+      - run: npm ci
+        working-directory: ui
+      - run: npm run build
+        working-directory: ui

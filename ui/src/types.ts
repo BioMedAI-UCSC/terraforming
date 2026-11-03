@@ -61,6 +61,17 @@ export interface RunConfig {
   co2_lw_scale?: number
   dust_lw_scale?: number
   surface_exchange_multiplier?: number
+  aerosol?: {
+    material: 'aluminium' | 'iron'
+    mode: 'off' | 'passive' | 'active'
+    duration_s: number
+    dt_s: number
+    n_layers: number
+    truncation: 'T21' | 'T42' | 'T85'
+    initial_burden_kg_m2?: number
+    sources: {start_s: number; stop_s: number; rate: number; unit: 'kg/s' | 'L/s'}[]
+  } | null
+  aerosol_resume_run_id?: string | null
 }
 
 export interface RunSummary {

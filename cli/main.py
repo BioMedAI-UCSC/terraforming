@@ -515,6 +515,24 @@ def mars_group(ctx: click.Context, preset: str | None, config: str | None) -> No
 
 # ── mars run ───────────────────────────────────────────────────────────────────
 
+@mars_group.command('aerosols')
+@click.option('--output',type=click.Path(file_okay=False),required=True)
+@click.option('--resume',type=click.Path(exists=True,dir_okay=False),default=None)
+@click.pass_context
+def mars_aerosols(ctx,output,resume):
+    """Run an aerosol GCM experiment from --config, with SI release schedules."""
+    import json
+    from cli.aerosols import run
+    cfg=ctx.obj['cfg']
+    if cfg.intervention.aerosol is None:
+        raise click.ClickException('config must contain intervention.aerosol')
+    try:
+        run(cfg.intervention.aerosol,cfg.planet,output,resume=resume,
+            initial_ls_deg=cfg.planet.initial_ls_deg,
+            callback=lambda report,fields:click.echo(json.dumps(report,allow_nan=False)))
+    except (ValueError,RuntimeError) as exc:
+        raise click.ClickException(str(exc)) from exc
+
 @mars_group.command("run")
 @click.option("--preset", "-p", "run_preset",
               type=click.Choice(_presets.MARS_PRESET_NAMES), default=None,
@@ -680,6 +698,14 @@ def mars_run(
 
     # Run
     exp = cfg.experiment.type
+    if cfg.intervention.aerosol is not None:
+        import json
+        from cli.aerosols import run as run_aerosols
+        run_aerosols(cfg.intervention.aerosol,cfg.planet,
+            cfg.output.output_path or 'outputs/aerosol-pilot',
+            initial_ls_deg=cfg.planet.initial_ls_deg,
+            callback=lambda report,fields:click.echo(json.dumps(report,allow_nan=False)))
+        return
     if exp == ExpType.sol:
         results = runner.run_sol(cfg)
     elif exp == ExpType.year:
