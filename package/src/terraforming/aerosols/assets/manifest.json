@@ -24,5 +24,14 @@
     "url": "https://arxiv.org/pdf/2604.02242",
     "sha256": "4bb362991267b3d465ff9eec1b9361e69a15b330ebce98f6f44a140ffac1cc1e"
   },
-  "cost_archive": "Zenodo 19266763 contains cost estimates, not these spectra"
+  "cost_archive": "Zenodo 19266763 contains cost estimates, not these spectra",
+  "roadmap_comparison_cases": {
+    "classification": "reported outcomes under other models' assumptions; not fitted coefficients or software success targets",
+    "metal_column_kg_m2": 0.000002,
+    "graphene_column_kg_m2": 0.0000013,
+    "reported_warming_k": 4,
+    "aluminium_solid_release_l_s": [2, 60],
+    "release_example_lifetime": "one unqualified year; conversion to SI requires explicit Earth/Mars convention",
+    "graphene_study": "Richardson et al. 2026, DOI 10.1029/2025GL121051; verified optical tables not available in this implementation"
+  }
 }
