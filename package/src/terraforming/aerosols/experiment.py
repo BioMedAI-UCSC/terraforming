@@ -10,6 +10,7 @@ import math
 import numpy as np
 from src.framework.gcm._dinosaur import jax, jnp, scales
 from src.framework.gcm.dynamics import stepper, reference_temperature
+from src.framework.gcm.benchmarks import dry_conserved_arrays
 from src.framework.physics.gcm import forced_co2_primitive_equations, positivity_preserving_co2_step
 from .state import (MASS, NUMBER, burdens, put_burdens, gas_mass, inventory,
                     correct_transport, quadrature_weights)
@@ -65,11 +66,22 @@ def coupled_step(coords,specs,body,forcing,co2_forcing,particle,sources,options,
     dt=options.dt_s; grid=coords.horizontal
     weights=quadrature_weights(coords)*body.surface_area_m2
     temp_scale=float(specs.dimensionalize(1.,scales.units.kelvin).magnitude)
+    pressure_scale=float(specs.dimensionalize(1.,scales.units.pascal).magnitude)
+    dry_reference=np.asarray(reference_temperature(coords,body))*temp_scale
+    area_factor=body.surface_area_m2/jnp.sum(jnp.broadcast_to(grid.quadrature_weights,grid.nodal_shape))
     def step(state):
         expected_m,expected_n=inventory(state,coords,specs,body)
         raw=raw_step(state.climate)
         mass,number=burdens(raw,coords,specs,body)
         climate=put_burdens(projected(raw,state.climate),mass,number,coords,specs,body)
+        raw_energy=dry_conserved_arrays(raw.dynamics,coords,specs,body,dry_reference)[1]*area_factor
+        corrected_energy=dry_conserved_arrays(climate.dynamics,coords,specs,body,dry_reference)[1]*area_factor
+        frost_energy=-jnp.sum((climate.co2_ice[0]-raw.co2_ice[0])*weights)*pressure_scale*co2_forcing.latent_heat_j_kg/body.gravity_m_s2
+        ledger=state.ledger._replace(
+            numerical_dry_energy_correction_j=state.ledger.numerical_dry_energy_correction_j+corrected_energy-raw_energy,
+            numerical_frost_latent_correction_j=state.ledger.numerical_frost_latent_correction_j+frost_energy,
+            last_unprojected_dry_energy_j=raw_energy,last_projected_dry_energy_j=corrected_energy)
+        state=state._replace(ledger=ledger)
         state=correct_transport(state._replace(climate=climate),expected_m,expected_n,
             coords,specs,body,max_relative_correction=options.max_relative_transport_correction)
         mass,number=burdens(state.climate,coords,specs,body)
@@ -129,6 +141,11 @@ def diagnostics(state,coords,specs,body,particle):
         material_budget_error_kg=float(mass+deposited+collected-expected),
         maximum_raw_relative_mass_error=float(state.ledger.maximum_raw_relative_mass_error),
         numerical_mass_correction_kg=float(state.ledger.numerical_mass_correction_kg),
+        numerical_dry_energy_correction_j=float(state.ledger.numerical_dry_energy_correction_j),
+        numerical_frost_latent_correction_j=float(state.ledger.numerical_frost_latent_correction_j),
+        last_unprojected_dry_energy_j=None if float(state.elapsed_seconds)==0 else float(state.ledger.last_unprojected_dry_energy_j),
+        last_projected_dry_energy_j=None if float(state.elapsed_seconds)==0 else float(state.ledger.last_projected_dry_energy_j),
+        energy_definition='dry atmospheric cv*T + hydrostatic geopotential + kinetic energy, excluding surface geopotential; frost latent energy -L*m_ice. Projection changes are diagnosed, not repaired or labelled conserved.',
         surface_temperature_k=float(jnp.sum(surface*w)/body.surface_area_m2),
         production_energy_j=None if particle.production_energy_j_kg is None else
             float(state.ledger.injected_mass_kg)*particle.production_energy_j_kg,
