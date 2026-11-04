@@ -81,6 +81,10 @@ def test_failed_pair_preserves_all_last_valid_states():
     _,report=list(stream_pair(pair,dict(off=lambda s:invalid,passive=lambda s:s,active=lambda s:s),
         1,coords,specs,MARS_BODY_3D,particle,orbital_period_s=100.))[0]
     assert report['status']=='invalid_regime'
+    overflow=state._replace(ledger=state.ledger._replace(numerical_dry_energy_correction_j=jnp.asarray(jnp.inf)))
+    _,report=list(stream_pair(pair,dict(off=lambda s:overflow,passive=lambda s:s,active=lambda s:s),
+        1,coords,specs,MARS_BODY_3D,particle,orbital_period_s=100.))[0]
+    assert report['status']=='numerical_failure'
 
 
 def test_physical_start_preserves_absolute_phase_and_checks_contract(tmp_path):
