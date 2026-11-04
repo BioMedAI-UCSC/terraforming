@@ -16,6 +16,7 @@ from src.celestials.planets.mars import (
     MARS_GRAVITY,
     MARS_RADIUS,
     MARS_ROTATION_PERIOD,
+    MARS_SIDEREAL_ROTATION_PERIOD,
 )
 from src.framework.gcm.body import BodyConstants
 
@@ -31,13 +32,19 @@ class TestMarsBody3D:
         assert MARS_BODY_3D.radius_m == pytest.approx(float(MARS_RADIUS), rel=1e-12)
         assert MARS_BODY_3D.gravity_m_s2 == pytest.approx(float(MARS_GRAVITY), rel=1e-12)
         assert MARS_BODY_3D.rotation_period_s == pytest.approx(
-            float(MARS_ROTATION_PERIOD), rel=1e-12
+            float(MARS_SIDEREAL_ROTATION_PERIOD), rel=1e-12
         )
 
-    def test_angular_velocity_is_one_sol(self):
+    def test_angular_velocity_uses_sidereal_day(self):
         assert MARS_BODY_3D.angular_velocity_s == pytest.approx(
-            2 * math.pi / float(MARS_ROTATION_PERIOD), rel=1e-12
+            2 * math.pi / float(MARS_SIDEREAL_ROTATION_PERIOD), rel=1e-12
         )
+
+    def test_solar_day_remains_one_sol(self):
+        assert MARS_BODY_3D.solar_day_seconds == pytest.approx(
+            float(MARS_ROTATION_PERIOD), rel=1e-12
+        )
+        assert MARS_BODY_3D.solar_day_seconds > MARS_BODY_3D.rotation_period_s
 
     def test_kappa_is_co2(self):
         # R/cp for CO2 (~0.245), below Earth-air's 2/7.
