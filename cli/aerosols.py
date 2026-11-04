@@ -8,6 +8,8 @@ import numpy as np
 def run(config,planet,output_dir,*,callback=lambda report,fields:None,
         should_stop=lambda:False,resume=None,diurnal=True,initial_ls_deg=0.,
         co2_lw_scale=1.,dust_lw_scale=1.,surface_exchange_multiplier=1.):
+    if planet.composition is not None:
+        raise ValueError('aerosol pilot currently requires the fixed Mars CO2 gas composition')
     import jax
     jax.config.update('jax_enable_x64',True)
     from src.terraforming.aerosols.pilot import prepare
