@@ -11,6 +11,7 @@ by itself validate a rod phase function, band averaging or a Mars climatology.
 """
 import math
 import numpy as np
+from importlib.metadata import version
 
 
 def homogeneous_slab(*,optical_depth,single_scattering_albedo,asymmetry,
@@ -118,6 +119,8 @@ def compare_two_stream(*,max_flux_error_fraction,max_layer_heating_error_fractio
         maximum_flux_error_fraction=float(flux_error),maximum_layer_heating_error_fraction=float(heating_error),
         frozen_limits=dict(flux_fraction=max_flux_error_fraction,layer_heating_fraction=max_layer_heating_error_fraction),
         normalization_w_m2=scale,angles=reference['angles'],interfaces=count+1,
+        reference_solver_tolerance=reference['tolerance'],reference_mesh_nodes=reference['solver_nodes'],
+        scipy_version=version('scipy'),numpy_version=np.__version__,
         reference_profile=dict(up_w_m2=reference['up_w_m2'].tolist(),down_w_m2=reference['down_w_m2'].tolist(),
             layer_convergence_w_m2=reference['layer_convergence_w_m2'].tolist()),
         two_stream_profile=dict(up_w_m2=up.tolist(),down_w_m2=down.tolist(),layer_convergence_w_m2=np.diff(up-down).tolist()),
@@ -220,6 +223,8 @@ def compare_two_stream_column(*,max_flux_error_fraction,max_layer_heating_error_
         maximum_flux_error_fraction=flux,maximum_layer_heating_error_fraction=heating,
         frozen_limits=dict(flux_fraction=max_flux_error_fraction,layer_heating_fraction=max_layer_heating_error_fraction),
         normalization_w_m2=scale,angles=reference['angles'],interfaces=len(up),phase_assumption=reference['phase_assumption'],
+        reference_solver_tolerance=reference['tolerance'],reference_mesh_nodes=reference['solver_nodes'],
+        scipy_version=version('scipy'),numpy_version=np.__version__,
         reference_profile=dict(up_w_m2=reference['up_w_m2'].tolist(),down_w_m2=reference['down_w_m2'].tolist(),
             layer_convergence_w_m2=reference['layer_convergence_w_m2'].tolist()),
         two_stream_profile=dict(up_w_m2=up.tolist(),down_w_m2=down.tolist(),layer_convergence_w_m2=np.diff(up-down).tolist()),
