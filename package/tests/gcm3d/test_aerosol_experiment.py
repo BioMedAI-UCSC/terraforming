@@ -4,7 +4,7 @@ import pytest
 pytest.importorskip('dinosaur')
 import jax
 jax.config.update('jax_enable_x64',True)
-from test_aerosol_state import setup_state
+from .test_aerosol_state import setup_state
 from src.celestials.planets.mars import MARS_BODY_3D as BODY
 from src.celestials.planets.mars import gcm as mars_gcm
 from src.framework.physics.gcm import CO2Forcing
