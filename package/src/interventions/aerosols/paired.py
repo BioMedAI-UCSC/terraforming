@@ -127,7 +127,9 @@ def stream_pair(state,steps,n_steps,coords,specs,body,particle,*,orbital_period_
             not math.isfinite(v) for v in r.values() if isinstance(v,float))]
         if failed:
             report=paired_report(state,orbital_period_s=orbital_period_s,**context)
-            report.update(status='numerical_failure' if any(reports[m]['status']=='numerical_failure' for m in failed)
+            numerical=any(reports[m]['status']=='numerical_failure' or any(
+                not math.isfinite(v) for v in reports[m].values() if isinstance(v,float)) for m in failed)
+            report.update(status='numerical_failure' if numerical
                 else 'invalid_regime',failed_cases=failed,last_valid_elapsed_seconds=float(state.active.elapsed_seconds))
             report['warming']=warming_report(state.warming,orbital_period_s)
             yield state,report
