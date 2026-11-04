@@ -25,6 +25,7 @@ export function RunForm({ onSubmit, benchmarkMode }: Props) {
   const [releaseRate, setReleaseRate] = useState(2)
   const [releaseStop, setReleaseStop] = useState(1)
   const [resumeId, setResumeId] = useState('')
+  const [initialClimate, setInitialClimate] = useState('')
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -40,7 +41,8 @@ export function RunForm({ onSubmit, benchmarkMode }: Props) {
         co2_lw_scale: co2LwScale, dust_lw_scale: dustLwScale,
         surface_exchange_multiplier: surfaceExchange,
         aerosol: aerosols ? {
-          material, paired, mode: aerosolMode, duration_s: sols*88775.244, dt_s:60,
+          material, paired, initial_climate:initialClimate.trim() || null,
+          mode: aerosolMode, duration_s: sols*88775.244, dt_s:60,
           n_layers:12, truncation:'T21',
           sources:[{start_s:0,stop_s:releaseStop*88775.244,rate:releaseRate,unit:'L/s'}],
         } : null,
@@ -77,6 +79,9 @@ export function RunForm({ onSubmit, benchmarkMode }: Props) {
       <input style={s.input} type="number" min="0.0001" step="any" value={releaseStop} onChange={e=>setReleaseStop(Number(e.target.value))}/>
       <label style={s.label}>Resume run ID (optional; keep the same settings)</label>
       <input style={s.input} value={resumeId} onChange={e=>setResumeId(e.target.value)}/>
+      <label style={s.label}>Physical climate checkpoint (optional server path)</label>
+      <input style={s.input} value={initialClimate} onChange={e=>setInitialClimate(e.target.value)}/>
+      <div style={s.hint}>A climate checkpoint starts a new release schedule and preserves the season. Resume restores the earlier experiment, including particles and comparisons.</div>
       <div style={s.hint}>T21 · 12 levels · 60-second steps. Extend the duration beyond the saved run to resume.</div>
     </>}
 

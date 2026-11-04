@@ -45,3 +45,9 @@ jobs:
         working-directory: ui
       - run: npm run build
         working-directory: ui
+      - name: Save the built server UI
+        uses: actions/upload-artifact@v4
+        with:
+          name: aerosol-ui
+          path: cli/static/
+          retention-days: 7

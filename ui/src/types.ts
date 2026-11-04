@@ -75,6 +75,7 @@ export interface RunConfig {
   surface_exchange_multiplier?: number
   aerosol?: {
     paired?: boolean
+    initial_climate?: string | null
     material: 'aluminium' | 'iron'
     mode: 'off' | 'passive' | 'active'
     duration_s: number

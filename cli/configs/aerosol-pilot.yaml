@@ -7,6 +7,10 @@ intervention:
   aerosol:
     material: aluminium
     paired: true
+    # initial_climate: outputs/validated-physical-start.npz
+    # Export using save_physical_start with the actual source body/grid/forcing
+    # contract. This starts new particle schedules at elapsed time zero;
+    # --resume continues a complete earlier aerosol experiment instead.
     mode: passive
     duration_s: 88775.244
     dt_s: 60

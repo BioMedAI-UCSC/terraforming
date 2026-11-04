@@ -60,11 +60,21 @@ def test_server_uses_continuous_aerosol_runner(tmp_path,monkeypatch):
 def test_paired_cli_resume_preserves_all_cases_and_annual_integrals(tmp_path):
     pytest.importorskip('dinosaur')
     from cli.aerosols import run
+    import dataclasses
+    from src.terraforming.aerosols.pilot import prepare
+    from src.terraforming.aerosols.starting import save_physical_start
+    seed,_,context=prepare(dt_s=5,n_layers=4)
+    climate=seed.climate._replace(surface_temperature=seed.climate.surface_temperature+3.,
+        dynamics=dataclasses.replace(seed.climate.dynamics,tracers={}))
+    seed_path=tmp_path/'physical.npz'
+    save_physical_start(seed_path,climate,context['configuration']['start_contract'])
     config=AerosolConfig(paired=True,duration_s=5,dt_s=5,n_layers=4,
-        sources=[dict(start_s=1,stop_s=8,rate=10)])
+        initial_climate=str(seed_path),sources=[dict(start_s=1,stop_s=8,rate=10)])
     first=run(config,PlanetConfig(),tmp_path/'first')
     assert first['cases']['off']['injected_mass_kg']==0.
     assert first['cases']['active']['injected_mass_kg']==40.
+    assert first['surface_temperature_k']>212.
+    seed_path.unlink()
     resumed=run(config.model_copy(update={'duration_s':10}),PlanetConfig(),tmp_path/'second',
         resume=tmp_path/'first'/'restart.npz')
     assert resumed['cases']['active']['injected_mass_kg']==70.
