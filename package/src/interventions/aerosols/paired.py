@@ -123,12 +123,12 @@ def stream_pair(state,steps,n_steps,coords,specs,body,particle,*,orbital_period_
             return
         candidates={mode:steps[mode](getattr(state,mode)) for mode in ('off','passive','active')}
         reports={mode:diagnostics(candidate,**context) for mode,candidate in candidates.items()}
-        failed=[mode for mode,r in reports.items() if r['status']=='invalid_regime' or any(
+        failed=[mode for mode,r in reports.items() if r['status'] in ('invalid_regime','numerical_failure') or any(
             not math.isfinite(v) for v in r.values() if isinstance(v,float))]
         if failed:
             report=paired_report(state,orbital_period_s=orbital_period_s,**context)
-            report.update(status='invalid_regime' if any(reports[m]['status']=='invalid_regime' for m in failed)
-                else 'numerical_failure',failed_cases=failed,last_valid_elapsed_seconds=float(state.active.elapsed_seconds))
+            report.update(status='numerical_failure' if any(reports[m]['status']=='numerical_failure' for m in failed)
+                else 'invalid_regime',failed_cases=failed,last_valid_elapsed_seconds=float(state.active.elapsed_seconds))
             report['warming']=warming_report(state.warming,orbital_period_s)
             yield state,report
             return

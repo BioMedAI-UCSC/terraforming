@@ -55,3 +55,29 @@ def test_paired_full_restart_at_source_boundary(tmp_path):
     assert report['cases']['off']['injected_mass_kg']==0.
     assert not report['warming']['complete_three_mars_years']
     np.testing.assert_allclose(final.passive.climate.surface_temperature,final.off.climate.surface_temperature,atol=1e-12)
+
+
+def test_failed_pair_preserves_all_last_valid_states():
+    import dataclasses
+    import jax.numpy as jnp
+    from .test_aerosol_state import setup_state
+    from src.celestials.planets.mars import MARS_BODY_3D
+    from src.terraforming.aerosols import aluminium_rod
+    from src.terraforming.aerosols.state import initialize
+    from src.terraforming.aerosols.paired import PairedState
+    coords,specs,climate=setup_state();particle=aluminium_rod()
+    state=initialize(climate,coords,specs,MARS_BODY_3D,particle)
+    pair=PairedState(state,state,state,initial_warming(0.))
+    def nonfinite(s):
+        dynamics=dataclasses.replace(s.climate.dynamics,vorticity=jnp.full_like(s.climate.dynamics.vorticity,jnp.nan))
+        return s._replace(climate=s.climate._replace(dynamics=dynamics),elapsed_seconds=s.elapsed_seconds+5.)
+    steps=dict(off=nonfinite,passive=lambda s:s,active=lambda s:s)
+    retained,report=list(stream_pair(pair,steps,1,coords,specs,MARS_BODY_3D,particle,orbital_period_s=100.))[0]
+    assert retained is pair
+    assert report['status']=='numerical_failure'
+    assert report['failed_cases']==['off']
+    assert float(retained.warming.last_s)==0.
+    invalid=state._replace(ledger=state.ledger._replace(invalid=jnp.asarray(True)))
+    _,report=list(stream_pair(pair,dict(off=lambda s:invalid,passive=lambda s:s,active=lambda s:s),
+        1,coords,specs,MARS_BODY_3D,particle,orbital_period_s=100.))[0]
+    assert report['status']=='invalid_regime'
