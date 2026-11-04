@@ -8,9 +8,9 @@ from .test_aerosol_state import setup_state
 from src.celestials.planets.mars import MARS_BODY_3D as BODY
 from src.celestials.planets.mars import gcm as mars_gcm
 from src.framework.physics.gcm import CO2Forcing
-from src.terraforming.aerosols import aluminium_rod, Injection
-from src.terraforming.aerosols.state import initialize
-from src.terraforming.aerosols.experiment import coupled_step, ExperimentOptions, diagnostics
+from src.interventions.aerosols import aluminium_rod, Injection
+from src.interventions.aerosols.state import initialize
+from src.interventions.aerosols.experiment import coupled_step, ExperimentOptions, diagnostics
 
 
 def test_scheduled_coupled_release_and_shutdown_budget(tmp_path):
@@ -19,7 +19,7 @@ def test_scheduled_coupled_release_and_shutdown_budget(tmp_path):
     forcing=dataclasses.replace(mars_gcm.radiative_forcing(co2_radiation_enabled=True),emissivity=1.)
     step=coupled_step(coords,specs,BODY,forcing,mars_gcm.co2_forcing(),particle,
         [Injection(3.,8.,10.)],ExperimentOptions(dt_s=5.))
-    from src.terraforming.aerosols.checkpoint import save,load
+    from src.interventions.aerosols.checkpoint import save,load
     state=step(state)
     path=tmp_path/'boundary.npz';config={'source_start_s':3.,'source_stop_s':8.}
     save(path,state,config)
@@ -44,7 +44,7 @@ def test_unsupported_active_aggregation_rejected():
 
 
 def test_complete_checkpoint_and_identity_gate(tmp_path):
-    from src.terraforming.aerosols.checkpoint import save,load
+    from src.interventions.aerosols.checkpoint import save,load
     coords,specs,climate=setup_state()
     state=initialize(climate,coords,specs,BODY,aluminium_rod(),1e-6)
     config=dict(body='Mars',source_stop_s=8,asset_sha256='verified-test-identity')
@@ -58,7 +58,7 @@ def test_complete_checkpoint_and_identity_gate(tmp_path):
 
 
 def test_incomplete_warming_is_never_success():
-    from src.terraforming.aerosols.reporting import WarmingWindow
+    from src.interventions.aerosols.reporting import WarmingWindow
     window=WarmingWindow(100.)
     assert not any(window.add(0,100,200,225)['sustained_thresholds_k'].values())
     window.add(100,200,200,225)

@@ -5,9 +5,9 @@ pytest.importorskip('dinosaur')
 import jax
 import jax.numpy as jnp
 jax.config.update('jax_enable_x64',True)
-from src.terraforming.aerosols.sectional import coagulator,collision_kernels
-from src.terraforming.aerosols import aluminium_rod
-from src.terraforming.aerosols.microphysics import brownian_kernel
+from src.interventions.aerosols.sectional import coagulator,collision_kernels
+from src.interventions.aerosols import aluminium_rod
+from src.interventions.aerosols.microphysics import brownian_kernel
 
 
 def test_exact_self_channel_and_no_material_loss_at_large_step():

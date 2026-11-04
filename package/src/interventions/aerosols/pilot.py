@@ -59,7 +59,7 @@ def prepare(*,material='aluminium',mode='passive',dt_s=60.,n_layers=12,
     state=initialize(climate,coords,specs,BODY,particle,initial_burden_kg_m2)
     table=rod_table(particle);bands=make_band_table(table,particle) if mode=='active' else None
     step=coupled_step(coords,specs,BODY,forcing,mars_gcm.co2_forcing(),particle,sources,options,bands=bands)
-    asset=files('src.terraforming.aerosols').joinpath('assets/manifest.json').read_bytes()
+    asset=files('src.interventions.aerosols').joinpath('assets/manifest.json').read_bytes()
     configuration=dict(schema=2,body=dataclasses.asdict(BODY),particle=particle.as_dict(),
         options=dataclasses.asdict(options),sources=[dataclasses.asdict(s) for s in sources],
         truncation=truncation,n_layers=n_layers,forcing=dataclasses.asdict(forcing),

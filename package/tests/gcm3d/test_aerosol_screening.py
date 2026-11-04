@@ -4,8 +4,8 @@ import pytest
 pytest.importorskip('dinosaur')
 import jax
 jax.config.update('jax_enable_x64',True)
-from src.terraforming.aerosols import aluminium_rod
-from src.terraforming.aerosols.screening import lifetime_screen,CollectorScenario
+from src.interventions.aerosols import aluminium_rod
+from src.interventions.aerosols.screening import lifetime_screen,CollectorScenario
 
 
 def arguments(**overrides):

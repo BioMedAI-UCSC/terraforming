@@ -4,8 +4,8 @@ import pytest
 pytest.importorskip('dinosaur')
 import jax
 jax.config.update('jax_enable_x64',True)
-from src.terraforming.aerosols.paired import initial_warming,accumulate,warming_report,prepare_pair,stream_pair
-from src.terraforming.aerosols.checkpoint import save,load
+from src.interventions.aerosols.paired import initial_warming,accumulate,warming_report,prepare_pair,stream_pair
+from src.interventions.aerosols.checkpoint import save,load
 
 
 def test_nonuniform_linear_signal_integrates_across_years():
@@ -62,9 +62,9 @@ def test_failed_pair_preserves_all_last_valid_states():
     import jax.numpy as jnp
     from .test_aerosol_state import setup_state
     from src.celestials.planets.mars import MARS_BODY_3D
-    from src.terraforming.aerosols import aluminium_rod
-    from src.terraforming.aerosols.state import initialize
-    from src.terraforming.aerosols.paired import PairedState
+    from src.interventions.aerosols import aluminium_rod
+    from src.interventions.aerosols.state import initialize
+    from src.interventions.aerosols.paired import PairedState
     coords,specs,climate=setup_state();particle=aluminium_rod()
     state=initialize(climate,coords,specs,MARS_BODY_3D,particle)
     pair=PairedState(state,state,state,initial_warming(0.))
@@ -91,8 +91,8 @@ def test_physical_start_preserves_absolute_phase_and_checks_contract(tmp_path):
     import dataclasses
     import jax.numpy as jnp
     from .test_aerosol_state import setup_state
-    from src.terraforming.aerosols.pilot import prepare
-    from src.terraforming.aerosols.starting import save_physical_start
+    from src.interventions.aerosols.pilot import prepare
+    from src.interventions.aerosols.starting import save_physical_start
     _,_,climate=setup_state()
     climate=climate._replace(surface_temperature=climate.surface_temperature+3.,
         dynamics=dataclasses.replace(climate.dynamics,sim_time=jnp.asarray(123.)))
