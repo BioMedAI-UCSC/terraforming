@@ -5,7 +5,7 @@ pytest.importorskip('dinosaur')
 import jax
 jax.config.update('jax_enable_x64',True)
 from scipy.special import expn
-from src.terraforming.aerosols.angular_reference import homogeneous_slab,compare_two_stream,layered_column,compare_two_stream_column
+from src.interventions.aerosols.angular_reference import homogeneous_slab,compare_two_stream,layered_column,compare_two_stream_column
 
 
 def parameters(**changes):

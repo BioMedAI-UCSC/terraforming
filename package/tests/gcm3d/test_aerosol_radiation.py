@@ -6,9 +6,9 @@ import jax
 import jax.numpy as jnp
 from scipy.linalg import expm
 from src.framework.physics.twostream import layer_coefficients, solve_fluxes, symmetric_embed
-from src.terraforming.aerosols import aluminium_rod
-from src.terraforming.aerosols.data import rod_table
-from src.terraforming.aerosols.optics import make_band_table, integrate_band
+from src.interventions.aerosols import aluminium_rod
+from src.interventions.aerosols.data import rod_table
+from src.interventions.aerosols.optics import make_band_table, integrate_band
 
 jax.config.update('jax_enable_x64', True)
 
@@ -60,7 +60,7 @@ def test_source_band_quadrature_converges_and_mass_scales():
 @pytest.mark.parametrize('temperature',[100.,215.,350.])
 def test_planck_band_against_independent_adaptive_quadrature(temperature):
     from scipy.integrate import quad
-    from src.terraforming.aerosols.optics import planck_lambda
+    from src.interventions.aerosols.optics import planck_lambda
     table=rod_table(aluminium_rod())
     lo,hi=8e-6,24e-6
     knots=table.wavelength_m[(table.wavelength_m>lo)&(table.wavelength_m<hi)]
