@@ -47,8 +47,8 @@ def coagulator(pivots_kg):
 
     @jax.jit
     def step(number_m3,kernel_m3_s,dt_s):
-        number=jnp.asarray(number_m3)
-        kernel=jnp.asarray(kernel_m3_s)
+        number=jnp.asarray(number_m3,dtype=pivots.dtype)
+        kernel=jnp.asarray(kernel_m3_s,dtype=pivots.dtype)
         if number.shape!=(size,) or kernel.shape!=(size,size):
             raise ValueError('population/kernel shapes must match the mass pivots')
         valid=(jnp.all(jnp.isfinite(number))&jnp.all(number>=0)&

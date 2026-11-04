@@ -20,6 +20,9 @@ def test_exact_self_channel_and_no_material_loss_at_large_step():
         assert np.all(np.asarray(result.number_m3)>=0)
         assert float(jnp.dot(result.number_m3,jnp.array([1.,2.])))==pytest.approx(1.,abs=2e-15)
         assert float(result.unresolved_mass_kg_m3)==0.
+    integer_input=step(jnp.array([1,0]),jnp.array([[1,0],[0,0]]),1.)
+    assert bool(integer_input.valid)
+    assert float(integer_input.number_m3[0])==pytest.approx(.5)
 
 
 def test_overflow_is_suspended_and_counted_once():
