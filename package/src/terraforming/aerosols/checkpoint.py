@@ -13,6 +13,15 @@ def identity(configuration):
         separators=(',',':')).encode()).hexdigest()
 
 
+def read_configuration(path):
+    """Read the archived experiment identity without loading executable objects."""
+    with np.load(path,allow_pickle=False) as data:
+        metadata=json.loads(str(data['metadata']))
+    if metadata.get('version')!=1 or metadata.get('identity')!=identity(metadata['configuration']):
+        raise ValueError('checkpoint metadata identity is inconsistent')
+    return metadata['configuration']
+
+
 def save(path,state,configuration):
     """Configuration must include body/grid, sources, forcing and asset hashes."""
     leaves,tree=jax.tree_util.tree_flatten(state)
