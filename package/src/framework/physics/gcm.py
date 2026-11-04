@@ -574,7 +574,7 @@ def two_stream_radiative_fluxes(
 
 def column_radiative_fluxes(
     air_k, surface_k, ps_pa, incoming, solar_path_factor,
-    dust_visible, dust_longwave, sigma_boundaries, body, f,
+    dust_visible, dust_longwave, sigma_boundaries, body, f, *, aerosol_optics=None,
 ) -> RadiativeFluxDiagnostics:
     """Pure array radiation kernel shared by column experiments and the GCM.
 
@@ -584,6 +584,8 @@ def column_radiative_fluxes(
     path factors are dimensionless. No state conversion or file I/O occurs here.
     """
     _validate_radiative_bands(f)
+    if aerosol_optics is not None and not f.ames_correlated_k_enabled:
+        raise ValueError('engineered aerosol spectra require the Ames radiation bands')
     air_k = jnp.asarray(air_k)
     if air_k.ndim != 3:
         raise ValueError("air temperature must have shape (layer, column_x, column_y)")
@@ -676,6 +678,15 @@ def column_radiative_fluxes(
         ))
         layer_reflect = 0.5 * omega_sw * (1.0 - g_sw) * (1.0 - attenuation)
         layer_transmit = attenuation + 0.5 * omega_sw * (1.0 + g_sw) * (1.0 - attenuation)
+        if aerosol_optics is not None:
+            from src.framework.physics.twostream import layer_coefficients, symmetric_embed
+            ext=aerosol_optics['sw_extinction'][:,None]
+            scat=aerosol_optics['sw_scattering'][:,None]
+            sg=aerosol_optics['sw_scattering_g'][:,None]
+            omega=jnp.where(ext>0,scat/jnp.maximum(ext,1e-300),0.)
+            asymmetry=jnp.where(scat>0,sg/jnp.maximum(scat,1e-300),0.)
+            ar,at=layer_coefficients(ext*solar_path_factor[None,None,None],omega,asymmetry,mu=1.)
+            layer_reflect,layer_transmit=symmetric_embed(layer_reflect,layer_transmit,ar,at)
 
         # The prescribed IR opacity is a separate Ames field; do not infer it
         # from visible opacity. Normalize the five spectral extinction values to
@@ -738,6 +749,20 @@ def column_radiative_fluxes(
         )
         thermal_emission = jnp.moveaxis(thermal_emission, 2, 0)
         lw_trans_levels = jnp.moveaxis(lw_trans, 2, 0)
+
+        if aerosol_optics is not None:
+            from src.framework.physics.twostream import layer_coefficients,symmetric_embed,solve_fluxes
+            ext=aerosol_optics['lw_extinction'][:,None]
+            scat=aerosol_optics['lw_scattering'][:,None]
+            sg=aerosol_optics['lw_scattering_g'][:,None]
+            omega=jnp.where(ext>0,scat/jnp.maximum(ext,1e-300),0.)
+            asymmetry=jnp.where(scat>0,sg/jnp.maximum(scat,1e-300),0.)
+            ar,at=layer_coefficients(ext,omega,asymmetry)
+            reflect,transmit=symmetric_embed(jnp.zeros_like(lw_trans),lw_trans,ar,at)
+            surface_flux=surface_emission[None,None]*planck_surface[:,None]*channel
+            up,down=solve_fluxes(jnp.moveaxis(reflect,2,0),jnp.moveaxis(transmit,2,0),
+                thermal_emission,jnp.zeros_like(surface_flux),surface_flux)
+            return radiative_flux_diagnostics(sw,sw_up,jnp.sum(up,axis=(1,2)),jnp.sum(down,axis=(1,2)))
 
         def propagate_thermal(flux, layer):
             transmission, emission = layer
@@ -1658,6 +1683,7 @@ def forced_co2_primitive_equations(
     *,
     radiation_component=None,
     neural_tendency=None,
+    conserved_particle_tracers=(),
 ) -> "time_integration.ImplicitExplicitODE":
     """Dry dynamics + radiative forcing + CO2 condensation cycle on a tuple state.
 
@@ -1706,6 +1732,13 @@ def forced_co2_primitive_equations(
             state, coords, specs, body, forcing, wind_nodal=wind_nodal,
             temperature_nodal=temperature_nodal, ps_pa=ps_pa,
         )
+        # Phase exchange changes the carrier gas, not suspended solid material.
+        # Use the exact same phase tendency as pressure, including energy limits.
+        mix_tracers = dict(mix_tracers)
+        for key in conserved_particle_tracers:
+            q = grid.to_nodal(state.dynamics.tracers[key])
+            compensation = grid.to_modal(-q * grid.to_nodal(d_logsp))
+            mix_tracers[key] = mix_tracers.get(key, 0.) + compensation
         convection = dry_convective_adjustment_tendency(
             state, coords, specs, body, forcing, temperature_nodal=temperature_nodal
         )
