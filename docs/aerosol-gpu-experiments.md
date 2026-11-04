@@ -89,6 +89,29 @@ that inventory. The source experiments build their inventories from zero.
 
 ## Resume, stop, and inspect results
 
+If spinup stops with `invalid_regime`, mean surface temperature alone cannot
+identify the cause. The terminal summary/history now includes `failure_diagnostics`
+with the rejected candidate's temperature/pressure ranges, locations, loading,
+reasons and unchanged limits. The checkpoint still contains the previous valid
+state. A failure is not proof of a GPU memory or precision problem.
+
+To inspect a checkpoint from an older version that did not save those details,
+pull this branch and run **one candidate step** on the server:
+
+```bash
+git pull --ff-only
+JAX_PLATFORMS=cuda .venv/bin/python scripts/aerosol_paper_experiments.py diagnose-spinup \
+  --output outputs/aerosol-10sol
+```
+
+This writes `spinup/failure-probe.json`, without changing the original restart,
+summary, suite or runtime provenance. It checks that the archived physical setup
+still matches. It can inspect an older source revision without bypassing the
+normal run/resume source guard. Do not lower the limits to get past a failed
+spinup: use the reported location and values to identify the numerical or missing
+physics problem first. A source update still requires a new directory for a new
+production run unless an explicit restart migration has been implemented.
+
 Rerun the same wrapper command to continue from the latest complete checkpoints.
 Completed cases are skipped. SIGINT/SIGTERM request a graceful stop at the next
 step boundary. SIGKILL or a scheduler hard time limit can only preserve the last

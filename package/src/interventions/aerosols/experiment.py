@@ -127,6 +127,33 @@ def _finite_climate(climate):
     return jnp.all(jnp.stack([jnp.all(jnp.isfinite(x)) for x in jax.tree_util.tree_leaves(climate)]))
 
 
+def failure_details(state,coords,specs,body,particle,report=None):
+    """Host-only ranges and locations for a failed candidate; no state mutation."""
+    from .validity import explain_arrays,json_safe
+    grid=coords.horizontal
+    gas=np.asarray(gas_mass(state.climate,coords,specs,body))
+    mass,number=burdens(state.climate,coords,specs,body)
+    scale=float(specs.dimensionalize(1.,scales.units.kelvin).magnitude)
+    air=(np.asarray(grid.to_nodal(state.climate.dynamics.temperature_variation))+
+         np.asarray(reference_temperature(coords,body))[:,None,None])*scale
+    pressure=np.asarray(coords.vertical.centers)[:,None,None]*np.sum(gas,axis=0)*body.gravity_m_s2
+    details=explain_arrays(air,pressure,mass,number,gas,max_mass_loading=particle.max_mass_loading,
+        lat_deg=np.degrees(np.asarray(grid.latitudes)),lon_deg=np.degrees(np.asarray(grid.longitudes)),
+        sigma=np.asarray(coords.vertical.centers))
+    if not bool(_finite_climate(state.climate)):
+        details['reasons'].append('nonfinite_climate')
+    if report is None: report=diagnostics(state,coords,specs,body,particle)
+    nonfinite=[key for key,value in report.items() if isinstance(value,float) and not math.isfinite(value)]
+    if nonfinite:
+        details['reasons'].append('nonfinite_diagnostics')
+        details['nonfinite_diagnostic_fields']=nonfinite
+    if not details['reasons'] and bool(state.ledger.invalid):
+        details['reasons'].append('transport_or_pre_remap_validity_gate')
+    details['candidate_report']=json_safe(report)
+    details['interpretation']='Rejected candidate; restart and headline fields retain the previous valid state. Limits are unchanged.'
+    return json_safe(details)
+
+
 def diagnostics(state,coords,specs,body,particle):
     mass,number=inventory(state,coords,specs,body)
     w=quadrature_weights(coords)*body.surface_area_m2

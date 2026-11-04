@@ -104,6 +104,14 @@ def _already_finished(output, duration):
         read_json(summary)["elapsed_seconds"] >= duration - 1e-6
 
 
+def log_progress(name,report):
+    event=dict(case=name,elapsed_s=report['elapsed_seconds'],status=report['status'],
+               surface_temperature_k=report['surface_temperature_k'])
+    for key in ('attempted_elapsed_seconds','failure_diagnostics'):
+        if key in report: event[key]=report[key]
+    print(json.dumps(event,allow_nan=False),flush=True)
+
+
 def run(args):
     import fcntl
     # A shared spinup/restart must not be written by two GPU jobs at once.
@@ -174,12 +182,14 @@ def _run(args):
             report = run_aerosols(aerosol, planet, directory,
                 initial_ls_deg=planet.initial_ls_deg, resume=restart if restart.exists() else None,
                 should_stop=lambda: stopped[0],
-                callback=lambda report, fields: print(json.dumps(dict(case=directory.name,
-                    elapsed_s=report["elapsed_seconds"], status=report["status"],
-                    surface_temperature_k=report["surface_temperature_k"])), flush=True))
+                callback=lambda report, fields: log_progress(directory.name,report))
         except Exception:
+            summary=read_json(directory/'summary.json') if (directory/'summary.json').exists() else {}
             timings.append(dict(case=directory.name, wall_seconds=time.monotonic()-before,
-                                status="failed; inspect last-valid summary/history"))
+                                status=summary.get('status','failed before terminal summary'),
+                                last_valid_elapsed_s=summary.get('last_valid_elapsed_seconds'),
+                                attempted_elapsed_s=summary.get('attempted_elapsed_seconds'),
+                                failure_diagnostics=summary.get('failure_diagnostics')))
             write_json(timing_path, timings)
             raise
         timings.append(dict(case=directory.name, wall_seconds=time.monotonic()-before,
@@ -214,6 +224,53 @@ def _run(args):
         cfg["intervention"]["aerosol"]["initial_climate"] = str(physical_start)
         execute(cfg, output / case["name"])
     print(f"Selected experiments complete in {time.monotonic()-started:.1f} wall seconds", flush=True)
+
+
+def diagnose_spinup(args):
+    """Reproduce ONE candidate from an existing checkpoint, without advancing it.
+
+    Diagnostic-only source updates may inspect an older suite. Its archived
+    configuration must still match exactly; no resume provenance is rewritten.
+    """
+    import jax
+    jax.config.update('jax_enable_x64',True)
+    devices=jax.devices()
+    if not args.allow_cpu and not any(d.platform=='gpu' for d in devices):
+        raise RuntimeError('No JAX GPU visible; use the GPU environment or explicitly pass --allow-cpu.')
+    from src.interventions.aerosols.pilot import prepare
+    from src.interventions.aerosols import checkpoint
+    from src.interventions.aerosols.experiment import diagnostics,failure_details
+    from src.interventions.aerosols.validity import json_safe
+    directory=args.output.resolve()/'spinup'
+    path=directory/'restart.npz'
+    archived=checkpoint.read_configuration(path)
+    options=dict(archived['options'])
+    options.pop('max_relative_transport_correction')  # fixed pilot default, checked by identity below
+    forcing=archived['forcing']
+    # Read all setup controls from the checkpoint, not from possibly edited CLI inputs.
+    template,step,context=prepare(material=archived['particle']['name'].split('_rod_')[0],
+        **options,n_layers=archived['n_layers'],truncation=archived['truncation'],sources=archived['sources'],
+        initial_burden_kg_m2=archived['initial_burden_kg_m2'],
+        surface_temperature_k=archived['initial_surface_temperature_k'],
+        surface_pressure_pa=archived['initial_surface_pressure_pa'],
+        albedo=forcing['albedo'],diurnal=forcing['diurnal'],
+        initial_ls_deg=math.degrees(forcing['init_orbital_angle_rad']),
+        co2_lw_scale=forcing['ames_co2_longwave_opacity_scale'],
+        dust_lw_scale=forcing['ames_dust_longwave_opacity_scale'],
+        surface_exchange_multiplier=forcing['surface_exchange_multiplier'])
+    if checkpoint.identity(context.pop('configuration'))!=checkpoint.identity(archived):
+        raise ValueError('Current setup differs from archived spinup; refusing to relabel the checkpoint.')
+    state=checkpoint.load(path,template,archived)
+    candidate=step(state)
+    report=diagnostics(candidate,**context)
+    details=failure_details(candidate,**context,report=report)
+    result=json_safe(dict(source_commit=git_output('rev-parse','HEAD'),
+        checkpoint_sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
+        checkpoint_elapsed_s=float(state.elapsed_seconds),attempted_elapsed_s=float(candidate.elapsed_seconds),
+        devices=[d.device_kind for d in devices],failure_diagnostics=details,
+        note='One candidate step only; original restart, summary, suite and runtime provenance are unchanged.'))
+    write_json(directory/'failure-probe.json',result)
+    print(json.dumps(result,indent=2,allow_nan=False))
 
 
 def reference_inventory(times, initial_kg, rate_kg_s, stop_s, lifetime_s):
@@ -300,6 +357,10 @@ def plot(args):
             interpretation="transient, not an equilibrium/source reproduction verdict"))
     if not records:
         plt.close(fig)
+        spinup_summary=output/'spinup'/'summary.json'
+        if spinup_summary.exists() and read_json(spinup_summary).get('status') in ('invalid_regime','numerical_failure','stopped'):
+            print(f"No aerosol comparison: spinup stopped. See {spinup_summary}")
+            return
         raise ValueError("no matched histories available yet")
     axes[0, 0].axhline(4, color="grey", linestyle="--", label="paper ~4 K reference")
     axes[0, 0].axhline(35, color="black", linestyle="--", label="paper >35 K reference")
@@ -361,11 +422,14 @@ def main():
     runner.add_argument("--output", type=Path, required=True)
     runner.add_argument("--case", action="append", help="Run only this named case; repeat to select several")
     runner.add_argument("--allow-cpu", action="store_true")
+    probe=commands.add_parser('diagnose-spinup',help='Probe one step from saved spinup; original files stay unchanged')
+    probe.add_argument('--output',type=Path,required=True)
+    probe.add_argument('--allow-cpu',action='store_true')
     plotter = commands.add_parser("plot", help="Plot saved histories, including incomplete experiments")
     plotter.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     try:
-        dict(plan=plan, run=run, plot=plot)[args.command](args)
+        {'plan':plan,'run':run,'plot':plot,'diagnose-spinup':diagnose_spinup}[args.command](args)
     except (ValueError, RuntimeError, FileNotFoundError) as exc:
         parser.exit(1, f"{exc}\n")
 

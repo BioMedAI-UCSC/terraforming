@@ -33,7 +33,7 @@ jobs:
         env:
           PYTHONPATH: package:.
           MPLBACKEND: Agg
-        run: uv run --no-sync python -m pytest cli/tests/test_aerosols.py cli/tests/test_aerosol_results.py cli/tests/test_aerosol_paper_experiments.py -q
+        run: uv run --no-sync python -m pytest cli/tests/test_aerosols.py cli/tests/test_aerosol_results.py cli/tests/test_aerosol_paper_experiments.py cli/tests/test_aerosol_failure_reporting.py -q
   results-pilot:
     needs: aerosol-tests
     if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'aerosols')

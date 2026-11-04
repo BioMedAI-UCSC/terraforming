@@ -119,6 +119,8 @@ def stream_pair(state,steps,n_steps,coords,specs,body,particle,*,orbital_period_
         if should_stop():
             report=paired_report(state,orbital_period_s=orbital_period_s,**context)
             report['status']='stopped'
+            from .reporting import write_report
+            write_report(output,report)
             yield state,report
             return
         candidates={mode:steps[mode](getattr(state,mode)) for mode in ('off','passive','active')}
@@ -126,12 +128,18 @@ def stream_pair(state,steps,n_steps,coords,specs,body,particle,*,orbital_period_
         failed=[mode for mode,r in reports.items() if r['status'] in ('invalid_regime','numerical_failure') or any(
             not math.isfinite(v) for v in r.values() if isinstance(v,float))]
         if failed:
+            from .experiment import failure_details
+            details={mode:failure_details(candidates[mode],**context,report=reports[mode]) for mode in failed}
             report=paired_report(state,orbital_period_s=orbital_period_s,**context)
             numerical=any(reports[m]['status']=='numerical_failure' or any(
                 not math.isfinite(v) for v in reports[m].values() if isinstance(v,float)) for m in failed)
             report.update(status='numerical_failure' if numerical
                 else 'invalid_regime',failed_cases=failed,last_valid_elapsed_seconds=float(state.active.elapsed_seconds))
             report['warming']=warming_report(state.warming,orbital_period_s)
+            report['attempted_elapsed_seconds']=float(candidates['active'].elapsed_seconds)
+            report['failure_diagnostics']=details
+            from .reporting import write_report
+            write_report(output,report)
             yield state,report
             return
         elapsed=float(candidates['active'].elapsed_seconds)

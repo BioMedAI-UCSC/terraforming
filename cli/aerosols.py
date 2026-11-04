@@ -92,5 +92,8 @@ def run(config,planet,output_dir,*,callback=lambda report,fields:None,
                 case_fields={mode:fields(getattr(state,mode)) for mode in ('off','passive','active')} if config.paired else {config.mode:headline}
                 final_report=write_results(out,report,case_fields,identity)
             if report['status'] in ('invalid_regime','numerical_failure'):
-                raise RuntimeError(f"aerosol run stopped: {report['status']}; last valid state saved")
+                details=report.get('failure_diagnostics',{})
+                reasons=details.get('reasons') or {key:value.get('reasons',[]) for key,value in details.items() if isinstance(value,dict)}
+                raise RuntimeError(f"aerosol run stopped: {report['status']}; reasons={reasons}; "
+                    f"last valid state saved; see {out/'summary.json'}")
     return final_report

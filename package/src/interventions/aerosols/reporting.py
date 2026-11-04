@@ -2,7 +2,12 @@
 import json
 import math
 from collections import deque
-from .experiment import diagnostics
+from .experiment import diagnostics,failure_details
+
+
+def write_report(output,report):
+    if output is not None:
+        output.write(json.dumps(report,allow_nan=False)+'\n');output.flush()
 
 
 class WarmingWindow:
@@ -59,6 +64,7 @@ def stream_run(state,step,n_steps,coords,specs,body,particle,*,report_every=100,
     for index in range(n_steps):
         if should_stop():
             report=diagnostics(state,coords,specs,body,particle);report['status']='stopped'
+            write_report(output,report)
             yield state,report
             return
         candidate=step(state)
@@ -68,15 +74,17 @@ def stream_run(state,step,n_steps,coords,specs,body,particle,*,report_every=100,
             failure='numerical_failure' if report['status']=='numerical_failure' else (
                 'invalid_regime' if bool(candidate.ledger.invalid) else 'numerical_failure')
             attempted_time=float(candidate.elapsed_seconds)
+            details=failure_details(candidate,coords,specs,body,particle,report)
             report=diagnostics(state,coords,specs,body,particle)
             report['status']=failure
             report['attempted_elapsed_seconds']=attempted_time
             report['last_valid_elapsed_seconds']=float(state.elapsed_seconds)
+            report['failure_diagnostics']=details
+            write_report(output,report)
             yield state,report
             return
         state=candidate
         if (index+1)%report_every==0 or index==n_steps-1:
             report['status']='completed' if index==n_steps-1 else 'running'
-            if output is not None:
-                output.write(json.dumps(report,allow_nan=False)+'\n');output.flush()
+            write_report(output,report)
             yield state,report
