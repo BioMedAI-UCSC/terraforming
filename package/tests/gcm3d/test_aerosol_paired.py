@@ -106,3 +106,22 @@ def test_physical_start_preserves_absolute_phase_and_checks_contract(tmp_path):
         prepare(dt_s=5.,n_layers=4,initial_climate=path,co2_lw_scale=.5)
     with pytest.raises(ValueError,match='tracer-free'):
         save_physical_start(path,pair.active.climate,contract)
+
+
+def test_projection_energy_uses_existing_dry_inventory_definition():
+    import dataclasses
+    import jax.numpy as jnp
+    from .test_aerosol_state import setup_state
+    from src.celestials.planets.mars import MARS_BODY_3D as body
+    from src.framework.gcm.benchmarks import dry_conserved_arrays,dry_conserved_quantities
+    coords,specs,climate=setup_state()
+    reference=np.full(coords.vertical.layers,body.reference_temperature_k)
+    old=dry_conserved_arrays(climate.dynamics,coords,specs,body,reference)
+    host=dry_conserved_quantities(climate.dynamics,coords,specs,body,reference)
+    np.testing.assert_allclose(old,[host.mass_kg_m2_sr,host.total_energy_j_m2_sr,
+        host.axial_angular_momentum_kg_m_s_sr],rtol=1e-14)
+    grid=coords.horizontal
+    logp=climate.dynamics.log_surface_pressure+grid.to_modal(jnp.full((1,)+grid.nodal_shape,np.log(1.01)))
+    changed=dataclasses.replace(climate.dynamics,log_surface_pressure=logp)
+    new=dry_conserved_arrays(changed,coords,specs,body,reference)
+    assert float(new[1])==pytest.approx(1.01*float(old[1]),rel=1e-12)
