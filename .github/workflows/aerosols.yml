@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'package/src/interventions/**'
+      - 'scripts/plot_aerosol_results.py'
       - 'package/tests/gcm3d/test_aerosol*'
       - 'package/src/framework/physics/**'
       - 'package/pyproject.toml'
