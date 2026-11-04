@@ -81,3 +81,28 @@ def test_failed_pair_preserves_all_last_valid_states():
     _,report=list(stream_pair(pair,dict(off=lambda s:invalid,passive=lambda s:s,active=lambda s:s),
         1,coords,specs,MARS_BODY_3D,particle,orbital_period_s=100.))[0]
     assert report['status']=='invalid_regime'
+
+
+def test_physical_start_preserves_absolute_phase_and_checks_contract(tmp_path):
+    import dataclasses
+    import jax.numpy as jnp
+    from .test_aerosol_state import setup_state
+    from src.terraforming.aerosols.pilot import prepare
+    from src.terraforming.aerosols.starting import save_physical_start
+    _,_,climate=setup_state()
+    climate=climate._replace(surface_temperature=climate.surface_temperature+3.,
+        dynamics=dataclasses.replace(climate.dynamics,sim_time=jnp.asarray(123.)))
+    _,_,context=prepare(dt_s=5.,n_layers=4)
+    contract=context['configuration']['start_contract']
+    path=tmp_path/'physical.npz'
+    save_physical_start(path,climate,contract)
+    pair,_,context=prepare_pair(dt_s=5.,n_layers=4,initial_climate=path)
+    for state in (pair.off,pair.passive,pair.active):
+        np.testing.assert_array_equal(state.climate.surface_temperature,climate.surface_temperature)
+        assert float(state.climate.dynamics.sim_time)==123.
+        assert float(state.elapsed_seconds)==0.
+    assert context['configuration']['cases']['active']['initial_climate_sha256']
+    with pytest.raises(ValueError,match='configuration'):
+        prepare(dt_s=5.,n_layers=4,initial_climate=path,co2_lw_scale=.5)
+    with pytest.raises(ValueError,match='tracer-free'):
+        save_physical_start(path,pair.active.climate,contract)

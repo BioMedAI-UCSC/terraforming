@@ -1,6 +1,7 @@
 """A reproducible flat-Mars screening setup shared by command/server clients."""
 import dataclasses
 import hashlib
+from pathlib import Path
 from importlib.resources import files
 import numpy as np
 from src.framework.gcm._dinosaur import jnp, primitive_equations, scales
@@ -21,7 +22,7 @@ def prepare(*,material='aluminium',mode='passive',dt_s=60.,n_layers=12,
             surface_temperature_k=210.,surface_pressure_pa=610.,albedo=.25,
             diurnal=True,initial_ls_deg=0.,co2_lw_scale=1.,dust_lw_scale=1.,
             surface_exchange_multiplier=1.,coagulation=False,charge_e=0.,
-            collection_rate_s=0.,collection_source=None):
+            collection_rate_s=0.,collection_source=None,initial_climate=None):
     """Return state, step and context. Flat terrain/ε=1 are recorded assumptions.
 
     Use a spun-up compatible climate checkpoint for research, rather than
@@ -46,14 +47,26 @@ def prepare(*,material='aluminium',mode='passive',dt_s=60.,n_layers=12,
         ames_dust_longwave_opacity_scale=dust_lw_scale,
         surface_exchange_multiplier=surface_exchange_multiplier)
     climate=initial_column_state(dynamics,coords,surface_temperature_k,specs)
+    start_contract=dict(kind='aerosol-physical-start-v1',body=dataclasses.asdict(BODY),
+        truncation=truncation,n_layers=n_layers,sigma_boundaries=np.asarray(coords.vertical.boundaries).tolist(),
+        forcing=dataclasses.asdict(forcing),co2_forcing=dataclasses.asdict(mars_gcm.co2_forcing()),terrain='flat',
+        units='Dinosaur physics_specs(body) nondimensional dynamics; nodal surface temperature in kelvin')
+    start_hash=None
+    if initial_climate is not None:
+        from .starting import load_physical_start
+        climate=load_physical_start(initial_climate,climate,start_contract)
+        start_hash=hashlib.sha256(Path(initial_climate).read_bytes()).hexdigest()
     state=initialize(climate,coords,specs,BODY,particle,initial_burden_kg_m2)
     table=rod_table(particle);bands=make_band_table(table,particle) if mode=='active' else None
     step=coupled_step(coords,specs,BODY,forcing,mars_gcm.co2_forcing(),particle,sources,options,bands=bands)
     asset=files('src.terraforming.aerosols').joinpath('assets/manifest.json').read_bytes()
-    configuration=dict(schema=1,body=dataclasses.asdict(BODY),particle=particle.as_dict(),
+    configuration=dict(schema=2,body=dataclasses.asdict(BODY),particle=particle.as_dict(),
         options=dataclasses.asdict(options),sources=[dataclasses.asdict(s) for s in sources],
         truncation=truncation,n_layers=n_layers,forcing=dataclasses.asdict(forcing),
-        initial_surface_temperature_k=surface_temperature_k,initial_surface_pressure_pa=surface_pressure_pa,
+        initial_surface_temperature_k=surface_temperature_k if initial_climate is None else None,
+        initial_surface_pressure_pa=surface_pressure_pa if initial_climate is None else None,
+        start_contract=start_contract,initial_climate_sha256=start_hash,
+        initial_absolute_sim_time_nd=float(climate.dynamics.sim_time),
         initial_burden_kg_m2=initial_burden_kg_m2,asset_manifest_sha256=hashlib.sha256(asset).hexdigest(),
         terrain='flat screening pilot',surface_emissivity=1.,baseline_readiness='unverified')
     return state,step,dict(coords=coords,specs=specs,body=BODY,particle=particle,configuration=configuration)
