@@ -44,6 +44,7 @@ class Population(NamedTuple):
     collected_mass_kg_m3: object
     prescribed_removed_mass_kg_m3: object
     integrated_fractions_s: object
+    integrated_upper_fractions_s: object
     elapsed_s: object
     last_valid_s: object
     numerical: object
@@ -75,8 +76,9 @@ def lifetime_screen(particle,*,horizon_s,dt_s,column_mass_kg_m2,mixing_depth_m,
                     prescribed_source=None,max_unresolved_mass_fraction=1e-6):
     """Return finite-horizon residence integrals and uncertainty assumptions.
 
-    Mass/number/monomer results are lower bounds on pulse residence times when
-    the final free inventory is nonzero. Collector-bound material is counted in
+    Right/left endpoint sums bracket each monotone discrete pulse integral;
+    kinetic and size-grid errors require separate refinement. Truncated pulse
+    integrals leave a nonnegative unobserved tail. Collector-bound material is counted in
     its own reservoir; its subsequent transport and optics are not inferred.
     Aggregate radiative efficacy is unknown and is never replaced by mass.
     """
@@ -124,7 +126,7 @@ def lifetime_screen(particle,*,horizon_s,dt_s,column_mass_kg_m2,mixing_depth_m,
     zero=jnp.asarray(0.,dtype=initial.dtype)
     state=Population(number_m3=initial,unresolved_mass_kg_m3=zero,unresolved_number_m3=zero,
         deposited_mass_kg_m3=zero,collected_mass_kg_m3=zero,prescribed_removed_mass_kg_m3=zero,
-        integrated_fractions_s=jnp.zeros(3),elapsed_s=zero,last_valid_s=zero,
+        integrated_fractions_s=jnp.zeros(3),integrated_upper_fractions_s=jnp.zeros(3),elapsed_s=zero,last_valid_s=zero,
         numerical=jnp.asarray(False),invalid=jnp.asarray(False))
     state=state._replace(numerical=~(jnp.all(jnp.isfinite(kernel))&jnp.all(jnp.isfinite(deposit_rate))&
         jnp.all(jnp.isfinite(collection_rate))))
@@ -156,7 +158,8 @@ def lifetime_screen(particle,*,horizon_s,dt_s,column_mass_kg_m2,mixing_depth_m,
             collected_mass_kg_m3=s.collected_mass_kg_m3+jnp.dot(collected,mass),elapsed_s=end)
         finite=jnp.all(jnp.isfinite(number))&jnp.isfinite(overflow_mass)&jnp.isfinite(overflow_number)
         invalid=(~valid)|(overflow_mass>max_unresolved_mass_fraction*initial_mass)
-        candidate=candidate._replace(integrated_fractions_s=s.integrated_fractions_s+dt*(fractions(s)+fractions(candidate))/2,
+        candidate=candidate._replace(integrated_fractions_s=s.integrated_fractions_s+dt*fractions(candidate),
+            integrated_upper_fractions_s=s.integrated_upper_fractions_s+dt*fractions(s),
             numerical=~finite,invalid=invalid,last_valid_s=jnp.where(finite&~invalid,candidate.elapsed_s,s.last_valid_s))
         return jax.lax.cond(finite,lambda _:candidate,
             lambda _:s._replace(numerical=jnp.asarray(True)),operand=None)
@@ -171,6 +174,7 @@ def lifetime_screen(particle,*,horizon_s,dt_s,column_mass_kg_m2,mixing_depth_m,
     prescribed=float(final.prescribed_removed_mass_kg_m3)*mixing_depth_m
     status='numerical_failure' if bool(final.numerical) else 'invalid_regime' if bool(final.invalid) else 'completed'
     integrals=np.asarray(final.integrated_fractions_s)
+    upper=np.asarray(final.integrated_upper_fractions_s)
     return dict(status=status,simulated_s=float(final.elapsed_s),last_valid_s=float(final.last_valid_s),
         suspended_mass_kg_m2=suspended,deposited_mass_kg_m2=deposited,collected_mass_kg_m2=collected,
         prescribed_removed_mass_kg_m2=prescribed,
@@ -178,6 +182,9 @@ def lifetime_screen(particle,*,horizon_s,dt_s,column_mass_kg_m2,mixing_depth_m,
         unresolved_suspended_mass_kg_m2=float(final.unresolved_mass_kg_m3)*mixing_depth_m,
         final_number_m3=np.asarray(final.number_m3).tolist(),mass_pivots_kg=pivots.tolist(),
         finite_horizon_residence_lower_bounds_s=None if status!='completed' else dict(zip(('mass','number','monomers'),integrals.tolist())),
+        finite_horizon_residence_upper_sums_s=None if status!='completed' else dict(zip(('mass','number','monomers'),upper.tolist())),
+        finite_horizon_residence_estimates_s=None if status!='completed' else dict(zip(('mass','number','monomers'),((integrals+upper)/2).tolist())),
+        residence_quadrature='right/left endpoint sums for a monotone discrete pulse; size-grid and kinetic errors require refinement; upper sums do not bound the unobserved tail',
         radiatively_effective_residence_time_s=None,
         roadmap_criterion_s=year_s/3,roadmap_year_convention=year_convention,
         roadmap_effective_lifetime_comparison='not evaluable without aggregate optical efficacy and climate validation',
@@ -188,6 +195,8 @@ def lifetime_screen(particle,*,horizon_s,dt_s,column_mass_kg_m2,mixing_depth_m,
             monomer_collection_rate_s=float(collection_rate[0]) if math.isfinite(float(collection_rate[0])) else None,
             monomer_source=particle.source,temperature_k=temperature_k,pressure_pa=pressure_pa,mixing_depth_m=mixing_depth_m,
             charge_e=charge_e,sticking_efficiency=sticking_efficiency,fractal_dimension=fractal_dimension,
+            parameter_status='selected sensitivity assumptions, not measured Mars constants',
+            charge_model='same fixed charge on every aggregate; no inferred charge distribution',
             aggregate_mobility='effective radius ~ monomer count**(1/D), continuum/Epstein screening interpolation',
             aggregate_optics='not supplied; no aggregate warming prediction',
             collector=None if collector is None else collector.__dict__,

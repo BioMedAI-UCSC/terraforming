@@ -28,10 +28,20 @@ def test_prescribed_pulse_has_distinct_reservoir_and_refined_residence_integral(
         assert report['prescribed_removed_mass_kg_m2']>0
         assert abs(report['material_budget_error_kg_m2'])<1e-18
         residence=report['finite_horizon_residence_lower_bounds_s']['mass']
+        upper=report['finite_horizon_residence_upper_sums_s']['mass']
+        assert residence<=20*(1-math.exp(-5))<=upper
+        assert residence<=20.
         errors.append(abs(residence-20*(1-math.exp(-5))))
         assert report['radiatively_effective_residence_time_s'] is None
         assert report['roadmap_criterion_s']==365.25*86400/3
     assert errors[2]<errors[1]<errors[0]
+
+
+def test_large_step_rectangle_bound_does_not_become_a_false_long_lifetime():
+    report=lifetime_screen(aluminium_rod(),**arguments(dt_s=100.),removal_mode='prescribed',
+        prescribed_lifetime_s=20.,prescribed_source='analytic pulse test',sticking_efficiency=0.)
+    assert report['finite_horizon_residence_lower_bounds_s']['mass']<20.
+    assert report['finite_horizon_residence_upper_sums_s']['mass']>=20*(1-math.exp(-5))
 
 
 def test_joint_resolved_sinks_are_positive_conservative_and_refine():
