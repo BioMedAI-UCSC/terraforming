@@ -109,6 +109,8 @@ def compare_two_stream(*,max_flux_error_fraction,max_layer_heating_error_fractio
     up,down=solve_fluxes(r,t,jnp.full(count,case['blackbody_w_m2']),
         case['down_top_w_m2'],case['surface_emission_w_m2'],case.get('surface_reflectivity',0.))
     up=np.asarray(up);down=np.asarray(down)
+    if not np.all(np.isfinite(up)) or not np.all(np.isfinite(down)):
+        raise RuntimeError('two-stream solver produced nonfinite flux in the reference comparison')
     scale=max(case['blackbody_w_m2'],case['down_top_w_m2'],case['surface_emission_w_m2'],1e-12)
     flux_error=max(np.max(np.abs(up-reference['up_w_m2'])),np.max(np.abs(down-reference['down_w_m2'])))/scale
     heating_error=np.max(np.abs(np.diff(up-down)-reference['layer_convergence_w_m2']))/scale
@@ -209,6 +211,8 @@ def compare_two_stream_column(*,max_flux_error_fraction,max_layer_heating_error_
     up,down=solve_fluxes(r,t,jnp.asarray(case['blackbody_w_m2']),case['down_top_w_m2'],
         case['surface_emission_w_m2'],case.get('surface_reflectivity',0.))
     up=np.asarray(up);down=np.asarray(down)
+    if not np.all(np.isfinite(up)) or not np.all(np.isfinite(down)):
+        raise RuntimeError('two-stream solver produced nonfinite flux in the column comparison')
     scale=max(float(np.max(case['blackbody_w_m2'])),case['down_top_w_m2'],case['surface_emission_w_m2'],1e-12)
     flux=float(max(np.max(np.abs(up-reference['up_w_m2'])),np.max(np.abs(down-reference['down_w_m2'])))/scale)
     heating=float(np.max(np.abs(np.diff(up-down)-reference['layer_convergence_w_m2']))/scale)
