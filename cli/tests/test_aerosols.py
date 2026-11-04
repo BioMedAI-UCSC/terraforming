@@ -55,3 +55,19 @@ def test_server_uses_continuous_aerosol_runner(tmp_path,monkeypatch):
     finally:
         server._runs.pop(rid,None)
         server._runs.pop('resumed',None)
+
+
+def test_paired_cli_resume_preserves_all_cases_and_annual_integrals(tmp_path):
+    pytest.importorskip('dinosaur')
+    from cli.aerosols import run
+    config=AerosolConfig(paired=True,duration_s=5,dt_s=5,n_layers=4,
+        sources=[dict(start_s=1,stop_s=8,rate=10)])
+    first=run(config,PlanetConfig(),tmp_path/'first')
+    assert first['cases']['off']['injected_mass_kg']==0.
+    assert first['cases']['active']['injected_mass_kg']==40.
+    resumed=run(config.model_copy(update={'duration_s':10}),PlanetConfig(),tmp_path/'second',
+        resume=tmp_path/'first'/'restart.npz')
+    assert resumed['cases']['active']['injected_mass_kg']==70.
+    assert resumed['cases']['passive']['injected_mass_kg']==70.
+    assert resumed['warming']['completed_mars_years']==0
+    assert not any(resumed['warming']['sustained_thresholds_k'].values())

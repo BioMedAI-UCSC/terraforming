@@ -741,7 +741,7 @@ def _echo_run_summary(cfg: SimConfig, preset: str | None) -> None:
     engine_str=f"{e.accuracy.value}  dt={e.dt:.0f} s"
     if iv.aerosol is not None:
         a=iv.aerosol
-        type_str=f"aerosol {a.mode} / {a.duration_s:g} s"
+        type_str=f"aerosol {'paired' if a.paired else a.mode} / {a.duration_s:g} s"
         engine_str=f"GCM {a.truncation}/{a.n_layers} levels  dt={a.dt_s:g} s"
 
     click.echo(_divider())

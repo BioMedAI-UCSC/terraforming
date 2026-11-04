@@ -6,6 +6,7 @@ planet:
 intervention:
   aerosol:
     material: aluminium
+    paired: true
     mode: passive
     duration_s: 88775.244
     dt_s: 60

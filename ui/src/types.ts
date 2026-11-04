@@ -38,6 +38,12 @@ export interface DataPoint {
   collected_mass_kg?: number
   material_budget_error_kg?: number
   production_energy_j?: number | null
+  warming?: {
+    paired_time_mean_warming_k: number | null
+    completed_mars_years: number
+    complete_three_mars_years: boolean
+    sustained_thresholds_k: Record<string, boolean>
+  }
 }
 
 export interface RunConfig {
@@ -68,6 +74,7 @@ export interface RunConfig {
   dust_lw_scale?: number
   surface_exchange_multiplier?: number
   aerosol?: {
+    paired?: boolean
     material: 'aluminium' | 'iron'
     mode: 'off' | 'passive' | 'active'
     duration_s: number

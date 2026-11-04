@@ -125,7 +125,8 @@ def _v(t) -> float:
 
 def _default_label(req: RunRequest) -> str:
     if req.aerosol is not None:
-        return f'{req.aerosol.material} {req.aerosol.mode} {req.aerosol.duration_s:g}s'
+        mode='paired' if req.aerosol.paired else req.aerosol.mode
+        return f'{req.aerosol.material} {mode} {req.aerosol.duration_s:g}s'
     if req.exp_type == "intervention":
         compounds = "+".join(req.inject.keys()) or "baseline"
         return f"{req.years}yr {compounds}"
