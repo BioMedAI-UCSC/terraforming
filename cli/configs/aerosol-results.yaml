@@ -1,0 +1,21 @@
+# One-hour transient result demo; not an equilibrated Mars climate comparison.
+# tform mars --config cli/configs/aerosol-results.yaml aerosols --output outputs/aerosol-results
+planet:
+  surface_temperature: 210
+  surface_pressure: 610
+  initial_ls_deg: 0
+intervention:
+  aerosol:
+    material: aluminium
+    paired: true
+    mode: active
+    initial_burden_kg_m2: 0.000002  # 2 mg/m² comparison loading; uniform mixing ratio
+    duration_s: 3600
+    dt_s: 60
+    n_layers: 12
+    truncation: T21
+    sources:
+      - start_s: 0
+        stop_s: 1800
+        rate: 2
+        unit: L/s

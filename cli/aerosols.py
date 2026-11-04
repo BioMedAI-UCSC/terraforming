@@ -85,7 +85,12 @@ def run(config,planet,output_dir,*,callback=lambda report,fields:None,
                 weights)*context['body'].surface_area_m2/context['body'].gravity_m_s2)
             save(out/'restart.npz',state,identity)
             final_report=report
-            callback(report,fields(current))
+            headline=fields(current)
+            callback(report,headline)
+            if report['status'] in ('completed','stopped','invalid_regime','numerical_failure'):
+                from cli.aerosol_results import write_results
+                case_fields={mode:fields(getattr(state,mode)) for mode in ('off','passive','active')} if config.paired else {config.mode:headline}
+                final_report=write_results(out,report,case_fields,identity)
             if report['status'] in ('invalid_regime','numerical_failure'):
                 raise RuntimeError(f"aerosol run stopped: {report['status']}; last valid state saved")
     return final_report
