@@ -27,12 +27,14 @@ jobs:
           enable-cache: true
 
       - name: Install dependencies
-        run: uv sync --dev
+        # GCM regressions use importorskip; installing the extra is essential
+        # so the scientific/numerical tests actually execute on pull requests.
+        run: uv sync --dev --all-packages --extra gcm3d
 
       - name: Package tests (framework, engine, celestials, interventions)
         working-directory: package
-        run: uv run python -m pytest tests/ -v -m "not slow"
+        run: uv run --no-sync python -m pytest tests/ -v -m "not slow"
 
       - name: CLI tests
         working-directory: cli
-        run: uv run python -m pytest tests/ -v
+        run: uv run --no-sync python -m pytest tests/ -v

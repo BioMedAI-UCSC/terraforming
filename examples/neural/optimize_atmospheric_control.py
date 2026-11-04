@@ -22,6 +22,23 @@ from src.framework.physics.gcm import forced_primitive_equations, initial_column
 from common import provenance, write_report
 
 
+def control_metrics(initial_air, uncontrolled_final_air, controlled_final_air, target_air):
+    """Compare control and no-control forecasts at the same final time."""
+    def rmse(air):
+        return float(jnp.sqrt(jnp.mean((air - target_air)**2)))
+
+    baseline = rmse(uncontrolled_final_air)
+    final = rmse(controlled_final_air)
+    return {
+        "initial_rmse_k": baseline,  # Historical key now means pre-control forecast.
+        "uncontrolled_final_rmse_k": baseline,
+        "initial_state_rmse_k": rmse(initial_air),
+        "final_rmse_k": final,
+        "rmse_improvement_k": baseline - final,
+        "baseline_definition": "uncontrolled final state at the same forecast horizon",
+    }
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", default="outputs/neural_framework/atmospheric_control")
@@ -61,7 +78,8 @@ def main():
         30.0, specs)
     physical = jax.jit(lambda: rollout(physical_step, (), initial, args.steps).final_state)
     teacher = physical()
-    target_air = grid.to_nodal(teacher.dynamics.temperature_variation) + BODY.reference_temperature_k + args.target_shift_k
+    uncontrolled_final_air = grid.to_nodal(teacher.dynamics.temperature_variation) + BODY.reference_temperature_k
+    target_air = uncontrolled_final_air + args.target_shift_k
 
     def control_step(parameters):
         equation = forced_primitive_equations(
@@ -105,8 +123,7 @@ def main():
                           "feature_schema": state_feature_schema(args.layers),
                           "maximum_heating_k_s": policy.maximum_heating_k_s},
         "initial_objective": initial_loss, "final_objective": float(objective(params)),
-        "initial_rmse_k": float(jnp.sqrt(jnp.mean((initial_air - target_air)**2))),
-        "final_rmse_k": float(jnp.sqrt(jnp.mean((final_air - target_air)**2))),
+        **control_metrics(initial_air, uncontrolled_final_air, final_air, target_air),
         "max_abs_policy_heating_k_s": float(jnp.max(jnp.abs(heating))),
         "finite_rollout": bool(all(np.isfinite(x).all() for x in jax.tree.leaves(result.final_state))),
         "history": history,
@@ -115,6 +132,7 @@ def main():
     np.savez_compressed(Path(args.output) / "control_trajectory.npz",
                         steps=np.asarray(result.steps),
                         initial_air=np.asarray(initial_air), target_air=np.asarray(target_air),
+                        uncontrolled_final_air=np.asarray(uncontrolled_final_air),
                         final_air=np.asarray(final_air), heating=np.asarray(heating))
     print(f"Wrote {args.output}/report.md")
 
