@@ -22,7 +22,7 @@ def prepare(*,material='aluminium',mode='passive',dt_s=60.,n_layers=12,
             surface_temperature_k=210.,surface_pressure_pa=610.,albedo=.25,
             diurnal=True,initial_ls_deg=0.,co2_lw_scale=1.,dust_lw_scale=1.,
             surface_exchange_multiplier=1.,coagulation=False,charge_e=0.,
-            collection_rate_s=0.,collection_source=None,initial_climate=None):
+            collection_rate_s=0.,collection_source=None,initial_climate=None,hyperdiffusion_tau_seconds=None):
     """Return state, step and context. Flat terrain/ε=1 are recorded assumptions.
 
     Use a spun-up compatible climate checkpoint for research, rather than
@@ -35,7 +35,8 @@ def prepare(*,material='aluminium',mode='passive',dt_s=60.,n_layers=12,
         if not np.isfinite(x) or x<=0: raise ValueError('positive finite temperature/pressure required')
     particle=aluminium_rod() if material=='aluminium' else iron_rod()
     sources=tuple(x if isinstance(x,Injection) else Injection(**x) for x in sources)
-    options=ExperimentOptions(mode,dt_s,coagulation,charge_e,collection_rate_s,collection_source)
+    options=ExperimentOptions(mode,dt_s,coagulation,charge_e,collection_rate_s,collection_source,
+        hyperdiffusion_tau_seconds=hyperdiffusion_tau_seconds)
     coords=coordinate_system(truncation,n_layers);specs=physics_specs(BODY);grid=coords.horizontal
     zeros=jnp.zeros((n_layers,)+grid.modal_shape)
     pressure=float(specs.nondimensionalize(surface_pressure_pa*scales.units.pascal))
@@ -49,7 +50,7 @@ def prepare(*,material='aluminium',mode='passive',dt_s=60.,n_layers=12,
     climate=initial_column_state(dynamics,coords,surface_temperature_k,specs)
     start_contract=dict(kind='aerosol-physical-start-v1',body=dataclasses.asdict(BODY),
         truncation=truncation,n_layers=n_layers,sigma_boundaries=np.asarray(coords.vertical.boundaries).tolist(),
-        forcing=dataclasses.asdict(forcing),co2_forcing=dataclasses.asdict(mars_gcm.co2_forcing()),terrain='flat',
+        forcing=dataclasses.asdict(forcing),hyperdiffusion_tau_seconds=hyperdiffusion_tau_seconds,co2_forcing=dataclasses.asdict(mars_gcm.co2_forcing()),terrain='flat',
         units='Dinosaur physics_specs(body) nondimensional dynamics; nodal surface temperature in kelvin')
     start_hash=None
     if initial_climate is not None:

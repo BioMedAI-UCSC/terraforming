@@ -28,8 +28,12 @@ class ExperimentOptions:
     collection_rate_s: float = 0.
     collection_source: str | None = None
     max_relative_transport_correction: float = 1e-4
+    hyperdiffusion_tau_seconds: float | None = None
 
     def __post_init__(self):
+        if self.hyperdiffusion_tau_seconds is not None and (
+                not math.isfinite(self.hyperdiffusion_tau_seconds) or self.hyperdiffusion_tau_seconds <= 0):
+            raise ValueError("hyperdiffusion_tau_seconds must be finite and positive")
         if self.mode not in ('off','passive','active'):
             raise ValueError('mode must be off, passive or active')
         if not math.isfinite(self.dt_s) or not 0<self.dt_s<=300:
@@ -59,7 +63,8 @@ def coupled_step(coords,specs,body,forcing,co2_forcing,particle,sources,options,
     equation=forced_co2_primitive_equations(coords,body,forcing,co2_forcing,
         specs=specs,orography=orography,radiation_component=component,
         conserved_particle_tracers=(MASS,NUMBER))
-    raw_step=stepper(equation,options.dt_s,specs)
+    raw_step=stepper(equation,options.dt_s,specs,coords=coords,
+        hyperdiffusion_tau_seconds=options.hyperdiffusion_tau_seconds)
     # Reuse the base projection, while retaining the unprojected particle burden.
     projected=lambda raw,old: positivity_preserving_co2_step(lambda _:raw,coords,specs)(old)
     patterns=tuple(injection_pattern(s,coords) for s in sources)

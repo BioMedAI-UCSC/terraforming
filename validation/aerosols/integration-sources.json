@@ -1,0 +1,41 @@
+{
+  "branch": "integration/aerosol-gpu-experiments",
+  "sources": [
+    {
+      "pr": 55,
+      "reference": "origin/pr-55",
+      "commit": "eab43c12525f0d14848b2502a30d43f08e8b4e8b"
+    },
+    {
+      "pr": 111,
+      "reference": "origin/feat/aerosol-materials-transport",
+      "commit": "cd93f355442bbd529198c4c6abf4c215d4c592fc"
+    },
+    {
+      "pr": 112,
+      "reference": "origin/feat/aerosol-scattering-radiation",
+      "commit": "e918ddb2fede64bc37cc89a0b8695449b4fb2169"
+    },
+    {
+      "pr": 113,
+      "reference": "origin/feat/aerosol-coupled-experiments",
+      "commit": "6eddb7c479e62ef72bfba2fd74e13409a69291f8"
+    },
+    {
+      "pr": 114,
+      "reference": "origin/feat/aerosol-cli-ui-config",
+      "commit": "1f0b8eb861f99c7d0f586ca460cd1fcef6763881"
+    },
+    {
+      "pr": null,
+      "reference": "origin/main",
+      "commit": "2f4825ce0f3e1ac51238ca929ceb357c96a60c04"
+    },
+    {
+      "pr": null,
+      "reference": "origin/fix/gcm-sidereal-solar-clocks",
+      "commit": "e487c0243811250187843d62ab6a427dc1a20169"
+    }
+  ],
+  "note": "The clock-stack branch includes merged PRs 108\u2013110; main includes merged GCM fixes. Source PR branches were not modified."
+}

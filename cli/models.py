@@ -100,6 +100,7 @@ class AerosolConfig(BaseModel):
     n_layers: int = Field(default=12,ge=2,le=40)
     truncation: Literal['T21','T42','T85'] = 'T21'
     initial_burden_kg_m2: float = Field(default=0.,ge=0)
+    hyperdiffusion_tau_seconds: float | None = Field(default=None,gt=0)
     sources: list[AerosolSourceConfig] = Field(default_factory=list)
     coagulation: bool = False
     charge_e: float = 0.
