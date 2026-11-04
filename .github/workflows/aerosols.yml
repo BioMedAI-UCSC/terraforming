@@ -1,0 +1,27 @@
+name: Aerosol interventions
+
+on:
+  pull_request:
+    paths:
+      - 'package/src/interventions/**'
+      - 'package/tests/gcm3d/test_aerosol*'
+      - 'package/src/framework/physics/**'
+      - 'package/pyproject.toml'
+      - '.github/workflows/aerosols.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  aerosol-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --dev --all-packages --extra gcm3d
+      - name: Material, transport, radiation and experiment checks
+        env:
+          PYTHONPATH: package:.
+        run: uv run --no-sync python -m pytest -c package/pyproject.toml package/tests/gcm3d/test_aerosol* -m 'not slow' -q
