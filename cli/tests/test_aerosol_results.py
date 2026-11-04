@@ -33,3 +33,18 @@ def test_comparison_rejects_different_grids(tmp_path):
     with pytest.raises(ValueError,match='grids differ'):
         write_results(tmp_path,dict(status='completed',elapsed_seconds=1.),
             dict(off=changed,active=frame(211.,2e-6)),{})
+
+
+def test_server_download_keeps_matched_result_bundle(tmp_path,monkeypatch):
+    import asyncio
+    from cli import server
+    monkeypatch.setattr(server,"_OUTPUTS_DIR",tmp_path)
+    run_id="aerosol-download"
+    output=tmp_path/"aerosols"/run_id
+    report=dict(status="completed",elapsed_seconds=3600.,cases=dict(
+        off=dict(surface_temperature_k=210.),active=dict(surface_temperature_k=210.5)))
+    write_results(output,report,dict(off=frame(210.,0.),active=frame(210.5,2e-6)),{})
+    monkeypatch.setitem(server._runs,run_id,dict(aerosol_report=report,fields=frame(210.5,2e-6)))
+    response=asyncio.run(server.download_run_netcdf(run_id))
+    assert response.body==(output/"results.nc").read_bytes()
+    assert response.headers["content-disposition"]==f'attachment; filename="{run_id}.nc"'

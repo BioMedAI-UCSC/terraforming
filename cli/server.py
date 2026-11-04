@@ -1140,10 +1140,16 @@ async def get_run_snapshots(run_id: str) -> dict:
 async def download_run_netcdf(run_id: str) -> Response:
     if run_id not in _runs:
         raise HTTPException(404, "Run not found")
-    fields = _runs[run_id].get("fields")
-    if not fields:
-        raise HTTPException(409, "The DMGCM run has no completed fields")
-    payload = _fields_netcdf_bytes(fields)
+    run = _runs[run_id]
+    saved_results = _OUTPUTS_DIR / "aerosols" / run_id / "results.nc"
+    if run.get("aerosol_report") and saved_results.is_file():
+        # Keep matched control/passive fields and comparison maps in downloads.
+        payload = saved_results.read_bytes()
+    else:
+        fields = run.get("fields")
+        if not fields:
+            raise HTTPException(409, "The run has no completed fields")
+        payload = _fields_netcdf_bytes(fields)
     return Response(payload, media_type="application/x-netcdf",
                     headers={"Content-Disposition": f'attachment; filename="{run_id}.nc"'})
 
