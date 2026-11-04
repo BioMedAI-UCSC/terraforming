@@ -1040,6 +1040,9 @@ def pbl_vertical_diffusion_tendencies(
     v_ms = specs.dimensionalize(v, velocity_unit).magnitude
     ref = np.asarray(reference_temperature(coords, body)).reshape(coords.vertical.layers, 1, 1)
     actual_t = temperature + ref
+    # Surface-referenced Exner factor: (p / p_surface) ** (R / cp).
+    # Dividing actual T by this factor gives potential temperature theta;
+    # a dry-neutral column has constant theta, so mixing it adds no heat.
     exner = jnp.asarray(sigma, dtype=actual_t.dtype) ** body.kappa
     theta = actual_t / exner[:, None, None]
     _, cd, speed = _surface_exchange_properties(
