@@ -21,7 +21,7 @@ from __future__ import annotations
 import dataclasses
 import math
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Literal
 
 import numpy as np
 
@@ -31,7 +31,6 @@ from src.framework.gcm._dinosaur import (
     primitive_equations,
     scales,
     spherical_harmonic,
-    time_integration,
 )
 from src.framework.gcm.coordinates import coordinate_system
 from src.framework.gcm.dynamics import integrate as _integrate
@@ -54,6 +53,9 @@ MAP_SCALES: dict[str, dict] = {
     "high":     dict(truncation="T106", n_layers=30, dt_seconds=225.0, n_steps=1400),
     "ultra":    dict(truncation="T170", n_layers=40, dt_seconds=150.0, n_steps=2000),
 }
+# Resolve against the actual truncation at run time, including CLI overrides.
+for _preset in MAP_SCALES.values():
+    _preset["hyperdiffusion_tau_seconds"] = "auto"
 DEFAULT_SCALE = "fast"
 
 
@@ -202,10 +204,12 @@ class MarsMapFields:
     dt_seconds: float
     physics: str = "dry dynamics; no radiation/CO2/dust"
     co2_ice_pa: np.ndarray | None = None  # (n_lat, n_lon) surface CO2 frost, Pa-equiv
-    rotation_period_s: float = 88775.244  # for the duration diagnostic
+    rotation_period_s: float = 88775.244  # legacy field name: solar clock for duration
+    sidereal_rotation_period_s: float = 88642.663
     solar_longitude_deg: float | None = None
     insolation_sampling: str = "none"
     temperature_kind: str = "lowest_layer_air"
+    hyperdiffusion_tau_seconds: float | None = None
 
     @property
     def wind_speed_ms(self) -> np.ndarray:
@@ -258,7 +262,7 @@ def run_maps(
     diagnostic_callback: Callable[[int, int, object, object, object], None] | None = None,
     stop_requested: Callable[[], bool] | None = None,
     progress_chunk_steps: int = 32,
-    hyperdiffusion_tau_seconds: float | None = None,
+    hyperdiffusion_tau_seconds: float | Literal["auto"] | None = "auto",
     radiation_component=None,
     neural_tendency=None,
 ) -> MarsMapFields | tuple[MarsMapFields, object]:
@@ -277,11 +281,24 @@ def run_maps(
     ``radiation_component`` optionally replaces the radiative flux callable when
     forcing.co2_radiation_enabled is true. Use the lower-level parameterized
     rollout API for training; map conversion and reporting are host operations.
+
+    Hyperdiffusion defaults to a shortest-mode e-folding time of 0.1 rotations
+    at T42, scaled by 42/truncation for finer/coarser grids. This numerical
+    default is not a climate calibration. Pass a positive time in seconds to
+    override it or ``None`` to explicitly disable it for comparison runs.
     """
     if body is None:
         from src.celestials.planets.mars import MARS_BODY_3D
 
         body = MARS_BODY_3D
+    if hyperdiffusion_tau_seconds == "auto":
+        # Validate the grid before interpreting the truncation suffix.
+        from src.framework.gcm.coordinates import grid as build_grid
+
+        build_grid(truncation)
+        hyperdiffusion_tau_seconds = (
+            0.1 * body.solar_day_seconds * 42 / int(truncation[1:])
+        )
     if radiation_component is not None and forcing is None:
         raise ValueError("radiation_component requires radiative forcing")
     if n_steps < 1:
@@ -402,31 +419,15 @@ def run_maps(
                     f"forcing with diurnal=False (daily-mean insolation)."
                 )
 
-    step = stepper(equation, dt_seconds, specs)
+    step = stepper(
+        equation, dt_seconds, specs, coords=coords,
+        hyperdiffusion_tau_seconds=hyperdiffusion_tau_seconds,
+    )
     if hyperdiffusion_tau_seconds is not None:
-        # Spectral primitive-equation models need scale-selective dissipation to
-        # prevent enstrophy from accumulating at the truncation limit. Fourth-
-        # order horizontal diffusion strongly damps only the shortest resolved
-        # waves while leaving planetary scales nearly unchanged. Nodal surface,
-        # frost, and soil reservoirs have different shapes and are deliberately
-        # untouched by Dinosaur's shape-preserving tree filter.
-        dt_nd = float(specs.nondimensionalize(dt_seconds * _u.second))
-        tau_nd = float(
-            specs.nondimensionalize(hyperdiffusion_tau_seconds * _u.second)
+        physics_label += (
+            " + eighth-order wind/temperature hyperdiffusion "
+            f"(tau={hyperdiffusion_tau_seconds:g} s)"
         )
-        dynamics_diffusion = time_integration.horizontal_diffusion_step_filter(
-            grid, dt_nd, tau_nd, order=4
-        )
-
-        def diffusion(_state, next_state):
-            if hasattr(next_state, "dynamics"):
-                filtered = dynamics_diffusion(
-                    _state.dynamics, next_state.dynamics
-                )
-                return next_state._replace(dynamics=filtered)
-            return dynamics_diffusion(_state, next_state)
-
-        step = time_integration.step_with_filters(step, [diffusion])
     if co2_forcing is not None and co2_forcing.energy_limited:
         from src.framework.physics.gcm import positivity_preserving_co2_step
         step = positivity_preserving_co2_step(
@@ -519,7 +520,7 @@ def run_maps(
     else:
         elapsed_seconds = n_steps * dt_seconds
         total_steps = n_steps
-    duration_sols = elapsed_seconds / body.rotation_period_s
+    duration_sols = elapsed_seconds / body.solar_day_seconds
     if duration_sols < 668.0:
         physics_label += (
             f" | TRANSIENT: {duration_sols:.1f}-sol spin-up snapshot, "
@@ -551,8 +552,10 @@ def run_maps(
         n_steps=total_steps,
         dt_seconds=dt_seconds,
         physics=physics_label,
+        hyperdiffusion_tau_seconds=hyperdiffusion_tau_seconds,
         co2_ice_pa=co2_ice_map,
-        rotation_period_s=body.rotation_period_s,
+        rotation_period_s=body.solar_day_seconds,
+        sidereal_rotation_period_s=body.rotation_period_s,
         solar_longitude_deg=solar_longitude_deg,
         insolation_sampling=("diurnal" if forcing.diurnal else "daily_mean") if forcing else "none",
         temperature_kind="surface_skin" if forcing else "lowest_layer_air",
@@ -576,7 +579,7 @@ def state_to_comparison_dataset(state, coords, specs, body, forcing):
     )
     time_scale_s = 1.0 / float(specs.nondimensionalize(1.0 * _u.second))
     elapsed_seconds = float(dyn.sim_time) * time_scale_s
-    elapsed_sols = elapsed_seconds / body.rotation_period_s
+    elapsed_sols = elapsed_seconds / body.solar_day_seconds
     lon = np.mod(np.degrees(np.asarray(grid.longitudes)), 360.0)
     lat = np.degrees(np.asarray(grid.latitudes))
     sigma = np.asarray(coords.vertical.centers)
@@ -640,6 +643,8 @@ def state_to_comparison_dataset(state, coords, specs, body, forcing):
         },
         attrs={
             "title": "Differentiable Mars GCM comparison state",
+            "sidereal_rotation_period_s": body.rotation_period_s,
+            "solar_day_s": body.solar_day_seconds,
             "temporal_sampling": "instantaneous",
             "n_layers": len(sigma),
             "reference_role": "model output; not observational truth",
@@ -693,6 +698,15 @@ def save_netcdf(fields: MarsMapFields, path) -> Path:
             "n_layers": fields.n_layers,
             "n_steps": fields.n_steps,
             "dt_seconds": fields.dt_seconds,
+            "hyperdiffusion_tau_seconds": (
+                fields.hyperdiffusion_tau_seconds
+                if fields.hyperdiffusion_tau_seconds is not None else float("nan")
+            ),
+            "hyperdiffusion_laplacian_order": (
+                4 if fields.hyperdiffusion_tau_seconds is not None else 0
+            ),
+            "solar_day_s": fields.rotation_period_s,
+            "sidereal_rotation_period_s": fields.sidereal_rotation_period_s,
             "fidelity": fields.physics,
             "wind_level_sigma": fields.wind_level_sigma,
             "approximate_wind_height_m": fields.approximate_wind_height_m,

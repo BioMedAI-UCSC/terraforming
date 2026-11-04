@@ -10,6 +10,8 @@ on:
       - "package/src/framework/physics/**"
       - "package/src/celestials/planets/mars/**"
       - "package/tests/gcm3d/**"
+      - "apps/mars-calibration/**"
+      - "examples/neural/**"
       - "package/pyproject.toml"
       - "uv.lock"
       - ".github/workflows/gcm3d.yml"
@@ -41,3 +43,8 @@ jobs:
       - name: gcm3d tests
         working-directory: package
         run: uv run --no-sync python -m pytest tests/gcm3d/ -v -m "not slow"
+
+      - name: Calibration application regressions
+        env:
+          PYTHONPATH: package:.
+        run: uv run --no-sync python -m pytest -c package/pyproject.toml apps/mars-calibration/tests -v -m "not slow"

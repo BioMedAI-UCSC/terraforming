@@ -45,7 +45,7 @@ Length = radius, time = 1/(2Ω), mass = 1 kg, temperature = 1 K.
 
 - `primitive_equations(coords, body, specs=None, orography=None) -> PrimitiveEquationsSigma` — dry `ImplicitExplicitODE`; flat orography by default.
 - `reference_temperature(coords, body) -> np.ndarray[n_layers]` — constant linearisation profile (nondimensional).
-- `stepper(equation, dt_seconds, specs) -> step_fn` — semi-implicit IMEX-RK-SIL3; nondimensionalises `dt`.
+- `stepper(equation, dt_seconds, specs, *, coords=None, hyperdiffusion_tau_seconds=None) -> step_fn` — semi-implicit IMEX-RK-SIL3; nondimensionalises `dt`. Optional eighth-order wind/temperature damping requires `coords`; it leaves pressure, tracers and surface reservoirs untouched.
 - `integrate(step_fn, state, n_steps) -> state` — `jax.lax.scan` rollout; differentiable. **Raises** `ValueError` if `n_steps < 1`.
 
 ## Column physics — `framework/physics/gcm.py`
@@ -97,8 +97,32 @@ to False. These defaults are distinct.
 - `project_co2_reservoirs(state, coords, specs)` — repair frost while balancing
   the local pressure deficit.
 - `positivity_preserving_co2_step(step_fn, coords, specs, *, body=None,
-  co2_forcing=None, dt_seconds=None)` — also restore global CO₂ inventory;
-  `body` and `dt_seconds` are required for nonzero escape.
+  co2_forcing=None, dt_seconds=None, external_co2_mass_change_kg=None,
+  return_diagnostics=False)` — restore global CO₂ inventory including declared
+  external CO₂ changes, less configured escape. `body` and positive finite
+  `dt_seconds` are required for external sources/sinks or nonzero escape.
+
+`external_co2_mass_change_kg(state_before, dt_seconds)` is a pure JAX-compatible
+callback returning one global scalar **mass for the whole step**, in kg, with
+positive injection and negative removal. It excludes the already-configured
+escape. The underlying step must apply the physical source/sink and its
+thermal/momentum effects; declaring the budget does not inject it again. Derive
+schedules from the persisted simulation clock (Dinosaur `sim_time` is
+nondimensional), not Python counters, so restarts retain the same schedule.
+
+Setting `return_diagnostics=True` requires `body` and returns
+`(state, CO2ProjectionDiagnostics)` from each step. Diagnostics contain SI raw,
+target and corrected total masses, declared external/escape amounts, negative
+frost transfers, global atmospheric rescale, pressure factor and inventory
+validity. Accumulate these explicitly in a scan or experiment ledger; the default
+state-only return remains compatible with `integrate`. Impossible/non-finite
+targets return non-finite pressure and a false validity flag instead of silently
+creating a minimum positive atmosphere. Host runners must reject such states.
+
+This interface supports CO₂ bookkeeping, not arbitrary gas mixtures or particle
+loading. Numerical repair masses are not physical sources, and their diagnostics
+do not establish energy/momentum closure. Full experiment-ledger persistence and
+mixture thermodynamics remain separate work.
 
 ### Orbit / geometry helpers
 - `cos_zenith_nodal(t_s, lat_rad, lon_rad, f)` — cos(zenith) on the `(n_lon, n_lat)` grid; diurnal terminator or daily-mean.
@@ -113,7 +137,7 @@ to False. These defaults are distinct.
 ## 3-D maps — `maps.py`
 - `run_maps(body=None, truncation="T42", n_layers=25, dt_seconds=600.0,
   n_steps=200, ..., forcing=None, co2_forcing=None, initial_state=None,
-  return_final_state=False, hyperdiffusion_tau_seconds=None,
+  return_final_state=False, hyperdiffusion_tau_seconds="auto",
   radiation_component=None, neural_tendency=None)` returns `MarsMapFields` or
   `(fields, final_state)`. These options are not keyword-only in the current API.
 - `MarsMapFields` — lat/lon fields (`surface_pressure_pa`, `temperature_k`, `u_ms`, `v_ms`, `co2_ice_pa`, `elevation_m`) + provenance; properties `wind_speed_ms`, `duration_sols`, `is_transient`, `approximate_wind_height_m`.
@@ -127,6 +151,9 @@ to False. These defaults are distinct.
 
 Map metadata includes `temperature_kind`, `insolation_sampling` and solar
 longitude; full-state comparison exports also retain forcing controls.
+Map output also records the resolved `hyperdiffusion_tau_seconds` and Laplacian
+order. Automatic damping uses 0.1 rotations at T42, scaled by 42/truncation;
+pass a positive time in seconds to override it or `None` to disable it.
 Forced temperature maps are surface temperature;
 dry maps are lowest-layer air temperature. Lowest-layer winds are not fixed-height
 10 m diagnostics. `is_transient` is a duration heuristic, not equilibrium acceptance.
