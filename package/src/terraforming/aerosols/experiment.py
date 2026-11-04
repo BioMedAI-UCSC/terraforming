@@ -105,6 +105,11 @@ def coupled_step(coords,specs,body,forcing,co2_forcing,particle,sources,options,
     return jax.jit(step)
 
 
+@jax.jit
+def _finite_climate(climate):
+    return jnp.all(jnp.stack([jnp.all(jnp.isfinite(x)) for x in jax.tree_util.tree_leaves(climate)]))
+
+
 def diagnostics(state,coords,specs,body,particle):
     mass,number=inventory(state,coords,specs,body)
     w=quadrature_weights(coords)*body.surface_area_m2
@@ -127,5 +132,6 @@ def diagnostics(state,coords,specs,body,particle):
         surface_temperature_k=float(jnp.sum(surface*w)/body.surface_area_m2),
         production_energy_j=None if particle.production_energy_j_kg is None else
             float(state.ledger.injected_mass_kg)*particle.production_energy_j_kg,
-        status='invalid_regime' if bool(state.ledger.invalid) else 'running',
+        status=('numerical_failure' if not bool(_finite_climate(state.climate)) else
+            'invalid_regime' if bool(state.ledger.invalid) else 'running'),
         baseline_readiness='unverified: requires matched climatology and resolution checks')
