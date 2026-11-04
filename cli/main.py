@@ -524,7 +524,7 @@ def mars_aerosol_screen(study,output):
     from pathlib import Path
     import jax
     jax.config.update('jax_enable_x64',True)
-    from src.terraforming.aerosols.study import screening_cases
+    from src.interventions.aerosols.study import screening_cases
     counts={}
     try:
         definition=json.loads(Path(study).read_text())
@@ -550,7 +550,7 @@ def mars_aerosol_radiation_check(case,output):
     from pathlib import Path
     import jax
     jax.config.update('jax_enable_x64',True)
-    from src.terraforming.aerosols.angular_reference import compare_two_stream,compare_two_stream_column
+    from src.interventions.aerosols.angular_reference import compare_two_stream,compare_two_stream_column
     try:
         definition=json.loads(Path(case).read_text())
         if not isinstance(definition,dict) or set(definition)-{'kind','case','limits','label'}:

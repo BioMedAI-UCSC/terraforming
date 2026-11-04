@@ -84,7 +84,7 @@ class AerosolSourceConfig(BaseModel):
 
     @model_validator(mode='after')
     def source_contract(self):
-        from src.terraforming.aerosols import Injection
+        from src.interventions.aerosols import Injection
         Injection(**self.model_dump())
         return self
 

@@ -8,9 +8,9 @@ import argparse
 import json
 import math
 import jax
-from src.terraforming.aerosols.pilot import prepare
-from src.terraforming.aerosols.reporting import stream_run
-from src.terraforming.aerosols.checkpoint import save
+from src.interventions.aerosols.pilot import prepare
+from src.interventions.aerosols.reporting import stream_run
+from src.interventions.aerosols.checkpoint import save
 
 
 def main():

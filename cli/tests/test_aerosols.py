@@ -61,8 +61,8 @@ def test_paired_cli_resume_preserves_all_cases_and_annual_integrals(tmp_path):
     pytest.importorskip('dinosaur')
     from cli.aerosols import run
     import dataclasses
-    from src.terraforming.aerosols.pilot import prepare
-    from src.terraforming.aerosols.starting import save_physical_start
+    from src.interventions.aerosols.pilot import prepare
+    from src.interventions.aerosols.starting import save_physical_start
     seed,_,context=prepare(dt_s=5,n_layers=4)
     climate=seed.climate._replace(surface_temperature=seed.climate.surface_temperature+3.,
         dynamics=dataclasses.replace(seed.climate.dynamics,tracers={}))
@@ -87,7 +87,7 @@ def test_screening_command_preserves_unsupported_case_records(tmp_path,monkeypat
     pytest.importorskip('dinosaur')
     from click.testing import CliRunner
     from cli.main import cli
-    from src.terraforming.aerosols import study
+    from src.interventions.aerosols import study
     def cases(definition):
         assert definition=={'base':{},'sweep':{}}
         yield dict(case=0,result=dict(status='completed',radiatively_effective_residence_time_s=None))
@@ -106,7 +106,7 @@ def test_radiation_command_keeps_failed_gate_and_exits_nonzero(tmp_path,monkeypa
     pytest.importorskip('dinosaur')
     from click.testing import CliRunner
     from cli.main import cli
-    from src.terraforming.aerosols import angular_reference
+    from src.interventions.aerosols import angular_reference
     def compare(**inputs):
         assert inputs['max_flux_error_fraction']==.01
         return dict(passes_frozen_gate=False,maximum_flux_error_fraction=.08,

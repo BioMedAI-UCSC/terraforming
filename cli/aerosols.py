@@ -12,10 +12,10 @@ def run(config,planet,output_dir,*,callback=lambda report,fields:None,
         raise ValueError('aerosol pilot currently requires the fixed Mars CO2 gas composition')
     import jax
     jax.config.update('jax_enable_x64',True)
-    from src.terraforming.aerosols.pilot import prepare
-    from src.terraforming.aerosols.checkpoint import save,load,read_configuration
-    from src.terraforming.aerosols.reporting import stream_run
-    from src.terraforming.aerosols.state import burdens,gas_mass
+    from src.interventions.aerosols.pilot import prepare
+    from src.interventions.aerosols.checkpoint import save,load,read_configuration
+    from src.interventions.aerosols.reporting import stream_run
+    from src.interventions.aerosols.state import burdens,gas_mass
     from src.framework.gcm._dinosaur import scales
     options=config.model_dump(exclude={'duration_s','paired'})
     # Resume restores all prognostic fields from the experiment archive, so it
@@ -24,7 +24,7 @@ def run(config,planet,output_dir,*,callback=lambda report,fields:None,
     if resume is not None: options['initial_climate']=None
     builder=prepare
     if config.paired:
-        from src.terraforming.aerosols.paired import prepare_pair
+        from src.interventions.aerosols.paired import prepare_pair
         builder=prepare_pair
         options.pop('mode')
     state,step,context=builder(**options,surface_temperature_k=planet.surface_temperature,
@@ -70,13 +70,13 @@ def run(config,planet,output_dir,*,callback=lambda report,fields:None,
     with (out/'history.ndjson').open('a' if resume else 'w') as stream:
         runner=stream_run;extra={}
         if config.paired:
-            from src.terraforming.aerosols.paired import stream_pair
+            from src.interventions.aerosols.paired import stream_pair
             runner=stream_pair
             extra['orbital_period_s']=identity['cases']['active']['forcing']['orbital_period_s']
         for state,report in runner(state,step,n_steps,**context,report_every=report_every,
                 output=stream,should_stop=should_stop,**extra):
             current=state.active if config.paired else state
-            from src.terraforming.aerosols.state import quadrature_weights
+            from src.interventions.aerosols.state import quadrature_weights
             weights=np.asarray(quadrature_weights(context['coords']))
             gas=gas_mass(current.climate,context['coords'],context['specs'],context['body'])
             report['pressure_pa']=float(np.sum(np.sum(gas,axis=0)*context['body'].gravity_m_s2*weights))
