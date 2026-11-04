@@ -7,12 +7,12 @@ import pytest
 pytest.importorskip('dinosaur')
 import jax
 import jax.numpy as jnp
-from src.terraforming.aerosols import Injection,aluminium_rod,iron_rod
-from src.terraforming.aerosols.data import rod_table
-from src.terraforming.aerosols.transport import (
+from src.interventions.aerosols import Injection,aluminium_rod,iron_rod
+from src.interventions.aerosols.data import rod_table
+from src.interventions.aerosols.transport import (
     implicit_settle,remove_fraction,remap_carrier,positive_column_burden,
     injection_pattern,integrated_source,terminal_velocity)
-from src.terraforming.aerosols.microphysics import (
+from src.interventions.aerosols.microphysics import (
     constant_kernel_coagulation,charge_factor,settling_collision_kernel,re_loft)
 from src.framework.gcm.coordinates import coordinate_system
 

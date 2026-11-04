@@ -10,8 +10,8 @@ from src.framework.gcm.specs import physics_specs
 from src.framework.gcm._dinosaur import primitive_equations,scales
 from src.framework.physics.gcm import initial_column_state
 from src.celestials.planets.mars import MARS_BODY_3D as BODY
-from src.terraforming.aerosols import aluminium_rod
-from src.terraforming.aerosols.state import initialize,inventory,correct_transport,MASS,NUMBER
+from src.interventions.aerosols import aluminium_rod
+from src.interventions.aerosols.state import initialize,inventory,correct_transport,MASS,NUMBER
 
 jax.config.update('jax_enable_x64',True)
 
