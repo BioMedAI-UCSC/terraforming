@@ -93,6 +93,7 @@ class AerosolConfig(BaseModel):
     model_config = ConfigDict(extra='forbid',allow_inf_nan=False)
     material: Literal['aluminium','iron'] = 'aluminium'
     paired: bool = False
+    initial_climate: str | None = None
     mode: Literal['off','passive','active'] = 'passive'
     duration_s: float = Field(default=88775.244,gt=0)
     dt_s: float = Field(default=60.,gt=0,le=300)

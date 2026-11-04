@@ -13,11 +13,15 @@ def run(config,planet,output_dir,*,callback=lambda report,fields:None,
     import jax
     jax.config.update('jax_enable_x64',True)
     from src.terraforming.aerosols.pilot import prepare
-    from src.terraforming.aerosols.checkpoint import save,load
+    from src.terraforming.aerosols.checkpoint import save,load,read_configuration
     from src.terraforming.aerosols.reporting import stream_run
     from src.terraforming.aerosols.state import burdens,gas_mass
     from src.framework.gcm._dinosaur import scales
     options=config.model_dump(exclude={'duration_s','paired'})
+    # Resume restores all prognostic fields from the experiment archive, so it
+    # must not depend on reopening the original physical-start file.
+    archived=read_configuration(resume) if resume is not None else None
+    if resume is not None: options['initial_climate']=None
     builder=prepare
     if config.paired:
         from src.terraforming.aerosols.paired import prepare_pair
@@ -28,6 +32,17 @@ def run(config,planet,output_dir,*,callback=lambda report,fields:None,
         initial_ls_deg=initial_ls_deg,co2_lw_scale=co2_lw_scale,dust_lw_scale=dust_lw_scale,
         surface_exchange_multiplier=surface_exchange_multiplier)
     identity=context.pop('configuration')
+    if archived is not None:
+        seeds=('initial_climate_sha256','initial_absolute_sim_time_nd',
+               'initial_surface_temperature_k','initial_surface_pressure_pa')
+        current_cases=identity.get('cases',{'single':identity})
+        archived_cases=archived.get('cases',{'single':archived})
+        for name,current_case in current_cases.items():
+            original=archived_cases.get(name,{})
+            if original.get('initial_climate_sha256') is not None:
+                # Only initial-state provenance is restored. Body/grid/forcing,
+                # particle assets and schedules still match the caller's config.
+                for key in seeds: current_case[key]=original[key]
     if resume is not None: state=load(resume,state,identity)
     current=state.active if config.paired else state
     remaining=config.duration_s-float(current.elapsed_seconds)
