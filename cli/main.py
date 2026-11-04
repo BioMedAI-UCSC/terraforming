@@ -515,6 +515,31 @@ def mars_group(ctx: click.Context, preset: str | None, config: str | None) -> No
 
 # ── mars run ───────────────────────────────────────────────────────────────────
 
+@mars_group.command('aerosol-screen')
+@click.option('--study',type=click.Path(exists=True,dir_okay=False),required=True)
+@click.option('--output',type=click.Path(dir_okay=False),required=True)
+def mars_aerosol_screen(study,output):
+    """Run explicit charge/sticking/size/dust lifetime sensitivities from JSON."""
+    import json
+    from pathlib import Path
+    import jax
+    jax.config.update('jax_enable_x64',True)
+    from src.terraforming.aerosols.study import screening_cases
+    counts={}
+    try:
+        definition=json.loads(Path(study).read_text())
+        target=Path(output);target.parent.mkdir(parents=True,exist_ok=True)
+        with target.open('w') as stream:
+            for case in screening_cases(definition):
+                stream.write(json.dumps(case,allow_nan=False)+'\n');stream.flush()
+                status=case['result']['status'];counts[status]=counts.get(status,0)+1
+                click.echo(f"Case {case['case']}: {status}")
+    except (ValueError,TypeError,OSError) as exc:
+        raise click.ClickException(str(exc)) from exc
+    click.echo(json.dumps(dict(cases_by_status=counts,output=str(target),
+        interpretation='isolated sensitivity study; radiatively effective lifetime remains unknown')))
+    if not counts.get('completed'): raise click.ClickException('No cases completed within the supported model; see the saved case records')
+
 @mars_group.command('aerosols')
 @click.option('--output',type=click.Path(file_okay=False),required=True)
 @click.option('--resume',type=click.Path(exists=True,dir_okay=False),default=None)
