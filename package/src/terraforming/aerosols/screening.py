@@ -111,10 +111,12 @@ def lifetime_screen(particle,*,horizon_s,dt_s,column_mass_kg_m2,mixing_depth_m,
         settling_efficiency=settling_efficiency)
     kernel=brownian+settling;mass=jnp.asarray(pivots);coagulate=coagulator(pivots)
     initial_number=initial_mass/particle.mass_kg
+    if not math.isfinite(initial_number) or initial_number<=0:
+        raise ValueError('pulse number density is outside numeric range')
     initial=jnp.zeros(max_monomers).at[0].set(initial_number)
     drag=particle_drag(particle,temperature_k,pressure_pa,(mass/particle.mass_kg)**(3/fractal_dimension))
     deposit_rate=mass*gravity_m_s2/drag/mixing_depth_m
-    collection_rate=jnp.zeros(max_monomers) if collector is None else _collector_rate(
+    collection_rate=jnp.zeros(max_monomers) if collector is None or collector.number_m3==0 else _collector_rate(
         particle,mass,temperature_k,pressure_pa,gravity_m_s2,charge_e,fractal_dimension,collector)
     if removal_mode=='prescribed': deposit_rate=jnp.full(max_monomers,1/prescribed_lifetime_s)
     count=math.ceil(horizon_s/dt_s)
@@ -124,6 +126,8 @@ def lifetime_screen(particle,*,horizon_s,dt_s,column_mass_kg_m2,mixing_depth_m,
         deposited_mass_kg_m3=zero,collected_mass_kg_m3=zero,prescribed_removed_mass_kg_m3=zero,
         integrated_fractions_s=jnp.zeros(3),elapsed_s=zero,last_valid_s=zero,
         numerical=jnp.asarray(False),invalid=jnp.asarray(False))
+    state=state._replace(numerical=~(jnp.all(jnp.isfinite(kernel))&jnp.all(jnp.isfinite(deposit_rate))&
+        jnp.all(jnp.isfinite(collection_rate))))
 
     def fractions(s):
         return jnp.array([(jnp.dot(s.number_m3,mass)+s.unresolved_mass_kg_m3)/initial_mass,
@@ -180,7 +184,8 @@ def lifetime_screen(particle,*,horizon_s,dt_s,column_mass_kg_m2,mixing_depth_m,
         right_censored=bool(float(fractions(final)[0])>1e-6),
         assumptions=dict(model='isolated fixed-gas well-mixed column; prescribed pulse, no climate feedback',
             dt_s=dt_s,horizon_s=horizon_s,max_monomers=max_monomers,
-            monomer_deposition_or_prescribed_rate_s=float(deposit_rate[0]),monomer_collection_rate_s=float(collection_rate[0]),
+            monomer_deposition_or_prescribed_rate_s=float(deposit_rate[0]) if math.isfinite(float(deposit_rate[0])) else None,
+            monomer_collection_rate_s=float(collection_rate[0]) if math.isfinite(float(collection_rate[0])) else None,
             monomer_source=particle.source,temperature_k=temperature_k,pressure_pa=pressure_pa,mixing_depth_m=mixing_depth_m,
             charge_e=charge_e,sticking_efficiency=sticking_efficiency,fractal_dimension=fractal_dimension,
             aggregate_mobility='effective radius ~ monomer count**(1/D), continuum/Epstein screening interpolation',
