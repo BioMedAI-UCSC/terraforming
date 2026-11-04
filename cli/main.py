@@ -738,13 +738,18 @@ def _echo_run_summary(cfg: SimConfig, preset: str | None) -> None:
     is_iv = (x.type.value == "intervention")
     type_str = (f"intervention / {iv.n_years} yr" if is_iv
                 else f"{x.type.value} / {x.sols:.0f} sols")
+    engine_str=f"{e.accuracy.value}  dt={e.dt:.0f} s"
+    if iv.aerosol is not None:
+        a=iv.aerosol
+        type_str=f"aerosol {a.mode} / {a.duration_s:g} s"
+        engine_str=f"GCM {a.truncation}/{a.n_layers} levels  dt={a.dt_s:g} s"
 
     click.echo(_divider())
     for key, val in [
         ("preset",     preset_l),
         ("type",       type_str),
         ("location",   loc),
-        ("engine",     f"{e.accuracy.value}  dt={e.dt:.0f} s"),
+        ("engine",     engine_str),
         ("T₀",         f"{p.surface_temperature:.1f} K"),
         ("P₀",         f"{p.surface_pressure:.1f} Pa"),
         ("albedo",     f"{p.albedo:.3f}"),
