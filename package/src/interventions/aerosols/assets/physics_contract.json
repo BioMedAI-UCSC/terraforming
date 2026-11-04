@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "status": "fixed-particle prototype; closure assumptions are not Mars chamber measurements",
+  "validity": {"temperature_k": [100, 350], "gas_pressure_pa": [1, 2000], "particle_mass_fraction_maximum": 0.001},
+  "co2_viscosity": {
+    "formula": "mu0*(T/T0)^1.5*(T0+S)/(T+S)",
+    "mu0_pa_s": 0.00001370,
+    "T0_k": 273,
+    "S_k": 222,
+    "source": "COMSOL CFD Module User's Guide, High Mach Number Flow, Sutherland's Law, carbon dioxide material row",
+    "classification": "engineering gas-property approximation; validate sensitivity over the declared Mars domain"
+  },
+  "continuum_rod_drag": {
+    "source": "Tirado, Martinez and Garcia de la Torre (1984), DOI 10.1063/1.447827",
+    "classification": "random-orientation continuum cylinder mobility applied to the source's square-section rod",
+    "asphericity": "no fixed coarse-dust 0.8 factor"
+  },
+  "free_molecular_drag": {
+    "source": "Epstein (1924), DOI 10.1103/PhysRev.23.710; random convex-body projected area",
+    "accommodation_range": [1.0, 1.3926990816987241],
+    "classification": "projected-area rod extension and harmonic transition interpolation are explicit sensitivity closures"
+  },
+  "aggregation": {
+    "source": "Roadmap arXiv:2604.02242 Appendix A; Seinfeld and Pandis (2016)",
+    "kernel_units": "m3/s",
+    "convention": "binary collision kernel K; identical-particle number loss dN/dt=-K*N^2/2",
+    "aggregate_shape": "compact volume-radius scaling is a screening assumption",
+    "radiative_gate": "monomer spectra are not aggregate spectra; active aggregation requires supplied validated aggregate optics"
+  },
+  "years": "SI seconds internally. The roadmap's unqualified lifetime year is not silently assigned an Earth/Mars duration.",
+  "missing_data": ["validated aggregate optical tables", "Mars particle sticking and charge distributions", "graphene spectra", "photophoretic force laws and surface re-loft thresholds", "cloud activation/contact-angle measurements"],
+  "upstream_reference": {"repository": "climate-analytics-lab/jax-gcm", "commit": "6e74e382b12e36f77f017d49fe619cb55239ade4", "license": "Apache-2.0", "use": "architectural reference; kernels here are independently implemented for Mars and do not copy upstream Earth defaults"}
+}
