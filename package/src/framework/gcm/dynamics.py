@@ -82,6 +82,12 @@ def horizontal_hyperdiffusion_filter(coords, dt_seconds: float, specs,
 
     The shortest mode decays by ``exp(-dt_seconds / tau_seconds)`` per step.
     ``order`` is the power of the Laplacian: 4 means eighth-order diffusion.
+    Vorticity damping weakens small-scale rotational wind features; divergence
+    damping weakens small-scale convergence/divergence. Temperature-variation
+    damping smooths small-scale horizontal temperature anomalies in each layer.
+    Higher spherical-harmonic degrees decay faster; the degree-zero mean is
+    unchanged. This numerical smoothing can remove kinetic energy and is not
+    an energy-conserving physical turbulence closure.
     Pressure, tracers, time, and nodal surface reservoirs are not filtered:
     filtering log pressure or a mixing ratio does not conserve material mass.
     Tracers require their own conservative, positivity-preserving transport.
@@ -104,9 +110,9 @@ def horizontal_hyperdiffusion_filter(coords, dt_seconds: float, specs,
         filtered = filter_dynamics(previous_dynamics, dynamics)
         dynamics = dataclasses.replace(
             dynamics,
-            vorticity=filtered.vorticity,
-            divergence=filtered.divergence,
-            temperature_variation=filtered.temperature_variation,
+            vorticity=filtered.vorticity,  # Smooth rotational wind at small scales.
+            divergence=filtered.divergence,  # Smooth convergent/divergent wind.
+            temperature_variation=filtered.temperature_variation,  # Smooth thermal anomalies.
         )
         return next_state._replace(dynamics=dynamics) if column else dynamics
 
