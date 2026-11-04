@@ -67,6 +67,12 @@ class ConservationDrift:
 
 
 def dry_conserved_quantities(state, coords, specs, body, reference_temperature_k):
+    """Host diagnostics preserving the public scalar-float record contract."""
+    values=dry_conserved_arrays(state,coords,specs,body,reference_temperature_k)
+    return ConservedQuantities(*(float(x) for x in values))
+
+
+def dry_conserved_arrays(state, coords, specs, body, reference_temperature_k):
     """Pressure-mass-weighted dry mass, total energy, and axial angular momentum.
 
     Hydrostatic geopotential is reconstructed from
@@ -111,10 +117,10 @@ def dry_conserved_quantities(state, coords, specs, body, reference_temperature_k
     axial = body.radius_m * cos_lat * (
         u + body.angular_velocity_s * body.radius_m * cos_lat
     )
-    return ConservedQuantities(
-        mass_kg_m2_sr=float(jnp.sum(layer_mass * weights)),
-        total_energy_j_m2_sr=float(jnp.sum(layer_mass * specific_energy * weights)),
-        axial_angular_momentum_kg_m_s_sr=float(jnp.sum(layer_mass * axial * weights)),
+    return (
+        jnp.sum(layer_mass * weights),
+        jnp.sum(layer_mass * specific_energy * weights),
+        jnp.sum(layer_mass * axial * weights),
     )
 
 

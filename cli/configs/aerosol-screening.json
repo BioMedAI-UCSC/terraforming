@@ -1,0 +1,28 @@
+{
+  "material": "aluminium",
+  "base": {
+    "horizon_s": 2592000,
+    "dt_s": 21600,
+    "column_mass_kg_m2": 0.000002,
+    "mixing_depth_m": 8000,
+    "temperature_k": 210,
+    "pressure_pa": 610,
+    "gravity_m_s2": 3.72,
+    "year_convention": "mars_orbital",
+    "max_monomers": 32,
+    "collector": {
+      "radius_m": 0.000001,
+      "density_kg_m3": 2500,
+      "number_m3": 0,
+      "provenance": "Explicit size/number sensitivity assumption, not an observed Mars dust distribution",
+      "efficiency": 1
+    }
+  },
+  "sweep": {
+    "charge_e": [0, 1],
+    "sticking_efficiency": [0.1, 1],
+    "fractal_dimension": [2, 3],
+    "collector_number_m3": [0, 1000000],
+    "dt_s": [21600, 10800]
+  }
+}

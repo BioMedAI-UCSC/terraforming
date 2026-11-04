@@ -1,0 +1,79 @@
+name: Aerosol interventions
+
+on:
+  pull_request:
+    paths:
+      - 'package/src/interventions/**'
+      - 'scripts/plot_aerosol_results.py'
+      - 'package/tests/gcm3d/test_aerosol*'
+      - 'package/src/framework/physics/**'
+      - 'package/pyproject.toml'
+      - '.github/workflows/aerosols.yml'
+      - 'cli/**'
+      - 'ui/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  aerosol-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --dev --all-packages --extra gcm3d
+      - name: Material, transport, radiation and experiment checks
+        env:
+          PYTHONPATH: package:.
+        run: uv run --no-sync python -m pytest -c package/pyproject.toml package/tests/gcm3d/test_aerosol* -m 'not slow' -q
+      - name: CLI and server aerosol checks
+        env:
+          PYTHONPATH: package:.
+          MPLBACKEND: Agg
+        run: uv run --no-sync python -m pytest cli/tests/test_aerosols.py cli/tests/test_aerosol_results.py -q
+  results-pilot:
+    needs: aerosol-tests
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'aerosols')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --dev --all-packages --extra gcm3d
+      - name: Produce the one-hour matched result bundle
+        env:
+          PYTHONPATH: package:.
+          JAX_ENABLE_X64: '1'
+          MPLBACKEND: Agg
+        run: |
+          mkdir -p outputs/aerosol-results
+          uv run --no-sync tform mars --config cli/configs/aerosol-results.yaml aerosols --output outputs/aerosol-results > outputs/aerosol-results/run.log
+          uv run --no-sync python scripts/plot_aerosol_results.py outputs/aerosol-results
+      - name: Save results, configuration, restart and plots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aerosol-results
+          path: outputs/aerosol-results/
+          retention-days: 14
+  ui-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+      - run: npm ci
+        working-directory: ui
+      - run: npm run build
+        working-directory: ui
+      - name: Save the built server UI
+        uses: actions/upload-artifact@v4
+        with:
+          name: aerosol-ui
+          path: cli/static/
+          retention-days: 7

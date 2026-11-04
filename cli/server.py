@@ -22,6 +22,7 @@ from __future__ import annotations
 import asyncio
 import csv as _csv
 import json
+import re
 import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
@@ -33,7 +34,8 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
+from cli.models import AerosolConfig
 
 app = FastAPI(title="tform visualizer", docs_url="/api/docs")
 
@@ -89,6 +91,23 @@ class RunRequest(BaseModel):
     co2_lw_scale: float = Field(default=0.25, ge=0.05, le=2.0)
     dust_lw_scale: float = Field(default=0.25, ge=0.05, le=2.0)
     surface_exchange_multiplier: float = Field(default=1.0, ge=0.25, le=4.0)
+    aerosol: AerosolConfig | None = None
+    aerosol_resume_run_id: str | None = None
+
+    @model_validator(mode='after')
+    def aerosol_request(self):
+        if self.aerosol is not None:
+            if self.accuracy!='gcm' or self.exp_type!='intervention':
+                raise ValueError('aerosols require a GCM intervention run')
+            if self.inject:
+                raise ValueError('combined gas/aerosol sources are not supported')
+            if self.compare_mcd:
+                raise ValueError('aerosol screening runs do not support MCD comparisons')
+        if self.aerosol_resume_run_id is not None:
+            if self.aerosol is None: raise ValueError('resume requires aerosol configuration')
+            if not re.fullmatch(r'[0-9a-f]{8}',self.aerosol_resume_run_id):
+                raise ValueError('resume run ID must be the eight-character server run ID')
+        return self
 
 
 class MCDBenchmarkRequest(BaseModel):
@@ -105,6 +124,9 @@ def _v(t) -> float:
 
 
 def _default_label(req: RunRequest) -> str:
+    if req.aerosol is not None:
+        mode='paired' if req.aerosol.paired else req.aerosol.mode
+        return f'{req.aerosol.material} {mode} {req.aerosol.duration_s:g}s'
     if req.exp_type == "intervention":
         compounds = "+".join(req.inject.keys()) or "baseline"
         return f"{req.years}yr {compounds}"
@@ -796,6 +818,12 @@ def _run_simulation(run_id: str, req: RunRequest) -> None:
         cfg = config_loader.merge_overrides(cfg, flags)
         p = cfg.planet
 
+        if req.aerosol is not None:
+            _run_aerosols(run_id,run,req,cfg)
+            run['completed_at']=datetime.now(timezone.utc).isoformat()
+            _save_run_csv(run_id,run)
+            return
+
         # The 'gcm' accuracy runs the 3-D gcm3d maps backend (dinosaur dycore +
         # radiation + CO2). A one-off gcm map (no timeseries) short-circuits here;
         # a gcm *intervention* runs the 100-yr trajectory and captures 3-D snapshots
@@ -841,6 +869,31 @@ def _run_simulation(run_id: str, req: RunRequest) -> None:
         import traceback
         run["status"] = "error"
         run["error"] = f"{type(exc).__name__}: {exc}\n{traceback.format_exc()}"
+
+
+def _run_aerosols(run_id,run,req,cfg):
+    from cli.aerosols import run as run_aerosols
+    from src.celestials import MARS_ORBITAL_PERIOD
+    output=_OUTPUTS_DIR/'aerosols'/run_id
+    resume=None
+    if req.aerosol_resume_run_id:
+        resume=_OUTPUTS_DIR/'aerosols'/req.aerosol_resume_run_id/'restart.npz'
+        if not resume.is_file(): raise ValueError('aerosol checkpoint does not exist')
+    def progress(report,fields):
+        elapsed=report['elapsed_seconds']
+        run['data'].append(dict(year=elapsed/MARS_ORBITAL_PERIOD,
+            temperature_k=report['surface_temperature_k'],**report))
+        run['fields']=fields
+        run['aerosol_report']=report
+        run['progress']=min(elapsed/req.aerosol.duration_s,1.)
+        run['elapsed_seconds']=elapsed
+    report=run_aerosols(req.aerosol,cfg.planet,output,callback=progress,
+        should_stop=lambda:bool(run.get('cancel_requested')),resume=resume,
+        diurnal=req.diurnal,initial_ls_deg=req.ls or 0.,co2_lw_scale=req.co2_lw_scale,
+        dust_lw_scale=req.dust_lw_scale,surface_exchange_multiplier=req.surface_exchange_multiplier)
+    run['status']='stopped' if report['status']=='stopped' else 'done'
+    run['aerosol_report']=report
+    run['warning']='Screening experiment with flat terrain and surface emissivity 1; baseline climatology is unverified.'
 
 
 def _run_intervention(run, req, mars, cfg, accuracy, capture_gcm: bool = False) -> None:
@@ -1087,10 +1140,16 @@ async def get_run_snapshots(run_id: str) -> dict:
 async def download_run_netcdf(run_id: str) -> Response:
     if run_id not in _runs:
         raise HTTPException(404, "Run not found")
-    fields = _runs[run_id].get("fields")
-    if not fields:
-        raise HTTPException(409, "The DMGCM run has no completed fields")
-    payload = _fields_netcdf_bytes(fields)
+    run = _runs[run_id]
+    saved_results = _OUTPUTS_DIR / "aerosols" / run_id / "results.nc"
+    if run.get("aerosol_report") and saved_results.is_file():
+        # Keep matched control/passive fields and comparison maps in downloads.
+        payload = saved_results.read_bytes()
+    else:
+        fields = run.get("fields")
+        if not fields:
+            raise HTTPException(409, "The run has no completed fields")
+        payload = _fields_netcdf_bytes(fields)
     return Response(payload, media_type="application/x-netcdf",
                     headers={"Content-Disposition": f'attachment; filename="{run_id}.nc"'})
 

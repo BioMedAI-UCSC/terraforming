@@ -515,6 +515,80 @@ def mars_group(ctx: click.Context, preset: str | None, config: str | None) -> No
 
 # ── mars run ───────────────────────────────────────────────────────────────────
 
+@mars_group.command('aerosol-screen')
+@click.option('--study',type=click.Path(exists=True,dir_okay=False),required=True)
+@click.option('--output',type=click.Path(dir_okay=False),required=True)
+def mars_aerosol_screen(study,output):
+    """Run explicit charge/sticking/size/dust lifetime sensitivities from JSON."""
+    import json
+    from pathlib import Path
+    import jax
+    jax.config.update('jax_enable_x64',True)
+    from src.interventions.aerosols.study import screening_cases
+    counts={}
+    try:
+        definition=json.loads(Path(study).read_text())
+        target=Path(output);target.parent.mkdir(parents=True,exist_ok=True)
+        with target.open('w') as stream:
+            for case in screening_cases(definition):
+                stream.write(json.dumps(case,allow_nan=False)+'\n');stream.flush()
+                status=case['result']['status'];counts[status]=counts.get(status,0)+1
+                click.echo(f"Case {case['case']}: {status}")
+    except (ValueError,TypeError,OSError) as exc:
+        raise click.ClickException(str(exc)) from exc
+    click.echo(json.dumps(dict(cases_by_status=counts,output=str(target),
+        interpretation='isolated sensitivity study; radiatively effective lifetime remains unknown')))
+    if not counts.get('completed'): raise click.ClickException('No cases completed within the supported model; see the saved case records')
+
+
+@mars_group.command('aerosol-radiation-check')
+@click.option('--case',type=click.Path(exists=True,dir_okay=False),required=True)
+@click.option('--output',type=click.Path(dir_okay=False),required=True)
+def mars_aerosol_radiation_check(case,output):
+    """Compare thermal two-stream fluxes with an independent angular reference."""
+    import json
+    from pathlib import Path
+    import jax
+    jax.config.update('jax_enable_x64',True)
+    from src.interventions.aerosols.angular_reference import compare_two_stream,compare_two_stream_column
+    try:
+        definition=json.loads(Path(case).read_text())
+        if not isinstance(definition,dict) or set(definition)-{'kind','case','limits','label'}:
+            raise ValueError('radiation definition accepts kind, case, limits and label')
+        kind=definition.get('kind')
+        if kind not in ('slab','column'): raise ValueError('choose slab or column reference')
+        if not isinstance(definition.get('case'),dict) or not isinstance(definition.get('limits'),dict):
+            raise ValueError('case and explicit frozen limits are required')
+        checker=compare_two_stream if kind=='slab' else compare_two_stream_column
+        result=checker(**definition['case'],**definition['limits'])
+        report=dict(definition=definition,comparison=result,
+            status='within_frozen_limits' if result['passes_frozen_gate'] else 'outside_frozen_limits')
+        target=Path(output);target.parent.mkdir(parents=True,exist_ok=True)
+        target.write_text(json.dumps(report,indent=2,allow_nan=False)+'\n')
+    except (ValueError,TypeError,RuntimeError,OSError) as exc:
+        raise click.ClickException(str(exc)) from exc
+    click.echo(f"{report['status']}: {target}")
+    if not result['passes_frozen_gate']:
+        raise click.ClickException('Radiation exceeds the supplied accuracy limits; comparison profiles were saved')
+
+@mars_group.command('aerosols')
+@click.option('--output',type=click.Path(file_okay=False),required=True)
+@click.option('--resume',type=click.Path(exists=True,dir_okay=False),default=None)
+@click.pass_context
+def mars_aerosols(ctx,output,resume):
+    """Run an aerosol GCM experiment from --config, with SI release schedules."""
+    import json
+    from cli.aerosols import run
+    cfg=ctx.obj['cfg']
+    if cfg.intervention.aerosol is None:
+        raise click.ClickException('config must contain intervention.aerosol')
+    try:
+        run(cfg.intervention.aerosol,cfg.planet,output,resume=resume,
+            initial_ls_deg=cfg.planet.initial_ls_deg,
+            callback=lambda report,fields:click.echo(json.dumps(report,allow_nan=False)))
+    except (ValueError,RuntimeError) as exc:
+        raise click.ClickException(str(exc)) from exc
+
 @mars_group.command("run")
 @click.option("--preset", "-p", "run_preset",
               type=click.Choice(_presets.MARS_PRESET_NAMES), default=None,
@@ -680,6 +754,14 @@ def mars_run(
 
     # Run
     exp = cfg.experiment.type
+    if cfg.intervention.aerosol is not None:
+        import json
+        from cli.aerosols import run as run_aerosols
+        run_aerosols(cfg.intervention.aerosol,cfg.planet,
+            cfg.output.output_path or 'outputs/aerosol-pilot',
+            initial_ls_deg=cfg.planet.initial_ls_deg,
+            callback=lambda report,fields:click.echo(json.dumps(report,allow_nan=False)))
+        return
     if exp == ExpType.sol:
         results = runner.run_sol(cfg)
     elif exp == ExpType.year:
@@ -712,13 +794,18 @@ def _echo_run_summary(cfg: SimConfig, preset: str | None) -> None:
     is_iv = (x.type.value == "intervention")
     type_str = (f"intervention / {iv.n_years} yr" if is_iv
                 else f"{x.type.value} / {x.sols:.0f} sols")
+    engine_str=f"{e.accuracy.value}  dt={e.dt:.0f} s"
+    if iv.aerosol is not None:
+        a=iv.aerosol
+        type_str=f"aerosol {'paired' if a.paired else a.mode} / {a.duration_s:g} s"
+        engine_str=f"GCM {a.truncation}/{a.n_layers} levels  dt={a.dt_s:g} s"
 
     click.echo(_divider())
     for key, val in [
         ("preset",     preset_l),
         ("type",       type_str),
         ("location",   loc),
-        ("engine",     f"{e.accuracy.value}  dt={e.dt:.0f} s"),
+        ("engine",     engine_str),
         ("T₀",         f"{p.surface_temperature:.1f} K"),
         ("P₀",         f"{p.surface_pressure:.1f} Pa"),
         ("albedo",     f"{p.albedo:.3f}"),

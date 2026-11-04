@@ -1,0 +1,18 @@
+{
+  "kind": "column",
+  "label": "Illustrative thermal HG control with strict demonstration limits; not nanorod phase or climate validation",
+  "case": {
+    "optical_depths": [0.1, 0.4, 0.5],
+    "single_scattering_albedos": [0.5, 0.95, 0.8],
+    "asymmetries": [0, 0.2, -0.1],
+    "blackbody_w_m2": [30, 70, 140],
+    "down_top_w_m2": 0,
+    "surface_emission_w_m2": 200,
+    "surface_reflectivity": 0,
+    "angles": 16
+  },
+  "limits": {
+    "max_flux_error_fraction": 0.01,
+    "max_layer_heating_error_fraction": 0.01
+  }
+}
