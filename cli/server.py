@@ -666,7 +666,6 @@ def _gcm_snapshot(scale: str, albedo: float, greenhouse: float, ls_deg: float,
         surface_properties_path=(
             _TES_SURFACE_PATH if _TES_SURFACE_PATH.exists() else None
         ),
-        hyperdiffusion_tau_seconds=0.1 * forcing.rotation_period_s,
         progress_callback=progress_callback, diagnostic_callback=diagnostic_callback,
         stop_requested=stop_requested,
         progress_chunk_steps=(max(1, cfg["n_steps"] // 48) if diurnal else 32),
@@ -733,7 +732,7 @@ def _run_gcm_maps(run, req: RunRequest, cfg) -> None:
     if req.diurnal:
         from src.celestials.planets.mars import MARS_BODY_3D
         run["fields"]["diurnal"] = _assemble_fixed_local_time_maps(
-            raw_diurnal, run["fields"], MARS_BODY_3D.rotation_period_s
+            raw_diurnal, run["fields"], MARS_BODY_3D.solar_day_seconds
         )
         if req.compare_mcd:
             _attach_mcd_benchmark(

@@ -34,7 +34,7 @@ from src.celestials.planets.mars import MARS_BODY_3D
 from src.celestials.planets.mars.gcm import co2_forcing, radiative_forcing
 from src.celestials.planets.mars.maps import forcing_with_surface_properties
 from src.celestials.planets.mars.topography import mola_modal_orography, regrid_to_nodal
-from src.framework.gcm._dinosaur import jax, jnp, scales, spherical_harmonic, time_integration
+from src.framework.gcm._dinosaur import jax, jnp, scales, spherical_harmonic
 from src.framework.gcm.coordinates import coordinate_system
 from src.framework.gcm.dynamics import integrate, reference_temperature, stepper
 from src.framework.gcm.restart import load_restart
@@ -161,21 +161,13 @@ def _build_step(coords, specs, forcing, dt_seconds: float, *,
         orography=orography,
         neural_tendency=neural_tendency,
     )
-    advance = stepper(equation, dt_seconds, specs)
-    dt_nd = float(specs.nondimensionalize(dt_seconds * scales.units.second))
-    tau_nd = float(specs.nondimensionalize(
-        diffusion_sols * MARS_BODY_3D.rotation_period_s * scales.units.second
-    ))
-    dynamics_filter = time_integration.horizontal_diffusion_step_filter(
-        coords.horizontal, dt_nd, tau_nd, order=4
+    # Reuse the inventory-preserving core filter. Applying Dinosaur's filter
+    # to the entire dynamics pytree also filters log(p_s) and tracer mixing
+    # ratios, changing their integrated inventories before the CO2 projection.
+    advance = stepper(
+        equation, dt_seconds, specs, coords=coords,
+        hyperdiffusion_tau_seconds=diffusion_sols * MARS_BODY_3D.solar_day_seconds,
     )
-
-    def diffusion(previous, following):
-        return following._replace(
-            dynamics=dynamics_filter(previous.dynamics, following.dynamics)
-        )
-
-    advance = time_integration.step_with_filters(advance, [diffusion])
     advance = positivity_preserving_co2_step(
         advance,
         coords,
@@ -285,7 +277,7 @@ def main() -> int:
     specs = physics_specs(MARS_BODY_3D)
     initial = load_restart(args.restart)
     target = _target(args.target, args.target_index)
-    steps = round(args.rollout_sols * MARS_BODY_3D.rotation_period_s / args.dt)
+    steps = round(args.rollout_sols * MARS_BODY_3D.solar_day_seconds / args.dt)
     if steps < 1:
         parser.error("rollout must contain at least one physical step")
     for leaf in jax.tree_util.tree_leaves(initial):
@@ -438,7 +430,7 @@ def main() -> int:
                                  ("terraforming", "dinosaur", "jaxlib", "numpy", "scipy")}},
         "surface_properties": {"path": str(args.surface_properties), "sha256": _sha256(args.surface_properties)},
         "dust_reference": {"path": str(args.ames_dust_reference), "sha256": _sha256(args.ames_dust_reference)},
-        "actual_rollout_sols": steps * args.dt / MARS_BODY_3D.rotation_period_s,
+        "actual_rollout_sols": steps * args.dt / MARS_BODY_3D.solar_day_seconds,
         "status": "pass" if (
             all(item["pass"] for item in gradient_checks) and calibration_passed and budget_passed
         ) else "fail",
