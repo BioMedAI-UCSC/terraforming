@@ -92,6 +92,7 @@ class AerosolSourceConfig(BaseModel):
 class AerosolConfig(BaseModel):
     model_config = ConfigDict(extra='forbid',allow_inf_nan=False)
     material: Literal['aluminium','iron'] = 'aluminium'
+    paired: bool = False
     mode: Literal['off','passive','active'] = 'passive'
     duration_s: float = Field(default=88775.244,gt=0)
     dt_s: float = Field(default=60.,gt=0,le=300)
@@ -106,7 +107,7 @@ class AerosolConfig(BaseModel):
 
     @model_validator(mode='after')
     def supported_physics(self):
-        if self.mode=='active' and self.coagulation:
+        if (self.mode=='active' or self.paired) and self.coagulation:
             raise ValueError('active aggregation requires unavailable aggregate optical tables')
         if self.collection_rate_s and not self.collection_source:
             raise ValueError('collection requires a source or named sensitivity assumption')

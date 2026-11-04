@@ -19,6 +19,7 @@ export function RunForm({ onSubmit, benchmarkMode }: Props) {
   const [surfaceExchange, setSurfaceExchange] = useState(1)
   const [running, setRunning] = useState(false)
   const [aerosols, setAerosols] = useState(false)
+  const [paired, setPaired] = useState(false)
   const [aerosolMode, setAerosolMode] = useState<'off'|'passive'|'active'>('passive')
   const [material, setMaterial] = useState<'aluminium'|'iron'>('aluminium')
   const [releaseRate, setReleaseRate] = useState(2)
@@ -31,7 +32,7 @@ export function RunForm({ onSubmit, benchmarkMode }: Props) {
     try {
       await onSubmit({
         exp_type: aerosols ? 'intervention' : 'sol', accuracy: 'gcm', preset: 'current-mars', sols, scale,
-        label: label.trim() || (aerosols ? `${material} ${aerosolMode} ${sols} sol` : `DMGCM ${sols} sol ${scale}`),
+        label: label.trim() || (aerosols ? `${material} ${paired ? 'paired' : aerosolMode} ${sols} sol` : `DMGCM ${sols} sol ${scale}`),
         ls: Number(ls) || 0, diurnal,
         compare_mcd: benchmarkMode && !aerosols,
         mcd_local_time: mcdLocalTime.trim() ? Number(mcdLocalTime) : null,
@@ -39,7 +40,7 @@ export function RunForm({ onSubmit, benchmarkMode }: Props) {
         co2_lw_scale: co2LwScale, dust_lw_scale: dustLwScale,
         surface_exchange_multiplier: surfaceExchange,
         aerosol: aerosols ? {
-          material, mode: aerosolMode, duration_s: sols*88775.244, dt_s:60,
+          material, paired, mode: aerosolMode, duration_s: sols*88775.244, dt_s:60,
           n_layers:12, truncation:'T21',
           sources:[{start_s:0,stop_s:releaseStop*88775.244,rate:releaseRate,unit:'L/s'}],
         } : null,
@@ -64,10 +65,12 @@ export function RunForm({ onSubmit, benchmarkMode }: Props) {
         <option value="aluminium">Aluminium rods · 9 µm</option><option value="iron">Iron rods · 9 µm</option>
       </select>
       <label style={s.label}>Particle effect</label>
-      <select style={s.input} value={aerosolMode} onChange={e=>setAerosolMode(e.target.value as typeof aerosolMode)}>
+      <label style={s.check}><input type="checkbox" checked={paired} onChange={e=>setPaired(e.target.checked)} /> Run matched control, transport and radiation cases</label>
+      <select style={s.input} disabled={paired} value={aerosolMode} onChange={e=>setAerosolMode(e.target.value as typeof aerosolMode)}>
         <option value="off">Control · no release</option><option value="passive">Transport only</option>
         <option value="active">Transport and radiation</option>
       </select>
+      {paired && <div style={s.hint}>Runs all three cases from the same climate. Takes about three times as much work. Resume saves all cases and annual comparisons together.</div>}
       <label style={s.label}>Release rate (solid litres/second)</label>
       <input style={s.input} type="number" min="0" step="any" value={releaseRate} onChange={e=>setReleaseRate(Number(e.target.value))}/>
       <label style={s.label}>Stop release after (sols)</label>

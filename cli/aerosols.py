@@ -17,14 +17,20 @@ def run(config,planet,output_dir,*,callback=lambda report,fields:None,
     from src.terraforming.aerosols.reporting import stream_run
     from src.terraforming.aerosols.state import burdens,gas_mass
     from src.framework.gcm._dinosaur import scales
-    options=config.model_dump(exclude={'duration_s'})
-    state,step,context=prepare(**options,surface_temperature_k=planet.surface_temperature,
+    options=config.model_dump(exclude={'duration_s','paired'})
+    builder=prepare
+    if config.paired:
+        from src.terraforming.aerosols.paired import prepare_pair
+        builder=prepare_pair
+        options.pop('mode')
+    state,step,context=builder(**options,surface_temperature_k=planet.surface_temperature,
         surface_pressure_pa=planet.surface_pressure,albedo=planet.albedo,diurnal=diurnal,
         initial_ls_deg=initial_ls_deg,co2_lw_scale=co2_lw_scale,dust_lw_scale=dust_lw_scale,
         surface_exchange_multiplier=surface_exchange_multiplier)
     identity=context.pop('configuration')
     if resume is not None: state=load(resume,state,identity)
-    remaining=config.duration_s-float(state.elapsed_seconds)
+    current=state.active if config.paired else state
+    remaining=config.duration_s-float(current.elapsed_seconds)
     if remaining<=0: raise ValueError('requested end time must follow checkpoint time')
     # Full fixed steps only; duration denotes a requested minimum end time.
     n_steps=math.ceil(remaining/config.dt_s)
@@ -47,18 +53,24 @@ def run(config,planet,output_dir,*,callback=lambda report,fields:None,
     report_every=max(1,math.ceil(n_steps/500))
     final_report=None
     with (out/'history.ndjson').open('a' if resume else 'w') as stream:
-        for state,report in stream_run(state,step,n_steps,**context,report_every=report_every,
-                output=stream,should_stop=should_stop):
+        runner=stream_run;extra={}
+        if config.paired:
+            from src.terraforming.aerosols.paired import stream_pair
+            runner=stream_pair
+            extra['orbital_period_s']=identity['cases']['active']['forcing']['orbital_period_s']
+        for state,report in runner(state,step,n_steps,**context,report_every=report_every,
+                output=stream,should_stop=should_stop,**extra):
+            current=state.active if config.paired else state
             from src.terraforming.aerosols.state import quadrature_weights
             weights=np.asarray(quadrature_weights(context['coords']))
-            gas=gas_mass(state.climate,context['coords'],context['specs'],context['body'])
+            gas=gas_mass(current.climate,context['coords'],context['specs'],context['body'])
             report['pressure_pa']=float(np.sum(np.sum(gas,axis=0)*context['body'].gravity_m_s2*weights))
             pressure_scale=float(context['specs'].dimensionalize(1.,scales.units.pascal).magnitude)
-            report['ice_mass_kg']=float(np.sum(np.asarray(state.climate.co2_ice)[0]*pressure_scale*
+            report['ice_mass_kg']=float(np.sum(np.asarray(current.climate.co2_ice)[0]*pressure_scale*
                 weights)*context['body'].surface_area_m2/context['body'].gravity_m_s2)
             save(out/'restart.npz',state,identity)
             final_report=report
-            callback(report,fields(state))
+            callback(report,fields(current))
             if report['status'] in ('invalid_regime','numerical_failure'):
                 raise RuntimeError(f"aerosol run stopped: {report['status']}; last valid state saved")
     return final_report

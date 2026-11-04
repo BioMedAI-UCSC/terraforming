@@ -201,6 +201,11 @@ export function App() {
                 Suspended: {selected.aerosol_report?.suspended_mass_kg?.toPrecision(5) ?? '…'} kg ·
                 Deposited: {selected.aerosol_report?.deposited_mass_kg?.toPrecision(5) ?? '…'} kg</div>
               <div>Production energy: {selected.aerosol_report?.production_energy_j == null ? 'unknown' : `${selected.aerosol_report.production_energy_j.toPrecision(5)} J`}</div>
+              {selected.aerosol_report?.warming && <div>
+                Difference from control: {selected.aerosol_report.warming.paired_time_mean_warming_k?.toPrecision(5) ?? '…'} K time mean ·
+                Complete Mars years: {selected.aerosol_report.warming.completed_mars_years} ·
+                {selected.aerosol_report.warming.complete_three_mars_years ? 'Three-year numerical comparison available' : 'Three-year confirmation incomplete'}
+              </div>}
             </div>}
             {(selected.status === 'done' || (selected.status === 'stopped' && selected.config.aerosol)) ? <FieldMap runId={selected.id} benchmarkMode={view === 'benchmarks'} exportLabel={selected.label} /> :
               <PendingOutputs status={selected.status} />}
