@@ -38,7 +38,7 @@ def test_prescribed_pulse_has_distinct_reservoir_and_refined_residence_integral(
 
 
 def test_large_step_rectangle_bound_does_not_become_a_false_long_lifetime():
-    report=lifetime_screen(aluminium_rod(),**arguments(dt_s=100.),removal_mode='prescribed',
+    report=lifetime_screen(aluminium_rod(),**arguments(horizon_s=100,dt_s=100),removal_mode='prescribed',
         prescribed_lifetime_s=20.,prescribed_source='analytic pulse test',sticking_efficiency=0.)
     assert report['finite_horizon_residence_lower_bounds_s']['mass']<20.
     assert report['finite_horizon_residence_upper_sums_s']['mass']>=20*(1-math.exp(-5))

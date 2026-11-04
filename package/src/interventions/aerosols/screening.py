@@ -84,6 +84,7 @@ def lifetime_screen(particle,*,horizon_s,dt_s,column_mass_kg_m2,mixing_depth_m,
     """
     values=(horizon_s,dt_s,column_mass_kg_m2,mixing_depth_m,temperature_k,pressure_pa,gravity_m_s2)
     if not all(math.isfinite(x) and x>0 for x in values): raise ValueError('positive finite physical inputs required')
+    horizon_s=float(horizon_s);dt_s=float(dt_s)
     if year_convention=='earth_julian': year_s=365.25*86400.
     elif year_convention=='mars_orbital':
         from src.celestials.planets.mars.planet import MARS_ORBITAL_PERIOD
