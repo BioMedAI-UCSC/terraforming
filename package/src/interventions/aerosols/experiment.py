@@ -135,6 +135,8 @@ def diagnostics(state,coords,specs,body,particle):
         collected_number=float(jnp.sum(state.ledger.collected_number_m2*w)),
         injected_mass_kg=float(state.ledger.injected_mass_kg),
         injected_solid_volume_m3=float(state.ledger.injected_mass_kg)/particle.density_kg_m3,
+        mean_delivered_rate_since_start_kg_s=None if float(state.elapsed_seconds)==0 else
+            float(state.ledger.injected_mass_kg/state.elapsed_seconds),
         mean_aggregate_multiplicity=None if float(number)==0 else float(mass/number)/particle.mass_kg,
         aggregate_drag_assumption='compact volume scaling; screening closure, not measured aggregate mobility',
         source_energy_momentum_assumption='release equilibrates with local air; industrial/release plume energy and momentum are not resolved',
