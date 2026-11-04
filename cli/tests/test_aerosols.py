@@ -81,3 +81,22 @@ def test_paired_cli_resume_preserves_all_cases_and_annual_integrals(tmp_path):
     assert resumed['cases']['passive']['injected_mass_kg']==70.
     assert resumed['warming']['completed_mars_years']==0
     assert not any(resumed['warming']['sustained_thresholds_k'].values())
+
+
+def test_screening_command_preserves_unsupported_case_records(tmp_path,monkeypatch):
+    pytest.importorskip('dinosaur')
+    from click.testing import CliRunner
+    from cli.main import cli
+    from src.terraforming.aerosols import study
+    def cases(definition):
+        assert definition=={'base':{},'sweep':{}}
+        yield dict(case=0,result=dict(status='completed',radiatively_effective_residence_time_s=None))
+        yield dict(case=1,result=dict(status='unsupported_configuration',error='missing force law'))
+    monkeypatch.setattr(study,'screening_cases',cases)
+    source=tmp_path/'study.json';source.write_text(json.dumps(dict(base={},sweep={})))
+    target=tmp_path/'cases.ndjson'
+    result=CliRunner().invoke(cli,['mars','aerosol-screen','--study',str(source),'--output',str(target)])
+    assert result.exit_code==0,result.output
+    saved=[json.loads(line) for line in target.read_text().splitlines()]
+    assert [x['result']['status'] for x in saved]==['completed','unsupported_configuration']
+    assert 'radiatively effective lifetime remains unknown' in result.output
