@@ -540,6 +540,37 @@ def mars_aerosol_screen(study,output):
         interpretation='isolated sensitivity study; radiatively effective lifetime remains unknown')))
     if not counts.get('completed'): raise click.ClickException('No cases completed within the supported model; see the saved case records')
 
+
+@mars_group.command('aerosol-radiation-check')
+@click.option('--case',type=click.Path(exists=True,dir_okay=False),required=True)
+@click.option('--output',type=click.Path(dir_okay=False),required=True)
+def mars_aerosol_radiation_check(case,output):
+    """Compare thermal two-stream fluxes with an independent angular reference."""
+    import json
+    from pathlib import Path
+    import jax
+    jax.config.update('jax_enable_x64',True)
+    from src.terraforming.aerosols.angular_reference import compare_two_stream,compare_two_stream_column
+    try:
+        definition=json.loads(Path(case).read_text())
+        if not isinstance(definition,dict) or set(definition)-{'kind','case','limits','label'}:
+            raise ValueError('radiation definition accepts kind, case, limits and label')
+        kind=definition.get('kind')
+        if kind not in ('slab','column'): raise ValueError('choose slab or column reference')
+        if not isinstance(definition.get('case'),dict) or not isinstance(definition.get('limits'),dict):
+            raise ValueError('case and explicit frozen limits are required')
+        checker=compare_two_stream if kind=='slab' else compare_two_stream_column
+        result=checker(**definition['case'],**definition['limits'])
+        report=dict(definition=definition,comparison=result,
+            status='within_frozen_limits' if result['passes_frozen_gate'] else 'outside_frozen_limits')
+        target=Path(output);target.parent.mkdir(parents=True,exist_ok=True)
+        target.write_text(json.dumps(report,indent=2,allow_nan=False)+'\n')
+    except (ValueError,TypeError,RuntimeError,OSError) as exc:
+        raise click.ClickException(str(exc)) from exc
+    click.echo(f"{report['status']}: {target}")
+    if not result['passes_frozen_gate']:
+        raise click.ClickException('Radiation exceeds the supplied accuracy limits; comparison profiles were saved')
+
 @mars_group.command('aerosols')
 @click.option('--output',type=click.Path(file_okay=False),required=True)
 @click.option('--resume',type=click.Path(exists=True,dir_okay=False),default=None)
