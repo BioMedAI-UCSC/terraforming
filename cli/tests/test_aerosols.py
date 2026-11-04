@@ -100,3 +100,24 @@ def test_screening_command_preserves_unsupported_case_records(tmp_path,monkeypat
     saved=[json.loads(line) for line in target.read_text().splitlines()]
     assert [x['result']['status'] for x in saved]==['completed','unsupported_configuration']
     assert 'radiatively effective lifetime remains unknown' in result.output
+
+
+def test_radiation_command_keeps_failed_gate_and_exits_nonzero(tmp_path,monkeypatch):
+    pytest.importorskip('dinosaur')
+    from click.testing import CliRunner
+    from cli.main import cli
+    from src.terraforming.aerosols import angular_reference
+    def compare(**inputs):
+        assert inputs['max_flux_error_fraction']==.01
+        return dict(passes_frozen_gate=False,maximum_flux_error_fraction=.08,
+            scope='illustrative HG control')
+    monkeypatch.setattr(angular_reference,'compare_two_stream_column',compare)
+    source=tmp_path/'case.json'
+    source.write_text(json.dumps(dict(kind='column',case={},limits=dict(max_flux_error_fraction=.01))))
+    output=tmp_path/'comparison.json'
+    result=CliRunner().invoke(cli,['mars','aerosol-radiation-check','--case',str(source),'--output',str(output)])
+    assert result.exit_code!=0
+    saved=json.loads(output.read_text())
+    assert saved['status']=='outside_frozen_limits'
+    assert not saved['comparison']['passes_frozen_gate']
+    assert 'exceeds the supplied accuracy limits' in result.output
