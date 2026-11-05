@@ -1,0 +1,49 @@
+{
+  "status": "complete",
+  "measurements": [
+    {
+      "workload": "forward_trajectory",
+      "compile_seconds": 13.805019150022417,
+      "warmup_seconds": 2.1661170311272144,
+      "execution_seconds": [
+        2.3068010210990906,
+        2.1226860247552395,
+        2.124753118958324
+      ],
+      "median_seconds": 2.124753118958324,
+      "simulated_sols_per_wall_hour": 423.6967426195022,
+      "compiled_temporary_bytes": 191789808,
+      "peak_device_memory_bytes": null
+    },
+    {
+      "workload": "loss_and_three_forward_tangents",
+      "compile_seconds": 44.38707067584619,
+      "warmup_seconds": 8.839993816800416,
+      "execution_seconds": [
+        8.686795566696674,
+        8.718648320995271,
+        8.752003776840866
+      ],
+      "median_seconds": 8.718648320995271,
+      "simulated_sols_per_wall_hour": 103.25579633776329,
+      "compiled_temporary_bytes": 712074432,
+      "peak_device_memory_bytes": null
+    }
+  ],
+  "external": [
+    {
+      "simulator": "NASA Ames",
+      "status": "not_measured"
+    },
+    {
+      "simulator": "LMD/MCD parent simulator",
+      "status": "not_measured"
+    }
+  ],
+  "limitations": [
+    "No cross-simulator speedup is inferred from unmatched external rows.",
+    "Compilation time may benefit from a persistent JAX compilation cache.",
+    "Compiled temporary memory is not measured peak accelerator memory.",
+    "Execution includes sampled field decoding; excludes input IO, compilation and warmup."
+  ]
+}

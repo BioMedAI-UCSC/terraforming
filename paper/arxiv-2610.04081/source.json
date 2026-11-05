@@ -1,0 +1,10 @@
+{
+  "arxiv": "2610.04081v1",
+  "html_url": "https://arxiv.org/html/2610.04081v1",
+  "source_url": "https://arxiv.org/src/2610.04081v1",
+  "sha256": "09520891dda676e32f374b210f0a7f3d81b14a2febd2e9e02a07ad2716476ba2",
+  "bytes": 1497691,
+  "original_archive": "v1-source.tar.gz",
+  "revision_entrypoint": "revision/iclr2027_conference.tex",
+  "note": "Original arXiv v1 source archive is immutable; revision contains the proposed corrections."
+}

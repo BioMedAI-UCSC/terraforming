@@ -17,6 +17,8 @@
 **[Physics status and limitations](docs/ideas/gcm3d-physics-limitations.md)** ·
 **[AmesGCM comparison](docs/ideas/amesgcm-comparison.md)**
 
+**[Paper revision and reproduction steps](docs/paper-reproduction.md)**
+
 </div>
 
 ---
