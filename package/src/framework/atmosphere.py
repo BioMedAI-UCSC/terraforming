@@ -9,6 +9,6 @@ class Atmosphere:
         default_factory=lambda: _c(0.0))
     atmospheric_mass: torch.Tensor = field(       # kg
         default_factory=lambda: _c(0.0))
-    composition: Dict[str, torch.Tensor] = field( # species → partial pressure (Pa)
+    composition: Dict[str, torch.Tensor] = field( # species → column weight g*M/A (Pa)
         default_factory=dict,
     )
