@@ -150,7 +150,9 @@ rtk proxy .venv/bin/python scripts/run_differentiable_experiments.py ablations -
 
 Inspect `acceptance.json`, `optimization.json`, `uncertainty.json`, `training.csv`, `skill.csv`, and
 checkpoint/source snapshots. A budget/relative-loss stop is not stationarity;
-report the validation-selected controls and termination for every start. Repeat
+report the validation-selected controls and termination for every start.
+Check `validation_selected_stationary` separately: an optimized training endpoint
+can be stationary while the validation-selected checkpoint is not. Repeat
 the fit under additional seeds and retain held-out year/block uncertainty. The
 native 25-step target interval is 295.91748 s per step; do not force it to 300 s.
 
