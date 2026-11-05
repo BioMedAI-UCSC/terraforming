@@ -72,7 +72,7 @@ Santa Cruz, CA 95064, USA \\
 
 \begin{document}
 \maketitle
-\begin{abstract}                                                      
+\begin{abstract}
 General circulation models (GCMs) are the primary tool for simulating planetary atmospheres. They play a vital role in understanding Mars's atmosphere, as forecasting its unique weather is mission-critical for operations such as entry, descent, and landing. Mars poses unusual challenges for these models, as observations are sparse compared to Earth.  In addition, a thin \co{} atmosphere alongside a radiatively active dust cycle creates a volatile atmosphere with large diurnal temperature swings and no true terrestrial analog for validation. Existing Mars GCMs, including the LMD PCM, the NASA Ames Mars GCM, and PlanetWRF, are mature and physically detailed but are implemented in legacy Fortran with finite-difference or finite-volume solvers, and they do not expose gradients for calibration or machine learning. Here we present AEGIS, a modular differentiable Mars climate model that couples Mars's unique atmospheric physics to the Dinosaur dynamical core, with interfaces for neural closures. We demonstrate coupled forward integration, physical-parameter derivatives, and neural training. Historical seasonal comparisons show terrain-correlated surface pressure but also warm temperature biases and substantial frost and wind errors. The atmosphere--frost inventory is constrained by a numerical projection; its small residual does not establish raw energy or momentum conservation. We separate historical results from a new fixed-update neural-radiation comparison and state the remaining long-run, calibration, and observational validation requirements.
 \end{abstract}
 
@@ -109,7 +109,7 @@ AEGIS separates the description of a planetary atmosphere from the numerical mac
 
 The framework supports a hierarchy of atmospheric configurations. Dynamical configurations isolate resolved transport; physically forced configurations add radiation, surface exchange, mixing, and volatile reservoirs; hybrid configurations add a learned tendency or substitute a learned component at a selected physical interface. Complexity is therefore introduced through explicit components: a body definition establishes the mechanical and thermodynamic constants, while its radiation, condensables, and boundary conditions establish the atmospheric regime. The physically developed configuration evaluated here is Mars; extending to another atmosphere involves supplying the relevant process operators as well as its constants \citep{hu2025stablemachinelearningparameterizationsubgrid}.
 
-Dinosaur advances the hydrostatic primitive equations on a sphere \citep{kochkov2024,davenport2026}. The atmospheric state contains spectral vorticity and divergence, temperature relative to a reference profile, log surface pressure, optional transported tracers, and simulation time, on a vertical coordinate $\sigma=p/p_s$ that follows changes in atmospheric mass and the terrain-dependent lower boundary \citep{kochkov2024}. 
+Dinosaur advances the hydrostatic primitive equations on a sphere \citep{kochkov2024,davenport2026}. The atmospheric state contains spectral vorticity and divergence, temperature relative to a reference profile, log surface pressure, optional transported tracers, and simulation time, on a vertical coordinate $\sigma=p/p_s$ that follows changes in atmospheric mass and the terrain-dependent lower boundary \citep{kochkov2024}.
 Spectral transform models using sigma coordinates have a long history in Mars atmospheric modeling \citep{wilson1997stationarywaves}. The main experiments use triangular truncation T21, a $64\times32$ longitude--latitude transform grid, and 12 equally spaced sigma layers.
 
 The coupled state augments the atmospheric variables with surface temperature, pressure-equivalent \co{} frost, and a vertical regolith temperature profile attached to their geographic columns. Writing the full state as $\vx$, the coupled equations take the form
@@ -310,8 +310,8 @@ We experiment with an ablation suite that pairs the full Mars configuration with
 \label{fig:short-physics}
 \end{figure}
 
-% The ranking is corroborated on the year-long runs: at 88\,800\,s the half-step difference is still 0.0042\,K, against 1.169, 1.035, and 0.438\,K for regolith conduction, boundary-layer mixing, and \co{} exchange. 
-% Extended to a full Mars orbital period (59\,356\,800\,s), 
+% The ranking is corroborated on the year-long runs: at 88\,800\,s the half-step difference is still 0.0042\,K, against 1.169, 1.035, and 0.438\,K for regolith conduction, boundary-layer mixing, and \co{} exchange.
+% Extended to a full Mars orbital period (59\,356\,800\,s),
 All thirteen archived configurations complete with finite sampled states. The full-physics year's maximum relative post-projection inventory residual is $4.28\times10^{-9}$, which verifies the inventory constraint only. The same archive contains a peak wind of 236.046\,m\,s$^{-1}$, a minimum air temperature of 93.263\,K, and a sampled maximum Mach number of 1.098. Air reaches 35.77\,K below the model's layer-pressure \co{} frost point. These diagnostics motivate timestep, drag, and saturation studies rather than establishing a single cause or physical validity.
 
 
@@ -373,7 +373,7 @@ With fixed update counts, trajectory fine-tuning gives the lowest interpolation 
 
 % Together with the heating experiment, this result demonstrates two supported
 % learning interfaces: additive residual learning and replacement of a physical
-% operator. 
+% operator.
 
 \begin{figure}[!hbt]
 \centering
@@ -403,7 +403,7 @@ operators.
 % AEGIS connects a physically interpretable planetary model to the tools needed for differentiable experimentation. The same model supports forward climate integration, gradients with respect to physical parameters, and neural training through time. The Mars-specific work is concentrated in the operators that matter for its atmosphere: \co{} and dust radiation, surface and regolith energy storage, vertical exchange, and a condensable mass budget. This organization makes it possible to change one component while retaining the rest of the coupled system. The experiments also suggest a productive order for model development. Reference comparisons identify the spatial and seasonal fields to target. Physical calibration tests whether a small set of interpretable controls can reduce errors. Neural residuals or component r eplacements then provide additional hypotheses whose effects can be assessed with the same trajectory objectives and held-out windows.
 
 % \paragraph{Scope and extension toward terraforming.}
-The present demonstrations span coarse-resolution physical simulations, coupled-heating seed, and structured neural component replacement, and they establish the differentiable physical and neural interfaces. The framework already supports the natural next steps: broader observational comparison, repeated neural experiments across seeds, and multi-year equilibration studies, each reusing the same coupled operators and trajectory objectives. The explicit planetary, radiation, and reservoir interfaces provide a route to experiments with changing Martian boundary conditions. Altered surface albedo, imposed heating, or specified changes in volatile inventory could be introduced through these interfaces and evaluated    with spatial climate diagnostics. Differentiable objectives could then connect intervention parameters to quantities such as regional temperature, frost persistence, or atmospheric pressure. For larger changes in atmospheric composition and mass, the body thermodynamics, opacity data, condensable processes, and applicable dynamical assumptions would be extended together. 
+The present demonstrations span coarse-resolution physical simulations, coupled-heating seed, and structured neural component replacement, and they establish the differentiable physical and neural interfaces. The framework already supports the natural next steps: broader observational comparison, repeated neural experiments across seeds, and multi-year equilibration studies, each reusing the same coupled operators and trajectory objectives. The explicit planetary, radiation, and reservoir interfaces provide a route to experiments with changing Martian boundary conditions. Altered surface albedo, imposed heating, or specified changes in volatile inventory could be introduced through these interfaces and evaluated    with spatial climate diagnostics. Differentiable objectives could then connect intervention parameters to quantities such as regional temperature, frost persistence, or atmospheric pressure. For larger changes in atmospheric composition and mass, the body thermodynamics, opacity data, condensable processes, and applicable dynamical assumptions would be extended together.
 
 
 \section{Conclusion}
