@@ -15,12 +15,13 @@ From this checkout's repository root, with Python 3, `rtk`, and authenticated
 rtk proxy sh apps/paper-experiments/launch.sh
 ```
 
-Keep that command running until it submits `paper-all`. It first creates a
-**500 GiB persistent volume** and a CPU staging Job. After staging succeeds it
-submits the A100 Job; the laptop can then disconnect. No local simulation or
-local data copy is used. Both Jobs have a seven-day deadline and two pod retries.
-The launch script explicitly targets Nautilus and never changes your context.
-If staging fails, stop the wait with Ctrl-C and inspect the logs below.
+This creates a **500 GiB persistent volume**, the CPU staging Job and the A100
+Job. The GPU Job waits on the cluster for the pinned input marker and staging
+lock to be released; the laptop can disconnect as soon as submission finishes.
+No local simulation or local data copy is used. Both Jobs have a seven-day
+deadline and two pod retries. The launch script explicitly targets Nautilus and
+never changes your context. If staging fails, inspect and retry that Job; GPU
+initialization continues waiting until staging succeeds or its deadline expires.
 
 ```sh
 rtk kubectl --context nautilus -n razvanlab get jobs,pods,pvc
@@ -28,8 +29,11 @@ rtk kubectl --context nautilus -n razvanlab logs -f job/paper-stage
 rtk kubectl --context nautilus -n razvanlab logs -f job/paper-all
 ```
 
-Only one Job may use this volume at a time. The volume is RWO; a runtime file
-lock also rejects concurrent writers. Delete the results-transfer pod before
+Only one Job may write this volume at a time. The volume is RWO; a runtime file
+lock also rejects concurrent writers. The GPU pod may wait for the staging
+pod's volume attachment to be released; its init container reads only the
+completion marker. A scheduled GPU pod reserves its A100 while waiting.
+Delete the results-transfer pod before
 starting another computation. Compute requests/limits are 8 CPU and 64 GiB RAM,
 plus one `nvidia.com/a100` for the GPU Job. It uses normal priority because this
 namespace has A100 quota; quota does not guarantee immediate GPU availability.

@@ -1,7 +1,19 @@
 """Print Kubernetes JSON (also valid YAML); never changes the active context."""
 import argparse
 import json
-from run import experiments
+from run import SOURCE_ID, experiments
+
+WAIT_FOR_INPUTS = f"""import fcntl, time
+from pathlib import Path
+marker = Path('/work/source/{SOURCE_ID}/.paper-staged')
+print('Waiting for pinned input staging to finish', flush=True)
+while not marker.exists():
+    time.sleep(10)
+with open('/work/.paper.lock') as lock:
+    fcntl.flock(lock, fcntl.LOCK_EX)
+    assert marker.read_text() == '{SOURCE_ID}', 'Input source identity mismatch'
+print('Inputs ready; starting GPU runtime', flush=True)
+"""
 
 
 def resources(gpu):
@@ -27,6 +39,14 @@ def manifests(task, image, run_id):
                         "volumeMounts": [{"name": "work", "mountPath": "/work"}, {"name": "tmp", "mountPath": "/tmp"}, {"name": "shm", "mountPath": "/dev/shm"}]}],
         "volumes": [{"name": "work", "persistentVolumeClaim": {"claimName": "paper-experiments"}}, {"name": "tmp", "emptyDir": {"sizeLimit": "4Gi"}}, {"name": "shm", "emptyDir": {"medium": "Memory", "sizeLimit": "8Gi"}}],
     }
+    if gpu:
+        pod["initContainers"] = [{
+            "name": "wait-inputs", "image": image,
+            "command": ["python", "-c", WAIT_FOR_INPUTS],
+            "resources": {"requests": {"cpu": "1", "memory": "1Gi"}, "limits": {"cpu": "1", "memory": "1Gi"}},
+            "securityContext": pod["containers"][0]["securityContext"],
+            "volumeMounts": [{"name": "work", "mountPath": "/work", "readOnly": True}],
+        }]
     return {"apiVersion": "v1", "kind": "List", "items": [
         {"apiVersion": "v1", "kind": "PersistentVolumeClaim", "metadata": {"name": "paper-experiments", "namespace": "razvanlab"}, "spec": {"storageClassName": "rook-ceph-block", "accessModes": ["ReadWriteOnce"], "resources": {"requests": {"storage": "500Gi"}}}},
         {"apiVersion": "batch/v1", "kind": "Job", "metadata": {"name": f"paper-{task}", "namespace": "razvanlab"}, "spec": {"backoffLimit": 2, "activeDeadlineSeconds": 604800, "template": {"metadata": {"labels": {"app": "paper-experiments"}}, "spec": pod}}},

@@ -72,6 +72,24 @@ class RuntimeTests(unittest.TestCase):
         gpu_resources = gpu["items"][1]["spec"]["template"]["spec"]["containers"][0]["resources"]
         self.assertNotIn("nvidia.com/a100", cpu_resources["requests"])
         self.assertEqual(gpu_resources["requests"]["nvidia.com/a100"], gpu_resources["limits"]["nvidia.com/a100"])
+        init = gpu["items"][1]["spec"]["template"]["spec"]["initContainers"][0]
+        self.assertTrue(init["volumeMounts"][0]["readOnly"])
+        self.assertIn(run.SOURCE_ID, init["command"][-1])
+        self.assertNotIn("initContainers", stage["items"][1]["spec"]["template"]["spec"])
+
+    def test_cluster_gate_rejects_wrong_input_identity(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            work = Path(temporary)
+            marker = work / "source" / run.SOURCE_ID / ".paper-staged"
+            marker.parent.mkdir(parents=True)
+            (work / ".paper.lock").touch()
+            script = jobs.WAIT_FOR_INPUTS.replace("/work", temporary)
+            marker.write_text("wrong-source")
+            result = subprocess.run([sys.executable, "-c", script], capture_output=True)
+            self.assertNotEqual(result.returncode, 0)
+            marker.write_text(run.SOURCE_ID)
+            result = subprocess.run([sys.executable, "-c", script], capture_output=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
 
 
 if __name__ == "__main__":
