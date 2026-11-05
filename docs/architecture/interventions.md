@@ -173,10 +173,9 @@ species' molecular weight. Existing serialized Pa values retain their column
 weight meaning; the legacy snapshot field `ghg_partial_pressure_Pa` retains its
 name for compatibility. Old forcing results must be regenerated.
 
-**Why ppb and not ppm?** Realistic injection rates over 50–100 year horizons
-produce concentrations in the ppb range. The linear forcing formula ([Section 4](#4-radiative-forcing-f))
-is valid at trace concentrations; ppm-scale would require the logarithmic
-correction used for CO₂ on Earth.
+**Why ppb?** The legacy coefficient units use molar ppb. This unit choice
+does not establish a validity range or justify extending a linear model to
+larger concentrations; use validated spectral calculations for that purpose.
 
 ---
 
@@ -637,9 +636,9 @@ concentration range. Reproduce the arithmetic with
 
 ### Forcing regime
 
-The linear $\Delta F$ formula is valid while concentrations remain in the optically thin
-regime (<~1 000 ppb). At injection rates of $1\times10^9$ kg/yr, this limit is not
-reached within 50–100 year horizons for any of the seven registered compounds.
+The linear coefficient model has no verified universal concentration threshold
+or multi-year validity range. Its finite outputs are sensitivity calculations,
+not evidence of optical thinness or validated Mars climate response.
 
 ### GHF physical range
 
