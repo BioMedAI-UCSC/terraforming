@@ -24,6 +24,16 @@ def test_budget_exhaustion_is_not_convergence():
     assert not result['terminations'][0]['success']
 
 
+def test_stationary_endpoint_does_not_label_validation_checkpoint_converged():
+    best, result, _ = bounded_fit(
+        lambda x: (np.sum((x-.8)**2), 2*(x-.8)),
+        lambda x: np.sum((x-.2)**2), [.2,.2,.2])
+    np.testing.assert_allclose(best, [.2,.2,.2])
+    assert result['stationary']
+    assert not result['validation_selected_stationary']
+    assert result['validation_selected_projected_gradient_inf'] > 1
+
+
 def test_paired_year_blocks_not_gridcells_and_missing_replication():
     a = paired_block_interval([9,9,16,16], [4,4,9,9], ['a','a','b','b'])
     assert a['blocks'] == 2 and a['resamples'] == 4

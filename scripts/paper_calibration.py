@@ -74,13 +74,17 @@ def bounded_fit(value_gradient, validation, start, *, maxiter=500, maxeval=1000,
             terminations.append(dict(start=start_index, success=False, stationary=False,
                                      message="global evaluation budget exhausted"))
             break
+    selected = [row for row in trace if all(row[f"normalized_control_{i}"] == best[i] for i in range(3))]
+    selected_norm = selected[-1]["projected_gradient_inf"] if selected else None
     report = dict(optimizer="L-BFGS-B", evaluations=len(trace), starts_requested=starts,
                   starts_completed=len(terminations), max_evaluations=maxeval,
                   gtol=gtol, ftol=ftol, terminations=terminations,
                   stationary=any(t["stationary"] for t in terminations),
+                  validation_selected_projected_gradient_inf=selected_norm,
+                  validation_selected_stationary=bool(selected_norm is not None and selected_norm <= gtol),
                   validation_selected_normalized_controls=best.tolist(),
                   validation_loss=best_val,
-                  selection="validation checkpoint may differ from the final training optimum")
+                  selection="stationary describes training endpoints; validation_selected_stationary checks the selected checkpoint")
     return best, report, trace
 
 
