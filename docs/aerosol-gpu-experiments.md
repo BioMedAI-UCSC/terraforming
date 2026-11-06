@@ -165,6 +165,16 @@ timescale convention as the merged Mars-map runner. It leaves pressure and
 particle tracers unfiltered. This setting is archived in configurations and the
 physical-start contract; new suite starts are required for different settings.
 
+Particle storage limits the represented spectral tracers toward their
+gas-weighted layer means, preserving each layer's area-integrated mass and
+number while preventing transform-induced negative values. This limiter adds
+horizontal numerical mixing; `positivity_redistribution_kg` records cumulative
+absolute mass redistribution, including the existing vertical column repair.
+It is not a physical mixing measurement or a transport-accuracy certificate.
+Changing the limiter requires a fresh suite/source identity, not an unmarked
+resume of an old production run. Temperature, pressure and transport-error
+validity limits remain unchanged.
+
 This remains a flat-terrain, emissivity-1 screening model with fixed gas
 composition. Atmospheric CO2 condensation and full dust/cloud/removal feedbacks
 are not validated. The runner may stop at its temperature, pressure, loading or

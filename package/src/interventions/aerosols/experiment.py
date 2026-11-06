@@ -117,7 +117,11 @@ def coupled_step(coords,specs,body,forcing,co2_forcing,particle,sources,options,
             jnp.any(mass/gas>particle.max_mass_loading)|jnp.any(~jnp.isfinite(mass))|
             jnp.any(~jnp.isfinite(number))|jnp.any(number<0))
         ledger=ledger._replace(invalid=ledger.invalid|invalid)
-        return state._replace(climate=put_burdens(state.climate,mass,number,coords,specs,body),
+        climate=put_burdens(state.climate,mass,number,coords,specs,body,positive=True)
+        stored_mass,_=burdens(climate,coords,specs,body)
+        ledger=ledger._replace(positivity_redistribution_kg=ledger.positivity_redistribution_kg+
+            jnp.sum(jnp.abs(stored_mass-mass)*weights))
+        return state._replace(climate=climate,
             ledger=ledger,elapsed_seconds=state.elapsed_seconds+dt)
     return jax.jit(step)
 
@@ -175,6 +179,7 @@ def diagnostics(state,coords,specs,body,particle):
         material_budget_error_kg=float(mass+deposited+collected-expected),
         maximum_raw_relative_mass_error=float(state.ledger.maximum_raw_relative_mass_error),
         numerical_mass_correction_kg=float(state.ledger.numerical_mass_correction_kg),
+        positivity_redistribution_kg=float(state.ledger.positivity_redistribution_kg),
         numerical_dry_energy_correction_j=float(state.ledger.numerical_dry_energy_correction_j),
         numerical_frost_latent_correction_j=float(state.ledger.numerical_frost_latent_correction_j),
         last_unprojected_dry_energy_j=None if float(state.elapsed_seconds)==0 else float(state.ledger.last_unprojected_dry_energy_j),
