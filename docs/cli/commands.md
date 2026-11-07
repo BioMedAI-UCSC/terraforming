@@ -16,8 +16,8 @@ Generate 3-D pressure, temperature, winds and frost over MOLA terrain. Requires
 the `gcm3d` extra and staged MOLA raster.
 
 ```bash
-rtk proxy .venv/bin/python -m cli.main mars maps --scale fast --name first-map
-rtk proxy .venv/bin/python -m cli.main mars maps --diurnal --dt 300 --steps 100 --name diurnal-smoke
+.venv/bin/python -m cli.main mars maps --scale fast --name first-map
+.venv/bin/python -m cli.main mars maps --diurnal --dt 300 --steps 100 --name diurnal-smoke
 ```
 
 | Option | Default | Purpose |

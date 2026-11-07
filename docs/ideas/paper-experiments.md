@@ -52,17 +52,17 @@ Use a new output directory for every invocation; existing output directories
 are refused. No data downloads or cluster submissions occur automatically.
 
 ```sh
-rtk proxy .venv/bin/python scripts/run_mars_paper_experiments.py \
+.venv/bin/python scripts/run_mars_paper_experiments.py \
   --inputs outputs/nautilus-calibration-inputs \
   --config apps/mars-calibration/paper-experiment.json \
   --output outputs/paper-recovery --validate-only
 
-rtk proxy .venv/bin/python scripts/run_mars_paper_experiments.py \
+.venv/bin/python scripts/run_mars_paper_experiments.py \
   --inputs outputs/nautilus-calibration-inputs \
   --config apps/mars-calibration/paper-smoke.json \
   --output outputs/paper-smoke --task all
 
-rtk proxy .venv/bin/python scripts/run_mars_paper_experiments.py \
+.venv/bin/python scripts/run_mars_paper_experiments.py \
   --inputs outputs/nautilus-calibration-inputs \
   --config apps/mars-calibration/paper-experiment.json \
   --output outputs/paper-recovery --task recovery --require-gpu
@@ -82,7 +82,7 @@ entry point: `mars-paper-experiments` (same options as the script).
 ## Controlled ablations and numerical sensitivity
 
 ```sh
-rtk proxy .venv/bin/python scripts/run_mars_paper_experiments.py \
+.venv/bin/python scripts/run_mars_paper_experiments.py \
   --inputs outputs/nautilus-calibration-inputs \
   --config apps/mars-calibration/paper-experiment.json \
   --output outputs/paper-ablations --task ablations
@@ -151,7 +151,7 @@ and obtain an actual external simulator runtime measurement or a suitably
 documented published one. These are not replaced by successful smoke tests.
 
 ```sh
-rtk proxy .venv/bin/python -m pytest apps/mars-calibration/tests -q
+.venv/bin/python -m pytest apps/mars-calibration/tests -q
 ```
 
 ## Verified implementation run — 2026-09-21

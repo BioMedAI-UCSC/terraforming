@@ -23,8 +23,8 @@ bundles record their own provenance and hashes.
 ## Typical setup
 
 ```bash
-rtk proxy .venv/bin/python scripts/stage_mola.py
-rtk proxy .venv/bin/python scripts/stage_tes_surface.py
+.venv/bin/python scripts/stage_mola.py
+.venv/bin/python scripts/stage_tes_surface.py
 # ames_co2_12band.npz is committed; re-run stage_ames_co2_radiation.py only to regenerate it
 ```
 

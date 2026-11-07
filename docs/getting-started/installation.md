@@ -5,21 +5,20 @@ uses [uv](https://docs.astral.sh/uv/getting-started/installation/) for dependenc
 Install uv using its platform instructions, then clone the repository:
 
 ```bash
-rtk proxy git clone https://github.com/BioMedAI-UCSC/terraforming
+git clone https://github.com/BioMedAI-UCSC/terraforming
 cd terraforming
-rtk proxy uv sync --all-packages --extra gcm3d --dev
+uv sync --all-packages --extra gcm3d --dev
 ```
 
-Commands here run from the repository root. RTK is optional for readers; remove
-`rtk proxy` if it is unavailable. `--all-packages` installs both the physics
-package and CLI; `--extra gcm3d` installs the optional GCM dependencies.
+`--all-packages` installs both the physics package and CLI; `--extra gcm3d`
+installs the optional GCM dependencies.
 Use the installed environment explicitly so another sync does not remove extras.
 
 ## Verify the installation
 
 ```bash
-rtk proxy .venv/bin/python -c 'import jax; from src.framework.gcm import BodyConstants; print(jax.devices())'
-rtk proxy .venv/bin/python -m cli.main mars maps --help
+.venv/bin/python -c 'import jax; from src.framework.gcm import BodyConstants; print(jax.devices())'
+.venv/bin/python -m cli.main mars maps --help
 ```
 
 CPU JAX is sufficient for first maps and generated neural examples. A CUDA GPU
@@ -30,7 +29,7 @@ The GPU cache and `--require-gpu` experiment commands reject CPU fallback.
 ## Stage terrain and boundary data
 
 ```bash
-rtk proxy .venv/bin/python scripts/stage_mola.py
+.venv/bin/python scripts/stage_mola.py
 ```
 
 MOLA terrain is required for Mars map runs and verified against a pinned checksum.
@@ -42,13 +41,13 @@ referenced in runbooks are not supplied by a fresh checkout.
 For ARCO-MACDA streaming, install its extra while retaining GCM dependencies:
 
 ```bash
-rtk proxy uv sync --all-packages --extra gcm3d --extra arco --dev
+uv sync --all-packages --extra gcm3d --extra arco --dev
 ```
 
 For the calibration application:
 
 ```bash
-rtk proxy uv pip install -e ./apps/mars-calibration
+uv pip install -e ./apps/mars-calibration
 ```
 
 ## First run and browser

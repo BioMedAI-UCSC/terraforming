@@ -3,7 +3,7 @@
 Generate an offline browser report from the staged reference files:
 
 ```sh
-rtk proxy .venv/bin/python -m cli.main mars compare \
+.venv/bin/python -m cli.main mars compare \
   --config cli/configs/reference-comparison.json \
   --output outputs/reference-comparison-new
 ```
@@ -104,7 +104,7 @@ Install CAP in a separate environment according to its
 then run from a directory where CAP may write its `plots/` folder:
 
 ```sh
-rtk proxy MarsPlot /absolute/path/to/report/amescap/ls045/comparison.in -ftype png --debug
+MarsPlot /absolute/path/to/report/amescap/ls045/comparison.in -ftype png --debug
 ```
 
 Older CAP installations expose `MarsPlot.py` instead of `MarsPlot` and use

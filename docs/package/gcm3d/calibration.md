@@ -13,9 +13,9 @@ These controls do not change composition or gas constants. Short-window loss
 reduction is not evidence of equilibrated calibrated climate.
 
 ```bash
-rtk proxy uv pip install -e ./apps/mars-calibration
-rtk proxy .venv/bin/python scripts/run_mars_paper_experiments.py --help
-rtk proxy .venv/bin/python scripts/run_differentiable_experiments.py --help
+uv pip install -e ./apps/mars-calibration
+.venv/bin/python scripts/run_mars_paper_experiments.py --help
+.venv/bin/python scripts/run_differentiable_experiments.py --help
 ```
 
 The frozen input bundle contains restart, targets, forcing and checksums.
@@ -46,7 +46,7 @@ With the named TES and Ames inputs staged, start with a one-sol pilot in a fresh
 directory before running this substantial workload:
 
 ```bash
-rtk proxy .venv/bin/python scripts/run_gcm3d_ablation.py \
+.venv/bin/python scripts/run_gcm3d_ablation.py \
   data/tes/mgs_tes_surface_1deg.nc \
   --output-dir outputs/climate-baseline --config convection \
   --truncation T21 --layers 12 --dt 300 --diurnal --initial-ls 0 \

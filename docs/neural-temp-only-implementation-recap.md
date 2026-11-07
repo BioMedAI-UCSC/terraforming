@@ -53,7 +53,7 @@ physical solver conventions.
 These commands passed locally:
 
 ```bash
-rtk proxy .venv/bin/python -m pytest package/tests/gcm3d/test_neural_temp.py -q
+.venv/bin/python -m pytest package/tests/gcm3d/test_neural_temp.py -q
 ```
 
 Result: **19 passed**. This includes a real native-observation T21/L12/MOLA
@@ -61,7 +61,7 @@ forecast smoke test producing finite fields and geographic day/night coverage.
 It is an execution check, not a held-out forecast skill result.
 
 ```bash
-rtk proxy .venv/bin/python -m pytest package/tests/gcm3d/test_physics.py package/tests/gcm3d/test_orbit.py package/tests/gcm3d/test_topography.py -m 'not slow' -q
+.venv/bin/python -m pytest package/tests/gcm3d/test_physics.py package/tests/gcm3d/test_orbit.py package/tests/gcm3d/test_topography.py -m 'not slow' -q
 ```
 
 Result: **59 passed**. Together, **78 checks passed**. The six scripts also
@@ -95,8 +95,8 @@ caching and finalize a report with `scientific_success: false`.
 After a passing gate and completed test cache, finalize and verify:
 
 ```bash
-rtk proxy env CUDA_VISIBLE_DEVICES= JAX_PLATFORMS=cpu .venv/bin/python scripts/run_neural_temp.py --run-dir outputs/neural_temp/temp_only_v1 --stage report
-rtk proxy .venv/bin/python scripts/run_neural_temp.py --run-dir outputs/neural_temp/temp_only_v1 --verify
+env CUDA_VISIBLE_DEVICES= JAX_PLATFORMS=cpu .venv/bin/python scripts/run_neural_temp.py --run-dir outputs/neural_temp/temp_only_v1 --stage report
+.venv/bin/python scripts/run_neural_temp.py --run-dir outputs/neural_temp/temp_only_v1 --verify
 rtk read outputs/neural_temp/temp_only_v1/report.md
 ```
 
@@ -112,7 +112,7 @@ complete`, and `test_evaluated: true`. Scientific success additionally requires:
 Use the machine-checkable acceptance command after artifact verification:
 
 ```bash
-rtk proxy .venv/bin/python -c 'import json; r=json.load(open("outputs/neural_temp/temp_only_v1/result.json")); assert r["status"] == "complete" and r["test_evaluated"] and r["scientific_success"] and r["gpu_hours"] <= 4, r; print("PASS: fixed held-out criteria and GPU budget")'
+.venv/bin/python -c 'import json; r=json.load(open("outputs/neural_temp/temp_only_v1/result.json")); assert r["status"] == "complete" and r["test_evaluated"] and r["scientific_success"] and r["gpu_hours"] <= 4, r; print("PASS: fixed held-out criteria and GPU budget")'
 ```
 
 Expected **only if scientific criteria are met**:
