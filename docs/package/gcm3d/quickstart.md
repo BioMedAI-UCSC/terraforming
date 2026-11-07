@@ -1,13 +1,11 @@
 # Installation and first 3-D map
 
-Run from the repository root with Python 3.12+. RTK is optional for readers;
-remove `rtk proxy` if it is unavailable.
-
+Run from the repository root with Python 3.12+.
 ```bash
-rtk proxy uv sync --all-packages --extra gcm3d --dev
-rtk proxy .venv/bin/python scripts/stage_mola.py
-rtk proxy .venv/bin/python -c 'import jax; print(jax.devices())'
-rtk proxy .venv/bin/python -m cli.main mars maps --scale fast --name first-map
+uv sync --all-packages --extra gcm3d --dev
+.venv/bin/python scripts/stage_mola.py
+.venv/bin/python -c 'import jax; print(jax.devices())'
+.venv/bin/python -m cli.main mars maps --scale fast --name first-map
 ```
 
 MOLA staging verifies the pinned raster in `data/mola/meg004/`. The Ames CO₂
@@ -29,8 +27,8 @@ record the resolved numerical setting. This is a stability control, not proof of
 equilibrium or climate accuracy.
 
 ```bash
-rtk proxy .venv/bin/python -m cli.main mars maps --diurnal --dt 300 --steps 100 --name diurnal-smoke
-rtk proxy .venv/bin/python -m cli.main mars maps --no-physics --steps 100 --name dry-smoke
+.venv/bin/python -m cli.main mars maps --diurnal --dt 300 --steps 100 --name diurnal-smoke
+.venv/bin/python -m cli.main mars maps --no-physics --steps 100 --name dry-smoke
 ```
 
 ## Python configuration

@@ -10,9 +10,9 @@ passed, three skipped, no failures**, including all 11 slow tests. The UI build
 passed. This records that revision rather than promising results for later code.
 
 ```bash
-rtk proxy .venv/bin/python -m pytest -c package/pyproject.toml \
+.venv/bin/python -m pytest -c package/pyproject.toml \
   package/tests cli/tests apps/mars-calibration/tests -m 'not slow' -q -rs
-rtk proxy .venv/bin/python -m pytest -c package/pyproject.toml \
+.venv/bin/python -m pytest -c package/pyproject.toml \
   package/tests cli/tests -m slow -q -rs
 ```
 

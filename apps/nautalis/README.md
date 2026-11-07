@@ -10,9 +10,19 @@ Published image (the default pinned by `jobs.py`):
 
 ## Run folders from a GitHub branch
 
+Create a blank experiment folder in your checkout, implement its `run.py`, and
+commit it before submitting:
+
 ```sh
-rtk proxy python3 apps/nautalis/jobs.py --name my-job \
-  --ref YOUR_BRANCH --experiments my_experiment \
+python3 apps/nautalis/init.py climate-study
+```
+
+This creates `experiments/climate-study/README.md` and `run.py`. The starter
+entry point fails until you replace it with the experiment implementation.
+
+```sh
+python3 apps/nautalis/jobs.py --name climate-study \
+  --ref YOUR_BRANCH --experiments experiments/climate-study \
   --run-id run-1 --gpu --submit -- arg1
 ```
 
@@ -33,7 +43,7 @@ filesystem. Concurrent writers to the same PVC are rejected by a file lock.
 ## Run a mounted experiment folder
 
 ```sh
-rtk proxy docker run --rm --platform linux/amd64 \
+docker run --rm --platform linux/amd64 \
   -v /ABSOLUTE/SOURCE:/source:ro -v /WRITABLE/WORK:/work \
   samkash/terraforming-paper:nautalis-v1 \
   --source /source --experiments my_experiment --run-id local-1 -- arg1
@@ -78,7 +88,7 @@ Output layout on the PVC:
 ## Download outputs and pod records
 
 ```sh
-rtk proxy python3 apps/nautalis/download.py --job JOB_NAME
+python3 apps/nautalis/download.py --job JOB_NAME
 ```
 
 This writes a timestamped snapshot under local `outputs/JOB_NAME/`, including
@@ -92,10 +102,10 @@ writer job on the same RWO claim during a transfer.
 ## Build and test
 
 ```sh
-rtk proxy python3 apps/nautalis/test_runtime.py
-rtk proxy docker build --platform linux/amd64 \
+python3 apps/nautalis/test_runtime.py
+docker build --platform linux/amd64 \
   -t samkash/terraforming-paper:nautalis-v1 apps/nautalis
-rtk proxy docker push samkash/terraforming-paper:nautalis-v1
+docker push samkash/terraforming-paper:nautalis-v1
 ```
 
 Only bootstrap/runtime code is baked into the image. New experiment folders or

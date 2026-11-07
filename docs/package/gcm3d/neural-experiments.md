@@ -24,27 +24,27 @@ reverse-mode gradients, and optimizer updates in one experiment.
 Run from the repository root in your active Python 3.12+ environment:
 
 ```bash
-rtk proxy python -m pip install -e './package[gcm3d]'
-rtk proxy env JAX_PLATFORMS=cpu python examples/neural/recover_parameter.py
-rtk proxy env JAX_PLATFORMS=cpu python examples/neural/train_radiation.py
-rtk proxy env JAX_PLATFORMS=cpu python examples/neural/optimize_atmospheric_control.py
+python -m pip install -e './package[gcm3d]'
+env JAX_PLATFORMS=cpu python examples/neural/recover_parameter.py
+env JAX_PLATFORMS=cpu python examples/neural/train_radiation.py
+env JAX_PLATFORMS=cpu python examples/neural/optimize_atmospheric_control.py
 ```
 
 The scripts use the active environment's `python`, including mamba environments.
-Remove `rtk proxy` if RTK is unavailable. JAX on CPU is sufficient for the default
-examples. GPU timings require a compatible GPU-enabled JAX installation; no GPU
+JAX on CPU is sufficient for the default examples. GPU timings require a
+compatible GPU-enabled JAX installation; no GPU
 allocation is requested by the scripts. They enable float64 explicitly.
 
 For a short pipeline check:
 
 ```bash
-rtk proxy env JAX_PLATFORMS=cpu python examples/neural/recover_parameter.py \
+env JAX_PLATFORMS=cpu python examples/neural/recover_parameter.py \
   --iterations 80 --steps 12 --output outputs/neural_framework/recovery_smoke
-rtk proxy env JAX_PLATFORMS=cpu python examples/neural/train_radiation.py \
+env JAX_PLATFORMS=cpu python examples/neural/train_radiation.py \
   --epochs 20 --fine-tune-epochs 5 --columns 24 --layers 2 \
   --steps 4 --long-steps 8 --coupled-steps 2 \
   --output outputs/neural_framework/radiation_smoke
-rtk proxy env JAX_PLATFORMS=cpu python examples/neural/optimize_atmospheric_control.py \
+env JAX_PLATFORMS=cpu python examples/neural/optimize_atmospheric_control.py \
   --iterations 12 --steps 3 --layers 2 \
   --output outputs/neural_framework/control_smoke
 ```
@@ -234,8 +234,8 @@ stability. Broad multi-seed and long-horizon studies remain research work.
 ## Verification
 
 ```bash
-rtk proxy python -m pytest package/tests/gcm3d/test_neural_framework.py -q
-rtk proxy python -m pytest package/tests/gcm3d/test_physics.py \
+python -m pytest package/tests/gcm3d/test_neural_framework.py -q
+python -m pytest package/tests/gcm3d/test_physics.py \
   package/tests/gcm3d/test_ames_radiation.py package/tests/gcm3d/test_maps.py \
   -m 'not slow' -q
 ```

@@ -10,8 +10,8 @@ four-case screen as a baseline.
 Run from the repository root:
 
 ```bash
-rtk proxy uv sync --package terraforming --extra gcm3d --extra arco --dev
-rtk proxy .venv/bin/python -m pytest package/tests/gcm3d/test_neural_temp.py -q
+uv sync --package terraforming --extra gcm3d --extra arco --dev
+.venv/bin/python -m pytest package/tests/gcm3d/test_neural_temp.py -q
 ```
 
 Expected: **19 passed** when the local native MACDA smoke-test input and MOLA
@@ -43,8 +43,8 @@ For the GPU host, install the CUDA plugin matching the locked JAX version and
 its supported driver **before creating the contract**. For a CUDA 12 host:
 
 ```bash
-rtk proxy uv pip install 'jax[cuda12]==0.11.0'
-rtk proxy .venv/bin/python -c 'import jax; print(jax.devices())'
+uv pip install 'jax[cuda12]==0.11.0'
+.venv/bin/python -c 'import jax; print(jax.devices())'
 ```
 
 Expected on the GPU host: four or more CUDA devices. A CPU-only JAX installation
@@ -55,8 +55,8 @@ installing the plugin; an extra dependency synchronization can remove it.
 Stage MOLA if absent, then prepare the manifest without reserving GPUs:
 
 ```bash
-rtk proxy .venv/bin/python scripts/stage_mola.py
-rtk proxy env CUDA_VISIBLE_DEVICES= JAX_PLATFORMS=cpu .venv/bin/python scripts/neural_temp_data.py --run-dir outputs/neural_temp/temp_only_v1 --mola data/mola/meg004/megt90n000cb.img
+.venv/bin/python scripts/stage_mola.py
+env CUDA_VISIBLE_DEVICES= JAX_PLATFORMS=cpu .venv/bin/python scripts/neural_temp_data.py --run-dir outputs/neural_temp/temp_only_v1 --mola data/mola/meg004/megt90n000cb.img
 ```
 
 Expected: `Frozen native coverage: {'train': 112, 'validation': 32, 'test': 32}`.
@@ -78,7 +78,7 @@ large because source chunks contain more than each selected 14-sample window.
 ## Cache training/validation, then release GPUs
 
 ```bash
-rtk proxy .venv/bin/python scripts/run_neural_temp.py --run-dir outputs/neural_temp/temp_only_v1 --stage train-validation --gpus 0 1 2 3
+.venv/bin/python scripts/run_neural_temp.py --run-dir outputs/neural_temp/temp_only_v1 --stage train-validation --gpus 0 1 2 3
 ```
 
 Expected: unique one-device worker masks, device checks in `logs/`, progress
@@ -114,7 +114,7 @@ flux. No future surface, wind, pressure or dust is used as a predictor.
 After releasing the GPU allocation:
 
 ```bash
-rtk proxy env CUDA_VISIBLE_DEVICES= JAX_PLATFORMS=cpu .venv/bin/python scripts/train_neural_temp.py --run-dir outputs/neural_temp/temp_only_v1
+env CUDA_VISIBLE_DEVICES= JAX_PLATFORMS=cpu .venv/bin/python scripts/train_neural_temp.py --run-dir outputs/neural_temp/temp_only_v1
 rtk read outputs/neural_temp/temp_only_v1/frozen_models.json
 rtk read outputs/neural_temp/temp_only_v1/validation_report.md
 ```
@@ -138,7 +138,7 @@ There is no automatic architecture sweep or test-driven tuning.
 Acquire the four GPUs only for this command, then release them:
 
 ```bash
-rtk proxy .venv/bin/python scripts/run_neural_temp.py --run-dir outputs/neural_temp/temp_only_v1 --stage test --gpus 0 1 2 3
+.venv/bin/python scripts/run_neural_temp.py --run-dir outputs/neural_temp/temp_only_v1 --stage test --gpus 0 1 2 3
 ```
 
 Expected: 32 additional test cache entries, all tied to the existing frozen
@@ -149,8 +149,8 @@ simulates missing starts only.
 Generate the final report and verify all artifacts on CPU:
 
 ```bash
-rtk proxy env CUDA_VISIBLE_DEVICES= JAX_PLATFORMS=cpu .venv/bin/python scripts/run_neural_temp.py --run-dir outputs/neural_temp/temp_only_v1 --stage report
-rtk proxy .venv/bin/python scripts/run_neural_temp.py --run-dir outputs/neural_temp/temp_only_v1 --verify
+env CUDA_VISIBLE_DEVICES= JAX_PLATFORMS=cpu .venv/bin/python scripts/run_neural_temp.py --run-dir outputs/neural_temp/temp_only_v1 --stage report
+.venv/bin/python scripts/run_neural_temp.py --run-dir outputs/neural_temp/temp_only_v1 --verify
 rtk read outputs/neural_temp/temp_only_v1/report.md
 rtk read outputs/neural_temp/temp_only_v1/test_report.json
 ```
@@ -170,7 +170,7 @@ The output also includes numeric `gpu_hours`, which must be no greater than 4.
 For a machine-checkable scientific acceptance command (after `--verify`):
 
 ```bash
-rtk proxy .venv/bin/python -c 'import json; r=json.load(open("outputs/neural_temp/temp_only_v1/result.json")); assert r["status"] == "complete" and r["test_evaluated"] and r["scientific_success"] and r["gpu_hours"] <= 4, r; print("PASS: fixed held-out criteria and GPU budget")'
+.venv/bin/python -c 'import json; r=json.load(open("outputs/neural_temp/temp_only_v1/result.json")); assert r["status"] == "complete" and r["test_evaluated"] and r["scientific_success"] and r["gpu_hours"] <= 4, r; print("PASS: fixed held-out criteria and GPU budget")'
 ```
 
 Expected on scientific success: `PASS: fixed held-out criteria and GPU budget`.
