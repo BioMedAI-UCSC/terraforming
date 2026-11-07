@@ -1,9 +1,9 @@
 # Generic experiment image and Nautilus jobs
 
-The folder is named `nautalis`. It contains no ICLR protocols or scientific
-revision list. The small Linux/amd64 image provides Python 3.12, Git, CA
+The `nautalis` runtime deploys application and experiment folders independently
+of their protocols or source revisions. The small Linux/amd64 image provides Python 3.12, Git, CA
 certificates, tar and pinned uv 0.10.9; experiment folders own their setup and
-execution. [ICLR experiments](../../iclr_experiments/README.md) are one consumer.
+execution.
 
 Published image (the default pinned by `jobs.py`):
 `samkash/terraforming-paper@sha256:a04422421dbe06a2073d55259ba9ae9d54e2f22488e4bc2552fdbb5bc3f24fd2`.
@@ -11,9 +11,9 @@ Published image (the default pinned by `jobs.py`):
 ## Run folders from a GitHub branch
 
 ```sh
-rtk proxy python3 apps/nautalis/jobs.py --name iclr-all \
-  --ref feat/nautilus-paper-experiments --experiments iclr_experiments \
-  --run-id paper-v2 --gpu --submit -- all
+rtk proxy python3 apps/nautalis/jobs.py --name my-job \
+  --ref YOUR_BRANCH --experiments my_experiment \
+  --run-id run-1 --gpu --submit -- arg1
 ```
 
 `--ref` accepts a branch, tag or immutable commit. The pod resolves and archives
@@ -93,7 +93,6 @@ writer job on the same RWO claim during a transfer.
 
 ```sh
 rtk proxy python3 apps/nautalis/test_runtime.py
-rtk proxy python3 iclr_experiments/test_runtime.py
 rtk proxy docker build --platform linux/amd64 \
   -t samkash/terraforming-paper:nautalis-v1 apps/nautalis
 rtk proxy docker push samkash/terraforming-paper:nautalis-v1
@@ -101,5 +100,5 @@ rtk proxy docker push samkash/terraforming-paper:nautalis-v1
 
 Only bootstrap/runtime code is baked into the image. New experiment folders or
 branches require no image rebuild; changes to the generic runtime do. Jobs pin
-the published image digest once built. Existing jobs using the older image and
-legacy `paper-experiments` PVC remain independent.
+the published image digest once built. Existing jobs and their persistent
+volumes remain independent.
