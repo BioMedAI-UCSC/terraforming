@@ -26,6 +26,19 @@ from src.interventions.state import GHGState
 _MARS_SURFACE_AREA_M2 = 1.4437e14   # m²  (4π R²,  R = 3.3895×10⁶ m)
 _MARS_ATM_MW_G_MOL    = 43.45       # g/mol  (95% CO₂ + 3% N₂ + 1.6% Ar)
 _MARS_EMISSIVITY      = 0.95        # surface emissivity (same as mars.py)
+_BACKGROUND_MW = {"CO2": 44.01, "N2": 28.014, "Ar": 39.948, "O2": 31.998, "CO": 28.01}
+
+
+def _molar_ppb(weights, molecular_weights):
+    """Normalize mass-proportional weights, including the finite gas mixture."""
+    if any(not bool(torch.isfinite(value).all()) or bool((value < 0).any())
+           for value in weights.values()):
+        raise ValueError("species masses/column weights must be finite and nonnegative")
+    moles = {name: value / molecular_weights[name] for name, value in weights.items()}
+    total = sum(moles.values())
+    if not bool(torch.isfinite(total).all()) or bool((total <= 0).any()):
+        raise ValueError("positive finite total atmospheric molar inventory required")
+    return {name: value / total * 1e9 for name, value in moles.items()}
 
 
 # ---------------------------------------------------------------------------
@@ -40,7 +53,7 @@ def compute_concentration_ppb(
 
     Uses the molar-fraction definition:
 
-        ppb_i = (M_i / MW_i) / (M_atm / MW_atm) × 1e9
+        ppb_i = (M_i / MW_i) / (M_background / MW_background + Σ_j M_j / MW_j) × 1e9
 
     where M_i is the atmospheric mass of compound i (kg), MW_i is its
     molecular weight (g/mol), M_atm is the total atmospheric mass (kg),
@@ -58,12 +71,13 @@ def compute_concentration_ppb(
     dict[str, torch.Tensor]
         Per-compound concentration in ppb, on the same device as ghg_state.
     """
-    ppb: dict[str, torch.Tensor] = {}
-    for name in ghg_state.compounds:
-        mass_kg  = ghg_state.get_mass_kg(name)                    # kg, on device
-        mw_ratio = get_compound(name).molecular_weight_g_mol / _MARS_ATM_MW_G_MOL
-        ppb[name] = (mass_kg / total_atm_mass_kg) / mw_ratio * 1e9
-    return ppb
+    weights = ghg_state.get_all_masses_kg()
+    weights["background"] = total_atm_mass_kg.to(ghg_state.device) - sum(weights.values())
+    molecular_weights = {name: get_compound(name).molecular_weight_g_mol
+                         for name in ghg_state.compounds}
+    molecular_weights["background"] = _MARS_ATM_MW_G_MOL
+    concentrations = _molar_ppb(weights, molecular_weights)
+    return {name: concentrations[name] for name in ghg_state.compounds}
 
 
 def delta_F_total(
@@ -74,9 +88,8 @@ def delta_F_total(
 
     ΔF = Σ_i  η_i [W m⁻² ppb⁻¹]  ×  C_i [ppb]
 
-    This is the linear (optically thin) approximation appropriate for trace
-    gases at concentrations < ~1000 ppb, which covers realistic injection
-    rates over 50–100 year horizons.
+    This is a legacy linear sensitivity model. Coefficient provenance and
+    the applicable concentration range remain unvalidated (#74).
 
     Parameters
     ----------
@@ -107,10 +120,10 @@ def delta_F_from_composition(
 ) -> torch.Tensor:
     """Compute total GHG radiative forcing from atmosphere composition (W/m²).
 
-    Uses partial pressures (Pa) to derive mole-fraction concentrations (ppb),
-    then applies compound-specific RF efficiencies:
+    Composition stores column weights W_i = g M_i/A (Pa), not Dalton partial
+    pressures. Convert each weight to a molar inventory before normalization:
 
-        ppb_i  =  P_i / P_total × 10⁹
+        ppb_i  =  (W_i/MW_i) / Σ_j(W_j/MW_j) × 10⁹
         ΔF     =  Σ_i  η_i × ppb_i
 
     Only species present in the COMPOUNDS registry contribute — background
@@ -119,18 +132,26 @@ def delta_F_from_composition(
     Parameters
     ----------
     composition : dict[str, torch.Tensor]
-        Species → partial pressure (Pa), as stored in ``mars.atmosphere.composition``.
+        Species → column weight (Pa), as stored in ``mars.atmosphere.composition``.
     total_pressure : torch.Tensor
         Total atmospheric surface pressure (Pa).
     """
     from src.interventions.compounds import COMPOUNDS, get_compound
     device = total_pressure.device
     dF = torch.zeros((), dtype=TF_DTYPE, device=device)
-    for name, P_i in composition.items():
+    if not any(name in COMPOUNDS for name in composition):
+        return dF
+    molecular_weights = dict(_BACKGROUND_MW)
+    molecular_weights.update({name: value.molecular_weight_g_mol for name, value in COMPOUNDS.items()})
+    unknown = set(composition) - molecular_weights.keys()
+    if unknown:
+        raise ValueError(f"molecular weights unavailable for composition species: {sorted(unknown)}")
+    ppb = _molar_ppb({name: torch.as_tensor(value, dtype=TF_DTYPE, device=device)
+                      for name, value in composition.items()}, molecular_weights)
+    for name in composition:
         if name in COMPOUNDS:
-            ppb = P_i.to(device) / total_pressure * 1e9
             eta = get_compound(name).rf_efficiency_W_m2_ppb
-            dF = dF + eta * ppb
+            dF = dF + eta * ppb[name]
     return dF
 
 

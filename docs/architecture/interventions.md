@@ -60,7 +60,7 @@ ic.run(n_years=50)
 mars.thermal.surface_temperature         # K  — current surface temperature
 mars.thermal.greenhouse_factor           # —  — GHF incorporating all GHG forcing
 mars.atmosphere.surface_pressure         # Pa — current total pressure
-mars.atmosphere.composition["CF4"]       # Pa — CF4 partial pressure
+mars.atmosphere.composition["CF4"]       # Pa — CF4 column weight
 mars.water.ice_mass                      # kg — current ice mass
 mars.delta_F                             # W/m² — current total GHG forcing
 ```
@@ -71,7 +71,7 @@ Two methods on `Mars` mutate `atmosphere.composition` and immediately resync GHF
 
 ```python
 mars.inject({"CF4": kg})     # kg → Pa via M·g/A_surface; appended to composition
-mars.decay_ghg(dt_years=1.0) # P_i ← P_i × exp(-dt/τ) for all COMPOUNDS species
+mars.decay_ghg(dt_years=59356800 / (365.25 * 86400)) # P_i ← P_i × exp(-dt/τ) for all COMPOUNDS species
 ```
 
 Both methods call `_recompute_greenhouse_factor()` afterwards, so
@@ -118,7 +118,7 @@ state of its own:
 **Design principles:**
 
 - **One atmospheric representation.** Injected GHGs extend `atmosphere.composition`
-  — there is no separate GHG bookkeeper. Every gas is just a partial pressure.
+  — there is no separate GHG bookkeeper. Every gas is just a column weight.
 - **Atomic GHF sync.** Every inject or decay call immediately updates
   `mars.thermal.greenhouse_factor`. The ODE always sees a consistent state.
 - **Tensor-native.** All state lives on the same device as Mars (CPU or CUDA).
@@ -134,10 +134,9 @@ state of its own:
 
 Source: [`src.interventions.compounds`](../api/interventions.md)
 
-Seven super-greenhouse gases are registered. Radiative forcing efficiencies ($\eta$) are
-Mars-specific values from [Marinova et al. (2005)](https://doi.org/10.1029/2004JE002306),
-which differ from Earth IPCC values because Mars lacks water-vapour overlap bands
-and has a thinner CO₂ column.
+Seven super-greenhouse gases are registered. Radiative forcing efficiencies ($\eta$)
+are legacy linear sensitivity coefficients. Their attribution to Marinova Table 2 is
+unverified (#74); the numbers below are not validated Mars radiative efficiencies.
 
 | Name | Formula | MW (g/mol) | Lifetime $\tau$ (yr) | $\eta$ (W m⁻² ppb⁻¹) | GWP₁₀₀ |
 |------|---------|-----------|-------------------|--------------------|---------|
@@ -149,9 +148,7 @@ and has a thinner CO₂ column.
 | SF6 | Sulfur hexafluoride | 146.1 | 3 200 | 0.5700 | 23 900 |
 | NF3 | Nitrogen trifluoride | 71.0 | 500 | 0.2100 | 16 100 |
 
-**Lifetime choice:** Earth-reference (conservative/shorter) values are used.
-Mars UV flux is lower on average (greater Sun distance), so real lifetimes are
-likely longer. Using Earth values avoids over-estimating accumulation.
+**Lifetime choice:** Earth-reference lifetimes in Earth Julian years are explicit assumptions. Mars chemistry and shielding differ; reduced sunlight does not establish that lifetimes are longer or that Earth values are conservative. One Mars orbit is 1.88090349 Earth Julian years.
 
 **Why perfluorocarbons?** PFCs (CF4, C2F6, etc.) have extremely long atmospheric
 lifetimes (centuries to tens of thousands of years), very high GWP, and strong
@@ -164,23 +161,21 @@ per ppb of any registered compound ($\eta = 0.57$ W m⁻² ppb⁻¹).
 
 Source: [`src.interventions.forcing`](../api/interventions.md)
 
-Because injected GHGs live in `atmosphere.composition` as partial pressures (Pa),
-the mole-fraction concentration follows directly from [Dalton's Law](https://en.wikipedia.org/wiki/Dalton%27s_law):
+`atmosphere.composition` stores **column weights** $W_i=gM_i/A$ in Pa.
+These sum to surface pressure, but are not Dalton partial pressures for gases
+with different molecular weights. Convert all species before normalizing:
 
-$$C_i = \frac{P_i}{P_\text{total}} \times 10^9 \quad [\text{ppb}]$$
+$$C_i = \frac{W_i/MW_i}{\sum_j W_j/MW_j}\,10^9\quad[\text{ppb}].$$
 
-where $P_i$ is the partial pressure of compound $i$ (Pa) and $P_\text{total}$ is
-the total surface pressure (Pa) — both available as tensors on the Mars device.
+The mass-state API uses the same finite-mixture normalization, treating the
+untracked background as 43.45 g/mol. The composition API uses each background
+species' molecular weight. Existing serialized Pa values retain their column
+weight meaning; the legacy snapshot field `ghg_partial_pressure_Pa` retains its
+name for compatibility. Old forcing results must be regenerated.
 
-This is exact for ideal-gas mixtures and requires no molecular-weight
-approximation. The previous mass-based formula was an approximation
-that required hard-coding $\overline{MW}_\text{atm} = 43.45$ g/mol. The
-pressure-based formula is both simpler and more accurate.
-
-**Why ppb and not ppm?** Realistic injection rates over 50–100 year horizons
-produce concentrations in the ppb range. The linear forcing formula ([Section 4](#4-radiative-forcing-f))
-is valid at trace concentrations; ppm-scale would require the logarithmic
-correction used for CO₂ on Earth.
+**Why ppb?** The legacy coefficient units use molar ppb. This unit choice
+does not establish a validity range or justify extending a linear model to
+larger concentrations; use validated spectral calculations for that purpose.
 
 ---
 
@@ -188,26 +183,18 @@ correction used for CO₂ on Earth.
 
 Source: [`src.interventions.forcing`](../api/interventions.md)
 
-Total radiative forcing from all injected GHGs ([Marinova et al., 2005](https://doi.org/10.1029/2004JE002306)):
+Legacy linear sensitivity model for injected GHGs (coefficient audit #74 remains open):
 
 $$\Delta F = \sum_i \eta_i \cdot C_i \quad [\text{W\,m}^{-2}]$$
 
 where $\eta_i$ is the radiative forcing efficiency (W m⁻² ppb⁻¹) from the compound
 registry and $C_i$ is the ppb concentration from [Section 3](#3-atmospheric-concentration-ppb-formula).
 
-This is the **linear (optically thin) approximation**. It is appropriate for
-trace gases at concentrations below ~1 000 ppb. At these concentrations, forcing
-is proportional to concentration because the gas is not yet optically thick in
-its absorption bands.
+This is a **linear sensitivity approximation**, not a validated optical-depth
+model. A universal 1000 ppb threshold or 50–200 year validity range has not
+been established. CO₂ radiation is handled separately.
 
-For CO₂ itself (dominant, optically thick) the logarithmic formula applies — but
-CO₂ is not managed by this layer. The seven super-GHGs injected here remain in
-the trace regime over realistic 50–200 year horizons.
-
-**Additivity:** The $\eta_i$ values from Marinova (2005) are computed with all other
-species present at background levels. Spectral overlap between the super-GHGs is
-small (they absorb in different atmospheric windows), so the linear sum is a good
-approximation.
+**Additivity:** The linear sum is a sensitivity model. Spectral overlap, opacity saturation, coefficient provenance, and an applicable concentration range have not been validated for this registry. Do not interpret its temperatures or forcing as validated Mars predictions.
 
 ---
 
@@ -275,7 +262,7 @@ For $\Delta F = 50$ W m⁻² (moderate injection after ~10 years of CF4 + SF6):
 
 $$\text{GHF}_\text{new} = 1.02 \times (1 + 50/96.8)^{0.25} = 1.02 \times 1.517^{0.25} \approx 1.132$$
 
-For $\Delta F = 255$ W m⁻² (year-50 result of $1\times10^9$ kg/yr CF4 + $5\times10^8$ kg/yr SF6):
+For an assumed $\Delta F = 255$ W m⁻² (algebraic illustration, not a validated year-50 result):
 
 $$\text{GHF}_\text{new} = 1.02 \times (1 + 255/96.8)^{0.25} = 1.02 \times 3.634^{0.25} \approx 1.407$$
 
@@ -341,7 +328,7 @@ for year in 1 .. N:
      TimeController.run(duration=year_s)               ODE uses updated GHF for full year
 
   3. DECAY
-     mars.decay_ghg(dt_years=1.0)
+     mars.decay_ghg(dt_years=59356800 / (365.25 * 86400))
        → P_i ← P_i × exp(-1/τ_i)  for COMPOUNDS species in composition
        → _recompute_greenhouse_factor()                 GHF resynced
 
@@ -608,51 +595,32 @@ $$\text{GHF}_\text{new} = 1.02 \times (1 + 1738/97)^{0.25} \approx 2.13$$
 
 ## 13. Worked Numerical Example
 
-**Setup:** $1\times10^9$ kg/yr CF4 + $5\times10^8$ kg/yr SF6, $\Delta t = 3600$ s, 50 years.
+Use a **background mass** of 2.5×10¹⁶ kg with mean molecular weight
+43.45 g/mol. Inject 1×10⁹ kg CF4 and 5×10⁸ kg SF6; total mass includes
+both injected species. The common molar denominator is
 
-**Initial conditions** ($T_0 = 210$ K, $P_0 = 610$ Pa, $\text{GHF}_0 = 1.02$):
+`D = 2.5e16/43.45 + 1e9/88 + 5e8/146.1`.
 
-$$F_\text{in,base} = 0.95 \times 5.670\times10^{-8} \times (210/1.02)^4 \approx 96.8\;\text{W\,m}^{-2}$$
+| Quantity | Value |
+|---|---:|
+| CF4 concentration | 19.7500 ppb |
+| SF6 concentration | 5.9480 ppb |
+| Assumed linear forcing, 0.0880×CF4 + 0.5700×SF6 | 5.12835 W/m² |
+| Baseline OLR, 0.95 σ (210/1.02)⁴ | 96.8 W/m² (rounded) |
+| Algebraic GHF, 1.02 (1 + 5.12835/96.8)¼ | 1.03325 |
 
-**Year 1 — after injection, before physics run:**
+After 50 injections **ignoring decay and background evolution**, the same
+finite-mixture calculation gives CF4 ≈987.498 ppb and SF6 ≈297.399 ppb,
+and assumed linear forcing ≈256.417 W/m². These are arithmetic examples,
+not a 50-year climate run. Actual runs include decay over 1.88090349 Earth
+years per Mars orbit and a changing background. The former 0.0198/0.00594
+ppb values were about 1000 times too small; the subsequent “scales to”
+adjustment and old CLI temperatures are withdrawn.
 
-```
-CF4 mass         =  1.000×10⁹ kg
-SF6 mass         =  5.000×10⁸ kg
-Mars atm mass    ≈  2.5×10¹⁶ kg
-
-CF4 ppb  ≈  0.0198 ppb
-SF6 ppb  ≈  0.00594 ppb
-
-ΔF  =  0.0880 × 0.0198  +  0.5700 × 0.00594
-    ≈  0.00174  +  0.00339
-    ≈  0.00513 W/m²
-```
-
-$$\text{GHF}_\text{new} = 1.02 \times (1 + 0.00513/96.8)^{0.25} \approx 1.02001$$
-
-Small effect in year 1 — as expected for these rates.
-
-**Year 50 — cumulative CF4 mass $\approx 5\times10^{10}$ kg (decay negligible):**
-
-```
-CF4 ppb  ≈  0.990 ppb
-SF6 ppb  ≈  0.295 ppb
-
-ΔF  =  0.0880 × 0.990  +  0.5700 × 0.295
-    ≈  0.0871  +  0.1682
-    ≈  0.255 W/m²    (scales to 255 W/m² at actual injection rates)
-```
-
-**Observed CLI output (50-year run):**
-
-```
-years      50
-T (K)      225.5 K  →  289.6 K   ΔT = +64.1 K
-P (Pa)     705.1 Pa →  714.0 Pa  ΔP = +8.9 Pa
-ΔF final   255.08 W/m²
-GHF final  1.3256
-```
+The coefficients remain unverified sensitivity inputs (#74). Correct
+concentration arithmetic does not validate the forcing model or its
+concentration range. Reproduce the arithmetic with
+`package/tests/interventions/test_forcing.py`.
 
 ---
 
@@ -668,9 +636,9 @@ GHF final  1.3256
 
 ### Forcing regime
 
-The linear $\Delta F$ formula is valid while concentrations remain in the optically thin
-regime (<~1 000 ppb). At injection rates of $1\times10^9$ kg/yr, this limit is not
-reached within 50–100 year horizons for any of the seven registered compounds.
+The linear coefficient model has no verified universal concentration threshold
+or multi-year validity range. Its finite outputs are sensitivity calculations,
+not evidence of optical thinness or validated Mars climate response.
 
 ### GHF physical range
 
@@ -686,7 +654,7 @@ and positive $F_\text{in,base}$, GHF remains finite.
    Radiative-convective model of warming Mars with artificial greenhouse gases.
    *Journal of Geophysical Research: Planets*, 110, E03002.
    [https://doi.org/10.1029/2004JE002306](https://doi.org/10.1029/2004JE002306)
-   — Source for all 7 compound RF efficiencies ($\eta$ values, Table 2).
+   — Relevant Mars greenhouse-gas study; not a verified source for all seven registry efficiencies.
 
 2. **IPCC AR5 (2013) / AR6 (2021)**. Global Warming Potential values (GWP₁₀₀)
    and Earth-reference atmospheric lifetimes for PFCs, SF6, NF3.

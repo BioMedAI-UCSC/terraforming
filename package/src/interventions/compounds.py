@@ -1,10 +1,8 @@
 """GHG compound registry for Mars terraforming interventions.
 
-Radiative forcing efficiencies are from Marinova et al. (2005),
-"Radiative-convective model of warming Mars with artificial greenhouse gases",
-Journal of Geophysical Research, Table 2.  Mars-specific values differ from
-Earth (IPCC AR6) because Mars lacks water-vapour overlap bands and has a
-thinner CO₂ column.
+The retained linear radiative efficiencies are legacy sensitivity coefficients.
+Their former attribution to all seven gases in Marinova et al. (2005), Table 2,
+is unverified (#74). They must not be cited as validated Mars forcing data.
 
 Atmospheric lifetimes are from IPCC AR5/AR6 and Ravishankara et al. (1993).
 """
@@ -23,11 +21,11 @@ class CompoundProperties:
     molecular_weight_g_mol : float
         Molecular weight in g/mol.
     atmospheric_lifetime_yr : float
-        First-order e-folding decay lifetime (years).  On Mars, photolysis
-        and chemistry are slower than on Earth, so lifetimes are longer.
+        First-order e-folding decay lifetime in Earth Julian years, used as
+        an explicit Earth-reference assumption, not a measured Mars lifetime.
     rf_efficiency_W_m2_ppb : float
         Radiative forcing efficiency in W m⁻² per ppb (mixing ratio).
-        Marinova 2005 Mars-specific values.
+        Legacy sensitivity coefficient; primary-source/domain audit pending.
     gwp100 : float
         Global Warming Potential relative to CO₂ over 100 years (Earth-based
         reference, provided for familiarity).
@@ -46,7 +44,7 @@ class CompoundProperties:
 # Registry — keys are canonical IUPAC/common names used throughout the system
 # ---------------------------------------------------------------------------
 #
-# Mars radiative forcing efficiencies (Marinova 2005, Table 2):
+# Legacy radiative forcing sensitivity coefficients (source audit pending #74):
 #   CF4    0.0880 W/m²/ppb
 #   C2F6   0.2600 W/m²/ppb
 #   C3F8   0.2400 W/m²/ppb
@@ -55,10 +53,8 @@ class CompoundProperties:
 #   C4F10  0.3600 W/m²/ppb
 #   C6F14  0.4900 W/m²/ppb
 #
-# Atmospheric lifetimes on Mars are extended relative to Earth because the
-# UV flux reaching the surface is lower on average (greater distance from Sun).
-# We use conservative (shorter) Earth-reference lifetimes for safety; the
-# system can be parameterised with updated values as data improve.
+# Earth-reference lifetimes are assumptions; reduced sunlight alone does not
+# establish the sign or magnitude of Mars photochemical lifetime changes.
 
 COMPOUNDS: dict[str, CompoundProperties] = {
     "CF4": CompoundProperties(
