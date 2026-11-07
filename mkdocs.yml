@@ -111,6 +111,9 @@ nav:
   - CLI & Comparisons:
       - Commands: cli/commands.md
       - Reference comparisons: cli/reference-comparison.md
+  - Deployments:
+      - Overview: deployments/index.md
+      - Nautalis: deployments/nautalis.md
   - Wiki:
       - Orbital Mechanics: wiki/orbital-mechanics.md
       - Solar Radiation: wiki/solar-radiation.md
