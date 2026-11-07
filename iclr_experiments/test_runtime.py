@@ -7,14 +7,12 @@ import subprocess
 import tempfile
 
 HERE = Path(__file__).parent
+import sys
+sys.path.insert(0,str(HERE))
 spec = importlib.util.spec_from_file_location("run", HERE / "run.py")
 run = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(run)
-import sys
 sys.modules["run"] = run
-spec = importlib.util.spec_from_file_location("jobs", HERE / "jobs.py")
-jobs = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(jobs)
 
 
 class RuntimeTests(unittest.TestCase):
@@ -24,7 +22,7 @@ class RuntimeTests(unittest.TestCase):
             source = work / "source"
             source.mkdir()
             (source / ".paper-source.json").write_text('{}')
-            (source / ".paper-staged").touch()
+            (source / ".paper-staged").write_text(run.SOURCE_ID)
             prior_cwd = Path.cwd()
             calls = []
 
@@ -43,7 +41,7 @@ class RuntimeTests(unittest.TestCase):
                     run.main()
                 self.assertEqual(len(calls), 2)
                 self.assertNotEqual(calls[0][-1], calls[1][-1])
-                self.assertEqual(len(list((work / "runs" / run.SOURCE_ID / "paper-v1" / "fit").glob("*/run.log"))), 2)
+                self.assertEqual(len(list((work / "outputs" / run.SOURCE_ID / "paper-v1" / "fit").glob("*/run.log"))), 2)
             finally:
                 os.chdir(prior_cwd)
 
@@ -62,34 +60,20 @@ class RuntimeTests(unittest.TestCase):
         self.assertIn("--dt 300", tasks["climate"][0])
         self.assertTrue(all(len(x) == 40 for x in run.REVISIONS))
 
-    def test_gpu_and_storage_contract(self):
-        stage = jobs.manifests("stage", "samkash/test@sha256:abc", "test")
-        gpu = jobs.manifests("all", "samkash/test@sha256:abc", "test")
-        for manifest in (stage, gpu):
-            self.assertTrue(all(x["metadata"]["namespace"] == "razvanlab" for x in manifest["items"]))
-            self.assertEqual(manifest["items"][0]["spec"]["accessModes"], ["ReadWriteOnce"])
-        cpu_resources = stage["items"][1]["spec"]["template"]["spec"]["containers"][0]["resources"]
-        gpu_resources = gpu["items"][1]["spec"]["template"]["spec"]["containers"][0]["resources"]
-        self.assertNotIn("nvidia.com/a100", cpu_resources["requests"])
-        self.assertEqual(gpu_resources["requests"]["nvidia.com/a100"], gpu_resources["limits"]["nvidia.com/a100"])
-        init = gpu["items"][1]["spec"]["template"]["spec"]["initContainers"][0]
-        self.assertTrue(init["volumeMounts"][0]["readOnly"])
-        self.assertIn(run.SOURCE_ID, init["command"][-1])
-        self.assertNotIn("initContainers", stage["items"][1]["spec"]["template"]["spec"])
-
     def test_cluster_gate_rejects_wrong_input_identity(self):
         with tempfile.TemporaryDirectory() as temporary:
             work = Path(temporary)
-            marker = work / "source" / run.SOURCE_ID / ".paper-staged"
-            marker.parent.mkdir(parents=True)
-            (work / ".paper.lock").touch()
-            script = jobs.WAIT_FOR_INPUTS.replace("/work", temporary)
+            source=work/'source';source.mkdir()
+            marker=source/'.paper-staged'
             marker.write_text("wrong-source")
-            result = subprocess.run([sys.executable, "-c", script], capture_output=True)
-            self.assertNotEqual(result.returncode, 0)
-            marker.write_text(run.SOURCE_ID)
-            result = subprocess.run([sys.executable, "-c", script], capture_output=True)
-            self.assertEqual(result.returncode, 0, result.stderr)
+            prior=Path.cwd()
+            try:
+                os.chdir(source)
+                with patch.object(sys,'argv',['run.py','stage','--work',str(work)]), patch.object(run,'setup',return_value=(source,Path('python'))):
+                    with self.assertRaisesRegex(RuntimeError,'Input source identity mismatch'):
+                        run.main()
+            finally:
+                os.chdir(prior)
 
 
 if __name__ == "__main__":

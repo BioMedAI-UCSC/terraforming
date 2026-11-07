@@ -1,10 +1,10 @@
-name: Paper cluster runtime
+name: Nautalis experiment runtime
 on:
   pull_request:
-    paths: ['apps/paper-experiments/**', '.github/workflows/paper-experiments.yml']
+    paths: ['apps/nautalis/**', 'iclr_experiments/**', '.github/workflows/paper-experiments.yml']
   push:
     branches: [main]
-    paths: ['apps/paper-experiments/**', '.github/workflows/paper-experiments.yml']
+    paths: ['apps/nautalis/**', 'iclr_experiments/**', '.github/workflows/paper-experiments.yml']
 permissions:
   contents: read
 jobs:
@@ -15,4 +15,5 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: python apps/paper-experiments/test_runtime.py
+      - run: python apps/nautalis/test_runtime.py
+      - run: python iclr_experiments/test_runtime.py
