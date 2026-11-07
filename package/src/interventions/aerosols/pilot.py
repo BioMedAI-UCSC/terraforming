@@ -1,6 +1,7 @@
 """A reproducible flat-Mars screening setup shared by command/server clients."""
 import dataclasses
 import hashlib
+import json
 from pathlib import Path
 from importlib.resources import files
 import numpy as np
@@ -61,6 +62,7 @@ def prepare(*,material='aluminium',mode='passive',dt_s=60.,n_layers=12,
     table=rod_table(particle);bands=make_band_table(table,particle) if mode=='active' else None
     step=coupled_step(coords,specs,BODY,forcing,mars_gcm.co2_forcing(),particle,sources,options,bands=bands)
     asset=files('src.interventions.aerosols').joinpath('assets/manifest.json').read_bytes()
+    contract=files('src.interventions.aerosols').joinpath('assets/physics_contract.json').read_bytes()
     configuration=dict(schema=2,body=dataclasses.asdict(BODY),particle=particle.as_dict(),
         options=dataclasses.asdict(options),sources=[dataclasses.asdict(s) for s in sources],
         truncation=truncation,n_layers=n_layers,forcing=dataclasses.asdict(forcing),
@@ -69,5 +71,7 @@ def prepare(*,material='aluminium',mode='passive',dt_s=60.,n_layers=12,
         start_contract=start_contract,initial_climate_sha256=start_hash,
         initial_absolute_sim_time_nd=float(climate.dynamics.sim_time),
         initial_burden_kg_m2=initial_burden_kg_m2,asset_manifest_sha256=hashlib.sha256(asset).hexdigest(),
+        physics_contract_sha256=hashlib.sha256(contract).hexdigest(),
+        model_assumptions=json.loads(contract)['model_assumptions'],
         terrain='flat screening pilot',surface_emissivity=1.,baseline_readiness='unverified')
     return state,step,dict(coords=coords,specs=specs,body=BODY,particle=particle,configuration=configuration)

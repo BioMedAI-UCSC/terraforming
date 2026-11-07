@@ -104,10 +104,10 @@ def collision_kernels(particle,pivots_kg,temperature_k,pressure_pa,gravity_m_s2,
     charges=np.broadcast_to(np.asarray(charges_e,dtype=float),pivots.shape)
     if not np.all(np.isfinite(charges)):
         raise ValueError('finite per-bin particle charges required')
-    if not 100<=temperature_k<=350 or not 1<=pressure_pa<=2000 or not math.isfinite(gravity_m_s2) or gravity_m_s2<=0:
-        raise ValueError('kernel inputs lie outside the declared Mars screening domain')
-    if not 0<=sticking_efficiency<=1 or not 0<=settling_efficiency<=1 or not 1.5<=fractal_dimension<=3:
-        raise ValueError('efficiencies must lie in [0,1] and morphology dimension in [1.5,3]')
+    if not all(math.isfinite(x) and x>0 for x in (temperature_k,pressure_pa,gravity_m_s2)):
+        raise ValueError('kernel temperature, pressure and gravity must be finite and positive')
+    if not 0<=sticking_efficiency<=1 or not 0<=settling_efficiency<=1 or not 1<=fractal_dimension<=3:
+        raise ValueError('efficiencies must lie in [0,1] and morphology dimension between a chain (1) and compact volume (3)')
     if settling_efficiency and np.any(charges!=0):
         raise ValueError('charged differential-settling capture requires a supplied validated force law')
     if not np.isclose(pivots[0],particle.mass_kg,rtol=1e-12,atol=0):

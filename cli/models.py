@@ -96,7 +96,7 @@ class AerosolConfig(BaseModel):
     initial_climate: str | None = None
     mode: Literal['off','passive','active'] = 'passive'
     duration_s: float = Field(default=88775.244,gt=0)
-    dt_s: float = Field(default=60.,gt=0,le=300)
+    dt_s: float = Field(default=60.,gt=0,allow_inf_nan=False)
     n_layers: int = Field(default=12,ge=2,le=40)
     truncation: Literal['T21','T42','T85'] = 'T21'
     initial_burden_kg_m2: float = Field(default=0.,ge=0)

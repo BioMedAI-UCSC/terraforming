@@ -3,7 +3,7 @@ import numpy as np
 from src.framework.gcm._dinosaur import jnp,scales
 from src.framework.gcm.dynamics import reference_temperature
 from src.framework.physics.gcm import (
-    column_radiative_fluxes,cos_zenith_nodal,solar_flux,solar_path_cosine_nodal,dust_optical_depths)
+    column_radiative_fluxes,cos_zenith_nodal,solar_flux,solar_path_factor_nodal,dust_optical_depths)
 from .state import MASS
 from .transport import gas_layer_mass
 
@@ -32,8 +32,7 @@ def radiation_component(bands,forcing):
         optics={k:jnp.where(valid,v,jnp.nan) for k,v in optics.items()}
         time=state.dynamics.sim_time/float(specs.nondimensionalize(1.*scales.units.second))
         cz=cos_zenith_nodal(time,grid.latitudes,grid.longitudes,f)
-        path=(1/jnp.clip(solar_path_cosine_nodal(time,grid.latitudes,grid.longitudes,f),.05,1.)
-              if f.solar_slant_path_enabled else jnp.ones_like(cz))
+        path=solar_path_factor_nodal(time,grid.latitudes,grid.longitudes,f)
         visible,longwave=dust_optical_depths(time,f)
         return column_radiative_fluxes(air,state.surface_temperature[0],ps,solar_flux(time,f)*cz,path,
             visible,longwave,coords.vertical.boundaries,body,f,aerosol_optics=optics)

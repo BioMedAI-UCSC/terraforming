@@ -46,8 +46,8 @@ def plan(args):
     if not (math.isfinite(args.sols) and args.sols > 0 and
             math.isfinite(args.spinup_sols) and args.spinup_sols > 0):
         raise ValueError("experiment and spinup sols must be finite and positive")
-    if not math.isfinite(args.dt) or not 0 < args.dt <= 300:
-        raise ValueError("dt must be in (0, 300] seconds")
+    if not math.isfinite(args.dt) or args.dt <= 0:
+        raise ValueError("dt must be finite and positive; stability requires timestep refinement")
     if not 2 <= args.layers <= 40:
         raise ValueError("layers must be between 2 and 40")
     output = args.output.resolve()
@@ -68,7 +68,7 @@ def plan(args):
         ("shutdown_2l_s", 0., 2., duration / 2, None),
     ):
         source = [] if rate == 0 else [dict(start_s=0., stop_s=stop, rate=rate, unit="L/s")]
-        cfg = dict(planet=dict(surface_temperature=210., surface_pressure=610., initial_ls_deg=0.),
+        cfg = dict(planet=dict(surface_temperature=210., surface_pressure=610., albedo=.25, initial_ls_deg=0.),
                    intervention=dict(aerosol=dict(common, initial_burden_kg_m2=burden, sources=source)))
         cases.append(dict(name=name, configuration=cfg, expected_warming_k=warming,
                           expectation_kind="greater_than" if rate == 60 else "approximately",
@@ -411,12 +411,13 @@ def main():
     planner = commands.add_parser("plan", help="Write a suite without importing JAX or running a model")
     planner.add_argument("--output", type=Path, required=True)
     planner.add_argument("--sols", type=float, default=10.)
-    planner.add_argument("--spinup-sols", type=float, default=10.)
+    planner.add_argument("--spinup-sols", type=float, required=True,
+                         help="Explicit integration duration; does not establish climate equilibration")
     planner.add_argument("--dt", type=float, default=60.)
     planner.add_argument("--layers", type=int, default=12)
     planner.add_argument("--truncation", choices=["T21", "T42", "T85"], default="T21")
     planner.add_argument("--material", choices=["aluminium", "iron"], default="aluminium")
-    planner.add_argument("--lifetime-year", choices=["earth", "mars"], default="earth",
+    planner.add_argument("--lifetime-year", choices=["earth", "mars"], required=True,
                          help="Explicit year convention for the assumed-lifetime comparison curve")
     runner = commands.add_parser("run", help="Run or resume the planned spinup and selected cases")
     runner.add_argument("--output", type=Path, required=True)

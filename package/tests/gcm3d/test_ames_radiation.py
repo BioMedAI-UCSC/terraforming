@@ -70,3 +70,18 @@ def test_channel_weights_preserve_each_spectral_band():
     for key in ("clear_fraction_sw", "clear_fraction_ir"):
         weights = np.asarray(ames_radiation.channel_weights(data[key]))
         assert np.allclose(weights.sum(axis=1), 1.0)
+
+
+@pytest.mark.parametrize('temperature,pressure',[(49.,610.),(351.,610.),(200.,1e-5),(200.,1e7)])
+def test_gas_lookup_does_not_silently_clamp_outside_source_axes(temperature,pressure):
+    sw,ir=jax.jit(ames_radiation.correlated_k_optical_depths)(
+        jnp.full((1,1,1),temperature),jnp.full((1,1,1),pressure),jnp.ones((1,1,1)))
+    assert np.isnan(np.asarray(sw[:, :-1])).all()
+    assert np.isnan(np.asarray(ir[:, :-1])).all()
+
+
+def test_cold_source_supported_radiation_and_planck_lookup_bounds():
+    sw,ir=ames_radiation.correlated_k_optical_depths(
+        jnp.full((1,1,1),80.),jnp.full((1,1,1),.1),jnp.ones((1,1,1)))
+    assert np.isfinite(sw).all() and np.isfinite(ir).all()
+    assert np.isnan(ames_radiation.planck_band_fractions(jnp.array([49.,401.]))).all()

@@ -334,6 +334,14 @@ def solar_path_cosine_nodal(t_s, lat_rad, lon_rad, f: RadiativeForcing):
     return jnp.broadcast_to(effective[None, :], (n_lon, effective.shape[0]))
 
 
+def solar_path_factor_nodal(t_s, lat_rad, lon_rad, f: RadiativeForcing):
+    """Plane-parallel secant path; darkness has zero incident flux and no singularity."""
+    mu = solar_path_cosine_nodal(t_s, lat_rad, lon_rad, f)
+    if not f.solar_slant_path_enabled:
+        return jnp.ones_like(mu)
+    return 1.0 / jnp.where(mu > 0.0, mu, 1.0)
+
+
 class ColumnPhysicsState(NamedTuple):
     """JAX-pytree state for the dycore plus non-advected surface reservoirs.
 
@@ -541,17 +549,7 @@ def two_stream_radiative_fluxes(
     t_s = dyn.sim_time * time_scale_s
     cz = cos_zenith_nodal(t_s, grid.latitudes, grid.longitudes, f)
     incoming = solar_flux(t_s, f) * cz
-    # Convert vertical optical depth to the direct-beam slant path. A small
-    # lower bound is immaterial in darkness (incoming is zero) and prevents
-    # singular paths at the terminator.
-    solar_path_factor = (
-        1.0 / jnp.clip(
-            solar_path_cosine_nodal(t_s, grid.latitudes, grid.longitudes, f),
-            0.05,
-            1.0,
-        )
-        if f.solar_slant_path_enabled else jnp.ones_like(cz)
-    )
+    solar_path_factor = solar_path_factor_nodal(t_s, grid.latitudes, grid.longitudes, f)
     dust_visible, dust_longwave = dust_optical_depths(t_s, f)
     if surface_pressure_pa is None:
         ps_nd = jnp.exp(grid.to_nodal(dyn.log_surface_pressure))[0]

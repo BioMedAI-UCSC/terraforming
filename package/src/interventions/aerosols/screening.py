@@ -91,7 +91,7 @@ def lifetime_screen(particle,*,horizon_s,dt_s,column_mass_kg_m2,mixing_depth_m,
         year_s=float(MARS_ORBITAL_PERIOD)
     else: raise ValueError('choose earth_julian or mars_orbital explicitly; the roadmap year is ambiguous')
     if not isinstance(max_monomers,int) or not 4<=max_monomers<=128: raise ValueError('size grid must have 4..128 monomer-mass pivots')
-    if not 0<max_unresolved_mass_fraction<=.01: raise ValueError('unresolved mass tolerance must be in (0,.01]')
+    if not 0<max_unresolved_mass_fraction<=1: raise ValueError('unresolved mass tolerance must be a fraction in (0,1]')
     if removal_mode not in ('resolved','prescribed'): raise ValueError('unknown removal mode')
     if removal_mode=='prescribed':
         if prescribed_lifetime_s is None or not math.isfinite(prescribed_lifetime_s) or prescribed_lifetime_s<=0 or not prescribed_source:
@@ -106,7 +106,7 @@ def lifetime_screen(particle,*,horizon_s,dt_s,column_mass_kg_m2,mixing_depth_m,
     if not math.isfinite(initial_mass) or initial_mass<=np.finfo(float).tiny:
         raise ValueError('pulse density is outside numeric range')
     dust_density=0. if collector is None else collector.number_m3*(4*math.pi/3*collector.radius_m**3*collector.density_kg_m3)
-    if (initial_mass+dust_density)/gas_density>particle.max_mass_loading:
+    if particle.max_mass_loading is not None and (initial_mass+dust_density)/gas_density>particle.max_mass_loading:
         raise ValueError('pulse exceeds dilute particle loading')
     pivots=particle.mass_kg*np.arange(1.,max_monomers+1.)
     brownian,settling=collision_kernels(particle,pivots,temperature_k,pressure_pa,gravity_m_s2,
@@ -197,6 +197,9 @@ def lifetime_screen(particle,*,horizon_s,dt_s,column_mass_kg_m2,mixing_depth_m,
             monomer_source=particle.source,temperature_k=temperature_k,pressure_pa=pressure_pa,mixing_depth_m=mixing_depth_m,
             charge_e=charge_e,sticking_efficiency=sticking_efficiency,fractal_dimension=fractal_dimension,
             parameter_status='selected sensitivity assumptions, not measured Mars constants',
+            initial_particle_mass_loading=(initial_mass+dust_density)/gas_density,
+            max_mass_loading=particle.max_mass_loading,
+            loading_assumption='dilute fixed gas without particle backreaction; no validated numerical loading threshold',
             charge_model='same fixed charge on every aggregate; no inferred charge distribution',
             aggregate_mobility='effective radius ~ monomer count**(1/D), continuum/Epstein screening interpolation',
             aggregate_optics='not supplied; no aggregate warming prediction',

@@ -9,6 +9,8 @@ from src.framework.gcm._dinosaur import jnp
 # Arrays run long-to-short wavelength, matching the staged gas channels.
 SW_EDGES_UM=np.array([4.5,3.24,2.48,1.86,1.31,.8,.4,.24])
 LW_EDGES_UM=np.array([1000.,60.,24.,12.,8.,4.5])
+# IAU 2015 Resolution B3 nominal solar effective temperature; blackbody is an approximation.
+SOLAR_TEMPERATURE_K=5772.
 
 
 def planck_lambda(wavelength_m,temperature_k):
@@ -47,18 +49,28 @@ class BandTable:
         values=[]
         for component in range(3):
             values.append(jnp.stack([jnp.interp(temperature_k,jnp.asarray(self.temperatures_k),
-                jnp.asarray(self.lw[:,component,band])) for band in range(self.lw.shape[-1])]))
+                jnp.asarray(self.lw[:,component,band]),left=jnp.nan,right=jnp.nan) for band in range(self.lw.shape[-1])]))
         lw=jnp.stack(values)*burden_kg_m2[None,None]
         return dict(sw_extinction=sw[0]+sw[1],sw_scattering=sw[1],sw_scattering_g=sw[2],
                     lw_extinction=lw[0]+lw[1],lw_scattering=lw[1],lw_scattering_g=lw[2])
 
 
-def make_band_table(table,particle,*,tail='source_constant',temperature_min_k=100.,temperature_max_k=350.,temperature_step_k=5.):
-    temperatures=np.arange(temperature_min_k,temperature_max_k+temperature_step_k/2,temperature_step_k)
-    sw=np.stack([integrate_band(table,b*1e-6,a*1e-6,6000.,tail=tail) for a,b in zip(SW_EDGES_UM[:-1],SW_EDGES_UM[1:])],axis=1)/particle.mass_kg
+def make_band_table(table,particle,*,tail='source_constant',temperature_min_k=None,temperature_max_k=None,temperature_step_k=5.):
+    from .validity import radiation_limits
+    domain=radiation_limits()['air_temperature_k']
+    temperature_min_k=domain[0] if temperature_min_k is None else temperature_min_k
+    temperature_max_k=domain[1] if temperature_max_k is None else temperature_max_k
+    if not all(np.isfinite(x) for x in (temperature_min_k,temperature_max_k,temperature_step_k)) or not 0<temperature_min_k<temperature_max_k or temperature_step_k<=0:
+        raise ValueError('finite positive temperature grid with increasing bounds required')
+    temperatures=np.linspace(temperature_min_k,temperature_max_k,
+        int(np.ceil((temperature_max_k-temperature_min_k)/temperature_step_k))+1)
+    sw=np.stack([integrate_band(table,b*1e-6,a*1e-6,SOLAR_TEMPERATURE_K,tail=tail) for a,b in zip(SW_EDGES_UM[:-1],SW_EDGES_UM[1:])],axis=1)/particle.mass_kg
     lw=np.array([np.stack([integrate_band(table,b*1e-6,a*1e-6,t,tail=tail)
                    for a,b in zip(LW_EDGES_UM[:-1],LW_EDGES_UM[1:])],axis=1) for t in temperatures])/particle.mass_kg
     return BandTable(temperatures,sw,lw,dict(source=table.provenance,tail=tail,
         band_order='Ames: seven SW and five LW; no Earth RRTMGP band defaults',
         units='absorption/scattering/scattering*g in m2/kg',temperature_k=[temperature_min_k,temperature_max_k],
+        temperature_domain_basis='Ames gas-opacity table coverage; not a validated material temperature range',
+        solar_weighting=dict(temperature_k=SOLAR_TEMPERATURE_K,source='IAU 2015 Resolution B3',
+            approximation='blackbody within each Ames solar band, not a measured solar spectrum'),
         optical_constants='temperature-independent source simulation; Planck weights vary with temperature'))

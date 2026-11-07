@@ -168,6 +168,14 @@ class TestCosZenith:
         assert np.all(path_cosine > 0.0)
         assert np.all(path_cosine <= 1.0)
 
+    def test_solar_path_has_no_arbitrary_twenty_atmosphere_cap(self,monkeypatch):
+        monkeypatch.setattr(physics,'solar_path_cosine_nodal',
+            lambda *args:jnp.array([[.001,0.,.5]]))
+        forcing=dataclasses.replace(mars_gcm.radiative_forcing(),solar_slant_path_enabled=True)
+        path=physics.solar_path_factor_nodal(0.,None,None,forcing)
+        np.testing.assert_allclose(path,[[1000.,1.,2.]])
+        assert np.isfinite(path).all()
+
 
 # ── radiative_heating_tendency ────────────────────────────────────────────────
 

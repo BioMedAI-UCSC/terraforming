@@ -17,13 +17,15 @@ class ParticleSpec:
     source: str = ""
     production_energy_j_kg: float | None = None
     accommodation: float = 1.0 + math.pi / 8.0
-    max_mass_loading: float = 1e-3
+    max_mass_loading: float | None = None
 
     def __post_init__(self):
-        for name in ("density_kg_m3", "length_m", "width_m", "height_m", "max_mass_loading"):
+        for name in ("density_kg_m3", "length_m", "width_m", "height_m"):
             value = getattr(self, name)
             if not math.isfinite(value) or value <= 0:
                 raise ValueError(f"{name} must be finite and positive")
+        if self.max_mass_loading is not None and (not math.isfinite(self.max_mass_loading) or self.max_mass_loading<=0):
+            raise ValueError('user-selected mass loading limit must be finite and positive')
         if self.shape not in ("rod", "sphere", "disk"):
             raise ValueError("shape must be rod, sphere or disk")
         if not self.name or not self.source:

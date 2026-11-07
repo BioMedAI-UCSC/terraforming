@@ -3,6 +3,14 @@ import math
 import numpy as np
 
 
+def radiation_limits():
+    """Interpolation coverage of the staged Ames data, not measured model validity."""
+    from src.framework.physics.ames_radiation import load_ames_co2_tables
+    data=load_ames_co2_tables()
+    return dict(air_temperature_k=[float(data['temperature_k'][0]),float(data['temperature_k'][-1])],
+                layer_pressure_pa=[float(data['pressure_mbar'][0])*100.,float(data['pressure_mbar'][-1])*100.])
+
+
 def json_safe(value):
     """Keep nonfinite failure data serializable, with reasons recorded separately."""
     if isinstance(value, dict):
@@ -27,13 +35,16 @@ def explain_arrays(air_k, pressure_pa, mass, number, gas, *, max_mass_loading,
                          ("particle_mass", mass), ("particle_number", number), ("gas_mass", gas)):
         if not np.all(np.isfinite(values)):
             reasons.append(f"nonfinite_{name}")
-    if np.any(air_k < 100.): reasons.append("air_temperature_below_100_k")
-    if np.any(air_k > 350.): reasons.append("air_temperature_above_350_k")
-    if np.any(pressure_pa < 1.): reasons.append("layer_pressure_below_1_pa")
-    if np.any(pressure_pa > 2000.): reasons.append("layer_pressure_above_2000_pa")
+    limits=radiation_limits()
+    if np.any(air_k < limits['air_temperature_k'][0]): reasons.append("air_temperature_below_radiation_table")
+    if np.any(air_k > limits['air_temperature_k'][1]): reasons.append("air_temperature_above_radiation_table")
+    if np.any(pressure_pa < limits['layer_pressure_pa'][0]): reasons.append("layer_pressure_below_radiation_table")
+    if np.any(pressure_pa > limits['layer_pressure_pa'][1]): reasons.append("layer_pressure_above_radiation_table")
+    if np.any(gas<=0.): reasons.append("nonpositive_gas_mass")
+    if np.any(mass<0.): reasons.append("negative_particle_mass")
     with np.errstate(divide="ignore", invalid="ignore"):
         loading = mass / gas
-    if np.any(loading > max_mass_loading): reasons.append("particle_mass_loading_exceeded")
+    if max_mass_loading is not None and np.any(loading > max_mass_loading): reasons.append("particle_mass_loading_exceeded")
     if np.any(number < 0.): reasons.append("negative_particle_number")
 
     def extrema(values):
@@ -52,5 +63,5 @@ def explain_arrays(air_k, pressure_pa, mass, number, gas, *, max_mass_loading,
     return dict(reasons=reasons, air_temperature_k=extrema(air_k),
                 layer_pressure_pa=extrema(pressure_pa), particle_mass_loading=extrema(loading),
                 minimum_particle_number=float(np.min(number)) if np.all(np.isfinite(number)) else None,
-                limits=dict(air_temperature_k=[100., 350.], layer_pressure_pa=[1., 2000.],
-                            max_particle_mass_loading=max_mass_loading))
+                limits=dict(limits,max_particle_mass_loading=max_mass_loading),
+                limit_basis='Ames gas-opacity interpolation axes; optional user-selected loading criterion')

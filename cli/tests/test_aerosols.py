@@ -23,6 +23,9 @@ def test_real_cli_adapter_source_and_restart(tmp_path):
     report=run(config,PlanetConfig(),tmp_path/'first',callback=lambda r,f:reports.append((r,f)))
     assert report['injected_mass_kg']==pytest.approx(40.)
     assert report['status']=='completed'
+    archived=json.loads((tmp_path/'first'/'configuration.json').read_text())
+    assert len(archived['physics_contract_sha256'])==64
+    assert 'particle_feedback' in archived['model_assumptions']
     assert 'aerosol_burden' in reports[0][1]['maps']
     second=run(config.model_copy(update={'duration_s':10}),PlanetConfig(),tmp_path/'second',
         resume=tmp_path/'first'/'restart.npz')

@@ -52,9 +52,10 @@ def _interp2_log_table(table, temperature_axis, pressure_axis, temperature_k,
     """Bilinear interpolation of log10(k) on T and log10-pressure axes."""
     t_axis = jnp.asarray(temperature_axis)
     p_axis = jnp.log10(jnp.asarray(pressure_axis))
-    t = jnp.clip(temperature_k, t_axis[0], t_axis[-1])
-    p = jnp.clip(jnp.log10(jnp.clip(pressure_mbar, 1.0e-12, None)),
-                 p_axis[0], p_axis[-1])
+    t = jnp.asarray(temperature_k)
+    p = jnp.log10(jnp.asarray(pressure_mbar))
+    supported = ((t >= t_axis[0]) & (t <= t_axis[-1]) &
+                 (p >= p_axis[0]) & (p <= p_axis[-1]))
     it = jnp.clip(jnp.searchsorted(t_axis, t, side="right") - 1, 0, t_axis.size - 2)
     ip = jnp.clip(jnp.searchsorted(p_axis, p, side="right") - 1, 0, p_axis.size - 2)
     ft = (t - t_axis[it]) / (t_axis[it + 1] - t_axis[it])
@@ -62,10 +63,11 @@ def _interp2_log_table(table, temperature_axis, pressure_axis, temperature_k,
     values = jnp.asarray(table)
     v00, v10 = values[it, ip], values[it + 1, ip]
     v01, v11 = values[it, ip + 1], values[it + 1, ip + 1]
-    return ((1.0 - ft)[..., None, None] *
+    interpolated = ((1.0 - ft)[..., None, None] *
             ((1.0 - fp)[..., None, None] * v00 + fp[..., None, None] * v01)
             + ft[..., None, None] *
             ((1.0 - fp)[..., None, None] * v10 + fp[..., None, None] * v11))
+    return jnp.where(supported[..., None, None], interpolated, jnp.nan)
 
 
 def correlated_k_optical_depths(temperature_k, pressure_mid_pa, delta_pressure_pa):
@@ -102,8 +104,9 @@ def planck_band_fractions(temperature_k):
     data = load_ames_co2_tables_jax()
     axis = data["planck_temperature_k"]
     values = data["planck_fraction_ir"]
-    t = jnp.clip(temperature_k, axis[0], axis[-1])
+    t = jnp.asarray(temperature_k)
     index = jnp.clip(jnp.searchsorted(axis, t, side="right") - 1, 0, axis.size - 2)
     fraction = (t - axis[index]) / (axis[index + 1] - axis[index])
     result = values[index] + fraction[..., None] * (values[index + 1] - values[index])
+    result = jnp.where(((t >= axis[0]) & (t <= axis[-1]))[..., None], result, jnp.nan)
     return jnp.moveaxis(result, -1, 0)

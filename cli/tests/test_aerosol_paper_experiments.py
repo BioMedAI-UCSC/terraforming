@@ -77,3 +77,13 @@ def test_damping_configuration_rejects_nonpositive_timescale():
     from cli.models import AerosolConfig
     with pytest.raises(ValueError):
         AerosolConfig(hyperdiffusion_tau_seconds=0.)
+
+
+@pytest.mark.parametrize('options',[
+    ['--spinup-sols','1'],['--lifetime-year','earth']])
+def test_planner_requires_explicit_spinup_and_year_convention(tmp_path,monkeypatch,options):
+    monkeypatch.setattr('sys.argv',['aerosol','plan','--output',str(tmp_path),*options])
+    with pytest.raises(SystemExit) as error:
+        experiments.main()
+    assert error.value.code==2
+    assert not (tmp_path/'suite.json').exists()

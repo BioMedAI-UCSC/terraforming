@@ -1,7 +1,31 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "status": "fixed-particle prototype; closure assumptions are not Mars chamber measurements",
-  "validity": {"temperature_k": [100, 350], "gas_pressure_pa": [1, 2000], "particle_mass_fraction_maximum": 0.001},
+  "lookup_coverage": {
+    "source": "NASA Ames Mars GCM v3.2.1 dry-mixture CO2/H2O tables, staged in framework/physics/ames_co2_12band.npz",
+    "runtime_axes": ["temperature_k", "pressure_mbar (converted to Pa)"],
+    "classification": "interpolation coverage, not physical model validation; out-of-domain values are rejected, not clamped",
+    "particle_mass_fraction_maximum": null,
+    "loading_policy": "no evidence-backed universal numerical threshold; optional caller-selected criterion, dilute backreaction omission remains unvalidated"
+  },
+  "solar_weighting": {
+    "temperature_k": 5772,
+    "source": "IAU 2015 Resolution B3, https://www.iau.org/common/Uploaded%20files/IAUGA2015-Resolution-B3-recommended-nominal-conversion.pdf",
+    "classification": "nominal solar effective temperature; blackbody within-band spectrum remains an approximation"
+  },
+  "model_assumptions": {
+    "scope": "flat homogeneous screening experiment, not a source-validated Mars climatology",
+    "climate": "flat terrain, emissivity 1, uniform configured albedo and initial temperature/pressure; spinup duration alone does not establish equilibration",
+    "gas": "staged dry CO2-dominated opacity mixture; composition evolution, atmospheric CO2 condensation and cloud feedbacks are not validated",
+    "optics": "random-orientation monomer spectra, source-constant continuation beyond 55 um, temperature-independent optical constants; only Planck weighting changes with temperature",
+    "radiative_transfer": "plane-parallel two-stream angular closure; no spherical twilight geometry or supplied full rod phase function; numerical conservation does not establish angular accuracy",
+    "mobility": "continuum rod and Epstein limiting laws joined by a harmonic resistance approximation; diffuse-reflection accommodation is an idealized limiting case, not a measured rod property",
+    "particle_feedback": "dilute, gas-equilibrated release; gas displacement, drag backreaction and industrial plume energy/momentum are omitted; no validated loading cutoff",
+    "aggregation": "disabled in active runs without aggregate spectra; optional passive compact/fractal morphology is a sensitivity scenario, not measured mobility",
+    "numerics": "spectral positivity limiter redistributes material; gas projection changes energy; both are diagnosed, not physical closures",
+    "accuracy": "dt, grid, damping and error tolerances are numerical choices requiring refinement; passing checks is not scientific acceptance",
+    "references": "4 K/35 K source outcomes and an assumed one-year lifetime are comparison curves, not fitted targets or imposed GCM removal"
+  },
   "co2_viscosity": {
     "formula": "mu0*(T/T0)^1.5*(T0+S)/(T+S)",
     "mu0_pa_s": 0.00001370,

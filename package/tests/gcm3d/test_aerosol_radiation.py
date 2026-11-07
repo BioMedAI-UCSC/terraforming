@@ -57,7 +57,7 @@ def test_source_band_quadrature_converges_and_mass_scales():
     assert np.all(np.asarray(one['lw_extinction'])>=np.asarray(one['lw_scattering']))
 
 
-@pytest.mark.parametrize('temperature',[100.,215.,350.])
+@pytest.mark.parametrize('temperature',[50.,80.,99.994,100.,215.,350.])
 def test_planck_band_against_independent_adaptive_quadrature(temperature):
     from scipy.integrate import quad
     from src.interventions.aerosols.optics import planck_lambda
@@ -78,6 +78,21 @@ def test_cross_section_and_mass_opacity_are_consistent():
     burden=2e-6;number=burden/particle.mass_kg
     cross=table.absorption_m2+table.scattering_m2
     np.testing.assert_allclose(cross/particle.mass_kg*burden,cross*number,rtol=2e-15)
+
+
+def test_optics_uses_gas_data_domain_without_endpoint_clamping():
+    particle=aluminium_rod();table=rod_table(particle)
+    bands=make_band_table(table,particle)
+    assert (bands.temperatures_k[0],bands.temperatures_k[-1])==(50.,350.)
+    temperatures=jnp.array([50.,80.,99.994,350.])[:,None,None]
+    values=jax.jit(bands.optical_depths)(jnp.ones_like(temperatures),temperatures)
+    assert all(np.isfinite(v).all() for v in values.values())
+    for index,temperature in enumerate(np.asarray(temperatures).ravel()):
+        expected=integrate_band(table,12e-6,24e-6,temperature,tail='source_constant')[0]/particle.mass_kg
+        absorption=values['lw_extinction'][2,index,0,0]-values['lw_scattering'][2,index,0,0]
+        assert float(absorption)==pytest.approx(expected,rel=1e-4)
+    unsupported=bands.optical_depths(jnp.ones((1,1,1)),jnp.full((1,1,1),49.))
+    assert np.isnan(unsupported['lw_extinction']).all()
 
 
 def test_coupled_ames_zero_loading_parity_and_energy_budget():

@@ -29,6 +29,9 @@ def test_primary_units_and_independent_column_mass_cross_check():
     assert rod_table(iron_rod()).wavelength_m.size==75
     with pytest.raises(ValueError,match='no source-backed'):
         rod_table(dataclasses.replace(p,length_m=8e-6))
+    assert p.max_mass_loading is None
+    with pytest.raises(ValueError,match='mobility law'):
+        terminal_velocity(dataclasses.replace(p,shape='disk'),210.,610.,3.72)
 
 
 def test_source_normalization_boundaries_and_nonuniform_mask():

@@ -6,6 +6,10 @@ Branch: `integration/aerosol-gpu-experiments`. This combines open PRs #55 and
 `validation/aerosols/integration-sources.json` records the integrated revisions.
 No manuscript or PDF is changed and no simulated outcome is prescribed.
 
+See [the assumption ledger](aerosol-assumptions.md) for source-backed constants,
+removed unsupported restrictions, and remaining approximations. The physics
+contract is model metadata, not independent evidence of validity.
+
 ## Set up the server
 
 Use a Linux NVIDIA GPU machine with a driver supported by the pinned JAX CUDA 12
@@ -35,7 +39,7 @@ to check installation, validity gates, outputs, and wall-clock cost.
 
 ```bash
 .venv/bin/python scripts/aerosol_paper_experiments.py plan \
-  --output outputs/aerosol-quick --sols 0.04 --spinup-sols 0.04
+  --output outputs/aerosol-quick --sols 0.04 --spinup-sols 0.04 --lifetime-year earth
 
 tmux new -s aerosol
 CUDA_VISIBLE_DEVICES=0 bash scripts/run_aerosol_gpu.sh outputs/aerosol-quick \
@@ -52,7 +56,7 @@ pilot before extrapolating annual cost: compilation dominates very short runs.
 ```bash
 .venv/bin/python scripts/aerosol_paper_experiments.py plan \
   --output outputs/aerosol-10sol --sols 10 --spinup-sols 10 \
-  --truncation T21 --layers 12 --dt 60 --material aluminium
+  --truncation T21 --layers 12 --dt 60 --material aluminium --lifetime-year earth
 
 CUDA_VISIBLE_DEVICES=0 bash scripts/run_aerosol_gpu.sh outputs/aerosol-10sol \
   > outputs/aerosol-10sol/job.log 2>&1
@@ -76,8 +80,8 @@ The paper indicates similar volume fluxes for iron; it does not establish exact
 equivalence of warming between materials. Graphene is not run because validated
 input optics are not available in this implementation.
 
-The dotted inventory curves use **one Earth year by default**, an explicit
-reference convention. Plan another suite with `--lifetime-year mars` to compare
+The dotted inventory curves require an explicit **Earth or Mars year** choice;
+the examples select Earth years. Plan another suite with `--lifetime-year mars` to compare
 that alternative convention. The paper's rounded release and loading estimates
 are separate references: the script does not force them to agree by silently
 changing density or lifetime. The one-box curves assume `dM/dt = release - M/tau`;
@@ -146,7 +150,7 @@ warming or one-year lifetime. An example longer plan, after inspecting the pilot
 
 ```bash
 .venv/bin/python scripts/aerosol_paper_experiments.py plan \
-  --output outputs/aerosol-multiyear --sols 2675 --spinup-sols 1338 --dt 60
+  --output outputs/aerosol-multiyear --sols 2675 --spinup-sols 1338 --dt 60 --lifetime-year earth
 CUDA_VISIBLE_DEVICES=0 bash scripts/run_aerosol_gpu.sh outputs/aerosol-multiyear \
   --case loading_2mg --case release_2l_s --case release_60l_s \
   > outputs/aerosol-multiyear/job.log 2>&1
@@ -172,13 +176,14 @@ horizontal numerical mixing; `positivity_redistribution_kg` records cumulative
 absolute mass redistribution, including the existing vertical column repair.
 It is not a physical mixing measurement or a transport-accuracy certificate.
 Changing the limiter requires a fresh suite/source identity, not an unmarked
-resume of an old production run. Temperature, pressure and transport-error
-validity limits remain unchanged.
+resume of an old production run. Temperature/pressure lookup coverage now
+follows the staged Ames data rather than an invented physical domain.
 
 This remains a flat-terrain, emissivity-1 screening model with fixed gas
 composition. Atmospheric CO2 condensation and full dust/cloud/removal feedbacks
-are not validated. The runner may stop at its temperature, pressure, loading or
-transport-error validity gates. Inspect the saved failure diagnostics instead of
+are not validated. The runner may stop outside source-table coverage, at an
+explicitly selected loading limit, or at numerical transport-error gates.
+Inspect the saved failure diagnostics instead of
 weakening gates to obtain a warming number. The ~4 K and >35 K lines are reference
 assumptions from [§3.3.1, pp. 24–26](https://arxiv.org/pdf/2604.02242), not pass/fail
 thresholds or claimed reproductions of the paper.

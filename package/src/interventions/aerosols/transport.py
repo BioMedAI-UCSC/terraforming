@@ -27,6 +27,8 @@ def co2_viscosity(temperature_k):
 
 
 def particle_drag(particle,temperature_k,pressure_pa,aggregate_multiplicity=1.):
+    if particle.shape=='disk':
+        raise ValueError('disk drag requires a supplied mobility law; sphere substitution is unsupported')
     mu=co2_viscosity(temperature_k)
     radius=particle.volume_radius_m
     if particle.shape == "rod":
@@ -35,8 +37,7 @@ def particle_drag(particle,temperature_k,pressure_pa,aggregate_multiplicity=1.):
         perpendicular=4*math.pi*particle.length_m/(math.log(aspect)+.839+.185/aspect+.233/aspect**2)
         continuum=mu/(1/(3*parallel)+2/(3*perpendicular))
     else:
-        # Disks require a measured mobility model for predictive drag; this
-        # volume-equivalent sphere is explicitly a bounded screening closure.
+        # Stokes drag for a sphere; disks require a separate mobility law.
         continuum=6*math.pi*mu*radius
     scale=jnp.asarray(aggregate_multiplicity)**(1/3)
     continuum=continuum*scale
