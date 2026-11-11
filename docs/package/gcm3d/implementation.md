@@ -95,7 +95,12 @@ atmospheric mass** → p_s drops); deposited frost sublimes back when insolation
 warms it, restoring mass. Frost `co2_ice` is stored in **pressure-equivalent**
 units so the phase-change tendency balances `d(p_s) = −d(ice) − escape`. The
 frost point is either constant or the Clausius–Clapeyron curve
-`T_sat = 3182.48/(23.3494 − ln p_hPa)` (`co2_frost_point_k`). `energy_limited`
+`T_sat = 3182.48/(23.3494 − ln p_hPa)` (`co2_frost_point_k`), evaluated at the
+CO₂ partial pressure `p_CO2 = co2_mole_fraction · p_s` (#77). Atmospheric
+CO₂ condensation and cloud saturation adjustment use the same fraction of each
+layer pressure `σ·p_s`. The fraction is a
+single constant: the 3-D state carries no composition field, so condensation does
+not change the mixture and gases are not transported separately. `energy_limited`
 mode ties the rate to the surface-energy residual (no tuned relaxation constant).
 Because multistage IMEX does not preserve positivity, `positivity_preserving_co2_step`
 repairs frost after each complete step by removing a negative-frost deficit from

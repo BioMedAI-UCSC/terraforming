@@ -165,7 +165,7 @@ def saturation_adjustment(temperature, ps_pa, ice_ratio, wind, sigma, dsigma, bo
     def sweep(state, _):
         t, ps, q, velocity, remaining = state
         gas, ice, geometry, hg, hi, capacity = layer_properties(t, ps, q, sigma, dsigma, body, cf)
-        frost = co2_frost_point_k(sigma_array * ps[None])
+        frost = co2_frost_point_k(cf.co2_mole_fraction * sigma_array * ps[None])
         cold = (t < frost - 1.e-8) & (remaining > gas * 1.e-14)
         warm = (t > frost + 1.e-8) & (ice > gas * 1.e-14)
         def exchange(state):

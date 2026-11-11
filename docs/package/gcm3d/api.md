@@ -71,7 +71,9 @@ uses `dust_climatology_ls_deg`, `dust_visible_climatology` and
 Constants for the 3-D CO₂ condensation/sublimation cycle. `energy_limited=True`
 drives phase change off the surface-energy residual (no tunable relaxation rate);
 `use_pressure_frost` uses the Clausius–Clapeyron frost point; `escape_rate_kg_s`
-is a uniform non-thermal mass sink.
+is a uniform non-thermal mass sink. `co2_mole_fraction` (default `1.0`, pure CO₂)
+sets the uniform CO₂ fraction of the atmosphere: the frost point and the
+condensation supply limits use the CO₂ partial pressure `co2_mole_fraction · p_s`.
 
 `atmospheric_condensation=True` adds layer condensation, latent heating and a
 transported `co2_cloud_ice` tracer (kg ice/kg gas). The default
