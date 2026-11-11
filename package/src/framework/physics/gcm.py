@@ -1536,6 +1536,12 @@ class CO2Forcing:
     # Four-stage IMEX evaluations can sample intermediate reservoirs, so use a
     # conservative four-step positivity horizon for the default 600 s step.
     exchange_timestep_s: float = 24000.0
+    # CO2 mole fraction of the atmosphere (0, 1]. Condensation depends on the
+    # CO2 partial pressure x_CO2 * p_s, not total p_s, so added non-condensable
+    # gases (N2, super-greenhouse gases) lower the frost point (issue #77).
+    # The default 1.0 keeps the historical pure-CO2 behaviour. The 3-D state
+    # carries no composition field, so this is a uniform, constant fraction.
+    co2_mole_fraction: float = 1.0
 
 
 def co2_frost_point_k(pressure_pa):
@@ -1583,12 +1589,16 @@ def _co2_surface_tendencies(
     # Ice reservoir in Pa (dimensional) for gating and rates.
     ice_pa = specs.dimensionalize(ice_nd, _u.pascal).magnitude        # (1,n_lon,n_lat)
 
+    # Only the CO2 share of the column can condense (issue #77).
+    p_co2_pa = cf.co2_mole_fraction * ps_pa[0]
+
     # Frost point: pressure-dependent CO2 saturation temperature per cell (or the
-    # constant fallback). Using the local p_s makes the winter-pole cap form at the
-    # right temperature and respond as the atmosphere thickens/thins.
-    frost_k = (co2_frost_point_k(ps_pa[0]) if cf.use_pressure_frost
+    # constant fallback), evaluated at the CO2 partial pressure. Using the local
+    # p_CO2 makes the winter-pole cap form at the right temperature and respond
+    # as the atmosphere thickens/thins.
+    frost_k = (co2_frost_point_k(p_co2_pa) if cf.use_pressure_frost
                else cf.frost_point_k)
-    supply_gate = jnp.tanh(ps_pa[0] / cf.supply_scale_pa)
+    supply_gate = jnp.tanh(p_co2_pa / cf.supply_scale_pa)
     ice_gate = jnp.tanh(
         (1.0e-6 * jax.nn.softplus(ice_pa[0] / 1.0e-6)) / cf.ice_ref_pa
     )
@@ -1625,7 +1635,7 @@ def _co2_surface_tendencies(
         subl_pa_s = cf.exchange_rate_pa_s_per_k * above * ice_gate
     # Positivity limiter for the explicit phase-change tendency. The configured
     # interval is the maximum physics step supported by this forcing.
-    cond_pa_s = jnp.minimum(cond_pa_s, jnp.clip(ps_pa[0], 0.0, None) / cf.exchange_timestep_s)
+    cond_pa_s = jnp.minimum(cond_pa_s, jnp.clip(p_co2_pa, 0.0, None) / cf.exchange_timestep_s)
     subl_pa_s = jnp.minimum(subl_pa_s, jnp.clip(ice_pa[0], 0.0, None) / cf.exchange_timestep_s)
     net_pa_s = cond_pa_s - subl_pa_s                                   # (n_lon,n_lat), >0 = condensing
 
