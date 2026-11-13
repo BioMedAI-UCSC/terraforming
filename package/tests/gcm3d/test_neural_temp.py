@@ -331,6 +331,10 @@ def test_observed_initialization_and_future_predictor_isolation(monkeypatch):
     np.testing.assert_allclose(changed["target"]-original["target"], 100)
     np.testing.assert_allclose(original["features"][:, 7], 215., atol=1e-8)
     assert seen[0]["forcing"].pbl_diffusion_enabled
+    from src.framework.physics.co2_clouds import CO2_CLOUD_TRACER
+    initial = seen[0]["initial_state"]
+    np.testing.assert_array_equal(initial.dynamics.tracers[CO2_CLOUD_TRACER], 0.)
+    np.testing.assert_array_equal(initial.surface_momentum, 0.)
     assert seen[0]["forcing"].convective_adjustment_enabled
     np.testing.assert_allclose(seen[0]["forcing"].dust_visible_optical_depth, .3)
     f = seen[0]["forcing"]

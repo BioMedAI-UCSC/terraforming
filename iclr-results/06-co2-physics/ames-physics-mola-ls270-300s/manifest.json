@@ -1,0 +1,26 @@
+{
+  "sols": 5.0,
+  "dt_seconds": 300.0,
+  "truncation": "T21",
+  "layers": 12,
+  "runs": {
+    "convection": {
+      "steps": 1480,
+      "restart": "outputs/iclr_validation/ames-physics-mola-ls270-300s/convection/restart.npz",
+      "netcdf": "outputs/iclr_validation/ames-physics-mola-ls270-300s/convection/maps.nc",
+      "plots": [
+        "outputs/iclr_validation/ames-physics-mola-ls270-300s/convection/convection_topography.png",
+        "outputs/iclr_validation/ames-physics-mola-ls270-300s/convection/convection_surface_pressure.png",
+        "outputs/iclr_validation/ames-physics-mola-ls270-300s/convection/convection_temperature.png",
+        "outputs/iclr_validation/ames-physics-mola-ls270-300s/convection/convection_wind_speed.png",
+        "outputs/iclr_validation/ames-physics-mola-ls270-300s/convection/convection_co2_ice.png"
+      ],
+      "physics": "dry dynamics + Ames correlated-k CO2 radiation + CO2 condensation cycle + prescribed radiatively active dust + explicit spatial albedo/TI + multilayer regolith + Richardson surface exchange + PBL diffusion + dry convective adjustment + eighth-order wind/temperature hyperdiffusion (tau=8877.52 s) | TRANSIENT: 5.0-sol spin-up snapshot, NOT a seasonally-equilibrated climatology (needs >= 1 Mars year)",
+      "checkpoint_diagnostics": "outputs/iclr_validation/ames-physics-mola-ls270-300s/convection/checkpoint_diagnostics.csv",
+      "invocation_start_step": 0,
+      "invocation_steps": 1480,
+      "invocation_elapsed_seconds": 702.5816025417298,
+      "simulated_sols_per_wall_hour": 25.626944176062427
+    }
+  }
+}

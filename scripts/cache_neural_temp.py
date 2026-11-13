@@ -61,7 +61,7 @@ def initialize(window, record, contract):
     from src.framework.gcm.specs import physics_specs
     from src.framework.gcm.dynamics import reference_temperature
     from src.celestials.planets.mars import MARS_BODY_3D as body
-    from src.framework.physics.gcm import ColumnPhysicsState, mean_anomaly_for_ls
+    from src.framework.physics.gcm import initial_column_state, mean_anomaly_for_ls
     jax.config.update("jax_enable_x64", True)
     coords, specs = coordinate_system("T21", 12), physics_specs(body)
     grid, u = coords.horizontal, scales.units
@@ -85,8 +85,10 @@ def initialize(window, record, contract):
         sim_time=nd(ts, u.second))
     history = np.asarray(window.tsurf.isel(time=slice(0, 13)).transpose("time", "lon", "lat"))
     soil = spinup_soil(history, forcing, contract["lead_seconds"])
-    state = ColumnPhysicsState(state, nd(field("tsurf")[None], u.kelvin),
-                               nd(field("co2ice")[None] * body.gravity_m_s2, u.pascal), nd(soil, u.kelvin))
+    state = initial_column_state(state, coords, 200., specs, forcing=forcing)._replace(
+        surface_temperature=nd(field("tsurf")[None], u.kelvin),
+        co2_ice=nd(field("co2ice")[None] * body.gravity_m_s2, u.pascal),
+        ground_temperature=nd(soil, u.kelvin))
     return coords, specs, forcing, state
 
 

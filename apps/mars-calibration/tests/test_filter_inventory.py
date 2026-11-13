@@ -3,12 +3,34 @@ from pathlib import Path
 import sys
 
 import numpy as np
+import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from mars_calibration import driver
 from src.framework.gcm import dynamics
 from src.framework.gcm._dinosaur import primitive_equations
 from src.framework.physics.gcm import ColumnPhysicsState
+
+
+@pytest.mark.parametrize("co2_exchange", [False, True])
+def test_calibration_projection_uses_the_selected_co2_cycle(monkeypatch, co2_exchange):
+    coords = driver.coordinate_system("T21", 4)
+    specs = driver.physics_specs(driver.MARS_BODY_3D)
+    captured = {}
+    monkeypatch.setattr(driver, "forced_co2_primitive_equations", lambda *a, **k: None)
+    monkeypatch.setattr("src.framework.physics.gcm.forced_primitive_equations", lambda *a, **k: None)
+    monkeypatch.setattr(driver, "stepper", lambda *a, **k: lambda state: state)
+
+    def projection(advance, *args, **kwargs):
+        captured.update(kwargs)
+        return advance
+
+    monkeypatch.setattr(driver, "positivity_preserving_co2_step", projection)
+    driver._build_step(coords, specs, driver.radiative_forcing(), 300.,
+                       orography=driver.jnp.zeros(coords.horizontal.modal_shape),
+                       co2_exchange=co2_exchange)
+    assert (captured["co2_forcing"] is not None) == co2_exchange
+    assert captured["dt_seconds"] == 300.
 
 
 def test_calibration_filter_excludes_pressure_and_tracers_before_projection(monkeypatch):

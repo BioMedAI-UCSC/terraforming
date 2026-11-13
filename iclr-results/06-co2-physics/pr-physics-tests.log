@@ -1,0 +1,8 @@
+........................................................................ [ 27%]
+........................................................................ [ 54%]
+....................................................................ss.s [ 81%]
+.................................................                        [100%]
+=========================== short test summary info ============================
+SKIPPED [2] package/tests/gcm3d/test_terraforming_ode.py:75: Stale port: main's compute_derivatives now uses a 4-element two-cap state [T,P,ice_N,ice_S]; this JAX port targets the older 3-element [T,P,M_ice] kernel. Re-port to the two-cap state to re-enable.
+SKIPPED [1] package/tests/gcm3d/test_terraforming_ode.py:107: Stale port: torch kernel moved to a 4-element two-cap state; re-port terraforming_ode to match.
+262 passed, 3 skipped, 3 deselected in 148.95s (0:02:28)
