@@ -173,7 +173,7 @@ def _build_step(coords, specs, forcing, dt_seconds: float, *,
         coords,
         specs,
         body=MARS_BODY_3D,
-        co2_forcing=cf,
+        co2_forcing=cf if co2_exchange else None,
         dt_seconds=dt_seconds,
     )
     # Reverse-mode differentiation through a multi-sol scan otherwise retains

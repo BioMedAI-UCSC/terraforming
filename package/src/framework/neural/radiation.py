@@ -9,6 +9,7 @@ from src.framework.gcm.dynamics import reference_temperature
 from src.framework.physics.gcm import (
     column_radiative_fluxes, radiative_flux_diagnostics, dust_optical_depths,
     cos_zenith_nodal, solar_path_cosine_nodal, solar_flux,
+    surface_radiative_forcing,
 )
 from .models import ColumnMLP
 
@@ -50,6 +51,7 @@ def column_features(inputs, sigma_boundaries):
 def inputs_from_state(state, coords, specs, body, forcing, *,
                       air_temperature_k=None, surface_pressure_pa=None):
     """Extract inference-only inputs; no reference fluxes or future state needed."""
+    forcing = surface_radiative_forcing(state, coords, specs, body, forcing)
     grid = coords.horizontal
     if air_temperature_k is None:
         air_temperature_k = (grid.to_nodal(state.dynamics.temperature_variation)
@@ -120,10 +122,11 @@ class NeuralRadiation:
                  else jax.nn.sigmoid(raw[1]) * incoming)
         sw_up = sw_up.at[-1].set(inputs.albedo * sw[-1])
         lw_up = jax.nn.softplus(raw[2]) * 100.0
-        lw_up = lw_up.at[-1].set(jnp.broadcast_to(
-            inputs.emissivity * self.stefan_boltzmann * inputs.surface_temperature_k**4,
-            lw_up.shape[1:]))
         lw_down = (jax.nn.softplus(raw[3]) * 100.0).at[0].set(0)
+        lw_up = lw_up.at[-1].set(jnp.broadcast_to(
+            inputs.emissivity * self.stefan_boltzmann * inputs.surface_temperature_k**4
+            + (1.0 - inputs.emissivity) * lw_down[-1],
+            lw_up.shape[1:]))
         return radiative_flux_diagnostics(sw, sw_up, lw_up, lw_down)
 
     def bind(self, params, normalization, *, apply=None):

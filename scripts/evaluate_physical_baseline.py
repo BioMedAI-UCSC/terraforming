@@ -251,7 +251,7 @@ def main() -> int:
         representation="MOLA elevation regridded and spectrally represented on the T21 Gaussian grid",
     )
 
-    masses = np.asarray([row["atmosphere_plus_surface_reservoir_mass_kg"] for row in rows])
+    masses = np.asarray([row.get("total_co2_mass_kg", row["atmosphere_plus_surface_reservoir_mass_kg"]) for row in rows])
     initial_mass = float(masses[0])
     drift = masses - initial_mass
     final = rows[-1]
@@ -275,6 +275,7 @@ def main() -> int:
             np.isfinite([row[name] for name in core_diagnostic_fields]).all()
             for row in rows
         )
+        and np.isfinite(masses).all()
     )
     conservation = {
         "initial_total_co2_mass_kg": initial_mass,

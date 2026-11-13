@@ -33,6 +33,7 @@ def radiative_forcing(
         co2_radiation_enabled=co2_radiation_enabled,
         dust_visible_optical_depth=dust_visible_optical_depth,
         dust_longwave_optical_depth=dust_longwave_optical_depth,
+        co2_frost_radiative_properties=True,
     )
 
 

@@ -41,10 +41,14 @@ def main():
 
     def objective(albedo):
         forcing = dataclasses.replace(base, albedo=albedo)
+        cf = co2_forcing()
         equation = physics.forced_co2_primitive_equations(
-            coords, MARS_BODY_3D, forcing, co2_forcing(), specs=specs
+            coords, MARS_BODY_3D, forcing, cf, specs=specs
         )
-        advance = physics.positivity_preserving_co2_step(stepper(equation, 60.0, specs), coords, specs)
+        advance = physics.positivity_preserving_co2_step(
+            stepper(equation, 60.0, specs), coords, specs,
+            body=MARS_BODY_3D, co2_forcing=cf, dt_seconds=60.0,
+        )
         final = integrate(advance, initial, 8)
         return jnp.sum(final.surface_temperature[0] * weights) * temperature_scale
 

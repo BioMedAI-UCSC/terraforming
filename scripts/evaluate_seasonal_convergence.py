@@ -109,12 +109,13 @@ def main() -> int:
                 report["status"] = "fail"
         report["seasons"][f"ls{int(round(target)):03d}"] = season
 
-    initial_mass = numeric["atmosphere_plus_surface_reservoir_mass_kg"][0]
+    masses = numeric.get("total_co2_mass_kg", numeric["atmosphere_plus_surface_reservoir_mass_kg"])
+    initial_mass = masses[0]
     report["co2_mass_conservation"] = {
         "initial_mass_kg": float(initial_mass),
-        "final_mass_kg": float(numeric["atmosphere_plus_surface_reservoir_mass_kg"][-1]),
+        "final_mass_kg": float(masses[-1]),
         "maximum_absolute_relative_drift": float(np.max(np.abs(
-            numeric["atmosphere_plus_surface_reservoir_mass_kg"] / initial_mass - 1.0
+            masses / initial_mass - 1.0
         ))),
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)

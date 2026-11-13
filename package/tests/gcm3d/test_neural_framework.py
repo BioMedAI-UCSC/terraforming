@@ -123,7 +123,8 @@ def test_boundary_conditions_and_energy_closure(columns, neural, forcing):
         np.testing.assert_allclose(flux.shortwave_up_w_m2[-1], columns.albedo*flux.shortwave_down_w_m2[-1])
         np.testing.assert_array_equal(flux.longwave_down_w_m2[0], 0)
         np.testing.assert_allclose(flux.longwave_up_w_m2[-1],
-                                   columns.emissivity*forcing.stefan_boltzmann*columns.surface_temperature_k**4)
+                                   columns.emissivity*forcing.stefan_boltzmann*columns.surface_temperature_k**4
+                                   + (1. - columns.emissivity)*flux.longwave_down_w_m2[-1])
         np.testing.assert_allclose(radiation_budget_residual(flux), 0, atol=1e-12)
         air, surface = heating_rates(flux, columns.surface_pressure_pa, BOUNDARIES, BODY, forcing.thermal_inertia)
         capacity = BODY.cp_j_kg_k*columns.surface_pressure_pa*.5/BODY.gravity_m_s2
@@ -184,9 +185,12 @@ def global_state():
 
 
 @pytest.mark.parametrize("ames", [False, True])
-def test_reference_adapter_is_identical_and_not_duplicated(global_state, forcing, ames):
+@pytest.mark.parametrize("frost_kg_m2", [0., 3.])
+def test_reference_adapter_is_identical_and_not_duplicated(global_state, forcing, ames, frost_kg_m2):
     forcing = dataclasses.replace(forcing, ames_correlated_k_enabled=ames)
     coords, specs, initial = global_state
+    ice = float(specs.nondimensionalize(frost_kg_m2 * BODY.gravity_m_s2 * scales.units.pascal))
+    initial = initial._replace(co2_ice=jnp.full_like(initial.co2_ice, ice))
     expected = surface_energy_tendencies(initial, coords, specs, BODY, forcing)
     replaced = surface_energy_tendencies(initial, coords, specs, BODY, forcing,
                                          radiation_component=two_stream_radiative_fluxes)
