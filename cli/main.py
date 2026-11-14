@@ -184,33 +184,30 @@ INTERVENTION OPTIONS
                                 annual rate.  Repeat for multiple compounds.
                                 Omit to run a baseline (no injection) run.
 
-    Available compounds (Marinova 2005 RF efficiencies):
+    Available compounds (IPCC AR6 Table 7.SM.7 Earth-reference proxies):
+    Efficiencies and lifetimes are not validated for Mars.
 
-      CF4    Carbon tetrafluoride (CFC-14)        0.0880 W/m²/ppb  lifetime 50 000 yr
-             Most stable perfluorocarbon; near-permanent once injected.
-             Best choice for long-horizon warming that outlasts the mission.
+      CF4    Carbon tetrafluoride (PFC-14)        0.0990 W/m²/ppb  lifetime 50 000 yr
+             Longest Earth-reference lifetime in this registry.
 
-      C2F6   Hexafluoroethane (CFC-116)           0.2600 W/m²/ppb  lifetime 10 000 yr
-             3× stronger forcing than CF4; industrial semiconductor byproduct.
-             Good balance of high efficiency and very long persistence.
+      C2F6   Hexafluoroethane (PFC-116)           0.2610 W/m²/ppb  lifetime 10 000 yr
+             Industrial semiconductor byproduct.
 
-      C3F8   Octafluoropropane (CFC-218)          0.2400 W/m²/ppb  lifetime  2 600 yr
+      C3F8   Octafluoropropane (PFC-218)          0.2700 W/m²/ppb  lifetime  2 600 yr
              Common refrigerant and fire suppressant on Earth.
-             Useful for medium-term scenarios where some reversibility is wanted.
 
-      SF6    Sulfur hexafluoride                  0.5700 W/m²/ppb  lifetime  3 200 yr
-             Highest RF efficiency of all registered compounds — 6.5× CF4.
-             Used as an electrical insulator; most warming per kg injected.
+      SF6    Sulfur hexafluoride                  0.5670 W/m²/ppb  lifetime  1 000 yr
+             Highest Earth-reference RF efficiency of the registered compounds.
+             Used as an electrical insulator.
 
-      NF3    Nitrogen trifluoride                 0.2100 W/m²/ppb  lifetime    500 yr
-             Shortest lifetime; used in LCD and solar panel manufacturing.
-             Best for fast early warming; significant decay within centuries.
+      NF3    Nitrogen trifluoride                 0.2040 W/m²/ppb  lifetime    569 yr
+             Shortest Earth-reference lifetime; used in LCD manufacturing.
 
-      C4F10  Decafluorobutane (CFC-31-10)         0.3600 W/m²/ppb  lifetime  2 600 yr
+      C4F10  Decafluorobutane (PFC-3-1-10)        0.3690 W/m²/ppb  lifetime  2 600 yr
              Fire suppression agent with strong warming potential.
              Similar lifetime to C3F8 but higher RF efficiency.
 
-      C6F14  Tetradecafluorohexane (CFC-41-12)    0.4900 W/m²/ppb  lifetime  3 200 yr
+      C6F14  Tetradecafluorohexane (PFC-5-1-14)   0.4490 W/m²/ppb  lifetime  3 100 yr
              Heaviest molecule in the registry; used as a heat-transfer fluid.
              High RF efficiency with multi-millennial persistence.
 

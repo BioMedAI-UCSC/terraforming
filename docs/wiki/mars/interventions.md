@@ -29,7 +29,7 @@ $$
 \Delta F_i = \eta_i \cdot C_i
 $$
 
-where $\eta_i$ (W m⁻² ppb⁻¹) is a legacy sensitivity coefficient. The registry’s former attribution of all seven values to Marinova Table 2 has not been verified (#74). These are not validated Mars forcing coefficients.
+where $\eta_i$ (W m⁻² ppb⁻¹) is an Earth-reference trace-gas efficiency from IPCC AR6 WG1 Table 7.SM.7. The registry does not supply validated Mars forcing coefficients. Marinova Table 2 describes optimized mixtures and is not the coefficient source.
 
 The total forcing from all injected species:
 
@@ -91,7 +91,7 @@ This $\gamma$ is then fed into the temperature ODE for the next year's integrati
 
 A commonly cited first milestone is reaching $\sim 273\,\text{K}$ mean surface temperature and $\sim 1000\,\text{Pa}$ surface pressure — conditions under which liquid water is stable at low elevations and the CO₂ caps begin to fully sublime, releasing additional CO₂ that further amplifies the greenhouse effect through a positive feedback ([McKay et al., 1991](https://doi.org/10.1038/352489a0)).
 
-The legacy CF4 coefficient would give about 26.4 W/m² at 300 ppb. This is a calculation using an unverified coefficient, not a reproduced Marinova result or evidence of a polar-cap feedback threshold.
+The Earth-reference CF4 coefficient gives 29.7 W/m² at 300 ppb. This is a proxy calculation; a Mars radiation calculation and polar-cap feedback threshold have not been established by it.
 
 ---
 

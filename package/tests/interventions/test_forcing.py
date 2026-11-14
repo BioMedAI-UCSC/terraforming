@@ -138,7 +138,7 @@ def test_documented_concentration_example():
     ppb = compute_concentration_ppb(state, total)
     assert _val(ppb["CF4"]) == pytest.approx(19.749999492464895, rel=1e-12)
     assert _val(ppb["SF6"]) == pytest.approx(5.947980682193397, rel=1e-12)
-    assert _val(delta_F_total(state, total)) == pytest.approx(5.128348944187147, rel=1e-12)
+    assert _val(delta_F_total(state, total)) == pytest.approx(5.3277549965576805, rel=1e-12)
 
 
 # ---------------------------------------------------------------------------

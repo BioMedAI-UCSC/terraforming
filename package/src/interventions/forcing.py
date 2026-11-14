@@ -1,4 +1,4 @@
-"""Radiative forcing from super-greenhouse gases — Mars.
+"""Earth-reference trace-gas forcing proxy for the deprecated Mars workflow.
 
 Converts atmospheric GHG masses to concentration (ppb), computes total
 radiative forcing ΔF (W/m²), and updates the planet's greenhouse factor.
@@ -8,8 +8,8 @@ are broadcast safely by PyTorch without allocating CPU intermediates.
 
 References
 ----------
-Marinova et al. (2005), "Radiative-convective model of warming Mars with
-artificial greenhouse gases", J. Geophys. Res., 110, E03002.
+IPCC AR6 WG1 Table 7.SM.7 (2021), Chapter 7 supplementary material.
+No extension of its Earth trace-gas coefficients to Mars is validated here.
 """
 
 from __future__ import annotations
@@ -88,8 +88,8 @@ def delta_F_total(
 
     ΔF = Σ_i  η_i [W m⁻² ppb⁻¹]  ×  C_i [ppb]
 
-    This is a legacy linear sensitivity model. Coefficient provenance and
-    the applicable concentration range remain unvalidated (#74).
+    This uses IPCC AR6 Earth-reference trace-gas sensitivities as a proxy.
+    Its extension to Mars and to large concentrations is not validated.
 
     Parameters
     ----------

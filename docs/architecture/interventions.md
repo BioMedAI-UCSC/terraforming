@@ -81,7 +81,7 @@ Both methods call `_recompute_greenhouse_factor()` afterwards, so
 
 | Where | What |
 |-------|------|
-| `mars.atmosphere.composition` | Partial pressures (Pa) of **all** gases including injected GHGs |
+| `mars.atmosphere.composition` | Column weights `gM_i/A` (Pa) of **all** gases including injected GHGs |
 | `mars.thermal.greenhouse_factor` | Current GHF — always recomputed after inject/decay |
 | `mars.delta_F` | Property: $\Delta F$ derived on-the-fly from composition |
 | `mars._baseline_ghf` / `mars._baseline_olr` | Cached at first injection (see [Section 8](#8-baseline-olr-why-it-must-be-cached)) |
@@ -100,7 +100,7 @@ state of its own:
 │  Per year:                                           │
 │    mars.inject(schedule)     → composition updated   │
 │    TimeController.run(1 yr)  → physics w/ new GHF   │
-│    mars.decay_ghg(1.0)       → composition decayed  │
+│    mars.decay_ghg(1.8809)    → composition decayed  │
 │    InterventionSnapshot from mars state              │
 └─────────────────────────────────────────────────────┘
                       ↓  single source of truth
@@ -134,26 +134,29 @@ state of its own:
 
 Source: [`src.interventions.compounds`](../api/interventions.md)
 
-Seven super-greenhouse gases are registered. Radiative forcing efficiencies ($\eta$)
-are legacy linear sensitivity coefficients. Their attribution to Marinova Table 2 is
-unverified (#74); the numbers below are not validated Mars radiative efficiencies.
+Seven super-greenhouse gases use the coherent Earth-reference values in
+[IPCC AR6 WG1 Table 7.SM.7, PDF pp. 20–21](https://www.ipcc.ch/report/ar6/wg1/downloads/report/IPCC_AR6_WGI_Chapter07_SM.pdf).
+These replace the mixed, unverified registry values. Radiative efficiencies
+describe trace perturbations in Earth's atmosphere. Applying them to Mars or
+large concentrations is an unvalidated proxy. Marinova (2005) Table 2 gives
+optimized mixture percentages, not these efficiencies.
 
 | Name | Formula | MW (g/mol) | Lifetime $\tau$ (yr) | $\eta$ (W m⁻² ppb⁻¹) | GWP₁₀₀ |
 |------|---------|-----------|-------------------|--------------------|---------|
-| CF4 | Carbon tetrafluoride | 88.0 | 50 000 | 0.0880 | 6 630 |
-| C2F6 | Hexafluoroethane | 138.0 | 10 000 | 0.2600 | 11 100 |
-| C3F8 | Octafluoropropane | 188.0 | 2 600 | 0.2400 | 8 900 |
-| C4F10 | Decafluorobutane | 238.0 | 2 600 | 0.3600 | 8 860 |
-| C6F14 | Tetradecafluorohexane | 338.0 | 3 200 | 0.4900 | 9 300 |
-| SF6 | Sulfur hexafluoride | 146.1 | 3 200 | 0.5700 | 23 900 |
-| NF3 | Nitrogen trifluoride | 71.0 | 500 | 0.2100 | 16 100 |
+| CF4 | Carbon tetrafluoride | 88.0 | 50 000 | 0.0990 | 7 380 |
+| C2F6 | Hexafluoroethane | 138.0 | 10 000 | 0.2610 | 12 400 |
+| C3F8 | Octafluoropropane | 188.0 | 2 600 | 0.2700 | 9 290 |
+| C4F10 | Decafluorobutane | 238.0 | 2 600 | 0.3690 | 10 000 |
+| C6F14 | Tetradecafluorohexane | 338.0 | 3 100 | 0.4490 | 8 620 |
+| SF6 | Sulfur hexafluoride | 146.1 | 1 000 | 0.5670 | 24 300 |
+| NF3 | Nitrogen trifluoride | 71.0 | 569 | 0.2040 | 17 400 |
 
 **Lifetime choice:** Earth-reference lifetimes in Earth Julian years are explicit assumptions. Mars chemistry and shielding differ; reduced sunlight does not establish that lifetimes are longer or that Earth values are conservative. One Mars orbit is 1.88090349 Earth Julian years.
 
 **Why perfluorocarbons?** PFCs (CF4, C2F6, etc.) have extremely long atmospheric
 lifetimes (centuries to tens of thousands of years), very high GWP, and strong
 absorption in the Martian atmospheric window. SF6 has the highest RF efficiency
-per ppb of any registered compound ($\eta = 0.57$ W m⁻² ppb⁻¹).
+per ppb of any registered compound ($\eta = 0.567$ W m⁻² ppb⁻¹ in this Earth-reference table).
 
 ---
 
@@ -605,19 +608,19 @@ both injected species. The common molar denominator is
 |---|---:|
 | CF4 concentration | 19.7500 ppb |
 | SF6 concentration | 5.9480 ppb |
-| Assumed linear forcing, 0.0880×CF4 + 0.5700×SF6 | 5.12835 W/m² |
+| Earth-reference proxy forcing, 0.0990×CF4 + 0.5670×SF6 | 5.32776 W/m² |
 | Baseline OLR, 0.95 σ (210/1.02)⁴ | 96.8 W/m² (rounded) |
-| Algebraic GHF, 1.02 (1 + 5.12835/96.8)¼ | 1.03325 |
+| Algebraic GHF, 1.02 (1 + 5.32776/96.8)¼ | 1.03375 |
 
 After 50 injections **ignoring decay and background evolution**, the same
 finite-mixture calculation gives CF4 ≈987.498 ppb and SF6 ≈297.399 ppb,
-and assumed linear forcing ≈256.417 W/m². These are arithmetic examples,
+and proxy linear forcing ≈266.387 W/m². These are arithmetic examples,
 not a 50-year climate run. Actual runs include decay over 1.88090349 Earth
 years per Mars orbit and a changing background. The former 0.0198/0.00594
 ppb values were about 1000 times too small; the subsequent “scales to”
 adjustment and old CLI temperatures are withdrawn.
 
-The coefficients remain unverified sensitivity inputs (#74). Correct
+The coefficients have an Earth reference, with no validated Mars transfer. Correct
 concentration arithmetic does not validate the forcing model or its
 concentration range. Reproduce the arithmetic with
 `package/tests/interventions/test_forcing.py`.
@@ -656,9 +659,9 @@ and positive $F_\text{in,base}$, GHF remains finite.
    [https://doi.org/10.1029/2004JE002306](https://doi.org/10.1029/2004JE002306)
    — Relevant Mars greenhouse-gas study; not a verified source for all seven registry efficiencies.
 
-2. **IPCC AR5 (2013) / AR6 (2021)**. Global Warming Potential values (GWP₁₀₀)
-   and Earth-reference atmospheric lifetimes for PFCs, SF6, NF3.
-   [https://www.ipcc.ch/report/ar6/wg1/](https://www.ipcc.ch/report/ar6/wg1/)
+2. **IPCC AR6 WG1 (2021), Table 7.SM.7, PDF pp. 20–21**. Radiative
+   efficiencies, GWP₁₀₀, and Earth-reference lifetimes for all seven registry gases.
+   [Chapter 7 supplementary material](https://www.ipcc.ch/report/ar6/wg1/downloads/report/IPCC_AR6_WGI_Chapter07_SM.pdf)
 
 3. **Ravishankara, A. R., Solomon, S., Turnipseed, A. A., & Warren, R. F.** (1993).
    Atmospheric lifetimes of long-lived halogenated species.

@@ -1,0 +1,110 @@
+{
+  "ipcc": {
+    "url": "https://www.ipcc.ch/report/ar6/wg1/downloads/report/IPCC_AR6_WGI_Chapter07_SM.pdf",
+    "sha256": "4290518ef9418a4157ddb9481e589131eeb110614c3aa7b62641d3241d39ce58",
+    "table": "7.SM.7",
+    "pdf_pages": [
+      20,
+      21
+    ],
+    "domain": "Earth trace-gas reference; not a Mars forcing law",
+    "columns": [
+      "lifetime_earth_years",
+      "radiative_efficiency_w_m2_ppb",
+      "gwp100"
+    ],
+    "rows": {
+      "CF4": [
+        50000,
+        0.099,
+        7380
+      ],
+      "C2F6": [
+        10000,
+        0.261,
+        12400
+      ],
+      "C3F8": [
+        2600,
+        0.27,
+        9290
+      ],
+      "SF6": [
+        1000,
+        0.567,
+        24300
+      ],
+      "NF3": [
+        569,
+        0.204,
+        17400
+      ],
+      "C4F10": [
+        2600,
+        0.369,
+        10000
+      ],
+      "C6F14": [
+        3100,
+        0.449,
+        8620
+      ]
+    }
+  },
+  "marinova": {
+    "doi": "10.1029/2004JE002306",
+    "url": "https://zenodo.org/records/895737/files/article.pdf",
+    "sha256": "297743b33bbc6a24fce7d757b4fd1ab2e8b6c5cb4c7c6d87f6bd7416a9b427ee",
+    "table": "Table 1; gray fits equations 19-22,27",
+    "co2_partial_pressure_pa": 600.0,
+    "gas_partial_pressures_pa": [
+      0.01,
+      0.1,
+      1.0
+    ],
+    "solar_flux_w_m2": 116.5,
+    "stefan_boltzmann_w_m2_k4": 5.67e-08,
+    "co2_gray_opacity": 0.0709,
+    "temperature_increases_k": {
+      "CF4": [
+        0.497,
+        1.817,
+        5.16
+      ],
+      "C2F6": [
+        1.53,
+        5.41,
+        13.6
+      ],
+      "C3F8": [
+        2.91,
+        10.1,
+        33.5
+      ],
+      "SF6": [
+        1.92,
+        5.01,
+        9.8
+      ]
+    },
+    "gray_coefficients": {
+      "CF4": [
+        0.137,
+        0.682
+      ],
+      "C2F6": [
+        0.3866,
+        0.502
+      ],
+      "C3F8": [
+        1.095,
+        0.591
+      ],
+      "SF6": [
+        0.27,
+        0.391
+      ]
+    },
+    "domain": "Single artificial gas; 600 Pa CO2; gray fit stated range .01-1 Pa. Table 2 contains mixture percentages, not efficiencies."
+  }
+}
