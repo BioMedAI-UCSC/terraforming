@@ -71,6 +71,55 @@ def test_warm_air_sublimates_only_available_cloud():
         np.testing.assert_allclose(rate, 0., atol=1.e-14)
 
 
+@pytest.mark.parametrize("deposit", [-.001, .001])
+@pytest.mark.parametrize("cloud_ratio", [0., .01])
+def test_surface_exchange_closes_gas_cloud_frost_heat_and_ground_momentum(deposit, cloud_ratio):
+    sigma = (np.arange(12) + .5) / 12
+    dsigma = np.full(12, 1. / 12)
+    t = jnp.linspace(140., 200., 12)[:, None, None]
+    ps = jnp.full((1, 1), 610.)
+    q = jnp.full_like(t, cloud_ratio)
+    wind = jnp.stack([jnp.linspace(-30., 100., 12)[:, None, None], jnp.full_like(t, 5.)])
+    cf = co2_forcing()
+    surface, frost = jnp.full_like(ps, 150.), jnp.full_like(ps, 20.)
+    rate = jnp.full_like(ps, deposit)
+    heat, ice, acceleration, ground_heat, impulse = clouds.surface_exchange(
+        t, ps, q, wind, surface, frost, rate, sigma, dsigma, BODY, cf)
+    def budgets(epsilon):
+        mass, energy, momentum = clouds.column_budgets(t + epsilon * heat,
+            ps - epsilon * BODY.gravity_m_s2 * rate, q + epsilon * ice,
+            wind + epsilon * acceleration, sigma, dsigma, BODY, cf)
+        new_surface, new_frost = surface + epsilon * ground_heat, frost + epsilon * rate
+        energy = energy + cf.thermal_inertia * new_surface + new_frost * (
+            cf.cloud_ice_heat_capacity_j_kg_k * new_surface - cf.latent_heat_j_kg)
+        return mass + new_frost, energy, momentum + epsilon * impulse
+    tangent = jax.jvp(budgets, (jnp.asarray(0.),), (jnp.asarray(1.),))[1]
+    for value in tangent:
+        np.testing.assert_allclose(value, 0., atol=2.e-10)
+    # The upper gas must flow down during deposition, despite no upper source.
+    # A varying profile exposes the missing sigma redistribution term.
+    assert float(jnp.max(jnp.abs(heat[:8]))) > 0.
+    if cloud_ratio:
+        # The cloud column is transported, never removed with the gas sink.
+        def cloud_mass(epsilon):
+            gas = (ps - epsilon * BODY.gravity_m_s2 * rate)[None] * jnp.asarray(dsigma)[:, None, None] / BODY.gravity_m_s2
+            return jnp.sum(gas * (q + epsilon * ice))
+        assert float(jax.jvp(cloud_mass, (jnp.asarray(0.),), (jnp.asarray(1.),))[1]) == pytest.approx(0., abs=1e-14)
+
+
+def test_surface_exchange_zero_rate_is_identity_and_rejects_invalid_layer_ratio():
+    t, ps, q, wind, sigma, dsigma, cf = inputs()
+    rates = clouds.surface_exchange(t, ps, q, wind, jnp.full_like(ps, 150.),
+        jnp.ones_like(ps), jnp.zeros_like(ps), sigma, dsigma, BODY, cf)
+    for rate in rates:
+        np.testing.assert_array_equal(rate, 0.)
+    coords, specs, state = model()
+    for ratio in (0., 1.1, float("nan")):
+        with pytest.raises(ValueError, match="surface_exchange_pressure_ratio"):
+            physics.forced_co2_primitive_equations(coords, BODY, radiative_forcing(),
+                dataclasses.replace(cf, surface_exchange_pressure_ratio=ratio), specs=specs)
+
+
 def model():
     coords = coordinate_system("T21", 4)
     specs = physics_specs(BODY)

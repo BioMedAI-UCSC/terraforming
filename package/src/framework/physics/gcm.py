@@ -1581,6 +1581,7 @@ class CO2Forcing:
     # Finite-rate condensation aloft; released latent heat stays in the air.
     atmospheric_condensation: bool = True
     atmospheric_condensation_timescale_s: float = 3600.0
+    surface_exchange_pressure_ratio: float = 0.991
     cloud_particle_radius_m: float = 50.e-6
     cloud_ice_density_kg_m3: float = 1600.
     cloud_ice_heat_capacity_j_kg_k: float = 850.
@@ -1763,6 +1764,27 @@ def settle_co2_clouds(state, coords, specs, body, cf, dt_seconds):
         surface_momentum=state.surface_momentum + impulse)
 
 
+def _co2_surface_transport(state, temperature_nodal, ps_pa, wind_nodal, dice, coords, specs, body, cf):
+    from src.framework.physics.co2_clouds import CO2_CLOUD_TRACER, surface_exchange
+    grid = coords.horizontal
+    time_scale = 1. / float(specs.nondimensionalize(1. * _u.second))
+    speed_scale = float(specs.dimensionalize(1., _u.meter / _u.second).magnitude)
+    pressure_scale = float(specs.dimensionalize(1., _u.pascal).magnitude)
+    temperature = temperature_nodal + jnp.asarray(reference_temperature(coords, body))[:, None, None]
+    cloud = (grid.to_nodal(state.dynamics.tracers[CO2_CLOUD_TRACER])
+             if CO2_CLOUD_TRACER in state.dynamics.tracers else jnp.zeros_like(temperature))
+    heat, ice, velocity, surface_heat, impulse = surface_exchange(
+        temperature, ps_pa, cloud, jnp.stack(wind_nodal) * speed_scale,
+        state.surface_temperature[0], state.co2_ice[0] * pressure_scale / body.gravity_m_s2,
+        dice[0] * pressure_scale / time_scale / body.gravity_m_s2,
+        np.asarray(coords.vertical.centers, dtype=float),
+        np.diff(np.asarray(coords.vertical.boundaries, dtype=float)), body, cf)
+    vor, div = spherical_harmonic.uv_nodal_to_vor_div_modal(
+        grid, velocity[0] * time_scale / speed_scale, velocity[1] * time_scale / speed_scale)
+    return (grid.to_modal(heat * time_scale), grid.to_modal(ice * time_scale), vor, div,
+            surface_heat[None] * time_scale, impulse * time_scale)
+
+
 def forced_co2_primitive_equations(
     coords,
     body: BodyConstants,
@@ -1790,6 +1812,9 @@ def forced_co2_primitive_equations(
         value = getattr(co2_forcing, name)
         if not np.isfinite(value) or value <= 0:
             raise ValueError(f"{name} must be finite and positive")
+    if (not np.isfinite(co2_forcing.surface_exchange_pressure_ratio)
+            or not 0 < co2_forcing.surface_exchange_pressure_ratio <= 1):
+        raise ValueError("surface_exchange_pressure_ratio must be in (0, 1]")
     if radiation_component is not None and not forcing.co2_radiation_enabled:
         raise ValueError("radiation_component requires co2_radiation_enabled=True")
     base = _build_primitive_equations(coords, body, specs=specs, orography=orography)
@@ -1814,7 +1839,7 @@ def forced_co2_primitive_equations(
         surface_flux = (
             (dsurface + ground_surface)[0] / time_scale * forcing.thermal_inertia
         )
-        d_logsp, dice, dlatent_surface = _co2_surface_tendencies(
+        d_logsp, dice, _ = _co2_surface_tendencies(
             state, coords, specs, body, co2_forcing,
             available_surface_flux_w_m2=surface_flux,
             surface_pressure_pa=ps_pa,
@@ -1823,9 +1848,8 @@ def forced_co2_primitive_equations(
             state, temperature_nodal, ps_pa, wind_nodal, coords, specs, body, co2_forcing
         )
         from src.framework.physics.co2_clouds import CO2_CLOUD_TRACER
-        if co2_forcing.atmospheric_condensation:
-            cloud = grid.to_nodal(state.dynamics.tracers[CO2_CLOUD_TRACER])
-            cloud_ice = cloud_ice - grid.to_modal(cloud * grid.to_nodal(d_logsp))
+        transport_heat, transport_ice, transport_vor, transport_div, dlatent_surface, ground_impulse = _co2_surface_transport(
+            state, temperature_nodal, ps_pa, wind_nodal, dice, coords, specs, body, co2_forcing)
         d_logsp = d_logsp + grid.to_modal(atmospheric_pressure / ps_nd[None])
         drag_vor, drag_div = surface_momentum_tendencies(
             state, coords, specs, body, forcing, wind_nodal=wind_nodal,
@@ -1838,15 +1862,16 @@ def forced_co2_primitive_equations(
         convection = dry_convective_adjustment_tendency(
             state, coords, specs, body, forcing, temperature_nodal=temperature_nodal
         )
-        if co2_forcing.atmospheric_condensation:
-            mix_tracers = {**mix_tracers, CO2_CLOUD_TRACER: mix_tracers.get(CO2_CLOUD_TRACER, 0.) + cloud_ice}
+        if CO2_CLOUD_TRACER in state.dynamics.tracers:
+            mix_tracers = {**mix_tracers, CO2_CLOUD_TRACER: mix_tracers.get(CO2_CLOUD_TRACER, 0.) + cloud_ice + transport_ice}
         return ColumnPhysicsTendencies(
-            drag_vor + mix_vor + cloud_vor, drag_div + mix_div + cloud_div,
-            heat + mix_heat + convection + atmospheric_heat, d_logsp,
+            drag_vor + mix_vor + cloud_vor + transport_vor, drag_div + mix_div + cloud_div + transport_div,
+            heat + mix_heat + convection + atmospheric_heat + transport_heat, d_logsp,
             dsurface + dlatent_surface + ground_surface,
             dice,
             ground,
             mix_tracers,
+            ground_impulse,
         )
     extra = compose_column_parameterizations(parameterization, neural_tendency)
     return column_primitive_equations(base, extra)

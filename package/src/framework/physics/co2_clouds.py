@@ -85,6 +85,53 @@ def phase_exchange(temperature, ps_pa, ice_ratio, wind, frost_k, sigma, dsigma, 
     return dtemperature, -body.gravity_m_s2 * total, dice_ratio, dvelocity
 
 
+def surface_exchange(temperature, ps_pa, ice_ratio, wind, surface_temperature,
+                     frost_mass, deposit_rate, sigma, dsigma, body, cf):
+    """Carry gas mass, energy and momentum between the lower air and frost.
+
+    Ames mars_physics distributes surface exchange over its lowest pressure
+    levels. Sigma-coordinate redistribution must carry the donor enthalpy,
+    cloud mass and momentum. Sublimated gas enters at surface temperature and
+    at rest relative to the ground. Deposition transfers air momentum to ground.
+    """
+    gas, ice, geometry, hg, hi, capacity = layer_properties(
+        temperature, ps_pa, ice_ratio, sigma, dsigma, body, cf)
+    sigma = np.asarray(sigma)
+    below = np.flatnonzero(sigma / sigma[-1] < cf.surface_exchange_pressure_ratio)
+    # Ames: klevs=kd-k+1; klev=kd-klevs-1 (Fortran one-based indices).
+    first = max(0, int(below[-1]) - 2) if len(below) else 0
+    weights = np.asarray(dsigma).copy()
+    weights[:first] = 0.
+    weights /= weights.sum()
+    source = -deposit_rate[None] * jnp.asarray(weights)[:, None, None]
+    dgas = -deposit_rate[None] * jnp.asarray(dsigma)[:, None, None]
+    flux = jnp.cumsum(source - dgas, axis=0)[:-1]
+    def advect(values):
+        transfer = flux * jnp.where(flux >= 0., values[:-1], values[1:])
+        return jnp.pad(transfer, [(1, 0), (0, 0), (0, 0)]) - jnp.pad(
+            transfer, [(0, 1), (0, 0), (0, 0)])
+    dice = advect(ice_ratio)
+    dmass = dgas + dice
+    mass = gas + ice
+    source_wind = jnp.where(deposit_rate[None, None] >= 0., wind, 0.)
+    momentum_source = source[None] * source_wind
+    momentum = jnp.stack([advect((1. + ice_ratio) * v) for v in wind]) + momentum_source
+    dvelocity = (momentum - wind * dmass[None]) / mass[None]
+    kinetic = jnp.sum(wind**2, axis=0) / 2.
+    source_energy = source * jnp.where(deposit_rate[None] >= 0.,
+        hg + kinetic, body.cp_j_kg_k * surface_temperature[None])
+    energy = advect(hg + ice_ratio * hi + (1. + ice_ratio) * kinetic) + source_energy
+    rhs = (energy - hg * dgas - hi * dice - kinetic * dmass
+           - mass * jnp.sum(wind * dvelocity, axis=0))
+    dtemperature = _thermal_solve(rhs, capacity, ice, geometry)
+    ground_energy = -jnp.sum(source_energy, axis=0)
+    frost_enthalpy = cf.cloud_ice_heat_capacity_j_kg_k * surface_temperature - cf.latent_heat_j_kg
+    surface_capacity = cf.thermal_inertia + frost_mass * cf.cloud_ice_heat_capacity_j_kg_k
+    dsurface = (ground_energy - frost_enthalpy * deposit_rate) / surface_capacity
+    impulse = -jnp.sum(momentum_source, axis=1)
+    return dtemperature, (dice - ice_ratio * dgas) / gas, dvelocity, dsurface, impulse
+
+
 def settling_velocity(temperature, pressure, body, cf):
     """Stokes settling with Cunningham slip; viscosity follows CO2 Sutherland law."""
     viscosity = 1.370e-5 * (temperature / 273.)**1.5 * (273. + 222.) / (temperature + 222.)
