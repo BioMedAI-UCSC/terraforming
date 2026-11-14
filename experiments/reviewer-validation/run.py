@@ -17,6 +17,15 @@ env = dict(os.environ, PYTHONPATH=os.pathsep.join([str(source / "package"), str(
 inputs = Path("/work/reviewer-inputs")
 if not (inputs / "manifest.json").is_file():
     raise FileNotFoundError("Upload the frozen current-physics input bundle to /work/reviewer-inputs first")
+calibration = run / "calibration"
+if not (calibration / "complete.json").exists():
+    # Each interrupted optimization keeps its trace; a retry uses a separate attempt.
+    attempt = run / f"calibration-attempt-{len(list(run.glob('calibration-attempt-*'))):03d}"
+    subprocess.run([str(python), str(source / "scripts/run_differentiable_experiments.py"), "calibration",
+        "--inputs", str(inputs), "--manifest", "/work/reviewer-windows/windows.json",
+        "--output", str(attempt), "--starts", "3", "--updates", "500", "--max-evaluations", "300",
+        "--gtol", "1e-6", "--ftol", "1e-12", "--require-gpu"], cwd=source, env=env, check=True)
+    calibration.symlink_to(attempt, target_is_directory=True)
 for case, extra in (("ultra", []), ("timestep-450", ["--dt", "450"]),
                     ("timestep-300", ["--dt", "300"]), ("timestep-150", ["--dt", "150"])):
     subprocess.run([str(python), str(source / "scripts/run_reviewer_stability.py"),
