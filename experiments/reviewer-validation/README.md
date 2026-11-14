@@ -1,7 +1,7 @@
 # Reviewer validation on Nautilus
 
 Use the existing `apps/nautalis/jobs.py` runtime. `job.json` records the submitted
-A100 campaign with source pinned to `dc37c66`. It uses the staged, hashed current
+A100 campaign with source pinned to `d9247914c7bb71c8611b00921c9295bf83d48b24`. It uses the staged, hashed current
 inputs on PVC `mars-review-104-20261113-v1` in namespace `razvanlab`.
 
 The job runs three bounded calibration starts with independent seasonal train,
@@ -29,8 +29,8 @@ separate analysis of the saved states.
 Check the submitted campaign:
 
 ```sh
-rtk kubectl --context nautilus -n razvanlab get pods -l job-name=mars-review-104-20261113-a100-v2 -o wide
-rtk kubectl --context nautilus -n razvanlab logs job/mars-review-104-20261113-a100-v2 --tail=80
+rtk kubectl --context nautilus -n razvanlab get pods -l job-name=mars-review-104-20261113-a100-v3 -o wide
+rtk kubectl --context nautilus -n razvanlab logs job/mars-review-104-20261113-a100-v3 --tail=80
 ```
 
 H100 quota is zero. A40 and V100 attempts could not schedule and were deleted

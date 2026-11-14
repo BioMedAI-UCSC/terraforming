@@ -25,12 +25,12 @@
       "apiVersion": "batch/v1",
       "kind": "Job",
       "metadata": {
-        "name": "mars-review-104-20261113-a100-v2",
+        "name": "mars-review-104-20261113-a100-v3",
         "namespace": "razvanlab"
       },
       "spec": {
         "backoffLimit": 1,
-        "activeDeadlineSeconds": 21600,
+        "activeDeadlineSeconds": 86400,
         "template": {
           "metadata": {
             "labels": {
@@ -79,9 +79,9 @@
                   "--repository",
                   "https://github.com/BioMedAI-UCSC/terraforming.git",
                   "--ref",
-                  "dc37c66",
+                  "d9247914c7bb71c8611b00921c9295bf83d48b24",
                   "--run-id",
-                  "current-physics-v1",
+                  "current-physics-v2",
                   "--gpu",
                   "--experiments",
                   "experiments/reviewer-validation",
