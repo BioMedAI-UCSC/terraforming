@@ -1,0 +1,7 @@
+{
+  "cpu_model": "Apple M3 Pro",
+  "architecture": "arm64",
+  "backend": "cpu",
+  "source_command": "sysctl -n machdep.cpu.brand_string",
+  "note": "Read separately on the same host. Original reports retain their unavailable hardware field."
+}

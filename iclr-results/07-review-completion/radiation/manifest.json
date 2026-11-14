@@ -1,0 +1,147 @@
+[
+  {
+    "path": "hardware-supplement.json",
+    "sha256": "f3487074adc83640190302f01b18be09015786771234e6f9b7ecaaf2af05e077",
+    "bytes": 244
+  },
+  {
+    "path": "radiation-repeat0/continued_local.npz",
+    "sha256": "f4a22515d5297e24fb85d6f1b147dbe41eac828e712a5d2a44b2278164d6a142",
+    "bytes": 21390
+  },
+  {
+    "path": "radiation-repeat0/local.npz",
+    "sha256": "b9682055426c950b8a1beb1af74886b7f1af462f09786e2c6cd38a1f39278d24",
+    "bytes": 21386
+  },
+  {
+    "path": "radiation-repeat0/predictions.npz",
+    "sha256": "c3a4e6ac6be88a54154dfe8ea6476ba4808219d5921a293ec7b5e978d71cb092",
+    "bytes": 66786
+  },
+  {
+    "path": "radiation-repeat0/report.json",
+    "sha256": "eaf8017950700766003e041fcdf56eb5a3372a985c55b24bb13558737efe08f3",
+    "bytes": 45338
+  },
+  {
+    "path": "radiation-repeat0/report.md",
+    "sha256": "b2e9654c6d40ed092d7682f0abbb8310482f323a2befeef296a80b170bf3887b",
+    "bytes": 45504
+  },
+  {
+    "path": "radiation-repeat0/training_and_rollouts.png",
+    "sha256": "c9d629bbb428476a6143c6919d130e04bc9ee6bd4ae4a2b84314052b12f5fff7",
+    "bytes": 96044
+  },
+  {
+    "path": "radiation-repeat0/trajectory.npz",
+    "sha256": "d2c45ba145a8d8f8f8a569f927e80892964efc354e944956058c3fda391c2183",
+    "bytes": 21396
+  },
+  {
+    "path": "radiation-seed0/continued_local.npz",
+    "sha256": "f4a22515d5297e24fb85d6f1b147dbe41eac828e712a5d2a44b2278164d6a142",
+    "bytes": 21390
+  },
+  {
+    "path": "radiation-seed0/local.npz",
+    "sha256": "b9682055426c950b8a1beb1af74886b7f1af462f09786e2c6cd38a1f39278d24",
+    "bytes": 21386
+  },
+  {
+    "path": "radiation-seed0/predictions.npz",
+    "sha256": "c3a4e6ac6be88a54154dfe8ea6476ba4808219d5921a293ec7b5e978d71cb092",
+    "bytes": 66786
+  },
+  {
+    "path": "radiation-seed0/report.json",
+    "sha256": "d730cbd8b6cea4031e43fdf585c686ff13949f2019ef62124e80cda11bcf70be",
+    "bytes": 45336
+  },
+  {
+    "path": "radiation-seed0/report.md",
+    "sha256": "625f5ebf2f360454b589c5b25a533516354a8e2fced3ea3bd6be4450ff5fbb16",
+    "bytes": 45502
+  },
+  {
+    "path": "radiation-seed0/training_and_rollouts.png",
+    "sha256": "c9d629bbb428476a6143c6919d130e04bc9ee6bd4ae4a2b84314052b12f5fff7",
+    "bytes": 96044
+  },
+  {
+    "path": "radiation-seed0/trajectory.npz",
+    "sha256": "d2c45ba145a8d8f8f8a569f927e80892964efc354e944956058c3fda391c2183",
+    "bytes": 21396
+  },
+  {
+    "path": "repeat-verification.json",
+    "sha256": "3df3fb5268d36c5edfbea4a9f6bdb20c3454e2d7ff7fe492796136b5d1161f0a",
+    "bytes": 452
+  },
+  {
+    "path": "source-snapshot/examples/neural/common.py",
+    "sha256": "cbe413c10cc1bb17f06daa51c8df66b411e6ab686cd91846a748e7ab1168e71f",
+    "bytes": 4748
+  },
+  {
+    "path": "source-snapshot/examples/neural/optimize_atmospheric_control.py",
+    "sha256": "4ab07051787d37965050b3513552862d68b5e259fec4d12039876bd1c15a5e3b",
+    "bytes": 7520
+  },
+  {
+    "path": "source-snapshot/examples/neural/recover_parameter.py",
+    "sha256": "b74ad8401b4ab43da4f3417880465078548a4601d6225a0ed26fe778e0f3eb77",
+    "bytes": 6003
+  },
+  {
+    "path": "source-snapshot/examples/neural/train_radiation.py",
+    "sha256": "ea58f5d58c0f987487857ce80929341a327c31049596f565c8605f80043035f5",
+    "bytes": 18704
+  },
+  {
+    "path": "source-snapshot/package/src/framework/gcm/learning.py",
+    "sha256": "171a402dfc4c1ab85aa6e181b1ef6f89683b6876844e037ae57b81cad13b6f65",
+    "bytes": 2580
+  },
+  {
+    "path": "source-snapshot/package/src/framework/neural/__init__.py",
+    "sha256": "2d4b98ec72ad9017856ce2aa5a5def59f9d3800294e9393c8b5a74feb051ce17",
+    "bytes": 1117
+  },
+  {
+    "path": "source-snapshot/package/src/framework/neural/checkpoints.py",
+    "sha256": "0bd023bbfc8c6d4db787ae2bf57ade7da7b6cfa5e324e387eb2e51214066284d",
+    "bytes": 3369
+  },
+  {
+    "path": "source-snapshot/package/src/framework/neural/columns.py",
+    "sha256": "242539d36a418204c11a37fffbc7883629d75df619d005dba5214ee18d5a21e1",
+    "bytes": 2956
+  },
+  {
+    "path": "source-snapshot/package/src/framework/neural/models.py",
+    "sha256": "9ae49e1c19014c94f5fbfd253a0f259ed2534e54400b9896673feeb01e5c7eda",
+    "bytes": 2689
+  },
+  {
+    "path": "source-snapshot/package/src/framework/neural/radiation.py",
+    "sha256": "e77eca0f8312ff3bb135e5e98e30bfe262613b9339a5f5fb461c9e43e2fa934c",
+    "bytes": 7841
+  },
+  {
+    "path": "source-snapshot/package/src/framework/neural/tendency.py",
+    "sha256": "f518112bee1cd39830d1233aeadbd9405538d3a2f34516b51fe2aa8c131065d8",
+    "bytes": 5399
+  },
+  {
+    "path": "source-snapshot/package/src/framework/neural/training.py",
+    "sha256": "8891170a38ab9957df3ffff60974e9974fe4653e15350a8bff804e032902a06f",
+    "bytes": 2446
+  },
+  {
+    "path": "source-snapshot/package/src/framework/physics/gcm.py",
+    "sha256": "a08f29573ed156df179451549ea555c5d44173a6ea7415535b54a41fbbcf1784",
+    "bytes": 103574
+  }
+]
