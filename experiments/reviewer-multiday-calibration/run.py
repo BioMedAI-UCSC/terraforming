@@ -16,7 +16,9 @@ env = dict(os.environ, PYTHONPATH=os.pathsep.join([str(source / "package"), str(
     XLA_PYTHON_CLIENT_PREALLOCATE="false", XLA_FLAGS="")
 # Isolate atmospheric phase change under identical MOLA/TES/dust winter forcing.
 years = 15. * 88775.244 / 59356800.
-for name, extra in (("clouds-on", []), ("surface-only", ["--no-atmospheric-condensation"])):
+for name, extra in (("clouds-on", []),
+                    ("finite-rate", ["--no-atmospheric-saturation-adjustment"]),
+                    ("surface-only", ["--no-atmospheric-condensation"])):
     subprocess.run([str(python), str(source / "scripts/run_reviewer_stability.py"), "timestep",
         "--inputs", "/work/reviewer-inputs", "--output", str(run / "polar-control" / name),
         "--dt", "300", "--years", str(years), "--ls", "270", "--resume", "--require-gpu", *extra],

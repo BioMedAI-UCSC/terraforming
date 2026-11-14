@@ -73,12 +73,15 @@ drives phase change off the surface-energy residual (no tunable relaxation rate)
 `use_pressure_frost` uses the Clausius–Clapeyron frost point; `escape_rate_kg_s`
 is a uniform non-thermal mass sink.
 
-`atmospheric_condensation=True` adds finite-rate layer condensation, latent
-heating and a transported `co2_cloud_ice` tracer (kg ice/kg gas). The default
-relaxation time is 3600 s. Cloud ice can sublimate or settle to surface frost;
+`atmospheric_condensation=True` adds layer condensation, latent heating and a
+transported `co2_cloud_ice` tracer (kg ice/kg gas). The default
+`atmospheric_saturation_adjustment=True` applies conservative saturation after
+the predicted dynamics and existing-cloud settling. Set it to False for the
+finite-rate ablation, with a 3600 s relaxation time. Cloud ice can sublimate or settle to surface frost;
 the fixed particle radius is 50 µm. Cloud radiation and particle growth are absent.
 Integrate this cycle with `positivity_preserving_co2_step`, passing `body`,
-`co2_forcing` and `dt_seconds` so settling runs after each step.
+`co2_forcing` and `dt_seconds` so settling and saturation run after each step.
+See `docs/ames-co2-saturation.md` for the mass, energy and momentum contract.
 
 The Mars radiative factory enables `co2_frost_radiative_properties`. Above
 2 kg/m² of surface CO₂ frost, albedo/emissivity become 0.65/0.81 in the north

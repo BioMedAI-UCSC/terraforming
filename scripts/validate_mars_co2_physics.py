@@ -107,7 +107,9 @@ def main():
             max_relative_total_co2_mass_drift=mass_drift,
             max_raw_step_mass_error_kg=float(jnp.max(jnp.abs(budgets.raw_total_mass_kg - budgets.target_total_mass_kg))),
             max_projection_energy_change_j=float(jnp.max(jnp.abs(
-                budgets.corrected_exchange_energy_j - budgets.settled_exchange_energy_j))),
+                budgets.corrected_exchange_energy_j - budgets.saturation_adjusted_exchange_energy_j))),
+            max_saturation_stage_energy_change_j=float(jnp.max(jnp.abs(
+                budgets.saturation_adjusted_exchange_energy_j - budgets.settled_exchange_energy_j))),
             valid_inventory=bool(jnp.all(budgets.valid_inventory)),
             finite=all(np.isfinite(np.asarray(x)).all() for x in jax.tree.leaves(final)))
         print(json.dumps({name: cases[name]}), flush=True)

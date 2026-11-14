@@ -33,8 +33,9 @@ surface-plus-frost heat capacity. Scaling phase heating alone while leaving
 radiative cooling on the bare slab capacity makes a frosted surface overcool;
 a coupled regression test covers this case with nonzero soil heat flow.
 Escape removes gas while preserving suspended cloud mass.
-This correction does not implement Ames atmospheric saturation adjustment,
-convective momentum mixing, or its full external dynamical core.
+The separate atmospheric saturation adaptation is described in
+`docs/ames-co2-saturation.md`. Convective momentum mixing and the full Ames
+external dynamical core remain separate work.
 
 Independent derivative tests check total gas/cloud/frost mass, resolved
 enthalpy/kinetic/cloud-potential/surface energy, and atmospheric plus ground

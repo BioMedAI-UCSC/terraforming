@@ -53,6 +53,7 @@ def main():
     parser.add_argument("--years", type=float, default=1.)
     parser.add_argument("--ls", type=float, default=0., help="Initial solar longitude in degrees")
     parser.add_argument("--atmospheric-condensation", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--atmospheric-saturation-adjustment", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--require-gpu", action="store_true")
     parser.add_argument("--resume", action="store_true")
     args = parser.parse_args()
@@ -88,7 +89,8 @@ def main():
     initial = physics.initial_column_state(dataclasses.replace(
         initial_rest_state(coords, specs, BODY, elevation), sim_time=0.),
         coords, BODY.reference_temperature_k, specs, forcing=forcing)
-    cf = dataclasses.replace(co2_forcing(), atmospheric_condensation=args.atmospheric_condensation)
+    cf = dataclasses.replace(co2_forcing(), atmospheric_condensation=args.atmospheric_condensation,
+        atmospheric_saturation_adjustment=args.atmospheric_saturation_adjustment)
     equation = physics.forced_co2_primitive_equations(coords, BODY, forcing, cf, specs=specs, orography=orography)
     raw = stepper(equation, cfg["dt_seconds"], specs, coords=coords, hyperdiffusion_tau_seconds=tau)
     advance = physics.positivity_preserving_co2_step(raw, coords, specs, body=BODY,
@@ -133,7 +135,11 @@ def main():
             budget.raw_exchange_energy_j, budget.frost_repaired_exchange_energy_j,
             budget.settled_exchange_energy_j, budget.corrected_exchange_energy_j,
             budget.raw_axial_angular_momentum_kg_m2_s, budget.corrected_axial_angular_momentum_kg_m2_s,
-            jnp.max(jnp.abs(correction)), *regional])
+            jnp.max(jnp.abs(correction)), *regional,
+            budget.saturation_adjusted_exchange_energy_j,
+            budget.saturation_adjusted_axial_angular_momentum_kg_m2_s,
+            budget.frost_repaired_total_mass_kg, budget.settled_total_mass_kg,
+            budget.saturation_adjusted_total_mass_kg, budget.settled_axial_angular_momentum_kg_m2_s])
 
     def diagnostic(state):
         record = _checkpoint_diagnostics(state, coords, specs, cfg["dt_seconds"])
@@ -160,7 +166,7 @@ def main():
         return record
 
     state, completed, rows = initial, 0, [diagnostic(initial)]
-    budget_maxima = np.zeros(4)
+    budget_maxima = np.zeros(7)
     progress_path = args.output / "progress.json"
     if progress_path.exists():
         progress = json.loads(progress_path.read_text())
@@ -180,14 +186,17 @@ def main():
             raise FloatingPointError("nonfinite trajectory; previous checkpoint preserved")
         completed += count
         budget_maxima = np.maximum(budget_maxima, [np.max(np.abs(history[:,0]-history[:,1])),
-            np.max(np.abs(history[:,2]/initial_mass-1.)), np.max(np.abs(history[:,7]-history[:,6])),
-            np.max(np.abs(history[:,9]-history[:,8]))])
+            np.max(np.abs(history[:,2]/initial_mass-1.)), np.max(np.abs(history[:,7]-history[:,14])),
+            np.max(np.abs(history[:,9]-history[:,8])), np.max(np.abs(history[:,14]-history[:,6])),
+            np.max(np.abs(history[:,18]-history[:,17])), np.max(np.abs(history[:,15]-history[:,19]))])
         columns = ("raw_total_mass_kg", "target_total_mass_kg", "corrected_total_mass_kg", "pressure_factor",
             "raw_exchange_energy_j", "frost_repaired_exchange_energy_j", "settled_exchange_energy_j",
             "corrected_exchange_energy_j", "raw_axial_angular_momentum_kg_m2_s",
             "corrected_axial_angular_momentum_kg_m2_s", "max_local_pressure_correction_pa",
             "mean_nonpolar_pressure_correction_pa", "mean_north_polar_pressure_correction_pa",
-            "mean_south_polar_pressure_correction_pa")
+            "mean_south_polar_pressure_correction_pa", "saturation_adjusted_exchange_energy_j",
+            "saturation_adjusted_axial_angular_momentum_kg_m2_s", "frost_repaired_total_mass_kg",
+            "settled_total_mass_kg", "saturation_adjusted_total_mass_kg", "settled_axial_angular_momentum_kg_m2_s")
         np.savez_compressed(args.output / f"budgets-{completed:09d}.npz", **dict(zip(columns, history.T, strict=True)))
         checkpoint = f"state-{completed:09d}.npz"
         save_restart(state, args.output / checkpoint)
@@ -203,6 +212,9 @@ def main():
         seconds=completed*cfg["dt_seconds"], max_raw_step_mass_error_kg=budget_maxima[0],
         max_post_projection_relative_co2_drift=budget_maxima[1], max_projection_exchange_energy_change_j=budget_maxima[2],
         max_raw_to_corrected_aam_change_kg_m2_s=budget_maxima[3],
+        max_saturation_stage_energy_change_j=budget_maxima[4],
+        max_saturation_stage_mass_change_kg=budget_maxima[5],
+        max_saturation_stage_aam_change_kg_m2_s=budget_maxima[6],
         limitations="Finite trajectory, spectra and diagnosed budgets; no equilibrium or observational skill claim. Exchange energy is not the complete dry-core energy theorem."), indent=2)+"\n")
 
 

@@ -21,3 +21,6 @@ for dt in (450, 300, 150):
 subprocess.run([str(python), str(source / "scripts/analyse_reviewer_timesteps.py"),
     str(run / "studies"), "--output", str(run / "timestep-comparison.json")],
     cwd=source, env=env, check=True)
+subprocess.run([str(python), str(source / "scripts/analyse_reviewer_fields.py"),
+    str(run / "studies"), "--output", str(run / "full-field-comparison")],
+    cwd=source, env=env, check=True)

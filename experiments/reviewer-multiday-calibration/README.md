@@ -2,7 +2,8 @@
 
 The campaign first runs a paired fifteen-sol winter control at Ls270 with
 MOLA terrain, TES surface fields, seasonal dust, and the same initial state.
-Only atmospheric CO2 phase change is switched on/off. Both cases archive raw
+The current protocol compares saturation adjustment, finite-rate atmospheric
+phase change, and surface-only phase change. All cases archive raw
 budgets, diagnostics, restarts, and final geographic NetCDF fields. This tests
 the condensation mechanism under geographic forcing; it is not an observed
 climate benchmark. It does not replace the held-out forecast test below.

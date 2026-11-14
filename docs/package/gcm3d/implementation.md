@@ -109,7 +109,10 @@ Atmospheric phase change compares each layer with the frost point at its layer
 pressure. Latent heat warms the air while condensed mass enters a transported
 ice tracer. Ice can sublimate or settle to the surface. The exchange operators
 include heat and momentum carried with mass and heat released during settling.
-The global mass target includes suspended ice. Raw, repaired, settled and final
+The default applies saturation to the predicted state after existing-cloud
+settling, with conservative sigma remapping of energy and momentum. The
+finite-rate operator remains an explicit ablation. The global mass target
+includes suspended ice. Raw, repaired, settled, saturation-adjusted and final
 exchange budgets are available through `return_diagnostics=True`; they do not
 establish conservation of the complete dry dynamical core.
 
