@@ -1,0 +1,109 @@
+{
+  "status": "historical_saved_results_not_current_physics",
+  "archive": "Untitled.tar.gz",
+  "archive_sha256": "2c8264db2c1bb1d8b51a191338844fff5e08ca3072456928ab4480ad6d9c0f3b",
+  "bytes": 342306346,
+  "recorded_git_commit": "d7d8d845527ac2b704bdfb55b580c426b94368cd",
+  "recorded_git_status": "?? nohup.out",
+  "original_gpu_model": null,
+  "numeric_saved_arrays_checked": 32,
+  "files": [
+    {
+      "path": "ablations.csv",
+      "bytes": 878,
+      "sha256": "35ab14b92bf013c9e9b42c5162f9c165e24e64204a44635f54799c1df32884ee"
+    },
+    {
+      "path": "ablations.json",
+      "bytes": 184500,
+      "sha256": "61f2e862a993952a86cd54d7a5775fc6869d64f19fefcc43e91d9a202558b366"
+    },
+    {
+      "path": "config.json",
+      "bytes": 1598,
+      "sha256": "99a75e193765dc31b385a1f9670c76007de9c50261533c14732b0ea52bc27f34"
+    },
+    {
+      "path": "environment.json",
+      "bytes": 593,
+      "sha256": "90fb2c28fab621ef8f5a42eac857f986751d551c9935c2c437115f5cd9ddcd73"
+    },
+    {
+      "path": "full-restart.npz",
+      "bytes": 364055,
+      "sha256": "80cdc7bb292d2f29a25f28220c2372d7074d0eca9cca9b3e5fec2d2c3d1a2c2f"
+    },
+    {
+      "path": "full.nc",
+      "bytes": 90992490,
+      "sha256": "261e13a990e37666f62c784fbe6c40a12c3bc6566d960e440f15d98b2bd14af5"
+    },
+    {
+      "path": "input-manifest.json",
+      "bytes": 1011,
+      "sha256": "ea371313353309296819d7056914e5a457915776b88efbd1260eb7a0fb472829"
+    },
+    {
+      "path": "invocation.json",
+      "bytes": 355,
+      "sha256": "89eed7b4853436be50c931e7fc82c1968ee75043dea7de4ae4b1068ef79aa83d"
+    },
+    {
+      "path": "no_convection-restart.npz",
+      "bytes": 363974,
+      "sha256": "490f669168ca8febbb18a9a9aaff5429d0b081a9a5dbf5e9b29158024567d05c"
+    },
+    {
+      "path": "no_convection.nc",
+      "bytes": 90992490,
+      "sha256": "569543e6c54a9bd33bc629b330ea51103ad7b28956c56c5cbef146c5890e3ad0"
+    },
+    {
+      "path": "no_pbl-restart.npz",
+      "bytes": 363903,
+      "sha256": "a3fb7b5f5b0b55fc17d5ae66cfad35a8c65a4a960ed96c72eafe71c383bf7c70"
+    },
+    {
+      "path": "no_pbl.nc",
+      "bytes": 90992490,
+      "sha256": "31806b3e1dcde2c293ebb60863b0d6b3d32be3f52061a062d8d22c72bc464097"
+    },
+    {
+      "path": "no_regolith-restart.npz",
+      "bytes": 363356,
+      "sha256": "7f69b98b8ec2ae9f0e7c6ee7f1987e17eac135cbcdd9845b780c202fd07f5e82"
+    },
+    {
+      "path": "no_regolith.nc",
+      "bytes": 90992490,
+      "sha256": "25f214106c80897b205221e6c34874904c4d6a1fb86510352a2554191fc2c64d"
+    },
+    {
+      "path": "progress.jsonl",
+      "bytes": 2368,
+      "sha256": "90d84f8068f82053bacd46d9fcb09929a9918da055cbe9c6609e58ef1ca330a5"
+    },
+    {
+      "path": "report.json",
+      "bytes": 2003,
+      "sha256": "77f47be0f55bcf3fce35559a2cb63f320d4376f91278e64451b65a0092bcd908"
+    },
+    {
+      "path": "source-hashes.json",
+      "bytes": 603,
+      "sha256": "429656bbd3b8be5a945d453794280eb9f722d7ba6546f97d10fe6c78b490b488"
+    },
+    {
+      "path": "summary.md",
+      "bytes": 376,
+      "sha256": "72ba97960f523b8fc359eeb2cb374ccd6ac16e11e7e19228560060bd6cb6588f"
+    }
+  ],
+  "limitations": [
+    "Original GPU model was not recorded; cuda:0 is not a hardware identity.",
+    "These are the available saved checkpoints and final dimensional maps, not every integration step.",
+    "Nondimensional restarts require their original source/unit contract; do not load them as current-physics states.",
+    "Finite saved arrays and constrained inventories do not prove equilibrium, raw budget closure, or observational accuracy.",
+    "Original dirty patches and complete input hashes cannot be reconstructed from absent records."
+  ]
+}

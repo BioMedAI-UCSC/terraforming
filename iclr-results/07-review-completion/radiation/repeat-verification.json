@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "numeric_arrays": 60,
+  "rtol": 1e-10,
+  "atol": 1e-12,
+  "ignored_timing_keys": [
+    "first_call_seconds",
+    "first_update_compile_and_execution_seconds",
+    "physical_first_call_seconds",
+    "physical_warm_seconds",
+    "reference_first_call_seconds",
+    "reference_warm_seconds",
+    "training_seconds",
+    "warm_seconds"
+  ],
+  "limitation": "One seed on one CPU; no multi-seed or Mars observational validation."
+}

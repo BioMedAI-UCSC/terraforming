@@ -1,0 +1,154 @@
+{
+  "apiVersion": "v1",
+  "kind": "List",
+  "items": [
+    {
+      "apiVersion": "v1",
+      "kind": "PersistentVolumeClaim",
+      "metadata": {
+        "name": "mars-review-104-20261113-v1",
+        "namespace": "razvanlab"
+      },
+      "spec": {
+        "storageClassName": "rook-ceph-block",
+        "accessModes": [
+          "ReadWriteOnce"
+        ],
+        "resources": {
+          "requests": {
+            "storage": "64Gi"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "batch/v1",
+      "kind": "Job",
+      "metadata": {
+        "name": "mars-review-104-20261113-a100-v3",
+        "namespace": "razvanlab"
+      },
+      "spec": {
+        "backoffLimit": 1,
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "nautalis-experiments"
+            }
+          },
+          "spec": {
+            "restartPolicy": "Never",
+            "automountServiceAccountToken": false,
+            "terminationGracePeriodSeconds": 120,
+            "securityContext": {
+              "runAsNonRoot": true,
+              "runAsUser": 10001,
+              "runAsGroup": 10001,
+              "fsGroup": 10001,
+              "fsGroupChangePolicy": "OnRootMismatch",
+              "seccompProfile": {
+                "type": "RuntimeDefault"
+              }
+            },
+            "affinity": {
+              "nodeAffinity": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "nodeSelectorTerms": [
+                    {
+                      "matchExpressions": [
+                        {
+                          "key": "topology.kubernetes.io/region",
+                          "operator": "In",
+                          "values": [
+                            "us-west"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            "containers": [
+              {
+                "name": "experiment",
+                "image": "samkash/terraforming-paper@sha256:a04422421dbe06a2073d55259ba9ae9d54e2f22488e4bc2552fdbb5bc3f24fd2",
+                "imagePullPolicy": "IfNotPresent",
+                "args": [
+                  "--repository",
+                  "https://github.com/BioMedAI-UCSC/terraforming.git",
+                  "--ref",
+                  "d9247914c7bb71c8611b00921c9295bf83d48b24",
+                  "--run-id",
+                  "current-physics-v2",
+                  "--gpu",
+                  "--experiments",
+                  "experiments/reviewer-validation",
+                  "--"
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "4",
+                    "memory": "32Gi",
+                    "ephemeral-storage": "2Gi",
+                    "nvidia.com/a100": "1"
+                  },
+                  "limits": {
+                    "cpu": "4",
+                    "memory": "32Gi",
+                    "ephemeral-storage": "8Gi",
+                    "nvidia.com/a100": "1"
+                  }
+                },
+                "securityContext": {
+                  "allowPrivilegeEscalation": false,
+                  "readOnlyRootFilesystem": true,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  }
+                },
+                "volumeMounts": [
+                  {
+                    "name": "work",
+                    "mountPath": "/work"
+                  },
+                  {
+                    "name": "tmp",
+                    "mountPath": "/tmp"
+                  },
+                  {
+                    "name": "shm",
+                    "mountPath": "/dev/shm"
+                  }
+                ]
+              }
+            ],
+            "volumes": [
+              {
+                "name": "work",
+                "persistentVolumeClaim": {
+                  "claimName": "mars-review-104-20261113-v1"
+                }
+              },
+              {
+                "name": "tmp",
+                "emptyDir": {
+                  "sizeLimit": "4Gi"
+                }
+              },
+              {
+                "name": "shm",
+                "emptyDir": {
+                  "medium": "Memory",
+                  "sizeLimit": "8Gi"
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

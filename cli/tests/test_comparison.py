@@ -64,3 +64,30 @@ def test_cli_exposes_compare_without_running_model():
     result = CliRunner().invoke(cli, ["mars", "compare", "--help"])
     assert result.exit_code == 0
     assert "--config" in result.output
+
+
+def test_surface_comparison_never_substitutes_lowest_air_temperature(tmp_path):
+    dims = ("lat", "lon")
+    ds = xr.Dataset(dict(temperature=(dims, np.full((2, 2), 150.), {"units": "K"})),
+                    coords=dict(lat=[-30., 30.], lon=[0., 180.]),
+                    attrs=dict(temperature_kind="lowest_layer_air"))
+    path = tmp_path / "map.nc"
+    ds.to_netcdf(path)
+    spec = dict(name="test", paths=["map.nc"])
+    with pytest.raises(ValueError, match="skin temperature"):
+        load_source(spec, tmp_path, 0, 5)
+    ds["surface_temperature"] = xr.full_like(ds.temperature, 200.)
+    ds.to_netcdf(path)
+    loaded, _ = load_source(spec, tmp_path, 0, 5)
+    np.testing.assert_allclose(loaded.temperature, 200.)
+
+
+def test_map_season_is_verified_from_metadata_including_wrap(tmp_path):
+    ds = xr.Dataset(dict(surface_temperature=(("lat", "lon"), np.full((2, 2), 200.), {"units": "K"})),
+                    coords=dict(lat=[-30., 30.], lon=[0., 180.]), attrs=dict(solar_longitude_deg=359.))
+    ds.to_netcdf(tmp_path / "map.nc")
+    spec = dict(name="test", paths=["map.nc"])
+    _, records = load_source(spec, tmp_path, 0, 2)
+    assert records[0]["selected_ls_range"] == [359., 359.]
+    with pytest.raises(ValueError, match="file season"):
+        load_source(spec, tmp_path, 135, 5)

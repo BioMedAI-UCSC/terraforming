@@ -5,7 +5,7 @@
     workflow. Use the [3-D GCM](../../package/gcm3d/README.md) for new simulations.
 
 
-Warming Mars to temperatures compatible with liquid water requires raising the surface temperature by at least $\sim 60\,\text{K}$ (from $\sim 210\,\text{K}$ to $\sim 273\,\text{K}$). The most practical near-term pathway is injecting synthetic super-greenhouse gases (GHGs) into the Martian atmosphere — a strategy first rigorously analysed by [Marinova, McKay, & Hashimoto (2005)](https://doi.org/10.1029/2004JD005027) and [McKay et al. (1991)](https://doi.org/10.1038/352489a0).
+Warming Mars to temperatures compatible with liquid water requires raising the surface temperature by at least $\sim 60\,\text{K}$ (from $\sim 210\,\text{K}$ to $\sim 273\,\text{K}$). The most practical near-term pathway is injecting synthetic super-greenhouse gases (GHGs) into the Martian atmosphere — a strategy first rigorously analysed by [Marinova, McKay, & Hashimoto (2005)](https://doi.org/10.1029/2004JE002306) and [McKay et al. (1991)](https://doi.org/10.1038/352489a0).
 
 ---
 
@@ -29,7 +29,7 @@ $$
 \Delta F_i = \eta_i \cdot C_i
 $$
 
-where $\eta_i$ (W m⁻² ppb⁻¹) is the **Mars-specific radiative forcing efficiency** from [Marinova et al. (2005)](https://doi.org/10.1029/2004JD005027). These differ from IPCC Earth values because the absence of water-vapour overlap bands and the thinner Martian CO₂ column change the spectral windows available for absorption.
+where $\eta_i$ (W m⁻² ppb⁻¹) is an Earth-reference trace-gas efficiency from IPCC AR6 WG1 Table 7.SM.7. The registry does not supply validated Mars forcing coefficients. Marinova Table 2 describes optimized mixtures and is not the coefficient source.
 
 The total forcing from all injected species:
 
@@ -91,7 +91,7 @@ This $\gamma$ is then fed into the temperature ODE for the next year's integrati
 
 A commonly cited first milestone is reaching $\sim 273\,\text{K}$ mean surface temperature and $\sim 1000\,\text{Pa}$ surface pressure — conditions under which liquid water is stable at low elevations and the CO₂ caps begin to fully sublime, releasing additional CO₂ that further amplifies the greenhouse effect through a positive feedback ([McKay et al., 1991](https://doi.org/10.1038/352489a0)).
 
-[Marinova et al. (2005)](https://doi.org/10.1029/2004JD005027) estimated that injecting $\sim 300\,\text{ppb}$ of CF₄ into the Martian atmosphere would provide $\sim 25\,\text{W\,m}^{-2}$ of additional forcing — enough to initiate significant polar cap sublimation, releasing a much larger CO₂ reservoir that then provides additional forcing through the cap feedback.
+The Earth-reference CF4 coefficient gives 29.7 W/m² at 300 ppb. This is a proxy calculation; a Mars radiation calculation and polar-cap feedback threshold have not been established by it.
 
 ---
 

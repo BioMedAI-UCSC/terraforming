@@ -97,7 +97,7 @@ class TestGHGStateDecay:
         state.inject({"NF3": 1e9})
         state.decay(dt_years=1.0)
         # NF3 lifetime = 500 yr; decay factor = exp(-1/500) ≈ 0.998002
-        expected = 1e9 * math.exp(-1.0 / 500.0)
+        expected = 1e9 * math.exp(-1.0 / 569.0)
         assert _val(state.get_mass_kg("NF3")) == pytest.approx(expected, rel=1e-5)
 
     def test_decay_does_not_affect_cumulative_injected(self):

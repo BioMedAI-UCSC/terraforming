@@ -7,7 +7,6 @@ metadata:
     app.kubernetes.io/component: data-transfer
 spec:
   restartPolicy: Never
-  activeDeadlineSeconds: 3600
   automountServiceAccountToken: false
   terminationGracePeriodSeconds: 5
   affinity:
@@ -21,7 +20,7 @@ spec:
   containers:
     - name: transfer
       image: busybox:1.37
-      command: ["sh", "-c", "mkdir -p /data/inputs /data/results; sleep 3600"]
+      command: ["sh", "-c", "mkdir -p /data/inputs /data/results && exec tail -f /dev/null"]
       resources:
         requests:
           cpu: 100m

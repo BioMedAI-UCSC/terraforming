@@ -36,7 +36,7 @@ def manifests(args):
         {'apiVersion':'v1','kind':'PersistentVolumeClaim','metadata':{'name':pvc,'namespace':args.namespace},
             'spec':{'storageClassName':'rook-ceph-block','accessModes':['ReadWriteOnce'],'resources':{'requests':{'storage':args.storage}}}},
         {'apiVersion':'batch/v1','kind':'Job','metadata':{'name':args.name,'namespace':args.namespace},
-            'spec':{'backoffLimit':2,'activeDeadlineSeconds':604800,
+            'spec':{'backoffLimit':2,
                 'template':{'metadata':{'labels':{'app':'nautalis-experiments'}},'spec':pod}}}]}
 
 

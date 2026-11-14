@@ -11,6 +11,7 @@ import dataclasses
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import sys
 import time
@@ -23,6 +24,8 @@ from mars_calibration import paper as p
 from mars_calibration import driver as d
 from src.framework.neural import NeuralTendency, state_features, fit_normalization
 from src.framework.gcm.restart import save_restart
+from paper_calibration import bounded_fit, paired_block_interval
+from mars_calibration.provenance import snapshot_sources
 
 
 def digest(path):
@@ -82,8 +85,16 @@ def target_arrays(row, model, dt):
     else:
         model.forcing = model.base_forcing
     with np.load(row["target"], allow_pickle=False) as z:
-        seconds, fields = z["seconds"].copy(), z["fields"].copy()
-    expected = (len(seconds), 3, 12, 64, 32)
+        observation_seconds, fields = z["seconds"].copy(), z["fields"].copy()
+        seconds = z["sample_seconds"].copy() if "sample_seconds" in z else observation_seconds
+    if seconds.ndim != 1 or observation_seconds.ndim != 1 or not len(observation_seconds):
+        raise ValueError("Nonempty one-dimensional observation and sample times required")
+    count = row.get("samples_per_observation", 1)
+    if type(count) is not int or count < 1 or len(seconds) != count * len(observation_seconds):
+        raise ValueError("Explicit positive sample count must match the observation groups")
+    if not np.allclose(observation_means(seconds, row), observation_seconds, rtol=0, atol=1e-6):
+        raise ValueError("Observation times must be the centres of their sampled averaging windows")
+    expected = (len(observation_seconds), 3, 12, 64, 32)
     if fields.shape != expected or not np.isfinite(fields).all():
         raise ValueError(f"Expected finite T(K),u(m/s),v(m/s) fields {expected}")
     if (not np.isfinite(seconds).all() or len(seconds) == 0 or seconds[0] <= 0
@@ -94,6 +105,12 @@ def target_arrays(row, model, dt):
     model.initial = d.load_restart(Path(row["restart"]))
     model.diagnostics(model.initial)
     return seconds, d.jnp.asarray(fields)
+
+
+def observation_means(values, row):
+    """Apply the declared temporal sampling to both model fields and lead times."""
+    count = row.get("samples_per_observation", 1)
+    return values.reshape((-1, count) + values.shape[1:]).mean(axis=1)
 
 
 def neural_rollout(model, seconds, dt, adapter, norm):
@@ -209,13 +226,13 @@ def fit(model, args, manifest, neural):
         model.forcing = forcing
         if neural:
             raw = neural_rollout(model, seconds, args.dt, adapter, norm)
-            run = lambda x, raw=raw: raw(unravel(x))
+            run = lambda x, raw=raw, row=row: observation_means(raw(unravel(x)), row)
         else:
             raw = model.trajectory(seconds, args.dt)
-            run = lambda x, raw=raw: raw(d.jnp.asarray(d.LOWER_BOUNDS) + x * d.jnp.asarray(d.UPPER_BOUNDS - d.LOWER_BOUNDS))
+            run = lambda x, raw=raw, row=row: observation_means(raw(d.jnp.asarray(d.LOWER_BOUNDS) + x * d.jnp.asarray(d.UPPER_BOUNDS - d.LOWER_BOUNDS)), row)
         # Capture each physical restart when constructing a trajectory callable.
         physical = model.trajectory(seconds, args.dt)
-        baseline = np.asarray(p.block(d.jax.jit(physical)(d.jnp.ones(3))))
+        baseline = observation_means(np.asarray(p.block(d.jax.jit(physical)(d.jnp.ones(3)))), row)
         if neural:
             identity = np.asarray(p.block(d.jax.jit(run)(x0)))
             if not np.allclose(identity, baseline, atol=1e-9, rtol=1e-9):
@@ -240,12 +257,29 @@ def fit(model, args, manifest, neural):
     vg, _ = p.compile_function(vg, x0)
     validation, _ = p.compile_function(lambda x: loss(x, "validation"), x0)
     best, best_loss = x0, float(validation(x0))
+    optimization = {"optimizer": "Adam", "stationary": False,
+                    "termination": "fixed update budget; convergence not established"}
     x, m, v, trace = x0, d.jnp.zeros_like(x0), d.jnp.zeros_like(x0), []
-    for update in range(1, args.updates + 1):
+    if not neural and args.optimizer in ("auto", "lbfgsb"):
+        def emit(row, current, selected):
+            trace.append(row)
+            p.write_csv(args.output / "training.csv", trace)
+            np.savez(args.output / "checkpoint.npz", current=current, best=selected,
+                     field_scale=np.asarray(scale), evaluation=row["evaluation"],
+                     normalization_mean=np.asarray(norm.mean), normalization_scale=np.asarray(norm.scale))
+        best, optimization, _ = bounded_fit(
+            vg, validation, np.asarray(x0), maxiter=args.updates, maxeval=args.max_evaluations,
+            gtol=args.gtol, ftol=args.ftol, starts=args.starts, seed=args.seed, emit=emit)
+        best_loss = float(validation(best))
+        optimization["validation_selected_physical_controls"] = (
+            d.LOWER_BOUNDS + np.asarray(best)*(d.UPPER_BOUNDS-d.LOWER_BOUNDS)).tolist()
+        p.dump(args.output / "optimization.json", optimization)
+    for update in range(1, (args.updates if neural or args.optimizer == "adam" else 0) + 1):
         started = time.perf_counter()
         value, grad = p.block(vg(x))
         if not np.isfinite(value) or not np.isfinite(grad).all():
             raise FloatingPointError("Nonfinite training loss/gradient")
+        gradient_norm = float(d.jnp.linalg.norm(grad))
         grad = grad / d.jnp.maximum(1., d.jnp.linalg.norm(grad))
         m, v = .9*m + .1*grad, .999*v + .001*grad**2
         x = x - args.learning_rate * (m/(1-.9**update)) / (d.jnp.sqrt(v/(1-.999**update)) + 1e-8)
@@ -257,6 +291,8 @@ def fit(model, args, manifest, neural):
         if val < best_loss:
             best, best_loss = x, val
         trace.append(dict(update=update, train_loss_before_update=float(value), validation_loss=val,
+                          gradient_norm=gradient_norm,
+                          normalized_controls=np.asarray(x).tolist(),
                           seconds=time.perf_counter()-started))
         p.write_csv(args.output / "training.csv", trace)
         np.savez(args.output / "checkpoint.npz", current=np.asarray(x), best=np.asarray(best),
@@ -270,13 +306,30 @@ def fit(model, args, manifest, neural):
             raise FloatingPointError("Nonfinite evaluation trajectory")
         for name, values in (("physical", baseline), ("neural" if neural else "calibrated", predicted)):
             rmse = errors(values, target, model)
-            for i, seconds_i in enumerate(seconds):
+            for i, seconds_i in enumerate(observation_means(seconds, row)):
                 rows.append(dict(window=row["id"], split=row["split"], block=row["block"],
                     reference_kind=row["reference_kind"], model=name, seconds=float(seconds_i),
                     temperature_rmse_k=float(rmse[i, 0]), u_rmse_ms=float(rmse[i, 1]), v_rmse_ms=float(rmse[i, 2])))
     p.write_csv(args.output / "skill.csv", rows)
+    # A lead is not a replicate; aggregate MSE within each window first.
+    paired = {}
+    for row in rows:
+        if row["split"] == "test":
+            item = paired.setdefault(row["window"], {"block": row["block"]})
+            item.setdefault(row["model"], []).append(row["temperature_rmse_k"]**2)
+    fitted_label = "neural" if neural else "calibrated"
+    uncertainty = paired_block_interval(
+        [np.mean(r["physical"]) for r in paired.values()],
+        [np.mean(r[fitted_label]) for r in paired.values()],
+        [r["block"].split("_q")[0] if re.fullmatch(r"my\d+_q\d+",r["block"])
+         else r["block"] for r in paired.values()])
+    uncertainty["grouping"] = "Mars year for myYEAR_qQUARTER blocks; otherwise supplied temporal block"
+    p.dump(args.output / "uncertainty.json", uncertainty)
     p.dump(args.output / "acceptance.json", dict(gradient_checks_pass=True,
         identity_checked=neural, validation_loss=best_loss,
+        optimization=optimization, uncertainty=uncertainty,
+        physical_controls=([1.,1.,1.] if neural else
+            (d.LOWER_BOUNDS+np.asarray(best)*(d.UPPER_BOUNDS-d.LOWER_BOUNDS)).tolist()),
         scope="Capability experiment; held-out skill is reported regardless of improvement. Synthetic continuation is not independent climate validation."))
 
 
@@ -290,7 +343,7 @@ def ablations(model, args, manifest):
                 continue
             kw = {k: case[k] for k in ("overrides", "co2_exchange", "diffusion_sols") if k in case}
             run = model.trajectory(seconds, case["dt"], **kw)
-            prediction = np.asarray(p.block(d.jax.jit(run)(d.jnp.asarray(case["parameters"]))))
+            prediction = observation_means(np.asarray(p.block(d.jax.jit(run)(d.jnp.asarray(case["parameters"])))), row)
             if not np.isfinite(prediction).all():
                 raise FloatingPointError(f"Nonfinite ablation {row['id']} {case['name']}")
             if baseline is None:
@@ -312,7 +365,12 @@ def main():
     ap.add_argument("--dt", type=float, help="Default: manifest dt_seconds, otherwise 300")
     ap.add_argument("--steps", nargs="+", type=int, default=[1, 4, 16, 32, 74])
     ap.add_argument("--epsilons", nargs="+", type=float, default=[1e-3, 1e-4, 1e-5])
-    ap.add_argument("--updates", type=int, default=50)
+    ap.add_argument("--updates", type=int, help="Iteration ceiling: physical default 500, neural default 50")
+    ap.add_argument("--optimizer", choices=("auto", "adam", "lbfgsb"), default="auto")
+    ap.add_argument("--max-evaluations", type=int, default=1000)
+    ap.add_argument("--starts", type=int, default=1)
+    ap.add_argument("--gtol", type=float, default=1e-6)
+    ap.add_argument("--ftol", type=float, default=1e-12)
     ap.add_argument("--learning-rate", type=float, default=.001)
     ap.add_argument("--heating-bound", type=float, default=2e-4)
     ap.add_argument("--seed", type=int, default=0)
@@ -320,6 +378,11 @@ def main():
     ap.add_argument("--validate-only", action="store_true")
     ap.add_argument("--cases", nargs="+", default=["no_pbl", "no_convection", "no_regolith", "half_timestep"])
     args = ap.parse_args()
+    if args.updates is None:
+        args.updates = 500 if args.task == "calibration" else 50
+    if (min(args.max_evaluations, args.starts) < 1 or not np.isfinite([args.gtol,args.ftol]).all()
+            or min(args.gtol,args.ftol) <= 0 or (args.task == "neural" and args.optimizer == "lbfgsb")):
+        ap.error("Positive budgets/tolerances required; L-BFGS-B is for physical controls only")
     manifest = load_manifest(args.manifest) if args.manifest else None
     if args.dt is None:
         args.dt = manifest.get("dt_seconds", 300.) if manifest else 300.
@@ -331,6 +394,10 @@ def main():
     if set(args.cases) - known:
         ap.error("Unknown ablation case")
     inputs = p.validate_inputs(args.inputs)
+    if manifest and "body_constants" in manifest and manifest["body_constants"] != dataclasses.asdict(d.MARS_BODY_3D):
+        raise ValueError("Restart body and unit constants differ from the simulator")
+    if manifest and "terrain_sha256" in manifest and digest(args.inputs / "mola.img") != manifest["terrain_sha256"]:
+        raise ValueError("Restart and simulator terrain must match")
     if manifest and "native_contract" in manifest:
         if digest(args.inputs / "mola.img") != manifest["native_contract"]["terrain_sha256"]:
             raise ValueError("Native initialization and simulator terrain must match")
@@ -352,6 +419,15 @@ def main():
     args.output.mkdir(parents=True, exist_ok=False)
     p.dump(args.output / "provenance.json", dict(arguments={k: str(v) if isinstance(v, Path) else v for k,v in vars(args).items()},
         inputs=inputs, manifest=manifest, environment=p.environment(),
+        experiment_contract=dict(body=dataclasses.asdict(d.MARS_BODY_3D),
+            dt_seconds=args.dt,parameters=list(d.PARAMETER_NAMES),
+            physical_baseline=[1.,1.,1.],synthetic_truth=[.6,.8,1.4],
+            synthetic_truth_role="prepare-synthetic and gradient checks only; not calibrated controls",
+            lower_bounds=d.LOWER_BOUNDS.tolist(),upper_bounds=d.UPPER_BOUNDS.tolist(),
+            limitations=["finite-rate CO2 clouds with fixed particle size; fixed gas thermodynamics",
+                         "prescribed dust; no water cycle or cloud radiation",
+                         "projected inventory residual is an enforced constraint, not independent conservation"]),
+        source_snapshot=snapshot_sources(ROOT,args.output),
         source_hashes={str(f.relative_to(ROOT)): digest(f) for folder in (ROOT/'scripts', ROOT/'package/src', ROOT/'apps/mars-calibration') for f in folder.rglob('*.py')}))
     try:
         if args.task == "prepare-synthetic": prepare(model, args)

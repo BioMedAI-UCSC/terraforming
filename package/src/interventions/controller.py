@@ -63,7 +63,7 @@ class InterventionSnapshot:
 
     # Intervention-specific
     delta_F:                  torch.Tensor                # total GHG forcing (W/m²)
-    ghg_partial_pressure_Pa:  dict[str, torch.Tensor]     # Pa per GHG compound
+    ghg_partial_pressure_Pa:  dict[str, torch.Tensor]     # column weight in Pa; legacy field name
     cumulative_injected_kg:   dict[str, torch.Tensor]     # total injected to date
 
     @property
@@ -105,7 +105,7 @@ class InterventionController:
     >>> mars = Mars()
     >>> ic = InterventionController(mars, {"CF4": 1e9, "SF6": 5e8}, dt=21600)
     >>> history = ic.run(n_years=50)
-    >>> # mars.atmosphere.composition now contains CF4 and SF6 partial pressures
+    >>> # mars.atmosphere.composition now contains CF4 and SF6 column weights
     >>> print(mars.atmosphere.composition.keys())
     >>> print(f"ΔF = {mars.delta_F.item():.3f} W/m²")
     """
@@ -154,9 +154,9 @@ class InterventionController:
         """Run the intervention simulation for *n_years* Mars years.
 
         Per year:
-            1. mars.inject(schedule)        → partial pressures updated in composition
+            1. mars.inject(schedule)        → column weights updated in composition
             2. TimeController.run(1 year)   → ODE integrates with updated GHF
-            3. mars.decay_ghg(1.0)          → COMPOUNDS species decay in composition
+            3. mars.decay_ghg(elapsed_earth_years)          → COMPOUNDS species decay in composition
             4. InterventionSnapshot         → read from mars state
 
         Returns
@@ -181,7 +181,7 @@ class InterventionController:
             self._elapsed = self._elapsed + self._year_s
 
             # Step 3 — decay; GHF resynced automatically inside mars.decay_ghg()
-            self._mars.decay_ghg(dt_years=1.0)
+            self._mars.decay_ghg(dt_years=self._year_s / (365.25 * 86400.0))
 
             # Step 4 — snapshot from Mars (single source of truth)
             snap = self._make_snapshot(year, year_history)

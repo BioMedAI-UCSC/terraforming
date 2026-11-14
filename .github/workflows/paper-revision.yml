@@ -1,0 +1,22 @@
+name: Paper revision evidence
+on:
+  pull_request:
+    paths:
+      - 'paper/arxiv-2610.04081/**'
+      - 'docs/paper-reproduction.md'
+      - '.github/workflows/paper-revision.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync --frozen --all-packages
+      - run: uv run --no-sync python paper/arxiv-2610.04081/regenerate.py
+      - run: git diff --exit-code -- paper/arxiv-2610.04081/revision/assets/reference.tex paper/arxiv-2610.04081/revision/assets/radiation-fixed.tex
