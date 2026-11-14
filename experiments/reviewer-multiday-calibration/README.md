@@ -43,3 +43,10 @@ elapsed-time limit. Failed attempts keep separate traces. A completed run must
 report every test field and window, training endpoints versus validation
 selection, bound hits, and uncertainty. Neither a larger gain nor a successful
 annual climate is assumed in advance.
+
+The original five-sol preflight failed at finite-difference perturbations
+1e-3 and 1e-4. All three control derivatives agreed at 1e-5. The next run tests
+1e-5, 3e-6, and 1e-6 with the same absolute/relative acceptance tolerances;
+every check must pass before optimization. The original failure stays in the
+evidence archive. Local derivative agreement does not establish smoothness
+across physical switching boundaries or optimizer convergence.

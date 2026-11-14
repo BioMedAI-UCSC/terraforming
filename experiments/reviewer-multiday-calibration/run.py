@@ -25,4 +25,5 @@ attempt = run / f"fit-attempt-{len(list(run.glob('fit-attempt-*'))):03d}"
 subprocess.run([str(python), str(source / "scripts/run_differentiable_experiments.py"), "calibration",
     "--inputs", "/work/reviewer-inputs", "--manifest", "/work/reviewer-multiday-windows/windows.json",
     "--output", str(attempt), "--starts", "3", "--updates", "500", "--max-evaluations", "300",
-    "--gtol", "1e-6", "--ftol", "1e-12", "--require-gpu"], cwd=source, env=env, check=True)
+    "--gtol", "1e-6", "--ftol", "1e-12", "--epsilons", "1e-5", "3e-6", "1e-6",
+    "--require-gpu"], cwd=source, env=env, check=True)
