@@ -28,6 +28,11 @@ energy. The surface solve includes slab plus frost heat capacity, ice enthalpy,
 and the sensible/kinetic energy carried by the gas. A separate surface momentum
 reservoir records the equal and opposite exchange. No wind or temperature cap
 is used. The existing one-hour atmospheric condensation scheme is unchanged.
+Radiation, soil conduction, sensible heat and phase change use the same
+surface-plus-frost heat capacity. Scaling phase heating alone while leaving
+radiative cooling on the bare slab capacity makes a frosted surface overcool;
+a coupled regression test covers this case with nonzero soil heat flow.
+Escape removes gas while preserving suspended cloud mass.
 This correction does not implement Ames atmospheric saturation adjustment,
 convective momentum mixing, or its full external dynamical core.
 
@@ -36,6 +41,19 @@ enthalpy/kinetic/cloud-potential/surface energy, and atmospheric plus ground
 horizontal momentum. They cover deposition and sublimation, clear and cloudy
 columns, a vertical wind/temperature gradient, and zero exchange. Long-run
 dry-core truncation and projection errors are measured separately.
+
+One reproducible twelve-layer example uses a prescribed deposition rate of
+1e-4 kg/m2/s, a 610 Pa column, a 140--200 K vertical temperature gradient,
+and sheared winds. The previous pressure/frost/latent-only operator has a
+15.664280 W/m2 energy residual and horizontal momentum residuals of
+-0.0035 and -0.0005 Pa. The corrected operator has zero energy residual at
+float64 precision and momentum residuals below 2e-18 Pa. This is an exchange
+operator check, not a forecast accuracy result. Reproduce it with:
+
+```sh
+rtk proxy env PYTHONPATH=package .venv/bin/python scripts/validate_surface_mass_transport.py \
+  --output /tmp/surface-transport-budget-check.json
+```
 
 The reference files were checked against NASA's GitHub API at v3.2.1. Local
 Git blob hashes match the published source:

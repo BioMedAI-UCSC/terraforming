@@ -1779,6 +1779,9 @@ def _co2_surface_transport(state, temperature_nodal, ps_pa, wind_nodal, dice, co
         dice[0] * pressure_scale / time_scale / body.gravity_m_s2,
         np.asarray(coords.vertical.centers, dtype=float),
         np.diff(np.asarray(coords.vertical.boundaries, dtype=float)), body, cf)
+    # Escape removes gas, while suspended ice stays in the column.
+    escape_pa_s = cf.escape_rate_kg_s * cf.gravity_m_s2 / body.surface_area_m2
+    ice = ice + cloud * escape_pa_s / ps_pa[None]
     vor, div = spherical_harmonic.uv_nodal_to_vor_div_modal(
         grid, velocity[0] * time_scale / speed_scale, velocity[1] * time_scale / speed_scale)
     return (grid.to_modal(heat * time_scale), grid.to_modal(ice * time_scale), vor, div,
@@ -1850,6 +1853,10 @@ def forced_co2_primitive_equations(
         from src.framework.physics.co2_clouds import CO2_CLOUD_TRACER
         transport_heat, transport_ice, transport_vor, transport_div, dlatent_surface, ground_impulse = _co2_surface_transport(
             state, temperature_nodal, ps_pa, wind_nodal, dice, coords, specs, body, co2_forcing)
+        frost_mass = specs.dimensionalize(state.co2_ice[0], _u.pascal).magnitude / body.gravity_m_s2
+        surface_capacity = co2_forcing.thermal_inertia + frost_mass * co2_forcing.cloud_ice_heat_capacity_j_kg_k
+        # Radiation, soil, sensible and phase heat share the same frost capacity.
+        surface_heating = (surface_flux / surface_capacity * time_scale)[None]
         d_logsp = d_logsp + grid.to_modal(atmospheric_pressure / ps_nd[None])
         drag_vor, drag_div = surface_momentum_tendencies(
             state, coords, specs, body, forcing, wind_nodal=wind_nodal,
@@ -1867,7 +1874,7 @@ def forced_co2_primitive_equations(
         return ColumnPhysicsTendencies(
             drag_vor + mix_vor + cloud_vor + transport_vor, drag_div + mix_div + cloud_div + transport_div,
             heat + mix_heat + convection + atmospheric_heat + transport_heat, d_logsp,
-            dsurface + dlatent_surface + ground_surface,
+            surface_heating + dlatent_surface,
             dice,
             ground,
             mix_tracers,

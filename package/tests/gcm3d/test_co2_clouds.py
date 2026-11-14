@@ -120,6 +120,41 @@ def test_surface_exchange_zero_rate_is_identity_and_rejects_invalid_layer_ratio(
                 dataclasses.replace(cf, surface_exchange_pressure_ratio=ratio), specs=specs)
 
 
+def test_surface_transport_preserves_cloud_mass_during_gas_escape():
+    coords, specs, state = model()
+    grid = coords.horizontal
+    q = jnp.full((4,) + grid.nodal_shape, .01)
+    state = state._replace(dynamics=dataclasses.replace(state.dynamics,
+        tracers={clouds.CO2_CLOUD_TRACER: grid.to_modal(q)}))
+    cf = dataclasses.replace(co2_forcing(), escape_rate_kg_s=1.e10)
+    ps = jnp.full(grid.nodal_shape, 610.)
+    zeros = jnp.zeros_like(q)
+    rates = physics._co2_surface_transport(state, zeros, ps, (zeros, zeros),
+        jnp.zeros_like(state.co2_ice), coords, specs, BODY, cf)
+    scale = 1. / float(specs.nondimensionalize(1. * scales.units.second))
+    ratio_rate = grid.to_nodal(rates[1]) / scale
+    pressure_rate = -cf.escape_rate_kg_s * cf.gravity_m_s2 / BODY.surface_area_m2
+    np.testing.assert_allclose(ps[None] * ratio_rate + q * pressure_rate, 0., atol=1e-13)
+
+
+def test_frost_heat_capacity_scales_radiation_and_soil_fluxes_with_phase_heating():
+    coords, specs, state = model()
+    pressure_scale = float(specs.dimensionalize(1., scales.units.pascal).magnitude)
+    state = state._replace(co2_ice=jnp.full_like(state.co2_ice, 20. * BODY.gravity_m_s2 / pressure_scale),
+        ground_temperature=state.ground_temperature + 10.)
+    forcing = dataclasses.replace(radiative_forcing(diurnal=False), tsi_1au_w_m2=0.,
+        sensible_heat_transfer_w_m2_k=0., regolith_enabled=True)
+    cf = dataclasses.replace(co2_forcing(), atmospheric_condensation=False,
+        energy_limited=False, exchange_rate_pa_s_per_k=0.)
+    surface = physics.surface_energy_tendencies(state, coords, specs, BODY, forcing)[1]
+    soil = physics.regolith_conduction_tendencies(state, specs, forcing)[0]
+    expected = (surface + soil) * cf.thermal_inertia / (
+        cf.thermal_inertia + 20. * cf.cloud_ice_heat_capacity_j_kg_k)
+    actual = physics.forced_co2_primitive_equations(
+        coords, BODY, forcing, cf, specs=specs).explicit_terms(state).surface_temperature
+    np.testing.assert_allclose(actual, expected, rtol=1e-12, atol=1e-12)
+
+
 def model():
     coords = coordinate_system("T21", 4)
     specs = physics_specs(BODY)
