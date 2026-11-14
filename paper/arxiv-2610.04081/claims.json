@@ -1,0 +1,72 @@
+{
+  "paper_of_record": "https://arxiv.org/html/2610.04081v1",
+  "source_record": "source.json",
+  "revision": "revision/iclr2027_conference.tex",
+  "reproduction_guide": "../../docs/paper-reproduction.md",
+  "claims": [
+    {
+      "result": "Equation 2 surface-frost sign, sigma/solver prose, seasonal labels and bibliography",
+      "issues": [99],
+      "disposition": "Corrected against published v1, code convention, and DOI metadata. Duplicate Forget1999 removed; the other five disputed records already have correct authors/title/year.",
+      "evidence": ["v1-source.tar.gz", "reference-audit.json", "evidence/references"],
+      "rerun": "regenerate.py citation/hash checks and latexmk"
+    },
+    {
+      "result": "Physical gradients, multi-diagnostic sensitivities and controlled column recovery figures",
+      "issues": [91, 102],
+      "disposition": "Historical v1 figure assets retained, not regenerated current-physics results. Synthetic/control vectors identified as such.",
+      "evidence": ["revision/assets/co2-longwave-sensitivity.pdf", "revision/assets/parameter-recovery.pdf"],
+      "historical_repository_evidence": ["iclr-results/03-benchmarks", "iclr-results/04-neural-experiments/parameter-recovery"],
+      "rerun": "run_differentiable_experiments.py gradients; run_scalar_sensitivity.py; examples/neural/recover_parameter.py",
+      "pending": "Fresh dimensional initialization and derivative checks after PBL/clock corrections; publish original run inputs/revisions"
+    },
+    {
+      "result": "Calibration skill table, fitted controls and convergence",
+      "issues": [91, 92],
+      "disposition": "Recovered historical logs/checkpoint analyzed: gain 0.058053 K, conditional two-year interval [0.035117,0.086926] K; no convergence established.",
+      "evidence": ["evidence/historical-audit/results.json", "evidence/historical-audit/inputs/outputs/differentiable/calibration"],
+      "rerun": "run_differentiable_experiments.py calibration --optimizer lbfgsb --starts 3; neural under separate seeds",
+      "pending": "Converged current-physics fit, repeated starts/seeds and independent seasonal evaluation"
+    },
+    {
+      "result": "Seasonal reference table/maps including Ls225",
+      "issues": [91, 93],
+      "disposition": "Bias, RMSE and correlation include pressure, temperature, wind and frost; Ames-informed tuning and unmatched sampling remain explicit. Ls225 uses the tracked historical map, replacing duplicate Ls135.",
+      "evidence": ["evidence/historical-audit/reference-summary.csv", "evidence/historical-audit/inputs/iclr-results/01-mola-topography-comparisons/metrics.csv", "revision/assets/ls225_grid.png"],
+      "historical_repository_evidence": ["iclr-results/01-mola-topography-comparisons/config.json", "iclr-results/01-mola-topography-comparisons/report.json"],
+      "rerun": "run_gcm3d_ablation.py; export_mars_seasonal_checkpoints.py; benchmark_ames.py; benchmark_mcd.py; evaluate_arco_seasonal.py; tform mars compare",
+      "pending": "Untuned/independently calibrated held-out seasonal and observational checks before climatology claims"
+    },
+    {
+      "result": "Annual ablations, timestep sensitivity and peak winds",
+      "issues": [62, 63, 76, 95, 103],
+      "disposition": "Historical 300/150 s fields reanalyzed: 3.700 K equal-snapshot versus 3.884 K time-weighted separation; sampled Mach 1.098 and 35.77 K below model CO2 frost point disclosed. Finite fields/post-projection inventory are not physical validation or raw closure.",
+      "evidence": ["evidence/historical-audit/results.json", "evidence/historical-audit/timestep-by-time.csv", "evidence/historical-audit/input-manifest.json"],
+      "rerun": "run_mars_paper_experiments.py --task ablations with paper-ablations-year.json; audit_paper_results.py with original full/half fields",
+      "pending": "Raw field publication; common-state/time 450/300/finer comparison; spectra/angular-momentum and regional repair budgets; T170 default stability; atmospheric condensation physics"
+    },
+    {
+      "result": "One/ten-year headline timing, year9/10 repeatability and external speedup",
+      "issues": [94, 95, 102],
+      "disposition": "External speedup withdrawn. v1 450 s timing/completion values labelled historical unverified reports; no regenerated long-run claim.",
+      "evidence": ["v1-source.tar.gz", "evidence/historical-audit/inputs/iclr-results/03-benchmarks/performance-timing"],
+      "rerun": "run_mars_paper_experiments.py --task benchmark; run_gcm3d_ablation.py; evaluate_seasonal_convergence.py; evaluate_seasonal_field_convergence.py",
+      "pending": "Named original hardware, exact source/patch/input hashes, public headline fields and spinup; distinguish global means from spatial RMS"
+    },
+    {
+      "result": "Fixed-update radiation table and figure",
+      "issues": [101, 102],
+      "disposition": "New CPU float64 seed-0 run and independent repeat, same 100-update initialization and 20 updates per continuation. Trajectory wins interpolation; local continuation wins higher dust. No equal-compute or observational claim.",
+      "evidence": ["evidence/radiation-fixed", "evidence/radiation-repeat", "evidence-manifest.json"],
+      "rerun": "examples/neural/train_radiation.py --epochs 100 --fine-tune-epochs 20 --continuation-updates 20 --continuation-budget updates; regenerate.py",
+      "pending": "Multi-seed/longer coupled validation before broader learning claims"
+    },
+    {
+      "result": "Gas intervention concentration/decay and future mixture claims",
+      "issues": [72, 73, 74, 77, 97],
+      "disposition": "Separate PR #116 corrects finite molar normalization, Mars/Earth decay units and the worked example. Legacy forcing coefficients remain unverified. The paper discloses missing general 3-D mixture/partial-pressure and restart-ledger support.",
+      "rerun": "package/tests/interventions and the corrected docs/architecture/interventions.md arithmetic",
+      "pending": "Primary coefficient sources and validated domains; actual 3-D mixture transport, optics and intervention ledger"
+    }
+  ]
+}

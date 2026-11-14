@@ -1,0 +1,44 @@
+[
+  {
+    "key": "forget1999",
+    "doi": "10.1029/1999je001025",
+    "title": "Improved general circulation models of the Martian atmosphere from the surface to above 80 km",
+    "disposition": "Keep metadata-correct forget1999; remove duplicate forget1999improved with incorrect author names",
+    "metadata": "evidence/references/forget1999.json"
+  },
+  {
+    "key": "forget2010co2cycle",
+    "doi": "10.1016/j.icarus.2009.12.016",
+    "title": "Mars CO2 cycle: Effects of airborne dust and polar cap ice emissivity",
+    "disposition": "v1 primary metadata already identifies the correct authors/title/year; a misleading BibTeX key is not an incorrect citation",
+    "metadata": "evidence/references/forget2010co2cycle.json"
+  },
+  {
+    "key": "cleary2020augmented",
+    "doi": "10.5194/gmd-13-2487-2020",
+    "title": "Correcting a bias in a climate model with an augmented emulator",
+    "disposition": "v1 primary metadata already identifies the correct authors/title/year; a misleading BibTeX key is not an incorrect citation",
+    "metadata": "evidence/references/cleary2020augmented.json"
+  },
+  {
+    "key": "piqueux2024co2seasonal",
+    "doi": "10.1016/j.icarus.2023.115801",
+    "title": "A comparison of CO2 seasonal activity in Mars' northern and southern hemispheres",
+    "disposition": "v1 primary metadata already identifies the correct authors/title/year; a misleading BibTeX key is not an incorrect citation",
+    "metadata": "evidence/references/piqueux2024co2seasonal.json"
+  },
+  {
+    "key": "schneider2020calibration",
+    "doi": "10.1029/2020ms002454",
+    "title": "Calibration and Uncertainty Quantification of Convective Parameters in an Idealized GCM",
+    "disposition": "v1 primary metadata already identifies the correct authors/title/year; a misleading BibTeX key is not an incorrect citation",
+    "metadata": "evidence/references/schneider2020calibration.json"
+  },
+  {
+    "key": "wilson1997stationarywaves",
+    "doi": "10.1175/1520-0469(1997)054<0986:maooms>2.0.co;2",
+    "title": "Modeling and Observations of Martian Stationary Waves",
+    "disposition": "v1 primary metadata already identifies the correct authors/title/year; a misleading BibTeX key is not an incorrect citation",
+    "metadata": "evidence/references/wilson1997stationarywaves.json"
+  }
+]

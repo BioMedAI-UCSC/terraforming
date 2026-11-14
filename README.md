@@ -17,7 +17,8 @@
 **[Physics status and limitations](docs/ideas/gcm3d-physics-limitations.md)** ·
 **[AmesGCM comparison](docs/ideas/amesgcm-comparison.md)**
 
-**[Run the paper experiments on Nautilus](apps/paper-experiments/README.md)**
+**[Run the paper experiments on Nautilus](apps/paper-experiments/README.md)** ·
+**[Paper revision and reproduction steps](docs/paper-reproduction.md)**
 
 </div>
 
