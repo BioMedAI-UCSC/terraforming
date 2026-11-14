@@ -9,6 +9,7 @@ Covers:
 
 from __future__ import annotations
 
+import math
 import pytest
 import torch
 
@@ -16,6 +17,7 @@ from src.celestials import Mars
 from src.constants import TF_DTYPE
 from src.interventions.forcing import (
     compute_concentration_ppb,
+    delta_F_from_composition,
     delta_F_total,
     update_greenhouse_factor,
 )
@@ -86,6 +88,57 @@ class TestComputeConcentrationPpb:
 
         ppb = compute_concentration_ppb(state, atm_mass)
         assert _val(ppb["CF4"]) == pytest.approx(expected, rel=1e-4)
+
+    def test_finite_mixture_uses_all_species_moles(self):
+        state = GHGState(["CF4", "SF6"], device=_CPU)
+        state.inject({"CF4": 8.8, "SF6": 14.61})
+        total = 43.45 + 8.8 + 14.61
+        ppb = compute_concentration_ppb(state, _tensor(total))
+        assert _val(ppb["CF4"]) == pytest.approx(1e9 / 12)
+        assert _val(ppb["SF6"]) == pytest.approx(1e9 / 12)
+
+    def test_rejects_injected_mass_exceeding_total_mass(self):
+        state = GHGState(["CF4"], device=_CPU)
+        state.inject({"CF4": 2.})
+        with pytest.raises(ValueError):
+            compute_concentration_ppb(state, _tensor(1.))
+
+
+@pytest.mark.parametrize("mass", [1e9, 1e16])
+def test_injection_forcing_matches_independent_finite_mole_inventory(mass):
+    from src.interventions.compounds import get_compound
+    mars = Mars(device="cpu")
+    background_mw = {"CO2": 44.01, "N2": 28.014, "Ar": 39.948, "O2": 31.998, "CO": 28.01}
+    area = 4 * math.pi * _val(mars.intrinsic_params.radius)**2
+    gravity = _val(mars.intrinsic_params.gravity)
+    background = sum(_val(weight) * area / gravity / background_mw[name]
+                     for name, weight in mars.atmosphere.composition.items())
+    mars.inject({"CF4": mass, "SF6": mass / 2})
+    moles = {name: kg / get_compound(name).molecular_weight_g_mol
+             for name, kg in {"CF4": mass, "SF6": mass / 2}.items()}
+    expected = sum(get_compound(name).rf_efficiency_W_m2_ppb * n
+                   for name, n in moles.items()) / (background + sum(moles.values())) * 1e9
+    assert _val(mars.delta_F) == pytest.approx(expected, rel=1e-12)
+    assert _val(sum(mars.atmosphere.composition.values())) == pytest.approx(_val(mars.atmosphere.surface_pressure))
+
+
+def test_composition_forcing_keeps_tensor_gradients_and_rejects_unknown_weights():
+    weight = torch.tensor(1., dtype=TF_DTYPE, requires_grad=True)
+    forcing = delta_F_from_composition({"CO2": _tensor(600.), "CF4": weight}, _tensor(601.))
+    forcing.backward()
+    assert weight.grad is not None and _val(weight.grad) > 0
+    with pytest.raises(ValueError, match="molecular weights unavailable"):
+        delta_F_from_composition({"unknown": _tensor(600.), "CF4": weight}, _tensor(601.))
+
+
+def test_documented_concentration_example():
+    state = GHGState(["CF4", "SF6"], device=_CPU)
+    state.inject({"CF4": 1e9, "SF6": 5e8})
+    total = _tensor(2.5e16 + 1e9 + 5e8)
+    ppb = compute_concentration_ppb(state, total)
+    assert _val(ppb["CF4"]) == pytest.approx(19.749999492464895, rel=1e-12)
+    assert _val(ppb["SF6"]) == pytest.approx(5.947980682193397, rel=1e-12)
+    assert _val(delta_F_total(state, total)) == pytest.approx(5.128348944187147, rel=1e-12)
 
 
 # ---------------------------------------------------------------------------

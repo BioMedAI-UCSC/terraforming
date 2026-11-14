@@ -217,7 +217,7 @@ INTERVENTION OPTIONS
     Each year the controller:
       1. Injects the scheduled mass (kg → Pa added to atmosphere.composition)
       2. Integrates the coupled ODE for one Mars year with the updated GHF
-      3. Decays all GHG partial pressures by their atmospheric lifetime
+      3. Decays all GHG column weights by their atmospheric lifetime
       4. Records an InterventionSnapshot (T, P, ice, ΔF, GHF, ppb per species)
 
 OUTPUT OPTIONS
