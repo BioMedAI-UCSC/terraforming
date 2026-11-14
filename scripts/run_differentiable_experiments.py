@@ -406,7 +406,8 @@ def main():
             physical_baseline=[1.,1.,1.],synthetic_truth=[.6,.8,1.4],
             synthetic_truth_role="prepare-synthetic and gradient checks only; not calibrated controls",
             lower_bounds=d.LOWER_BOUNDS.tolist(),upper_bounds=d.UPPER_BOUNDS.tolist(),
-            limitations=["surface-only CO2 condensation","prescribed dust; no water/cloud cycle",
+            limitations=["finite-rate CO2 clouds with fixed particle size; fixed gas thermodynamics",
+                         "prescribed dust; no water cycle or cloud radiation",
                          "projected inventory residual is an enforced constraint, not independent conservation"]),
         source_snapshot=snapshot_sources(ROOT,args.output),
         source_hashes={str(f.relative_to(ROOT)): digest(f) for folder in (ROOT/'scripts', ROOT/'package/src', ROOT/'apps/mars-calibration') for f in folder.rglob('*.py')}))

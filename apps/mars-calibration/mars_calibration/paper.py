@@ -220,6 +220,7 @@ class Model:
         return d.jnp.mean(d.jnp.sum(error**2 * self.weights, axis=(-2, -1)))
 
     def diagnostics(self, state):
+        from src.framework.physics.gcm import cloud_pressure_equivalent
         if not all(np.isfinite(leaf).all() for leaf in d.jax.tree_util.tree_leaves(state)):
             raise FloatingPointError("Non-finite sampled state")
         fields = np.asarray(self.observe(state))
@@ -227,10 +228,11 @@ class Model:
         scale = float(self.specs.dimensionalize(1.0, d.scales.units.pascal).magnitude)
         ps *= scale
         ice = np.asarray(state.co2_ice)[0] * scale
+        cloud = np.asarray(cloud_pressure_equivalent(state, self.coords))[0] * scale
         weights = np.asarray(self.weights)
         dry = dry_conserved_quantities(state.dynamics, self.coords, self.specs,
             d.MARS_BODY_3D, np.full(12, d.MARS_BODY_3D.reference_temperature_k))
-        return {"co2_mass_kg": float(np.sum((ps + ice) * weights) * d.MARS_BODY_3D.surface_area_m2 / d.MARS_BODY_3D.gravity_m_s2),
+        return {"co2_mass_kg": float(np.sum((ps + ice + cloud) * weights) * d.MARS_BODY_3D.surface_area_m2 / d.MARS_BODY_3D.gravity_m_s2),
                 "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": float(dry.total_energy_j_m2_sr),
                 "atmospheric_aam_kg_m_s_sr": float(dry.axial_angular_momentum_kg_m_s_sr),
                 "min_air_temperature_k": float(fields[0].min()), "max_air_temperature_k": float(fields[0].max()),
