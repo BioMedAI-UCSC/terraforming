@@ -5,6 +5,7 @@ import hashlib
 import json
 from pathlib import Path
 import subprocess
+import time
 import uuid
 
 
@@ -59,7 +60,13 @@ def main(default_job=None,default_path='/work/outputs',default_output='outputs')
             if pods and pods[-1]['spec'].get('nodeName'):
                 reader['spec']['nodeSelector']={'kubernetes.io/hostname':pods[-1]['spec']['nodeName']}
             subprocess.run([*kube,'apply','-f','-'],input=json.dumps(reader),text=True,check=True)
-            subprocess.run([*kube,'wait','--for=condition=Ready','pod/'+transfer,'--timeout=-1s'],check=True)
+            while True:
+                status=json.loads(read('get','pod',transfer,'-o','json'))['status']
+                if status.get('phase') in ('Failed','Succeeded'):
+                    raise RuntimeError(f'Result reader exited before readiness: {status}')
+                if any(c['type']=='Ready' and c['status']=='True' for c in status.get('conditions',[])):
+                    break
+                time.sleep(2)
             name=transfer
         subprocess.run([*kube,'cp',name+':'+args.path,str(output/'runs')],check=True)
         hashes={str(p.relative_to(output)):hashlib.sha256(p.read_bytes()).hexdigest()

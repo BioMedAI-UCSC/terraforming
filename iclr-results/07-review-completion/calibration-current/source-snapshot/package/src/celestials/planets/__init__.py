@@ -1,2 +1,0 @@
-"""Planet-specific celestial models."""
-

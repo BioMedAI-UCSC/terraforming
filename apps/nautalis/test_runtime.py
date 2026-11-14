@@ -114,6 +114,8 @@ class RuntimeTests(unittest.TestCase):
                 'volumes':[{'name':'work','persistentVolumeClaim':{'claimName':'saved-results'}}]}}}}
             pod={'metadata':{'name':'finished'},'spec':{'nodeName':'previous-node'},'status':{'phase':'Succeeded'}}
             def read(args,**kwargs):
+                if 'pod' in args:
+                    return json.dumps({'status':{'phase':'Running','conditions':[{'type':'Ready','status':'True'}]}})
                 return json.dumps(job if 'job' in args else {'items':[pod]})
             def execute(args,**kwargs):
                 calls.append((args,kwargs))
@@ -145,7 +147,8 @@ class RuntimeTests(unittest.TestCase):
     def test_checked_in_nautilus_manifests_have_no_deadline(self):
         root=HERE.parents[1]
         for name in ('apps/mars-calibration/job.yaml','apps/mars-calibration/data-pod.yaml',
-                     'experiments/reviewer-validation/job.json'):
+                     'experiments/reviewer-validation/job.json',
+                     'experiments/reviewer-multiday-calibration/job.json'):
             self.assertNotIn('activeDeadlineSeconds',(root/name).read_text())
 
 

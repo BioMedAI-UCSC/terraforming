@@ -3,6 +3,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import zipfile
 
 import numpy as np
 import pandas as pd
@@ -12,8 +13,9 @@ def summarize(root):
     read = lambda name: json.loads((root / name).read_text())
     assert read("complete.json")["status"] == "complete"
     provenance, optimization = read("provenance.json"), read("optimization.json")
-    for source in provenance["source_snapshot"]:
-        assert hashlib.sha256((root / source["snapshot"]).read_bytes()).hexdigest() == source["sha256"], source["path"]
+    with zipfile.ZipFile(root / "source-snapshot.zip") as archive:
+        for source in provenance["source_snapshot"]:
+            assert hashlib.sha256(archive.read(source["snapshot"])).hexdigest() == source["sha256"], source["path"]
     checks = pd.read_csv(root / "gradient-checks.csv")
     assert len(checks) == 9 and checks.pass_check.all()
     assert optimization["starts_completed"] == optimization["starts_requested"] == 3
