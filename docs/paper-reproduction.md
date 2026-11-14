@@ -47,6 +47,16 @@ remain historical; the missing Ls225 panel comes from the tracked seasonal
 archive. `source.json` identifies the immutable original arXiv source archive.
 `claims.json` maps every result group to its evidence and remaining work.
 
+The available historical one- and ten-year saved results are now in a
+[public release](https://github.com/BioMedAI-UCSC/terraforming/releases/tag/paper-v1-historical-results-20261114).
+Per-file and archive hashes, original source revisions, and missing provenance
+are recorded in `iclr-results/07-review-completion/historical-release/`.
+These are historical checkpoints and final maps, not every integration step or
+new-model results. The original GPU identity and complete input hashes remain
+unavailable. The explicit year-nine/year-ten audit keeps RMS and signed mean
+changes separate and preserves the original report's different interpolation
+protocol as an unresolved provenance detail.
+
 To repeat the historical small-data audit independently:
 
 ```sh
@@ -196,10 +206,10 @@ Do not silently use it as an independently validated new-model comparison.
 | #93 | Corrected table includes bias/frost/wind and Ls225; keep sampling/tuning qualifications beside it. |
 | #95 | A real common-state/common-physical-time 450/300/finer study is still absent. The historical 300/150 pair does not close it. |
 | #62 / #103 | Full default T170 stability, spectra, local wind/Mach/CFL and angular-momentum sensitivity remain required. |
-| #63 / #77 | Atmospheric condensation and general mixture partial-pressure/restart support are unimplemented. Keep the surface-only/fixed-gas limitation beside cycle claims. |
+| #63 / #77 | Atmospheric phase change, latent heat, transported ice, settling, and Ames frost optics are implemented and tested in short process cases (`iclr-results/06-co2-physics`). Historical climate figures remain surface-only. General mixture partial-pressure and intervention-ledger support remain open. |
 | #76 | Raw pre-projection mass, energy and momentum budgets plus regional correction effects are required. `diagnose_mars_energy_budget.py` is a snapshot flux diagnosis, not that closure study. |
-| #74 | Trace all legacy gas coefficients to primary sources/domains or replace them with validated optics; corrected mole arithmetic alone is insufficient. |
-| #102 | Publish raw headline fields, spinup, exact run revisions/patches, inputs and immutable locations. A hash or a local path does not publish a missing file. Reconcile year9/10 definitions explicitly. |
+| #74 | All seven coefficients now match IPCC AR6 WG1 Table 7.SM.7 as Earth trace-gas proxies. Mars spectral reproduction and a validated Mars concentration domain remain open. |
+| #102 | Available headline saved states and final maps are publicly released with per-file hashes and original source revisions. Original GPU identity, complete input hashes and absent patches remain unavailable. Year9/10 RMS and signed mean changes are reported under an explicit seasonal interpolation; the original report's interpolation grid remains unknown. |
 
 `evaluate_seasonal_field_convergence.py` compares consecutive-year spatial fields;
 `analyze_differentiable_experiments.py` analyzes climate/observations/scaling;

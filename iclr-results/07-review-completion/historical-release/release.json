@@ -1,0 +1,26 @@
+{
+  "status": "published_historical_evidence",
+  "url": "https://github.com/BioMedAI-UCSC/terraforming/releases/tag/paper-v1-historical-results-20261114",
+  "verification": "Every archive member read back and hashed; all uploaded asset sizes and GitHub SHA-256 digests match local files; manifest fetched anonymously from the public release and checked.",
+  "runs": [
+    {
+      "name": "mars-year-dt450-float64-stage",
+      "source_commit": "03324df59c3d734550ac9f00bf44aeb4840546bc",
+      "archive_sha256": "1f92bc8bc314753d21e8425bcda9a33a7339e96224ec9d5162b436ec2975aa33",
+      "archive_bytes": 25618701,
+      "numeric_arrays_checked": 544,
+      "manifest": "mars-year-dt450-float64-stage-manifest.json",
+      "url": "https://github.com/BioMedAI-UCSC/terraforming/releases/download/paper-v1-historical-results-20261114/mars-year-dt450-float64-stage.tar.gz"
+    },
+    {
+      "name": "mars-ten-years-dt450-float64-stage-01",
+      "source_commit": "f1ed80242ea5866afbe76663c1adbee07e3e36e6",
+      "archive_sha256": "304400bda3ab7318de6781c35679ccede24141583a3a7530a345f7c3e8fe2290",
+      "archive_bytes": 244974954,
+      "numeric_arrays_checked": 5360,
+      "manifest": "mars-ten-years-dt450-float64-stage-01-manifest.json",
+      "url": "https://github.com/BioMedAI-UCSC/terraforming/releases/download/paper-v1-historical-results-20261114/mars-ten-years-dt450-float64-stage-01.tar.gz"
+    }
+  ],
+  "limitations": "Original GPU model, full input hashes and absent original patches remain unavailable. These are historical saved states, not current-physics results or every integration step."
+}

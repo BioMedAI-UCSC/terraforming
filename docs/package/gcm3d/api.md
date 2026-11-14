@@ -164,6 +164,8 @@ mixture thermodynamics remain separate work.
   retains separate visible/IR fields throughout evolving seasons.
 - `state_to_comparison_dataset` and `save_comparison_netcdf` export full-state
   comparison fields, coordinates and forcing provenance.
+  `co2_frost` is surface ice and `co2_cloud_column` is suspended ice. Both use
+  pressure-equivalent Pa; neither field includes the other reservoir.
 
 Map metadata includes `temperature_kind`, `insolation_sampling` and solar
 longitude; full-state comparison exports also retain forcing controls.

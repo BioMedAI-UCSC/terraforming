@@ -64,3 +64,19 @@ def test_cli_exposes_compare_without_running_model():
     result = CliRunner().invoke(cli, ["mars", "compare", "--help"])
     assert result.exit_code == 0
     assert "--config" in result.output
+
+
+def test_surface_comparison_never_substitutes_lowest_air_temperature(tmp_path):
+    dims = ("lat", "lon")
+    ds = xr.Dataset(dict(temperature=(dims, np.full((2, 2), 150.), {"units": "K"})),
+                    coords=dict(lat=[-30., 30.], lon=[0., 180.]),
+                    attrs=dict(temperature_kind="lowest_layer_air"))
+    path = tmp_path / "map.nc"
+    ds.to_netcdf(path)
+    spec = dict(name="test", paths=["map.nc"])
+    with pytest.raises(ValueError, match="skin temperature"):
+        load_source(spec, tmp_path, 0, 5)
+    ds["surface_temperature"] = xr.full_like(ds.temperature, 200.)
+    ds.to_netcdf(path)
+    loaded, _ = load_source(spec, tmp_path, 0, 5)
+    np.testing.assert_allclose(loaded.temperature, 200.)

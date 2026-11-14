@@ -14,7 +14,21 @@ def read(path):
     return json.loads(path.read_text())
 
 
+def verify_claims(root):
+    claims = read(root / "claims.json")["claims"]
+    assert len({row["result"] for row in claims}) == len(claims), "Duplicate claim"
+    for row in claims:
+        assert row["issues"] and row["disposition"], row["result"]
+        for relative in row.get("evidence", []):
+            path = (root / relative).resolve()
+            assert path.is_relative_to(root.parents[1]) and path.exists(), relative
+            assert path.stat().st_size if path.is_file() else any(path.iterdir()), relative
+    maps = [root / f"revision/assets/ls{season:03d}_grid.png" for season in (45, 135, 225, 315)]
+    assert len({hashlib.sha256(p.read_bytes()).hexdigest() for p in maps}) == 4, "Duplicate seasonal map"
+
+
 def main():
+    verify_claims(ROOT)
     source = read(ROOT / "source.json")
     assert hashlib.sha256((ROOT / source["original_archive"]).read_bytes()).hexdigest() == source["sha256"]
     for entry in read(ROOT / "evidence-manifest.json")["files"]:

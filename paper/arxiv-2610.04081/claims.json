@@ -6,67 +6,151 @@
   "claims": [
     {
       "result": "Equation 2 surface-frost sign, sigma/solver prose, seasonal labels and bibliography",
-      "issues": [99],
+      "issues": [
+        99
+      ],
       "disposition": "Corrected against published v1, code convention, and DOI metadata. Duplicate Forget1999 removed; the other five disputed records already have correct authors/title/year.",
-      "evidence": ["v1-source.tar.gz", "reference-audit.json", "evidence/references"],
+      "evidence": [
+        "v1-source.tar.gz",
+        "reference-audit.json",
+        "evidence/references"
+      ],
       "rerun": "regenerate.py citation/hash checks and latexmk"
     },
     {
       "result": "Physical gradients, multi-diagnostic sensitivities and controlled column recovery figures",
-      "issues": [91, 102],
+      "issues": [
+        91,
+        102
+      ],
       "disposition": "Historical v1 figure assets retained, not regenerated current-physics results. Synthetic/control vectors identified as such.",
-      "evidence": ["revision/assets/co2-longwave-sensitivity.pdf", "revision/assets/parameter-recovery.pdf"],
-      "historical_repository_evidence": ["iclr-results/03-benchmarks", "iclr-results/04-neural-experiments/parameter-recovery"],
+      "evidence": [
+        "revision/assets/co2-longwave-sensitivity.pdf",
+        "revision/assets/parameter-recovery.pdf"
+      ],
+      "historical_repository_evidence": [
+        "iclr-results/03-benchmarks",
+        "iclr-results/04-neural-experiments/parameter-recovery"
+      ],
       "rerun": "run_differentiable_experiments.py gradients; run_scalar_sensitivity.py; examples/neural/recover_parameter.py",
       "pending": "Fresh dimensional initialization and derivative checks after PBL/clock corrections; publish original run inputs/revisions"
     },
     {
       "result": "Calibration skill table, fitted controls and convergence",
-      "issues": [91, 92],
+      "issues": [
+        91,
+        92
+      ],
       "disposition": "Recovered historical logs/checkpoint analyzed: gain 0.058053 K, conditional two-year interval [0.035117,0.086926] K; no convergence established.",
-      "evidence": ["evidence/historical-audit/results.json", "evidence/historical-audit/inputs/outputs/differentiable/calibration"],
+      "evidence": [
+        "evidence/historical-audit/results.json",
+        "evidence/historical-audit/inputs/outputs/differentiable/calibration"
+      ],
       "rerun": "run_differentiable_experiments.py calibration --optimizer lbfgsb --starts 3; neural under separate seeds",
-      "pending": "Converged current-physics fit, repeated starts/seeds and independent seasonal evaluation"
+      "pending": "Current-physics three-start bounded optimization and independent seasonal/year evaluation on Nautilus; no convergence or held-out gain is claimed before results are available."
     },
     {
       "result": "Seasonal reference table/maps including Ls225",
-      "issues": [91, 93],
+      "issues": [
+        91,
+        93
+      ],
       "disposition": "Bias, RMSE and correlation include pressure, temperature, wind and frost; Ames-informed tuning and unmatched sampling remain explicit. Ls225 uses the tracked historical map, replacing duplicate Ls135.",
-      "evidence": ["evidence/historical-audit/reference-summary.csv", "evidence/historical-audit/inputs/iclr-results/01-mola-topography-comparisons/metrics.csv", "revision/assets/ls225_grid.png"],
-      "historical_repository_evidence": ["iclr-results/01-mola-topography-comparisons/config.json", "iclr-results/01-mola-topography-comparisons/report.json"],
+      "evidence": [
+        "evidence/historical-audit/reference-summary.csv",
+        "evidence/historical-audit/inputs/iclr-results/01-mola-topography-comparisons/metrics.csv",
+        "revision/assets/ls225_grid.png"
+      ],
+      "historical_repository_evidence": [
+        "iclr-results/01-mola-topography-comparisons/config.json",
+        "iclr-results/01-mola-topography-comparisons/report.json"
+      ],
       "rerun": "run_gcm3d_ablation.py; export_mars_seasonal_checkpoints.py; benchmark_ames.py; benchmark_mcd.py; evaluate_arco_seasonal.py; tform mars compare",
       "pending": "Untuned/independently calibrated held-out seasonal and observational checks before climatology claims"
     },
     {
       "result": "Annual ablations, timestep sensitivity and peak winds",
-      "issues": [62, 63, 76, 95, 103],
+      "issues": [
+        62,
+        63,
+        76,
+        95,
+        103
+      ],
       "disposition": "Historical 300/150 s fields reanalyzed: 3.700 K equal-snapshot versus 3.884 K time-weighted separation; sampled Mach 1.098 and 35.77 K below model CO2 frost point disclosed. Finite fields/post-projection inventory are not physical validation or raw closure.",
-      "evidence": ["evidence/historical-audit/results.json", "evidence/historical-audit/timestep-by-time.csv", "evidence/historical-audit/input-manifest.json"],
+      "evidence": [
+        "evidence/historical-audit/results.json",
+        "evidence/historical-audit/timestep-by-time.csv",
+        "evidence/historical-audit/input-manifest.json"
+      ],
       "rerun": "run_mars_paper_experiments.py --task ablations with paper-ablations-year.json; audit_paper_results.py with original full/half fields",
-      "pending": "Raw field publication; common-state/time 450/300/finer comparison; spectra/angular-momentum and regional repair budgets; T170 default stability; atmospheric condensation physics"
+      "pending": "Complete current-physics GPU campaign: common-state/time 450/300/150 s comparison, spectra, regional correction and energy/momentum diagnostics, and T170 default stability. Historical fields remain historical."
     },
     {
       "result": "One/ten-year headline timing, year9/10 repeatability and external speedup",
-      "issues": [94, 95, 102],
-      "disposition": "External speedup withdrawn. v1 450 s timing/completion values labelled historical unverified reports; no regenerated long-run claim.",
-      "evidence": ["v1-source.tar.gz", "evidence/historical-audit/inputs/iclr-results/03-benchmarks/performance-timing"],
+      "issues": [
+        94,
+        95,
+        102
+      ],
+      "disposition": "Available one/ten-year saved checkpoints, dimensional maps, diagnostics and original metadata are publicly released with file and archive hashes. Source revisions differ and are recorded. Original GPU identity and complete input hashes are not recoverable. RMS and signed mean changes are distinct; a new explicit one-degree seasonal interpolation is reported separately from the original report.",
+      "evidence": [
+        "v1-source.tar.gz",
+        "evidence/historical-audit/inputs/iclr-results/03-benchmarks/performance-timing",
+        "../../iclr-results/07-review-completion/historical-release/release.json",
+        "../../iclr-results/07-review-completion/historical-release/year9-year10-reconciliation.json"
+      ],
       "rerun": "run_mars_paper_experiments.py --task benchmark; run_gcm3d_ablation.py; evaluate_seasonal_convergence.py; evaluate_seasonal_field_convergence.py",
-      "pending": "Named original hardware, exact source/patch/input hashes, public headline fields and spinup; distinguish global means from spatial RMS"
+      "pending": "Unavailable original GPU identity/input hashes/patches and the original unspecified year9/10 interpolation grid; current-physics long runs before climate/timing accuracy claims."
     },
     {
       "result": "Fixed-update radiation table and figure",
-      "issues": [101, 102],
+      "issues": [
+        101,
+        102
+      ],
       "disposition": "New CPU float64 seed-0 run and independent repeat, same 100-update initialization and 20 updates per continuation. Trajectory wins interpolation; local continuation wins higher dust. No equal-compute or observational claim.",
-      "evidence": ["evidence/radiation-fixed", "evidence/radiation-repeat", "evidence-manifest.json"],
+      "evidence": [
+        "evidence/radiation-fixed",
+        "evidence/radiation-repeat",
+        "evidence-manifest.json",
+        "../../iclr-results/07-review-completion/radiation/repeat-verification.json",
+        "../../iclr-results/07-review-completion/radiation/manifest.json"
+      ],
       "rerun": "examples/neural/train_radiation.py --epochs 100 --fine-tune-epochs 20 --continuation-updates 20 --continuation-budget updates; regenerate.py",
       "pending": "Multi-seed/longer coupled validation before broader learning claims"
     },
     {
       "result": "Gas intervention concentration/decay and future mixture claims",
-      "issues": [72, 73, 74, 77, 97],
-      "disposition": "Separate PR #116 corrects finite molar normalization, Mars/Earth decay units and the worked example. Legacy forcing coefficients remain unverified. The paper discloses missing general 3-D mixture/partial-pressure and restart-ledger support.",
+      "issues": [
+        72,
+        73,
+        74,
+        77,
+        97
+      ],
+      "disposition": "PR #116 corrects finite molar normalization, Mars/Earth decay units and worked arithmetic. The current registry uses verified IPCC AR6 Table 7.SM.7 Earth trace-gas proxies; Mars applicability is not established. General 3-D mixture and intervention-ledger support remain open.",
       "rerun": "package/tests/interventions and the corrected docs/architecture/interventions.md arithmetic",
-      "pending": "Primary coefficient sources and validated domains; actual 3-D mixture transport, optics and intervention ledger"
+      "pending": "Mars spectral reproduction and applicable concentration domain; general 3-D mixture physics and intervention ledger",
+      "evidence": [
+        "../../iclr-results/07-review-completion/compound-sources.json",
+        "../../iclr-results/07-review-completion/compound-audit.json"
+      ]
+    },
+    {
+      "result": "Current atmospheric CO2 phase change and Ames surface frost radiation",
+      "issues": [
+        63,
+        76
+      ],
+      "disposition": "Implemented atmospheric latent heat, ice transport/settling, cloud-inclusive inventory and hemispheric frost optics. Paired synthetic five-sol polar-night deficits decrease from 13.51 K to 0.0914 K at 300/150 s. This is process evidence, not annual or observational validation.",
+      "evidence": [
+        "../../iclr-results/06-co2-physics/co2-physics-summary.json",
+        "../../iclr-results/06-co2-physics/co2-polar-night-verified-300s/report.json",
+        "../../iclr-results/06-co2-physics/co2-polar-night-verified-150s/report.json"
+      ],
+      "rerun": "scripts/validate_mars_co2_physics.py; scripts/validate_mars_gradient.py",
+      "pending": "Current-physics seasonal skill and raw coupled budget closure"
     }
   ]
 }

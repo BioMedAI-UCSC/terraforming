@@ -7,7 +7,7 @@ import pytest
 import xarray as xr
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[3]/'scripts'))
-from audit_paper_results import paired_timestep, paired_skill, field_diagnostics, SOL
+from audit_paper_results import paired_timestep, paired_skill, field_diagnostics, year_repeatability, SOL
 
 
 def fields():
@@ -51,3 +51,18 @@ def test_uncertainty_requires_paired_forecasts():
     assert result['gain_k']==1.
     with pytest.raises(ValueError,match='paired'):
         paired_skill(frame.iloc[:-1])
+
+
+def test_year_repeatability_distinguishes_signed_mean_from_rms():
+    phase = np.arange(0., 3600., 90.)
+    frame = pd.DataFrame(dict(solar_longitude_deg=phase % 360.))
+    for name in ('mean_surface_pressure_pa', 'mean_surface_temperature_k',
+                 'mean_co2_ice_pa', 'mean_deep_soil_temperature_k'):
+        frame[name] = np.where(phase >= 3240., 198., 200.)
+    rows, report = year_repeatability(frame)
+    assert len(rows) == 4 * 271
+    for field in report['fields'].values():
+        assert field['rms_change'] == 2.
+        assert field['signed_mean_change'] == -2.
+    with pytest.raises(ValueError, match='Years nine and ten'):
+        year_repeatability(frame.iloc[:20])

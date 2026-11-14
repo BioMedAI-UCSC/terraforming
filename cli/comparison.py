@@ -19,7 +19,7 @@ FIELDS = {
     "co2_ice": ("Surface CO2 frost", "Pa-equivalent", "Blues"),
 }
 ALIASES = {
-    "temperature": ("temperature", "surface_temperature", "tsurf"),
+    "temperature": ("surface_temperature", "tsurf", "temperature"),
     "surface_pressure": ("surface_pressure", "psurf", "ps"),
     "wind_speed": ("wind_speed", "surface_wind_speed"),
     "co2_ice": ("co2_ice", "co2_frost", "co2ice"),
@@ -68,6 +68,8 @@ def load_source(spec, root, season, half_width):
         for name, aliases in ALIASES.items():
             variable = next((v for v in aliases if v in ds), None)
             if variable:
+                if name == "temperature" and variable == "temperature" and ds.attrs.get("temperature_kind") == "lowest_layer_air":
+                    raise ValueError("Surface comparison requires skin temperature, not lowest-layer air temperature")
                 fields[name] = normalize_units(ds[variable], name)
         if "wind_speed" not in fields and {"uwind", "vwind"} <= set(ds):
             u = normalize_units(ds.uwind, "wind_speed")

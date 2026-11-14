@@ -128,14 +128,53 @@ def paired_timestep(a, b, *, first_dt, second_dt):
                       limitation='paired transient sensitivity; not an equilibrated error estimate or a 450/300 s certification')
 
 
+def year_repeatability(frame):
+    """Compare years 9/10 on an explicit common one-degree seasonal grid."""
+    phase = np.degrees(np.unwrap(np.radians(frame.solar_longitude_deg.to_numpy())))
+    if not np.isfinite(phase).all() or np.any(np.diff(phase) <= 0):
+        raise ValueError('Finite increasing seasonal phase required')
+    masks = [(phase >= start) & (phase < start + 360) for start in (2880., 3240.)]
+    if any(mask.sum() < 2 for mask in masks):
+        raise ValueError('Years nine and ten require at least two saved samples each')
+    x, y = [phase[mask] - start for mask, start in zip(masks, (2880., 3240.), strict=True)]
+    common = np.arange(np.ceil(max(x.min(), y.min())), np.floor(min(x.max(), y.max())) + 1.)
+    if len(common) < 2:
+        raise ValueError('Insufficient common seasonal coverage')
+    rows, fields = [], {}
+    for name in ('mean_surface_pressure_pa', 'mean_surface_temperature_k',
+                 'mean_co2_ice_pa', 'mean_deep_soil_temperature_k'):
+        values = frame[name].to_numpy()
+        if not np.isfinite(values).all():
+            raise ValueError(f'Nonfinite historical {name}')
+        difference = np.interp(common, y, values[masks[1]]) - np.interp(common, x, values[masks[0]])
+        fields[name] = dict(rms_change=float(np.sqrt(np.mean(difference**2))),
+                           signed_mean_change=float(difference.mean()),
+                           maximum_absolute_change=float(np.max(np.abs(difference))))
+        rows.extend(dict(field=name, ls_deg=float(ls), year10_minus_year9=float(value))
+                    for ls, value in zip(common, difference, strict=True))
+    return pd.DataFrame(rows), dict(fields=fields, common_ls_degrees=common.tolist(),
+        protocol='Linear interpolation of both years onto common integer Ls; no extrapolation; equal seasonal weights.',
+        limitations='Global-mean diagnostics, not spatial RMS. Sparse instantaneous samples do not establish equilibrium. The original report did not record its interpolation grid, so its numbers are retained separately.')
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--data-root',type=Path,default=ROOT)
     parser.add_argument('--output',type=Path,required=True)
     parser.add_argument('--skip-fields',action='store_true')
+    parser.add_argument('--long-run',type=Path,help='Audit a recovered ten-year run instead of the small-data bundle')
     args=parser.parse_args()
     root=args.data_root.resolve(); out=args.output
     out.mkdir(parents=True,exist_ok=True)
+    if args.long_run:
+        diagnostic = args.long_run / 'convection/checkpoint_diagnostics.csv'
+        original = args.long_run / 'validation_report.json'
+        rows, result = year_repeatability(pd.read_csv(diagnostic))
+        result['historical_reported_different_or_unspecified_grid'] = json.loads(original.read_text())['year10_vs_year9_same_ls_interpolated']
+        result['inputs'] = [dict(path=p.name, sha256=digest(p)) for p in (diagnostic, original)]
+        rows.to_csv(out / 'year9-year10-by-ls.csv', index=False)
+        (out / 'year9-year10-reconciliation.json').write_text(json.dumps(result, indent=2, allow_nan=False)+'\n')
+        return
     inputs=[]
     def record(relative, *, bundle=False):
         p=root/relative

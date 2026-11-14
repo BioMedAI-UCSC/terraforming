@@ -303,3 +303,42 @@ class TestOutputs:
         assert len(pngs) == 4
         for p in pngs:
             assert p.exists() and p.stat().st_size > 0
+
+
+def test_comparison_export_preserves_geography_units_season_and_cloud_inventory(tmp_path):
+    import jax.numpy as jnp
+    import xarray as xr
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.framework.gcm.specs import physics_specs
+    from src.framework.physics.gcm import initial_column_state, mean_anomaly_for_ls
+    from src.framework.physics.co2_clouds import CO2_CLOUD_TRACER
+    from src.celestials.planets.mars.gcm import radiative_forcing
+
+    coords = coordinate_system("T21", 4)
+    grid, body = coords.horizontal, MARS_BODY_3D
+    specs = physics_specs(body)
+    forcing = radiative_forcing(diurnal=True)
+    forcing = dataclasses.replace(forcing, init_orbital_angle_rad=mean_anomaly_for_ls(0., forcing))
+    dynamics = maps.initial_rest_state(coords, specs, body, np.zeros(grid.nodal_shape))
+    cloud_ratio = .01
+    dynamics = dataclasses.replace(dynamics, sim_time=0.,
+        tracers={**dynamics.tracers, CO2_CLOUD_TRACER:
+                 grid.to_modal(jnp.full((4,) + grid.nodal_shape, cloud_ratio))})
+    state = initial_column_state(dynamics, coords, 200., specs, forcing=forcing)
+    # This asymmetric landmark detects north/south flips and lon/lat transposes.
+    landmark = 200. + np.arange(64)[:, None] * .1 + np.arange(32)[None, :] * .01
+    state = state._replace(surface_temperature=jnp.asarray(landmark[None]))
+    path = maps.save_comparison_netcdf(state, coords, specs, body, forcing, tmp_path / "state.nc")
+    with xr.open_dataset(path, decode_times=False) as ds:
+        np.testing.assert_allclose(ds.surface_temperature.isel(time=0), landmark.T)
+        np.testing.assert_allclose(ds.lon, np.degrees(grid.longitudes))
+        np.testing.assert_allclose(ds.lat, np.degrees(grid.latitudes))
+        assert ds.surface_temperature.attrs["units"] == "K"
+        assert ds.surface_pressure.attrs["units"] == "Pa"
+        assert ds.co2_cloud_column.attrs["units"] == "Pa-equivalent"
+        np.testing.assert_allclose(ds.co2_cloud_column, ds.surface_pressure * cloud_ratio, atol=1e-12)
+        np.testing.assert_allclose(ds.co2_frost, 0.)
+        assert float(ds.solar_longitude[0]) % 360. == pytest.approx(0., abs=1e-10)
+        np.testing.assert_allclose(ds.local_solar_time[0], (12. + ds.lon / 15.) % 24.)
+        np.testing.assert_allclose(ds.air_pressure,
+                                   (ds.surface_pressure * ds.sigma).transpose(*ds.air_pressure.dims))

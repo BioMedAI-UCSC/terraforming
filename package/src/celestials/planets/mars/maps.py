@@ -568,7 +568,7 @@ def run_maps(
 def state_to_comparison_dataset(state, coords, specs, body, forcing):
     """Convert a prognostic state to the full Mars-reference schema."""
     import xarray as xr
-    from src.framework.physics.gcm import _true_anomaly
+    from src.framework.physics.gcm import _true_anomaly, cloud_pressure_equivalent
 
     grid = coords.horizontal
     dyn = state.dynamics
@@ -598,6 +598,7 @@ def state_to_comparison_dataset(state, coords, specs, body, forcing):
     v_ms = np.asarray(v_nd) * velocity_scale
     surface_temperature = np.asarray(state.surface_temperature)[0] * temperature_scale
     co2_ice = np.asarray(state.co2_ice)[0] * pressure_scale
+    cloud_column = np.asarray(cloud_pressure_equivalent(state, coords))[0] * pressure_scale
     ground_temperature = np.asarray(state.ground_temperature) * temperature_scale
     ls_deg = float(np.degrees(
         float(_true_anomaly(elapsed_seconds, forcing)) + forcing.ls_perihelion_rad
@@ -627,6 +628,8 @@ def state_to_comparison_dataset(state, coords, specs, body, forcing):
                 {"units": "Pa", "description": "sigma midpoint times surface pressure"},
             ),
             "co2_frost": (("time", "lat", "lon"), surface_field(co2_ice), {"units": "Pa-equivalent"}),
+            "co2_cloud_column": (("time", "lat", "lon"), surface_field(cloud_column),
+                                 {"units": "Pa-equivalent", "long_name": "Suspended CO2 ice column; excludes surface frost"}),
             "soil_temperature": (
                 ("time", "soil_layer", "lat", "lon"),
                 ground_temperature.transpose(0, 2, 1)[None, ...], {"units": "K"},
