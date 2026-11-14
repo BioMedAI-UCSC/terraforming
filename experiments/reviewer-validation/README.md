@@ -13,8 +13,18 @@ duration. The 300-second calibration guard remains in place.
 The GPU is required. Hardware identity, source bytes, configuration, progress,
 checkpoints, raw and corrected mass budgets, regional pressure corrections,
 energy and momentum effects, extrema, and spectra are stored on the PVC.
+Wind locations, local Mach number, and horizontal advective CFL use the existing
+field-audit calculation. CFL is a diagnostic of horizontal transport, not a
+stability bound for the full solver.
 Interrupted stability runs resume only when their source and input hashes match.
 Calibration retries keep separate traces rather than overwriting an attempt.
+
+After all three timestep cases finish, `timestep-comparison.json` reports
+time-weighted global-diagnostic differences at exact shared checkpoint times.
+The comparison rejects changed inputs, initial states, source bytes, or other
+numerical settings. It does not interpolate missing times or infer accuracy
+thresholds from the observed differences. Local field errors still require a
+separate analysis of the saved states.
 
 Check the submitted campaign:
 

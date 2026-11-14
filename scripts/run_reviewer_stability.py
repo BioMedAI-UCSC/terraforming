@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "apps/mars-calibration"))
 
 import numpy as np
+import xarray as xr
 from mars_calibration.provenance import hardware, snapshot_sources
 from src.framework.gcm._dinosaur import jax, jnp, scales, spherical_harmonic
 from src.framework.gcm.coordinates import coordinate_system
@@ -27,6 +28,7 @@ from src.celestials.planets.mars.maps import initial_rest_state, resolve_scale
 from src.celestials.planets.mars.topography import regrid_to_nodal, mola_modal_orography
 from run_gcm3d_ablation import _checkpoint_diagnostics, _ames_dust_climatology
 from neural_temp_data import write_json
+from audit_paper_results import field_diagnostics
 
 
 def configuration(case, dt, years):
@@ -133,11 +135,15 @@ def main():
         wind = jnp.stack(spherical_harmonic.vor_div_to_uv_nodal(grid,
             state.dynamics.vorticity, state.dynamics.divergence)) * velocity
         air = grid.to_nodal(state.dynamics.temperature_variation) + ref
-        speed = jnp.sqrt(jnp.sum(wind**2, axis=0))
-        gamma = BODY.cp_j_kg_k / (BODY.cp_j_kg_k - BODY.gas_constant_j_kg_k)
         pressure = jnp.exp(grid.to_nodal(state.dynamics.log_surface_pressure)) * scale
-        record.update(max_mach=float(jnp.max(speed / jnp.sqrt(gamma * BODY.gas_constant_j_kg_k * air))),
-            max_frost_deficit_k=float(jnp.max(jnp.maximum(physics.co2_frost_point_k(sigma * pressure)-air, 0.))))
+        fields = xr.Dataset({name: (("time", "sigma", "lat", "lon"),
+            np.asarray(value).transpose(0, 2, 1)[None]) for name, value in (
+                ("air_temperature", air), ("eastward_wind", wind[0]),
+                ("northward_wind", wind[1]), ("air_pressure", sigma * pressure))},
+            coords=dict(time=[record["elapsed_sols"]], sigma=np.asarray(coords.vertical.centers),
+                        lat=np.degrees(grid.latitudes), lon=np.degrees(grid.longitudes)))
+        record.update(field_diagnostics(fields, dt_seconds=cfg["dt_seconds"]))
+        record["max_frost_deficit_k"] = record["maximum_below_co2_frost_point_k"]
         for name in ("vorticity", "divergence", "temperature_variation"):
             values = getattr(state.dynamics, name)**2
             record[name + "_high_degree_fraction"] = float(jnp.sum(values * mask) / jnp.maximum(jnp.sum(values), 1.e-300))

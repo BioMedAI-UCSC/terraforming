@@ -32,3 +32,6 @@ for case, extra in (("ultra", []), ("timestep-450", ["--dt", "450"]),
         "ultra" if case == "ultra" else "timestep", "--inputs", str(inputs),
         "--output", str(run / "studies" / case), "--require-gpu", "--resume", *extra],
         cwd=source, env=env, check=True)
+subprocess.run([str(python), str(source / "scripts/analyse_reviewer_timesteps.py"),
+    str(run / "studies"), "--output", str(run / "timestep-comparison.json")],
+    cwd=source, env=env, check=True)
