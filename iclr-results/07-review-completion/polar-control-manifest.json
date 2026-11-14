@@ -1,0 +1,18 @@
+{
+  "archive": "polar-control.zip",
+  "sha256": "30aeaaacc3311ca4180fba1cd68405121edbf401f772988caff4e0cd93c48d64",
+  "files": {
+    "clouds-on/configuration.json": "317d5e837067b5e0984741d03346c8a7c930d50063db19e5001aa8a1608841b7",
+    "clouds-on/diagnostics.json": "8afed7ec281fc737ee43b4b1efa3e8c6abf3e03a277a9fbdbd55a89f7293143f",
+    "clouds-on/final.nc": "19595935969c5e139ad3c85804e61089b39aaf49797d94ca938a6b97f9c39fad",
+    "clouds-on/hardware-attempt-000.json": "4ad56d0fff11357e3e76bdc241d44d96a230dfd321a0d955eee2340cfda970b3",
+    "clouds-on/initial.npz": "53e0e612f61d67c840445ac527bc221bdf5f0082ed7fdfb30fde2e687e9223d7",
+    "clouds-on/report.json": "35f242a3d11da308bd138751c24ceebe46fab166a0c8ec20639be10ec2ce141f",
+    "surface-only/configuration.json": "f863b6a710678b65778cc9aea4fe36c4d8f17e438adcb28276fdb967b13a6260",
+    "surface-only/diagnostics.json": "5575affba138ed7769f6bbb626d8708c963c546b931a8bbceefb99c2430fdb8b",
+    "surface-only/final.nc": "4d0f89a41ed79ce13c94fea6089a946ae509c6ad29509302cb814f50911d362a",
+    "surface-only/hardware-attempt-000.json": "4ad56d0fff11357e3e76bdc241d44d96a230dfd321a0d955eee2340cfda970b3",
+    "surface-only/initial.npz": "53e0e612f61d67c840445ac527bc221bdf5f0082ed7fdfb30fde2e687e9223d7",
+    "surface-only/report.json": "bb72dc7638e4936b0c4a0bb224c20c25a648017fa512203165db6733bcb042fd"
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "surface-only": {
+    "final": {
+      "max_wind_ms": 175.66895812767362,
+      "max_wind_location": {
+        "time": 15.004182922888376,
+        "sigma": 0.0416666679084301,
+        "lat": 58.14295404920327,
+        "lon": 241.875
+      },
+      "air_temperature_at_max_wind_k": 169.34656261452787,
+      "max_mach": 0.8536476152485002,
+      "max_mach_location": {
+        "time": 15.004182922888376,
+        "sigma": 0.0416666679084301,
+        "lat": 58.14295404920327,
+        "lon": 247.49999999999997
+      },
+      "max_horizontal_advective_cfl": 0.3923592247340341,
+      "minimum_air_temperature_k": 122.09843248692279,
+      "maximum_below_co2_frost_point_k": 9.464689377264236,
+      "sampled_mach_exceeds_one": false,
+      "co2_frost_assumption": "model total-pressure approximation; not a general gas-mixture saturation calculation",
+      "interpretation": "sampled extrema; local Mach/CFL diagnostics do not establish solver stability or a drag-error cause"
+    },
+    "peak_sampled_frost_deficit_k": 9.464689377264236,
+    "max_post_projection_relative_co2_drift": 1.3777867735598193e-13
+  },
+  "clouds-on": {
+    "final": {
+      "max_wind_ms": 188.2685571550133,
+      "max_wind_location": {
+        "time": 15.004182922888376,
+        "sigma": 0.0416666679084301,
+        "lat": 52.60652603434525,
+        "lon": 292.5
+      },
+      "air_temperature_at_max_wind_k": 175.9687737066312,
+      "max_mach": 0.8970024379652918,
+      "max_mach_location": {
+        "time": 15.004182922888376,
+        "sigma": 0.0416666679084301,
+        "lat": 52.60652603434525,
+        "lon": 292.5
+      },
+      "max_horizontal_advective_cfl": 0.8874422912677092,
+      "minimum_air_temperature_k": 126.05416742016347,
+      "maximum_below_co2_frost_point_k": 5.1505246260248185,
+      "sampled_mach_exceeds_one": false,
+      "co2_frost_assumption": "model total-pressure approximation; not a general gas-mixture saturation calculation",
+      "interpretation": "sampled extrema; local Mach/CFL diagnostics do not establish solver stability or a drag-error cause"
+    },
+    "peak_sampled_frost_deficit_k": 6.065412763796289,
+    "max_post_projection_relative_co2_drift": 2.858824288409778e-13
+  },
+  "final_worst_deficit_reduction_k": 4.314164751239417,
+  "final_worst_deficit_reduction_percent": 45.58168344755995,
+  "final_max_wind_change_ms": 12.599599027339679,
+  "seconds": 1332000.0,
+  "limitations": "Isothermal rest initialization; mechanism control, not observational accuracy. Total-pressure CO2 frost approximation. Final column maxima can occur at different levels. Extrema do not establish realistic circulation. Projected mass drift is not raw conservation.",
+  "input_sha256": {
+    "surface-only/configuration.json": "f863b6a710678b65778cc9aea4fe36c4d8f17e438adcb28276fdb967b13a6260",
+    "surface-only/report.json": "bb72dc7638e4936b0c4a0bb224c20c25a648017fa512203165db6733bcb042fd",
+    "surface-only/diagnostics.json": "5575affba138ed7769f6bbb626d8708c963c546b931a8bbceefb99c2430fdb8b",
+    "surface-only/initial.npz": "53e0e612f61d67c840445ac527bc221bdf5f0082ed7fdfb30fde2e687e9223d7",
+    "surface-only/final.nc": "4d0f89a41ed79ce13c94fea6089a946ae509c6ad29509302cb814f50911d362a",
+    "clouds-on/configuration.json": "317d5e837067b5e0984741d03346c8a7c930d50063db19e5001aa8a1608841b7",
+    "clouds-on/report.json": "35f242a3d11da308bd138751c24ceebe46fab166a0c8ec20639be10ec2ce141f",
+    "clouds-on/diagnostics.json": "8afed7ec281fc737ee43b4b1efa3e8c6abf3e03a277a9fbdbd55a89f7293143f",
+    "clouds-on/initial.npz": "53e0e612f61d67c840445ac527bc221bdf5f0082ed7fdfb30fde2e687e9223d7",
+    "clouds-on/final.nc": "19595935969c5e139ad3c85804e61089b39aaf49797d94ca938a6b97f9c39fad"
+  },
+  "analysis_source_sha256": {
+    "analyse_polar_control.py": "55202957b312997c9eaae52d0321888c44747f2d070a3298a35fafdeafbc83c5",
+    "audit_paper_results.py": "20f448fa2ed095d9929787d28c54727f1174cbab0fece85b1c2352c32981a0d5"
+  }
+}

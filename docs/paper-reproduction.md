@@ -201,16 +201,44 @@ points to **historical sparse checkpoints**; create a new config for new results
 matching local times, output durations, wind heights, years, dust and averaging.
 Do not silently use it as an independently validated new-model comparison.
 
+## New reviewer controls and surface-exchange correction
+
+The [current-physics baseline release](https://github.com/BioMedAI-UCSC/terraforming/releases/tag/reviewer-current-physics-20261114)
+contains the complete 450/300/150-second annual diagnostic histories,
+configurations, reports and initial arrays at source `d9247914`. It also contains
+the fifteen-sol geographic winter pair and the original failed five-sol
+gradient preflight. Per-member and archive SHA-256 files are tracked under
+`iclr-results/07-review-completion`. These runs precede the surface transport
+and heat-capacity corrections. Global-mean surface-temperature agreement alone
+does not validate local winds: sampled annual peak Mach reaches 3.158 at 150 s.
+
+`docs/ames-surface-mass-transport.md` describes the missing mass, enthalpy and
+momentum coupling and the common frost heat capacity. This prescribed-column
+check reproduces its budget improvement without external observations:
+
+```sh
+rtk proxy env PYTHONPATH=package .venv/bin/python scripts/validate_surface_mass_transport.py \
+  --output /tmp/surface-transport-budget-check.json
+```
+
+Use `scripts/analyse_polar_control.py` on the extracted paired winter archive
+to verify input/source identities, initial arrays, final coordinates, and
+geographic frost-deficit maps. `experiments/reviewer-surface-mass-transport/`
+and `experiments/reviewer-multiday-calibration/` register the corrected annual
+and causal five-sol campaigns. Their checked-in Job manifests pin source
+`361bff80d9101009eb8b12a0f29215ce58811135` and use isolated persistent volumes.
+Independent held-out skill and complete annual stability require those runs.
+
 ## What must happen before stronger claims or issue closure
 
 | Issue | Remaining acceptance gate / paper action |
 |---|---|
 | #91 / #92 | Archive a converged current-physics multi-start reanalysis fit and an independent seasonal evaluation; replace historical skill only after that run. |
 | #93 | Corrected table includes bias/frost/wind and Ls225; keep sampling/tuning qualifications beside it. |
-| #95 | A real common-state/common-physical-time 450/300/finer study is still absent. The historical 300/150 pair does not close it. |
-| #62 / #103 | Full default T170 stability, spectra, local wind/Mach/CFL and angular-momentum sensitivity remain required. |
+| #95 | The archived d9247914 common-state/time 450/300/150 s annual triplet is complete. Validate the corrected surface coupling and compare local fields as well as global means. |
+| #62 / #103 | Default T170/L40 finishes 2,000 steps at 150 s, with spectra and located wind/Mach/CFL diagnostics. Longer full-physics T170 stability and angular-momentum sensitivity remain required. |
 | #63 / #77 | Atmospheric phase change, latent heat, transported ice, settling, and Ames frost optics are implemented and tested in short process cases (`iclr-results/06-co2-physics`). Historical climate figures remain surface-only. General mixture partial-pressure and intervention-ledger support remain open. |
-| #76 | Raw pre-projection mass, energy and momentum budgets plus regional correction effects are required. `diagnose_mars_energy_budget.py` is a snapshot flux diagnosis, not that closure study. |
+| #76 | Raw/projection budget histories are archived. Surface exchange now closes a separate gas/cloud/frost energy and momentum test, and all surface heat fluxes use frost capacity. Full coupled energy closure and regional repair effects still need assessment. |
 | #74 | All seven coefficients now match IPCC AR6 WG1 Table 7.SM.7 as Earth trace-gas proxies. Mars spectral reproduction and a validated Mars concentration domain remain open. |
 | #102 | Available headline saved states and final maps are publicly released with per-file hashes and original source revisions. Original GPU identity, complete input hashes and absent patches remain unavailable. Year9/10 RMS and signed mean changes are reported under an explicit seasonal interpolation; the original report's interpolation grid remains unknown. |
 

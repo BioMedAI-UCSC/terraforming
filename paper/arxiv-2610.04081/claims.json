@@ -79,14 +79,16 @@
         95,
         103
       ],
-      "disposition": "Historical 300/150 s fields reanalyzed: 3.700 K equal-snapshot versus 3.884 K time-weighted separation; sampled Mach 1.098 and 35.77 K below model CO2 frost point disclosed. Finite fields/post-projection inventory are not physical validation or raw closure.",
+      "disposition": "Historical 300/150 s fields reanalyzed: 3.700 K equal-snapshot versus 3.884 K time-weighted separation; sampled Mach 1.098 and 35.77 K below model CO2 frost point disclosed. Finite fields/post-projection inventory are not physical validation or raw closure. The d9247914 current-physics baseline completes all three annual timesteps, but reaches sampled Mach 3.15847 at 150 s. Its 300/150 s global-mean surface-temperature separation is 0.110466 K; this is not local air-temperature error.",
       "evidence": [
         "evidence/historical-audit/results.json",
         "evidence/historical-audit/timestep-by-time.csv",
-        "evidence/historical-audit/input-manifest.json"
+        "evidence/historical-audit/input-manifest.json",
+        "../../iclr-results/07-review-completion/annual-current-manifest.json",
+        "../../iclr-results/07-review-completion/current-release.json"
       ],
       "rerun": "run_mars_paper_experiments.py --task ablations with paper-ablations-year.json; audit_paper_results.py with original full/half fields",
-      "pending": "Complete current-physics GPU campaign: common-state/time 450/300/150 s comparison, spectra, regional correction and energy/momentum diagnostics, and T170 default stability. Historical fields remain historical."
+      "pending": "Validate corrected surface gas transport and common frost heat capacity (source 361bff80), including local fields, located wind extremes, and full coupled energy closure. The archived d9247914 annual triplet and T170/L40 2000-step default run are complete."
     },
     {
       "result": "One/ten-year headline timing, year9/10 repeatability and external speedup",
@@ -145,14 +147,16 @@
         63,
         76
       ],
-      "disposition": "Implemented atmospheric latent heat, ice transport/settling, cloud-inclusive inventory and hemispheric frost optics. Paired synthetic five-sol polar-night deficits decrease from 13.51 K to 0.0914 K at 300/150 s. This is process evidence, not annual or observational validation.",
+      "disposition": "Implemented atmospheric latent heat, ice transport/settling, cloud-inclusive inventory and hemispheric frost optics. Paired synthetic five-sol polar-night deficits decrease from 13.51 K to 0.0914 K at 300/150 s. This is process evidence, not annual or observational validation. The geographic fifteen-sol control reduces final worst frost deficit from 9.464689 to 5.150525 K while increasing wind. Subsequent surface gas transport fixes a missing sigma mass/enthalpy/momentum flux. A prescribed column energy residual falls from 15.664280 W/m2 to roundoff; this is operator evidence, not observed skill. All surface heat fluxes now share frost heat capacity.",
       "evidence": [
         "../../iclr-results/06-co2-physics/co2-physics-summary.json",
         "../../iclr-results/06-co2-physics/co2-polar-night-verified-300s/report.json",
-        "../../iclr-results/06-co2-physics/co2-polar-night-verified-150s/report.json"
+        "../../iclr-results/06-co2-physics/co2-polar-night-verified-150s/report.json",
+        "../../iclr-results/07-review-completion/polar-analysis/summary.json",
+        "../../iclr-results/07-review-completion/surface-transport-budget-check.json"
       ],
       "rerun": "scripts/validate_mars_co2_physics.py; scripts/validate_mars_gradient.py",
-      "pending": "Current-physics seasonal skill and raw coupled budget closure"
+      "pending": "Annual and held-out five-sol validation of source 361bff80; atmospheric saturation adjustment and full coupled budget closure remain to be assessed."
     }
   ]
 }

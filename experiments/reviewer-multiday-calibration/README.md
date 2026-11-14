@@ -44,6 +44,13 @@ report every test field and window, training endpoints versus validation
 selection, bound hits, and uncertainty. Neither a larger gain nor a successful
 annual climate is assumed in advance.
 
+`frost-capacity-job.json` uses an isolated volume with verified copies of the
+same frozen common inputs and causal windows. It pins source
+`361bff80d9101009eb8b12a0f29215ce58811135`, including conservative surface mass
+transport and a common frost heat capacity for all surface heat fluxes. It
+requests an A100 without a region restriction. Earlier campaign outputs remain
+separate. No running experiment is stopped to replace its physics.
+
 The original five-sol preflight failed at finite-difference perturbations
 1e-3 and 1e-4. All three control derivatives agreed at 1e-5. The next run tests
 1e-5, 3e-6, and 1e-6 with the same absolute/relative acceptance tolerances;
