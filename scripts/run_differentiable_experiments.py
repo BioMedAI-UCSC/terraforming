@@ -85,8 +85,16 @@ def target_arrays(row, model, dt):
     else:
         model.forcing = model.base_forcing
     with np.load(row["target"], allow_pickle=False) as z:
-        seconds, fields = z["seconds"].copy(), z["fields"].copy()
-    expected = (len(seconds), 3, 12, 64, 32)
+        observation_seconds, fields = z["seconds"].copy(), z["fields"].copy()
+        seconds = z["sample_seconds"].copy() if "sample_seconds" in z else observation_seconds
+    if seconds.ndim != 1 or observation_seconds.ndim != 1 or not len(observation_seconds):
+        raise ValueError("Nonempty one-dimensional observation and sample times required")
+    count = row.get("samples_per_observation", 1)
+    if type(count) is not int or count < 1 or len(seconds) != count * len(observation_seconds):
+        raise ValueError("Explicit positive sample count must match the observation groups")
+    if not np.allclose(observation_means(seconds, row), observation_seconds, rtol=0, atol=1e-6):
+        raise ValueError("Observation times must be the centres of their sampled averaging windows")
+    expected = (len(observation_seconds), 3, 12, 64, 32)
     if fields.shape != expected or not np.isfinite(fields).all():
         raise ValueError(f"Expected finite T(K),u(m/s),v(m/s) fields {expected}")
     if (not np.isfinite(seconds).all() or len(seconds) == 0 or seconds[0] <= 0
@@ -97,6 +105,12 @@ def target_arrays(row, model, dt):
     model.initial = d.load_restart(Path(row["restart"]))
     model.diagnostics(model.initial)
     return seconds, d.jnp.asarray(fields)
+
+
+def observation_means(values, row):
+    """Apply the declared temporal sampling to both model fields and lead times."""
+    count = row.get("samples_per_observation", 1)
+    return values.reshape((-1, count) + values.shape[1:]).mean(axis=1)
 
 
 def neural_rollout(model, seconds, dt, adapter, norm):
@@ -212,13 +226,13 @@ def fit(model, args, manifest, neural):
         model.forcing = forcing
         if neural:
             raw = neural_rollout(model, seconds, args.dt, adapter, norm)
-            run = lambda x, raw=raw: raw(unravel(x))
+            run = lambda x, raw=raw, row=row: observation_means(raw(unravel(x)), row)
         else:
             raw = model.trajectory(seconds, args.dt)
-            run = lambda x, raw=raw: raw(d.jnp.asarray(d.LOWER_BOUNDS) + x * d.jnp.asarray(d.UPPER_BOUNDS - d.LOWER_BOUNDS))
+            run = lambda x, raw=raw, row=row: observation_means(raw(d.jnp.asarray(d.LOWER_BOUNDS) + x * d.jnp.asarray(d.UPPER_BOUNDS - d.LOWER_BOUNDS)), row)
         # Capture each physical restart when constructing a trajectory callable.
         physical = model.trajectory(seconds, args.dt)
-        baseline = np.asarray(p.block(d.jax.jit(physical)(d.jnp.ones(3))))
+        baseline = observation_means(np.asarray(p.block(d.jax.jit(physical)(d.jnp.ones(3)))), row)
         if neural:
             identity = np.asarray(p.block(d.jax.jit(run)(x0)))
             if not np.allclose(identity, baseline, atol=1e-9, rtol=1e-9):
@@ -292,7 +306,7 @@ def fit(model, args, manifest, neural):
             raise FloatingPointError("Nonfinite evaluation trajectory")
         for name, values in (("physical", baseline), ("neural" if neural else "calibrated", predicted)):
             rmse = errors(values, target, model)
-            for i, seconds_i in enumerate(seconds):
+            for i, seconds_i in enumerate(observation_means(seconds, row)):
                 rows.append(dict(window=row["id"], split=row["split"], block=row["block"],
                     reference_kind=row["reference_kind"], model=name, seconds=float(seconds_i),
                     temperature_rmse_k=float(rmse[i, 0]), u_rmse_ms=float(rmse[i, 1]), v_rmse_ms=float(rmse[i, 2])))
@@ -329,7 +343,7 @@ def ablations(model, args, manifest):
                 continue
             kw = {k: case[k] for k in ("overrides", "co2_exchange", "diffusion_sols") if k in case}
             run = model.trajectory(seconds, case["dt"], **kw)
-            prediction = np.asarray(p.block(d.jax.jit(run)(d.jnp.asarray(case["parameters"]))))
+            prediction = observation_means(np.asarray(p.block(d.jax.jit(run)(d.jnp.asarray(case["parameters"])))), row)
             if not np.isfinite(prediction).all():
                 raise FloatingPointError(f"Nonfinite ablation {row['id']} {case['name']}")
             if baseline is None:
@@ -380,6 +394,10 @@ def main():
     if set(args.cases) - known:
         ap.error("Unknown ablation case")
     inputs = p.validate_inputs(args.inputs)
+    if manifest and "body_constants" in manifest and manifest["body_constants"] != dataclasses.asdict(d.MARS_BODY_3D):
+        raise ValueError("Restart body and unit constants differ from the simulator")
+    if manifest and "terrain_sha256" in manifest and digest(args.inputs / "mola.img") != manifest["terrain_sha256"]:
+        raise ValueError("Restart and simulator terrain must match")
     if manifest and "native_contract" in manifest:
         if digest(args.inputs / "mola.img") != manifest["native_contract"]["terrain_sha256"]:
             raise ValueError("Native initialization and simulator terrain must match")

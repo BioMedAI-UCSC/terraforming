@@ -20,6 +20,24 @@
       "numeric_arrays_checked": 5360,
       "manifest": "mars-ten-years-dt450-float64-stage-01-manifest.json",
       "url": "https://github.com/BioMedAI-UCSC/terraforming/releases/download/paper-v1-historical-results-20261114/mars-ten-years-dt450-float64-stage-01.tar.gz"
+    },
+    {
+      "name": "Untitled",
+      "source_commit": "d7d8d845527ac2b704bdfb55b580c426b94368cd",
+      "archive_sha256": "2c8264db2c1bb1d8b51a191338844fff5e08ca3072456928ab4480ad6d9c0f3b",
+      "archive_bytes": 342306346,
+      "numeric_arrays_checked": 32,
+      "manifest": "Untitled-manifest.json",
+      "url": "https://github.com/BioMedAI-UCSC/terraforming/releases/download/paper-v1-historical-results-20261114/Untitled.tar.gz"
+    },
+    {
+      "name": "paper-year-gpu3",
+      "source_commit": "d7d8d845527ac2b704bdfb55b580c426b94368cd",
+      "archive_sha256": "b67df60745b30af1d3c731c58088de619b9d313451d008784d5f3e08d9a52702",
+      "archive_bytes": 342356419,
+      "numeric_arrays_checked": 32,
+      "manifest": "paper-year-gpu3-manifest.json",
+      "url": "https://github.com/BioMedAI-UCSC/terraforming/releases/download/paper-v1-historical-results-20261114/paper-year-gpu3.tar.gz"
     }
   ],
   "limitations": "Original GPU model, full input hashes and absent original patches remain unavailable. These are historical saved states, not current-physics results or every integration step."

@@ -7,7 +7,7 @@ import pytest
 import xarray as xr
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "scripts"))
-from evaluate_arco_seasonal import align_reference, load_model_window, load_arco_window, weighted_metrics
+from evaluate_arco_seasonal import align_reference, load_model_window, load_arco_window, weighted_metrics, wind_at_height
 
 
 def test_reference_alignment_handles_longitude_wrap_and_reversed_latitude():
@@ -49,3 +49,17 @@ def test_window_selection_includes_each_time_and_speed_before_average(tmp_path):
     selected, _ = load_arco_window([arco_path], 0., 2., {35})
     np.testing.assert_allclose(selected.uwind, -2.)
     np.testing.assert_allclose(selected.wind_speed, 2.)
+
+
+def test_wind_height_comparison_uses_each_gas_constant_and_never_extrapolates():
+    sigma = np.array([.1, .5, .95])
+    temperature = xr.DataArray(np.full((3, 2, 2), 200.), dims=("sigma", "lat", "lon"),
+                              coords=dict(sigma=sigma, lat=[-30., 30.], lon=[0., 180.]))
+    for gas_constant in (188.92, 191.182):
+        heights = gas_constant * 200. / 3.72076 * np.log(1. / sigma)
+        eastward = xr.ones_like(temperature) * xr.DataArray(.01 * heights, dims="sigma", coords=dict(sigma=sigma))
+        result = wind_at_height(temperature, eastward, -2. * eastward, gas_constant)
+        np.testing.assert_allclose(result.eastward_wind, 10., rtol=1e-7)
+        np.testing.assert_allclose(result.northward_wind, -20., rtol=1e-7)
+        with pytest.raises(ValueError, match="no wind extrapolation"):
+            wind_at_height(temperature, eastward, eastward, gas_constant, height_m=10.)

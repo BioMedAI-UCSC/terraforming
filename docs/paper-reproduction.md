@@ -67,7 +67,10 @@ This reproduces the old calibration/control-vector and reference-bias analysis,
 not a new fit or a corrected-model seasonal evaluation. The original field audit
 needs `outputs/Untitled/full.nc`, `outputs/Untitled/config.json`,
 `outputs/paper-year-gpu3/half_timestep.nc`, and that run's `ablations.json` under
-`--data-root`. Those large fields are **not publicly bundled** here. Without them,
+`--data-root`. The public release now supplies `Untitled.tar.gz` and
+`paper-year-gpu3.tar.gz`, including those fields and original metadata. Unpack
+them under an audit root's `outputs/` directory and copy the bundled small-data
+inputs into that root. The archives remain historical. Without the fields,
 use the frozen `evidence/historical-audit/results.json`; do not claim to have
 rerun its wind/Mach/frost-point or 300/150 s field calculations.
 

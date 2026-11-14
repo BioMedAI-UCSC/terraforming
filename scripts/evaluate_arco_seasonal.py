@@ -136,6 +136,40 @@ def align_reference(reference, model):
     return interpolate_periodic(reference, model)
 
 
+def wind_at_height(temperature, eastward, northward, gas_constant, height_m=1000.):
+    """Interpolate seasonal-mean profiles to one hydrostatic height above ground."""
+    from src.framework.physics.co2_clouds import geopotential_matrix
+    from src.framework.gcm._dinosaur import jax
+    temperature, eastward, northward = xr.align(temperature, eastward, northward, join="exact")
+    temperature = temperature.transpose("sigma", "lat", "lon")
+    air = np.asarray(temperature)
+    if not np.isfinite(air).all() or np.any(air <= 0):
+        raise ValueError("Finite positive temperatures required for hydrostatic height")
+    sigma = np.asarray(temperature.sigma)
+    if not np.all((sigma > 0) & (sigma < 1)) or np.any(np.diff(sigma) <= 0):
+        raise ValueError("Increasing sigma centres strictly inside (0, 1) required")
+    with jax.enable_x64(True):
+        geometry = np.asarray(geopotential_matrix(sigma, gas_constant))
+    height = np.einsum("ij,jxy->ixy", geometry, air) / MARS_BODY_3D.gravity_m_s2
+    if np.any(height_m < height[-1]) or np.any(height_m > height[0]):
+        raise ValueError("Requested height is outside resolved layers; no wind extrapolation")
+    result = {}
+    for name, field in (("eastward_wind", eastward), ("northward_wind", northward)):
+        values = np.asarray(field.transpose(*temperature.dims))
+        if not np.isfinite(values).all():
+            raise ValueError("Finite winds required for height comparison")
+        output = np.empty(air.shape[1:])
+        for i, j in np.ndindex(output.shape):
+            output[i, j] = np.interp(height_m, height[::-1, i, j], values[::-1, i, j])
+        result[name] = (("lat", "lon"), output, {"units": "m s-1"})
+    ds = xr.Dataset(result, coords=dict(lat=temperature.lat, lon=temperature.lon),
+        attrs=dict(height_m_above_ground=height_m, gas_constant_j_kg_k=gas_constant,
+                   sampling="Hydrostatic interpolation of seasonal-mean profiles; magnitude of mean vector, not mean instantaneous speed"))
+    ds["wind_speed"] = np.hypot(ds.eastward_wind, ds.northward_wind)
+    ds.wind_speed.attrs["units"] = "m s-1"
+    return ds
+
+
 def plot_zonal(model, reference, target, output):
     panels = (
         (model.air_temperature.mean("lon"), reference.temp.mean("lon"), "Temperature", "K"),
@@ -200,10 +234,20 @@ def main() -> int:
             model.co2_frost, arco.co2ice * MARS_BODY_3D.gravity_m_s2, model.lat
         )
         tag = f"ls{int(round(target)):03d}"
+        model_height = wind_at_height(model.air_temperature, model.eastward_wind, model.northward_wind,
+                                      MARS_BODY_3D.gas_constant_j_kg_k)
+        # ARCO's native temperature metadata specifies Rspec=191.182 J/(kg K).
+        arco_height = wind_at_height(arco.temp, arco.uwind, arco.vwind, 191.182)
+        for field in ("eastward_wind", "northward_wind", "wind_speed"):
+            metrics[field + "_1000m_mean_profile"] = weighted_metrics(model_height[field], arco_height[field], model.lat)
+        model_height.to_netcdf(args.output_dir / f"model_wind_1000m_{tag}.nc")
+        arco_height.to_netcdf(args.output_dir / f"arco_wind_1000m_{tag}.nc")
         plot_path = args.output_dir / f"zonal_{tag}.png"
         plot_zonal(model, arco, target, plot_path)
         report["seasons"][tag] = {
             "metrics": metrics,
+            "fixed_height_wind": dict(height_m_above_ground=1000., model_gas_constant_j_kg_k=MARS_BODY_3D.gas_constant_j_kg_k,
+                reference_gas_constant_j_kg_k=191.182, sampling=model_height.attrs["sampling"]),
             "model_files": [{"path": str(path), "sha256": _sha256(path)} for path in model_used],
             "arco_files": [
                 {"path": str(path), "sha256": _sha256(path)} for path in used

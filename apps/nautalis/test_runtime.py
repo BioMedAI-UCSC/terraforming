@@ -95,7 +95,9 @@ class RuntimeTests(unittest.TestCase):
         cpu=jobs.manifests(jobs.parser().parse_args(options))
         gpu=jobs.manifests(jobs.parser().parse_args(options+['--gpu','--','task','--seed','7']))
         for body in (cpu,gpu):
+            self.assertNotIn('activeDeadlineSeconds',body['items'][1]['spec'])
             pod=body['items'][1]['spec']['template']['spec']
+            self.assertNotIn('activeDeadlineSeconds',pod)
             self.assertFalse(pod['automountServiceAccountToken'])
             self.assertNotIn('initContainers',pod)
             self.assertIn('custom_folder',pod['containers'][0]['args'])
@@ -124,6 +126,8 @@ class RuntimeTests(unittest.TestCase):
                 download.main()
             reader=json.loads(next(kwargs['input'] for args,kwargs in calls if 'apply' in args))
             self.assertTrue(reader['spec']['containers'][0]['volumeMounts'][0]['readOnly'])
+            self.assertNotIn('activeDeadlineSeconds',reader['spec'])
+            self.assertEqual(reader['spec']['containers'][0]['command'],['tail','-f','/dev/null'])
             self.assertNotIn('fsGroup',reader['spec']['securityContext'])
             self.assertTrue(any('delete' in args for args,_ in calls))
             self.assertTrue((output/'pods/finished.log').exists())
@@ -137,6 +141,12 @@ class RuntimeTests(unittest.TestCase):
                 with self.assertRaises(SystemExit): download.main()
                 request.assert_not_called()
             self.assertEqual((output/'saved').read_text(),'keep')
+
+    def test_checked_in_nautilus_manifests_have_no_deadline(self):
+        root=HERE.parents[1]
+        for name in ('apps/mars-calibration/job.yaml','apps/mars-calibration/data-pod.yaml',
+                     'experiments/reviewer-validation/job.json'):
+            self.assertNotIn('activeDeadlineSeconds',(root/name).read_text())
 
 
 if __name__=='__main__': unittest.main()

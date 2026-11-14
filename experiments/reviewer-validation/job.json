@@ -30,7 +30,6 @@
       },
       "spec": {
         "backoffLimit": 1,
-        "activeDeadlineSeconds": 86400,
         "template": {
           "metadata": {
             "labels": {

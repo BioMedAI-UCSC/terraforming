@@ -209,7 +209,7 @@ def main():
         reference=dict(temperature_bias_range_k=[float(metrics[metrics.field=='Surface temperature'].bias.min()),float(metrics[metrics.field=='Surface temperature'].bias.max())],
                        limitation='Ames-informed (0.25,0.25,1) tuning; unmatched temporal/vertical sampling; model/reanalysis characterization, not independent validation'),
         pending=['untuned/held-out reference rerun','converged merged-physics reanalysis fit','full 450/300 s long-run convergence',
-                 'raw pre-projection long-run energy/momentum accounting','exact submitted manuscript source','public raw field/input release'])
+                 'raw pre-projection long-run energy/momentum accounting','unavailable original GPU identity and complete input provenance'])
     if not args.skip_fields:
         full=record('outputs/Untitled/full.nc')
         half=record('outputs/paper-year-gpu3/half_timestep.nc')

@@ -8,6 +8,14 @@ and missing provenance. Archive members were read back and hashed. Uploaded
 asset sizes and GitHub SHA-256 digests matched the local files; the public
 ten-year manifest was fetched without authentication and its hash checked.
 
+The release also contains `Untitled.tar.gz` (the historical 300-second baseline
+and no-convection/no-PBL/no-regolith fields) and `paper-year-gpu3.tar.gz`
+(its baseline, paired 150-second trajectory, dust and surface-exchange cases).
+Their original source/input hash records and configurations are retained.
+Unpack these two archives under an audit root's `outputs/` directory to run the
+existing wind and 300/150-second field audit. These are separate runs from the
+450-second one- and ten-year headline outputs.
+
 The original runs used older physics and unit contracts. Keep their original
 metadata and reports. Do not use their nondimensional restarts as current-model
 states. Missing original GPU identity and input records cannot be inferred from

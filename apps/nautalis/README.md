@@ -36,7 +36,7 @@ Context `nautilus` and namespace `razvanlab` are explicit defaults; neither tool
 changes your current context. Override them with `--context`/`--namespace`.
 The default job requests 8 CPUs, 64 GiB RAM and a 500 GiB RWO PVC named after
 the job. `--gpu` additionally requests one A100; CPU, memory, storage, PVC name
-and GPU resource type can be set explicitly. The job has a seven-day deadline,
+and GPU resource type can be set explicitly. Jobs have no elapsed-time limit,
 two retries, non-root execution, no service-account token and a read-only root
 filesystem. Concurrent writers to the same PVC are rejected by a file lock.
 

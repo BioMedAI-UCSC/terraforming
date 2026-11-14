@@ -50,6 +50,16 @@ random parameter direction at its actual training horizon.
 
 ## 3. Prepare aligned real-reference windows
 
+For a five-sol test, use `scripts/prepare_multiday_windows.py` and
+[`experiments/reviewer-multiday-calibration`](../experiments/reviewer-multiday-calibration/README.md).
+That protocol reserves whole years for validation and testing and averages
+twelve model samples for each daily-mean target. Target NPZ files store daily
+centre times in `seconds` and the integration sample times in `sample_seconds`.
+The manifest declares `samples_per_observation: 12`. The runner validates exact
+timestep alignment and averaging centres before fitting. Native instantaneous
+windows retain one sample per observation. Soil initialization and fixed-dust
+limits are recorded in the five-sol manifest.
+
 Use the existing native MACDA staging pipeline (CPU/network work):
 
 ```bash

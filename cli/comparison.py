@@ -56,6 +56,7 @@ def load_source(spec, root, season, half_width):
             ds = opened.load()
         ls_name = spec.get("season_variable")
         season_range = None
+        season_verification = "declared_by_path_only; no season metadata available"
         if ls_name:
             mask = np.abs((ds[ls_name] - season + 180) % 360 - 180) <= half_width
             if mask.dims != ("time",):
@@ -64,6 +65,15 @@ def load_source(spec, root, season, half_width):
             if not ds.sizes["time"]:
                 continue
             season_range = [float(ds[ls_name].min()), float(ds[ls_name].max())]
+            season_verification = f"selected by {ls_name} coordinate"
+        else:
+            actual = ds.attrs.get("solar_longitude_deg", ds.attrs.get("ls_deg"))
+            if actual is not None:
+                actual = float(actual)
+                if not np.isfinite(actual) or abs((actual - season + 180.) % 360. - 180.) > half_width:
+                    raise ValueError(f"{spec['name']}: file season does not match requested Ls={season}")
+                season_range = [actual, actual]
+                season_verification = "verified from file season attribute"
         fields = {}
         for name, aliases in ALIASES.items():
             variable = next((v for v in aliases if v in ds), None)
@@ -92,6 +102,7 @@ def load_source(spec, root, season, half_width):
         samples.append(selected)
         records.append({"path": str(path), "sha256": sha256(path),
                         "selected_ls_range": season_range,
+                        "season_verification": season_verification,
                         "attributes": {k: str(v) for k, v in ds.attrs.items()}})
     if not samples:
         raise ValueError(f"{spec['name']}: empty seasonal window")

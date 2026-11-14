@@ -49,9 +49,9 @@ def main(default_job=None,default_path='/work/outputs',default_output='outputs')
             claim=volume['persistentVolumeClaim']['claimName']
             transfer='experiment-download-'+uuid.uuid4().hex[:8]
             reader={'apiVersion':'v1','kind':'Pod','metadata':{'name':transfer,'namespace':args.namespace},'spec':{
-                'restartPolicy':'Never','activeDeadlineSeconds':3600,'automountServiceAccountToken':False,
+                'restartPolicy':'Never','automountServiceAccountToken':False,
                 'securityContext':{'runAsNonRoot':True,'runAsUser':10001,'runAsGroup':10001,'seccompProfile':{'type':'RuntimeDefault'}},
-                'containers':[{'name':'results','image':'busybox:1.37.0','command':['sleep','3600'],
+                'containers':[{'name':'results','image':'busybox:1.37.0','command':['tail','-f','/dev/null'],
                     'resources':{'requests':{'cpu':'1','memory':'1Gi'},'limits':{'cpu':'1','memory':'1Gi'}},
                     'securityContext':{'allowPrivilegeEscalation':False,'readOnlyRootFilesystem':True,'capabilities':{'drop':['ALL']}},
                     'volumeMounts':[{'name':'work','mountPath':'/work','readOnly':True}]}],
@@ -59,7 +59,7 @@ def main(default_job=None,default_path='/work/outputs',default_output='outputs')
             if pods and pods[-1]['spec'].get('nodeName'):
                 reader['spec']['nodeSelector']={'kubernetes.io/hostname':pods[-1]['spec']['nodeName']}
             subprocess.run([*kube,'apply','-f','-'],input=json.dumps(reader),text=True,check=True)
-            subprocess.run([*kube,'wait','--for=condition=Ready','pod/'+transfer,'--timeout=120s'],check=True)
+            subprocess.run([*kube,'wait','--for=condition=Ready','pod/'+transfer,'--timeout=-1s'],check=True)
             name=transfer
         subprocess.run([*kube,'cp',name+':'+args.path,str(output/'runs')],check=True)
         hashes={str(p.relative_to(output)):hashlib.sha256(p.read_bytes()).hexdigest()

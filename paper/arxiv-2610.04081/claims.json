@@ -41,13 +41,15 @@
         91,
         92
       ],
-      "disposition": "Recovered historical logs/checkpoint analyzed: gain 0.058053 K, conditional two-year interval [0.035117,0.086926] K; no convergence established.",
+      "disposition": "Recovered historical logs/checkpoint analyzed: gain 0.058053 K, conditional two-year interval [0.035117,0.086926] K; no convergence established. A current-physics A100 pilot completed three stationary training endpoints; the validation-selected checkpoint is not stationary. Its two-hour held-out gain is 0.198498 K over four windows and is not promoted as a material climate result.",
       "evidence": [
         "evidence/historical-audit/results.json",
-        "evidence/historical-audit/inputs/outputs/differentiable/calibration"
+        "evidence/historical-audit/inputs/outputs/differentiable/calibration",
+        "../../iclr-results/07-review-completion/calibration-current-summary.json",
+        "../../iclr-results/07-review-completion/calibration-current"
       ],
       "rerun": "run_differentiable_experiments.py calibration --optimizer lbfgsb --starts 3; neural under separate seeds",
-      "pending": "Current-physics three-start bounded optimization and independent seasonal/year evaluation on Nautilus; no convergence or held-out gain is claimed before results are available."
+      "pending": "Five-sol daily-mean forecasts with whole-year held-out testing and annual reference evaluation. Material improvement is not established by the two-hour pilot."
     },
     {
       "result": "Seasonal reference table/maps including Ls225",

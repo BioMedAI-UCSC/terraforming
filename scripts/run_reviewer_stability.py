@@ -25,6 +25,7 @@ from src.framework.physics import gcm as physics
 from src.celestials.planets.mars import MARS_BODY_3D as BODY
 from src.celestials.planets.mars.gcm import co2_forcing, radiative_forcing
 from src.celestials.planets.mars.maps import initial_rest_state, resolve_scale
+from src.celestials.planets.mars.maps import save_comparison_netcdf
 from src.celestials.planets.mars.topography import regrid_to_nodal, mola_modal_orography
 from run_gcm3d_ablation import _checkpoint_diagnostics, _ames_dust_climatology
 from neural_temp_data import write_json
@@ -50,9 +51,13 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--dt", type=float, default=300.)
     parser.add_argument("--years", type=float, default=1.)
+    parser.add_argument("--ls", type=float, default=0., help="Initial solar longitude in degrees")
+    parser.add_argument("--atmospheric-condensation", action=argparse.BooleanOptionalAction, default=True)
     parser.add_argument("--require-gpu", action="store_true")
     parser.add_argument("--resume", action="store_true")
     args = parser.parse_args()
+    if not np.isfinite(args.ls):
+        parser.error("Initial solar longitude must be finite")
     jax.config.update("jax_enable_x64", True)
     if args.require_gpu and jax.default_backend() != "gpu":
         raise RuntimeError("GPU required; refusing CPU fallback")
@@ -69,7 +74,7 @@ def main():
     if tau == "auto":
         tau = .1 * BODY.solar_day_seconds * 42 / int(cfg["truncation"][1:])
     forcing = radiative_forcing(diurnal=args.case == "timestep", co2_radiation_enabled=args.case == "timestep")
-    forcing = dataclasses.replace(forcing, init_orbital_angle_rad=physics.mean_anomaly_for_ls(0., forcing))
+    forcing = dataclasses.replace(forcing, init_orbital_angle_rad=physics.mean_anomaly_for_ls(np.radians(args.ls % 360.), forcing))
     if args.case == "timestep":
         from src.celestials.planets.mars.maps import forcing_with_surface_properties
         forcing = forcing_with_surface_properties(forcing, grid, args.inputs / "surface.nc")
@@ -83,7 +88,7 @@ def main():
     initial = physics.initial_column_state(dataclasses.replace(
         initial_rest_state(coords, specs, BODY, elevation), sim_time=0.),
         coords, BODY.reference_temperature_k, specs, forcing=forcing)
-    cf = co2_forcing()
+    cf = dataclasses.replace(co2_forcing(), atmospheric_condensation=args.atmospheric_condensation)
     equation = physics.forced_co2_primitive_equations(coords, BODY, forcing, cf, specs=specs, orography=orography)
     raw = stepper(equation, cfg["dt_seconds"], specs, coords=coords, hyperdiffusion_tau_seconds=tau)
     advance = physics.positivity_preserving_co2_step(raw, coords, specs, body=BODY,
@@ -193,6 +198,7 @@ def main():
         print(json.dumps(dict(case=args.case, completed=completed, total=cfg["n_steps"],
             min_air_k=rows[-1]["min_air_temperature_k"], max_wind_ms=rows[-1]["max_wind_speed_ms"],
             vorticity_tail=rows[-1]["vorticity_high_degree_fraction"])), flush=True)
+    save_comparison_netcdf(state, coords, specs, BODY, forcing, args.output / "final.nc")
     (args.output / "report.json").write_text(json.dumps(dict(status="finite_complete", steps=completed,
         seconds=completed*cfg["dt_seconds"], max_raw_step_mass_error_kg=budget_maxima[0],
         max_post_projection_relative_co2_drift=budget_maxima[1], max_projection_exchange_energy_change_j=budget_maxima[2],
