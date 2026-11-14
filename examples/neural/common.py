@@ -73,12 +73,22 @@ def write_report(out, report, title):
 def provenance(args):
     import platform
     import subprocess
+    cpu_model = platform.processor()
+    if cpu_model.lower() in ("", "arm", "arm64", "x86_64", "amd64", "i386"):
+        cpu_model = None
+    if platform.system() == "Darwin":
+        try:
+            cpu_model = subprocess.check_output(
+                ["sysctl", "-n", "machdep.cpu.brand_string"], text=True,
+                stderr=subprocess.DEVNULL, timeout=5).strip()
+        except (OSError, subprocess.SubprocessError):
+            pass
+    root = Path(__file__).resolve().parents[2]
     try:
-        revision = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
-        dirty = bool(subprocess.check_output(["git", "status", "--porcelain"], text=True).strip())
+        revision = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()
+        dirty = bool(subprocess.check_output(["git", "status", "--porcelain"], cwd=root, text=True).strip())
     except (OSError, subprocess.CalledProcessError):
         revision, dirty = "unknown", None
-    root = Path(__file__).resolve().parents[2]
     sources = [*Path(__file__).parent.glob("*.py"),
                *(root / "package/src/framework/neural").glob("*.py"),
                root / "package/src/framework/physics/gcm.py",
@@ -86,6 +96,10 @@ def provenance(args):
     return {"arguments": vars(args), "python": platform.python_version(), "jax": jax.__version__,
             "numpy": np.__version__,
             "devices": [str(d) for d in jax.devices()], "x64": bool(jax.config.jax_enable_x64),
+            "hardware": {"cpu_model": cpu_model, "machine": platform.machine(),
+                         "cpu_model_status": "identified" if cpu_model else "unavailable",
+                         "devices": [{"platform": d.platform, "kind": d.device_kind}
+                                     for d in jax.devices()]},
             "git_revision": revision, "working_tree_dirty": dirty,
             "source_sha256": {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest() for p in sources},
             "reference": "generated using the framework radiation kernel", "seed": args.seed}
