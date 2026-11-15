@@ -491,7 +491,8 @@
   "physics_sha256": {
     "prescribed_dust.py": "5679b18bb1acb891a0fca1fa45a685839bf84e44b29866c90941ba1e07912e64",
     "dust_control.py": "ac2f4138261f849eebcf4a62b649dacd2fb26d7991e8f08f9106e117ba8ee97d",
-    "dinosaur_physics.py": "bd9ecb5c52f5d1001993a8b14457dd87417a27b27bbbfc2bbd58e5edccfb8a10",
+    "dinosaur_physics.py": "ed2fb53f114c248fce88b3f8eeec03b6068de01efcf095f02511811c97576812",
+    "legacy_convection.py": "3b5502f055e45cfc2601809aeec5237142427d7b8356058bfc12ddcb89388df3",
     "correlated_k.py": "fde79069ec8e8742e6deafcf6077e0c376d48840b1b2bcbf9f6086cc6484629e",
     "terrain_drag.py": "6b0a6c769d9d40abed95d2e9aaa51b14abdb0f22cb5fd73f5811bcad2c863ead",
     "co2_microphysics.py": "47c2afbd543305404aa3e6b3accff481a35991277eab3acbd4bc3ec9526a9dd2",
@@ -516,7 +517,7 @@
     "scattering_transfer.py": "33ff375bdd4ba6b7b08eaaf861c821d569da2f9d113decdc257984d81f8f0229",
     "radiation_grid.py": "7c0cd095eb863e6ec612a79f90f9ad7c2d17a00584eb4d3d46f7aba0a56d424f",
     "boundary_layer.py": "f3b2c8085abbdd94a867aa29d7c767e8d3969b94c56e815dfb73d90f9b6da094",
-    "column_physics.py": "3713fb6fe3a0d3a3fcfff80af28c65d59f18df02f6195f9e790274acf0c746d6",
+    "column_physics.py": "63c9f3ccd1f1e746cdeaf1ac98d45c8bf0e6a9b9de5883a9829bed96eea4da03",
     "dust_coagulation.py": "a98647dc616fd2161c0214bbb15ca8de1d4877996c3fa6e2f4304c7fa009247b",
     "water_moments.py": "5388222985b4084fa172a2a02b5bd01aeae8050de192c4d9ab0b1e51a8b3741e",
     "particle_optics.py": "125ec57c6d71d99082eb31b98b64be357c3287c721e4b73b149311852138895f",

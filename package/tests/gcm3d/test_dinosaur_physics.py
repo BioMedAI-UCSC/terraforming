@@ -70,7 +70,8 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
                  radiation_component=None,wind_speed=0.,suspended_co2_clouds=False,
                  bulk_water=False,initial_water_surface_kg_m2=0.,moment_water=False,
                  dust_lifting_options=None,initial_water_vapor_ratio=1e-6,coagulation_options=None,
-                 dust_background_options=None,nonorographic_drag_options=None,effective_input_mode=0):
+                 dust_background_options=None,nonorographic_drag_options=None,effective_input_mode=0,
+                 convection_scheme='fv3'):
     from src.framework.gcm.coordinates import coordinate_system
     from src.framework.gcm.specs import physics_specs
     from src.framework.gcm._dinosaur import primitive_equations,scales
@@ -105,7 +106,8 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
         suspended_co2_clouds=suspended_co2_clouds,bulk_water=bulk_water,moment_water=moment_water,
         moment_cloud_options=dict(latent_heat=True,microtimestep=1.,effective_input_mode=effective_input_mode),
         dust_lifting_options=dust_lifting_options,dust_optical_bands=15,coagulation_options=coagulation_options,
-        dust_background_options=dust_background_options,nonorographic_drag_options=nonorographic_drag_options)
+        dust_background_options=dust_background_options,nonorographic_drag_options=nonorographic_drag_options,
+        convection_scheme=convection_scheme)
     return state,step,grid
 
 
@@ -179,6 +181,32 @@ def test_passive_transport_keeps_material_through_dynamics_and_column_physics():
             report=stage['passive']
             assert report['valid']
             np.testing.assert_allclose(report['corrected_inventory_kg'],report['target_inventory_kg'],rtol=3e-14)
+
+
+@pytest.mark.parametrize('scheme',['none','legacy'])
+def test_convection_source_switch_runs_globally_and_restarts(tmp_path,scheme):
+    from src.framework.gcm.restart import save_restart,load_restart
+    state,step,grid=backend_case(temperature_k=200.,surface_temperature_k=220.,wind_speed=40.,
+        convection_scheme=scheme)
+    shape=(4,*grid.nodal_shape)
+    variation=state.dynamics.temperature_variation+grid.to_modal(jnp.broadcast_to(
+        jnp.array([0.,30.,100.,160.])[:,None,None],shape))
+    state=state._replace(dynamics=dataclasses.replace(state.dynamics,temperature_variation=variation))
+    tick=jax.jit(step);first=tick(state)
+    assert all(np.isfinite(x).all() for x in jax.tree.leaves(first))
+    restored=load_restart(save_restart(first,tmp_path/'convection.npz'))
+    for a,b in zip(jax.tree.leaves(tick(first)),jax.tree.leaves(tick(restored)),strict=True):
+        np.testing.assert_array_equal(a,b)
+    if scheme=='legacy':
+        def objective(offset):
+            initial=state._replace(surface_temperature=state.surface_temperature+offset)
+            final,_=jax.lax.scan(lambda s,_:(step(s),None),initial,None,length=3)
+            return jnp.mean(final.surface_temperature)+jnp.mean(final.dynamics.temperature_variation)
+        auto=jax.jit(jax.grad(objective))(0.);forward=jax.jit(objective)
+        assert np.isfinite(auto) and abs(float(auto))>1e-6
+        for epsilon in (1e-3,1e-4):
+            fd=(forward(epsilon)-forward(-epsilon))/(2.*epsilon)
+            np.testing.assert_allclose(auto,fd,rtol=3e-5,atol=1e-7)
 
 
 def test_reference_cloud_backend_forms_suspended_ice_and_closes_raw_mass():

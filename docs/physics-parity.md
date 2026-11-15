@@ -15,6 +15,7 @@ No complete-model equivalence or speed claim has passed yet.
 | Process | Implementation | Native comparison | Coupled status |
 | --- | --- | --- | --- |
 | Dry convection | `dry_convection.pass2` | Compiled original `pass2`; four 40-layer cases with 2,048 columns, temperature errors below 2e-13 K | `adjust_state` and `build_step` support Dinosaur; explicit reference backend selection is available in the map runner |
+| Legacy dry convection | `legacy_convection.adjust` | Unchanged `legacy_convect` and `potemp1`; 40 strict full-field cases and 8 neutral temperature/wind cases | Optional `convection_scheme="legacy"`; default `"fv3"` retains pass2 and `"none"` disables adjustment. Column budgets, global restart continuation and a three-step gradient pass. Exact neutral nonuniform tracer mixing has a floating-point branch limit |
 | PBL surface exchange | `boundary_layer.surface_exchange` | Compiled original `bndcond`, stable/unstable/zero-wind cases | Used by the new column driver |
 | PBL turbulent mixing | `boundary_layer.eddy_coefficients` | Compiled original `eddycoef`, 4/12/40 layers | Used by the new column driver |
 | PBL gas-column driver | `boundary_layer.column_step` | Compiled original `pbl_driver`, `newpbl`, matrix, scaling and solve routines; temperature errors below 1e-13 K | Connected to the soil/frost column and experimental Dinosaur adapter; tracer categories remain pending |
@@ -184,6 +185,17 @@ The convection sweep mixes heat, winds and tracers. It makes one bottom-to-top
 pass, as the reference does. It does not replace this pass with a global neutral
 column projection. Its JAX scan carries only the adjacent changing layer.
 
+The optional legacy sweep runs from top to bottom and retains the source's
+inner-loop continuation above stable pairs. Its returned winds are unchanged,
+despite the source momentum-mixing flag. Unreturned top-ghost/interfacial
+diagnostics are omitted; they do not affect the returned full-level fields.
+At exact neutral potential temperature, native `pow` and XLA power roundoff
+can select different tracer-mixing branches. Eight neutral cases record tracer
+differences explicitly; they have strict temperature/wind gates only. Forty
+other cases retain strict gates for every field, including both sides at
+1e-8 K potential-temperature offsets. Column diagnostics report enthalpy,
+kinetic energy, momentum and species-integral changes for all three switches.
+
 The PBL port retains the reference's fixed exponent 0.25684, 150 m asymptotic
 mixing length, diffusivity minimum 0.001 m2/s, stability functions, implicit solve,
 ice roughness and hard-coded disabled internal water sublimation. The outer Ames
@@ -328,8 +340,7 @@ The release interface audit checks pinned `compile.bash`, `mars_physics.F90`
 and `null_physics_mod.F90`, then runs the actual release preprocessor. Each of
 the five audited placeholder routines calls only `error_mesg(..., FATAL)`.
 This result does not supply bin-cloud or chemistry equations. The public
-release's real moment/bulk modules are checked separately. Optional legacy
-dry convection, AM4 moist adjustment and alternate diffusion/radiation
+release's real moment/bulk modules are checked separately. AM4 moist adjustment and alternate diffusion/radiation
 branches also need explicit coverage before claiming every source switch.
 
 ## Reproduce the native checks
@@ -343,6 +354,8 @@ The compiler uses double precision, as the Ames GNU build template does.
 ```sh
 env PYTHONPATH=package:. python scripts/validate_dry_convection.py \
   --ames-source /path/to/AmesGCM --output outputs/physics-parity/convection.json
+env PYTHONPATH=package:. python scripts/validate_legacy_convection.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/legacy-convection.json
 env PYTHONPATH=package:. python scripts/validate_boundary_layer.py \
   --ames-source /path/to/AmesGCM --output outputs/physics-parity/pbl.json
 env PYTHONPATH=package:. python scripts/validate_correlated_k_tables.py \

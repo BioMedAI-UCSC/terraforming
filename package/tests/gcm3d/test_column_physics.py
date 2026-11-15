@@ -72,6 +72,23 @@ def test_coupled_column_rejects_invalid_surface_exchange_region():
         column_physics(**{**inputs(),'surface_exchange_start':4})
 
 
+def test_legacy_convection_switch_matches_standalone_fields_and_reports_budgets():
+    from src.framework.physics.legacy_convection import adjust
+    kwargs=inputs();full=kwargs['pressure_full']
+    kwargs['temperature']=jnp.array([260.,280.,320.,350.])*(full/610.)**BODY.kappa
+    kwargs['soil']=jnp.full(16,220.)
+    plain=column_physics(**kwargs,convection_scheme='none')
+    legacy=jax.jit(lambda:column_physics(**kwargs,convection_scheme='legacy'))()
+    expected=adjust(plain.temperature,plain.u,plain.v,plain.gas_tracers,
+        kwargs['pressure_half'],full,BODY.kappa,gravity=BODY.gravity_m_s2)
+    for actual,reference in zip((legacy.temperature,legacy.u,legacy.v,legacy.gas_tracers),expected,strict=True):
+        np.testing.assert_allclose(actual,reference,rtol=2e-13,atol=1e-13)
+    assert legacy.diagnostics['convection']['scheme_index']==2
+    np.testing.assert_allclose(legacy.diagnostics['convection']['enthalpy_change_j_m2'],0.,atol=1e-8)
+    with pytest.raises(ValueError,match='none, fv3 or legacy'):
+        column_physics(**kwargs,convection_scheme='unknown')
+
+
 def test_nonorographic_drag_uses_old_heights_after_terrain_before_convection(monkeypatch):
     import importlib
     module=importlib.import_module('src.framework.physics.column_physics')

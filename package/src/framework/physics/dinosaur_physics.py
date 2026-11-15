@@ -204,7 +204,8 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                terrain_drag_options=None,radiation_update_seconds=None,
                moment_water=False,moment_cloud_options=None,moment_sedimentation=True,
                dust_lifting_options=None,dust_optical_bands=12,dust_opacity_channel=1,
-               coagulation_options=None,dust_background_options=None,nonorographic_drag_options=None):
+               coagulation_options=None,dust_background_options=None,nonorographic_drag_options=None,
+               convection_scheme='fv3'):
     """Dinosaur dynamics followed by Ames-order reference gas-column physics.
 
     Supply a verified radiation component and mapped soil diffusivity. Keeping
@@ -218,6 +219,8 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
     if bulk_water and moment_water:
         raise ValueError('bulk water and moment water cannot be enabled together')
     water_cycle=bulk_water or moment_water
+    if convection_scheme not in ('none','fv3','legacy'):
+        raise ValueError('convection scheme must be none, fv3 or legacy')
     previous_effective=(moment_cloud_options or {}).get('effective_input_mode',0)==1
     if previous_effective and not moment_water:
         raise ValueError('previous effective cloud state requires moment-water tracers')
@@ -457,7 +460,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             surface_dust_kg_m2=None if not moment_water else predicted.auxiliary_fields['dust_surface_kg_m2'][0],
             coagulation_options=coagulation_options,dust_background_options=background_options,
             nonorographic_drag_options=nonorographic_drag_options,nonorographic_state=gravity_wave_state,
-            moment_history=moment_history)
+            moment_history=moment_history,convection_scheme=convection_scheme)
         columns={name:column.gas_tracers[...,i] for i,name in enumerate(gas_names)}
         if cloud_ratio is not None:
             columns[CO2_CLOUD_TRACER]=(column.suspended_co2_ice_ratio

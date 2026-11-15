@@ -19,6 +19,7 @@ from src.framework.physics.particle_sedimentation import sedimentation_step
 from src.framework.physics.dust_lifting import interactive_step as dust_lifting_step,background_step
 from src.framework.physics.dust_coagulation import coagulation_step
 from src.framework.physics.nonorographic_drag import driver_step as gravity_wave_step
+from src.framework.physics.legacy_convection import adjust as legacy_convection
 from src.framework.physics.water_surface import (surface_exchange as water_surface_exchange,
     optical_properties as water_optical_properties)
 
@@ -59,7 +60,8 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
                    moment_particles=None,moment_cloud_options=None,moment_sedimentation=True,
                    dust_lifting_options=None,dust_lifting_opacity=None,surface_dust_kg_m2=None,
                    coagulation_options=None,dust_background_options=None,
-                   nonorographic_drag_options=None,nonorographic_state=None,moment_history=None):
+                   nonorographic_drag_options=None,nonorographic_state=None,moment_history=None,
+                   convection_scheme='fv3'):
     """Rayleigh/PBL, soil/frost, CO2 deposition or suspended clouds, convection.
 
     This is the standard present-Mars gas-column process order. Tracers here
@@ -70,6 +72,8 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
     """
     if not isinstance(surface_exchange_start,int) or not 0<=surface_exchange_start<temperature.shape[0]:
         raise ValueError("surface mass exchange start must be a valid layer index")
+    if convection_scheme not in ('none','fv3','legacy'):
+        raise ValueError('convection scheme must be none, fv3 or legacy')
     initial_wind=(u,v)
     if moment_particles is None and (dust_lifting_options is not None or coagulation_options is not None or dust_background_options is not None):
         raise ValueError('dust lifting and coagulation require physical moment particles')
@@ -166,7 +170,19 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
     moment_start=gas_count+len(particles)
     if moment_particles is not None: particles.append(moment_particles)
     if particles: r=jnp.concatenate([r,*particles],axis=-1)
-    t,u,v,r=pass2(t,u,v,r,pressure_half,pressure_full,body.kappa)
+    before_convection=(t,u,v,r)
+    if convection_scheme=='fv3':
+        t,u,v,r=pass2(t,u,v,r,pressure_half,pressure_full,body.kappa)
+    elif convection_scheme=='legacy':
+        t,u,v,r=legacy_convection(t,u,v,r,pressure_half,pressure_full,body.kappa,gravity=body.gravity_m_s2)
+    carrier=jnp.diff(pressure_half,axis=0)/body.gravity_m_s2
+    t_old,u_old,v_old,r_old=before_convection
+    convection=dict(scheme_index=('none','fv3','legacy').index(convection_scheme),
+        enthalpy_change_j_m2=jnp.sum(carrier*body.cp_j_kg_k*(t-t_old),axis=0),
+        kinetic_energy_change_j_m2=.5*jnp.sum(carrier*(u*u+v*v-u_old*u_old-v_old*v_old),axis=0),
+        u_momentum_change_kg_m_s=jnp.sum(carrier*(u-u_old),axis=0),
+        v_momentum_change_kg_m_s=jnp.sum(carrier*(v-v_old),axis=0),
+        tracer_column_change=jnp.sum(carrier[...,None]*(r-r_old),axis=0))
     average=.5*(pbl['heat_diffusivity_m2_s']+pbl['momentum_diffusivity_m2_s'])
     connected=jnp.cumprod((average[::-1]>.01).astype(int),axis=0)
     pbl_top=temperature.shape[0]-1-jnp.sum(connected,axis=0)
@@ -298,6 +314,7 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
         bulk_water=water_diagnostics,
         terrain_drag={} if terrain is None else dict(terrain._asdict()),
         nonorographic_drag={} if nonorographic is None else nonorographic.diagnostics,
+        convection=convection,
         rayleigh=dict(u_tendency_m_s2=du,v_tendency_m_s2=dv,dissipated_heat_k=drag_heat,
             reheating_enabled=conserve_drag_energy))
     return ColumnResult(t,u,v,r,ground,snow+precip,mass,diagnostics,suspended,bulk_water,
