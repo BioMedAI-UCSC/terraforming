@@ -2,7 +2,7 @@
 name = "terraforming-cli"
 version = "0.1.0"
 description = "tform — interactive CLI for Mars climate simulation"
-readme = "README.md"
+readme = {text = "Command line and web interface for Mars climate and aerosol screening experiments.", content-type = "text/plain"}
 requires-python = ">=3.12"
 dependencies = [
     "click>=8.1",
@@ -23,9 +23,9 @@ terraforming = { workspace = true }
 requires = ["setuptools>=64"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools.packages.find]
-where = [".."]
-include = ["cli"]
+[tool.setuptools]
+packages = ["cli"]
+package-dir = {cli = "."}
 
 [tool.setuptools.package-data]
-cli = ["configs/*.yaml", "configs/*.json"]
+cli = ["configs/*.yaml", "configs/*.json", "static/*.html", "static/assets/*"]

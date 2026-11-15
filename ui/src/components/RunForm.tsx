@@ -18,20 +18,35 @@ export function RunForm({ onSubmit, benchmarkMode }: Props) {
   const [dustLwScale, setDustLwScale] = useState(0.25)
   const [surfaceExchange, setSurfaceExchange] = useState(1)
   const [running, setRunning] = useState(false)
+  const [aerosols, setAerosols] = useState(false)
+  const [paired, setPaired] = useState(false)
+  const [aerosolMode, setAerosolMode] = useState<'off'|'passive'|'active'>('passive')
+  const [material, setMaterial] = useState<'aluminium'|'iron'>('aluminium')
+  const [releaseRate, setReleaseRate] = useState(2)
+  const [releaseStop, setReleaseStop] = useState(1)
+  const [resumeId, setResumeId] = useState('')
+  const [initialClimate, setInitialClimate] = useState('')
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     setRunning(true)
     try {
       await onSubmit({
-        exp_type: 'sol', accuracy: 'gcm', preset: 'current-mars', sols, scale,
-        label: label.trim() || `DMGCM ${sols} sol ${scale}`,
+        exp_type: aerosols ? 'intervention' : 'sol', accuracy: 'gcm', preset: 'current-mars', sols, scale,
+        label: label.trim() || (aerosols ? `${material} ${paired ? 'paired' : aerosolMode} ${sols} sol` : `DMGCM ${sols} sol ${scale}`),
         ls: Number(ls) || 0, diurnal,
-        compare_mcd: benchmarkMode,
+        compare_mcd: benchmarkMode && !aerosols,
         mcd_local_time: mcdLocalTime.trim() ? Number(mcdLocalTime) : null,
         mcd_dust: mcdDust,
         co2_lw_scale: co2LwScale, dust_lw_scale: dustLwScale,
         surface_exchange_multiplier: surfaceExchange,
+        aerosol: aerosols ? {
+          material, paired, initial_climate:initialClimate.trim() || null,
+          mode: aerosolMode, duration_s: sols*88775.244, dt_s:60,
+          n_layers:12, truncation:'T21',
+          sources:[{start_s:0,stop_s:releaseStop*88775.244,rate:releaseRate,unit:'L/s'}],
+        } : null,
+        aerosol_resume_run_id: aerosols && resumeId.trim() ? resumeId.trim() : null,
       })
     } finally { setRunning(false) }
   }
@@ -43,7 +58,32 @@ export function RunForm({ onSubmit, benchmarkMode }: Props) {
            placeholder="MY24 baseline" />
 
     <label style={s.label}>Type</label>
-    <div style={s.readonly}>Sol</div>
+    <label style={s.check}><input type="checkbox" checked={aerosols}
+      onChange={e => {setAerosols(e.target.checked); if(e.target.checked){setCo2LwScale(1);setDustLwScale(1)}}} /> Engineered aerosol experiment</label>
+    {aerosols && <>
+      <div style={s.hint}>Screening run: flat terrain, surface emissivity 1. Climate and particle lifetimes are not yet validated.</div>
+      <label style={s.label}>Particle</label>
+      <select style={s.input} value={material} onChange={e=>setMaterial(e.target.value as typeof material)}>
+        <option value="aluminium">Aluminium rods · 9 µm</option><option value="iron">Iron rods · 9 µm</option>
+      </select>
+      <label style={s.label}>Particle effect</label>
+      <label style={s.check}><input type="checkbox" checked={paired} onChange={e=>setPaired(e.target.checked)} /> Run matched control, transport and radiation cases</label>
+      <select style={s.input} disabled={paired} value={aerosolMode} onChange={e=>setAerosolMode(e.target.value as typeof aerosolMode)}>
+        <option value="off">Control · no release</option><option value="passive">Transport only</option>
+        <option value="active">Transport and radiation</option>
+      </select>
+      {paired && <div style={s.hint}>Runs all three cases from the same climate. Takes about three times as much work. Resume saves all cases and annual comparisons together.</div>}
+      <label style={s.label}>Release rate (solid litres/second)</label>
+      <input style={s.input} type="number" min="0" step="any" value={releaseRate} onChange={e=>setReleaseRate(Number(e.target.value))}/>
+      <label style={s.label}>Stop release after (sols)</label>
+      <input style={s.input} type="number" min="0.0001" step="any" value={releaseStop} onChange={e=>setReleaseStop(Number(e.target.value))}/>
+      <label style={s.label}>Resume run ID (optional; keep the same settings)</label>
+      <input style={s.input} value={resumeId} onChange={e=>setResumeId(e.target.value)}/>
+      <label style={s.label}>Physical climate checkpoint (optional server path)</label>
+      <input style={s.input} value={initialClimate} onChange={e=>setInitialClimate(e.target.value)}/>
+      <div style={s.hint}>A climate checkpoint starts a new release schedule and preserves the season. Resume restores the earlier experiment, including particles and comparisons.</div>
+      <div style={s.hint}>T21 · 12 levels · 60-second steps. Extend the duration beyond the saved run to resume.</div>
+    </>}
 
     <label style={s.label}>Duration</label>
     <div style={s.row}>
@@ -55,13 +95,13 @@ export function RunForm({ onSubmit, benchmarkMode }: Props) {
     <input style={s.input} type="number" min="0.01" step="any" value={sols}
            onChange={e => setSols(Math.max(.01, Number(e.target.value)))} />
 
-    <label style={s.label}>GCM resolution</label>
+    {!aerosols && <><label style={s.label}>GCM resolution</label>
     <select style={s.input} value={scale} onChange={e => setScale(e.target.value)}>
       <option value="fast">T42 · 12 levels</option>
       <option value="balanced">T85 · 20 levels</option>
       <option value="high">T106 · 30 levels</option>
       <option value="ultra">T170 · 40 levels</option>
-    </select>
+    </select></>}
 
     <label style={s.label}>Season (Ls °)</label>
     <input style={s.input} type="number" min="0" max="360" value={ls}

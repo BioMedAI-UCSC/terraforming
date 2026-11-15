@@ -10,7 +10,7 @@ These are the single source of truth for:
 from __future__ import annotations
 
 from enum import Enum
-from typing import Annotated, Any, Optional
+from typing import Annotated, Any, Optional, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -69,9 +69,62 @@ class ExperimentConfig(BaseModel):
     sols: _PosFloat  = 1.0
 
 
+class AerosolSourceConfig(BaseModel):
+    model_config = ConfigDict(extra='forbid',allow_inf_nan=False)
+    start_s: float = 0.
+    stop_s: float
+    rate: float = Field(ge=0)
+    unit: Literal['kg/s','L/s'] = 'kg/s'
+    sigma_min: float = 0.
+    sigma_max: float = 1.
+    latitude_min_deg: float = -90.
+    latitude_max_deg: float = 90.
+    longitude_min_deg: float = 0.
+    longitude_max_deg: float = 360.
+
+    @model_validator(mode='after')
+    def source_contract(self):
+        from src.interventions.aerosols import Injection
+        Injection(**self.model_dump())
+        return self
+
+
+class AerosolConfig(BaseModel):
+    model_config = ConfigDict(extra='forbid',allow_inf_nan=False)
+    material: Literal['aluminium','iron'] = 'aluminium'
+    paired: bool = False
+    initial_climate: str | None = None
+    mode: Literal['off','passive','active'] = 'passive'
+    duration_s: float = Field(default=88775.244,gt=0)
+    dt_s: float = Field(default=60.,gt=0,le=300)
+    n_layers: int = Field(default=12,ge=2,le=40)
+    truncation: Literal['T21','T42','T85'] = 'T21'
+    initial_burden_kg_m2: float = Field(default=0.,ge=0)
+    sources: list[AerosolSourceConfig] = Field(default_factory=list)
+    coagulation: bool = False
+    charge_e: float = 0.
+    collection_rate_s: float = Field(default=0.,ge=0)
+    collection_source: str | None = None
+
+    @model_validator(mode='after')
+    def supported_physics(self):
+        if (self.mode=='active' or self.paired) and self.coagulation:
+            raise ValueError('active aggregation requires unavailable aggregate optical tables')
+        if self.collection_rate_s and not self.collection_source:
+            raise ValueError('collection requires a source or named sensitivity assumption')
+        return self
+
+
 class InterventionConfig(BaseModel):
     n_years:            Annotated[int, Field(gt=0)]   = 50
     injection:          dict[str, float]              = {}
+    aerosol:            AerosolConfig | None          = None
+
+    @model_validator(mode='after')
+    def distinct_sources(self):
+        if self.aerosol is not None and self.injection:
+            raise ValueError('combined gas and aerosol experiments are not supported yet')
+        return self
 
 
 class OutputConfig(BaseModel):

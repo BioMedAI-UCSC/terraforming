@@ -32,6 +32,18 @@ export interface DataPoint {
   sol?: number
   mars_year?: number
   solar_flux?: number
+  injected_mass_kg?: number
+  suspended_mass_kg?: number
+  deposited_mass_kg?: number
+  collected_mass_kg?: number
+  material_budget_error_kg?: number
+  production_energy_j?: number | null
+  warming?: {
+    paired_time_mean_warming_k: number | null
+    completed_mars_years: number
+    complete_three_mars_years: boolean
+    sustained_thresholds_k: Record<string, boolean>
+  }
 }
 
 export interface RunConfig {
@@ -61,6 +73,19 @@ export interface RunConfig {
   co2_lw_scale?: number
   dust_lw_scale?: number
   surface_exchange_multiplier?: number
+  aerosol?: {
+    paired?: boolean
+    initial_climate?: string | null
+    material: 'aluminium' | 'iron'
+    mode: 'off' | 'passive' | 'active'
+    duration_s: number
+    dt_s: number
+    n_layers: number
+    truncation: 'T21' | 'T42' | 'T85'
+    initial_burden_kg_m2?: number
+    sources: {start_s: number; stop_s: number; rate: number; unit: 'kg/s' | 'L/s'}[]
+  } | null
+  aerosol_resume_run_id?: string | null
 }
 
 export interface RunSummary {
@@ -79,6 +104,7 @@ export interface RunSummary {
   completed_steps?: number
   total_steps?: number
   cancel_requested?: boolean
+  aerosol_report?: Partial<DataPoint>
 }
 
 export interface Run extends RunSummary {
