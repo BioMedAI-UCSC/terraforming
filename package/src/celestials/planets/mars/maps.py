@@ -354,6 +354,9 @@ def run_maps(
         options=dict(reference_options)
         initial_water=options.pop('initial_water_surface_kg_m2',0.)
         initial_vapor=options.pop('initial_water_vapor_ratio',0.)
+        initial_dust_mass=options.pop('initial_dust_mass_ratio',0.)
+        initial_dust_number=options.pop('initial_dust_number_per_kg',0.)
+        initial_dust_surface=options.pop('initial_dust_surface_kg_m2',30.)
         if 'return_diagnostics' in options:
             raise ValueError('map runner diagnostics use diagnostic_callback')
         if initial_state is None:
@@ -362,7 +365,10 @@ def run_maps(
                 temperature_k=t_ref_k or body.reference_temperature_k,
                 soil_layers=options.get('soil_layers',16),bulk_water=options.get('bulk_water',False),
                 radiation_update_seconds=options.get('radiation_update_seconds'),
-                initial_water_surface_kg_m2=initial_water,initial_water_vapor_ratio=initial_vapor)
+                initial_water_surface_kg_m2=initial_water,initial_water_vapor_ratio=initial_vapor,
+                moment_water=options.get('moment_water',False),
+                initial_dust_mass_ratio=initial_dust_mass,initial_dust_number_per_kg=initial_dust_number,
+                initial_dust_surface_kg_m2=initial_dust_surface)
         step=build_step(coords,specs,body,forcing,dt_seconds,orography=orography,
             radiation_component=radiation_component,
             hyperdiffusion_tau_seconds=hyperdiffusion_tau_seconds,**options)

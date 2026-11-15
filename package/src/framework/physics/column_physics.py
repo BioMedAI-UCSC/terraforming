@@ -14,6 +14,8 @@ from src.framework.physics.rayleigh_drag import rayleigh_tendencies
 from src.framework.physics.terrain_drag import tendencies as terrain_tendencies,hydrostatic_heights
 from src.framework.physics.co2_microphysics import cloud_step,phase_change,transport_concentration
 from src.framework.physics.water_bulk import cloud_step as water_cloud_step
+from src.framework.physics.water_moments import subcycled_cloud_step
+from src.framework.physics.particle_sedimentation import sedimentation_step
 from src.framework.physics.water_surface import (surface_exchange as water_surface_exchange,
     optical_properties as water_optical_properties)
 
@@ -37,6 +39,7 @@ class ColumnResult(NamedTuple):
     diagnostics: object
     suspended_co2_ice_ratio: object = None
     bulk_water: object = None
+    moment_particles: object = None
 
 
 def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
@@ -47,7 +50,8 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
                    conserve_drag_energy=False,suspended_co2_ice_ratio=None,
                    cloud_nuclei_per_kg=1.e5,bulk_water=None,
                    water_surface_options=None,water_cloud_options=None,form_bulk_clouds=True,
-                   water_radiative_options=None,terrain_drag_options=None):
+                   water_radiative_options=None,terrain_drag_options=None,
+                   moment_particles=None,moment_cloud_options=None,moment_sedimentation=True):
     """Rayleigh/PBL, soil/frost, CO2 deposition or suspended clouds, convection.
 
     This is the standard present-Mars gas-column process order. Tracers here
@@ -59,6 +63,15 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
     if not isinstance(surface_exchange_start,int) or not 0<=surface_exchange_start<temperature.shape[0]:
         raise ValueError("surface mass exchange start must be a valid layer index")
     initial_wind=(u,v)
+    initial_moments=None
+    if moment_particles is not None:
+        if bulk_water is None:
+            raise ValueError('moment particles require the water reservoir and vapor state')
+        if moment_particles.shape!=temperature.shape+(4,):
+            raise ValueError('moment particles must have four entries per atmospheric cell')
+        initial_moments=jnp.stack([moment_particles[...,0],moment_particles[...,1],
+            bulk_water.ice_ratio,moment_particles[...,2],moment_particles[...,3],
+            gas_tracers[...,bulk_water.vapor_index]],axis=-1)
     predicted=jnp.asarray(temperature)+jnp.asarray(radiative_heating_k_s)*dt_seconds
     water_exchange=None
     if bulk_water is not None:
@@ -125,6 +138,8 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
     particles=[]
     if cloud is not None: particles.append(cloud.ice_ratio[...,None])
     if bulk_water is not None: particles.append(jnp.asarray(bulk_water.ice_ratio)[...,None])
+    moment_start=gas_count+len(particles)
+    if moment_particles is not None: particles.append(moment_particles)
     if particles: r=jnp.concatenate([r,*particles],axis=-1)
     t,u,v,r=pass2(t,u,v,r,pressure_half,pressure_full,body.kappa)
     suspended=None
@@ -134,7 +149,25 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
     if bulk_water is not None:
         ice=r[...,gas_count+int(cloud is not None)]
         water_deposit=0.
-        if form_bulk_clouds:
+        if moment_particles is not None:
+            moment_particles=r[...,moment_start:moment_start+4]
+            moments=jnp.stack([moment_particles[...,0],moment_particles[...,1],ice,
+                moment_particles[...,2],moment_particles[...,3],r[...,bulk_water.vapor_index]],axis=-1)
+            moment_result=subcycled_cloud_step(temperature,t,pressure_full,initial_moments,moments,
+                dt_seconds,cp=body.cp_j_kg_k,
+                **({} if moment_cloud_options is None else moment_cloud_options))
+            moments=moments+dt_seconds*moment_result.tracer_tendency
+            t=t+dt_seconds*moment_result.temperature_tendency
+            if moment_sedimentation:
+                sediment=sedimentation_step(moments,pressure_half,pressure_full,t,ground[0],
+                    pbl['heat_diffusivity_m2_s'],dt_seconds,
+                    gas_constant=body.gas_constant_j_kg_k,gravity=body.gravity_m_s2)
+                moments=sediment.tracers
+                water_deposit=sediment.surface_deposit[...,5]
+            moment_particles=jnp.stack([moments[...,0],moments[...,1],moments[...,3],moments[...,4]],axis=-1)
+            ice=moments[...,2]
+            r=r.at[...,bulk_water.vapor_index].set(moments[...,5])
+        elif form_bulk_clouds:
             water_result=water_cloud_step(t,pressure_half,pressure_full,r[...,bulk_water.vapor_index],
                 ice,ground[0],pbl['heat_diffusivity_m2_s'],dt_seconds,
                 gas_constant=body.gas_constant_j_kg_k,gravity=body.gravity_m_s2,cp=body.cp_j_kg_k,
@@ -154,6 +187,11 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
         water_diagnostics=dict(surface=water_exchange.diagnostics,
             cloud={} if water_result is None else water_result.diagnostics,
             upward_surface_flux_kg_m2_s=water_exchange.upward_flux_kg_m2_s)
+        if moment_particles is not None:
+            water_diagnostics['moment_cloud']=dict(moment_result._asdict())
+            if moment_sedimentation:
+                water_diagnostics['particle_sedimentation']=dict(sediment.diagnostics,
+                    dust_deposit_kg_m2=sediment.surface_deposit[...,0])
     r=r[...,:gas_count]
     dp=jnp.diff(pressure_half,axis=0)
     selected=jnp.asarray(np.arange(temperature.shape[0])>=surface_exchange_start)
@@ -181,4 +219,4 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
         terrain_drag={} if terrain is None else dict(terrain._asdict()),
         rayleigh=dict(u_tendency_m_s2=du,v_tendency_m_s2=dv,dissipated_heat_k=drag_heat,
             reheating_enabled=conserve_drag_energy))
-    return ColumnResult(t,u,v,r,ground,snow+precip,mass,diagnostics,suspended,bulk_water)
+    return ColumnResult(t,u,v,r,ground,snow+precip,mass,diagnostics,suspended,bulk_water,moment_particles)

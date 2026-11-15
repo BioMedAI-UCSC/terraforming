@@ -68,7 +68,7 @@ def test_sigma_remap_carries_suspended_mass_momentum_and_energy():
 
 def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostics=False,
                  radiation_component=None,wind_speed=0.,suspended_co2_clouds=False,
-                 bulk_water=False,initial_water_surface_kg_m2=0.):
+                 bulk_water=False,initial_water_surface_kg_m2=0.,moment_water=False):
     from src.framework.gcm.coordinates import coordinate_system
     from src.framework.gcm.specs import physics_specs
     from src.framework.gcm._dinosaur import primitive_equations,scales
@@ -91,13 +91,15 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
         vor,div=spherical_harmonic.uv_nodal_to_vor_div_modal(grid,wind,jnp.zeros_like(wind))
         dyn=dataclasses.replace(dyn,vorticity=vor,divergence=div)
     state=initial_state(dyn,coords,specs,temperature_k=surface_temperature_k,bulk_water=bulk_water,
-        initial_water_surface_kg_m2=initial_water_surface_kg_m2,initial_water_vapor_ratio=1e-6)
+        initial_water_surface_kg_m2=initial_water_surface_kg_m2,initial_water_vapor_ratio=1e-6,
+        moment_water=moment_water,initial_dust_mass_ratio=1e-5,initial_dust_number_per_kg=1e8)
     forcing=(radiative_forcing(co2_radiation_enabled=True) if radiation_component is None else
         reference_radiative_forcing())
     radiation=two_stream_radiative_fluxes if radiation_component is None else radiation_component
     step=build_step(coords,specs,BODY,forcing,5.,radiation_component=radiation,
         soil_diffusivity=(250./(1500.*627.9))**2,return_diagnostics=return_diagnostics,
-        suspended_co2_clouds=suspended_co2_clouds,bulk_water=bulk_water)
+        suspended_co2_clouds=suspended_co2_clouds,bulk_water=bulk_water,moment_water=moment_water,
+        moment_cloud_options=dict(latent_heat=True,microtimestep=1.))
     return state,step,grid
 
 
@@ -221,6 +223,68 @@ def test_bulk_water_backend_multistep_reverse_derivative():
     for eps in (1e-2,1e-3):
         finite=(forward(eps)-forward(-eps))/(2.*eps)
         np.testing.assert_allclose(auto,finite,rtol=3e-5,atol=1e-7)
+
+
+def test_moment_water_cloud_feedback_material_and_restart(tmp_path):
+    from src.framework.physics.water_bulk import WATER_CLOUD_TRACER,WATER_VAPOR_TRACER
+    from src.framework.physics.particle_optics import make_particle_provider
+    from src.framework.physics.radiative_transfer import make_radiation_component
+    from src.framework.gcm.restart import save_restart,load_restart
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.framework.gcm.specs import physics_specs
+    radiation=make_radiation_component(make_particle_provider(bands=15,
+        dust_tracers=(('dust_mass','dust_number'),),
+        water_moment_tracers=(WATER_CLOUD_TRACER,'water_core_mass','water_ice_number')),
+        radiation_mode='extended',water_vapor_tracer=WATER_VAPOR_TRACER)
+    state,step,grid=backend_case(temperature_k=170.,surface_temperature_k=180.,
+        moment_water=True,return_diagnostics=True,radiation_component=radiation)
+    tick=jax.jit(step);first,d=tick(state)
+    assert all(np.isfinite(x).all() for x in jax.tree.leaves(first))
+    assert float(jnp.max(grid.to_nodal(first.dynamics.tracers[WATER_CLOUD_TRACER])))>0.
+    np.testing.assert_allclose(d.raw_water_mass_kg,d.target_water_mass_kg,rtol=3e-11)
+    np.testing.assert_allclose(d.corrected_water_mass_kg,d.target_water_mass_kg,rtol=3e-11)
+    coords=coordinate_system('T21',4);specs=physics_specs(BODY)
+    def material(s,names):
+        from src.framework.gcm._dinosaur import scales
+        scale=float(specs.dimensionalize(1.,scales.units.pascal).magnitude)
+        ps=jnp.exp(grid.to_nodal(s.dynamics.log_surface_pressure))*scale
+        q=sum(grid.to_nodal(s.dynamics.tracers[name]) for name in names)
+        ds=jnp.asarray(np.diff(coords.vertical.boundaries),dtype=jnp.float64)[:,None,None]
+        air=jnp.sum(ps*ds*q*grid.quadrature_weights)
+        surface=jnp.sum(s.auxiliary_fields['dust_surface_kg_m2']*grid.quadrature_weights)*BODY.gravity_m_s2
+        return air+surface
+    names=('dust_mass','water_core_mass')
+    np.testing.assert_allclose(material(first,names),material(state,names),rtol=3e-11)
+    assert float(jnp.max(first.auxiliary_fields['dust_surface_kg_m2']-
+        state.auxiliary_fields['dust_surface_kg_m2']))>0.
+    restored=load_restart(save_restart(first,tmp_path/'moment-feedback.npz'))
+    continued,_=tick(first);restarted,_=tick(restored)
+    for a,b in zip(jax.tree.leaves(continued),jax.tree.leaves(restarted),strict=True):
+        np.testing.assert_array_equal(a,b)
+
+
+def test_moment_cloud_multistep_reverse_derivative():
+    from src.framework.physics.water_bulk import WATER_CLOUD_TRACER,WATER_VAPOR_TRACER
+    from src.framework.physics.particle_optics import make_particle_provider
+    from src.framework.physics.radiative_transfer import make_radiation_component
+    radiation=make_radiation_component(make_particle_provider(bands=15,
+        dust_tracers=(('dust_mass','dust_number'),),
+        water_moment_tracers=(WATER_CLOUD_TRACER,'water_core_mass','water_ice_number')),
+        radiation_mode='extended',water_vapor_tracer=WATER_VAPOR_TRACER)
+    state,step,grid=backend_case(temperature_k=170.,surface_temperature_k=180.,
+        moment_water=True,radiation_component=radiation)
+    def objective(amplitude):
+        dyn=dataclasses.replace(state.dynamics,tracers={**state.dynamics.tracers,
+            'dust_mass':state.dynamics.tracers['dust_mass']*amplitude,
+            'dust_number':state.dynamics.tracers['dust_number']*amplitude})
+        final,_=jax.lax.scan(lambda s,_:(step(s),None),state._replace(dynamics=dyn),None,length=3)
+        return jnp.mean(final.surface_temperature)+jnp.mean(
+            grid.to_nodal(final.dynamics.tracers[WATER_CLOUD_TRACER]))*1e6
+    auto=jax.jit(jax.grad(objective))(1.)
+    assert np.isfinite(auto) and abs(float(auto))>1e-8
+    forward=jax.jit(objective);eps=1e-4
+    finite=(forward(1.+eps)-forward(1.-eps))/(2.*eps)
+    np.testing.assert_allclose(auto,finite,rtol=3e-5,atol=1e-7)
 
 
 def test_surface_drag_transfers_axial_momentum_to_ground_and_reports_projection():

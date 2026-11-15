@@ -38,6 +38,8 @@ No complete-model equivalence or speed claim has passed yet.
 | Collision-induced absorption | `collision_absorption` | Original `optci15` and `kinter`; 81 cases at 610 Pa, 500 mbar and 10 bar | CO2/CO2 and CO2/H2 infrared continuum is connected, including the source temperature clamp before density/path calculation and zero ghost-layer absorption |
 | Prescribed dust | `prescribed_dust`, `dust_scenario` | Original `dust_distrib_fixed2`, `dust_distrib_pulse2`, `season_table` and `ini_optdst`; 144 profile cases, fixed-size optics, 10 FMS map comparisons | Both Conrath formulas, tracer-height/profile modes, fractional/elevated pulses, reference-pressure scaling and size optics are connected to the radiation callback. All six pinned scenario files load; map sampling follows FMS bilinear weights on T21/T42/T85/T170, including polar rows and the seam |
 | Bulk water cloud kernels | `water_bulk` | Original `blkh2o_driver`, `findq`, `sedimh2o` and `fallvel`; 24 roots and 36 columns | Phase change, precipitation threshold, settling and rain/snow accounting are implemented. The original root iteration is checked separately; three Newton corrections remove its stopping noise. Surface exchange, lagged PBL exchange history, cloud optical feedback and global water inventory checks are connected |
+| Moment water nucleation/growth | `water_moments` | Original `nuclea`, `growthrate2`, `fshape2`, `scrit_tdep`, `nucleacond`; 175 kinetic, coupled and native-substep cases | One or two physical dust modes are checked in the kernel. The one-mode Dinosaur path connects surface exchange, convection, subcycling, latent heat and coated-cloud optics. Material, restarts and a three-step reverse derivative are checked |
+| Dust/cloud moment settling | `particle_sedimentation` | Original `init_sedim`, `sedim`, `fallvel`, `dtridgl`; 432 columns with 2/4/12/40 levels, 610 Pa or 500 mbar, explicit/implicit transport and core scavenging on/off | Reuses the checked continuity solver. Dust and core enter the surface dust reservoir; ice enters surface water. Particle-number loss and the source lifting-override budget imbalance are exposed |
 | Radiation holding/stratosphere | `dinosaur_physics`, `radiative_transfer` | Source first-call/modulo-day schedule, cold/warm native stratosphere fluxes and two focused schedule/gradient tests | Optional `radiation_update_seconds` requires matching initial cache fields. K/s rates stay fixed when pressure changes. Stratosphere temperature and held radiation survive restarts |
 | Surface water exchange | `water_surface` | Original `update_water`, `update_water_fv3`, `update_water_blk`; 216 cases | Bulk/bin/moment surface kernels, liquid saturation and latent diagnostics are checked. Bulk mode is connected before PBL using saved exchange coefficients; cloud formation is a separate switch |
 | Surface water optics | `water_surface.optical_properties` | Original `albedo_calc`; 120 threshold/temperature/snow cases | Radiation uses old water; soil uses water after surface exchange. Bare map values are restored when frost falls below the threshold |
@@ -47,6 +49,29 @@ No complete-model equivalence or speed claim has passed yet.
 | Water state/restarts | `dinosaur_physics`, restart format 4 | Independent global water inventories, full cloud-feedback restart and three-step reverse derivatives | Surface water and lagged PBL state persist across restarts. Versions 2 and 3 remain readable; trace-water thermodynamics follows the source approximation |
 | Coupled gas column | `column_physics.column_physics` | Original Rayleigh, PBL, surface, CO2 and convection routines in reference order; 24 clear/winter/thaw/convective cases at 4/12/40 layers, with immediate deposition or suspended clouds; temperature errors below 2e-13 K | Radiation heating and downward surface flux are prescribed inputs |
 | Dinosaur adaptation | `dinosaur_physics.build_step` and `remap_gas` | Cold global smoke, gas inventory, remap energy/momentum/passive material checks, and three-step reverse derivatives checked against finite differences | Ground impulse is recorded; raw/corrected angular momentum and exchange-energy ledgers expose numerical repair changes; whole-model validation remains pending |
+
+The optional `moment_water=True` path uses six physical moments: dust mass and
+number, cloud ice mass and number, embedded dust mass, and water vapor mass.
+The four particle tracers bypass gas-only PBL mixing. Convection mixes all six.
+Cloud formation follows the source `subeffmode=0` order. Other physics adds its
+positive tracer changes across the microsteps; negative changes act at once.
+The default `microtimestep=-1` gives one step, as in the source. Set
+`moment_cloud_options={"microtimestep": 60., "latent_heat": True}` to enable
+subcycling and latent heating. Moment settling follows cloud formation;
+`moment_sedimentation=False` disables it. Dust surface mass starts at the source
+30 kg/m2 default and persists in restarts.
+
+The moment kernel retains the source's second weighting of multiple dust modes,
+its small-core particle-count history, and its distinct 2.8343 and 2.8 MJ/kg
+latent constants. Empty bins get zero weight and dry vapor uses the direct
+saturation pressure. These finite limits replace source divisions by zero.
+The embryo geometry uses equivalent factored terms to avoid cancellation.
+Its native check uses unchanged binary128 routines and also records original
+FP64 errors. Contact case 1 can activate below saturation and produce NaNs;
+those cases are recorded as source undefined, with matching classifications.
+The shared saturation root removes the native 1e-8 stopping noise and uses an
+implicit derivative. Coupled native checks record a separate bound for that
+change. No matched-climate claim follows from these short tests.
 
 The convection sweep mixes heat, winds and tracers. It makes one bottom-to-top
 pass, as the reference does. It does not replace this pass with a global neutral
@@ -168,11 +193,11 @@ claimed only where the original lookup is defined.
 | --- | --- |
 | Global budgets | Momentum exchange and repair-stage ledgers are connected. Extend the energy audit across dissipation, fixed-deep-soil exchange, phase approximations and long global runs; select gas and particle tracers explicitly. |
 | Radiation schedule | Optional integer-second source schedule now holds heating in K/s and surface fluxes, carries the 170 K initial stratosphere and its source update, and persists caches in restarts. Match the configured interval and callback averaging window in whole-model comparisons. |
-| Dust and cloud opacity | Size-dependent dust and all three cloud optical kernels are implemented. CO2 optical feedback is connected; prescribed dust scenarios now pass map/profile/optics checks and a three-step global gradient check. Interactive dust and moment-water drivers still need integration and matched climatology. |
+| Dust and cloud opacity | Size-dependent dust and all three cloud optical kernels are implemented. CO2 optical feedback is connected; prescribed dust and moment-water cloud paths pass three-step global gradient checks. Interactive dust lifting/coagulation and matched climatology remain. |
 | Soil and frost | Mapped TES/GRS inputs and default case-7 profiles are implemented and checked. Compare diurnal/seasonal response in global runs; modern and legacy material profiles now pass native checks. |
 | CO2 modes | Immediate deposition and optional bulk suspended-cloud phase/settling match native routines and coupled columns. Cloud optical feedback passes a three-step gradient check. Full two-way exchange auditing and long global validation remain pending. The older conservative finite-settling scheme remains a separate model. |
 | Interactive dust | Lifting, advection, sedimentation, surface reservoirs, coagulation and material budgets. |
-| Water | Bulk phase/threshold/settling kernels and both optical families are implemented. Surface exchange, state/restarts, bulk global coupling and optical feedback are connected. Moment nucleation/growth, bin cloud microphysics and long climate validation remain pending. |
+| Water | Bulk and moment phase/growth/settling paths, surface exchange, state/restarts and optical feedback are connected. The moment kernel checks two physical dust modes; global coupling currently uses one. Previous-effective-state mode, bin cloud microphysics and long climate validation remain pending. |
 | Drag | Rayleigh and Palmer terrain drag are implemented and checked. Polar water and terrain maps now pass pinned-blob and T21/T42 area checks. Complete non-orographic drag, and run long momentum/energy audits. They are off in the default Ames present-Mars setup. |
 | Extended atmosphere | Both 15-band options and CIA are implemented and checked. Non-LTE cooling is implemented with the pinned reference atmosphere. Gas-mixture mass/thermodynamics and source infinite-table regions still need auditing or implementation. |
 | Other release interfaces | Audit chemistry, bin microphysics and tagging against the release's real and null implementations. Do not label a stub as working physics. |
@@ -222,6 +247,10 @@ env PYTHONPATH=package:. python scripts/validate_collision_absorption.py \
   --ames-source /path/to/AmesGCM --output outputs/physics-parity/collision-absorption.json
 env PYTHONPATH=package:. python scripts/validate_bulk_water.py \
   --ames-source /path/to/AmesGCM --output outputs/physics-parity/bulk-water.json
+env PYTHONPATH=package:. python scripts/validate_water_moments.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/water-moments.json
+env PYTHONPATH=package:. python scripts/validate_particle_sedimentation.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/particle-sedimentation.json
 env PYTHONPATH=package:. python scripts/validate_water_surface.py \
   --ames-source /path/to/AmesGCM --output outputs/physics-parity/water-surface.json
 env PYTHONPATH=package:. python scripts/validate_terrain_drag.py \

@@ -1,0 +1,1558 @@
+{
+  "status": "pass",
+  "reference": {
+    "source_git_blob": "4897f72860b59d7effeb6650dbf3d4484b3aca71",
+    "real_precision_bits": 128,
+    "compiler_flags": [
+      "-O3",
+      "-cpp",
+      "-fPIC",
+      "-fdefault-real-8",
+      "-freal-8-real-16"
+    ],
+    "routine_sha256": {
+      "nuclea": "3492aaedb2c85c9d9e849f8ab83a358d4168f19bad723fbf667cdcb1a1c35bd8",
+      "growthrate2": "2b2669636760332c8137449b683d4cf57630e3c88baee05d962f41ee069bf85f",
+      "fshape2": "6c8c2dcff4826813d1fe23d9377f8c34a873aa11342eaf08a8c2255371127562",
+      "scrit_tdep": "716b2c3238079a14dcc2a7faa34e3d8851b715acc25a3594919345443b96d9cd",
+      "nucleacond": "e6c8a7b1abbd0bf54ca598b91f801cb2045b6f0897397866b38aada6f44659d6",
+      "findQ": "773179c6fccc6186a57b0c6fdf966bdd5177b3d136c7b33a6cd34280bec916a3",
+      "newton": "1c8dc083296dfca6a177314571e35d5d0d0c83398bec667ee812b98a2cf48e73",
+      "watsat": "58c1a402a8c805a8f3ddf97a46b6386ab966cfc84790c5b9690c975e35312524"
+    },
+    "adapter_sha256": "22d07a634dd396bb4d42120d8361ee43d2789174ab24e88eb2bf54c352b06257",
+    "adaptation": "unchanged original routine bodies; intended source precision or binary128; separate C conversions"
+  },
+  "original_fp64_reference": {
+    "source_git_blob": "4897f72860b59d7effeb6650dbf3d4484b3aca71",
+    "real_precision_bits": 64,
+    "compiler_flags": [
+      "-O3",
+      "-cpp",
+      "-fPIC",
+      "-fdefault-real-8",
+      "-fdefault-double-8"
+    ],
+    "routine_sha256": {
+      "nuclea": "3492aaedb2c85c9d9e849f8ab83a358d4168f19bad723fbf667cdcb1a1c35bd8",
+      "growthrate2": "2b2669636760332c8137449b683d4cf57630e3c88baee05d962f41ee069bf85f",
+      "fshape2": "6c8c2dcff4826813d1fe23d9377f8c34a873aa11342eaf08a8c2255371127562",
+      "scrit_tdep": "716b2c3238079a14dcc2a7faa34e3d8851b715acc25a3594919345443b96d9cd",
+      "nucleacond": "e6c8a7b1abbd0bf54ca598b91f801cb2045b6f0897397866b38aada6f44659d6",
+      "findQ": "773179c6fccc6186a57b0c6fdf966bdd5177b3d136c7b33a6cd34280bec916a3",
+      "newton": "1c8dc083296dfca6a177314571e35d5d0d0c83398bec667ee812b98a2cf48e73",
+      "watsat": "58c1a402a8c805a8f3ddf97a46b6386ab966cfc84790c5b9690c975e35312524"
+    },
+    "adapter_sha256": "56303f31dce186503c2999d028a0ac70e239e3f94ba3f14e2b26447aefd62843",
+    "adaptation": "unchanged original routine bodies; intended source precision or binary128; separate C conversions"
+  },
+  "cases": [
+    {
+      "case": "embryo-geometry",
+      "contact": 0.5,
+      "radius_ratio": 0.01,
+      "absolute_error": 1.1102230246251565e-16,
+      "native_fp64_error": 0.0
+    },
+    {
+      "case": "embryo-geometry",
+      "contact": 0.5,
+      "radius_ratio": 1.0,
+      "absolute_error": 0.0,
+      "native_fp64_error": 0.0
+    },
+    {
+      "case": "embryo-geometry",
+      "contact": 0.5,
+      "radius_ratio": 10.0,
+      "absolute_error": 0.0,
+      "native_fp64_error": 1.5432100042289676e-14
+    },
+    {
+      "case": "embryo-geometry",
+      "contact": 0.5,
+      "radius_ratio": 100.0,
+      "absolute_error": 2.7755575615628914e-17,
+      "native_fp64_error": 9.06429098446182e-11
+    },
+    {
+      "case": "embryo-geometry",
+      "contact": 0.5,
+      "radius_ratio": 1000.0,
+      "absolute_error": 8.326672684688674e-17,
+      "native_fp64_error": 6.504412722319053e-08
+    },
+    {
+      "case": "embryo-geometry",
+      "contact": 0.5,
+      "radius_ratio": 3000.0,
+      "absolute_error": 5.551115123125783e-17,
+      "native_fp64_error": 2.0263004645304505e-06
+    },
+    {
+      "case": "embryo-geometry",
+      "contact": 0.5,
+      "radius_ratio": 3000.01,
+      "absolute_error": 0.0,
+      "native_fp64_error": 0.0
+    },
+    {
+      "case": "embryo-geometry",
+      "contact": 0.9,
+      "radius_ratio": 0.01,
+      "absolute_error": 0.0,
+      "native_fp64_error": 1.1102230246251565e-16
+    },
+    {
+      "case": "embryo-geometry",
+      "contact": 0.9,
+      "radius_ratio": 1.0,
+      "absolute_error": 5.551115123125783e-17,
+      "native_fp64_error": 1.3877787807814457e-16
+    },
+    {
+      "case": "embryo-geometry",
+      "contact": 0.9,
+      "radius_ratio": 10.0,
+      "absolute_error": 7.806255641895632e-17,
+      "native_fp64_error": 1.4483206300930362e-14
+    },
+    {
+      "case": "embryo-geometry",
+      "contact": 0.9,
+      "radius_ratio": 100.0,
+      "absolute_error": 2.949029909160572e-17,
+      "native_fp64_error": 2.1297527456887178e-10
+    },
+    {
+      "case": "embryo-geometry",
+      "contact": 0.9,
+      "radius_ratio": 1000.0,
+      "absolute_error": 1.6306400674181987e-16,
+      "native_fp64_error": 2.3090314656831756e-08
+    },
+    {
+      "case": "embryo-geometry",
+      "contact": 0.9,
+      "radius_ratio": 3000.0,
+      "absolute_error": 4.683753385137379e-17,
+      "native_fp64_error": 2.990298451613707e-06
+    },
+    {
+      "case": "embryo-geometry",
+      "contact": 0.9,
+      "radius_ratio": 3000.01,
+      "absolute_error": 8.673617379884035e-19,
+      "native_fp64_error": 8.673617379884035e-19
+    },
+    {
+      "case": "embryo-geometry",
+      "contact": 0.965,
+      "radius_ratio": 0.01,
+      "absolute_error": 1.1102230246251565e-16,
+      "native_fp64_error": 0.0
+    },
+    {
+      "case": "embryo-geometry",
+      "contact": 0.965,
+      "radius_ratio": 1.0,
+      "absolute_error": 3.608224830031759e-16,
+      "native_fp64_error": 1.3877787807814457e-17
+    },
+    {
+      "case": "embryo-geometry",
+      "contact": 0.965,
+      "radius_ratio": 10.0,
+      "absolute_error": 6.895525817007808e-17,
+      "native_fp64_error": 6.491985768408703e-14
+    },
+    {
+      "case": "embryo-geometry",
+      "contact": 0.965,
+      "radius_ratio": 100.0,
+      "absolute_error": 7.719519468096792e-17,
+      "native_fp64_error": 1.3424052928284746e-10
+    },
+    {
+      "case": "embryo-geometry",
+      "contact": 0.965,
+      "radius_ratio": 1000.0,
+      "absolute_error": 6.830473686658678e-18,
+      "native_fp64_error": 1.6992038672056405e-08
+    },
+    {
+      "case": "embryo-geometry",
+      "contact": 0.965,
+      "radius_ratio": 3000.0,
+      "absolute_error": 5.767955557622884e-17,
+      "native_fp64_error": 2.8002123087975637e-06
+    },
+    {
+      "case": "embryo-geometry",
+      "contact": 0.965,
+      "radius_ratio": 3000.01,
+      "absolute_error": 1.0842021724855044e-19,
+      "native_fp64_error": 1.0842021724855044e-19
+    },
+    {
+      "case": "embryo-geometry",
+      "contact": 0.99,
+      "radius_ratio": 0.01,
+      "absolute_error": 1.1102230246251565e-16,
+      "native_fp64_error": 1.1102230246251565e-16
+    },
+    {
+      "case": "embryo-geometry",
+      "contact": 0.99,
+      "radius_ratio": 1.0,
+      "absolute_error": 8.673617379884035e-17,
+      "native_fp64_error": 1.1449174941446927e-16
+    },
+    {
+      "case": "embryo-geometry",
+      "contact": 0.99,
+      "radius_ratio": 10.0,
+      "absolute_error": 9.913673614664331e-17,
+      "native_fp64_error": 8.498152810794413e-15
+    },
+    {
+      "case": "embryo-geometry",
+      "contact": 0.99,
+      "radius_ratio": 100.0,
+      "absolute_error": 2.644098048149024e-17,
+      "native_fp64_error": 2.4191730073981534e-10
+    },
+    {
+      "case": "embryo-geometry",
+      "contact": 0.99,
+      "radius_ratio": 1000.0,
+      "absolute_error": 5.624298769768554e-18,
+      "native_fp64_error": 1.1682531312321885e-07
+    },
+    {
+      "case": "embryo-geometry",
+      "contact": 0.99,
+      "radius_ratio": 3000.0,
+      "absolute_error": 6.549936374528054e-17,
+      "native_fp64_error": 3.0131342482537555e-06
+    },
+    {
+      "case": "embryo-geometry",
+      "contact": 0.99,
+      "radius_ratio": 3000.01,
+      "absolute_error": 0.0,
+      "native_fp64_error": 0.0
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 0,
+      "temperature_k": 150.0,
+      "saturation": 0.8,
+      "nonfinite_count": 0,
+      "max_relative_error": 0.0,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 0,
+      "temperature_k": 150.0,
+      "saturation": 1.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 0.0,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 0,
+      "temperature_k": 150.0,
+      "saturation": 2.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 1.5896840539153622e-12,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.010446019308789559
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 0,
+      "temperature_k": 150.0,
+      "saturation": 4.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 2.924303230549301e-13,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 6.719605172896871e-06
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 0,
+      "temperature_k": 150.0,
+      "saturation": 10.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 2.348174145159099e-13,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0003725759027391551
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 0,
+      "temperature_k": 170.0,
+      "saturation": 0.8,
+      "nonfinite_count": 0,
+      "max_relative_error": 0.0,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 0,
+      "temperature_k": 170.0,
+      "saturation": 1.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 0.0,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 0,
+      "temperature_k": 170.0,
+      "saturation": 2.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 4.661772421646822e-13,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0014126878898333432
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 0,
+      "temperature_k": 170.0,
+      "saturation": 4.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 2.3984145962761795e-13,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 9.405643746163015e-05
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 0,
+      "temperature_k": 170.0,
+      "saturation": 10.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 1.8869210703381351e-13,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0006091332489223373
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 0,
+      "temperature_k": 190.0,
+      "saturation": 0.8,
+      "nonfinite_count": 0,
+      "max_relative_error": 0.0,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 0,
+      "temperature_k": 190.0,
+      "saturation": 1.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 0.0,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 0,
+      "temperature_k": 190.0,
+      "saturation": 2.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 5.288099083732173e-13,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0008319643836102545
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 0,
+      "temperature_k": 190.0,
+      "saturation": 4.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 1.912524020853585e-13,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0004136329988557892
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 0,
+      "temperature_k": 190.0,
+      "saturation": 10.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 3.8192213427562306e-14,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0005250689121556697
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 1,
+      "temperature_k": 150.0,
+      "saturation": 0.8,
+      "nonfinite_count": 0,
+      "max_relative_error": 0.0,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 1,
+      "temperature_k": 150.0,
+      "saturation": 1.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 0.0,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 1,
+      "temperature_k": 150.0,
+      "saturation": 2.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 0.0,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 1,
+      "temperature_k": 150.0,
+      "saturation": 4.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 2.2087499839462356e-13,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.00019609280957297062
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 1,
+      "temperature_k": 150.0,
+      "saturation": 10.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 1.69955576842908e-13,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 1.3115889808361034e-06
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 1,
+      "temperature_k": 170.0,
+      "saturation": 0.8,
+      "nonfinite_count": 0,
+      "max_relative_error": 0.0,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 1,
+      "temperature_k": 170.0,
+      "saturation": 1.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 0.0,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 1,
+      "temperature_k": 170.0,
+      "saturation": 2.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 0.0,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 1,
+      "temperature_k": 170.0,
+      "saturation": 4.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 1.3208304080949386e-13,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 6.365652837999537e-05
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 1,
+      "temperature_k": 170.0,
+      "saturation": 10.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 6.910591755160613e-14,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.00027731369983534246
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 1,
+      "temperature_k": 190.0,
+      "saturation": 0.8,
+      "nonfinite_count": 4,
+      "max_relative_error": null,
+      "native_fp64_nonfinite_count": 4,
+      "native_fp64_relative_error": null
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 1,
+      "temperature_k": 190.0,
+      "saturation": 1.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 0.0,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 1,
+      "temperature_k": 190.0,
+      "saturation": 2.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 1.603747522982026e-12,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.009006818156118201
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 1,
+      "temperature_k": 190.0,
+      "saturation": 4.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 2.477803042921825e-13,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.00021636375828689935
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 1,
+      "temperature_k": 190.0,
+      "saturation": 10.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 6.482616808830948e-13,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0009686500346570017
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 2,
+      "temperature_k": 150.0,
+      "saturation": 0.8,
+      "nonfinite_count": 0,
+      "max_relative_error": 0.0,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 2,
+      "temperature_k": 150.0,
+      "saturation": 1.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 0.0,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 2,
+      "temperature_k": 150.0,
+      "saturation": 2.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 0.0,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 2,
+      "temperature_k": 150.0,
+      "saturation": 4.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 0.0,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 2,
+      "temperature_k": 150.0,
+      "saturation": 10.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 9.23396306719847e-14,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 6.377763886899827e-05
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 2,
+      "temperature_k": 170.0,
+      "saturation": 0.8,
+      "nonfinite_count": 0,
+      "max_relative_error": 0.0,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 2,
+      "temperature_k": 170.0,
+      "saturation": 1.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 0.0,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 2,
+      "temperature_k": 170.0,
+      "saturation": 2.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 7.674305946210576e-13,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.006141924168879336
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 2,
+      "temperature_k": 170.0,
+      "saturation": 4.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 1.6423577051481084e-13,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 1.3181126320722804e-05
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 2,
+      "temperature_k": 170.0,
+      "saturation": 10.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 3.8487470203304276e-14,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.00021971651839510558
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 2,
+      "temperature_k": 190.0,
+      "saturation": 0.8,
+      "nonfinite_count": 0,
+      "max_relative_error": 0.0,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 2,
+      "temperature_k": 190.0,
+      "saturation": 1.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 0.0,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 2,
+      "temperature_k": 190.0,
+      "saturation": 2.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 6.746703793026496e-13,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0009626588549360809
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 2,
+      "temperature_k": 190.0,
+      "saturation": 4.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 4.70930007634503e-14,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.00022899515865836063
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 2,
+      "temperature_k": 190.0,
+      "saturation": 10.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 6.224347524963913e-14,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0001308085182936997
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 3,
+      "temperature_k": 150.0,
+      "saturation": 0.8,
+      "nonfinite_count": 0,
+      "max_relative_error": 0.0,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 3,
+      "temperature_k": 150.0,
+      "saturation": 1.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 0.0,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 3,
+      "temperature_k": 150.0,
+      "saturation": 2.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 0.0,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 3,
+      "temperature_k": 150.0,
+      "saturation": 4.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 0.0,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 3,
+      "temperature_k": 150.0,
+      "saturation": 10.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 1.253576858621101e-13,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 3.694283946857091e-05
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 3,
+      "temperature_k": 170.0,
+      "saturation": 0.8,
+      "nonfinite_count": 0,
+      "max_relative_error": 0.0,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 3,
+      "temperature_k": 170.0,
+      "saturation": 1.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 0.0,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 3,
+      "temperature_k": 170.0,
+      "saturation": 2.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 1.0324423781807814e-12,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0029643131100613876
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 3,
+      "temperature_k": 170.0,
+      "saturation": 4.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 2.849620142231007e-13,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.00010036542448157518
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 3,
+      "temperature_k": 170.0,
+      "saturation": 10.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 1.0763698209545906e-13,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 3.435703804729802e-05
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 3,
+      "temperature_k": 190.0,
+      "saturation": 0.8,
+      "nonfinite_count": 0,
+      "max_relative_error": 0.0,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 3,
+      "temperature_k": 190.0,
+      "saturation": 1.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 0.0,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.0
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 3,
+      "temperature_k": 190.0,
+      "saturation": 2.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 2.33800874527282e-13,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.005903270852957866
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 3,
+      "temperature_k": 190.0,
+      "saturation": 4.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 3.620265388476205e-14,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 1.6041709434060987e-05
+    },
+    {
+      "case": "nucleation",
+      "contact_case": 3,
+      "temperature_k": 190.0,
+      "saturation": 10.0,
+      "nonfinite_count": 0,
+      "max_relative_error": 5.254669341157821e-14,
+      "native_fp64_nonfinite_count": 0,
+      "native_fp64_relative_error": 0.00037255788280414053
+    },
+    {
+      "case": "growth-resistance",
+      "temperature_k": 150.0,
+      "pressure_pa": 10.0,
+      "radius_m": 1e-08,
+      "absolute_error": 2.407412430484045e-35
+    },
+    {
+      "case": "growth-resistance",
+      "temperature_k": 150.0,
+      "pressure_pa": 10.0,
+      "radius_m": 1e-06,
+      "absolute_error": 3.0814879110195774e-33
+    },
+    {
+      "case": "growth-resistance",
+      "temperature_k": 150.0,
+      "pressure_pa": 10.0,
+      "radius_m": 0.0001,
+      "absolute_error": 3.944304526105059e-31
+    },
+    {
+      "case": "growth-resistance",
+      "temperature_k": 150.0,
+      "pressure_pa": 610.0,
+      "radius_m": 1e-08,
+      "absolute_error": 2.407412430484045e-35
+    },
+    {
+      "case": "growth-resistance",
+      "temperature_k": 150.0,
+      "pressure_pa": 610.0,
+      "radius_m": 1e-06,
+      "absolute_error": 1.232595164407831e-32
+    },
+    {
+      "case": "growth-resistance",
+      "temperature_k": 150.0,
+      "pressure_pa": 610.0,
+      "radius_m": 0.0001,
+      "absolute_error": 0.0
+    },
+    {
+      "case": "growth-resistance",
+      "temperature_k": 150.0,
+      "pressure_pa": 50000.0,
+      "radius_m": 1e-08,
+      "absolute_error": 2.407412430484045e-35
+    },
+    {
+      "case": "growth-resistance",
+      "temperature_k": 150.0,
+      "pressure_pa": 50000.0,
+      "radius_m": 1e-06,
+      "absolute_error": 1.925929944387236e-34
+    },
+    {
+      "case": "growth-resistance",
+      "temperature_k": 150.0,
+      "pressure_pa": 50000.0,
+      "radius_m": 0.0001,
+      "absolute_error": 1.925929944387236e-34
+    },
+    {
+      "case": "growth-resistance",
+      "temperature_k": 190.0,
+      "pressure_pa": 10.0,
+      "radius_m": 1e-08,
+      "absolute_error": 0.0
+    },
+    {
+      "case": "growth-resistance",
+      "temperature_k": 190.0,
+      "pressure_pa": 10.0,
+      "radius_m": 1e-06,
+      "absolute_error": 2.524354896707238e-29
+    },
+    {
+      "case": "growth-resistance",
+      "temperature_k": 190.0,
+      "pressure_pa": 10.0,
+      "radius_m": 0.0001,
+      "absolute_error": 8.077935669463161e-28
+    },
+    {
+      "case": "growth-resistance",
+      "temperature_k": 190.0,
+      "pressure_pa": 610.0,
+      "radius_m": 1e-08,
+      "absolute_error": 3.944304526105059e-31
+    },
+    {
+      "case": "growth-resistance",
+      "temperature_k": 190.0,
+      "pressure_pa": 610.0,
+      "radius_m": 1e-06,
+      "absolute_error": 2.524354896707238e-29
+    },
+    {
+      "case": "growth-resistance",
+      "temperature_k": 190.0,
+      "pressure_pa": 610.0,
+      "radius_m": 0.0001,
+      "absolute_error": 1.0097419586828951e-28
+    },
+    {
+      "case": "growth-resistance",
+      "temperature_k": 190.0,
+      "pressure_pa": 50000.0,
+      "radius_m": 1e-08,
+      "absolute_error": 1.9721522630525295e-31
+    },
+    {
+      "case": "growth-resistance",
+      "temperature_k": 190.0,
+      "pressure_pa": 50000.0,
+      "radius_m": 1e-06,
+      "absolute_error": 0.0
+    },
+    {
+      "case": "growth-resistance",
+      "temperature_k": 190.0,
+      "pressure_pa": 50000.0,
+      "radius_m": 0.0001,
+      "absolute_error": 1.5777218104420236e-30
+    },
+    {
+      "case": "growth-resistance",
+      "temperature_k": 250.0,
+      "pressure_pa": 10.0,
+      "radius_m": 1e-08,
+      "absolute_error": 0.0
+    },
+    {
+      "case": "growth-resistance",
+      "temperature_k": 250.0,
+      "pressure_pa": 10.0,
+      "radius_m": 1e-06,
+      "absolute_error": 6.462348535570529e-27
+    },
+    {
+      "case": "growth-resistance",
+      "temperature_k": 250.0,
+      "pressure_pa": 10.0,
+      "radius_m": 0.0001,
+      "absolute_error": 6.462348535570529e-27
+    },
+    {
+      "case": "growth-resistance",
+      "temperature_k": 250.0,
+      "pressure_pa": 610.0,
+      "radius_m": 1e-08,
+      "absolute_error": 0.0
+    },
+    {
+      "case": "growth-resistance",
+      "temperature_k": 250.0,
+      "pressure_pa": 610.0,
+      "radius_m": 1e-06,
+      "absolute_error": 0.0
+    },
+    {
+      "case": "growth-resistance",
+      "temperature_k": 250.0,
+      "pressure_pa": 610.0,
+      "radius_m": 0.0001,
+      "absolute_error": 6.462348535570529e-27
+    },
+    {
+      "case": "growth-resistance",
+      "temperature_k": 250.0,
+      "pressure_pa": 50000.0,
+      "radius_m": 1e-08,
+      "absolute_error": 0.0
+    },
+    {
+      "case": "growth-resistance",
+      "temperature_k": 250.0,
+      "pressure_pa": 50000.0,
+      "radius_m": 1e-06,
+      "absolute_error": 4.8467614016778965e-27
+    },
+    {
+      "case": "growth-resistance",
+      "temperature_k": 250.0,
+      "pressure_pa": 50000.0,
+      "radius_m": 0.0001,
+      "absolute_error": 1.6155871338926322e-27
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 1,
+      "latent_heat": false,
+      "temperature_k": 170.0,
+      "saturation": 0.1,
+      "max_tracer_error": 0.0,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 1,
+      "latent_heat": false,
+      "temperature_k": 170.0,
+      "saturation": 1.0,
+      "max_tracer_error": 0.0,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 1,
+      "latent_heat": false,
+      "temperature_k": 170.0,
+      "saturation": 2.0,
+      "max_tracer_error": 3.841705620288849e-09,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 1,
+      "latent_heat": false,
+      "temperature_k": 170.0,
+      "saturation": 10.0,
+      "max_tracer_error": 1.1641532182693481e-10,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 1,
+      "latent_heat": false,
+      "temperature_k": 190.0,
+      "saturation": 0.1,
+      "max_tracer_error": 0.0,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 1,
+      "latent_heat": false,
+      "temperature_k": 190.0,
+      "saturation": 1.0,
+      "max_tracer_error": 0.0,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 1,
+      "latent_heat": false,
+      "temperature_k": 190.0,
+      "saturation": 2.0,
+      "max_tracer_error": 1.3234889800848443e-23,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 1,
+      "latent_heat": false,
+      "temperature_k": 190.0,
+      "saturation": 10.0,
+      "max_tracer_error": 0.0,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 1,
+      "latent_heat": false,
+      "temperature_k": 220.0,
+      "saturation": 0.1,
+      "max_tracer_error": 0.0,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 1,
+      "latent_heat": false,
+      "temperature_k": 220.0,
+      "saturation": 1.0,
+      "max_tracer_error": 0.0,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 1,
+      "latent_heat": false,
+      "temperature_k": 220.0,
+      "saturation": 2.0,
+      "max_tracer_error": 3.3881317890172014e-21,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 1,
+      "latent_heat": false,
+      "temperature_k": 220.0,
+      "saturation": 10.0,
+      "max_tracer_error": 1.1641532182693481e-10,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 1,
+      "latent_heat": true,
+      "temperature_k": 170.0,
+      "saturation": 0.1,
+      "max_tracer_error": 0.0,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 1,
+      "latent_heat": true,
+      "temperature_k": 170.0,
+      "saturation": 1.0,
+      "max_tracer_error": 0.0,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 1,
+      "latent_heat": true,
+      "temperature_k": 170.0,
+      "saturation": 2.0,
+      "max_tracer_error": 3.841705620288849e-09,
+      "temperature_tendency_error": 4.0657581468206416e-20
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 1,
+      "latent_heat": true,
+      "temperature_k": 170.0,
+      "saturation": 10.0,
+      "max_tracer_error": 1.1641532182693481e-10,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 1,
+      "latent_heat": true,
+      "temperature_k": 190.0,
+      "saturation": 0.1,
+      "max_tracer_error": 0.0,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 1,
+      "latent_heat": true,
+      "temperature_k": 190.0,
+      "saturation": 1.0,
+      "max_tracer_error": 0.0,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 1,
+      "latent_heat": true,
+      "temperature_k": 190.0,
+      "saturation": 2.0,
+      "max_tracer_error": 1.3234889800848443e-23,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 1,
+      "latent_heat": true,
+      "temperature_k": 190.0,
+      "saturation": 10.0,
+      "max_tracer_error": 0.0,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 1,
+      "latent_heat": true,
+      "temperature_k": 220.0,
+      "saturation": 0.1,
+      "max_tracer_error": 0.0,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 1,
+      "latent_heat": true,
+      "temperature_k": 220.0,
+      "saturation": 1.0,
+      "max_tracer_error": 0.0,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 1,
+      "latent_heat": true,
+      "temperature_k": 220.0,
+      "saturation": 2.0,
+      "max_tracer_error": 3.409776269590824e-11,
+      "temperature_tendency_error": 1.3131952170813976e-07
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 1,
+      "latent_heat": true,
+      "temperature_k": 220.0,
+      "saturation": 10.0,
+      "max_tracer_error": 1.1641532182693481e-10,
+      "temperature_tendency_error": 2.766476764337611e-08
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 2,
+      "latent_heat": false,
+      "temperature_k": 170.0,
+      "saturation": 0.1,
+      "max_tracer_error": 0.0,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 2,
+      "latent_heat": false,
+      "temperature_k": 170.0,
+      "saturation": 1.0,
+      "max_tracer_error": 0.0,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 2,
+      "latent_heat": false,
+      "temperature_k": 170.0,
+      "saturation": 2.0,
+      "max_tracer_error": 5.122274160385132e-09,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 2,
+      "latent_heat": false,
+      "temperature_k": 170.0,
+      "saturation": 10.0,
+      "max_tracer_error": 2.3283064365386963e-10,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 2,
+      "latent_heat": false,
+      "temperature_k": 190.0,
+      "saturation": 0.1,
+      "max_tracer_error": 6.462348535570529e-27,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 2,
+      "latent_heat": false,
+      "temperature_k": 190.0,
+      "saturation": 1.0,
+      "max_tracer_error": 0.0,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 2,
+      "latent_heat": false,
+      "temperature_k": 190.0,
+      "saturation": 2.0,
+      "max_tracer_error": 5.820766091346741e-11,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 2,
+      "latent_heat": false,
+      "temperature_k": 190.0,
+      "saturation": 10.0,
+      "max_tracer_error": 2.3283064365386963e-10,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 2,
+      "latent_heat": false,
+      "temperature_k": 220.0,
+      "saturation": 0.1,
+      "max_tracer_error": 6.462348535570529e-27,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 2,
+      "latent_heat": false,
+      "temperature_k": 220.0,
+      "saturation": 1.0,
+      "max_tracer_error": 0.0,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 2,
+      "latent_heat": false,
+      "temperature_k": 220.0,
+      "saturation": 2.0,
+      "max_tracer_error": 2.3283064365386963e-10,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 2,
+      "latent_heat": false,
+      "temperature_k": 220.0,
+      "saturation": 10.0,
+      "max_tracer_error": 2.3283064365386963e-10,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 2,
+      "latent_heat": true,
+      "temperature_k": 170.0,
+      "saturation": 0.1,
+      "max_tracer_error": 0.0,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 2,
+      "latent_heat": true,
+      "temperature_k": 170.0,
+      "saturation": 1.0,
+      "max_tracer_error": 0.0,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 2,
+      "latent_heat": true,
+      "temperature_k": 170.0,
+      "saturation": 2.0,
+      "max_tracer_error": 5.122274160385132e-09,
+      "temperature_tendency_error": 1.6940658945086007e-20
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 2,
+      "latent_heat": true,
+      "temperature_k": 170.0,
+      "saturation": 10.0,
+      "max_tracer_error": 2.3283064365386963e-10,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 2,
+      "latent_heat": true,
+      "temperature_k": 190.0,
+      "saturation": 0.1,
+      "max_tracer_error": 6.462348535570529e-27,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 2,
+      "latent_heat": true,
+      "temperature_k": 190.0,
+      "saturation": 1.0,
+      "max_tracer_error": 0.0,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 2,
+      "latent_heat": true,
+      "temperature_k": 190.0,
+      "saturation": 2.0,
+      "max_tracer_error": 5.820766091346741e-11,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 2,
+      "latent_heat": true,
+      "temperature_k": 190.0,
+      "saturation": 10.0,
+      "max_tracer_error": 2.3283064365386963e-10,
+      "temperature_tendency_error": 3.469446951953614e-18
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 2,
+      "latent_heat": true,
+      "temperature_k": 220.0,
+      "saturation": 0.1,
+      "max_tracer_error": 6.462348535570529e-27,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 2,
+      "latent_heat": true,
+      "temperature_k": 220.0,
+      "saturation": 1.0,
+      "max_tracer_error": 0.0,
+      "temperature_tendency_error": 0.0
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 2,
+      "latent_heat": true,
+      "temperature_k": 220.0,
+      "saturation": 2.0,
+      "max_tracer_error": 2.3283064365386963e-10,
+      "temperature_tendency_error": 9.661136612243437e-08
+    },
+    {
+      "case": "coupled-nucleation-condensation",
+      "modes": 2,
+      "latent_heat": true,
+      "temperature_k": 220.0,
+      "saturation": 10.0,
+      "max_tracer_error": 2.3283064365386963e-10,
+      "temperature_tendency_error": 1.6763517241003e-08
+    },
+    {
+      "case": "native-substep-composition",
+      "substeps": 1,
+      "modes": 1,
+      "latent_heat": false,
+      "max_tracer_error": 2.117582368135751e-22
+    },
+    {
+      "case": "native-substep-composition",
+      "substeps": 1,
+      "modes": 1,
+      "latent_heat": true,
+      "max_tracer_error": 2.117582368135751e-22
+    },
+    {
+      "case": "native-substep-composition",
+      "substeps": 1,
+      "modes": 2,
+      "latent_heat": false,
+      "max_tracer_error": 2.3283064365386963e-10
+    },
+    {
+      "case": "native-substep-composition",
+      "substeps": 1,
+      "modes": 2,
+      "latent_heat": true,
+      "max_tracer_error": 2.3283064365386963e-10
+    },
+    {
+      "case": "native-substep-composition",
+      "substeps": 5,
+      "modes": 1,
+      "latent_heat": false,
+      "max_tracer_error": 4.235164736271502e-22
+    },
+    {
+      "case": "native-substep-composition",
+      "substeps": 5,
+      "modes": 1,
+      "latent_heat": true,
+      "max_tracer_error": 3.1763735522036263e-22
+    },
+    {
+      "case": "native-substep-composition",
+      "substeps": 5,
+      "modes": 2,
+      "latent_heat": false,
+      "max_tracer_error": 1.862645149230957e-09
+    },
+    {
+      "case": "native-substep-composition",
+      "substeps": 5,
+      "modes": 2,
+      "latent_heat": true,
+      "max_tracer_error": 9.313225746154785e-09
+    },
+    {
+      "case": "native-substep-composition",
+      "substeps": 10,
+      "modes": 1,
+      "latent_heat": false,
+      "max_tracer_error": 3.1763735522036263e-22
+    },
+    {
+      "case": "native-substep-composition",
+      "substeps": 10,
+      "modes": 1,
+      "latent_heat": true,
+      "max_tracer_error": 2.117582368135751e-22
+    },
+    {
+      "case": "native-substep-composition",
+      "substeps": 10,
+      "modes": 2,
+      "latent_heat": false,
+      "max_tracer_error": 3.1763735522036263e-22
+    },
+    {
+      "case": "native-substep-composition",
+      "substeps": 10,
+      "modes": 2,
+      "latent_heat": true,
+      "max_tracer_error": 4.656612873077393e-10
+    }
+  ],
+  "sha256": {
+    "scripts/validate_water_moments.py": "381450aa312026e91b971a916486980a6e7d4c5c3952d0eff18dfc7e5ae80498",
+    "package/src/framework/physics/water_moments.py": "edd34acfbbddf9140f0173c21d2137cecdc6bbf90eb14e1e546383a86b877380",
+    "package/src/framework/physics/water_bulk.py": "563b225222538936e923bbdb4f8e3de82c9f20434870545a53dc0f6fc71b8f61"
+  },
+  "limits": "Native nucleacond and kinetic primitives; source subeffmode=0 ramp composed with native calls. Original FP64 geometry cancellation and contact-case-1 subsaturated NaNs are recorded. Binary128 only resolves the geometric cancellation; it does not change the source equations. Empty bins use zero weight; dry vapor uses saturation pressure directly. The shared implicit root removes the native 1e-8 stopping noise. Outer dust sedimentation, previous-effective-state mode and long climate validation remain separate."
+}

@@ -99,7 +99,7 @@ def test_declared_source_or_sink_survives_projection_with_exact_escape(model, so
 def test_projection_off_keeps_raw_mass_error_and_physical_state(model):
     coords, specs, initial = model
     raw_step = source_step(model, lambda s, dt: jnp.asarray(0.), pressure_error_pa=.1)
-    raw = raw_step(initial)
+    raw = jax.jit(raw_step)(initial)
     final, diagnostics = jax.jit(positivity_preserving_co2_step(
         raw_step, coords, specs, body=BODY, dt_seconds=300.,
         inventory_projection=False, return_diagnostics=True))(initial)
