@@ -65,6 +65,6 @@ if __name__=='__main__':
     args=parser().parse_args()
     body=json.dumps(manifests(args),indent=2)
     if args.submit:
-        subprocess.run(['rtk','kubectl','--context',args.context,'-n',args.namespace,'apply','-f','-'],input=body,text=True,check=True)
+        subprocess.run(['kubectl','--context',args.context,'-n',args.namespace,'apply','-f','-'],input=body,text=True,check=True)
     else:
         print(body)
