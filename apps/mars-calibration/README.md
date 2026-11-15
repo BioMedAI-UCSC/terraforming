@@ -32,8 +32,8 @@ From the repository root, freeze the existing inputs (already prepared for this
 checkpoint at `outputs/nautilus-calibration-inputs`):
 
 ```sh
-rtk proxy .venv/bin/python apps/mars-calibration/prepare_inputs.py --output outputs/nautilus-calibration-inputs
-rtk proxy env PYTHONPATH=apps/mars-calibration .venv/bin/python -m mars_calibration.launch --config apps/mars-calibration/experiment.json --inputs outputs/nautilus-calibration-inputs --output /tmp/unused --validate-only
+.venv/bin/python apps/mars-calibration/prepare_inputs.py --output outputs/nautilus-calibration-inputs
+env PYTHONPATH=apps/mars-calibration .venv/bin/python -m mars_calibration.launch --config apps/mars-calibration/experiment.json --inputs outputs/nautilus-calibration-inputs --output /tmp/unused --validate-only
 ```
 
 Preparation refuses to overwrite a bundle. Five files plus their SHA-256
@@ -42,7 +42,7 @@ paths are in `prepare_inputs.py`. Build from the current working tree so the
 framework includes the current physics fixes, including uncommitted changes:
 
 ```sh
-rtk proxy docker buildx build --platform linux/amd64 -f apps/mars-calibration/Dockerfile -t YOUR_REGISTRY/mars-calibration:short-horizon --push .
+docker buildx build --platform linux/amd64 -f apps/mars-calibration/Dockerfile -t YOUR_REGISTRY/mars-calibration:short-horizon --push .
 ```
 
 Replace `YOUR_REGISTRY` with a registry you can push to and Nautilus can pull
@@ -85,10 +85,10 @@ which is suitable for the CUDA 12 JAX image. Before submission, inspect current
 labels and availability:
 
 ```sh
-rtk proxy kubectl get nodes \
+kubectl get nodes \
   -L topology.kubernetes.io/region,nvidia.com/gpu.product,nvidia.com/cuda.driver.major \
   -l nvidia.com/gpu.product
-rtk proxy kubectl -n YOUR_NAMESPACE get resourcequota
+kubectl -n YOUR_NAMESPACE get resourcequota
 ```
 
 The container runs as UID/GID 10001 with no service-account token, no added
@@ -98,13 +98,13 @@ image digest or immutable tag, and configure `imagePullSecrets` if the registry
 is private.
 
 ```sh
-rtk proxy kubectl -n YOUR_NAMESPACE apply -f apps/mars-calibration/pvc.yaml
-rtk proxy kubectl -n YOUR_NAMESPACE apply -f apps/mars-calibration/data-pod.yaml
-rtk proxy kubectl -n YOUR_NAMESPACE wait --for=condition=Ready pod/mars-calibration-data --timeout=120s
-rtk proxy kubectl -n YOUR_NAMESPACE cp outputs/nautilus-calibration-inputs/. mars-calibration-data:/data/inputs/
-rtk proxy kubectl -n YOUR_NAMESPACE delete pod mars-calibration-data --wait=true
-rtk proxy kubectl -n YOUR_NAMESPACE apply -f apps/mars-calibration/job.yaml
-rtk proxy kubectl -n YOUR_NAMESPACE logs -f job/mars-short-calibration
+kubectl -n YOUR_NAMESPACE apply -f apps/mars-calibration/pvc.yaml
+kubectl -n YOUR_NAMESPACE apply -f apps/mars-calibration/data-pod.yaml
+kubectl -n YOUR_NAMESPACE wait --for=condition=Ready pod/mars-calibration-data --timeout=120s
+kubectl -n YOUR_NAMESPACE cp outputs/nautilus-calibration-inputs/. mars-calibration-data:/data/inputs/
+kubectl -n YOUR_NAMESPACE delete pod mars-calibration-data --wait=true
+kubectl -n YOUR_NAMESPACE apply -f apps/mars-calibration/job.yaml
+kubectl -n YOUR_NAMESPACE logs -f job/mars-short-calibration
 ```
 
 The transfer pod is removed before the GPU job to avoid concurrent mounts of a
@@ -118,12 +118,12 @@ After the job completes or fails, retain the logs, delete the finished job to
 release its mount, then recreate the transfer pod and retrieve artifacts:
 
 ```sh
-rtk proxy kubectl -n YOUR_NAMESPACE logs job/mars-short-calibration --all-containers > outputs/nautilus-calibration.log
-rtk proxy kubectl -n YOUR_NAMESPACE delete job mars-short-calibration --wait=true
-rtk proxy kubectl -n YOUR_NAMESPACE apply -f apps/mars-calibration/data-pod.yaml
-rtk proxy kubectl -n YOUR_NAMESPACE wait --for=condition=Ready pod/mars-calibration-data --timeout=120s
-rtk proxy kubectl -n YOUR_NAMESPACE cp mars-calibration-data:/data/results outputs/nautilus-results
-rtk proxy kubectl -n YOUR_NAMESPACE delete pod mars-calibration-data --wait=true
+kubectl -n YOUR_NAMESPACE logs job/mars-short-calibration --all-containers > outputs/nautilus-calibration.log
+kubectl -n YOUR_NAMESPACE delete job mars-short-calibration --wait=true
+kubectl -n YOUR_NAMESPACE apply -f apps/mars-calibration/data-pod.yaml
+kubectl -n YOUR_NAMESPACE wait --for=condition=Ready pod/mars-calibration-data --timeout=120s
+kubectl -n YOUR_NAMESPACE cp mars-calibration-data:/data/results outputs/nautilus-results
+kubectl -n YOUR_NAMESPACE delete pod mars-calibration-data --wait=true
 ```
 
 Inspect `report.json` for scientific acceptance, exact counts, finite-difference
@@ -142,7 +142,7 @@ and [Storage](https://nrp.ai/documentation/userdocs/storage/intro/) documentatio
 ## Local checks
 
 ```sh
-rtk proxy .venv/bin/python -m pytest apps/mars-calibration/tests -q
+.venv/bin/python -m pytest apps/mars-calibration/tests -q
 ```
 
 These tests use a cheap analytic oracle for optimizer accounting, not a surrogate

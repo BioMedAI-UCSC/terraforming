@@ -31,7 +31,7 @@ replacement continuous 3-D intervention implementation already exists.
 For existing installations the CLI remains callable, for example:
 
 ```bash
-rtk proxy .venv/bin/python -m cli.main mars run --preset current-mars --type year
+.venv/bin/python -m cli.main mars run --preset current-mars --type year
 ```
 
 Use this reference to interpret or maintain existing experiments; select the

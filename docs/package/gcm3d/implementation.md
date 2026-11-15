@@ -103,7 +103,18 @@ atmospheric pressure. It then rescales the pressure field by a single factor so
 the Gaussian-quadrature global atmosphere/frost integral matches the pre-step
 inventory minus exact configured escape. This corrects drift from advancing
 logarithmic pressure; it does not impose exact local transport conservation.
-Pass `body`, `co2_forcing` and `dt_seconds` to the wrapper when escape is nonzero.
+Pass `body`, `co2_forcing` and `dt_seconds` to the wrapper for cloud settling or escape.
+
+Atmospheric phase change compares each layer with the frost point at its layer
+pressure. Latent heat warms the air while condensed mass enters a transported
+ice tracer. Ice can sublimate or settle to the surface. The exchange operators
+include heat and momentum carried with mass and heat released during settling.
+The global mass target includes suspended ice. Raw, repaired, settled and final
+exchange budgets are available through `return_diagnostics=True`; they do not
+establish conservation of the complete dry dynamical core.
+
+Mars radiation uses the Ames north/south CO₂ frost albedo and emissivity above
+2 kg/m² of frost. Unabsorbed downward infrared is reflected at the surface.
 
 ### 6. The dynamics⊕physics composition
 `forced_co2_primitive_equations` builds a `parameterization(state)` that sums all
@@ -115,7 +126,7 @@ state's own `sim_time` field (initialise to 0.0).
 ## Data Structures
 
 - **`ColumnPhysicsState`** (NamedTuple pytree): `dynamics` (dinosaur `State`) +
-  `surface_temperature`, `co2_ice`, `ground_temperature`. Chosen so surface
+  `surface_temperature`, `co2_ice`, `ground_temperature`, `surface_momentum`. Chosen so surface
   reservoirs ride along without being advected as tracers.
 - **Regolith**: 12 skin-depth-scaled soil layers (`_REGOLITH_LAYER_FRACTIONS`),
   the deepest retaining seasonal memory (beyond the annual skin depth); conservative

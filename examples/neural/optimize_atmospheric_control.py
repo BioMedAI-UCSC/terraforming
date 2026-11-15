@@ -39,6 +39,40 @@ def control_metrics(initial_air, uncontrolled_final_air, controlled_final_air, t
     }
 
 
+def fit_control(params, objective, iterations):
+    """Select the lowest finite training objective, including the zero policy."""
+    if iterations < 1:
+        raise ValueError("iterations must be positive")
+    update = jax.jit(lambda p, opt: (
+        lambda value, grad: (*adam_update(p, grad, opt, learning_rate=0.03, clip_norm=5.),
+                             value, tree_norm(grad))
+    )(*jax.value_and_grad(objective)(p)))
+    initial_loss = float(objective(params))
+    if not np.isfinite(initial_loss):
+        raise FloatingPointError("Nonfinite initial control objective")
+    best, best_loss, selected_update = params, initial_loss, 0
+    optimizer, history = adam_init(params), []
+    for iteration in range(iterations):
+        candidate, optimizer, value, norm = update(params, optimizer)
+        value, norm = float(value), float(norm)
+        if not np.isfinite([value, norm]).all():
+            raise FloatingPointError("Nonfinite control objective or gradient")
+        if value < best_loss:
+            best, best_loss, selected_update = params, value, iteration
+        history.append({"iteration": iteration + 1, "loss_before_update": value,
+                        "gradient_norm": norm})
+        params = candidate
+    final_loss = float(objective(params))
+    if not np.isfinite(final_loss):
+        raise FloatingPointError("Nonfinite final control objective")
+    if final_loss < best_loss:
+        best, best_loss, selected_update = params, final_loss, iterations
+    return best, dict(initial_objective=initial_loss, final_objective=best_loss,
+                      last_iterate_objective=final_loss, selected_update=selected_update,
+                      selection="minimum training objective, including initial policy",
+                      history=history)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", default="outputs/neural_framework/atmospheric_control")
@@ -98,16 +132,7 @@ def main():
         regularization = 1e-6 * tree_norm(parameters)**2
         return state_error + regularization
 
-    update = jax.jit(lambda p, opt: (
-        lambda value, grad: (*adam_update(p, grad, opt, learning_rate=0.03, clip_norm=5.), value)
-    )(*jax.value_and_grad(objective)(p)))
-    initial_loss = float(objective(params))
-    optimizer = adam_init(params)
-    history = []
-    for iteration in range(args.iterations):
-        params, optimizer, value = update(params, optimizer)
-        history.append({"iteration": iteration + 1, "loss_before_update": float(value),
-                        "gradient_norm": float(tree_norm(jax.grad(objective)(params)))})
+    params, training = fit_control(params, objective, args.iterations)
 
     result = rollout(control_step(params), params, initial, args.steps, save_every=max(1, args.steps // 4))
     final_air = grid.to_nodal(result.final_state.dynamics.temperature_variation) + BODY.reference_temperature_k
@@ -122,11 +147,10 @@ def main():
                           "steps": args.steps, "target_shift_k": args.target_shift_k,
                           "feature_schema": state_feature_schema(args.layers),
                           "maximum_heating_k_s": policy.maximum_heating_k_s},
-        "initial_objective": initial_loss, "final_objective": float(objective(params)),
+        **training,
         **control_metrics(initial_air, uncontrolled_final_air, final_air, target_air),
         "max_abs_policy_heating_k_s": float(jnp.max(jnp.abs(heating))),
         "finite_rollout": bool(all(np.isfinite(x).all() for x in jax.tree.leaves(result.final_state))),
-        "history": history,
     }
     write_report(args.output, report, "Differentiable neural atmospheric control")
     np.savez_compressed(Path(args.output) / "control_trajectory.npz",

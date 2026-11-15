@@ -16,6 +16,7 @@ import hashlib
 import json
 import os
 import time
+import zipfile
 from pathlib import Path
 
 # Configure XLA before importing NumPy/JAX or any gcm3d module. The defaults are
@@ -112,6 +113,9 @@ def _checkpoint_diagnostics(state, coords, specs, dt_seconds: float) -> dict[str
     step = round(elapsed_seconds / dt_seconds)
     mean_pressure_pa = float(np.sum(surface_pressure_pa * normalized_weights))
     mean_ice_pa = float(np.sum(co2_ice_pa * normalized_weights))
+    from src.framework.physics.gcm import cloud_pressure_equivalent
+    cloud_pa = np.asarray(cloud_pressure_equivalent(state, coords))[0] * pressure_scale
+    mean_cloud_pa = float(np.sum(cloud_pa * normalized_weights))
     co2_mass_kg = (
         (mean_pressure_pa + mean_ice_pa)
         * 4.0 * np.pi * MARS_BODY_3D.radius_m**2
@@ -122,7 +126,9 @@ def _checkpoint_diagnostics(state, coords, specs, dt_seconds: float) -> dict[str
         "elapsed_sols": elapsed_seconds / MARS_BODY_3D.solar_day_seconds,
         "mean_surface_pressure_pa": mean_pressure_pa,
         "mean_co2_ice_pa": mean_ice_pa,
+        "mean_co2_cloud_ice_pa": mean_cloud_pa,
         "atmosphere_plus_surface_reservoir_mass_kg": co2_mass_kg,
+        "total_co2_mass_kg": co2_mass_kg + mean_cloud_pa * MARS_BODY_3D.surface_area_m2 / MARS_BODY_3D.gravity_m_s2,
         "mean_surface_temperature_k": float(
             np.sum(surface_temperature_k * normalized_weights)
         ),
@@ -326,6 +332,12 @@ def main() -> int:
     args.output_dir.mkdir(parents=True, exist_ok=True)
     manifest = {"sols": args.sols, "dt_seconds": args.dt,
                 "truncation": args.truncation, "layers": args.layers, "runs": {}}
+    source_root = Path(__file__).resolve().parents[1]
+    source_files = sorted((source_root / "package/src").rglob("*.py"))
+    source_files += sorted((source_root / "package/src/framework/physics").glob("*.npz"))
+    source_files.append(Path(__file__).resolve())
+    source_content = {str(path.relative_to(source_root)): path.read_bytes() for path in source_files}
+    source_hashes = {name: hashlib.sha256(content).hexdigest() for name, content in source_content.items()}
     for name in configs:
         forcing = dataclasses.replace(base, **ABLATIONS[name])
         root = args.output_dir / name
@@ -342,6 +354,9 @@ def main() -> int:
                       dust_lw_scale=args.dust_lw_scale,
                       surface_exchange_multiplier=args.surface_exchange_multiplier,
                       physics=name, float64=True,
+                      source_sha256=source_hashes,
+                      co2_forcing=dataclasses.asdict(co2_forcing(energy_limited=True)),
+                      co2_frost_radiative_properties=forcing.co2_frost_radiative_properties,
                       surface_sha256=hashlib.sha256(args.surface_properties.read_bytes()).hexdigest(),
                       ames_dust_reference=(str(args.ames_dust_reference) if args.ames_dust_reference else None),
                       ames_dust_sha256=(hashlib.sha256(args.ames_dust_reference.read_bytes()).hexdigest()
@@ -358,6 +373,10 @@ def main() -> int:
             if existing_config != config:
                 raise ValueError("Restart configuration is missing or differs; use a new output directory")
         root.mkdir(parents=True, exist_ok=True)
+        if not (root / "executed_source.zip").exists():
+            with zipfile.ZipFile(root / "executed_source.zip", "w", compression=zipfile.ZIP_DEFLATED) as archive:
+                for filename, content in source_content.items():
+                    archive.writestr(filename, content)
         config_path.write_text(json.dumps(config, indent=2) + "\n")
         state = load_restart(restart_path) if args.resume and restart_path.exists() else None
         completed = (round(float(state.dynamics.sim_time) / float(

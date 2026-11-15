@@ -428,7 +428,7 @@ def run_maps(
             " + eighth-order wind/temperature hyperdiffusion "
             f"(tau={hyperdiffusion_tau_seconds:g} s)"
         )
-    if co2_forcing is not None and co2_forcing.energy_limited:
+    if co2_forcing is not None and (co2_forcing.energy_limited or co2_forcing.atmospheric_condensation):
         from src.framework.physics.gcm import positivity_preserving_co2_step
         step = positivity_preserving_co2_step(
             step,

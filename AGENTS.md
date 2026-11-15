@@ -1,0 +1,3 @@
+# Codex working rules
+
+Apply Ponytail full mode to coding work in this repository. Prefer the smallest complete change that solves the request, reuse existing code and conventions, and avoid unnecessary features, abstractions, dependencies, or boilerplate. Before editing, inspect the affected code and all callers, tests, fixtures, and configuration that the change reaches. Preserve validation, error handling, security, and data safety. For non-trivial new logic, add a small focused test or assert-based check. Keep comments to essential rationale; mark a known shortcut with `shortcut: <the limit>, <when to upgrade>`. Finish the requested work and report what was skipped or not checked and any material risk.

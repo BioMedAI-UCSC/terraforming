@@ -6,7 +6,7 @@ staging. Run commands from the repository root using the installed environment.
 ## 1. Export a first map
 
 ```bash
-rtk proxy .venv/bin/python -m cli.main mars maps \
+.venv/bin/python -m cli.main mars maps \
   --scale fast --truncation T21 --layers 12 --dt 300 --steps 100 \
   --name first-gcm-map
 ```
@@ -33,7 +33,7 @@ metadata before comparing references. The final map is an instantaneous sample.
 ## 3. Explore in the browser
 
 ```bash
-rtk proxy .venv/bin/python -m cli.main serve --no-browser
+.venv/bin/python -m cli.main serve --no-browser
 ```
 
 Open `http://127.0.0.1:8000` and select GCM. The server enables correlated-k CO₂

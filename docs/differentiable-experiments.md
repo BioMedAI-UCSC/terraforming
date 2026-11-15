@@ -17,10 +17,10 @@ not yet resume training; use short pilots before expensive campaigns.
 ## 1. Check installation and smoke-test the coupled paths
 
 ```bash
-rtk proxy .venv/bin/python -m pytest apps/mars-calibration/tests package/tests/gcm3d/test_neural_temp.py -q
-rtk proxy .venv/bin/python scripts/run_differentiable_experiments.py gradients --inputs outputs/nautilus-calibration-inputs --output outputs/differentiable/gradient-smoke --steps 1 --epsilons 1e-3 1e-4
-rtk proxy .venv/bin/python scripts/run_differentiable_experiments.py prepare-synthetic --inputs outputs/nautilus-calibration-inputs --output outputs/differentiable/synthetic-smoke --steps 1
-rtk proxy .venv/bin/python scripts/run_differentiable_experiments.py neural --inputs outputs/nautilus-calibration-inputs --manifest outputs/differentiable/synthetic-smoke/windows.json --output outputs/differentiable/neural-smoke --updates 1 --epsilons 1e-3 1e-4
+.venv/bin/python -m pytest apps/mars-calibration/tests package/tests/gcm3d/test_neural_temp.py -q
+.venv/bin/python scripts/run_differentiable_experiments.py gradients --inputs outputs/nautilus-calibration-inputs --output outputs/differentiable/gradient-smoke --steps 1 --epsilons 1e-3 1e-4
+.venv/bin/python scripts/run_differentiable_experiments.py prepare-synthetic --inputs outputs/nautilus-calibration-inputs --output outputs/differentiable/synthetic-smoke --steps 1
+.venv/bin/python scripts/run_differentiable_experiments.py neural --inputs outputs/nautilus-calibration-inputs --manifest outputs/differentiable/synthetic-smoke/windows.json --output outputs/differentiable/neural-smoke --updates 1 --epsilons 1e-3 1e-4
 ```
 
 Synthetic windows are separated segments from a common parent simulation.
@@ -34,7 +34,7 @@ baseline. Test outcomes are reported even if validation does not improve.
 ## 2. Physical gradient agreement versus horizon
 
 ```bash
-rtk proxy .venv/bin/python scripts/run_differentiable_experiments.py gradients --inputs outputs/nautilus-calibration-inputs --output outputs/differentiable/gradients --steps 1 4 16 32 74 148 --epsilons 1e-2 1e-3 1e-4 1e-5 --require-gpu
+.venv/bin/python scripts/run_differentiable_experiments.py gradients --inputs outputs/nautilus-calibration-inputs --output outputs/differentiable/gradients --steps 1 4 16 32 74 148 --epsilons 1e-2 1e-3 1e-4 1e-5 --require-gpu
 ```
 
 Outputs: `gradients.csv`, `acceptance.json`, source hashes and environment.
@@ -53,9 +53,9 @@ random parameter direction at its actual training horizon.
 Use the existing native MACDA staging pipeline (CPU/network work):
 
 ```bash
-rtk proxy .venv/bin/python scripts/stage_mola.py
-rtk proxy env CUDA_VISIBLE_DEVICES= JAX_PLATFORMS=cpu .venv/bin/python scripts/neural_temp_data.py --run-dir outputs/differentiable/native --mola data/mola/meg004/megt90n000cb.img
-rtk proxy .venv/bin/python scripts/prepare_differentiable_windows.py --native-run outputs/differentiable/native --output outputs/differentiable/macda --per-split 4
+.venv/bin/python scripts/stage_mola.py
+env CUDA_VISIBLE_DEVICES= JAX_PLATFORMS=cpu .venv/bin/python scripts/neural_temp_data.py --run-dir outputs/differentiable/native --mola data/mola/meg004/megt90n000cb.img
+.venv/bin/python scripts/prepare_differentiable_windows.py --native-run outputs/differentiable/native --output outputs/differentiable/macda --per-split 4
 ```
 
 The first command is unnecessary if MOLA is already staged. Native staging
@@ -77,10 +77,10 @@ Both model classes share it. Terrain checksums must match the input bundle.
 ## 4. Real-reference physical calibration and neural capability
 
 ```bash
-rtk proxy .venv/bin/python scripts/run_differentiable_experiments.py calibration --inputs outputs/nautilus-calibration-inputs --manifest outputs/differentiable/macda/windows.json --output outputs/differentiable/calibration --updates 50 --require-gpu
-rtk proxy .venv/bin/python scripts/run_differentiable_experiments.py neural --inputs outputs/nautilus-calibration-inputs --manifest outputs/differentiable/macda/windows.json --output outputs/differentiable/neural-seed0 --updates 50 --seed 0 --require-gpu
-rtk proxy .venv/bin/python scripts/run_differentiable_experiments.py neural --inputs outputs/nautilus-calibration-inputs --manifest outputs/differentiable/macda/windows.json --output outputs/differentiable/neural-seed1 --updates 50 --seed 1 --require-gpu
-rtk proxy .venv/bin/python scripts/run_differentiable_experiments.py neural --inputs outputs/nautilus-calibration-inputs --manifest outputs/differentiable/macda/windows.json --output outputs/differentiable/neural-seed2 --updates 50 --seed 2 --require-gpu
+.venv/bin/python scripts/run_differentiable_experiments.py calibration --inputs outputs/nautilus-calibration-inputs --manifest outputs/differentiable/macda/windows.json --output outputs/differentiable/calibration --updates 50 --require-gpu
+.venv/bin/python scripts/run_differentiable_experiments.py neural --inputs outputs/nautilus-calibration-inputs --manifest outputs/differentiable/macda/windows.json --output outputs/differentiable/neural-seed0 --updates 50 --seed 0 --require-gpu
+.venv/bin/python scripts/run_differentiable_experiments.py neural --inputs outputs/nautilus-calibration-inputs --manifest outputs/differentiable/macda/windows.json --output outputs/differentiable/neural-seed1 --updates 50 --seed 1 --require-gpu
+.venv/bin/python scripts/run_differentiable_experiments.py neural --inputs outputs/nautilus-calibration-inputs --manifest outputs/differentiable/macda/windows.json --output outputs/differentiable/neural-seed2 --updates 50 --seed 2 --require-gpu
 ```
 
 Start with `--updates 1` and a fresh pilot output on your GPU to measure compile,
@@ -104,7 +104,7 @@ against MACDA is reanalysis calibration, not independent observational validatio
 ## 5. Paired ablations across initial states
 
 ```bash
-rtk proxy .venv/bin/python scripts/run_differentiable_experiments.py ablations --inputs outputs/nautilus-calibration-inputs --manifest outputs/differentiable/macda/windows.json --output outputs/differentiable/ablations --cases no_pbl no_convection no_regolith half_timestep --require-gpu
+.venv/bin/python scripts/run_differentiable_experiments.py ablations --inputs outputs/nautilus-calibration-inputs --manifest outputs/differentiable/macda/windows.json --output outputs/differentiable/ablations --cases no_pbl no_convection no_regolith half_timestep --require-gpu
 ```
 
 Each case resets the same restart and forcing as its paired full run. The full
@@ -121,7 +121,7 @@ layers, timestep and resume. This command explicitly selects all its physical
 processes (`convection` is the cumulative full-physics configuration):
 
 ```bash
-rtk proxy .venv/bin/python scripts/run_gcm3d_ablation.py data/tes/mgs_tes_surface_1deg.nc --output-dir outputs/differentiable/climate-run --config convection --truncation T21 --layers 12 --dt 300 --initial-ls 0 --diurnal --sols 2006 --chunk-sols 5 --cooldown-seconds 0 --ames-dust-reference data/ames/fv3betaout1/ames_surface_reference.nc
+.venv/bin/python scripts/run_gcm3d_ablation.py data/tes/mgs_tes_surface_1deg.nc --output-dir outputs/differentiable/climate-run --config convection --truncation T21 --layers 12 --dt 300 --initial-ls 0 --diurnal --sols 2006 --chunk-sols 5 --cooldown-seconds 0 --ames-dust-reference data/ames/fv3betaout1/ames_surface_reference.nc
 ```
 
 Run on your GPU host and inspect the manifest backend. Resume with the same
@@ -131,7 +131,7 @@ physical configuration differ from the recovery bundle; record that distinction.
 Analyze the resulting checkpoint diagnostics:
 
 ```bash
-rtk proxy .venv/bin/python scripts/analyze_differentiable_experiments.py climate --data outputs/differentiable/climate-run/convection/checkpoint_diagnostics.csv --output outputs/differentiable/climate-analysis
+.venv/bin/python scripts/analyze_differentiable_experiments.py climate --data outputs/differentiable/climate-run/convection/checkpoint_diagnostics.csv --output outputs/differentiable/climate-analysis
 ```
 
 This analyzer requires
@@ -168,8 +168,8 @@ for TES/MCS. Exclude fitting observations and assimilated overlap when claiming
 independence. MOLA and TES boundary maps are not held-out atmospheric truth.
 
 ```bash
-rtk proxy .venv/bin/python scripts/analyze_differentiable_experiments.py observations --data data/validation/matched-observations.csv --metadata data/validation/matched-observations.json --output outputs/differentiable/observations
-rtk proxy .venv/bin/python scripts/analyze_differentiable_experiments.py scaling --data data/validation/matched-resolutions.csv --metadata data/validation/matched-resolutions.json --timing data/validation/timing.csv --output outputs/differentiable/scaling
+.venv/bin/python scripts/analyze_differentiable_experiments.py observations --data data/validation/matched-observations.csv --metadata data/validation/matched-observations.json --output outputs/differentiable/observations
+.venv/bin/python scripts/analyze_differentiable_experiments.py scaling --data data/validation/matched-resolutions.csv --metadata data/validation/matched-resolutions.json --timing data/validation/timing.csv --output outputs/differentiable/scaling
 ```
 
 These paths are user-prepared inputs, not files shipped by this change.
@@ -180,8 +180,8 @@ compilation separately in metadata. Accuracy can use reanalysis if labelled.
 ## 8. Consistent paper figures
 
 ```bash
-rtk proxy env MPLCONFIGDIR=/private/tmp/terraforming-mpl XDG_CACHE_HOME=/private/tmp/terraforming-cache .venv/bin/python iclr-results/figures/make_differentiable_figures.py --runs outputs/differentiable/gradients outputs/differentiable/calibration outputs/differentiable/neural-seed0 outputs/differentiable/ablations --out iclr-results/figures/out
-rtk proxy env MPLCONFIGDIR=/private/tmp/terraforming-mpl XDG_CACHE_HOME=/private/tmp/terraforming-cache .venv/bin/python iclr-results/figures/make_differentiable_figures.py --runs outputs/differentiable/climate-analysis outputs/differentiable/observations outputs/differentiable/scaling --out iclr-results/figures/out
+env MPLCONFIGDIR=/private/tmp/terraforming-mpl XDG_CACHE_HOME=/private/tmp/terraforming-cache .venv/bin/python iclr-results/figures/make_differentiable_figures.py --runs outputs/differentiable/gradients outputs/differentiable/calibration outputs/differentiable/neural-seed0 outputs/differentiable/ablations --out iclr-results/figures/out
+env MPLCONFIGDIR=/private/tmp/terraforming-mpl XDG_CACHE_HOME=/private/tmp/terraforming-cache .venv/bin/python iclr-results/figures/make_differentiable_figures.py --runs outputs/differentiable/climate-analysis outputs/differentiable/observations outputs/differentiable/scaling --out iclr-results/figures/out
 ```
 
 Only include directories whose experiments you have run. The plotter imports
