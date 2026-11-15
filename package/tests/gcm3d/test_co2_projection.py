@@ -246,3 +246,23 @@ def test_spatial_budget_is_rejected_instead_of_broadcast_as_global_mass(model):
     )
     with pytest.raises(ValueError, match="scalar global mass"):
         step(initial)
+
+
+@pytest.mark.parametrize("negative_frost", [False, True])
+def test_pressure_repairs_preserve_passive_tracer_material(model, negative_frost):
+    coords,specs,state=model
+    grid=coords.horizontal
+    tracer=grid.to_modal(jnp.full((4,)+grid.nodal_shape,.001))
+    state=state._replace(dynamics=dataclasses.replace(state.dynamics,
+        tracers={**state.dynamics.tracers, "passive_gas":tracer}))
+    def raw(s):
+        ps=jnp.exp(grid.to_nodal(s.dynamics.log_surface_pressure))
+        return s._replace(co2_ice=s.co2_ice+(-.01 if negative_frost else .01)*ps)
+    raw_state=raw(state)
+    result=jax.jit(positivity_preserving_co2_step(raw,coords,specs))(state)
+    def material(s):
+        pressure=jnp.exp(grid.to_nodal(s.dynamics.log_surface_pressure))
+        q=grid.to_nodal(s.dynamics.tracers["passive_gas"])
+        dsigma=jnp.asarray(np.diff(coords.vertical.boundaries))[:,None,None]
+        return jnp.sum(pressure*q*dsigma*grid.quadrature_weights)
+    np.testing.assert_allclose(material(result),material(raw_state),rtol=2e-12)

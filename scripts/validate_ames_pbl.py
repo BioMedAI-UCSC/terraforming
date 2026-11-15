@@ -199,6 +199,9 @@ def validate(source,compiler):
         source_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         kernel_sha256=hashlib.sha256(Path(__file__).parents[1].joinpath(
             "package/src/framework/physics/ames_pbl.py").read_bytes()).hexdigest(),
+        vertical_solver_sha256=hashlib.sha256(Path(__file__).parents[1].joinpath(
+            "package/src/framework/physics/vertical_solve.py").read_bytes()).hexdigest(),
+        jax_version=jax.__version__,devices=[str(x) for x in jax.devices()],
         limits="gas PBL driver with default switches only; global surface energy coupling and model validation remain pending")
 
 

@@ -13,7 +13,7 @@ def compile_routines(source, expected_blob, names, header, adapter, destination,
     text = raw.decode()
     routines = []
     for name in names:
-        start = re.search(r"(?im)^(?:real\*8\s+)?(subroutine|function)\s+"+
+        start = re.search(r"(?im)^(?:real(?:\*8)?\s+)?(subroutine|function)\s+"+
             re.escape(name)+r"\s*\(",text)
         if start is None:
             raise ValueError(f"missing reference routine {name}")

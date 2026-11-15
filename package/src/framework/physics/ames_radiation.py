@@ -43,7 +43,7 @@ def load_ames_co2_tables_jax() -> dict[str, object]:
     return {
         name: jnp.asarray(value)
         for name, value in load_ames_co2_tables().items()
-        if np.issubdtype(value.dtype, np.number)
+        if np.issubdtype(value.dtype, np.number) and "mixtures" not in name
     }
 
 
@@ -107,3 +107,20 @@ def planck_band_fractions(temperature_k):
     fraction = (t - axis[index]) / (axis[index + 1] - axis[index])
     result = values[index] + fraction[..., None] * (values[index + 1] - values[index])
     return jnp.moveaxis(result, -1, 0)
+
+
+def planck_band_intensities(temperature_k):
+    """Ames absolute W/m2/sr/(cm^-1) means, continuously interpolated in T.
+
+    At the 0.1 K reference nodes this uses setspi's unnormalized integrals.
+    Continuous interpolation replaces the original integer temperature index
+    so gradients reach temperature. Native validation covers 50--900 K.
+    """
+    data=load_ames_co2_tables_jax()
+    axis=data['ames_planck_temperature_k']
+    values=data['ames_planck_intensity_ir']
+    temperature=jnp.asarray(temperature_k)
+    index=jnp.clip(jnp.searchsorted(axis,temperature,side='right')-1,0,axis.size-2)
+    fraction=(temperature-axis[index])/(axis[index+1]-axis[index])
+    intensity=values[index]+fraction[...,None]*(values[index+1]-values[index])
+    return jnp.moveaxis(intensity,-1,0)

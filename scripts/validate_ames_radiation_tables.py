@@ -27,6 +27,9 @@ use iso_c_binding
 implicit none
 integer, parameter :: l_ntref=7,l_npref=11,l_refh2o=10,l_nspecti=5,l_nspectv=7,l_ngauss=17,l_pint=51
 logical :: use_boxinterp12=.true.
+logical :: ames_15band=.false.,use_extended_cor_ks=.false.
+real*8, parameter :: pi=acos(-1.d0)
+real*8 :: wnoi(5),dwni(5),wavei(5),planckir(5,8501)
 real*8 :: co2i(7,51,10,5,17),co2v(7,51,10,7,17),fzeroi(5),fzerov(7),pfgasref(51)
 real*8 :: wrefh2o(10)=[1.d-7,1.d-6,1.d-5,1.d-4,1.d-3,.01d0,.1d0,.2d0,.3d0,.4d0]
 character(len=1024) :: rtdata_path='"""+path+"""'
@@ -43,6 +46,11 @@ enddo
 call laginterp(pg,pfgasref)
 ir=co2i(:,:,:,:,1:16)
 sw=co2v(:,:,:,:,1:16)
+end subroutine
+subroutine ames_planck(values) bind(C)
+real(c_double), intent(out) :: values(5,8501)
+call setspi()
+values=planckir
 end subroutine
 subroutine ames_lookup(t,p,q,ir,sw) bind(C)
 real(c_double), value :: t,p,q
@@ -73,7 +81,7 @@ end module
     jax.config.update("jax_enable_x64",True)
     with tempfile.TemporaryDirectory(prefix="ames-radiation-") as temporary:
         library,provenance=compile_routines(source/"atmos_param_mars/Rad/rtmod_mgcm.F90",
-            RADIATION_BLOB,["laginterp","lagrange","tpindex15","boxinterp"],
+            RADIATION_BLOB,["laginterp","lagrange","tpindex15","boxinterp","setspi"],
             header,adapter,Path(temporary),compiler)
         native=ctypes.CDLL(str(library))
         array=np.ctypeslib.ndpointer(dtype=np.float64,flags="F_CONTIGUOUS")
@@ -82,6 +90,11 @@ end module
         ir=np.empty((7,51,10,5,16),order="F")
         sw=np.empty((7,51,10,7,16),order="F")
         native.ames_tables(ir,sw)
+        native.ames_planck.argtypes=[array];native.ames_planck.restype=None
+        planck=np.empty((5,8501),order='F')
+        native.ames_planck(planck)
+        np.testing.assert_allclose(data['ames_planck_intensity_ir'],planck.T,rtol=2e-12,atol=2e-15)
+        planck_error=float(np.max(np.abs(data['ames_planck_intensity_ir']-planck.T)))
         table_errors={}
         for kind,actual in (("ir",ir),("sw",sw)):
             staged=data[f"log10_k_{kind}_mixtures_ames"]
@@ -99,9 +112,15 @@ end module
                 max_lookup_errors[kind]=max(max_lookup_errors[kind],float(np.max(np.abs(actual-reference))))
     return dict(status="pass",reference=provenance,max_log10_table_errors=table_errors,
         max_log10_lookup_errors=max_lookup_errors,lookup_cases=100,
+        max_planck_intensity_error=planck_error,
         source_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         stage_sha256=hashlib.sha256(Path(__file__).with_name('stage_ames_co2_radiation.py').read_bytes()).hexdigest(),
-        limits="12-band gas-table preparation and dry-mixture lookup only; radiative transfer and cloud feedback require separate validation")
+        kernel_sha256=hashlib.sha256(Path(__file__).parents[1].joinpath(
+            'package/src/framework/physics/ames_radiation.py').read_bytes()).hexdigest(),
+        asset_sha256=hashlib.sha256(Path(__file__).parents[1].joinpath(
+            'package/src/framework/physics/ames_co2_12band.npz').read_bytes()).hexdigest(),
+        jax_version=jax.__version__,devices=[str(x) for x in jax.devices()],
+        limits="12-band gas tables, dry lookup and Planck nodes only; continuous Planck interpolation is a differentiability adaptation; coupled radiation and cloud feedback need separate validation")
 
 
 def main():

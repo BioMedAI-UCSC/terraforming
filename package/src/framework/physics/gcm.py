@@ -1962,14 +1962,14 @@ def project_co2_reservoirs(state: ColumnPhysicsState, coords, specs):
             lambda _: grid.to_modal(jnp.log(ps_pa / pressure_scale)),
             lambda _: state.dynamics.log_surface_pressure, operand=None),
     )
+    if dynamics.tracers:
+        tracers={name:jax.lax.cond(jnp.any(deficit_pa>0.),
+            lambda value:grid.to_modal(grid.to_nodal(value)*ps_nd/(ps_pa/pressure_scale)),
+            lambda value:value,value) for name,value in dynamics.tracers.items()}
+        dynamics=dataclasses.replace(dynamics,tracers=tracers)
     from src.framework.physics.co2_clouds import CO2_CLOUD_TRACER
     if CO2_CLOUD_TRACER in dynamics.tracers:
-        original = dynamics.tracers[CO2_CLOUD_TRACER]
-        cloud = grid.to_nodal(original)
-        # A gas-carrier change must preserve cloud burden, not mixing ratio.
-        cloud = jax.lax.cond(jnp.any(deficit_pa > 0.),
-            lambda _: grid.to_modal(cloud * ps_nd / (ps_pa / pressure_scale)),
-            lambda _: original, operand=None)
+        cloud = dynamics.tracers[CO2_CLOUD_TRACER]
         nodal = grid.to_nodal(cloud)
         weights = jnp.asarray(grid.quadrature_weights) * ps_pa[0]
         mean = jnp.sum(nodal * weights, axis=(-2, -1), keepdims=True) / jnp.sum(weights)
@@ -2184,10 +2184,9 @@ def positivity_preserving_co2_step(
                 projected.dynamics.log_surface_pressure + log_factor * uniform_log_pressure
             ),
         )
-        from src.framework.physics.co2_clouds import CO2_CLOUD_TRACER
-        if CO2_CLOUD_TRACER in corrected.tracers:
-            corrected = dataclasses.replace(corrected, tracers={**corrected.tracers,
-                CO2_CLOUD_TRACER: corrected.tracers[CO2_CLOUD_TRACER] / pressure_factor})
+        if corrected.tracers:
+            corrected = dataclasses.replace(corrected,
+                tracers={name:value/pressure_factor for name,value in corrected.tracers.items()})
         final = projected._replace(dynamics=corrected)
         if not return_diagnostics:
             return final

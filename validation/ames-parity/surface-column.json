@@ -1,0 +1,160 @@
+{
+  "status": "pass",
+  "reference": {
+    "source_git_blob": "aca56974025103ab408ecf866cc78b25779fc469",
+    "compiled_source_sha256": "6e16c4d6776f1996942d78b0a35c3374289e5d30c2422d38378c28630d01ec17",
+    "routine_sha256": {
+      "progts": "7e601fd57399c056f315d17e18a856a7030a0c25e4cb67e8342851a985817510",
+      "trdslv": "d07cc6aa1fa368a7f5592c75df9f3ba2a102ab0b1066d0efbe1d4e833b5130a0",
+      "icedepth": "7c36d99c69d1c782b7602f4b983f6a057dbd2d9a3245690eab99f510cea8571e",
+      "albedo_calc": "55e85f91ec407cd4e492c156e01bbe443a6b9d63fea959f89f1e50ec049eb2e4"
+    },
+    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+    "compiler_flags": [
+      "-O3",
+      "-cpp",
+      "-fdefault-real-8",
+      "-fdefault-double-8",
+      "-fPIC",
+      "-shared"
+    ],
+    "real_precision_bits": 64,
+    "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged"
+  },
+  "cases": [
+    {
+      "layers": 4,
+      "case": "bare-warming",
+      "max_soil_error_k": 2.842170943040401e-14,
+      "ice_error_kg_m2": 0.0,
+      "final_surface_temperature_k": 203.28270929799092,
+      "co2_phase_change_kg_m2": 0.0,
+      "frost_retry": false
+    },
+    {
+      "layers": 4,
+      "case": "bare-cooling",
+      "max_soil_error_k": 2.842170943040401e-14,
+      "ice_error_kg_m2": 0.0,
+      "final_surface_temperature_k": 156.1185995050407,
+      "co2_phase_change_kg_m2": 0.0,
+      "frost_retry": false
+    },
+    {
+      "layers": 4,
+      "case": "new-frost",
+      "max_soil_error_k": 2.842170943040401e-14,
+      "ice_error_kg_m2": 0.0,
+      "final_surface_temperature_k": 147.73982484905562,
+      "co2_phase_change_kg_m2": 0.014165658263889895,
+      "frost_retry": true
+    },
+    {
+      "layers": 4,
+      "case": "frost-cooling",
+      "max_soil_error_k": 2.842170943040401e-14,
+      "ice_error_kg_m2": 0.0,
+      "final_surface_temperature_k": 147.73982484905562,
+      "co2_phase_change_kg_m2": 0.012227953678007105,
+      "frost_retry": false
+    },
+    {
+      "layers": 4,
+      "case": "frost-sublimation",
+      "max_soil_error_k": 2.842170943040401e-14,
+      "ice_error_kg_m2": 0.0,
+      "final_surface_temperature_k": 147.73982484905562,
+      "co2_phase_change_kg_m2": -0.03861950394911154,
+      "frost_retry": false
+    },
+    {
+      "layers": 4,
+      "case": "frost-exhausted",
+      "max_soil_error_k": 0.0,
+      "ice_error_kg_m2": 0.0,
+      "final_surface_temperature_k": 150.71203341387198,
+      "co2_phase_change_kg_m2": -0.001,
+      "frost_retry": false
+    },
+    {
+      "layers": 4,
+      "case": "warm-precipitated-frost",
+      "max_soil_error_k": 0.0,
+      "ice_error_kg_m2": 0.0,
+      "final_surface_temperature_k": 147.73982484905562,
+      "co2_phase_change_kg_m2": -0.025301065469288134,
+      "frost_retry": false
+    },
+    {
+      "layers": 16,
+      "case": "bare-warming",
+      "max_soil_error_k": 5.684341886080802e-14,
+      "ice_error_kg_m2": 0.0,
+      "final_surface_temperature_k": 205.23846920600258,
+      "co2_phase_change_kg_m2": 0.0,
+      "frost_retry": false
+    },
+    {
+      "layers": 16,
+      "case": "bare-cooling",
+      "max_soil_error_k": 5.684341886080802e-14,
+      "ice_error_kg_m2": 0.0,
+      "final_surface_temperature_k": 157.76188928657632,
+      "co2_phase_change_kg_m2": 0.0,
+      "frost_retry": false
+    },
+    {
+      "layers": 16,
+      "case": "new-frost",
+      "max_soil_error_k": 2.842170943040401e-14,
+      "ice_error_kg_m2": 0.0,
+      "final_surface_temperature_k": 147.73982484905562,
+      "co2_phase_change_kg_m2": 0.014165658263889895,
+      "frost_retry": true
+    },
+    {
+      "layers": 16,
+      "case": "frost-cooling",
+      "max_soil_error_k": 2.842170943040401e-14,
+      "ice_error_kg_m2": 0.0,
+      "final_surface_temperature_k": 147.73982484905562,
+      "co2_phase_change_kg_m2": 0.012227953678007105,
+      "frost_retry": false
+    },
+    {
+      "layers": 16,
+      "case": "frost-sublimation",
+      "max_soil_error_k": 2.842170943040401e-14,
+      "ice_error_kg_m2": 0.0,
+      "final_surface_temperature_k": 147.73982484905562,
+      "co2_phase_change_kg_m2": -0.03861950394911154,
+      "frost_retry": false
+    },
+    {
+      "layers": 16,
+      "case": "frost-exhausted",
+      "max_soil_error_k": 2.842170943040401e-14,
+      "ice_error_kg_m2": 0.0,
+      "final_surface_temperature_k": 152.24960422806635,
+      "co2_phase_change_kg_m2": -0.001,
+      "frost_retry": false
+    },
+    {
+      "layers": 16,
+      "case": "warm-precipitated-frost",
+      "max_soil_error_k": 5.684341886080802e-14,
+      "ice_error_kg_m2": 0.0,
+      "final_surface_temperature_k": 147.73982484905562,
+      "co2_phase_change_kg_m2": -0.025301065469288134,
+      "frost_retry": false
+    }
+  ],
+  "source_sha256": "991444c005c6486caa86e74f2a6fb14c7423c097740501cfebe696a4ec43bad7",
+  "kernel_sha256": "53e240f347c10292936ac48b921c5ade132797ce1c02cfd7bcdbb86c403e6e51",
+  "vertical_solver_sha256": "8b825bfbba3957709b9ab4e85847773938f8ad8efa8c73ff13a5c56563de62d7",
+  "jax_version": "0.11.0",
+  "devices": [
+    "cpu:0"
+  ],
+  "limits": "uniform soil-property surface/frost column cases; mapped subsurface-ice preparation and global PBL/radiation coupling remain pending"
+}

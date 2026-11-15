@@ -104,3 +104,19 @@ def test_native_pressure_grid_changes_off_grid_opacity_and_preserves_gradients()
     for eps in (1e-4,1e-5,1e-6):
         finite=(objective(1.+eps)-objective(1.-eps))/(2.*eps)
         np.testing.assert_allclose(auto,finite,rtol=2e-7,atol=1e-7)
+
+
+def test_absolute_planck_nodes_units_and_reverse_derivative():
+    data=ames_radiation.load_ames_co2_tables()
+    for temperature in (50.,150.,250.,350.,900.):
+        index=int(round((temperature-50.)*10.))
+        actual=ames_radiation.planck_band_intensities(temperature)
+        np.testing.assert_allclose(actual,data['ames_planck_intensity_ir'][index],rtol=2e-14,atol=2e-15)
+    def integrated(temperature):
+        return jnp.sum(ames_radiation.planck_band_intensities(temperature)*
+            jnp.asarray(np.diff(data['ir_bounds_cm1'])))*jnp.pi
+    assert 50.<float(integrated(250.))<500.
+    auto=jax.grad(integrated)(250.05)
+    for eps in (1e-4,1e-5,1e-6):
+        finite=(integrated(250.05+eps)-integrated(250.05-eps))/(2.*eps)
+        np.testing.assert_allclose(auto,finite,rtol=2e-7)

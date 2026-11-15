@@ -28,10 +28,10 @@
         "v_ms": 2.842170943040401e-14,
         "tracer_ratio": 2.168404344971009e-19
       },
-      "native_seconds": 0.0008236458525061607,
-      "jax_seconds": 0.0008761666482314468,
-      "native_over_jax_speed_ratio": 0.9400561573174465,
-      "first_jax_call_seconds": 0.12616654206067324
+      "native_seconds": 0.0016639000037685036,
+      "jax_seconds": 0.0010653729550540447,
+      "native_over_jax_speed_ratio": 1.5618004904996827,
+      "first_jax_call_seconds": 0.21506237518042326
     },
     {
       "case": "unstable",
@@ -41,10 +41,10 @@
         "v_ms": 3.197442310920451e-14,
         "tracer_ratio": 2.710505431213761e-19
       },
-      "native_seconds": 0.004139433312229812,
-      "jax_seconds": 0.001072166650556028,
-      "native_over_jax_speed_ratio": 3.8608114793377437,
-      "first_jax_call_seconds": 0.001208208967000246
+      "native_seconds": 0.004449843754991889,
+      "jax_seconds": 0.001296691643074155,
+      "native_over_jax_speed_ratio": 3.4316900079978474,
+      "first_jax_call_seconds": 0.0012899585999548435
     },
     {
       "case": "mixed",
@@ -54,10 +54,10 @@
         "v_ms": 2.842170943040401e-14,
         "tracer_ratio": 3.2526065174565133e-19
       },
-      "native_seconds": 0.0030124603770673277,
-      "jax_seconds": 0.0015983333345502616,
-      "native_over_jax_speed_ratio": 1.884751016542474,
-      "first_jax_call_seconds": 0.0017224578186869621
+      "native_seconds": 0.003168554208241403,
+      "jax_seconds": 0.002017166651785374,
+      "native_over_jax_speed_ratio": 1.570794463331499,
+      "first_jax_call_seconds": 0.002601624932140112
     },
     {
       "case": "nonuniform",
@@ -67,20 +67,29 @@
         "v_ms": 2.842170943040401e-14,
         "tracer_ratio": 3.2526065174565133e-19
       },
-      "native_seconds": 0.0027870562626048923,
-      "jax_seconds": 0.0016285582911223172,
-      "native_over_jax_speed_ratio": 1.711364142013117,
-      "first_jax_call_seconds": 0.0016183331608772278
+      "native_seconds": 0.0030611458700150252,
+      "jax_seconds": 0.0020784478867426513,
+      "native_over_jax_speed_ratio": 1.472803763587482,
+      "first_jax_call_seconds": 0.0017871246673166752
     }
   ],
-  "source_sha256": "8253d0a83bdc5b0bf1c335c69a882c29645584e31da4953863b164ab50940429",
+  "source_sha256": "4c7798b25a73ece249922bd9d2f21f878339b980536e6729f24fa90eba182998",
   "kernel_sha256": "11d8f2284b7e95cbb38064400c6e284913599f9a7cc9d3a349f7093f60ecf162",
   "columns": 2048,
   "layers": 40,
   "repeats": 20,
   "constants": {
-    "gas_constant_j_kg_k": 189.02,
-    "cp_j_kg_k": 735.94,
+    "body": {
+      "name": "Mars",
+      "radius_m": 3386000.0,
+      "gravity_m_s2": 3.72,
+      "rotation_period_s": 88642.88969244076,
+      "gas_constant_j_kg_k": 189.02,
+      "cp_j_kg_k": 735.94,
+      "reference_temperature_k": 200.0,
+      "reference_surface_pressure_pa": 610.0,
+      "solar_day_s": 88704.0
+    },
     "source": "Ames v3.2.1 patches/srcFMS.patch"
   },
   "platform": "macOS-26.6.2-arm64-arm-64bit",

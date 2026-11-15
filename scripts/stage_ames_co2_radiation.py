@@ -98,6 +98,29 @@ def _planck_fractions() -> tuple[np.ndarray, np.ndarray]:
     return temperatures, values
 
 
+def ames_planck_intensities():
+    """Absolute Planck band means from Ames setspi's 12-point quadrature."""
+    temperatures=np.arange(500,9001,dtype=np.float64)/10.
+    nodes=np.array([-.981560634246719,-.904117256370475,-.769902674194305,
+        -.587317954286617,-.367831498998180,-.125233408511469,
+        .125233408511469,.367831498998180,.587317954286617,
+        .769902674194305,.904117256370475,.981560634246719])
+    weights=np.array([.047175336386512,.106939325995318,.160078328543346,
+        .203167426723066,.233492536538355,.249147045813403,
+        .249147045813403,.233492536538355,.203167426723066,
+        .160078328543346,.106939325995318,.047175336386512])
+    values=np.empty((len(temperatures),5))
+    for band,(lo,hi) in enumerate(zip(IR_BOUNDS_CM1[:-1],IR_BOUNDS_CM1[1:],strict=True)):
+        a,b=1.e-2/hi,1.e-2/lo
+        bpa,bma=(b+a)/2.,(b-a)/2.
+        ans=np.zeros_like(temperatures)
+        for node,weight in zip(nodes,weights,strict=True):
+            y=bma*node+bpa
+            ans+=weight*3.741832e-16/(y**5*(np.exp(1.438786e-2/(y*temperatures))-1.))
+        values[:,band]=ans*bma/(np.pi*(hi-lo))
+    return temperatures,values
+
+
 def main() -> None:
     root = Path(__file__).resolve().parents[1]
     parser = argparse.ArgumentParser()
@@ -112,6 +135,7 @@ def main() -> None:
     ir, ir_clear = decode(ir_path, 5)
     sw, sw_clear = decode(sw_path, 7)
     planck_t, planck_fraction = _planck_fractions()
+    ames_planck_t,ames_planck=ames_planck_intensities()
     args.output.parent.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(
         args.output,
@@ -131,6 +155,8 @@ def main() -> None:
         pressure_mbar=P_REF_MBAR,
         planck_temperature_k=planck_t,
         planck_fraction_ir=planck_fraction,
+        ames_planck_temperature_k=ames_planck_t,
+        ames_planck_intensity_ir=ames_planck,
         ir_bounds_cm1=IR_BOUNDS_CM1,
         source_ir_sha256=hashlib.sha256(ir_path.read_bytes()).hexdigest(),
         source_sw_sha256=hashlib.sha256(sw_path.read_bytes()).hexdigest(),

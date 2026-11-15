@@ -1,0 +1,282 @@
+{
+  "status": "pass",
+  "reference": {
+    "source_git_blob": "40d8879c3735bbec6cabc63817cad5220f281532",
+    "compiled_source_sha256": "f48f4901cca2fa12a2473710c361c2290c2e5b91ecfdbf49a990682c57195bf3",
+    "routine_sha256": {
+      "fillpt": "92f19bb77d974a418d4cf255cd1ce21a099dd3c88741efd2fda6d292b261f0b0",
+      "dsolver": "89a0b9599cd1c639a160089b221a78eb889eb8b2e10760786e3cb6d8547dc3b4",
+      "dtridgl": "d1075d42213408c12420612f5f79b35634d022de1b29a995934489e8aef1cc21",
+      "gfluxv": "8c4339adf78c246b66dcfb5936b7c6cde04ff610c05ea34879eaf4d61ebecb5f",
+      "gfluxi": "80a6a23ae64878b9b18751443e4ce10585e391c24945fb1d88cdc9ba08f1162d"
+    },
+    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+    "compiler_flags": [
+      "-O3",
+      "-cpp",
+      "-fdefault-real-8",
+      "-fdefault-double-8",
+      "-fPIC",
+      "-shared"
+    ],
+    "real_precision_bits": 64,
+    "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged"
+  },
+  "cases": [
+    {
+      "layers": 1,
+      "case": "thin",
+      "infrared_max_errors": [
+        0.0,
+        7.143157593203497e-13,
+        0.0
+      ],
+      "visible_max_errors": [
+        1.7763568394002505e-15,
+        7.105427357601002e-15,
+        1.7763568394002505e-15,
+        0.0,
+        2.9923979960599922e-15,
+        0.0
+      ]
+    },
+    {
+      "layers": 1,
+      "case": "moderate",
+      "infrared_max_errors": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "visible_max_errors": [
+        1.7763568394002505e-15,
+        7.105427357601002e-15,
+        1.7763568394002505e-15,
+        0.0,
+        2.220446049250313e-15,
+        0.0
+      ]
+    },
+    {
+      "layers": 1,
+      "case": "thick",
+      "infrared_max_errors": [
+        1.1102230246251565e-16,
+        0.0,
+        0.0
+      ],
+      "visible_max_errors": [
+        1.3766765505351941e-14,
+        1.2434497875801753e-14,
+        1.7763568394002505e-14,
+        0.0,
+        1.2434497875801753e-14,
+        0.0
+      ]
+    },
+    {
+      "layers": 4,
+      "case": "thin",
+      "infrared_max_errors": [
+        2.6789681584205027e-13,
+        3.5715787966017487e-13,
+        7.143174940438257e-13
+      ],
+      "visible_max_errors": [
+        2.6645352591003757e-14,
+        2.1316282072803006e-14,
+        1.5987211554602254e-14,
+        7.105427357601002e-15,
+        6.25888230132432e-15,
+        0.0
+      ]
+    },
+    {
+      "layers": 4,
+      "case": "moderate",
+      "infrared_max_errors": [
+        4.440892098500626e-16,
+        5.238864897449957e-16,
+        4.440892098500626e-16
+      ],
+      "visible_max_errors": [
+        4.973799150320701e-14,
+        1.4210854715202004e-14,
+        4.796163466380676e-14,
+        1.4210854715202004e-14,
+        6.217248937900877e-15,
+        0.0
+      ]
+    },
+    {
+      "layers": 4,
+      "case": "thick",
+      "infrared_max_errors": [
+        1.6653345369377348e-16,
+        1.1102230246251565e-16,
+        0.0
+      ],
+      "visible_max_errors": [
+        3.552713678800501e-15,
+        1.1102230246251565e-16,
+        2.7533531010703882e-14,
+        0.0,
+        1.2197274440461925e-19,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "case": "thin",
+      "infrared_max_errors": [
+        1.7852386235972517e-13,
+        3.571570122984369e-13,
+        1.340039190722564e-13
+      ],
+      "visible_max_errors": [
+        7.283063041541027e-14,
+        1.0658141036401503e-13,
+        4.440892098500626e-14,
+        7.105427357601002e-15,
+        3.8420655545934324e-14,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "case": "moderate",
+      "infrared_max_errors": [
+        9.992007221626409e-16,
+        2.7755575615628914e-16,
+        7.771561172376096e-16
+      ],
+      "visible_max_errors": [
+        8.970602038971265e-14,
+        4.263256414560601e-14,
+        2.4780177909633494e-13,
+        5.684341886080802e-14,
+        8.881784197001252e-16,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "case": "thick",
+      "infrared_max_errors": [
+        1.6653345369377348e-16,
+        1.1102230246251565e-16,
+        0.0
+      ],
+      "visible_max_errors": [
+        4.773959005888173e-15,
+        1.0658141036401503e-14,
+        3.552713678800501e-15,
+        0.0,
+        5.048709793414476e-29,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "case": "thin",
+      "infrared_max_errors": [
+        2.120525977034049e-13,
+        1.3393453013321732e-13,
+        2.0083934515469082e-13
+      ],
+      "visible_max_errors": [
+        1.865174681370263e-13,
+        1.2079226507921703e-13,
+        1.2789769243681803e-13,
+        1.4210854715202004e-14,
+        8.770761894538737e-14,
+        1.3010426069826053e-18
+      ]
+    },
+    {
+      "layers": 40,
+      "case": "moderate",
+      "infrared_max_errors": [
+        3.3306690738754696e-16,
+        1.942890293094024e-16,
+        0.0
+      ],
+      "visible_max_errors": [
+        2.3359092438113294e-13,
+        5.684341886080802e-14,
+        1.723066134218243e-13,
+        2.842170943040401e-14,
+        2.886579864025407e-15,
+        4.440892098500626e-16
+      ]
+    },
+    {
+      "layers": 40,
+      "case": "thick",
+      "infrared_max_errors": [
+        1.1102230246251565e-16,
+        2.220446049250313e-16,
+        5.551115123125783e-17
+      ],
+      "visible_max_errors": [
+        4.107825191113079e-14,
+        1.7763568394002505e-15,
+        4.440892098500626e-15,
+        1.4210854715202004e-14,
+        6.310887241768095e-30,
+        2.842170943040401e-14
+      ]
+    }
+  ],
+  "radiation_grid_cases": [
+    {
+      "layers": 1,
+      "max_absolute_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 4,
+      "max_absolute_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "max_absolute_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "max_absolute_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  ],
+  "radiation_grid_sha256": "97ba50fef404413ef599eb9994aece9b80278f1d200178f1f1f2e732912c7dab",
+  "source_sha256": "678b73a0feae05cbc4e565e0a5fac0efb02e1e71756642b99a5493d0c46568a5",
+  "kernel_sha256": "2f2d5d3a8cf9392205051e10cd25401b01301fbc8bd36ce9e92f8d7fb7e9495c",
+  "vertical_solver_sha256": "8b825bfbba3957709b9ab4e85847773938f8ad8efa8c73ff13a5c56563de62d7",
+  "jax_version": "0.11.0",
+  "devices": [
+    "cpu:0"
+  ],
+  "limits": "gfluxv/gfluxi with supplied optical/Planck arrays; full radiation driver and coupled global validation remain pending"
+}

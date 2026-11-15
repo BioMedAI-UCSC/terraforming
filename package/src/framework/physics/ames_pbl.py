@@ -150,6 +150,8 @@ def column_step(temperature,u,v,tracers,pressure_half,pressure_full,surface_temp
     stress_x=stress_factor*u[-1]
     stress_y=stress_factor*v[-1]
     diagnostics=dict(heat_flux_w_m2=heat_flux,stress_x_pa=stress_x,stress_y_pa=stress_y,
+        heat_flux_surface_derivative_w_m2_k=rho_surface*cp*cdh*ustar,
+        heat_flux_atmosphere_derivative_w_m2_k=-rho_surface*cp*cdh*ustar/exner[-1],
         heat_diffusivity_m2_s=kh,momentum_diffusivity_m2_s=km,
         surface_heat_coefficient=cdh,surface_momentum_coefficient=cdm,
         friction_velocity_ms=ustar,temperature_scale_k=thstar,

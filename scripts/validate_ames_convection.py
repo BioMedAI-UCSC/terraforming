@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import ctypes
+import dataclasses
 import hashlib
 import json
 import platform
@@ -14,6 +15,7 @@ import time
 import numpy as np
 from src.framework.gcm._dinosaur import jax
 from src.framework.physics.ames_convection import pass2
+from src.celestials.planets.mars.ames import AMES_BODY_3D
 from ames_reference import compile_routines
 
 
@@ -109,7 +111,7 @@ def main():
                      else np.linspace(180.,280.,n)[:,None])
             if name in ("mixed", "nonuniform"):
                 theta = rng.uniform(160.,300.,(n,c))
-            kappa = 189.02/735.94
+            kappa = AMES_BODY_3D.kappa
             t = theta * ((sigma[:-1]+sigma[1:])*.5)[:,None]**kappa
             u, v = rng.normal(0.,50.,(2,n,c))
             r = rng.uniform(0.,1e-3,(n,c,3))
@@ -147,8 +149,7 @@ def main():
         kernel_sha256=hashlib.sha256(Path(__file__).parents[1].joinpath(
             "package/src/framework/physics/ames_convection.py").read_bytes()).hexdigest(),
         columns=args.columns,layers=args.layers,repeats=args.repeats,
-        constants=dict(gas_constant_j_kg_k=189.02,cp_j_kg_k=735.94,
-            source="Ames v3.2.1 patches/srcFMS.patch"),
+        constants=dict(body=dataclasses.asdict(AMES_BODY_3D),source="Ames v3.2.1 patches/srcFMS.patch"),
         platform=platform.platform(),jax_version=jax.__version__,
         devices=[str(x) for x in jax.devices()],
         limits="pass2 kernel only; FP64 tolerance agreement, not bitwise identity or whole-model climate/speed equivalence")

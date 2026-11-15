@@ -187,7 +187,12 @@
       }
     }
   ],
-  "source_sha256": "ca7e113990aa978d5ac7e38da0c386c281032eb129540331c4936f5623585bc5",
-  "kernel_sha256": "6d5e49da9511d249f2651c954ad912d29a8b0a988c52a6b8507aa80e23f42dcc",
+  "source_sha256": "718a7551d88559df167d7226d0a44a5b5e6227fee688644906baf43be87ba40e",
+  "kernel_sha256": "ae0eee4fc7d15fd7c43f41c78c5f4aac445d1cfc8b112c1a93ed6e93f66ef2f4",
+  "vertical_solver_sha256": "8b825bfbba3957709b9ab4e85847773938f8ad8efa8c73ff13a5c56563de62d7",
+  "jax_version": "0.11.0",
+  "devices": [
+    "cpu:0"
+  ],
   "limits": "gas PBL driver with default switches only; global surface energy coupling and model validation remain pending"
 }
