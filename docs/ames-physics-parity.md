@@ -21,7 +21,8 @@ No complete-model equivalence or speed claim has passed yet.
 | Radiation pressure-table staging | `stage_ames_co2_radiation.ames_pressure_interpolation` | Original `laginterp` and `lagrange`; all ten gas mixtures match exactly in the recorded run | Enabled in the existing correlated-k kernel |
 | Radiation dry-table lookup | `ames_radiation._interp2_log_table` on the refined pressure grid | Original `tpindex15` and `boxinterp`; 100 temperature/pressure points, including values outside the tables | Enabled in the existing correlated-k kernel |
 | Two-stream flux kernels | `ames_twostream.visible_fluxes` and `infrared_fluxes` | Original `gfluxv`, `gfluxi`, `dsolver`, `dtridgl`; 1/4/12/40-layer thin/moderate/thick columns | Full optical-depth/subgrid driver integration remains pending |
-| Radiation pressure/temperature grid | `ames_radiation_grid.radiation_grid` | Original `fillpt`; all output arrays agree exactly in the recorded 1/4/12/40-layer cases | Positive top pressure is explicit; Dinosaur's zero-pressure-top adaptation remains pending |
+| Radiation pressure/temperature grid | `ames_radiation_grid.radiation_grid` | Original `fillpt`; all output arrays agree exactly in the recorded 1/4/12/40-layer cases, with positive and zero top pressure | Supports Dinosaur's zero top without adding ghost mass or a pressure floor |
+| Spectral flux integration | `ames_spectral.visible_spectrum` and `infrared_spectrum` | Original `sfluxv`, `sfluxi`, `getdetau` and flux solvers; 27 cases with weak/mixed/strong gas opacity, including both surface-emission scaling settings; flux errors below 5e-12 W/m2 | Requires supplied optical depths, scattering and gas-column opacities; optical aggregation remains pending |
 | Absolute Planck means | `ames_radiation.planck_band_intensities` | Original `setspi`; 50--900 K at 0.1 K nodes | Continuous interpolation preserves temperature derivatives; original integer indexing does not |
 | Soil/surface frost column | `ames_surface.surface_step` | Original `progts`, `trdslv`, `albedo_calc`; seven warming/cooling/phase cases at 4 and 16 soil nodes | Connected to PBL in the experimental backend; mapped soil properties remain pending |
 | Immediate CO2 deposition | `ames_co2.simple_condensation` | Original `co2_condense`, followed by original `pass2` in the coupled column check | Enabled in the experimental backend; suspended-cloud mode remains separate |
@@ -76,8 +77,8 @@ interpolation is the explicit change that replaces the source's integer indexing
 | --- | --- |
 | Constants and calendar | `AMES_BODY_3D` explicitly provides R=189.02, cp=735.94, g=3.72, radius=3386000 m, omega=7.0882e-5/s and model sol=88704 s. Match orbital/calendar settings; keep the old framework defaults for existing runs. |
 | PBL/surface coupling | Column coupling and a three-step Dinosaur gradient check pass. Validate global surface/air energy and ground momentum exchanges; select gas and particle tracers explicitly. |
-| Radiation transfer | Connect verified visible delta-Eddington/quadrature and infrared hemispheric solvers to the full optical-depth aggregation, radiative subgrid and surface boundary. |
-| Thermal emission | Connect verified absolute Planck integrals to the full driver; retain explicit documentation of continuous interpolation replacing the integer temperature lookup. |
+| Radiation transfer | The subgrid, flux solvers and spectral integration are verified. Complete native optical-depth aggregation and connect the resulting radiation driver to Dinosaur. |
+| Thermal emission | Absolute Planck means are connected to spectral integration. Complete the full driver; retain explicit documentation of continuous interpolation replacing the integer temperature lookup. |
 | Dust and cloud opacity | Match prescribed dust, Rayleigh scattering, CO2/water cloud optics, radii, particle distributions and radiation feedback. |
 | Soil and frost | Connect the verified Ames grid and ground/frost solve to mapped surface/subsurface-ice properties, then compare diurnal and seasonal response. |
 | CO2 modes | The simple immediate-deposition column matches the reference. Port and compare optional suspended-cloud microphysics separately. Existing conservative finite-settling code is not an exact port of either. |
@@ -106,6 +107,8 @@ rtk proxy env PYTHONPATH=package:. python scripts/validate_ames_radiation_tables
   --ames-source /path/to/AmesGCM --output outputs/ames-parity/radiation-tables.json
 rtk proxy env PYTHONPATH=package:. python scripts/validate_ames_twostream.py \
   --ames-source /path/to/AmesGCM --output outputs/ames-parity/two-stream.json
+rtk proxy env PYTHONPATH=package:. python scripts/validate_ames_spectral.py \
+  --ames-source /path/to/AmesGCM --output outputs/ames-parity/spectral.json
 rtk proxy env PYTHONPATH=package:. python scripts/validate_ames_surface.py \
   --ames-source /path/to/AmesGCM --output outputs/ames-parity/surface.json
 rtk proxy env PYTHONPATH=package:. python scripts/validate_ames_column.py \
@@ -114,6 +117,13 @@ rtk proxy env PYTHONPATH=package:. python scripts/validate_ames_column.py \
 
 Small recorded reports are in `validation/ames-parity/`. Local CPU timing is
 kernel evidence only. It does not establish GPU or whole-model performance.
+
+Local validation for this checkpoint: the full Python suite passed 658 tests
+with 4 skips, including its slow tests. After the later spectral integration and
+zero-top additions, the affected radiation tests passed 18 tests from `package/`
+without a repository-root PYTHONPATH. This also checks the import path used by CI.
+The seven native reports have been checked against the current source and asset
+hashes. These are implementation checks, not held-out climate-accuracy results.
 
 NASA-derived algorithms remain subject to the [NASA Open Source Agreement
 1.3](../iclr-results/06-co2-physics/ames-reference/NOSA.pdf). The source notices

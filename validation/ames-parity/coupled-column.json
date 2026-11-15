@@ -262,7 +262,8 @@
     "ames_twostream.py": "2f2d5d3a8cf9392205051e10cd25401b01301fbc8bd36ce9e92f8d7fb7e9495c",
     "ames_pbl.py": "ae0eee4fc7d15fd7c43f41c78c5f4aac445d1cfc8b112c1a93ed6e93f66ef2f4",
     "ames_co2.py": "a018b832c9b81ad29a5aee4f3cf83b94fe992506da66f5101408161bd689cc9e",
-    "ames_radiation_grid.py": "97ba50fef404413ef599eb9994aece9b80278f1d200178f1f1f2e732912c7dab",
+    "ames_radiation_grid.py": "7c0cd095eb863e6ec612a79f90f9ad7c2d17a00584eb4d3d46f7aba0a56d424f",
+    "ames_spectral.py": "9b679821fdffb774a934e4de2c51707f03aaef78e49512888328b244a3a796fc",
     "ames_convection.py": "11d8f2284b7e95cbb38064400c6e284913599f9a7cc9d3a349f7093f60ecf162",
     "ames_backend.py": "5acd11c9d8a5ed9bc43930d76d982bd590d780967c16c6375e27ac789fa0820b",
     "ames_column.py": "c971a4079eb40eb46987e0b38839b67647f3fea1a026d303907cbb213d8f1925"

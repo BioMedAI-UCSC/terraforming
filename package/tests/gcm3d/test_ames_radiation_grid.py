@@ -21,9 +21,10 @@ def test_reference_interleaving_interface_temperature_and_lookup_nodes():
     np.testing.assert_allclose(grid.lookup_temperature[2:4],150.)
 
 
-def test_grid_pressure_and_temperature_reverse_derivatives():
+@pytest.mark.parametrize('top',[0.,.01])
+def test_grid_pressure_and_temperature_reverse_derivatives(top):
     def objective(scale):
-        grid=radiation_grid(jnp.array([.01,1.,3.,6.])*scale,
+        grid=radiation_grid(jnp.array([top,1.,3.,6.])*scale,
             jnp.array([.3,2.,4.5])*scale,jnp.array([150.,180.,210.])*scale,220.*scale)
         return sum(jnp.sum(x) for x in grid)
     auto=jax.jit(jax.grad(objective))(1.)
@@ -31,8 +32,12 @@ def test_grid_pressure_and_temperature_reverse_derivatives():
     np.testing.assert_allclose(auto,finite,rtol=1e-8)
 
 
-def test_zero_top_requires_explicit_backend_adaptation():
+def test_dinosaur_zero_top_adds_no_ghost_mass_and_invalid_pressures_are_rejected():
     grid=radiation_grid(jnp.array([0.,1.,3.]),jnp.array([.3,2.]),jnp.array([150.,180.]),200.)
-    assert all(np.isnan(np.asarray(x)).all() for x in grid)
+    assert all(np.isfinite(np.asarray(x)).all() for x in grid)
+    np.testing.assert_array_equal(grid.pressure[:3],0.)
+    assert float(jnp.sum(grid.delta_pressure))==3.
+    invalid=radiation_grid(jnp.array([-.01,1.,3.]),jnp.array([.3,2.]),jnp.array([150.,180.]),200.)
+    assert all(np.isnan(np.asarray(x)).all() for x in invalid)
     with pytest.raises(ValueError,match='must match'):
         radiation_grid(jnp.ones(2),jnp.ones(2),jnp.ones(2),200.)

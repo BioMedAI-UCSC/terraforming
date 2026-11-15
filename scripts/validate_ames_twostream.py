@@ -113,17 +113,22 @@ def validate(source,compiler):
     with tempfile.TemporaryDirectory(prefix="ames-two-stream-") as temporary:
         native,provenance=compile_reference(source,Path(temporary),compiler)
         for n in (1,4,12,40):
-            half=np.geomspace(.001,6.1,n+1)
-            full=(half[1:]-half[:-1])/np.log(half[1:]/half[:-1])
-            t=np.asfortranarray(rng.uniform(145.,250.,n))
-            expected=[np.zeros(2*n+3) for _ in range(4)]+[np.zeros(n)]
-            native.ames_grid(n,half,full,t,230.,140.,*expected)
-            actual=radiation_grid(half,full,t,230.,140.)
-            grid_errors=[]
-            for a,ref in zip(actual,expected,strict=True):
-                np.testing.assert_allclose(a,ref,rtol=2e-14,atol=1e-13)
-                grid_errors.append(float(np.max(np.abs(np.asarray(a)-ref))))
-            grid_cases.append(dict(layers=n,max_absolute_errors=grid_errors))
+            for zero_top in (False,True):
+                half=np.geomspace(.001,6.1,n+1)
+                if zero_top:
+                    half[0]=0.
+                    full=(half[1:]+half[:-1])*.5
+                else:
+                    full=(half[1:]-half[:-1])/np.log(half[1:]/half[:-1])
+                t=np.asfortranarray(rng.uniform(145.,250.,n))
+                expected=[np.zeros(2*n+3) for _ in range(4)]+[np.zeros(n)]
+                native.ames_grid(n,half,full,t,230.,140.,*expected)
+                actual=radiation_grid(half,full,t,230.,140.)
+                grid_errors=[]
+                for a,ref in zip(actual,expected,strict=True):
+                    np.testing.assert_allclose(a,ref,rtol=2e-14,atol=1e-13)
+                    grid_errors.append(float(np.max(np.abs(np.asarray(a)-ref))))
+                grid_cases.append(dict(layers=n,zero_top=zero_top,max_absolute_errors=grid_errors))
             for label,base_tau in (("thin",1e-4),("moderate",.1),("thick",3.)):
                 tau=np.asfortranarray(rng.uniform(.5,1.5,n)*base_tau)
                 w=np.asfortranarray(rng.uniform(.05,.95,n))

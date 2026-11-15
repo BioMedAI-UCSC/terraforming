@@ -19,9 +19,9 @@ def radiation_grid(pressure_half,pressure_full,temperature,surface_temperature,
                    stratosphere_temperature=None):
     """Interleave physical centers/interfaces and apply the original fillpt.
 
-    Pressures must be positive, increasing, and use the same units. The top
-    interface is supplied explicitly; this routine does not invent a pressure
-    floor for Dinosaur's zero-pressure top. Invalid columns return NaNs.
+    Pressures must increase and use the same units. A zero top interface is
+    the native fillpt limit used by Dinosaur; its ghost layers have zero mass.
+    All physical centers must be positive. Invalid columns return NaNs.
     """
     half,full,t=map(jnp.asarray,(pressure_half,pressure_full,temperature))
     if half.shape!=(t.shape[0]+1,)+t.shape[1:] or full.shape!=t.shape:
@@ -31,7 +31,7 @@ def radiation_grid(pressure_half,pressure_full,temperature,surface_temperature,
     p=jnp.zeros((2*n+3,)+t.shape[1:],dtype=jnp.result_type(half,full,float))
     p=p.at[0].set(half[0]*.5e-5).at[1].set(half[0]*.5)
     p=p.at[2::2].set(half).at[3::2].set(full)
-    valid=jnp.all((half[:-1]>0.)&(full>half[:-1])&(full<half[1:]),axis=0)
+    valid=jnp.all((half[:-1]>=0.)&(full>half[:-1])&(full<half[1:]),axis=0)
     # Inactive invalid columns must not introduce log(0) into reverse mode.
     safe=jnp.where(valid[None],p,jnp.ones_like(p))
     tl=jnp.zeros_like(p).at[:3].set(top).at[3::2].set(t)

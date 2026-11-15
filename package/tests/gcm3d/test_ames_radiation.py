@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import math
+import importlib.util
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -80,13 +82,15 @@ def test_channel_weights_preserve_each_spectral_band():
 
 
 def test_ames_pressure_staging_reproduces_cubic_and_preserves_source_points():
-    from scripts.stage_ames_co2_radiation import (
-        ames_pressure_interpolation,P_FINE_LOG_MBAR,P_REF_MBAR)
-    axis=np.log10(P_REF_MBAR)
+    path=Path(__file__).resolve().parents[3]/'scripts/stage_ames_co2_radiation.py'
+    spec=importlib.util.spec_from_file_location('stage_ames_co2_radiation',path)
+    stage=importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(stage)
+    axis=np.log10(stage.P_REF_MBAR)
     polynomial=lambda p:-20.+.1*p+.01*p*p+.001*p*p*p
     table=polynomial(axis)[None,:,None,None]
-    refined=ames_pressure_interpolation(table)
-    np.testing.assert_allclose(refined[0,:,0,0],polynomial(P_FINE_LOG_MBAR),rtol=2e-14,atol=2e-14)
+    refined=stage.ames_pressure_interpolation(table)
+    np.testing.assert_allclose(refined[0,:,0,0],polynomial(stage.P_FINE_LOG_MBAR),rtol=2e-14,atol=2e-14)
 
 
 def test_native_pressure_grid_changes_off_grid_opacity_and_preserves_gradients():
