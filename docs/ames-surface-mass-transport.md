@@ -52,7 +52,7 @@ float64 precision and momentum residuals below 2e-18 Pa. This is an exchange
 operator check, not a forecast accuracy result. Reproduce it with:
 
 ```sh
-rtk proxy env PYTHONPATH=package .venv/bin/python scripts/validate_surface_mass_transport.py \
+env PYTHONPATH=package .venv/bin/python scripts/validate_surface_mass_transport.py \
   --output /tmp/surface-transport-budget-check.json
 ```
 

@@ -99,19 +99,19 @@ and C adapters replace unused FMS infrastructure; the routine bodies stay intact
 The compiler uses double precision, as the Ames GNU build template does.
 
 ```sh
-rtk proxy env PYTHONPATH=package:. python scripts/validate_ames_convection.py \
+env PYTHONPATH=package:. python scripts/validate_ames_convection.py \
   --ames-source /path/to/AmesGCM --output outputs/ames-parity/convection.json
-rtk proxy env PYTHONPATH=package:. python scripts/validate_ames_pbl.py \
+env PYTHONPATH=package:. python scripts/validate_ames_pbl.py \
   --ames-source /path/to/AmesGCM --output outputs/ames-parity/pbl.json
-rtk proxy env PYTHONPATH=package:. python scripts/validate_ames_radiation_tables.py \
+env PYTHONPATH=package:. python scripts/validate_ames_radiation_tables.py \
   --ames-source /path/to/AmesGCM --output outputs/ames-parity/radiation-tables.json
-rtk proxy env PYTHONPATH=package:. python scripts/validate_ames_twostream.py \
+env PYTHONPATH=package:. python scripts/validate_ames_twostream.py \
   --ames-source /path/to/AmesGCM --output outputs/ames-parity/two-stream.json
-rtk proxy env PYTHONPATH=package:. python scripts/validate_ames_spectral.py \
+env PYTHONPATH=package:. python scripts/validate_ames_spectral.py \
   --ames-source /path/to/AmesGCM --output outputs/ames-parity/spectral.json
-rtk proxy env PYTHONPATH=package:. python scripts/validate_ames_surface.py \
+env PYTHONPATH=package:. python scripts/validate_ames_surface.py \
   --ames-source /path/to/AmesGCM --output outputs/ames-parity/surface.json
-rtk proxy env PYTHONPATH=package:. python scripts/validate_ames_column.py \
+env PYTHONPATH=package:. python scripts/validate_ames_column.py \
   --ames-source /path/to/AmesGCM --output outputs/ames-parity/column.json
 ```
 
