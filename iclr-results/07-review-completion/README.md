@@ -70,7 +70,7 @@ maps with shared color scales, and the complete summary. Reproduce after
 extracting `polar-control.zip`:
 
 ```sh
-rtk proxy .venv/bin/python scripts/analyse_polar_control.py /path/to/extracted/polar-control \
+.venv/bin/python scripts/analyse_polar_control.py /path/to/extracted/polar-control \
   --output /tmp/polar-analysis
 ```
 

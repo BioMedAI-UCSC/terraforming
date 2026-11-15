@@ -228,7 +228,7 @@ stability. Broad multi-seed and long-horizon studies remain research work.
 ```bash
 python -m pytest package/tests/gcm3d/test_neural_framework.py -q
 python -m pytest package/tests/gcm3d/test_physics.py \
-  package/tests/gcm3d/test_ames_radiation.py package/tests/gcm3d/test_maps.py \
+  package/tests/gcm3d/test_correlated_k.py package/tests/gcm3d/test_maps.py \
   -m 'not slow' -q
 ```
 

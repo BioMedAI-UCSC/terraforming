@@ -32,7 +32,7 @@ temperature still changes by 0.6761993 K RMS, so equilibrium is not established.
 Reproduce after unpacking the ten-year archive:
 
 ```sh
-rtk proxy .venv/bin/python scripts/audit_paper_results.py \
+.venv/bin/python scripts/audit_paper_results.py \
   --long-run /path/to/mars-ten-years-dt450-float64-stage-01 \
   --output /tmp/year-reconciliation
 ```

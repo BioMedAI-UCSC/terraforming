@@ -10,8 +10,8 @@ Start with [the simplified reproduction guide](../../docs/paper-reproduction.md)
 From the repository root, run:
 
 ```sh
-rtk proxy .venv/bin/python paper/arxiv-2610.04081/regenerate.py
-rtk proxy latexmk -cd -pdf -interaction=nonstopmode -halt-on-error paper/arxiv-2610.04081/revision/iclr2027_conference.tex
+.venv/bin/python paper/arxiv-2610.04081/regenerate.py
+latexmk -cd -pdf -interaction=nonstopmode -halt-on-error paper/arxiv-2610.04081/revision/iclr2027_conference.tex
 ```
 
 Corrections include the surface-frost sign, seasonal labels and Ls225 panel,

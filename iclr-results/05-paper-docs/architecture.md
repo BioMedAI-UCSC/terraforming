@@ -12,7 +12,7 @@ configuration, data adapters, maps, and outputs live under
 | Dependency guard | `framework/gcm/_dinosaur.py` | — (raises if extra missing) |
 | Discretisation | `framework/gcm/coordinates.py` (spectral grid × sigma), `framework/gcm/specs.py` (nondimensionalisation) | Yes |
 | Dry dynamical core | `framework/gcm/dynamics.py` (`primitive_equations`, `stepper`, `integrate`) | Yes |
-| Reusable physics | `framework/physics/gcm.py` (radiation, surface energy, drag, PBL, convection, condensable cycle), `framework/physics/ames_radiation.py` (correlated-k operators/tables) | Yes |
+| Reusable physics | `framework/physics/gcm.py` (radiation, surface energy, drag, PBL, convection, condensable cycle), `framework/physics/correlated_k.py` (correlated-k operators/tables) | Yes |
 | Mars configuration | `celestials/planets/mars.py` (`MARS_BODY_3D`) and `celestials/planets/mars_gcm.py` (forcing factories) | factories: Yes |
 | Generic diagnostics | `framework/gcm/benchmarks.py`, `framework/gcm/restart.py` | Yes |
 | Mars boundary data | `celestials/planets/mars/topography.py`, `surface.py`, `dust.py`, `mcd.py` | topography: Yes; surface/dust: NumPy+xarray |
