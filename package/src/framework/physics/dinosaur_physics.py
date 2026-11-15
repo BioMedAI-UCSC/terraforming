@@ -62,12 +62,15 @@ def initial_state(dynamics,coords,specs,temperature_k=170.,soil_layers=16,*,bulk
                   radiation_update_seconds=None,moment_water=False,
                   initial_dust_mass_ratio=0.,initial_dust_number_per_kg=0.,
                   initial_dust_surface_kg_m2=30.,nonorographic_drag_options=None,dust_background_options=None,
-                  moment_cloud_options=None):
+                  moment_cloud_options=None,moist_convection_options=None,
+                  initial_moist_bulk_surface_water_kg_m2=0.):
     """Initialize the existing column state with the reference soil node count."""
     if soil_layers<3:
         raise ValueError("Ames soil requires two evolving nodes and a fixed deep node")
     if bulk_water and moment_water:
         raise ValueError('bulk water and moment water cannot be enabled together')
+    if moist_convection_options is not None and not (bulk_water or moment_water):
+        raise ValueError('moist convection requires initialized water vapor and a surface water reservoir')
     state=initial_column_state(dynamics,coords,temperature_k,specs)
     ground=jnp.broadcast_to(state.surface_temperature,(soil_layers-1,)+coords.horizontal.nodal_shape)
     if radiation_update_seconds is not None:
@@ -110,6 +113,9 @@ def initial_state(dynamics,coords,specs,temperature_k=170.,soil_layers=16,*,bulk
         fields['dust_surface_kg_m2']=jnp.broadcast_to(jnp.asarray(initial_dust_surface_kg_m2),shape)
         fields['dust_reference_opacity']=jnp.zeros((2,*shape[1:]))
         fields['dust_coagulation_mass_change_kg_m2']=jnp.zeros(shape)
+        if moist_convection_options is not None:
+            fields['moist_bulk_surface_water_kg_m2']=jnp.broadcast_to(
+                jnp.asarray(initial_moist_bulk_surface_water_kg_m2),shape)
         if moment_cloud_options is not None and moment_cloud_options.get('effective_input_mode',0)==1:
             profile=(len(coords.vertical.centers),*coords.horizontal.nodal_shape)
             fields.update(moment_previous_temperature_k=jnp.zeros(profile),
@@ -129,6 +135,8 @@ def water_inventory(state,coords,specs,body):
     water=jnp.sum(gas*ratios,axis=0)
     if state.auxiliary_fields is not None and 'water_surface_kg_m2' in state.auxiliary_fields:
         water=water+state.auxiliary_fields['water_surface_kg_m2'][0]
+    if state.auxiliary_fields is not None and 'moist_bulk_surface_water_kg_m2' in state.auxiliary_fields:
+        water=water+state.auxiliary_fields['moist_bulk_surface_water_kg_m2'][0]
     weights=jnp.asarray(grid.quadrature_weights)
     return jnp.sum(water*weights)/jnp.sum(weights)*body.surface_area_m2
 
@@ -205,7 +213,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                moment_water=False,moment_cloud_options=None,moment_sedimentation=True,
                dust_lifting_options=None,dust_optical_bands=12,dust_opacity_channel=1,
                coagulation_options=None,dust_background_options=None,nonorographic_drag_options=None,
-               convection_scheme='fv3'):
+               convection_scheme='fv3',moist_convection_options=None):
     """Dinosaur dynamics followed by Ames-order reference gas-column physics.
 
     Supply a verified radiation component and mapped soil diffusivity. Keeping
@@ -221,6 +229,8 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
     water_cycle=bulk_water or moment_water
     if convection_scheme not in ('none','fv3','legacy'):
         raise ValueError('convection scheme must be none, fv3 or legacy')
+    if moist_convection_options is not None and not water_cycle:
+        raise ValueError('moist convection requires initialized water vapor and a surface water reservoir')
     previous_effective=(moment_cloud_options or {}).get('effective_input_mode',0)==1
     if previous_effective and not moment_water:
         raise ValueError('previous effective cloud state requires moment-water tracers')
@@ -324,6 +334,9 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             required={'moment_previous_temperature_k','moment_previous_tracers','moment_previous_initialized'}
             if state.auxiliary_fields is None or required-set(state.auxiliary_fields):
                 raise ValueError('previous effective clouds require initialized temperature and tracer history')
+        if moist_convection_options is not None and moment_water:
+            if 'moist_bulk_surface_water_kg_m2' not in state.auxiliary_fields:
+                raise ValueError('moment-water moist convection requires its separate bulk precipitation reservoir')
         if radiation_update_seconds is not None:
             required={'radiation_heating_k_s','radiation_surface_down_w_m2',
                 'radiation_initialized','radiation_stratosphere_k'}
@@ -460,7 +473,10 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             surface_dust_kg_m2=None if not moment_water else predicted.auxiliary_fields['dust_surface_kg_m2'][0],
             coagulation_options=coagulation_options,dust_background_options=background_options,
             nonorographic_drag_options=nonorographic_drag_options,nonorographic_state=gravity_wave_state,
-            moment_history=moment_history,convection_scheme=convection_scheme)
+            moment_history=moment_history,convection_scheme=convection_scheme,
+            moist_convection_options=moist_convection_options,moist_surface_water_kg_m2=(
+                predicted.auxiliary_fields['moist_bulk_surface_water_kg_m2'][0]
+                if moist_convection_options is not None and moment_water else None))
         columns={name:column.gas_tracers[...,i] for i,name in enumerate(gas_names)}
         if cloud_ratio is not None:
             columns[CO2_CLOUD_TRACER]=(column.suspended_co2_ice_ratio
@@ -509,6 +525,8 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             auxiliary={**auxiliary,'water_surface_kg_m2':column.bulk_water.surface_water_kg_m2[None],
                 'water_exchange_coefficient_kg_m2_s':column.bulk_water.previous_exchange_coefficient[None],
                 'water_pbl_top_layer':column.bulk_water.previous_pbl_top_layer[None]}
+        if moist_convection_options is not None and moment_water:
+            auxiliary={**auxiliary,'moist_bulk_surface_water_kg_m2':column.moist_surface_water_kg_m2[None]}
         if moment_water:
             auxiliary={**auxiliary,'dust_surface_kg_m2':column.diagnostics['bulk_water']['dust_surface_kg_m2'][None]}
             if dust_depth is not None:
@@ -533,8 +551,14 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             return {name:{(key+'_kg' if 'inventory' in key else key):
                 value*mass_scale if 'inventory' in key else value for key,value in fields.items()}
                 for name,fields in diagnostics.items()}
+        moist_diagnostics=None
+        if moist_convection_options is not None:
+            info=column.diagnostics['moist_convection']
+            moist_diagnostics=dict(info['diagnostics'],rain_kg_m2_s=info['rain_kg_m2_s'],
+                snow_kg_m2_s=info['snow_kg_m2_s'],vapor_column_change_kg_m2=dt_seconds*jnp.sum(
+                    info['vapor_tendency']*jnp.diff(half,axis=0)/body.gravity_m_s2,axis=0))
         return final,dict(dynamics=physical_units(transport_diagnostics),
-            physics_projection=physical_units(physics_projection))
+            physics_projection=physical_units(physics_projection)),moist_diagnostics
 
     def advance(state):
         return advance_with_transport(state)[0]
@@ -543,7 +567,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
         return positivity_preserving_co2_step(advance,coords,specs,body=body)
 
     def audited(state):
-        raw,transport_diagnostics=advance_with_transport(state)
+        raw,transport_diagnostics,moist_diagnostics=advance_with_transport(state)
         final,diagnostics=positivity_preserving_co2_step(lambda _:raw,coords,specs,
             body=body,return_diagnostics=True)(state)
         diagnostics=diagnostics._replace(
@@ -553,7 +577,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                 soil_volumetric_heat_capacity=soil_volumetric_heat_capacity),
             raw_axial_angular_momentum_kg_m2_s=axial_angular_momentum(raw,coords,specs,body),
             corrected_axial_angular_momentum_kg_m2_s=axial_angular_momentum(final,coords,specs,body),
-            tracer_transport=transport_diagnostics)
+            tracer_transport=transport_diagnostics,moist_convection=moist_diagnostics)
         if water_cycle:
             diagnostics=diagnostics._replace(raw_water_mass_kg=water_inventory(raw,coords,specs,body),
                 corrected_water_mass_kg=water_inventory(final,coords,specs,body),

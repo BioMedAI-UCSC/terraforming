@@ -20,6 +20,7 @@ from src.framework.physics.dust_lifting import interactive_step as dust_lifting_
 from src.framework.physics.dust_coagulation import coagulation_step
 from src.framework.physics.nonorographic_drag import driver_step as gravity_wave_step
 from src.framework.physics.legacy_convection import adjust as legacy_convection
+from src.framework.physics.moist_convection import adjust as moist_convection
 from src.framework.physics.water_surface import (surface_exchange as water_surface_exchange,
     optical_properties as water_optical_properties)
 
@@ -46,6 +47,7 @@ class ColumnResult(NamedTuple):
     moment_particles: object = None
     nonorographic_state: object = None
     moment_history: object = None
+    moist_surface_water_kg_m2: object = None
 
 
 def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
@@ -61,7 +63,7 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
                    dust_lifting_options=None,dust_lifting_opacity=None,surface_dust_kg_m2=None,
                    coagulation_options=None,dust_background_options=None,
                    nonorographic_drag_options=None,nonorographic_state=None,moment_history=None,
-                   convection_scheme='fv3'):
+                   convection_scheme='fv3',moist_convection_options=None,moist_surface_water_kg_m2=None):
     """Rayleigh/PBL, soil/frost, CO2 deposition or suspended clouds, convection.
 
     This is the standard present-Mars gas-column process order. Tracers here
@@ -74,6 +76,10 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
         raise ValueError("surface mass exchange start must be a valid layer index")
     if convection_scheme not in ('none','fv3','legacy'):
         raise ValueError('convection scheme must be none, fv3 or legacy')
+    if moist_convection_options is not None and bulk_water is None:
+        raise ValueError('moist convection requires a water vapor tracer and surface water reservoir')
+    if moist_convection_options is not None and moment_particles is not None and moist_surface_water_kg_m2 is None:
+        raise ValueError('moment-water moist convection requires its separate bulk precipitation reservoir')
     initial_wind=(u,v)
     if moment_particles is None and (dust_lifting_options is not None or coagulation_options is not None or dust_background_options is not None):
         raise ValueError('dust lifting and coagulation require physical moment particles')
@@ -183,6 +189,19 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
         u_momentum_change_kg_m_s=jnp.sum(carrier*(u-u_old),axis=0),
         v_momentum_change_kg_m_s=jnp.sum(carrier*(v-v_old),axis=0),
         tracer_column_change=jnp.sum(carrier[...,None]*(r-r_old),axis=0))
+    moist=None;moist_precip=0.
+    if moist_convection_options is not None:
+        moist=moist_convection(t,r[...,bulk_water.vapor_index],pressure_half,pressure_full,dt_seconds,
+            gas_constant=body.gas_constant_j_kg_k,cp=body.cp_j_kg_k,gravity=body.gravity_m_s2,
+            **moist_convection_options)
+        t=t+dt_seconds*moist.temperature_tendency
+        r=r.at[...,bulk_water.vapor_index].add(dt_seconds*moist.vapor_tendency)
+        moist_precip=dt_seconds*(moist.rain_kg_m2_s+moist.snow_kg_m2_s)
+        if moment_particles is not None:
+            bank=jnp.asarray(moist_surface_water_kg_m2)
+            bank=jnp.where(jnp.isfinite(bank)&(bank>=0.),bank,jnp.nan)
+            moist_surface_water_kg_m2=bank+moist_precip
+    active_moist_precip=moist_precip if moment_particles is None else 0.
     average=.5*(pbl['heat_diffusivity_m2_s']+pbl['momentum_diffusivity_m2_s'])
     connected=jnp.cumprod((average[::-1]>.01).astype(int),axis=0)
     pbl_top=temperature.shape[0]-1-jnp.sum(connected,axis=0)
@@ -212,7 +231,7 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
                         dust_background_options['scenario_opacity'])
                 lifted=dust_lifting_step(moment_particles[...,0],moment_particles[...,1],t,
                     pressure_half,pressure_full,ground[0],stress,pbl['heat_flux_w_m2'],pbl_top,p_pbl,
-                    latitude_rad,snow,water_exchange.surface_water_kg_m2,
+                    latitude_rad,snow,water_exchange.surface_water_kg_m2+active_moist_precip,
                     jnp.maximum(dust_lifting_opacity/pressure_full[-1]*610.,1e-10),
                     surface_dust_kg_m2,dt_seconds,gravity=body.gravity_m_s2,
                     gas_constant=body.gas_constant_j_kg_k,cp=body.cp_j_kg_k,**lifting_options)
@@ -268,7 +287,7 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
         rho=pressure_half[-1]/(body.gas_constant_j_kg_k*temperature[-1])
         exchange_coefficient=rho*pbl['surface_heat_coefficient']*pbl['friction_velocity_ms']
         bulk_water=BulkWaterColumnState(bulk_water.vapor_index,ice,
-            water_exchange.surface_water_kg_m2+water_deposit,
+            water_exchange.surface_water_kg_m2+water_deposit+active_moist_precip,
             exchange_coefficient,pbl_top.astype(t.dtype))
         water_diagnostics=dict(surface=water_exchange.diagnostics,
             cloud={} if water_result is None else water_result.diagnostics,
@@ -315,7 +334,8 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
         terrain_drag={} if terrain is None else dict(terrain._asdict()),
         nonorographic_drag={} if nonorographic is None else nonorographic.diagnostics,
         convection=convection,
+        moist_convection={} if moist is None else moist._asdict(),
         rayleigh=dict(u_tendency_m_s2=du,v_tendency_m_s2=dv,dissipated_heat_k=drag_heat,
             reheating_enabled=conserve_drag_energy))
     return ColumnResult(t,u,v,r,ground,snow+precip,mass,diagnostics,suspended,bulk_water,
-        moment_particles,nonorographic_state,moment_history)
+        moment_particles,nonorographic_state,moment_history,moist_surface_water_kg_m2)

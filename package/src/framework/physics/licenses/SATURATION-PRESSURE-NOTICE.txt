@@ -1,0 +1,20 @@
+saturation_pressure.py and saturation_tables.npz are derived from the GFDL
+Flexible Modeling System (FMS), revision 71957e9d:
+sat_vapor_pres/include/sat_vapor_pres_k.inc,
+Git blob 00ce7089d0dc164d4936b7a8af4e20a2546f89f4.
+https://github.com/NOAA-GFDL/FMS/tree/71957e9d
+
+FMS is licensed under GNU LGPL version 3 or later. This adaptation selects
+version 3. See LGPL-3.0.txt and GPL-3.0.txt in this directory. The Python
+library module is supplied in source form and can be modified separately.
+
+The extended table bounds and Mars constants follow NASA Ames GCM v3.2.1,
+patches/srcFMS.patch, revision ba47cada5f9eb89c75c4f10d06dbae6e7f9ecb26,
+Git blob 6deea614300cc5340dfd5bd02fc2d5ddc1bdebee.
+Copyright 2023 United States Government, as represented by the Administrator
+of the National Aeronautics and Space Administration. Those patches use the
+Apache License, version 2.0. See Apache-2.0.txt in this directory.
+
+The tables are staged by executing the unchanged native table generator.
+The runtime port preserves its nearest-node quadratic lookup, explicit
+temperature derivative and specific-humidity denominator branches.

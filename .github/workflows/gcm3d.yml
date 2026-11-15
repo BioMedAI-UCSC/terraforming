@@ -34,7 +34,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [0, 1, 2, 3]
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -53,6 +53,7 @@ jobs:
         working-directory: package
         env:
           SHARD_INDEX: ${{ matrix.shard }}
+          SHARD_COUNT: ${{ strategy.job-total }}
         run: |
           uv run --no-sync python - <<'PYTEST'
           import os
@@ -66,7 +67,8 @@ jobs:
           nodes = [line for line in collection.stdout.splitlines()
                    if line.startswith("tests/gcm3d/") and "::" in line]
           assert nodes and len(nodes) == len(set(nodes)), collection.stdout
-          shards = [nodes[index::4] for index in range(4)]
+          count = int(os.environ["SHARD_COUNT"])
+          shards = [nodes[index::count] for index in range(count)]
           assert sorted(node for shard in shards for node in shard) == sorted(nodes)
           selected = shards[int(os.environ["SHARD_INDEX"])]
           assert selected

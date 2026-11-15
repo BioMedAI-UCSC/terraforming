@@ -16,6 +16,8 @@ No complete-model equivalence or speed claim has passed yet.
 | --- | --- | --- | --- |
 | Dry convection | `dry_convection.pass2` | Compiled original `pass2`; four 40-layer cases with 2,048 columns, temperature errors below 2e-13 K | `adjust_state` and `build_step` support Dinosaur; explicit reference backend selection is available in the map runner |
 | Legacy dry convection | `legacy_convection.adjust` | Unchanged `legacy_convect` and `potemp1`; 40 strict full-field cases and 8 neutral temperature/wind cases | Optional `convection_scheme="legacy"`; default `"fv3"` retains pass2 and `"none"` disables adjustment. Column budgets, global restart continuation and a three-step gradient pass. Exact neutral nonuniform tracer mixing has a floating-point branch limit |
+| Saturation pressure for moist adjustment | `saturation_pressure` | Unchanged FMS table generators, quadratic lookups and `compute_qs`; 36 cases with 1,815 points each | Both Smithsonian and simple tables, three water/ice phase choices, native humidity caps and explicit temperature derivatives. NASA extended bounds and water constants are retained; nine unit/gradient checks pass |
+| Moist convective adjustment | `moist_convection.adjust` | Unchanged GFDL `moist_conv`, `CONV_DETR` and FMS saturation kernels; 80 column cases | Connected after dry convection and before lifting/cloud microphysics. Five kernel checks, independent latent/material budgets, bulk/moment global water inventories, exact restarts and a three-step reverse derivative pass |
 | PBL surface exchange | `boundary_layer.surface_exchange` | Compiled original `bndcond`, stable/unstable/zero-wind cases | Used by the new column driver |
 | PBL turbulent mixing | `boundary_layer.eddy_coefficients` | Compiled original `eddycoef`, 4/12/40 layers | Used by the new column driver |
 | PBL gas-column driver | `boundary_layer.column_step` | Compiled original `pbl_driver`, `newpbl`, matrix, scaling and solve routines; temperature errors below 1e-13 K | Connected to the soil/frost column and experimental Dinosaur adapter; tracer categories remain pending |
@@ -196,6 +198,42 @@ other cases retain strict gates for every field, including both sides at
 1e-8 K potential-temperature offsets. Column diagnostics report enthalpy,
 kinetic energy, momentum and species-integral changes for all three switches.
 
+Set `moist_convection_options={}` to enable the released AM4 adjustment.
+Initialize bulk or moment water first. The default relative humidity is 1,
+the initial tolerance is 0.02 K, and the source uses 30 iterations at each
+of 0.02, 0.04 and 0.08 K. `unconverged` reports the source maximum-iteration
+warning; output is retained as in the source. Global validation checks that
+the default warm test columns finish without this warning. `simple_adjustment`
+and `saturation_model` are separate source switches. The latter selects the
+Smithsonian tables or the simple exponential tables. Saturation tables use
+nearest-node quadratic interpolation, with their supplied temperature
+derivatives. Invalid indices return NaNs and a validity flag; FMS raises FATAL.
+
+The port retains the original initial lapse calculation without humidity
+scaling, later lapse calculations with scaling, whole-column exit on a failed
+block search, and skipped flag refresh at the last iteration of each tolerance.
+Cold columns use 2.834 MJ/kg and snow when the pre-adjustment bottom air is
+below 273.15 K. Warm columns use 2.5 MJ/kg and rain. The simple adjustment
+always uses rain. Optional stratiform cloud fields are absent in the Mars
+caller; the original routine returns zero changes for all other tracers.
+
+Moist-convection rain and snow enter the bulk surface reservoir in the source,
+even when moment clouds are active. The moment adapter therefore keeps a
+separate `moist_bulk_surface_water_kg_m2` bank, includes it in water inventory,
+and saves it in restarts. It does not feed active moment frost or surface
+exchange. Set `initial_moist_bulk_surface_water_kg_m2` explicitly to match the
+reference initial bank; the default is zero. `polar_water_on_grid` supplies
+the pinned 500 kg/m2 polar-cap map for both source banks when matching a cold
+start. With bulk clouds, precipitation enters the active bulk water bank.
+
+The warm global derivative fixture starts at 250.037 K, inside a Planck-table
+interval. At exactly 250.0 K, automatic differentiation uses the right-hand
+slope while a centered difference averages the two slopes at the table knot.
+Forward- and reverse-mode derivatives agree. Moving the probe inside the
+interval removes the finite-difference discrepancy without changing physics,
+interpolation or tolerances. Direct Planck derivative tests cover all three
+radiation configurations.
+
 The PBL port retains the reference's fixed exponent 0.25684, 150 m asymptotic
 mixing length, diffusivity minimum 0.001 m2/s, stability functions, implicit solve,
 ice roughness and hard-coded disabled internal water sublimation. The outer Ames
@@ -340,7 +378,7 @@ The release interface audit checks pinned `compile.bash`, `mars_physics.F90`
 and `null_physics_mod.F90`, then runs the actual release preprocessor. Each of
 the five audited placeholder routines calls only `error_mesg(..., FATAL)`.
 This result does not supply bin-cloud or chemistry equations. The public
-release's real moment/bulk modules are checked separately. AM4 moist adjustment and alternate diffusion/radiation
+release's real moment/bulk modules are checked separately. Alternate diffusion/radiation
 branches also need explicit coverage before claiming every source switch.
 
 ## Reproduce the native checks
@@ -356,6 +394,12 @@ env PYTHONPATH=package:. python scripts/validate_dry_convection.py \
   --ames-source /path/to/AmesGCM --output outputs/physics-parity/convection.json
 env PYTHONPATH=package:. python scripts/validate_legacy_convection.py \
   --ames-source /path/to/AmesGCM --output outputs/physics-parity/legacy-convection.json
+env PYTHONPATH=package:. python scripts/validate_saturation_pressure.py \
+  --fms-source /path/to/FMS --ames-source /path/to/AmesGCM \
+  --output outputs/physics-parity/saturation-pressure.json
+env PYTHONPATH=package:. python scripts/validate_moist_convection.py \
+  --gfdl-source /path/to/atmos_phys --fms-source /path/to/FMS \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/moist-convection.json
 env PYTHONPATH=package:. python scripts/validate_boundary_layer.py \
   --ames-source /path/to/AmesGCM --output outputs/physics-parity/pbl.json
 env PYTHONPATH=package:. python scripts/validate_correlated_k_tables.py \

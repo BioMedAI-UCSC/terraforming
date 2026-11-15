@@ -89,6 +89,28 @@ def test_legacy_convection_switch_matches_standalone_fields_and_reports_budgets(
         column_physics(**kwargs,convection_scheme='unknown')
 
 
+def test_moist_adjustment_follows_dry_convection_and_routes_precipitation_to_water():
+    from src.framework.physics.moist_convection import adjust
+    half=jnp.linspace(0.,50000.,5);full=.5*(half[1:]+half[:-1])
+    kwargs={**inputs(),'temperature':jnp.array([225.3,250.7,275.1,299.9]),
+        'pressure_half':half,'pressure_full':full,'gas_tracers':jnp.full((4,1),.011),
+        'soil':jnp.full(16,250.),'co2_ice_kg_m2':0.,'radiative_heating_k_s':jnp.zeros(4),'dt_seconds':5.}
+    water=BulkWaterColumnState(0,jnp.zeros(4),100.,0.,3)
+    plain=column_physics(**kwargs,bulk_water=water,form_bulk_clouds=False)
+    expected=adjust(plain.temperature,plain.gas_tracers[...,0],half,full,5.)
+    result=jax.jit(lambda:column_physics(**kwargs,bulk_water=water,
+        form_bulk_clouds=False,moist_convection_options={}))()
+    np.testing.assert_allclose(result.temperature,plain.temperature+5.*expected.temperature_tendency,
+        rtol=2e-13,atol=2e-13)
+    np.testing.assert_allclose(result.gas_tracers[...,0],plain.gas_tracers[...,0]+5.*expected.vapor_tendency,
+        rtol=2e-13,atol=2e-15)
+    np.testing.assert_allclose(result.bulk_water.surface_water_kg_m2,
+        plain.bulk_water.surface_water_kg_m2+5.*(expected.rain_kg_m2_s+expected.snow_kg_m2_s),rtol=2e-14)
+    carrier=jnp.diff(half)/BODY.gravity_m_s2
+    np.testing.assert_allclose(jnp.sum(result.gas_tracers[...,0]*carrier)+result.bulk_water.surface_water_kg_m2,
+        jnp.sum(kwargs['gas_tracers'][...,0]*carrier)+100.,rtol=2e-13)
+
+
 def test_nonorographic_drag_uses_old_heights_after_terrain_before_convection(monkeypatch):
     import importlib
     module=importlib.import_module('src.framework.physics.column_physics')

@@ -357,6 +357,7 @@ def run_maps(
         initial_dust_mass=options.pop('initial_dust_mass_ratio',0.)
         initial_dust_number=options.pop('initial_dust_number_per_kg',0.)
         initial_dust_surface=options.pop('initial_dust_surface_kg_m2',30.)
+        initial_moist_surface=options.pop('initial_moist_bulk_surface_water_kg_m2',0.)
         if 'return_diagnostics' in options:
             raise ValueError('map runner diagnostics use diagnostic_callback')
         if initial_state is None:
@@ -370,6 +371,8 @@ def run_maps(
                 nonorographic_drag_options=options.get('nonorographic_drag_options'),
                 dust_background_options=options.get('dust_background_options'),
                 moment_cloud_options=options.get('moment_cloud_options'),
+                moist_convection_options=options.get('moist_convection_options'),
+                initial_moist_bulk_surface_water_kg_m2=initial_moist_surface,
                 initial_dust_mass_ratio=initial_dust_mass,initial_dust_number_per_kg=initial_dust_number,
                 initial_dust_surface_kg_m2=initial_dust_surface)
         step=build_step(coords,specs,body,forcing,dt_seconds,orography=orography,

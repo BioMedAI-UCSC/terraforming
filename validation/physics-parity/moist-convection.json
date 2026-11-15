@@ -1,0 +1,847 @@
+{
+  "status": "pass",
+  "reference": {
+    "source_git_blob": "e7f2641002c2d2c76b0966aaf585d49e72af0ebf",
+    "saturation": {
+      "source_git_blob": "00ce7089d0dc164d4936b7a8af4e20a2546f89f4",
+      "compiled_source_sha256": "b8204b05b665cdd7588195b068c728c6892180e4251254522bf72514493e0bf7",
+      "routine_sha256": {
+        "SAT_VAPOR_PRES_INIT_K_": "c49fbca69110f54598105f91d201275e0ede73af29e5c5aa5796b5ccf2aee492",
+        "COMPUTE_ES_K_": "0c0632fedc83803240ed69105ed6f381bdf40d7619caa14eacc8b1e51b6b63fa",
+        "COMPUTE_ES_LIQ_K_": "f1d05cba019b1604b6fad4d2aaf7cab37dabf96640339c1c5c70537ae23d9934",
+        "COMPUTE_ES_LIQ_ICE_K_": "f639bdee5a941a9b7cb9c259aba771f2b34f1cc57e0d45918be4cfc371907bee",
+        "LOOKUP_ES_DES_K_0D_": "8c9c827f810528c4260539869a286e46fc57421243b45fc3f540102ffbcd8857",
+        "LOOKUP_ES2_DES2_K_0D_": "7cf0979b1415ad8f639d933bf0f9464b7891bce8814368df0ee59f1cf54fd8b5",
+        "LOOKUP_ES3_DES3_K_0D_": "762944b41b4397c177de0930295c99836397845a85d6d987ab6c8f5454b82cb5",
+        "LOOKUP_ES_K_0D_": "58ed4fc5d8e14fe8f57f3d358dbcffd30992249452f420c48788939ccdfbc1b0",
+        "LOOKUP_ES2_K_0D_": "b4cf8b3d935a1f713909f1631b4ed3fbc870660e44ce305e0c08b5e0df62a0f7",
+        "LOOKUP_ES3_K_0D_": "a604051effe10f907c748a678b9fcee1e6dec0652134196a7c34ad5f9906165c",
+        "COMPUTE_QS_K_0D_": "106284defab319ee95e3d90bfe59647f8cafe8307c9dc924d7cb08bb10e174c6"
+      },
+      "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+      "compiler_flags": [
+        "-O3",
+        "-cpp",
+        "-fdefault-real-8",
+        "-fdefault-double-8",
+        "-fPIC",
+        "-shared"
+      ],
+      "real_precision_bits": 64,
+      "adaptation": "Unchanged FMS kernel bodies with original kind/name macro bindings; NASA table bounds and water constants supplied by C adapters; no FMS I/O",
+      "fms_revision": "71957e9d",
+      "mars_patch_git_blob": "6deea614300cc5340dfd5bd02fc2d5ddc1bdebee"
+    },
+    "compiler_flags": [
+      "-O3",
+      "-cpp",
+      "-ffree-line-length-none",
+      "-fdefault-real-8",
+      "-fdefault-double-8",
+      "-fPIC",
+      "-shared"
+    ],
+    "routine_sha256": {
+      "moist_conv": "9adae6afc2cd01570aee680b8ddecf16ea5a237c7d299fd455000184fa07112c",
+      "CONV_DETR": "cb0104df501df2bcf8c6035fd48190c6817dfd65053f747283d56d8f7c14a678"
+    },
+    "native_derivative_sha256": "ba2f1eee5bb35253003688cc101abd11f8d021d6073714bb7820eb9647f34d1d",
+    "adapter_sha256": "da66d6068cd921d27a79835099a7a83d58dbcd2eee75660e4b5ff46a13d72f69",
+    "adaptation": "Unchanged moist_conv/CONV_DETR and FMS saturation bodies; scalar/array FMS adapters without I/O; optional stratiform fields omitted, as in the Mars caller; source warnings tallied"
+  },
+  "cases": [
+    {
+      "config": {},
+      "layers": 4,
+      "surface_pressure_pa": 610.0,
+      "profile": "dry",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {},
+      "layers": 4,
+      "surface_pressure_pa": 610.0,
+      "profile": "supersaturated-stable",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {},
+      "layers": 4,
+      "surface_pressure_pa": 610.0,
+      "profile": "active",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 9.71445146547012e-17
+    },
+    {
+      "config": {},
+      "layers": 4,
+      "surface_pressure_pa": 610.0,
+      "profile": "isolated-block",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 9.540979117872439e-17
+    },
+    {
+      "config": {},
+      "layers": 4,
+      "surface_pressure_pa": 50000.0,
+      "profile": "dry",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {},
+      "layers": 4,
+      "surface_pressure_pa": 50000.0,
+      "profile": "supersaturated-stable",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {},
+      "layers": 4,
+      "surface_pressure_pa": 50000.0,
+      "profile": "active",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {},
+      "layers": 4,
+      "surface_pressure_pa": 50000.0,
+      "profile": "isolated-block",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {},
+      "layers": 12,
+      "surface_pressure_pa": 610.0,
+      "profile": "dry",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {},
+      "layers": 12,
+      "surface_pressure_pa": 610.0,
+      "profile": "supersaturated-stable",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {},
+      "layers": 12,
+      "surface_pressure_pa": 610.0,
+      "profile": "active",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 1.942890293094024e-16
+    },
+    {
+      "config": {},
+      "layers": 12,
+      "surface_pressure_pa": 610.0,
+      "profile": "isolated-block",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {},
+      "layers": 12,
+      "surface_pressure_pa": 50000.0,
+      "profile": "dry",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {},
+      "layers": 12,
+      "surface_pressure_pa": 50000.0,
+      "profile": "supersaturated-stable",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {},
+      "layers": 12,
+      "surface_pressure_pa": 50000.0,
+      "profile": "active",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 3.8163916471489756e-16
+    },
+    {
+      "config": {},
+      "layers": 12,
+      "surface_pressure_pa": 50000.0,
+      "profile": "isolated-block",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 1.8951853975046618e-16
+    },
+    {
+      "config": {},
+      "layers": 40,
+      "surface_pressure_pa": 610.0,
+      "profile": "dry",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {},
+      "layers": 40,
+      "surface_pressure_pa": 610.0,
+      "profile": "supersaturated-stable",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {},
+      "layers": 40,
+      "surface_pressure_pa": 610.0,
+      "profile": "active",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 9.71445146547012e-17
+    },
+    {
+      "config": {},
+      "layers": 40,
+      "surface_pressure_pa": 610.0,
+      "profile": "isolated-block",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {},
+      "layers": 40,
+      "surface_pressure_pa": 50000.0,
+      "profile": "dry",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {},
+      "layers": 40,
+      "surface_pressure_pa": 50000.0,
+      "profile": "supersaturated-stable",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {},
+      "layers": 40,
+      "surface_pressure_pa": 50000.0,
+      "profile": "active",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 3.8163916471489756e-16
+    },
+    {
+      "config": {},
+      "layers": 40,
+      "surface_pressure_pa": 50000.0,
+      "profile": "isolated-block",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "humidity": 0.8
+      },
+      "layers": 12,
+      "surface_pressure_pa": 610.0,
+      "profile": "dry",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "humidity": 0.8
+      },
+      "layers": 12,
+      "surface_pressure_pa": 610.0,
+      "profile": "supersaturated-stable",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "humidity": 0.8
+      },
+      "layers": 12,
+      "surface_pressure_pa": 610.0,
+      "profile": "active",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 9.71445146547012e-17
+    },
+    {
+      "config": {
+        "humidity": 0.8
+      },
+      "layers": 12,
+      "surface_pressure_pa": 610.0,
+      "profile": "isolated-block",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "humidity": 0.8
+      },
+      "layers": 12,
+      "surface_pressure_pa": 50000.0,
+      "profile": "dry",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "humidity": 0.8
+      },
+      "layers": 12,
+      "surface_pressure_pa": 50000.0,
+      "profile": "supersaturated-stable",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "humidity": 0.8
+      },
+      "layers": 12,
+      "surface_pressure_pa": 50000.0,
+      "profile": "active",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 1.942890293094024e-16
+    },
+    {
+      "config": {
+        "humidity": 0.8
+      },
+      "layers": 12,
+      "surface_pressure_pa": 50000.0,
+      "profile": "isolated-block",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 1.8951853975046618e-16
+    },
+    {
+      "config": {
+        "humidity": 1.1
+      },
+      "layers": 4,
+      "surface_pressure_pa": 610.0,
+      "profile": "dry",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "humidity": 1.1
+      },
+      "layers": 4,
+      "surface_pressure_pa": 610.0,
+      "profile": "supersaturated-stable",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "humidity": 1.1
+      },
+      "layers": 4,
+      "surface_pressure_pa": 610.0,
+      "profile": "active",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "humidity": 1.1
+      },
+      "layers": 4,
+      "surface_pressure_pa": 610.0,
+      "profile": "isolated-block",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "humidity": 1.1
+      },
+      "layers": 4,
+      "surface_pressure_pa": 50000.0,
+      "profile": "dry",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "humidity": 1.1
+      },
+      "layers": 4,
+      "surface_pressure_pa": 50000.0,
+      "profile": "supersaturated-stable",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "humidity": 1.1
+      },
+      "layers": 4,
+      "surface_pressure_pa": 50000.0,
+      "profile": "active",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "humidity": 1.1
+      },
+      "layers": 4,
+      "surface_pressure_pa": 50000.0,
+      "profile": "isolated-block",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "simple_adjustment": true
+      },
+      "layers": 12,
+      "surface_pressure_pa": 610.0,
+      "profile": "dry",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "simple_adjustment": true
+      },
+      "layers": 12,
+      "surface_pressure_pa": 610.0,
+      "profile": "supersaturated-stable",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "simple_adjustment": true
+      },
+      "layers": 12,
+      "surface_pressure_pa": 610.0,
+      "profile": "active",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 9.71445146547012e-17
+    },
+    {
+      "config": {
+        "simple_adjustment": true
+      },
+      "layers": 12,
+      "surface_pressure_pa": 610.0,
+      "profile": "isolated-block",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 9.540979117872439e-17
+    },
+    {
+      "config": {
+        "simple_adjustment": true
+      },
+      "layers": 12,
+      "surface_pressure_pa": 50000.0,
+      "profile": "dry",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "simple_adjustment": true
+      },
+      "layers": 12,
+      "surface_pressure_pa": 50000.0,
+      "profile": "supersaturated-stable",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "simple_adjustment": true
+      },
+      "layers": 12,
+      "surface_pressure_pa": 50000.0,
+      "profile": "active",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "simple_adjustment": true
+      },
+      "layers": 12,
+      "surface_pressure_pa": 50000.0,
+      "profile": "isolated-block",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 1.8951853975046618e-16
+    },
+    {
+      "config": {
+        "saturation_model": "simple"
+      },
+      "layers": 12,
+      "surface_pressure_pa": 610.0,
+      "profile": "dry",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "saturation_model": "simple"
+      },
+      "layers": 12,
+      "surface_pressure_pa": 610.0,
+      "profile": "supersaturated-stable",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "saturation_model": "simple"
+      },
+      "layers": 12,
+      "surface_pressure_pa": 610.0,
+      "profile": "active",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "saturation_model": "simple"
+      },
+      "layers": 12,
+      "surface_pressure_pa": 610.0,
+      "profile": "isolated-block",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 9.540979117872439e-17
+    },
+    {
+      "config": {
+        "saturation_model": "simple"
+      },
+      "layers": 12,
+      "surface_pressure_pa": 50000.0,
+      "profile": "dry",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "saturation_model": "simple"
+      },
+      "layers": 12,
+      "surface_pressure_pa": 50000.0,
+      "profile": "supersaturated-stable",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "saturation_model": "simple"
+      },
+      "layers": 12,
+      "surface_pressure_pa": 50000.0,
+      "profile": "active",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 1.942890293094024e-16
+    },
+    {
+      "config": {
+        "saturation_model": "simple"
+      },
+      "layers": 12,
+      "surface_pressure_pa": 50000.0,
+      "profile": "isolated-block",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "simple_adjustment": true,
+        "saturation_model": "simple"
+      },
+      "layers": 4,
+      "surface_pressure_pa": 610.0,
+      "profile": "dry",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "simple_adjustment": true,
+        "saturation_model": "simple"
+      },
+      "layers": 4,
+      "surface_pressure_pa": 610.0,
+      "profile": "supersaturated-stable",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "simple_adjustment": true,
+        "saturation_model": "simple"
+      },
+      "layers": 4,
+      "surface_pressure_pa": 610.0,
+      "profile": "active",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 1.942890293094024e-16
+    },
+    {
+      "config": {
+        "simple_adjustment": true,
+        "saturation_model": "simple"
+      },
+      "layers": 4,
+      "surface_pressure_pa": 610.0,
+      "profile": "isolated-block",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "simple_adjustment": true,
+        "saturation_model": "simple"
+      },
+      "layers": 4,
+      "surface_pressure_pa": 50000.0,
+      "profile": "dry",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "simple_adjustment": true,
+        "saturation_model": "simple"
+      },
+      "layers": 4,
+      "surface_pressure_pa": 50000.0,
+      "profile": "supersaturated-stable",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "simple_adjustment": true,
+        "saturation_model": "simple"
+      },
+      "layers": 4,
+      "surface_pressure_pa": 50000.0,
+      "profile": "active",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "simple_adjustment": true,
+        "saturation_model": "simple"
+      },
+      "layers": 4,
+      "surface_pressure_pa": 50000.0,
+      "profile": "isolated-block",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "iterations": 2,
+        "tolerance_max": 0.02
+      },
+      "layers": 4,
+      "surface_pressure_pa": 610.0,
+      "profile": "dry",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "iterations": 2,
+        "tolerance_max": 0.02
+      },
+      "layers": 4,
+      "surface_pressure_pa": 610.0,
+      "profile": "supersaturated-stable",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "iterations": 2,
+        "tolerance_max": 0.02
+      },
+      "layers": 4,
+      "surface_pressure_pa": 610.0,
+      "profile": "active",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 9.71445146547012e-17
+    },
+    {
+      "config": {
+        "iterations": 2,
+        "tolerance_max": 0.02
+      },
+      "layers": 4,
+      "surface_pressure_pa": 610.0,
+      "profile": "isolated-block",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 9.540979117872439e-17
+    },
+    {
+      "config": {
+        "iterations": 2,
+        "tolerance_max": 0.02
+      },
+      "layers": 4,
+      "surface_pressure_pa": 50000.0,
+      "profile": "dry",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "iterations": 2,
+        "tolerance_max": 0.02
+      },
+      "layers": 4,
+      "surface_pressure_pa": 50000.0,
+      "profile": "supersaturated-stable",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "iterations": 2,
+        "tolerance_max": 0.02
+      },
+      "layers": 4,
+      "surface_pressure_pa": 50000.0,
+      "profile": "active",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "iterations": 2,
+        "tolerance_max": 0.02
+      },
+      "layers": 4,
+      "surface_pressure_pa": 50000.0,
+      "profile": "isolated-block",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "iterations": 4,
+        "tolerance_min": 0.03,
+        "tolerance_max": 0.24
+      },
+      "layers": 12,
+      "surface_pressure_pa": 610.0,
+      "profile": "dry",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "iterations": 4,
+        "tolerance_min": 0.03,
+        "tolerance_max": 0.24
+      },
+      "layers": 12,
+      "surface_pressure_pa": 610.0,
+      "profile": "supersaturated-stable",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "iterations": 4,
+        "tolerance_min": 0.03,
+        "tolerance_max": 0.24
+      },
+      "layers": 12,
+      "surface_pressure_pa": 610.0,
+      "profile": "active",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 1.942890293094024e-16
+    },
+    {
+      "config": {
+        "iterations": 4,
+        "tolerance_min": 0.03,
+        "tolerance_max": 0.24
+      },
+      "layers": 12,
+      "surface_pressure_pa": 610.0,
+      "profile": "isolated-block",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "iterations": 4,
+        "tolerance_min": 0.03,
+        "tolerance_max": 0.24
+      },
+      "layers": 12,
+      "surface_pressure_pa": 50000.0,
+      "profile": "dry",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "iterations": 4,
+        "tolerance_min": 0.03,
+        "tolerance_max": 0.24
+      },
+      "layers": 12,
+      "surface_pressure_pa": 50000.0,
+      "profile": "supersaturated-stable",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 0.0
+    },
+    {
+      "config": {
+        "iterations": 4,
+        "tolerance_min": 0.03,
+        "tolerance_max": 0.24
+      },
+      "layers": 12,
+      "surface_pressure_pa": 50000.0,
+      "profile": "active",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 3.8163916471489756e-16
+    },
+    {
+      "config": {
+        "iterations": 4,
+        "tolerance_min": 0.03,
+        "tolerance_max": 0.24
+      },
+      "layers": 12,
+      "surface_pressure_pa": 50000.0,
+      "profile": "isolated-block",
+      "native_unconverged": false,
+      "max_temperature_tendency_error_k_s": 1.8951853975046618e-16
+    }
+  ],
+  "sha256": {
+    "scripts/validate_moist_convection.py": "04a39c1a9320f520416d5b56418a830726465176997e8d4814ec053e12a7a223",
+    "scripts/stage_saturation_tables.py": "7e77e2278cef9354d4cbb64322abef3e2d9a321bf07a39cbfbc534f6512e7d8c",
+    "scripts/native_reference.py": "2e3b0e2f65b685f86fcfdd1b4643b54c5582b81af36a0874a43d9eedc2675d76",
+    "package/src/framework/physics/moist_convection.py": "53661995f2f7fdcdb123b5e10f2f4afe51ec1564f4e24fff4585153588dea24d",
+    "package/src/framework/physics/saturation_pressure.py": "909ddc6134eb31e356417b805f8d0f1eb99a36f2d9036ea3009a5956b1d7e86b",
+    "package/src/framework/physics/saturation_tables.npz": "912d3525a7e51e22e3d86ab87e140d4ed2d10bf8936caf36cad554daa33ea513"
+  },
+  "limits": "Mars-call path with no optional stratiform cloud fields; source other-tracer tendency is zero. Initial lapse omits HC, subsequent lapse uses HC; failed block searches exit the column; the final iteration at each tolerance skips flag refresh. Those source rules are retained. Surface routing and global coupling are separate checks."
+}

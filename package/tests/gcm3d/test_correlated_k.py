@@ -110,14 +110,15 @@ def test_native_pressure_grid_changes_off_grid_opacity_and_preserves_gradients()
         np.testing.assert_allclose(auto,finite,rtol=2e-7,atol=1e-7)
 
 
-def test_absolute_planck_nodes_units_and_reverse_derivative():
-    data=correlated_k.load_ames_co2_tables()
+@pytest.mark.parametrize('mode',['12band','15band','extended'])
+def test_absolute_planck_nodes_units_and_reverse_derivative(mode):
+    data=correlated_k.load_radiation_tables(mode)
     for temperature in (50.,150.,250.,350.,900.):
         index=int(round((temperature-50.)*10.))
-        actual=correlated_k.planck_band_intensities(temperature)
+        actual=correlated_k.planck_band_intensities(temperature,mode=mode)
         np.testing.assert_allclose(actual,data['ames_planck_intensity_ir'][index],rtol=2e-14,atol=2e-15)
     def integrated(temperature):
-        return jnp.sum(correlated_k.planck_band_intensities(temperature)*
+        return jnp.sum(correlated_k.planck_band_intensities(temperature,mode=mode)*
             jnp.asarray(np.diff(data['ir_bounds_cm1'])))*jnp.pi
     assert 50.<float(integrated(250.))<500.
     auto=jax.grad(integrated)(250.05)

@@ -2059,6 +2059,7 @@ class CO2ProjectionDiagnostics(NamedTuple):
     corrected_water_mass_kg: object = None
     target_water_mass_kg: object = None
     tracer_transport: object = None
+    moist_convection: object = None
 
 
 def co2_exchange_budgets(state, coords, specs, body, cf):

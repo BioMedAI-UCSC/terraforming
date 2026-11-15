@@ -71,7 +71,7 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
                  bulk_water=False,initial_water_surface_kg_m2=0.,moment_water=False,
                  dust_lifting_options=None,initial_water_vapor_ratio=1e-6,coagulation_options=None,
                  dust_background_options=None,nonorographic_drag_options=None,effective_input_mode=0,
-                 convection_scheme='fv3'):
+                 convection_scheme='fv3',moist_convection_options=None):
     from src.framework.gcm.coordinates import coordinate_system
     from src.framework.gcm.specs import physics_specs
     from src.framework.gcm._dinosaur import primitive_equations,scales
@@ -97,7 +97,8 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
         initial_water_surface_kg_m2=initial_water_surface_kg_m2,initial_water_vapor_ratio=initial_water_vapor_ratio,
         moment_water=moment_water,initial_dust_mass_ratio=1e-5,initial_dust_number_per_kg=1e8,
         nonorographic_drag_options=nonorographic_drag_options,dust_background_options=dust_background_options,
-        moment_cloud_options=dict(effective_input_mode=effective_input_mode))
+        moment_cloud_options=dict(effective_input_mode=effective_input_mode),
+        moist_convection_options=moist_convection_options)
     forcing=(radiative_forcing(co2_radiation_enabled=True) if radiation_component is None else
         reference_radiative_forcing())
     radiation=two_stream_radiative_fluxes if radiation_component is None else radiation_component
@@ -107,7 +108,7 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
         moment_cloud_options=dict(latent_heat=True,microtimestep=1.,effective_input_mode=effective_input_mode),
         dust_lifting_options=dust_lifting_options,dust_optical_bands=15,coagulation_options=coagulation_options,
         dust_background_options=dust_background_options,nonorographic_drag_options=nonorographic_drag_options,
-        convection_scheme=convection_scheme)
+        convection_scheme=convection_scheme,moist_convection_options=moist_convection_options)
     return state,step,grid
 
 
@@ -207,6 +208,68 @@ def test_convection_source_switch_runs_globally_and_restarts(tmp_path,scheme):
         for epsilon in (1e-3,1e-4):
             fd=(forward(epsilon)-forward(-epsilon))/(2.*epsilon)
             np.testing.assert_allclose(auto,fd,rtol=3e-5,atol=1e-7)
+
+
+def moist_backend_case(moment_water=False):
+    from src.framework.physics.water_bulk import WATER_CLOUD_TRACER,WATER_VAPOR_TRACER
+    from src.framework.physics.particle_optics import make_particle_provider
+    from src.framework.physics.radiative_transfer import make_radiation_component
+    provider=(make_particle_provider(bands=15,dust_tracers=(('dust_mass','dust_number'),),
+        water_moment_tracers=(WATER_CLOUD_TRACER,'water_core_mass','water_ice_number'))
+        if moment_water else make_particle_provider(bands=15,water_bulk_tracer=WATER_CLOUD_TRACER))
+    radiation=make_radiation_component(provider,radiation_mode='15band',water_vapor_tracer=WATER_VAPOR_TRACER)
+    # Keep the initial emitting surface inside a 0.1 K Planck interpolation cell.
+    state,step,grid=backend_case(temperature_k=250.3,surface_temperature_k=250.037,wind_speed=20.,
+        bulk_water=not moment_water,moment_water=moment_water,initial_water_surface_kg_m2=100.,
+        initial_water_vapor_ratio=.011,radiation_component=radiation,return_diagnostics=True,
+        moist_convection_options={})
+    profile=jnp.array([225.3,250.7,275.1,299.9])[:,None,None]
+    dyn=dataclasses.replace(state.dynamics,
+        temperature_variation=state.dynamics.temperature_variation+grid.to_modal(
+            jnp.broadcast_to(profile-250.3,(4,*grid.nodal_shape))),
+        log_surface_pressure=state.dynamics.log_surface_pressure+grid.to_modal(
+            jnp.full((1,*grid.nodal_shape),jnp.log(50000./610.))))
+    return state._replace(dynamics=dyn),step,grid
+
+
+@pytest.mark.parametrize('moment_water',[False,True])
+def test_moist_adjustment_global_water_budget_and_restart(tmp_path,moment_water):
+    from src.framework.gcm.restart import save_restart,load_restart
+    state,step,_=moist_backend_case(moment_water)
+    first,diagnostics=jax.jit(step)(state)
+    assert all(np.isfinite(x).all() for x in jax.tree.leaves(first))
+    assert np.all(diagnostics.moist_convection['valid'])
+    assert not np.any(diagnostics.moist_convection['unconverged'])
+    assert jnp.max(diagnostics.moist_convection['iterations'])>0
+    np.testing.assert_allclose(diagnostics.moist_convection['vapor_column_change_kg_m2']+
+        5.*(diagnostics.moist_convection['rain_kg_m2_s']+diagnostics.moist_convection['snow_kg_m2_s']),
+        0.,atol=1e-12)
+    np.testing.assert_allclose(diagnostics.raw_water_mass_kg,diagnostics.target_water_mass_kg,rtol=3e-11)
+    np.testing.assert_allclose(diagnostics.corrected_water_mass_kg,diagnostics.target_water_mass_kg,rtol=3e-11)
+    if moment_water:
+        assert jnp.max(first.auxiliary_fields['moist_bulk_surface_water_kg_m2'])>0.
+        np.testing.assert_allclose(first.auxiliary_fields['moist_bulk_surface_water_kg_m2'][0],
+            5.*(diagnostics.moist_convection['rain_kg_m2_s']+diagnostics.moist_convection['snow_kg_m2_s']),
+            rtol=3e-13,atol=1e-13)
+    else:
+        assert jnp.max(first.auxiliary_fields['water_surface_kg_m2'])>100.
+    restored=load_restart(save_restart(first,tmp_path/'moist-adjustment.npz'))
+    tick=jax.jit(step);continued,_=tick(first);restarted,_=tick(restored)
+    for a,b in zip(jax.tree.leaves(continued),jax.tree.leaves(restarted),strict=True):
+        np.testing.assert_array_equal(a,b)
+
+
+def test_moist_adjustment_global_reverse_derivative():
+    state,step,_=moist_backend_case()
+    def objective(offset):
+        initial=state._replace(surface_temperature=state.surface_temperature+offset)
+        final,_=jax.lax.scan(lambda s,_:(step(s)[0],None),initial,None,length=3)
+        return jnp.mean(final.surface_temperature)+jnp.mean(final.auxiliary_fields['water_surface_kg_m2'])
+    auto=jax.jit(jax.grad(objective))(0.);forward=jax.jit(objective)
+    assert np.isfinite(auto) and abs(float(auto))>1e-6
+    for epsilon in (1e-3,1e-4):
+        fd=(forward(epsilon)-forward(-epsilon))/(2.*epsilon)
+        np.testing.assert_allclose(auto,fd,rtol=3e-5,atol=1e-7)
 
 
 def test_reference_cloud_backend_forms_suspended_ice_and_closes_raw_mass():

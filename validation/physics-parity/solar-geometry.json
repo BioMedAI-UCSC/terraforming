@@ -354,7 +354,7 @@
     "scripts/validate_solar_geometry.py": "ed8af1c73823a470c9e485c2c97ce7f5ba4ecf8169474ecec000c12641cdc608",
     "package/src/framework/physics/solar_geometry.py": "47b862ec8f9a74f0bba3b183457d09d23823bd60025cac9e0cd21c0e46157f53",
     "package/src/celestials/planets/mars/reference_constants.py": "e410d605c35e9abf8b35776884a65a7f0616af582a46d007118f55b4fb9c2ac2",
-    "package/src/framework/physics/gcm.py": "5bea5147f7d752ccfb41e7c03e51f093eda8db338479b5324f5cc682b0a8f9ce"
+    "package/src/framework/physics/gcm.py": "e3e0f2a929927d55a9d1e088277b76a275a2f4a924e59fd4e0766af58c981bea"
   },
   "limits": "periodic orbital phase and sol88/zenith; reference longwave update scheduling and spin-up are separate"
 }
