@@ -1,0 +1,141 @@
+{
+  "source": "8557ea6b8df5155df8cda95f0fd79f3780db660f",
+  "branch": "experimenal",
+  "job": {
+    "apiVersion": "batch/v1",
+    "kind": "Job",
+    "metadata": {
+      "name": "aegis-54586-albedo-year-20261115-v1",
+      "namespace": "razvanlab",
+      "labels": {
+        "campaign": "aegis-54586",
+        "task": "albedo-year"
+      },
+      "finalizers": [
+        "aegis.terraforming/retain-results"
+      ]
+    },
+    "spec": {
+      "backoffLimit": 0,
+      "template": {
+        "metadata": {
+          "labels": {
+            "app": "nautalis-experiments",
+            "campaign": "aegis-54586",
+            "task": "albedo-year"
+          }
+        },
+        "spec": {
+          "restartPolicy": "Never",
+          "automountServiceAccountToken": false,
+          "terminationGracePeriodSeconds": 120,
+          "securityContext": {
+            "runAsNonRoot": true,
+            "runAsUser": 10001,
+            "runAsGroup": 10001,
+            "fsGroup": 10001,
+            "fsGroupChangePolicy": "OnRootMismatch",
+            "seccompProfile": {
+              "type": "RuntimeDefault"
+            }
+          },
+          "containers": [
+            {
+              "name": "experiment",
+              "image": "samkash/terraforming-paper@sha256:a04422421dbe06a2073d55259ba9ae9d54e2f22488e4bc2552fdbb5bc3f24fd2",
+              "imagePullPolicy": "IfNotPresent",
+              "args": [
+                "--repository",
+                "https://github.com/BioMedAI-UCSC/terraforming.git",
+                "--ref",
+                "8557ea6b8df5155df8cda95f0fd79f3780db660f",
+                "--run-id",
+                "annual-albedo-20261115-v1",
+                "--gpu",
+                "--experiments",
+                "experiments/albedo-mars-year",
+                "--"
+              ],
+              "resources": {
+                "requests": {
+                  "cpu": "8",
+                  "memory": "64Gi",
+                  "ephemeral-storage": "2Gi",
+                  "nvidia.com/a100": "1"
+                },
+                "limits": {
+                  "cpu": "8",
+                  "memory": "64Gi",
+                  "ephemeral-storage": "8Gi",
+                  "nvidia.com/a100": "1"
+                }
+              },
+              "securityContext": {
+                "allowPrivilegeEscalation": false,
+                "readOnlyRootFilesystem": true,
+                "capabilities": {
+                  "drop": [
+                    "ALL"
+                  ]
+                }
+              },
+              "volumeMounts": [
+                {
+                  "name": "work",
+                  "mountPath": "/work"
+                },
+                {
+                  "name": "tmp",
+                  "mountPath": "/tmp"
+                },
+                {
+                  "name": "shm",
+                  "mountPath": "/dev/shm"
+                }
+              ]
+            }
+          ],
+          "volumes": [
+            {
+              "name": "work",
+              "persistentVolumeClaim": {
+                "claimName": "aegis-54586-spatial-20261115-v1"
+              }
+            },
+            {
+              "name": "tmp",
+              "emptyDir": {
+                "sizeLimit": "4Gi"
+              }
+            },
+            {
+              "name": "shm",
+              "emptyDir": {
+                "medium": "Memory",
+                "sizeLimit": "8Gi"
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "protocol": {
+    "steps": 200586,
+    "sols": 668.62,
+    "objective": "area and time mean surface temperature",
+    "evaluations_per_method": 16,
+    "audit_horizons_sols": [
+      5,
+      30
+    ],
+    "methods": [
+      "gradient",
+      "diagonal CMA-ES",
+      "uniform"
+    ],
+    "gradient_requires_valid_audit": true
+  },
+  "state": "Submitted to Nautilus; initial Pod pending scheduling. Results and annual gradient acceptance are not yet available.",
+  "validation": "10 focused tests passed; all three methods passed a short physical smoke; physical block/remainder temperatures and gradients agreed."
+}
