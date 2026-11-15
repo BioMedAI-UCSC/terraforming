@@ -54,6 +54,7 @@ No complete-model equivalence or speed claim has passed yet.
 | Water state/restarts | `dinosaur_physics`, restart format 4 | Independent global water inventories, full cloud-feedback restart and three-step reverse derivatives | Surface water and lagged PBL state persist across restarts. Versions 2 and 3 remain readable; trace-water thermodynamics follows the source approximation |
 | Coupled gas column | `column_physics.column_physics` | Original Rayleigh, PBL, surface, CO2 and convection routines in reference order; 24 clear/winter/thaw/convective cases at 4/12/40 layers, with immediate deposition or suspended clouds; temperature errors below 2e-13 K | Radiation heating and downward surface flux are prescribed inputs |
 | Dinosaur adaptation | `dinosaur_physics.build_step` and `remap_gas` | Cold global smoke, gas inventory, remap energy/momentum/passive material checks, and three-step reverse derivatives checked against finite differences | Ground impulse is recorded; raw/corrected angular momentum and exchange-energy ledgers expose numerical repair changes; whole-model validation remains pending |
+| Positive spectral tracers | `tracer_transport.project_tracers` | Independent species inventories, grid positivity, physical-source retention, invalid-inventory rejection and reverse derivatives | Dinosaur numerical adaptation, separate from reference FV3 transport. Dynamics retains each species inventory. The post-physics projection retains physical sources and sinks. Per-species correction and redistribution are reported |
 
 The optional `nonorographic_drag_options={"top_pressure_pa": .03}` enables
 non-orographic gravity-wave drag. Supply the same options to `initial_state`
@@ -172,6 +173,12 @@ Reverse derivatives are checked within the source gas-mixture bins. Crossing a
 bin can change the forward radiation result abruptly. A dust perturbation in
 the initial global fixture crossed three such cells on step three. The updated
 derivative fixture stays within a bin and checks two finite-difference sizes.
+The bulk-water derivative fixture also starts within a bin. At the exact
+`1e-6` boundary, the conservative transport correction moved hundreds of cells
+between source gas-mixture bins on the second step. Direct radiation-provider
+instrumentation confirmed those switches. The replacement `1.1e-6` probe has
+no bin changes at any of its checked perturbation sizes. Table selection and
+the derivative tolerances are unchanged.
 
 The convection sweep mixes heat, winds and tracers. It makes one bottom-to-top
 pass, as the reference does. It does not replace this pass with a global neutral
@@ -289,6 +296,19 @@ claimed only where the original lookup is defined.
 
 ## Required remaining work
 
+The reference backend projects transported species after dynamics and after
+column physics. The dynamics projection restores each previous global species
+inventory. The physics projection keeps each current inventory, so injection,
+condensation and settling remain physical sources and sinks. Negative spectral
+values are removed by a convex blend with the mass-weighted global mean. The
+blend stays in the existing spectral space; clipping and transforming nodal
+values can otherwise create new negative lobes. Negative total inventory is
+invalid and returns NaNs. `diagnostics.tracer_transport` reports raw and target
+mass, corrected mass, redistributed mass, and minimum values for both stages.
+This projection can smooth sharp tracer fronts. Long runs must measure its
+size and check resolution convergence. It does not reproduce FV3's local flux
+limiter or establish matched transport accuracy.
+
 | Area | Remaining implementation and acceptance check |
 | --- | --- |
 | Global budgets | Momentum exchange and repair-stage ledgers are connected. Extend the energy audit across dissipation, fixed-deep-soil exchange, phase approximations and long global runs; select gas and particle tracers explicitly. |
@@ -297,12 +317,20 @@ claimed only where the original lookup is defined.
 | Soil and frost | Mapped TES/GRS inputs and default case-7 profiles are implemented and checked. Compare diurnal/seasonal response in global runs; modern and legacy material profiles now pass native checks. |
 | CO2 modes | Immediate deposition and optional bulk suspended-cloud phase/settling match native routines and coupled columns. Cloud optical feedback passes a three-step gradient check. Full two-way exchange auditing and long global validation remain pending. The older conservative finite-settling scheme remains a separate model. |
 | Interactive dust | Lifting, advection, sedimentation, surface reservoirs, coagulation and material budgets. |
-| Water | Bulk and moment phase/growth/settling paths, surface exchange, saved effective inputs, state/restarts and optical feedback are connected. The moment kernel checks two physical dust modes; global coupling currently uses one. Bin cloud microphysics and long climate validation remain pending. |
+| Water | Bulk and moment phase/growth/settling paths, surface exchange, saved effective inputs, state/restarts and optical feedback are connected. The moment kernel checks two physical dust modes; global coupling currently uses one. Long climate validation remains. Bin cloud microphysics is unavailable in the public release. |
 | Drag | Rayleigh, Palmer terrain drag and non-orographic gravity-wave drag are implemented and checked. Polar water and terrain maps pass pinned-blob and T21/T42 area checks. Long momentum/energy audits remain. Gravity-wave schemes are off in the default Ames present-Mars setup. |
 | Extended atmosphere | Both 15-band options and CIA are implemented and checked. Non-LTE cooling is implemented with the pinned reference atmosphere. Gas-mixture mass/thermodynamics and source infinite-table regions still need auditing or implementation. |
-| Other release interfaces | Audit chemistry, bin microphysics and tagging against the release's real and null implementations. Do not label a stub as working physics. |
+| Other release interfaces | Pinned build/preprocessor audit verifies that bin clouds, photochemistry and legacy binned dust sources use fatal placeholders. Tagging imports are excluded by RELEASE. These equations are unavailable in v3.2.1; they are not implemented physics. |
 | Whole-model validation | Matched inputs, switches, grids, resolution studies, spin-up, conservation, held-out observations and native-output comparisons. Dinosaur and FV3 require climate/statistical comparison as well as kernel tests. |
 | Performance | Matched physical workloads and precision; record hardware, threads, compilation, transfers, steady-state timings and derivatives separately. |
+
+The release interface audit checks pinned `compile.bash`, `mars_physics.F90`
+and `null_physics_mod.F90`, then runs the actual release preprocessor. Each of
+the five audited placeholder routines calls only `error_mesg(..., FATAL)`.
+This result does not supply bin-cloud or chemistry equations. The public
+release's real moment/bulk modules are checked separately. Optional legacy
+dry convection, AM4 moist adjustment and alternate diffusion/radiation
+branches also need explicit coverage before claiming every source switch.
 
 ## Reproduce the native checks
 
@@ -358,6 +386,8 @@ env PYTHONPATH=package:. python scripts/validate_dust_control.py \
 env PYTHONPATH=package:. python scripts/validate_nonorographic_drag.py \
   --gfdl-source /path/to/atmos_phys --ames-source /path/to/AmesGCM \
   --output outputs/physics-parity/nonorographic-drag.json
+env PYTHONPATH=package:. python scripts/validate_release_interfaces.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/release-interfaces.json
 env PYTHONPATH=package:. python scripts/validate_dust_coagulation.py \
   --ames-source /path/to/AmesGCM --output outputs/physics-parity/dust-coagulation.json
 env PYTHONPATH=package:. python scripts/validate_dust_background.py \

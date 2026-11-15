@@ -156,6 +156,31 @@ def test_dinosaur_backend_runs_cold_column_and_preserves_total_inventory():
     assert np.isfinite(float(d.corrected_exchange_energy_j))
 
 
+def test_passive_transport_keeps_material_through_dynamics_and_column_physics():
+    from src.framework.gcm.coordinates import coordinate_system
+    coords=coordinate_system('T21',4)
+    state,step,grid=backend_case(temperature_k=200.,surface_temperature_k=200.,wind_speed=40.,
+        return_diagnostics=True)
+    lon=jnp.asarray(grid.longitudes)[:,None];lat=jnp.asarray(grid.latitudes)[None,:]
+    tracer=jnp.broadcast_to(1e-5*(1.+.99*jnp.cos(20.*lon)*jnp.cos(lat)**20),
+        (4,*grid.nodal_shape))
+    state=state._replace(dynamics=dataclasses.replace(state.dynamics,
+        tracers={**state.dynamics.tracers,'passive':grid.to_modal(tracer)}))
+    def material(s):
+        return jnp.sum(jnp.exp(grid.to_nodal(s.dynamics.log_surface_pressure))*
+            grid.to_nodal(s.dynamics.tracers['passive'])*grid.quadrature_weights*
+            jnp.diff(jnp.asarray(coords.vertical.boundaries))[:,None,None])
+    initial=material(state);tick=jax.jit(step)
+    for _ in range(3):
+        state,diagnostics=tick(state)
+        assert np.min(grid.to_nodal(state.dynamics.tracers['passive']))>=0.
+        np.testing.assert_allclose(material(state),initial,rtol=3e-13)
+        for stage in diagnostics.tracer_transport.values():
+            report=stage['passive']
+            assert report['valid']
+            np.testing.assert_allclose(report['corrected_inventory_kg'],report['target_inventory_kg'],rtol=3e-14)
+
+
 def test_reference_cloud_backend_forms_suspended_ice_and_closes_raw_mass():
     from src.framework.physics.co2_clouds import CO2_CLOUD_TRACER
     state,step,grid=backend_case(return_diagnostics=True,suspended_co2_clouds=True)
@@ -251,8 +276,10 @@ def test_bulk_water_backend_multistep_reverse_derivative():
     from src.framework.physics.radiative_transfer import make_radiation_component
     radiation=make_radiation_component(make_particle_provider(bands=15,water_bulk_tracer=WATER_CLOUD_TRACER),
         radiation_mode='extended',water_vapor_tracer=WATER_VAPOR_TRACER)
+    # A derivative is defined within a source gas-mixture bin, away from 1e-6.
     state,step,_=backend_case(temperature_k=200.,surface_temperature_k=250.,wind_speed=20.,
-        bulk_water=True,initial_water_surface_kg_m2=100.,radiation_component=radiation)
+        bulk_water=True,initial_water_surface_kg_m2=100.,radiation_component=radiation,
+        initial_water_vapor_ratio=1.1e-6)
     def objective(offset):
         initial=state._replace(surface_temperature=state.surface_temperature+offset)
         final,_=jax.lax.scan(lambda s,_:(step(s),None),initial,None,length=3)

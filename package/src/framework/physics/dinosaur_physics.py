@@ -20,6 +20,7 @@ from src.framework.physics.dust_lifting import reference_efficiencies
 from src.framework.physics.dust_control import (LocalTimeState,seasonal_sample,local_time_step,
     validate_local_time_scenario)
 from src.framework.physics.nonorographic_drag import DragState,initial_drag_state,source_parameters,schedule
+from src.framework.physics.tracer_transport import project_tracers
 from src.framework.physics.gcm import (ColumnPhysicsTendencies,column_primitive_equations,
     initial_column_state,positivity_preserving_co2_step,surface_radiative_forcing,_true_anomaly)
 
@@ -292,7 +293,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
     dry=stepper(column_primitive_equations(base,no_forcing),dt_seconds,specs,coords=coords,
         hyperdiffusion_tau_seconds=hyperdiffusion_tau_seconds)
 
-    def advance(state):
+    def advance_with_transport(state):
         if water_cycle:
             required={'water_surface_kg_m2','water_exchange_coefficient_kg_m2_s','water_pbl_top_layer'}
             if state.auxiliary_fields is None or required-set(state.auxiliary_fields):
@@ -326,6 +327,8 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             if state.auxiliary_fields is None or required-set(state.auxiliary_fields):
                 raise ValueError('radiation schedule requires initialized heating and stratosphere state')
         predicted=dry(state)
+        transported,transport_diagnostics=project_tracers(state.dynamics,predicted.dynamics,coords)
+        predicted=predicted._replace(dynamics=transported)
         if predicted.ground_temperature.shape[0]!=soil_layers-1:
             raise ValueError("state soil nodes do not match the Ames backend configuration")
         if predicted.surface_momentum is None:
@@ -517,15 +520,27 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             auxiliary={**({} if auxiliary is None else auxiliary),
                 'nonorographic_u_tendency_m_s2':drag.u_tendency,'nonorographic_v_tendency_m_s2':drag.v_tendency,
                 'nonorographic_alarm_seconds':drag.alarm_seconds,'nonorographic_frequency_seconds':drag.frequency_seconds}
-        return predicted._replace(dynamics=dynamics,surface_temperature=column.soil[:1],
+        dynamics,physics_projection=project_tracers(dynamics,dynamics,coords,conserve_previous=False)
+        final=predicted._replace(dynamics=dynamics,surface_temperature=column.soil[:1],
             ground_temperature=column.soil[1:],co2_ice=(column.co2_ice_kg_m2*body.gravity_m_s2/pressure_scale)[None],
             surface_momentum=predicted.surface_momentum+impulse,auxiliary_fields=auxiliary)
+        mass_scale=pressure_scale/body.gravity_m_s2*body.surface_area_m2/jnp.sum(jnp.broadcast_to(
+            jnp.asarray(grid.quadrature_weights),grid.nodal_shape))
+        def physical_units(diagnostics):
+            return {name:{(key+'_kg' if 'inventory' in key else key):
+                value*mass_scale if 'inventory' in key else value for key,value in fields.items()}
+                for name,fields in diagnostics.items()}
+        return final,dict(dynamics=physical_units(transport_diagnostics),
+            physics_projection=physical_units(physics_projection))
+
+    def advance(state):
+        return advance_with_transport(state)[0]
 
     if not return_diagnostics:
         return positivity_preserving_co2_step(advance,coords,specs,body=body)
 
     def audited(state):
-        raw=advance(state)
+        raw,transport_diagnostics=advance_with_transport(state)
         final,diagnostics=positivity_preserving_co2_step(lambda _:raw,coords,specs,
             body=body,return_diagnostics=True)(state)
         diagnostics=diagnostics._replace(
@@ -534,7 +549,8 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             corrected_exchange_energy_j=exchange_energy(final,coords,specs,body,
                 soil_volumetric_heat_capacity=soil_volumetric_heat_capacity),
             raw_axial_angular_momentum_kg_m2_s=axial_angular_momentum(raw,coords,specs,body),
-            corrected_axial_angular_momentum_kg_m2_s=axial_angular_momentum(final,coords,specs,body))
+            corrected_axial_angular_momentum_kg_m2_s=axial_angular_momentum(final,coords,specs,body),
+            tracer_transport=transport_diagnostics)
         if water_cycle:
             diagnostics=diagnostics._replace(raw_water_mass_kg=water_inventory(raw,coords,specs,body),
                 corrected_water_mass_kg=water_inventory(final,coords,specs,body),

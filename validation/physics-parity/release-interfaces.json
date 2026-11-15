@@ -1,0 +1,51 @@
+{
+  "status": "pass",
+  "reference": {
+    "commit": "ba47cada5f9eb89c75c4f10d06dbae6e7f9ecb26",
+    "source_git_blobs": {
+      "atmos_param_mars/mars_physics.F90": "ca0b7c0774b1b23cafaee219062c3bffa3d0c4cc",
+      "atmos_param_mars/null_physics_mod.F90": "4ca7a58d46e31dd8fb281469bbbcd8d50071bba2",
+      "build_run/compile.bash": "3a43a2fdb4e26dc0980e3e5bfaa5efbe0861a597"
+    },
+    "preprocessor_flags": [
+      "-cpp",
+      "-E",
+      "-P",
+      "-DRELEASE"
+    ],
+    "preprocessed_sha256": "4bafca1acd02f2e53ec6830bcf94a9d43e34d97dc4be09346dafd35089bd2c56",
+    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0"
+  },
+  "cases": [
+    {
+      "interface": "cloud_physics",
+      "released_implementation": "fatal placeholder",
+      "routine_sha256": "ba38c9855aafcde462dd8cb3e1b283eb65f21896ef750556b1ad7216602fe449"
+    },
+    {
+      "interface": "cloud_physics_init",
+      "released_implementation": "fatal placeholder",
+      "routine_sha256": "6b4d8a7bda901b9e3b43c6ed1ec64a002ce5ef7ede54615585ec25f7b03653b0"
+    },
+    {
+      "interface": "photochem_driver",
+      "released_implementation": "fatal placeholder",
+      "routine_sha256": "fd163508da7454313f5cbebe3ee552123a1dfa54ac57061a5d777630fdb4a5c0"
+    },
+    {
+      "interface": "dust_source_sink",
+      "released_implementation": "fatal placeholder",
+      "routine_sha256": "bf9fcae399b7cb1b977368b4162c6a23a9b885b97e34272df7efbaa5075294fa"
+    },
+    {
+      "interface": "dust_source_init",
+      "released_implementation": "fatal placeholder",
+      "routine_sha256": "a50637817553165f521d6c24c2d89444446eab4fbe1b5abc32b68ed9da7e8bb6"
+    }
+  ],
+  "sha256": {
+    "scripts/validate_release_interfaces.py": "c4bfe754b6c82560fabadeb56c58111c2eccb8bcb99d581beb8f07884410f768",
+    "scripts/native_reference.py": "2e3b0e2f65b685f86fcfdd1b4643b54c5582b81af36a0874a43d9eedc2675d76"
+  },
+  "limits": "This verifies unavailable release interfaces, not functioning physics. Bin-cloud microphysics, photochemistry and legacy binned dust-source equations are not in these released implementations. Tagging imports are excluded by RELEASE. Moment water, bulk water and moment dust have separate real modules and validations."
+}
