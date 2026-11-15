@@ -675,6 +675,7 @@
     "scripts/validate_spectral_flux.py": "5368b4de0eaefb3492af65f00ea0167519b75200e9557f7c8ef986e5cedf3cce",
     "scripts/validate_scattering_transfer.py": "44f6726344236f17681edc7b4bec06ab8e7116cbdfeae3eb8ba961b6b0a2b7de",
     "scripts/validate_infrared_precision.py": "08b3ae018b0062cb96d2f078897172d0161b4388f0d34c867a80098e1c1b66ac",
+    "package/src/framework/physics/prescribed_dust.py": "5679b18bb1acb891a0fca1fa45a685839bf84e44b29866c90941ba1e07912e64",
     "package/src/framework/physics/dinosaur_physics.py": "90c6c72aa094360962c5c13e6c557ce882a7359df3a621bd8b71be101ec8e649",
     "package/src/framework/physics/correlated_k.py": "fde79069ec8e8742e6deafcf6077e0c376d48840b1b2bcbf9f6086cc6484629e",
     "package/src/framework/physics/terrain_drag.py": "6b0a6c769d9d40abed95d2e9aaa51b14abdb0f22cb5fd73f5811bcad2c863ead",

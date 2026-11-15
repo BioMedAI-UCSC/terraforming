@@ -489,6 +489,7 @@
     "solar_day_s": 88704.0
   },
   "physics_sha256": {
+    "prescribed_dust.py": "5679b18bb1acb891a0fca1fa45a685839bf84e44b29866c90941ba1e07912e64",
     "dinosaur_physics.py": "90c6c72aa094360962c5c13e6c557ce882a7359df3a621bd8b71be101ec8e649",
     "correlated_k.py": "fde79069ec8e8742e6deafcf6077e0c376d48840b1b2bcbf9f6086cc6484629e",
     "terrain_drag.py": "6b0a6c769d9d40abed95d2e9aaa51b14abdb0f22cb5fd73f5811bcad2c863ead",

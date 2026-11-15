@@ -2,13 +2,14 @@
   "status": "pass",
   "reference": {
     "source_git_blob": "40d8879c3735bbec6cabc63817cad5220f281532",
-    "compiled_source_sha256": "ec3e3ee224cc52efe848e46801e4b8ca170f87688635bd31c26edff33a73c908",
+    "compiled_source_sha256": "3a958cd5c2737e8e6e28841838ab0a868485d95c6c84d685ebb15c894ffd1ccb",
     "routine_sha256": {
       "opt_dst": "9b275bfa101d66bdff12571011b3f36107a7623f6f412c2dc80328f71a505f3b",
       "opt_co2cld": "75f995b0235dce1aaca02c34edfa64036c9218f31eee63510c5a3f49f9996e21",
       "opt_cld_blk": "0ceb787d2c27a9a7fff4346b0bcc4cd1fc9c2c44a603e55bb3d2a4e411ef95aa",
       "opt_cld": "8653621be5516e0b61f670e938ac3c18353ccd001a9c684394d931776e95f6d1",
-      "calc_opts": "115c281c3bc98827c706008528d63d967976ca642ff8104691160e9658baf711"
+      "calc_opts": "115c281c3bc98827c706008528d63d967976ca642ff8104691160e9658baf711",
+      "ini_optdst": "b5eae7d112d3b2cbe57c69f1bc11e199560db94ee4766249b857e884db8d08b2"
     },
     "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
     "compiler_flags": [
@@ -1198,6 +1199,174 @@
         6.394884621840902e-14,
         5.684341886080802e-14
       ]
+    },
+    {
+      "layers": 2,
+      "bands": 12,
+      "kind": "fixed-dust",
+      "radius_m": 1e-08,
+      "max_absolute_errors": [
+        1.3877787807814457e-17,
+        8.673617379884035e-19,
+        1.3877787807814457e-17,
+        6.776263578034403e-21,
+        1.6940658945086007e-21,
+        3.308722450212111e-24
+      ]
+    },
+    {
+      "layers": 2,
+      "bands": 12,
+      "kind": "fixed-dust",
+      "radius_m": 1.5e-06,
+      "max_absolute_errors": [
+        1.3877787807814457e-17,
+        6.938893903907228e-18,
+        6.938893903907228e-18,
+        1.734723475976807e-18,
+        1.734723475976807e-18,
+        8.673617379884035e-19
+      ]
+    },
+    {
+      "layers": 2,
+      "bands": 12,
+      "kind": "fixed-dust",
+      "radius_m": 0.0001,
+      "max_absolute_errors": [
+        6.938893903907228e-18,
+        6.938893903907228e-18,
+        6.938893903907228e-18,
+        6.938893903907228e-18,
+        3.469446951953614e-18,
+        3.469446951953614e-18
+      ]
+    },
+    {
+      "layers": 2,
+      "bands": 15,
+      "kind": "fixed-dust",
+      "radius_m": 1e-08,
+      "max_absolute_errors": [
+        2.168404344971009e-19,
+        1.3877787807814457e-17,
+        2.168404344971009e-19,
+        8.673617379884035e-19,
+        2.117582368135751e-22,
+        2.0679515313825692e-25
+      ]
+    },
+    {
+      "layers": 2,
+      "bands": 15,
+      "kind": "fixed-dust",
+      "radius_m": 1.5e-06,
+      "max_absolute_errors": [
+        6.938893903907228e-18,
+        6.938893903907228e-18,
+        1.0842021724855044e-19,
+        3.469446951953614e-18,
+        3.469446951953614e-18,
+        1.734723475976807e-18
+      ]
+    },
+    {
+      "layers": 2,
+      "bands": 15,
+      "kind": "fixed-dust",
+      "radius_m": 0.0001,
+      "max_absolute_errors": [
+        6.938893903907228e-18,
+        5.421010862427522e-20,
+        5.421010862427522e-20,
+        6.938893903907228e-18,
+        6.938893903907228e-18,
+        3.469446951953614e-18
+      ]
+    },
+    {
+      "layers": 12,
+      "bands": 12,
+      "kind": "fixed-dust",
+      "radius_m": 1e-08,
+      "max_absolute_errors": [
+        1.3877787807814457e-17,
+        1.3877787807814457e-17,
+        1.3877787807814457e-17,
+        8.673617379884035e-19,
+        3.3881317890172014e-21,
+        1.3234889800848443e-23
+      ]
+    },
+    {
+      "layers": 12,
+      "bands": 12,
+      "kind": "fixed-dust",
+      "radius_m": 1.5e-06,
+      "max_absolute_errors": [
+        1.3877787807814457e-17,
+        1.3877787807814457e-17,
+        1.0408340855860843e-17,
+        6.938893903907228e-18,
+        2.6020852139652106e-18,
+        8.673617379884035e-19
+      ]
+    },
+    {
+      "layers": 12,
+      "bands": 12,
+      "kind": "fixed-dust",
+      "radius_m": 0.0001,
+      "max_absolute_errors": [
+        1.3877787807814457e-17,
+        6.938893903907228e-18,
+        6.938893903907228e-18,
+        1.3877787807814457e-17,
+        6.938893903907228e-18,
+        6.938893903907228e-18
+      ]
+    },
+    {
+      "layers": 12,
+      "bands": 15,
+      "kind": "fixed-dust",
+      "radius_m": 1e-08,
+      "max_absolute_errors": [
+        6.938893903907228e-18,
+        1.3877787807814457e-17,
+        2.0816681711721685e-17,
+        8.673617379884035e-19,
+        1.6940658945086007e-21,
+        1.3234889800848443e-23
+      ]
+    },
+    {
+      "layers": 12,
+      "bands": 15,
+      "kind": "fixed-dust",
+      "radius_m": 1.5e-06,
+      "max_absolute_errors": [
+        1.3877787807814457e-17,
+        1.3877787807814457e-17,
+        1.0408340855860843e-17,
+        3.469446951953614e-18,
+        5.204170427930421e-18,
+        2.6020852139652106e-18
+      ]
+    },
+    {
+      "layers": 12,
+      "bands": 15,
+      "kind": "fixed-dust",
+      "radius_m": 0.0001,
+      "max_absolute_errors": [
+        1.3877787807814457e-17,
+        6.938893903907228e-18,
+        6.938893903907228e-18,
+        1.3877787807814457e-17,
+        6.938893903907228e-18,
+        6.938893903907228e-18
+      ]
     }
   ],
   "optical_inputs": {
@@ -1263,9 +1432,10 @@
     }
   },
   "sha256": {
-    "scripts/validate_particle_optics.py": "902448baf2c1a4c8d12b1e377cdf15124a9bca8e1f0d6e146992e809d62a3de3",
+    "scripts/validate_particle_optics.py": "11dbfdf70bd83d08775dcaece9d306bcbe8d6e39670b4bd7d728296d8f7f67f6",
     "scripts/stage_particle_optics.py": "0e868503a041c623e0d53488e9802c671d684268e0b1d44c06740d2e059eb7eb",
     "package/src/framework/physics/particle_optics.py": "125ec57c6d71d99082eb31b98b64be357c3287c721e4b73b149311852138895f",
-    "package/src/framework/physics/particle_optical_tables.npz": "ae3328d6cabec02bf75f60e749a35985a397ca537e05536573cfc781117c330f"
+    "package/src/framework/physics/particle_optical_tables.npz": "ae3328d6cabec02bf75f60e749a35985a397ca537e05536573cfc781117c330f",
+    "package/src/framework/physics/prescribed_dust.py": "5679b18bb1acb891a0fca1fa45a685839bf84e44b29866c90941ba1e07912e64"
   }
 }

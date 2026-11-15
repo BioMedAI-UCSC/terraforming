@@ -10,6 +10,7 @@ import tempfile
 import numpy as np
 from src.framework.gcm._dinosaur import jax
 from src.framework.physics.particle_optics import dust_optics,co2_cloud_optics,water_bulk_optics,water_moment_optics,load_tables
+from src.framework.physics.prescribed_dust import fixed_optics
 from native_reference import compile_routines
 
 RADIATION_BLOB='40d8879c3735bbec6cabc63817cad5220f281532'
@@ -39,6 +40,10 @@ real*4,allocatable :: qexti_co2cld(:,:,:),qscati_co2cld(:,:,:),gi_co2cld(:,:,:)
 real*4,allocatable :: qexti_bcld(:,:,:),qscati_bcld(:,:,:),gi_bcld(:,:,:)
 real*4,allocatable :: qexti_blcld(:,:,:),qscati_blcld(:,:,:),gi_blcld(:,:,:)
 real*4,allocatable :: qexti_cld(:,:,:),qscati_cld(:,:,:),gi_cld(:,:,:)
+logical :: user_fixed_dust_opts=.false.
+real*8 :: reff_fixed=1.5e-6
+real*8 :: qextv(7)=0.,qscatv(7)=0.,ggv(7)=0.,qexti(8)=0.,qscati(8)=0.,ggi(8)=0.
+real*8 :: qxv_read(7)=0.,qsv_read(7)=0.,gv_read(7)=0.,qxi_read(8)=0.,qsi_read(8)=0.,gi_read(8)=0.
 contains
 """
     adapter="""
@@ -126,12 +131,15 @@ enddo
 end subroutine
 end module
 """
+    adapter=adapter.replace("end module",'subroutine fixed_dust(n,nir,radius,p,tau,vin,iin,edges,ev,sv,mv,ei,si,mi) bind(C)\ninteger(c_int),value :: n,nir\nreal(c_double),value :: radius\nreal(c_double),intent(in) :: p(2*n+3),tau(n),vin(1,20,3,7),iin(1,20,3,nir),edges(21)\nreal(c_double),intent(out) :: ev(2*n+2,7),sv(2*n+2,7),mv(2*n+2,7)\nreal(c_double),intent(out) :: ei(2*n+2,nir),si(2*n+2,nir),mi(2*n+2,nir)\nreal*8 :: qxv(2*n+4,7),qsv(2*n+4,7),gv(2*n+4,7),ref(2*n+4),amount(2*n+4)\nreal*8 :: qxi(2*n+4,nir),qsi(2*n+4,nir),gi(2*n+4,nir),dummyv(7),dummyi(nir),surf(20,n)\ninteger l,k\nl_layers=n\nl_levels=2*n+3\nnloni=nir\nl_nspecti=nir\nreff_fixed=radius\nqextv_dst=real(vin(1,:,1,:),4)\nqscatv_dst=real(vin(1,:,2,:),4)\ngv_dst=real(vin(1,:,3,:),4)\nif(allocated(qexti_dst)) deallocate(qexti_dst,qscati_dst,gi_dst)\nallocate(qexti_dst(20,nir),qscati_dst(20,nir),gi_dst(20,nir))\nqexti_dst=real(iin(1,:,1,:),4)\nqscati_dst=real(iin(1,:,2,:),4)\ngi_dst=real(iin(1,:,3,:),4)\nradb_rt=edges\ndummyv=0.\ndummyi=0.\ncall ini_optdst(dummyv,dummyi,qxv,qxi,qsv,qsi,gv,gi,ref,surf,.true.)\namount=0.\ndo l=1,n\n k=2*l+2\n amount(k)=tau(l)*(p(k)-p(k-1))/(p(k+1)-p(k-1))\n amount(k+1)=tau(l)*(p(k+1)-p(k))/(p(k+1)-p(k-1))\nenddo\ndo k=2,l_levels\n ev(k-1,:)=amount(k)/ref(k)*qxv(k,:)\n sv(k-1,:)=amount(k)/ref(k)*qsv(k,:)\n mv(k-1,:)=amount(k)/ref(k)*qsv(k,:)*gv(k,:)\n ei(k-1,:)=amount(k)/ref(k)*qxi(k,:)\n si(k-1,:)=amount(k)/ref(k)*qsi(k,:)\n mi(k-1,:)=amount(k)/ref(k)*qsi(k,:)*gi(k,:)\nenddo\nend subroutine\n'+"end module")
     library,provenance=compile_routines(source/'atmos_param_mars/Rad/rtmod_mgcm.F90',RADIATION_BLOB,
-        ['opt_dst','opt_co2cld','opt_cld_blk','opt_cld','calc_opts'],header,adapter,destination,compiler)
+        ['opt_dst','opt_co2cld','opt_cld_blk','opt_cld','calc_opts','ini_optdst'],header,adapter,destination,compiler)
     native=ctypes.CDLL(str(library))
     array=np.ctypeslib.ndpointer(dtype=np.float64,flags='F_CONTIGUOUS')
     native.particles.argtypes=[ctypes.c_int]*5+[array]*16
     native.particles.restype=None
+    native.fixed_dust.argtypes=[ctypes.c_int]*2+[ctypes.c_double]+[array]*11
+    native.fixed_dust.restype=None
     return native,provenance
 
 
@@ -182,9 +190,26 @@ def validate(source,compiler):
                                 err_msg=f'{kind=} {n=} {bands=} {mode=}')
                             errors.append(float(np.max(np.abs(np.asarray(a)-b))))
                         cases.append(dict(layers=n,bands=bands,kind=kind,case=mode,max_absolute_errors=errors))
+        for n in (2,12):
+            half=np.linspace(0.,610.,n+1);p=np.zeros(2*n+3)
+            p[2::2]=half;p[3::2]=.5*(half[:-1]+half[1:])
+            tau=np.geomspace(.001,.1,n)
+            for bands in (12,15):
+                nir=5 if bands==12 else 8
+                for radius in (1e-8,1.5e-6,100e-6):
+                    actual=fixed_optics(tau,p,effective_radius_m=radius,bands=bands)
+                    outputs=[f(np.zeros((2*n+2,b))) for b in (7,7,7,nir,nir,nir)]
+                    native.fixed_dust(n,nir,radius,f(p),f(tau),f(data[f'dust_{bands}_sw']),
+                        f(data[f'dust_{bands}_ir']),f(data['moment_edges_m']),*outputs)
+                    errors=[]
+                    for a,b in zip((*actual.visible,*actual.infrared),outputs,strict=True):
+                        np.testing.assert_allclose(a,b,rtol=2e-11,atol=2e-13)
+                        errors.append(float(np.max(np.abs(np.asarray(a)-b))))
+                    cases.append(dict(layers=n,bands=bands,kind='fixed-dust',radius_m=radius,max_absolute_errors=errors))
     repo=Path(__file__).parents[1]
     paths=['scripts/validate_particle_optics.py','scripts/stage_particle_optics.py',
-        'package/src/framework/physics/particle_optics.py','package/src/framework/physics/particle_optical_tables.npz']
+        'package/src/framework/physics/particle_optics.py','package/src/framework/physics/particle_optical_tables.npz',
+        'package/src/framework/physics/prescribed_dust.py']
     return dict(status='pass',reference=provenance,cases=cases,
         optical_inputs=json.loads(str(data['source_provenance_json'])),
         sha256={p:hashlib.sha256((repo/p).read_bytes()).hexdigest() for p in paths})

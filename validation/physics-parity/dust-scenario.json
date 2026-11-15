@@ -1,0 +1,129 @@
+{
+  "status": "pass",
+  "reference": {
+    "source_git_blob": "89f1a0b2efb58e77bf47cbc121ae2d382ba32e13",
+    "compiled_source_sha256": "ef2978d32203f06cefb6e9bf5cd875277de2bddab9f401ff0187f9d836ee9d39",
+    "routine_sha256": {
+      "HORIZ_INTERP_BILINEAR_NEW_1D_": "5bbfef7530c80018ff467801829e20a8e0f57e9e3cb64757d59bb55a95168a54"
+    },
+    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+    "compiler_flags": [
+      "-O3",
+      "-cpp",
+      "-fdefault-real-8",
+      "-fdefault-double-8",
+      "-fPIC",
+      "-shared"
+    ],
+    "real_precision_bits": 64,
+    "adaptation": "unchanged routine body, intended precision macros, module/type declarations and C adapter; monotone nearest_index uses minloc; unused diagnostics stubbed"
+  },
+  "input_blobs": {
+    "DustScenario_Background.nc": "ad086574f8def0d45247409811b02bf76afacbbf",
+    "DustScenario_MGS.nc": "27b7d7387e3170c63aac609a930d89cef0ff6e88",
+    "DustScenario_MY24.nc": "5cdc13d5cd83deedca7f12dcb411a54e5a009c03",
+    "DustScenario_MY30.nc": "da305d4b2c1f678abc36a1a82f78ab52d636a851",
+    "DustScenario_MY31.nc": "578dc00bb774edd86b3fa984d46e33bb7b31c75e",
+    "DustScenario_MY34.nc": "50e8f4288f111c612539d17c2b1b7c505aa0013a"
+  },
+  "verified_inputs": {
+    "DustScenario_Background.nc": {
+      "source_git_blob": "ad086574f8def0d45247409811b02bf76afacbbf",
+      "seasonal_samples": 668,
+      "periodic_endpoint_appended": false,
+      "min_opacity": 0.022222002665762467,
+      "min_top_height_km": 20.27168256379813
+    },
+    "DustScenario_MGS.nc": {
+      "source_git_blob": "27b7d7387e3170c63aac609a930d89cef0ff6e88",
+      "seasonal_samples": 669,
+      "periodic_endpoint_appended": true,
+      "min_opacity": 0.03637423957970986,
+      "min_top_height_km": 20.27167825207038
+    },
+    "DustScenario_MY24.nc": {
+      "source_git_blob": "5cdc13d5cd83deedca7f12dcb411a54e5a009c03",
+      "seasonal_samples": 669,
+      "periodic_endpoint_appended": true,
+      "min_opacity": 0.0033350050274349855,
+      "min_top_height_km": 20.27169400788993
+    },
+    "DustScenario_MY30.nc": {
+      "source_git_blob": "da305d4b2c1f678abc36a1a82f78ab52d636a851",
+      "seasonal_samples": 669,
+      "periodic_endpoint_appended": true,
+      "min_opacity": 0.0008686162749660227,
+      "min_top_height_km": 20.27169400788993
+    },
+    "DustScenario_MY31.nc": {
+      "source_git_blob": "578dc00bb774edd86b3fa984d46e33bb7b31c75e",
+      "seasonal_samples": 669,
+      "periodic_endpoint_appended": true,
+      "min_opacity": 0.0021280625874907796,
+      "min_top_height_km": 20.27169400788993
+    },
+    "DustScenario_MY34.nc": {
+      "source_git_blob": "50e8f4288f111c612539d17c2b1b7c505aa0013a",
+      "seasonal_samples": 668,
+      "periodic_endpoint_appended": false,
+      "min_opacity": 0.005337142637029741,
+      "min_top_height_km": 20.271682563798134
+    }
+  },
+  "cases": [
+    {
+      "grid": "T21",
+      "field": "taufill",
+      "max_error": 1.1102230246251565e-16
+    },
+    {
+      "grid": "T21",
+      "field": "zmax",
+      "max_error": 1.4210854715202004e-14
+    },
+    {
+      "grid": "T42",
+      "field": "taufill",
+      "max_error": 1.6653345369377348e-16
+    },
+    {
+      "grid": "T42",
+      "field": "zmax",
+      "max_error": 2.1316282072803006e-14
+    },
+    {
+      "grid": "T85",
+      "field": "taufill",
+      "max_error": 1.6653345369377348e-16
+    },
+    {
+      "grid": "T85",
+      "field": "zmax",
+      "max_error": 2.1316282072803006e-14
+    },
+    {
+      "grid": "T170",
+      "field": "taufill",
+      "max_error": 1.942890293094024e-16
+    },
+    {
+      "grid": "T170",
+      "field": "zmax",
+      "max_error": 2.1316282072803006e-14
+    },
+    {
+      "grid": "seam-poles",
+      "field": "taufill",
+      "max_error": 0.0
+    },
+    {
+      "grid": "seam-poles",
+      "field": "zmax",
+      "max_error": 0.0
+    }
+  ],
+  "sha256": {
+    "scripts/validate_dust_scenario.py": "b24d929ad9726478c814c11cca06d793e0ef57a60c455f898aaa086d656dfe2d",
+    "package/src/celestials/planets/mars/dust_scenario.py": "679f3b48e9e1ecae66d50f9ec3a5bb65bebabe85788759d9c6f9778233e6f9aa"
+  }
+}

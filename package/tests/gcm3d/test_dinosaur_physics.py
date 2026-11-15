@@ -361,3 +361,23 @@ def test_held_radiation_retains_multistep_reverse_derivative():
     eps=1e-3
     finite=(objective(1.+eps)-objective(1.-eps))/(2.*eps)
     np.testing.assert_allclose(auto,finite,rtol=4e-6,atol=1e-9)
+
+
+def test_prescribed_dust_scenario_and_size_optics_reach_multistep_reverse_gradient():
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.framework.physics.prescribed_dust import make_fixed_dust_provider
+    from src.framework.physics.radiative_transfer import make_radiation_component
+    coords=coordinate_system('T21',4);shape=(5,*coords.horizontal.nodal_shape)
+    def objective(amplitude):
+        scenario=dict(seasons=jnp.array([0.,90.,180.,270.,360.]),
+            opacity=jnp.full(shape,.2)*amplitude,top_height_km=jnp.full(shape,35.))
+        provider=make_fixed_dust_provider(scenario=scenario,effective_radius_m=1.5e-6*amplitude)
+        state,step,_=backend_case(temperature_k=180.,surface_temperature_k=200.,
+            radiation_component=make_radiation_component(provider))
+        final=jax.lax.scan(lambda state,_:(step(state),None),state,None,length=3)[0]
+        return jnp.mean(final.surface_temperature)
+    auto=jax.jit(jax.grad(objective))(1.)
+    assert np.isfinite(auto) and abs(float(auto))>1e-6
+    eps=1e-4
+    finite=(objective(1.+eps)-objective(1.-eps))/(2.*eps)
+    np.testing.assert_allclose(auto,finite,rtol=2e-5,atol=1e-7)

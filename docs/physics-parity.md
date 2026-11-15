@@ -33,9 +33,10 @@ No complete-model equivalence or speed claim has passed yet.
 | Immediate CO2 deposition | `co2_condensation.simple_condensation` | Original `co2_condense`, followed by original `pass2` in the coupled column check | Enabled in the experimental backend; suspended-cloud mode remains separate |
 | Rayleigh drag | `rayleigh_drag.rayleigh_tendencies` | Original `rayleigh_damping`; 32 cases with surface, top and tropical switches, masks and timescale units | Connected before PBL; optional dissipative reheating remains off by default, as in the source |
 | Suspended CO2 clouds | `co2_microphysics.cloud_step` | Original `co2condsub`, `sedimco2`, `fallvel` and `dtridgl`; 288 cases at 2/4/12/40 layers, at 610 Pa and 500 mbar | Optional column and Dinosaur mode; formation, size, settling, deposition and 15-band cloud optical feedback are connected. A three-step rollout derivative passes finite differences |
-| Particle optical properties | `particle_optics` | Original `opt_dst`, `calc_opts`, `opt_co2cld`, `opt_cld_blk`, `opt_cld`; 84 cases, both band configurations and 2/12/40 layers | Fourteen size-dependent tables and the brightness correction retain pinned input blobs and source REAL*4 precision; dust populations, lognormal distributions, coated ice and bulk ice/liquid switching are implemented |
+| Particle optical properties | `particle_optics` | Original `opt_dst`, `calc_opts`, `opt_co2cld`, `opt_cld_blk`, `opt_cld`; 96 cases, both band configurations, including prescribed fixed-radius dust and 2/12/40 layers | Fourteen size-dependent tables and the brightness correction retain pinned input blobs and source REAL*4 precision; dust populations, lognormal distributions, coated ice and bulk ice/liquid switching are implemented |
 | Extended gas radiation | `correlated_k`, `spectral_flux` | Original `tpindex15`, `boxinterp`, `sfluxv`, `sfluxi` and transfer solvers; 40 lookup/spectral cases | Both released 15-band options are connected: 32 Gaussian points to 350 K, or 16 points to 800 K. All ten water mixtures are available; source mixture selection remains discrete |
 | Collision-induced absorption | `collision_absorption` | Original `optci15` and `kinter`; 81 cases at 610 Pa, 500 mbar and 10 bar | CO2/CO2 and CO2/H2 infrared continuum is connected, including the source temperature clamp before density/path calculation and zero ghost-layer absorption |
+| Prescribed dust | `prescribed_dust`, `dust_scenario` | Original `dust_distrib_fixed2`, `dust_distrib_pulse2`, `season_table` and `ini_optdst`; 144 profile cases, fixed-size optics, 10 FMS map comparisons | Both Conrath formulas, tracer-height/profile modes, fractional/elevated pulses, reference-pressure scaling and size optics are connected to the radiation callback. All six pinned scenario files load; map sampling follows FMS bilinear weights on T21/T42/T85/T170, including polar rows and the seam |
 | Bulk water cloud kernels | `water_bulk` | Original `blkh2o_driver`, `findq`, `sedimh2o` and `fallvel`; 24 roots and 36 columns | Phase change, precipitation threshold, settling and rain/snow accounting are implemented. The original root iteration is checked separately; three Newton corrections remove its stopping noise. Surface exchange, lagged PBL exchange history, cloud optical feedback and global water inventory checks are connected |
 | Radiation holding/stratosphere | `dinosaur_physics`, `radiative_transfer` | Source first-call/modulo-day schedule, cold/warm native stratosphere fluxes and two focused schedule/gradient tests | Optional `radiation_update_seconds` requires matching initial cache fields. K/s rates stay fixed when pressure changes. Stratosphere temperature and held radiation survive restarts |
 | Surface water exchange | `water_surface` | Original `update_water`, `update_water_fv3`, `update_water_blk`; 216 cases | Bulk/bin/moment surface kernels, liquid saturation and latent diagnostics are checked. Bulk mode is connected before PBL using saved exchange coefficients; cloud formation is a separate switch |
@@ -155,13 +156,19 @@ samples inside very thick layers. Capping each sample segment on its own changes
 the reference solution. Nine analytic thick-layer cases and the expanded native
 cold-stratosphere cases check this limit without changing flux tolerances.
 
+The MY24/MY30/MY31/MGS dust files end at Ls 359.74185 instead of 360 degrees.
+The native lookup reads outside its array after that last sample. Staging keeps
+all original samples and appends the first sample at 360 degrees to close the
+periodic boundary. The manifest records this extension; native agreement is
+claimed only where the original lookup is defined.
+
 ## Required remaining work
 
 | Area | Remaining implementation and acceptance check |
 | --- | --- |
 | Global budgets | Momentum exchange and repair-stage ledgers are connected. Extend the energy audit across dissipation, fixed-deep-soil exchange, phase approximations and long global runs; select gas and particle tracers explicitly. |
 | Radiation schedule | Optional integer-second source schedule now holds heating in K/s and surface fluxes, carries the 170 K initial stratosphere and its source update, and persists caches in restarts. Match the configured interval and callback averaging window in whole-model comparisons. |
-| Dust and cloud opacity | Size-dependent dust and all three cloud optical kernels are implemented. CO2 optical feedback is connected; prescribed dust scenarios and full water/dust drivers still need integration and matched climatology. |
+| Dust and cloud opacity | Size-dependent dust and all three cloud optical kernels are implemented. CO2 optical feedback is connected; prescribed dust scenarios now pass map/profile/optics checks and a three-step global gradient check. Interactive dust and moment-water drivers still need integration and matched climatology. |
 | Soil and frost | Mapped TES/GRS inputs and default case-7 profiles are implemented and checked. Compare diurnal/seasonal response in global runs; modern and legacy material profiles now pass native checks. |
 | CO2 modes | Immediate deposition and optional bulk suspended-cloud phase/settling match native routines and coupled columns. Cloud optical feedback passes a three-step gradient check. Full two-way exchange auditing and long global validation remain pending. The older conservative finite-settling scheme remains a separate model. |
 | Interactive dust | Lifting, advection, sedimentation, surface reservoirs, coagulation and material budgets. |
@@ -221,6 +228,11 @@ env PYTHONPATH=package:. python scripts/validate_terrain_drag.py \
   --ames-source /path/to/AmesGCM --output outputs/physics-parity/terrain-drag.json
 env PYTHONPATH=package:. python scripts/validate_nonlte_cooling.py \
   --ames-source /path/to/AmesGCM --output outputs/physics-parity/nonlte-cooling.json
+env PYTHONPATH=package:. python scripts/validate_prescribed_dust.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/prescribed-dust.json
+env PYTHONPATH=package:. python scripts/validate_dust_scenario.py \
+  --ames-source /path/to/AmesGCM --fms-bilinear-source /path/to/horiz_interp_bilinear.inc \
+  --output outputs/physics-parity/dust-scenario.json
 ```
 
 Small recorded reports are in `validation/physics-parity/`. Local CPU timing is
