@@ -3,7 +3,7 @@
 This campaign uses `experimenal` source, pinned to a commit at submission.
 It produces new evidence. It does not relabel the submitted paper's results.
 
-Six independent A100 Pods run these tasks:
+Six independent A100 Jobs run these tasks:
 
 | Task | Protocol | Outputs |
 |---|---|---|
@@ -24,8 +24,13 @@ stations; global means are saved separately.
 
 All inputs and source bytes are hashed. The runtime archives the exact checkout.
 Every attempt has a separate directory. Completed tasks are retained on retries.
-Standalone Pods avoid Nautilus's automatically injected one-day Job TTL.
-No Pod deadline, timeout wrapper or timed deletion is used. A nonfinite
+Nautilus injects a six-hour deadline on standalone Pods and a one-day cleanup
+TTL on Jobs. Managed Job Pods have no run deadline. Each science Job has the
+manual `aegis.terraforming/retain-results` finalizer, which blocks automatic
+deletion. Remove that finalizer only when the user requests cleanup after
+reviewing the retained results. A completed Job can show `Terminating` after the
+cluster's cleanup attempt; the finalizer retains its record until manual release.
+No workload deadline, timeout wrapper or timed deletion is configured. A nonfinite
 unprojected result is evidence of failure, not a reason to change the protocol.
 
 ## Limits for the paper

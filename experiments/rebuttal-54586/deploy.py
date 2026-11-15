@@ -1,4 +1,4 @@
-"""Stage hashed inputs and submit six immutable Pods without Job TTL injection."""
+"""Submit deadline-free managed Jobs and retain records until manual review."""
 import argparse
 import importlib.util
 import json
@@ -36,8 +36,10 @@ for task in ("projected", "unprojected", "spatial", "radiation", "heating", "sta
     job["spec"]["template"]["metadata"]["labels"].update(job["metadata"]["labels"])
     job["spec"]["template"]["spec"].pop("affinity")
     apply(body["items"][0])
-    campaigns.append(dict(apiVersion="v1", kind="Pod", metadata=job["metadata"],
-        spec=job["spec"]["template"]["spec"]))
+    # Nautilus injects Job TTLs and six-hour deadlines on standalone Pods.
+    # Managed Pods have no deadline; this finalizer prevents timed Job deletion.
+    job["metadata"]["finalizers"] = ["aegis.terraforming/retain-results"]
+    campaigns.append(job)
     volumes.append(dict(name=task, persistentVolumeClaim=dict(claimName=name)))
     mounts.append(dict(name=task, mountPath=f"/data/{task}"))
 
@@ -50,8 +52,8 @@ stage = dict(apiVersion="v1", kind="Pod", metadata=dict(name=stage_name), spec=d
             resources=dict(requests=dict(cpu="1", memory="1Gi"), limits=dict(cpu="1", memory="1Gi")),
             securityContext=dict(allowPrivilegeEscalation=False, readOnlyRootFilesystem=True,
                 capabilities=dict(drop=["ALL"])), volumeMounts=mounts)], volumes=volumes))
-record = dict(source=a.ref, staged=str(a.staged), stage=stage, pods=campaigns,
-    reason="Standalone Pods avoid the cluster-injected one-day Job TTL; PVCs retain inputs and outputs")
+record = dict(source=a.ref, staged=str(a.staged), stage=stage, jobs=campaigns,
+    reason="Managed Pods have no run deadline. The manual retention finalizer prevents deletion by the cluster-injected completed-Job TTL. PVCs retain all inputs and outputs.")
 destination = Path(__file__).with_name("deployment.json")
 destination.write_text(json.dumps(record, indent=2)+"\n")
 apply(stage)
@@ -88,4 +90,4 @@ for campaign in campaigns:
     apply(campaign)
 record["submitted"] = [j["metadata"]["name"] for j in campaigns]
 destination.write_text(json.dumps(record, indent=2)+"\n")
-print("Submitted all six Pods; no deadlines or Job TTL deletion", flush=True)
+print("Submitted six deadline-free Jobs with manual retention finalizers", flush=True)
