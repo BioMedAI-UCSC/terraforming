@@ -100,7 +100,7 @@ is private.
 ```sh
 kubectl -n YOUR_NAMESPACE apply -f apps/mars-calibration/pvc.yaml
 kubectl -n YOUR_NAMESPACE apply -f apps/mars-calibration/data-pod.yaml
-kubectl -n YOUR_NAMESPACE wait --for=condition=Ready pod/mars-calibration-data --timeout=120s
+kubectl -n YOUR_NAMESPACE get pod mars-calibration-data
 kubectl -n YOUR_NAMESPACE cp outputs/nautilus-calibration-inputs/. mars-calibration-data:/data/inputs/
 kubectl -n YOUR_NAMESPACE delete pod mars-calibration-data --wait=true
 kubectl -n YOUR_NAMESPACE apply -f apps/mars-calibration/job.yaml
@@ -108,11 +108,14 @@ kubectl -n YOUR_NAMESPACE logs -f job/mars-short-calibration
 ```
 
 The transfer pod is removed before the GPU job to avoid concurrent mounts of a
-ReadWriteOnce volume. It has a one-hour deadline, so recreate it if a transfer
-takes longer. The scientific Job retries at most twice after a nonzero exit or
+ReadWriteOnce volume. The transfer pod has no elapsed-time limit. The scientific
+Job retries at most twice after a nonzero exit or
 preemption. Compilation can take time before the first evaluation appears. CPU
-fallback is forbidden. The Job has a 24-hour total deadline. Results go to a
+fallback is forbidden. The Job has no elapsed-time limit. Results go to a
 pod-specific directory under `/results`, including partial attempts.
+
+Wait for the transfer pod to show `1/1 Running` before copying files. There is
+no readiness deadline or timed deletion.
 
 After the job completes or fails, retain the logs, delete the finished job to
 release its mount, then recreate the transfer pod and retrieve artifacts:
@@ -121,7 +124,7 @@ release its mount, then recreate the transfer pod and retrieve artifacts:
 kubectl -n YOUR_NAMESPACE logs job/mars-short-calibration --all-containers > outputs/nautilus-calibration.log
 kubectl -n YOUR_NAMESPACE delete job mars-short-calibration --wait=true
 kubectl -n YOUR_NAMESPACE apply -f apps/mars-calibration/data-pod.yaml
-kubectl -n YOUR_NAMESPACE wait --for=condition=Ready pod/mars-calibration-data --timeout=120s
+kubectl -n YOUR_NAMESPACE get pod mars-calibration-data
 kubectl -n YOUR_NAMESPACE cp mars-calibration-data:/data/results outputs/nautilus-results
 kubectl -n YOUR_NAMESPACE delete pod mars-calibration-data --wait=true
 ```

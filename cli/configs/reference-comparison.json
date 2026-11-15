@@ -26,7 +26,7 @@
       "paths": [
         "outputs/deterministic_reference_samples/ames_year3/model_ls{season:03d}.nc"
       ],
-      "sampling": "mean of 4 instantaneous checkpoints within \u00b15\u00b0 Ls",
+      "sampling": "mean of available instantaneous checkpoints within \u00b15\u00b0 Ls; per-file metadata records the count",
       "vertical": "lowest model sigma layer",
       "dust": "prescribed Ames seasonal visible/IR opacity",
       "parameters": {

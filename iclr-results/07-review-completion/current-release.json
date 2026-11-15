@@ -1,0 +1,23 @@
+{
+  "release": "https://github.com/BioMedAI-UCSC/terraforming/releases/tag/reviewer-current-physics-20261114",
+  "assets": [
+    {
+      "name": "annual-current.zip",
+      "size": 35255759,
+      "sha256": "cdff8c392620f4e5c441588cddc46f86b577462c9cad91dacbabf896738adc34",
+      "url": "https://github.com/BioMedAI-UCSC/terraforming/releases/download/reviewer-current-physics-20261114/annual-current.zip"
+    },
+    {
+      "name": "polar-control.zip",
+      "size": 22801786,
+      "sha256": "30aeaaacc3311ca4180fba1cd68405121edbf401f772988caff4e0cd93c48d64",
+      "url": "https://github.com/BioMedAI-UCSC/terraforming/releases/download/reviewer-current-physics-20261114/polar-control.zip"
+    },
+    {
+      "name": "multiday-preflight-failed.zip",
+      "size": 327899,
+      "sha256": "e774aac79d8917a29365922a173dfd3f025c4b229ec3d258d6cba5e34de98048",
+      "url": "https://github.com/BioMedAI-UCSC/terraforming/releases/download/reviewer-current-physics-20261114/multiday-preflight-failed.zip"
+    }
+  ]
+}

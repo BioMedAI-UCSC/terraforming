@@ -16,7 +16,7 @@ from src.framework.gcm._dinosaur import jax, jnp, primitive_equations
 from src.framework.gcm.dynamics import integrate
 from src.framework.physics.gcm import ColumnPhysicsState
 
-RESTART_FORMAT_VERSION = 2
+RESTART_FORMAT_VERSION = 3
 
 
 def save_restart(state: ColumnPhysicsState, path) -> Path:
@@ -29,6 +29,7 @@ def save_restart(state: ColumnPhysicsState, path) -> Path:
         "format_version": RESTART_FORMAT_VERSION,
         "tracer_names": tracer_names,
         "sim_time_is_none": dyn.sim_time is None,
+        "surface_momentum_is_none": state.surface_momentum is None,
     }
     arrays = {
         "metadata": np.asarray(json.dumps(metadata)),
@@ -42,6 +43,8 @@ def save_restart(state: ColumnPhysicsState, path) -> Path:
     }
     if dyn.sim_time is not None:
         arrays["sim_time"] = np.asarray(dyn.sim_time)
+    if state.surface_momentum is not None:
+        arrays["surface_momentum"] = np.asarray(state.surface_momentum)
     for index, name in enumerate(tracer_names):
         arrays[f"tracer_{index}"] = np.asarray(dyn.tracers[name])
     np.savez_compressed(path, **arrays)
@@ -54,7 +57,7 @@ def load_restart(path) -> ColumnPhysicsState:
     with np.load(path, allow_pickle=False) as data:
         metadata = json.loads(str(data["metadata"]))
         version = metadata.get("format_version")
-        if version != RESTART_FORMAT_VERSION:
+        if version not in (2, RESTART_FORMAT_VERSION):
             raise ValueError(
                 f"unsupported gcm3d restart version {version!r}; "
                 f"expected {RESTART_FORMAT_VERSION}"
@@ -63,6 +66,9 @@ def load_restart(path) -> ColumnPhysicsState:
             name: jnp.asarray(data[f"tracer_{index}"])
             for index, name in enumerate(metadata["tracer_names"])
         }
+        from src.framework.physics.co2_clouds import CO2_CLOUD_TRACER
+        if version == 2:
+            tracers.setdefault(CO2_CLOUD_TRACER, jnp.zeros_like(data["temperature_variation"]))
         sim_time = None if metadata["sim_time_is_none"] else jnp.asarray(data["sim_time"])
         dynamics = primitive_equations.State(
             vorticity=jnp.asarray(data["vorticity"]),
@@ -77,6 +83,8 @@ def load_restart(path) -> ColumnPhysicsState:
             jnp.asarray(data["surface_temperature"]),
             jnp.asarray(data["co2_ice"]),
             jnp.asarray(data["ground_temperature"]),
+            (jnp.zeros((2,) + data["surface_temperature"].shape[1:]) if version == 2 else
+             None if metadata["surface_momentum_is_none"] else jnp.asarray(data["surface_momentum"])),
         )
 
 

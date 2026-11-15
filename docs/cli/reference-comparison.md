@@ -1,5 +1,11 @@
 # Model, Ames, MCD and ARCO comparison
 
+Surface comparisons use skin temperature. A dry map that contains only
+lowest-layer air temperature is rejected as a surface-temperature source.
+Seasonal ARCO evaluation aligns longitude, latitude, and sigma coordinates
+before computing errors. Wind speed is calculated before averaging vectors.
+Incomplete reference coverage and repeated sample times raise errors.
+
 Generate an offline browser report from the staged reference files:
 
 ```sh

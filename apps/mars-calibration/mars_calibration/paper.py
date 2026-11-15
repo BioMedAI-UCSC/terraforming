@@ -25,6 +25,7 @@ import scipy.optimize
 
 from . import driver as d
 from .launch import FILES, sha256
+from .provenance import hardware
 from src.framework.gcm.benchmarks import dry_conserved_quantities
 from src.framework.gcm.restart import save_restart
 from src.celestials.planets.mars.maps import state_to_comparison_dataset
@@ -219,6 +220,7 @@ class Model:
         return d.jnp.mean(d.jnp.sum(error**2 * self.weights, axis=(-2, -1)))
 
     def diagnostics(self, state):
+        from src.framework.physics.gcm import cloud_pressure_equivalent
         if not all(np.isfinite(leaf).all() for leaf in d.jax.tree_util.tree_leaves(state)):
             raise FloatingPointError("Non-finite sampled state")
         fields = np.asarray(self.observe(state))
@@ -226,10 +228,11 @@ class Model:
         scale = float(self.specs.dimensionalize(1.0, d.scales.units.pascal).magnitude)
         ps *= scale
         ice = np.asarray(state.co2_ice)[0] * scale
+        cloud = np.asarray(cloud_pressure_equivalent(state, self.coords))[0] * scale
         weights = np.asarray(self.weights)
         dry = dry_conserved_quantities(state.dynamics, self.coords, self.specs,
             d.MARS_BODY_3D, np.full(12, d.MARS_BODY_3D.reference_temperature_k))
-        return {"co2_mass_kg": float(np.sum((ps + ice) * weights) * d.MARS_BODY_3D.surface_area_m2 / d.MARS_BODY_3D.gravity_m_s2),
+        return {"co2_mass_kg": float(np.sum((ps + ice + cloud) * weights) * d.MARS_BODY_3D.surface_area_m2 / d.MARS_BODY_3D.gravity_m_s2),
                 "atmospheric_energy_excluding_surface_geopotential_j_m2_sr": float(dry.total_energy_j_m2_sr),
                 "atmospheric_aam_kg_m_s_sr": float(dry.axial_angular_momentum_kg_m_s_sr),
                 "min_air_temperature_k": float(fields[0].min()), "max_air_temperature_k": float(fields[0].max()),
@@ -507,10 +510,12 @@ def benchmark(model, config, output, external):
 def environment():
     def git(*args):
         try:
-            return subprocess.check_output(["git", *args], text=True, stderr=subprocess.DEVNULL).strip()
+            return subprocess.check_output(["git", *args], cwd=Path(__file__).resolve().parents[3],
+                                           text=True, stderr=subprocess.DEVNULL).strip()
         except (OSError, subprocess.CalledProcessError):
             return "unavailable"
     return {"python": sys.version, "platform": platform.platform(), "processor": platform.processor(),
+            "hardware": hardware(d.jax.devices()),
             "cpu_count": os.cpu_count(), "backend": d.jax.default_backend(),
             "devices": [str(device) for device in d.jax.devices()],
             "packages": {name: importlib.metadata.version(name) for name in ("jax", "jaxlib", "dinosaur", "numpy", "scipy")},

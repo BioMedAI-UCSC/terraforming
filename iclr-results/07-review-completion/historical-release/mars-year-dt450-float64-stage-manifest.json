@@ -1,0 +1,474 @@
+{
+  "status": "historical_saved_results_not_current_physics",
+  "archive": "mars-year-dt450-float64-stage.tar.gz",
+  "archive_sha256": "1f92bc8bc314753d21e8425bcda9a33a7339e96224ec9d5162b436ec2975aa33",
+  "bytes": 25618701,
+  "recorded_git_commit": "03324df59c3d734550ac9f00bf44aeb4840546bc",
+  "recorded_git_status": "",
+  "original_gpu_model": null,
+  "numeric_saved_arrays_checked": 544,
+  "files": [
+    {
+      "path": "ames_timing_comparison.csv",
+      "bytes": 249,
+      "sha256": "e97a6e10162eb4fe97092f8e0d34663ad7a911a922f062c3658e11667aa6637e"
+    },
+    {
+      "path": "ames_timing_comparison.pdf",
+      "bytes": 16311,
+      "sha256": "4978dbcb4db082d97955bf8be8cdcb25f8217a26a85ab676dd363491b8c76c57"
+    },
+    {
+      "path": "ames_timing_comparison.png",
+      "bytes": 65379,
+      "sha256": "6a717b072afb66aff4b204dcd3a962a46ffbeb00e38ac7f58b9ff24b6188665a"
+    },
+    {
+      "path": "annual_stability.pdf",
+      "bytes": 32161,
+      "sha256": "9b5bb80b58647de2a9ac21e1b6b3bca57fb073aa0efd10f0b4b3317a24811571"
+    },
+    {
+      "path": "annual_stability.png",
+      "bytes": 380115,
+      "sha256": "74d0a72b63b0836055fc136d547b22cc01554c209db2faec019dd84a57dd1137"
+    },
+    {
+      "path": "annual_stability_summary.json",
+      "bytes": 515,
+      "sha256": "9d8782858496f1d8949d09fed730876529c09b92b5d5ab28832fd1f9ac47582b"
+    },
+    {
+      "path": "convection/checkpoint_diagnostics.csv",
+      "bytes": 22617,
+      "sha256": "7699cce98cacafd22408beb116c9f4ec3b479b2dd4650e93fd7d51cd23aa227a"
+    },
+    {
+      "path": "convection/checkpoints/restart_000001973.npz",
+      "bytes": 325219,
+      "sha256": "4cff66523fc6709937125bc9e0f0201628bcac48e04cb2ec5d3e1a708c9ec179"
+    },
+    {
+      "path": "convection/checkpoints/restart_000003946.npz",
+      "bytes": 336452,
+      "sha256": "3dbcb4ad326b237808b4e9ef7e1c6d47c5dcc973222f152461bd858b089bed05"
+    },
+    {
+      "path": "convection/checkpoints/restart_000005919.npz",
+      "bytes": 341208,
+      "sha256": "f9784924e17b55667b9df9b9903138962a551d0d4e9fd42369285f2e182e2146"
+    },
+    {
+      "path": "convection/checkpoints/restart_000007892.npz",
+      "bytes": 344063,
+      "sha256": "de2dc38679cc4e88bb15e94b30f7a1636cf4e5b091b72aa43b046f480a998ac5"
+    },
+    {
+      "path": "convection/checkpoints/restart_000009865.npz",
+      "bytes": 346003,
+      "sha256": "03812b357d4b76cc4f1eed6e706f1efea67e3f037818af89352b5d177784d146"
+    },
+    {
+      "path": "convection/checkpoints/restart_000011838.npz",
+      "bytes": 347625,
+      "sha256": "4f43934f707b48363552f7509648824be6f428b5fcf39f7d9e991334177f13f2"
+    },
+    {
+      "path": "convection/checkpoints/restart_000013811.npz",
+      "bytes": 349056,
+      "sha256": "abf2a99a3b04b9c827aa2087555f57934bc71770bc5fef9873da361673ca7e6d"
+    },
+    {
+      "path": "convection/checkpoints/restart_000015784.npz",
+      "bytes": 350189,
+      "sha256": "fa6b52c3d7af689138f9daa3cd02078d67f722beffedb1ac94cd170999cc45f9"
+    },
+    {
+      "path": "convection/checkpoints/restart_000017757.npz",
+      "bytes": 351120,
+      "sha256": "e38698f20280f35173fc7b3babe64b76e89b27f86dbd503b72449b3a38673f7e"
+    },
+    {
+      "path": "convection/checkpoints/restart_000019730.npz",
+      "bytes": 351725,
+      "sha256": "1aa07c270742b3143386b29b64da65296f817a24c31980dd16dc4edd0c0859e7"
+    },
+    {
+      "path": "convection/checkpoints/restart_000021703.npz",
+      "bytes": 352400,
+      "sha256": "13b9c198abb92d47960529cfc237734c180d800ee570a91d76340a9870ab4860"
+    },
+    {
+      "path": "convection/checkpoints/restart_000023676.npz",
+      "bytes": 352880,
+      "sha256": "417c0d90d0932f052c36d0bd0dc35646f701ee5d81ea7b27a5b738de82918bbb"
+    },
+    {
+      "path": "convection/checkpoints/restart_000025649.npz",
+      "bytes": 353488,
+      "sha256": "7de68a2c1d6e43d2da8ce6bac07b27b1c752baeacb7160f49b09bd6b9f7b00a2"
+    },
+    {
+      "path": "convection/checkpoints/restart_000027622.npz",
+      "bytes": 354021,
+      "sha256": "2f5ee0757fa6a6e2a13f0f68e85f52e977e2d512e290f84fb9ee072f3d9c49c3"
+    },
+    {
+      "path": "convection/checkpoints/restart_000029595.npz",
+      "bytes": 354511,
+      "sha256": "644e5ab6aa910a36e7949d30fe11203e3a4bb6cff39ae5cf437181e08639d73b"
+    },
+    {
+      "path": "convection/checkpoints/restart_000031568.npz",
+      "bytes": 354768,
+      "sha256": "8d2213220c9ba189dd6facb07a15785a374d7064b583f390655e4688198f4446"
+    },
+    {
+      "path": "convection/checkpoints/restart_000033541.npz",
+      "bytes": 355171,
+      "sha256": "80fccb16df01d272ad5be6970b43fd1f0e57a5b4759e6a885dd9dc0537acbe26"
+    },
+    {
+      "path": "convection/checkpoints/restart_000035514.npz",
+      "bytes": 355488,
+      "sha256": "bc7074722b677287e830b517ab6927840ed68ee3a383da26a844d7cd4535067b"
+    },
+    {
+      "path": "convection/checkpoints/restart_000037487.npz",
+      "bytes": 355753,
+      "sha256": "88180aa8231e72023e7d6d791a8da9f0ab217cbd811671d46db1c12467aadbc1"
+    },
+    {
+      "path": "convection/checkpoints/restart_000039460.npz",
+      "bytes": 356150,
+      "sha256": "e4716a642666eca5c0e6a3630bdea01bcb2295d2dbeb2d4cae9d823d76ad068a"
+    },
+    {
+      "path": "convection/checkpoints/restart_000041433.npz",
+      "bytes": 356368,
+      "sha256": "23fb55a120ffece8e54c4c09249976dabc6f07c8c38668e4813a790940cb3aea"
+    },
+    {
+      "path": "convection/checkpoints/restart_000043406.npz",
+      "bytes": 356319,
+      "sha256": "fd9d917e2108e3f5b65415e23bfa0f99dd267ce7f6a0572a89104c0769c99553"
+    },
+    {
+      "path": "convection/checkpoints/restart_000045379.npz",
+      "bytes": 356772,
+      "sha256": "7aa8f3c971d774dfb42bbbcd9cefdbe160bf3252444cc91fd0e7e0ac98a70818"
+    },
+    {
+      "path": "convection/checkpoints/restart_000047352.npz",
+      "bytes": 356877,
+      "sha256": "4c68875fbef9170951461743567f4b0e3a4f4f36cddc76e384ab29477af86431"
+    },
+    {
+      "path": "convection/checkpoints/restart_000049325.npz",
+      "bytes": 357179,
+      "sha256": "0fb4316129867cafe40d5e12ba0cc9127e28e43aa65fd08cc3bd30e3ed9fd654"
+    },
+    {
+      "path": "convection/checkpoints/restart_000051298.npz",
+      "bytes": 357286,
+      "sha256": "8907d3f2c66818691c462ab6fa160837dd620b9f1ab600c4027ebf97e8bc3f82"
+    },
+    {
+      "path": "convection/checkpoints/restart_000053271.npz",
+      "bytes": 357505,
+      "sha256": "918462cb45db11658325e8e57928147fd8d4e342ca96211b2373e65e8c22c5de"
+    },
+    {
+      "path": "convection/checkpoints/restart_000055244.npz",
+      "bytes": 357592,
+      "sha256": "35c5d1b2be82088bd32551643fd4f95a00f2a82abe3f361fd169e2f9fee394f7"
+    },
+    {
+      "path": "convection/checkpoints/restart_000057217.npz",
+      "bytes": 357802,
+      "sha256": "22e395df86a79e984454fe4771249b4854cc97779f7fd5e94e754c1324bfc760"
+    },
+    {
+      "path": "convection/checkpoints/restart_000059190.npz",
+      "bytes": 357888,
+      "sha256": "ed81104cd570d70969f6482545424fa090d5badfefffa103ed3518c256038332"
+    },
+    {
+      "path": "convection/checkpoints/restart_000061163.npz",
+      "bytes": 357981,
+      "sha256": "adbcfb0b1db867dd30edfe94c0a5472c6519b7c823a1c15252fb44af95489645"
+    },
+    {
+      "path": "convection/checkpoints/restart_000063136.npz",
+      "bytes": 358037,
+      "sha256": "0f337c5ca5edb36df0385d80e81437c996a611b24339946a55a5facc2ba94019"
+    },
+    {
+      "path": "convection/checkpoints/restart_000065109.npz",
+      "bytes": 357984,
+      "sha256": "b1f576751ed3b27628a1d430a10fcabb821546a17f90c427b63d0420b2124792"
+    },
+    {
+      "path": "convection/checkpoints/restart_000067082.npz",
+      "bytes": 358317,
+      "sha256": "c30b10014634b49b5697a7f20eb97a34ac15a1af4f68269c83c0f503400359ca"
+    },
+    {
+      "path": "convection/checkpoints/restart_000069055.npz",
+      "bytes": 358542,
+      "sha256": "29ca7b33d527bb7aef07c363d4a9993e58292ab67050689b611ff18c0cbd035f"
+    },
+    {
+      "path": "convection/checkpoints/restart_000071028.npz",
+      "bytes": 358658,
+      "sha256": "d787097ad364ac78f9065e0e7a08985bb050cd1c1aba8a066d05a0617f8175e6"
+    },
+    {
+      "path": "convection/checkpoints/restart_000073001.npz",
+      "bytes": 358939,
+      "sha256": "0f5fb9f17052479f37e5d7f4ed2a7c028997397f6f39ebcbc6e7e24064b6c071"
+    },
+    {
+      "path": "convection/checkpoints/restart_000074974.npz",
+      "bytes": 359166,
+      "sha256": "08888158d693f39ba0c8cbc7365894ca1c389793c69d231604bbb8e96a038cc1"
+    },
+    {
+      "path": "convection/checkpoints/restart_000076947.npz",
+      "bytes": 359447,
+      "sha256": "0216bb0d94d4b241f5ec0cd62cc99d296fedb758836bea915282402bccaca278"
+    },
+    {
+      "path": "convection/checkpoints/restart_000078920.npz",
+      "bytes": 359593,
+      "sha256": "f930142d91b7ec2c12965d2f10743d028bd63089591f70e19f71f811aa1a9e49"
+    },
+    {
+      "path": "convection/checkpoints/restart_000080893.npz",
+      "bytes": 359666,
+      "sha256": "bd292d2b840e77ce378c8e89f2749ccc65a89acc348472e27e61894dcd7ed0e9"
+    },
+    {
+      "path": "convection/checkpoints/restart_000082866.npz",
+      "bytes": 359702,
+      "sha256": "bd361ce6df192f3596693baa354e5ed03d85651e43ccb44c4a2652e06e9704b6"
+    },
+    {
+      "path": "convection/checkpoints/restart_000084839.npz",
+      "bytes": 359861,
+      "sha256": "b4b0564f55f08ceb414ff191c23787114a6e6bccd857e7abe09335568af003f8"
+    },
+    {
+      "path": "convection/checkpoints/restart_000086812.npz",
+      "bytes": 359960,
+      "sha256": "6d1df1fada898a4ba7711467f95f0171936893dbf3e3c7c450677afe16629f26"
+    },
+    {
+      "path": "convection/checkpoints/restart_000088785.npz",
+      "bytes": 360050,
+      "sha256": "0234b0ad4b1cb992aaacab0bcdef28c867ee3b118857885a1acbe77a541a13bf"
+    },
+    {
+      "path": "convection/checkpoints/restart_000090758.npz",
+      "bytes": 360487,
+      "sha256": "c347d6665d65fd6c221355e5a3930ef61d433309cf2d47850ee3457cb5492c9d"
+    },
+    {
+      "path": "convection/checkpoints/restart_000092731.npz",
+      "bytes": 360550,
+      "sha256": "458e1dc3ce67d4febc59a1a9267020bb2c25b21c1743f0bd46fa24872254027c"
+    },
+    {
+      "path": "convection/checkpoints/restart_000094704.npz",
+      "bytes": 360537,
+      "sha256": "b5d525c8f1a3206686a838968592d640a2aedb69eeefcb87d949f55fa11dbb3d"
+    },
+    {
+      "path": "convection/checkpoints/restart_000096677.npz",
+      "bytes": 360617,
+      "sha256": "33ed29f6e2ead7fdff949b2ffaa388c42e07859e535472197131a6d46ce020e6"
+    },
+    {
+      "path": "convection/checkpoints/restart_000098650.npz",
+      "bytes": 360491,
+      "sha256": "bd669e7824452b348b2fab6b7e102e12d849cca95397b295523f553ea8edc670"
+    },
+    {
+      "path": "convection/checkpoints/restart_000100623.npz",
+      "bytes": 360565,
+      "sha256": "c4a1dc0f6f16b71b0fad6ab03a425655dcff93c86f16d6cb9d3e888d29d4fc84"
+    },
+    {
+      "path": "convection/checkpoints/restart_000102596.npz",
+      "bytes": 360743,
+      "sha256": "31cd12626b6db2707157ed187a8cdaea15f4ba0521e4796f9b3e0a4dae9a0a42"
+    },
+    {
+      "path": "convection/checkpoints/restart_000104569.npz",
+      "bytes": 360801,
+      "sha256": "6068a09628ced25aa10d25ff96e748b3718ca09428e57b7333035266b3208b98"
+    },
+    {
+      "path": "convection/checkpoints/restart_000106542.npz",
+      "bytes": 360748,
+      "sha256": "7a18e93e5b2f5ab2c41cd696f8454ac016f8c271f8669c6198b2b43bc636f704"
+    },
+    {
+      "path": "convection/checkpoints/restart_000108515.npz",
+      "bytes": 360980,
+      "sha256": "c6c51ac0bef5f224e0c13cd489338047585271d348de2bc1da0d671910d3cfa4"
+    },
+    {
+      "path": "convection/checkpoints/restart_000110488.npz",
+      "bytes": 360932,
+      "sha256": "78694f0e3d295af1f2074a67e40a085263324358f47faf3c731c29f6a6f3f9c3"
+    },
+    {
+      "path": "convection/checkpoints/restart_000112461.npz",
+      "bytes": 361032,
+      "sha256": "f50a461b10729a88657cd2474c565840580ab5e7e488cd6c119ea1063f7606d0"
+    },
+    {
+      "path": "convection/checkpoints/restart_000114434.npz",
+      "bytes": 361100,
+      "sha256": "30616297677733d99c077b1716d05faecc5be6d4be1f30cb4bbd6e987f30943b"
+    },
+    {
+      "path": "convection/checkpoints/restart_000116407.npz",
+      "bytes": 361044,
+      "sha256": "a5189775742989abd04ca73b23c88e1579549d1f6546e5545352e9d4464af8c1"
+    },
+    {
+      "path": "convection/checkpoints/restart_000118380.npz",
+      "bytes": 361204,
+      "sha256": "e878c873db1fb31708ecf3d6e2b76fd643fcc3a8bb6ccdf742522c97fff9cf06"
+    },
+    {
+      "path": "convection/checkpoints/restart_000120353.npz",
+      "bytes": 361225,
+      "sha256": "62bedab2b276925057054ee429ce6148ef0f998d72caa84d612ca2983748dbe0"
+    },
+    {
+      "path": "convection/checkpoints/restart_000122326.npz",
+      "bytes": 361377,
+      "sha256": "2b6572f06bdf5e03cb66e30e99699ace946bf5ff9046e5cbbfeff43ea01d82b2"
+    },
+    {
+      "path": "convection/checkpoints/restart_000124299.npz",
+      "bytes": 361454,
+      "sha256": "3b9276dba0cfb323734193c4f439310bdefae4bcb6d7a59a286f142899d98a3e"
+    },
+    {
+      "path": "convection/checkpoints/restart_000126272.npz",
+      "bytes": 361475,
+      "sha256": "46b6cc7b73e7b25210efef695ea43453f969c32d8100f8ddc23727879baeb7fa"
+    },
+    {
+      "path": "convection/checkpoints/restart_000128245.npz",
+      "bytes": 361598,
+      "sha256": "1206102e98f2fc33b33bf59eb3c7a4a00906f6a695fe5294b85f45a3f20a8825"
+    },
+    {
+      "path": "convection/checkpoints/restart_000130218.npz",
+      "bytes": 361563,
+      "sha256": "62b33b907f94e6931813764304dd88d41d3c5956052f09e6066b9465d1b47afe"
+    },
+    {
+      "path": "convection/checkpoints/restart_000131900.npz",
+      "bytes": 361408,
+      "sha256": "3f3d931cb98c93c3a441b787d7245e5e720cacfaad710697b691cb5def679308"
+    },
+    {
+      "path": "convection/config.json",
+      "bytes": 639,
+      "sha256": "60f60ddad75530a75e37248f6080f1783304e40c2e483f87d8e0d55654db98e5"
+    },
+    {
+      "path": "convection/convection_co2_ice.png",
+      "bytes": 49553,
+      "sha256": "c17af7b778cdcb1dc815df8c69324bb2ccb4cbc2fae3636ff81e556e0486abdb"
+    },
+    {
+      "path": "convection/convection_surface_pressure.png",
+      "bytes": 121204,
+      "sha256": "8c8a668d083a7b777d3ea09446f191d199843a0224f1bd79481ed85abdc0b8e7"
+    },
+    {
+      "path": "convection/convection_temperature.png",
+      "bytes": 121055,
+      "sha256": "324c87763ee7f758195254abb26816268ca55bfd5987425b24501084586454ce"
+    },
+    {
+      "path": "convection/convection_topography.png",
+      "bytes": 121699,
+      "sha256": "333aadcd61adc5dcbb32d6951e798c03ed33da3c95a995992133c919f9faaa16"
+    },
+    {
+      "path": "convection/convection_wind_speed.png",
+      "bytes": 220085,
+      "sha256": "cf720bc8dad06970b3caca98e0c84f8042ce327dc7888b807e9bce81b9734717"
+    },
+    {
+      "path": "convection/maps.nc",
+      "bytes": 132890,
+      "sha256": "a128fe4a5ae26c901961c050207e15c3689393d4af589abc27fb36fd5ca8b671"
+    },
+    {
+      "path": "convection/progress.json",
+      "bytes": 28,
+      "sha256": "a2b0d9d4a734b023e6a7812b06216b2fe45a1b850069621fb808ee20a51c374b"
+    },
+    {
+      "path": "convection/restart.npz",
+      "bytes": 361408,
+      "sha256": "3f3d931cb98c93c3a441b787d7245e5e720cacfaad710697b691cb5def679308"
+    },
+    {
+      "path": "convection/sample_000131900.nc",
+      "bytes": 132890,
+      "sha256": "a128fe4a5ae26c901961c050207e15c3689393d4af589abc27fb36fd5ca8b671"
+    },
+    {
+      "path": "environment.json",
+      "bytes": 581,
+      "sha256": "93ff96a52a00f8bba78e0b1c0dd40cc4463a9ee313563195fd535091b13dc58f"
+    },
+    {
+      "path": "manifest.json",
+      "bytes": 1624,
+      "sha256": "ccd40cbf6f5f419c6ec6f3967c1f0dd2d89878407708a95081b10f502a133ad2"
+    },
+    {
+      "path": "validation_report.json",
+      "bytes": 2677,
+      "sha256": "a3fcc750932adf3bb01a1537b179d202c7376b49ef65904af9d6a32af73c3583"
+    },
+    {
+      "path": "year_benchmark.csv",
+      "bytes": 626,
+      "sha256": "b39780726dd2d182ab9c80539ac4b7da9961ae82898162592d1bf40fdc3cbaee"
+    },
+    {
+      "path": "year_benchmark.json",
+      "bytes": 688,
+      "sha256": "60c99c983be568774789534ff064013ba4eb3974844148725278f5c00bc220f6"
+    },
+    {
+      "path": "year_benchmark.pdf",
+      "bytes": 20107,
+      "sha256": "a23c6e861ed6f661e6bb029857eda0652d30003d77278f2ca899eb9fcca1049e"
+    },
+    {
+      "path": "year_benchmark.png",
+      "bytes": 75224,
+      "sha256": "430c7333a9c72ee68353187fb924f8c31db8a48b4f127342195bdcf2dbd2af63"
+    }
+  ],
+  "limitations": [
+    "Original GPU model was not recorded; cuda:0 is not a hardware identity.",
+    "These are the available saved checkpoints and final dimensional maps, not every integration step.",
+    "Nondimensional restarts require their original source/unit contract; do not load them as current-physics states.",
+    "Finite saved arrays and constrained inventories do not prove equilibrium, raw budget closure, or observational accuracy.",
+    "Original dirty patches and complete input hashes cannot be reconstructed from absent records."
+  ]
+}

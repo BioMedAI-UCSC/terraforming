@@ -1,5 +1,11 @@
 # ICLR result archive
 
+For the review against published arXiv v1, use the
+[reproduction guide](../docs/paper-reproduction.md) and
+[revised manuscript/evidence](../paper/arxiv-2610.04081/README.md).
+This older archive retains historical model revisions; its numbers do not
+automatically describe the corrected PBL, clocks, or calibration protocols.
+
 This folder is a curated copy of the paper-facing results already produced in
 the repository. Originals remain under `outputs/`; nothing was moved or deleted.
 Large raw NetCDF trajectories, restart checkpoints and downloaded source archives

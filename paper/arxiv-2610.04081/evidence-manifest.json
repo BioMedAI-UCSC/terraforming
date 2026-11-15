@@ -1,0 +1,155 @@
+{
+  "files": [
+    {
+      "path": "evidence/historical-audit/input-manifest.json",
+      "sha256": "19e4e2509847b57729492daebe5bb1685ac7b7b5d6c1f9468ab3b5423f2e6d1b",
+      "bytes": 3457
+    },
+    {
+      "path": "evidence/historical-audit/inputs/iclr-results/01-mola-topography-comparisons/metrics.csv",
+      "sha256": "afe81b6a2ea280cdc67da03c4b2f465bebc789a4fabb92f4592a890f0b263427",
+      "bytes": 7322
+    },
+    {
+      "path": "evidence/historical-audit/inputs/iclr-results/03-benchmarks/performance-timing/environment.json",
+      "sha256": "4e2629c20aa0d9bcb855091f34d44999e01eaccdecda6d0d033cf2ccc06b5070",
+      "bytes": 593
+    },
+    {
+      "path": "evidence/historical-audit/inputs/iclr-results/03-benchmarks/performance-timing/timing.json",
+      "sha256": "63d6f3c20496d1a66f375023523587513d928dc3e0df5659a5570d4ad03b8d70",
+      "bytes": 1483
+    },
+    {
+      "path": "evidence/historical-audit/inputs/outputs/Untitled/config.json",
+      "sha256": "99a75e193765dc31b385a1f9670c76007de9c50261533c14732b0ea52bc27f34",
+      "bytes": 1598
+    },
+    {
+      "path": "evidence/historical-audit/inputs/outputs/differentiable/calibration/acceptance.json",
+      "sha256": "ba19b9820637bd279ce74cc8bdc6b02f000b589cdd678ca0ed467bc45b8e181c",
+      "bytes": 259
+    },
+    {
+      "path": "evidence/historical-audit/inputs/outputs/differentiable/calibration/checkpoint.npz",
+      "sha256": "3fbe4ac58021a505dd8749acaf8b5308a7f6a43e901963806a2fd766ab345d35",
+      "bytes": 1960
+    },
+    {
+      "path": "evidence/historical-audit/inputs/outputs/differentiable/calibration/provenance.json",
+      "sha256": "8827eb1d341afd3ceb64e3fe0cabee7bc0b73abebcb5cafa229c56706814bee6",
+      "bytes": 33664
+    },
+    {
+      "path": "evidence/historical-audit/inputs/outputs/differentiable/calibration/skill.csv",
+      "sha256": "8e7028df5d9ebdb28617a798d9c099c05d6deaa06b3e43227701ccb76500c67b",
+      "bytes": 3009
+    },
+    {
+      "path": "evidence/historical-audit/inputs/outputs/differentiable/calibration/training.csv",
+      "sha256": "90697c336b4eda3ecdea589b70a63b97269dc2a1d773c13c18bcf4e48def54dd",
+      "bytes": 3205
+    },
+    {
+      "path": "evidence/historical-audit/inputs/outputs/paper-year-gpu3/ablations.json",
+      "sha256": "88d4b8fefc6b064f3cfaf39ebac1039eea9585c70ad3a23c51f9a63fbfaa2265",
+      "bytes": 184071
+    },
+    {
+      "path": "evidence/historical-audit/reference-summary.csv",
+      "sha256": "e93db2fc43931f68da946c41d76a567357b0c6681b820875d930e4a4d7548df1",
+      "bytes": 1606
+    },
+    {
+      "path": "evidence/historical-audit/results.json",
+      "sha256": "bf2eb5847d91a59b4b2aaf08fa6be0536a53b533824971a354e3e60057d1a8e7",
+      "bytes": 3584
+    },
+    {
+      "path": "evidence/historical-audit/timestep-by-time.csv",
+      "sha256": "f415e19c1217b768adf80c45749711a7cced12ea1ef519962f7423fcd6483247",
+      "bytes": 15663
+    },
+    {
+      "path": "evidence/radiation-fixed/continued_local.npz",
+      "sha256": "200864b6e6d4888e651e4ab8ec8ea2f1f3edcc6b95cf25f71d73d4864f96d4c8",
+      "bytes": 21309
+    },
+    {
+      "path": "evidence/radiation-fixed/local.npz",
+      "sha256": "1efa9823807e3ec8cd26b06db44277187d5dd21b5374e128fc5364792d009c85",
+      "bytes": 21317
+    },
+    {
+      "path": "evidence/radiation-fixed/predictions.npz",
+      "sha256": "06191977d2376dc8378648572ecb43434fa4e712feeea4a70edb8318f0f40694",
+      "bytes": 66806
+    },
+    {
+      "path": "evidence/radiation-fixed/report.json",
+      "sha256": "ab22953630185a20f5cb2c04aa13269e6ac37465a0db27d64921d568749adc63",
+      "bytes": 45119
+    },
+    {
+      "path": "evidence/radiation-fixed/trajectory.npz",
+      "sha256": "79643ea7cdbf581f14f793188ff86b5df5d5c71ac731e43ae5737fe8d9ede1ae",
+      "bytes": 21314
+    },
+    {
+      "path": "evidence/radiation-repeat/continued_local.npz",
+      "sha256": "200864b6e6d4888e651e4ab8ec8ea2f1f3edcc6b95cf25f71d73d4864f96d4c8",
+      "bytes": 21309
+    },
+    {
+      "path": "evidence/radiation-repeat/local.npz",
+      "sha256": "1efa9823807e3ec8cd26b06db44277187d5dd21b5374e128fc5364792d009c85",
+      "bytes": 21317
+    },
+    {
+      "path": "evidence/radiation-repeat/predictions.npz",
+      "sha256": "06191977d2376dc8378648572ecb43434fa4e712feeea4a70edb8318f0f40694",
+      "bytes": 66806
+    },
+    {
+      "path": "evidence/radiation-repeat/report.json",
+      "sha256": "dbff197f7402a0592217a673c9d58236e97301aab51fe5e13a0794f1f33a1cbb",
+      "bytes": 45117
+    },
+    {
+      "path": "evidence/radiation-repeat/trajectory.npz",
+      "sha256": "79643ea7cdbf581f14f793188ff86b5df5d5c71ac731e43ae5737fe8d9ede1ae",
+      "bytes": 21314
+    },
+    {
+      "path": "evidence/references/cleary2020augmented.json",
+      "sha256": "eb52081fa4657fad56858c2fb1e5d77a0df4b97ce87b4ba63108d5d74f8c8153",
+      "bytes": 22969
+    },
+    {
+      "path": "evidence/references/forget1999.json",
+      "sha256": "c955a5958c55c18f5d5f99ebe8eeb9b8bd246bbe8883fe8a75211c3d20d4d65b",
+      "bytes": 14886
+    },
+    {
+      "path": "evidence/references/forget2010co2cycle.json",
+      "sha256": "ee16450928d245c4437aeebb3d630a5439c429beb8dbbf459a47f91af5341820",
+      "bytes": 13995
+    },
+    {
+      "path": "evidence/references/piqueux2024co2seasonal.json",
+      "sha256": "b305ebb750511edffa6af411ff6f20e62d63c17fd456174f06fad9ea0dc24060",
+      "bytes": 50715
+    },
+    {
+      "path": "evidence/references/schneider2020calibration.json",
+      "sha256": "438ad52d4d3198a08abf52553519f4ed5d4b063461fa093b3ce0ef3e7574886f",
+      "bytes": 17851
+    },
+    {
+      "path": "evidence/references/wilson1997stationarywaves.json",
+      "sha256": "212c22ae7f12042714200babb1fc6c2ebb9319f1eb60c995be019b6e67ba139a",
+      "bytes": 2223
+    }
+  ],
+  "note": "Historical audit inputs remain historical; raw NetCDF fields are not bundled or claimed publicly released."
+}

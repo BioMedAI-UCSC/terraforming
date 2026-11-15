@@ -1,0 +1,109 @@
+{
+  "status": "historical_saved_results_not_current_physics",
+  "archive": "paper-year-gpu3.tar.gz",
+  "archive_sha256": "b67df60745b30af1d3c731c58088de619b9d313451d008784d5f3e08d9a52702",
+  "bytes": 342356419,
+  "recorded_git_commit": "d7d8d845527ac2b704bdfb55b580c426b94368cd",
+  "recorded_git_status": "?? nohup.out",
+  "original_gpu_model": null,
+  "numeric_saved_arrays_checked": 32,
+  "files": [
+    {
+      "path": "ablations.csv",
+      "bytes": 926,
+      "sha256": "bd96c27b0bc77dc9417387ce2226fefab55514b18675374b12e97b477819ca6c"
+    },
+    {
+      "path": "ablations.json",
+      "bytes": 184071,
+      "sha256": "88d4b8fefc6b064f3cfaf39ebac1039eea9585c70ad3a23c51f9a63fbfaa2265"
+    },
+    {
+      "path": "config.json",
+      "bytes": 1598,
+      "sha256": "99a75e193765dc31b385a1f9670c76007de9c50261533c14732b0ea52bc27f34"
+    },
+    {
+      "path": "dust_longwave_opacity_scale_1.2-restart.npz",
+      "bytes": 363966,
+      "sha256": "786c02f1d3208b36b758e8fe75be182ea230209a6e99a78143cb0d0e10b0d09a"
+    },
+    {
+      "path": "dust_longwave_opacity_scale_1.2.nc",
+      "bytes": 90992490,
+      "sha256": "993eb35017064ad2d78ca7dc7753311720b67c60ffbe2786d92ad901c5799f39"
+    },
+    {
+      "path": "environment.json",
+      "bytes": 593,
+      "sha256": "90fb2c28fab621ef8f5a42eac857f986751d551c9935c2c437115f5cd9ddcd73"
+    },
+    {
+      "path": "full-restart.npz",
+      "bytes": 364055,
+      "sha256": "80cdc7bb292d2f29a25f28220c2372d7074d0eca9cca9b3e5fec2d2c3d1a2c2f"
+    },
+    {
+      "path": "full.nc",
+      "bytes": 90992490,
+      "sha256": "261e13a990e37666f62c784fbe6c40a12c3bc6566d960e440f15d98b2bd14af5"
+    },
+    {
+      "path": "half_timestep-restart.npz",
+      "bytes": 364026,
+      "sha256": "dedf1ffd9bf8678b719d95824576095dfc1fdc344fa7e130c31d3c4e394f7c2e"
+    },
+    {
+      "path": "half_timestep.nc",
+      "bytes": 90992490,
+      "sha256": "b0dfe691105323f2b1f5a31ee06e5f39c1de432896143ed6f45b811174c66e82"
+    },
+    {
+      "path": "input-manifest.json",
+      "bytes": 1011,
+      "sha256": "ea371313353309296819d7056914e5a457915776b88efbd1260eb7a0fb472829"
+    },
+    {
+      "path": "invocation.json",
+      "bytes": 400,
+      "sha256": "6ca1174378b4c8361c041b33d44b9ba8f2871598e2b76af486c5a5cd5a3d124b"
+    },
+    {
+      "path": "progress.jsonl",
+      "bytes": 2321,
+      "sha256": "0c8fcbad8babfacaf7d7e4f14fad97acd756649edf9253b0c24a1f287319effd"
+    },
+    {
+      "path": "report.json",
+      "bytes": 2093,
+      "sha256": "9fa4791cf238cf1e1de90e211d86b508fc962236f5e5a8d9397f5dceabb7fe1d"
+    },
+    {
+      "path": "source-hashes.json",
+      "bytes": 603,
+      "sha256": "429656bbd3b8be5a945d453794280eb9f722d7ba6546f97d10fe6c78b490b488"
+    },
+    {
+      "path": "summary.md",
+      "bytes": 376,
+      "sha256": "72ba97960f523b8fc359eeb2cb374ccd6ac16e11e7e19228560060bd6cb6588f"
+    },
+    {
+      "path": "surface_exchange_multiplier_1.2-restart.npz",
+      "bytes": 363961,
+      "sha256": "f11c379ecc1aa1a0fe6c36510ced15e130d75802c28da0b9e1673adf7ba43008"
+    },
+    {
+      "path": "surface_exchange_multiplier_1.2.nc",
+      "bytes": 90992490,
+      "sha256": "8841934f6739e048053253ff00166df2c7818033108a13d2d091003c7291e144"
+    }
+  ],
+  "limitations": [
+    "Original GPU model was not recorded; cuda:0 is not a hardware identity.",
+    "These are the available saved checkpoints and final dimensional maps, not every integration step.",
+    "Nondimensional restarts require their original source/unit contract; do not load them as current-physics states.",
+    "Finite saved arrays and constrained inventories do not prove equilibrium, raw budget closure, or observational accuracy.",
+    "Original dirty patches and complete input hashes cannot be reconstructed from absent records."
+  ]
+}
