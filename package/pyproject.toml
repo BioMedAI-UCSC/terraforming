@@ -36,6 +36,7 @@ include = ["src*"]
 
 [tool.setuptools.package-data]
 "src.framework.physics" = ["*.npz"]
+"src.interventions.aerosols" = ["assets/*.csv", "assets/*.json"]
 
 [tool.pytest.ini_options]
 markers = [
