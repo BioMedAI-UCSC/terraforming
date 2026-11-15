@@ -61,3 +61,20 @@ def test_source_negative_sink_allowance_is_repaired_and_reported():
         extinction_efficiency=2.45,remove_excess=True)
     assert np.all(result.mass_ratio>=0.) and np.all(result.number_ratio>=0.)
     assert result.diagnostics['negative_sink_repair_kg_m2']>0.
+
+
+@pytest.mark.parametrize('fractions',[None,(.25,.75),(1.,1.)])
+def test_mode_fractions_keep_separate_reservoirs_and_particle_sizes(fractions):
+    from src.framework.physics.dust_lifting import background_modes_step
+    mass=jnp.stack([MASS,MASS],axis=-1);number=jnp.stack([NUMBER,NUMBER],axis=-1)
+    options={} if fractions is None else dict(opacity_fraction=fractions)
+    result=background_modes_step(mass,number,HALF,1,230.,0.,.1,.2,1.,
+        surface_dust_kg_m2=jnp.array([30.,20.]),dt_seconds=300.,
+        extinction_efficiency=(2.45,2.),effective_radius_m=(1e-6,3e-6),**options)
+    amount=jnp.sum((result.mass_ratio-mass)*jnp.diff(HALF)[:,None]/3.72,axis=0)
+    np.testing.assert_allclose(amount+result.surface_dust_kg_m2,[30.,20.],atol=1e-14)
+    assert amount[0]>0.
+    if fractions is None or sum(fractions)!=1.:
+        np.testing.assert_array_equal(result.mass_ratio[...,1],MASS)
+    else:
+        assert amount[1]>amount[0]

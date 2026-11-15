@@ -1469,10 +1469,10 @@
   ],
   "sha256": {
     "scripts/validate_dust_background.py": "5402e7e8956d70510ae8b38b246a54e0f767a0d8c5e94a8d3fb7015d7e067c17",
-    "scripts/validate_dust_lifting.py": "0848196125d5763434233e8c0dd5cea8749c8fa0b123c8e4825e11a2e0b960b1",
+    "scripts/validate_dust_lifting.py": "10dbdfc105acd6d9661ef4032acf8b80d9da5bf6f4ce6805798a5028b5ea0877",
     "scripts/native_reference.py": "2e3b0e2f65b685f86fcfdd1b4643b54c5582b81af36a0874a43d9eedc2675d76",
     "scripts/validate_particle_optics.py": "11dbfdf70bd83d08775dcaece9d306bcbe8d6e39670b4bd7d728296d8f7f67f6",
-    "package/src/framework/physics/dust_lifting.py": "793454b10cef9deaf2203311e8dda4eeacec17f4650cc14f456a9c51c3f0f75a",
+    "package/src/framework/physics/dust_lifting.py": "18bf33ce5979933c1ef1a153e7683fae81e818f8e196e71a7f2923176be3d663",
     "package/src/framework/physics/particle_optics.py": "125ec57c6d71d99082eb31b98b64be357c3287c721e4b73b149311852138895f",
     "package/src/framework/physics/particle_optical_tables.npz": "ae3328d6cabec02bf75f60e749a35985a397ca537e05536573cfc781117c330f"
   },

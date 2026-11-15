@@ -48,3 +48,25 @@ def test_source_lifting_override_retains_bottom_and_exposes_budget_error():
     np.testing.assert_array_equal(result.tracers[-1,0],q[-1,0])
     assert result.surface_deposit[0]==0.
     assert abs(float(result.diagnostics['dust_budget_residual']))>0.
+
+
+@pytest.mark.parametrize('scavenging',[False,True])
+def test_additional_physical_dust_modes_close_material_and_use_own_size(scavenging):
+    q,_=column(300.)
+    half=jnp.array([0.,50.,200.,400.,610.]);full=.5*(half[1:]+half[:-1])
+    extra=jnp.stack([q[...,0]*2.,q[...,1]*.25,q[...,4]*.5],axis=-1)
+    q=jnp.concatenate([q,extra],axis=-1)
+    def settle(amplitude):
+        return sedimentation_step(q.at[...,6:].multiply(amplitude),half,full,
+            jnp.array([150.,180.,200.,220.]),230.,jnp.array([.001,1.,10.]),300.,scavenging=scavenging)
+    result=settle(1.)
+    change=result.diagnostics['atmospheric_change']
+    np.testing.assert_allclose(change[6]+change[8]+result.surface_deposit[6],0.,atol=2e-18)
+    np.testing.assert_allclose(change[7]+result.diagnostics['per_species_deposit'][6],0.,atol=1e-5)
+    np.testing.assert_allclose(result.diagnostics['dust_budget_residual'],0.,atol=2e-18)
+    assert np.all(result.radius_m[...,5]>result.radius_m[...,0])
+    np.testing.assert_array_equal(result.radius_m[...,7],result.radius_m[...,2])
+    if not scavenging: np.testing.assert_array_equal(result.tracers[...,8],q[...,8])
+    objective=lambda a:settle(a).surface_deposit[6]
+    auto=jax.jit(jax.grad(objective))(1.);eps=1e-5
+    np.testing.assert_allclose(auto,(objective(1.+eps)-objective(1.-eps))/(2.*eps),rtol=3e-7,atol=1e-15)

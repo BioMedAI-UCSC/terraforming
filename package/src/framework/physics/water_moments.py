@@ -16,6 +16,14 @@ AVOGADRO=6.02e23
 MOMENT_PARTICLE_TRACERS=('dust_mass','dust_number','water_ice_number','water_core_mass')
 
 
+def moment_particle_tracers(dust_mode_count=1):
+    """Physical populations only; extra modes keep source mass/number/core order."""
+    if not isinstance(dust_mode_count,int) or isinstance(dust_mode_count,bool) or dust_mode_count<1:
+        raise ValueError('dust mode count must be a positive integer')
+    return MOMENT_PARTICLE_TRACERS+tuple(f'dust_{kind}_{mode}'
+        for mode in range(2,dust_mode_count+1) for kind in ('mass','number','core_mass'))
+
+
 def size_grid():
     """Original initmicro four-bin radii and volume-derived boundaries."""
     ratio=np.exp(np.log(1.e-5/1.e-7)/3.*3.)

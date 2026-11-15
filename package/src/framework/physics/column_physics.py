@@ -16,7 +16,8 @@ from src.framework.physics.co2_microphysics import cloud_step,phase_change,trans
 from src.framework.physics.water_bulk import cloud_step as water_cloud_step
 from src.framework.physics.water_moments import subcycled_cloud_step,EffectiveState
 from src.framework.physics.particle_sedimentation import sedimentation_step
-from src.framework.physics.dust_lifting import interactive_step as dust_lifting_step,background_step
+from src.framework.physics.dust_lifting import (interactive_step as dust_lifting_step,background_step,
+    interactive_modes_step,background_modes_step)
 from src.framework.physics.dust_coagulation import coagulation_step
 from src.framework.physics.nonorographic_drag import driver_step as gravity_wave_step
 from src.framework.physics.legacy_convection import adjust as legacy_convection
@@ -87,8 +88,14 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
     if moment_particles is not None:
         if bulk_water is None:
             raise ValueError('moment particles require the water reservoir and vapor state')
-        if moment_particles.shape!=temperature.shape+(4,):
-            raise ValueError('moment particles must have four entries per atmospheric cell')
+        if (moment_particles.shape[:-1]!=temperature.shape or moment_particles.shape[-1]<4 or
+            (moment_particles.shape[-1]-4)%3):
+            raise ValueError('moment particles require four entries then extra dust mass/number/core triples')
+        particle_count=moment_particles.shape[-1]
+        dust_mass_indices=jnp.asarray([0]+list(range(4,particle_count,3)))
+        dust_number_indices=dust_mass_indices+1
+        initial_dust_mass=moment_particles[...,dust_mass_indices]
+        initial_dust_number=moment_particles[...,dust_number_indices]
         initial_moments=jnp.stack([moment_particles[...,0],moment_particles[...,1],
             bulk_water.ice_ratio,moment_particles[...,2],moment_particles[...,3],
             gas_tracers[...,bulk_water.vapor_index]],axis=-1)
@@ -213,7 +220,7 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
         ice=r[...,gas_count+int(cloud is not None)]
         water_deposit=0.
         if moment_particles is not None:
-            moment_particles=r[...,moment_start:moment_start+4]
+            moment_particles=r[...,moment_start:moment_start+particle_count]
             if dust_lifting_options is not None:
                 if dust_lifting_opacity is None or surface_dust_kg_m2 is None:
                     raise ValueError('interactive dust requires reference opacity and a surface reservoir')
@@ -229,50 +236,60 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
                         raise ValueError('combined interactive/background dust requires a positive dual mode')
                     lifting_options['scenario_opacity']=dust_background_options.get('dual_scenario_opacity',
                         dust_background_options['scenario_opacity'])
-                lifted=dust_lifting_step(moment_particles[...,0],moment_particles[...,1],t,
+                lift=interactive_modes_step if particle_count>4 else dust_lifting_step
+                lifted=lift(moment_particles[...,dust_mass_indices] if particle_count>4 else moment_particles[...,0],
+                    moment_particles[...,dust_number_indices] if particle_count>4 else moment_particles[...,1],t,
                     pressure_half,pressure_full,ground[0],stress,pbl['heat_flux_w_m2'],pbl_top,p_pbl,
                     latitude_rad,snow,water_exchange.surface_water_kg_m2+active_moist_precip,
                     jnp.maximum(dust_lifting_opacity/pressure_full[-1]*610.,1e-10),
-                    surface_dust_kg_m2,dt_seconds,gravity=body.gravity_m_s2,
+                    surface_dust_kg_m2=surface_dust_kg_m2,dt_seconds=dt_seconds,gravity=body.gravity_m_s2,
                     gas_constant=body.gas_constant_j_kg_k,cp=body.cp_j_kg_k,**lifting_options)
-                moment_particles=moment_particles.at[...,0].set(lifted.mass_ratio)
-                moment_particles=moment_particles.at[...,1].set(lifted.number_ratio)
+                moment_particles=moment_particles.at[...,dust_mass_indices if particle_count>4 else 0].set(lifted.mass_ratio)
+                moment_particles=moment_particles.at[...,dust_number_indices if particle_count>4 else 1].set(lifted.number_ratio)
                 surface_dust_kg_m2=lifted.surface_dust_kg_m2
             if dust_background_options is not None:
                 if dust_lifting_opacity is None or surface_dust_kg_m2 is None:
                     raise ValueError('background dust requires reference opacity and a surface reservoir')
-                background=background_step(moment_particles[...,0],moment_particles[...,1],pressure_half,
+                background_lift=background_modes_step if particle_count>4 else background_step
+                background=background_lift(moment_particles[...,dust_mass_indices] if particle_count>4 else moment_particles[...,0],
+                    moment_particles[...,dust_number_indices] if particle_count>4 else moment_particles[...,1],pressure_half,
                     pbl_top,ground[0],snow,jnp.maximum(dust_lifting_opacity/pressure_full[-1]*610.,1e-10),
                     surface_dust_kg_m2=surface_dust_kg_m2,dt_seconds=dt_seconds,
                     gravity=body.gravity_m_s2,**{key:value for key,value in dust_background_options.items()
                         if key!='dual_scenario_opacity'})
-                moment_particles=moment_particles.at[...,0].set(background.mass_ratio)
-                moment_particles=moment_particles.at[...,1].set(background.number_ratio)
+                moment_particles=moment_particles.at[...,dust_mass_indices if particle_count>4 else 0].set(background.mass_ratio)
+                moment_particles=moment_particles.at[...,dust_number_indices if particle_count>4 else 1].set(background.number_ratio)
                 surface_dust_kg_m2=background.surface_dust_kg_m2
             if coagulation_options is not None:
-                coagulated=coagulation_step(t,pressure_full,moment_particles[...,0,None],
-                    moment_particles[...,1,None],dt_seconds,gravity=body.gravity_m_s2,
+                coagulated=coagulation_step(t,pressure_full,moment_particles[...,dust_mass_indices],
+                    moment_particles[...,dust_number_indices],dt_seconds,gravity=body.gravity_m_s2,
                     gas_constant=body.gas_constant_j_kg_k,**coagulation_options)
-                moment_particles=moment_particles.at[...,0].add(dt_seconds*coagulated.mass_tendency[...,0])
-                moment_particles=moment_particles.at[...,1].add(dt_seconds*coagulated.number_tendency[...,0])
+                moment_particles=moment_particles.at[...,dust_mass_indices].add(dt_seconds*coagulated.mass_tendency)
+                moment_particles=moment_particles.at[...,dust_number_indices].add(dt_seconds*coagulated.number_tendency)
             moments=jnp.stack([moment_particles[...,0],moment_particles[...,1],ice,
                 moment_particles[...,2],moment_particles[...,3],r[...,bulk_water.vapor_index]],axis=-1)
             moment_result=subcycled_cloud_step(temperature,t,pressure_full,initial_moments,moments,
                 dt_seconds,cp=body.cp_j_kg_k,previous_state=moment_history,
+                initial_dust_mass=initial_dust_mass,initial_dust_number=initial_dust_number,
+                dust_mass=moment_particles[...,dust_mass_indices],dust_number=moment_particles[...,dust_number_indices],
                 **({} if moment_cloud_options is None else moment_cloud_options))
             if moment_cloud_options is not None and moment_cloud_options.get('effective_input_mode',0)==1:
                 # Source saves post-cloud T but pre-cloud Q; its dust history is never filled.
                 moment_history=EffectiveState(t+dt_seconds*moment_result.temperature_tendency,
-                    moments,moments[...,0,None],moments[...,1,None])
+                    moments,moment_particles[...,dust_mass_indices],moment_particles[...,dust_number_indices])
+            moment_particles=moment_particles.at[...,dust_mass_indices].add(dt_seconds*moment_result.dust_mass_tendency)
+            moment_particles=moment_particles.at[...,dust_number_indices].add(dt_seconds*moment_result.dust_number_tendency)
             moments=moments+dt_seconds*moment_result.tracer_tendency
             t=t+dt_seconds*moment_result.temperature_tendency
+            moments=jnp.concatenate([moments,moment_particles[...,4:]],axis=-1)
             if moment_sedimentation:
                 sediment=sedimentation_step(moments,pressure_half,pressure_full,t,ground[0],
                     pbl['heat_diffusivity_m2_s'],dt_seconds,
                     gas_constant=body.gas_constant_j_kg_k,gravity=body.gravity_m_s2)
                 moments=sediment.tracers
                 water_deposit=sediment.surface_deposit[...,5]
-            moment_particles=jnp.stack([moments[...,0],moments[...,1],moments[...,3],moments[...,4]],axis=-1)
+            moment_particles=jnp.concatenate([jnp.stack([moments[...,0],moments[...,1],moments[...,3],moments[...,4]],axis=-1),
+                moments[...,6:]],axis=-1)
             ice=moments[...,2]
             r=r.at[...,bulk_water.vapor_index].set(moments[...,5])
         elif form_bulk_clouds:
@@ -301,10 +318,12 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
             if coagulation_options is not None:
                 water_diagnostics['dust_coagulation']=coagulated.diagnostics
             if moment_sedimentation:
+                dust_deposit=sediment.surface_deposit[...,jnp.asarray([0]+list(range(6,moments.shape[-1],3)))]
+                if particle_count==4: dust_deposit=dust_deposit[...,0]
                 water_diagnostics['particle_sedimentation']=dict(sediment.diagnostics,
-                    dust_deposit_kg_m2=sediment.surface_deposit[...,0])
+                    dust_deposit_kg_m2=dust_deposit)
                 if surface_dust_kg_m2 is not None:
-                    surface_dust_kg_m2=surface_dust_kg_m2+sediment.surface_deposit[...,0]
+                    surface_dust_kg_m2=surface_dust_kg_m2+dust_deposit
             if surface_dust_kg_m2 is not None:
                 water_diagnostics['dust_surface_kg_m2']=surface_dust_kg_m2
     r=r[...,:gas_count]

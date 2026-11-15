@@ -344,6 +344,49 @@ all original samples and appends the first sample at 360 degrees to close the
 periodic boundary. The manifest records this extension; native agreement is
 claimed only where the original lookup is defined.
 
+## Multiple physical dust populations
+
+Set `dust_mode_count` in both initialization and the step builder, or in the map
+runner's `reference_options`. The default is one population. With more than one,
+initial dust mass, number and surface reservoir inputs can be scalar or have a
+last axis with one entry per population. Surface reservoirs keep that last axis
+in checkpoints. Extra tracers are `dust_mass_2`, `dust_number_2`,
+`dust_core_mass_2`, and so on. They are particles in PBL mixing and retain the
+source's mass/number/core order. Radiation providers must select every active
+mass/number pair explicitly.
+
+Lifting uses the first population's surface reservoir to set all populations'
+thresholds, as in the source. Background `effective_radius_m`,
+`extinction_efficiency` and `opacity_fraction` can each have one entry per
+population. Fractions that do not sum to one reset to `[1, 0, ...]`, as in source
+initialization. Coagulation and cloud formation use all physical populations.
+The source transfers nucleated core mass into the primary cloud core; the extra
+core-tag update is excluded by its preprocessor. Existing extra cores still mix
+and settle with the cloud size. Each population has its own dust size and dust
+surface deposit. Total dust includes all dust mass and all core mass.
+
+The unchanged native lifting block passes 250 two-population cases. Native
+settling passes 432 cases each for two and three populations. Independent
+checks cover separate material reservoirs, size, number loss and derivatives.
+The two-population global case combines local-time control, lifting,
+coagulation, cloud feedback and saved effective inputs. Its material budget,
+exact restart continuation and three-step reverse derivative pass. The map
+runner also checks two-population continuation. These short tests do not
+establish climate accuracy or long-run transport convergence.
+
+The preceding moist-convection checkpoint passed the full package, CLI and
+calibration suite: 953 passed, 4 skipped, including slow tests. Later multimode
+changes have focused checks; their wider backend regression is recorded
+separately.
+
+The three-step warm moist global reverse pass originally required
+27,506,267,400 temporary bytes and exceeded CI memory. Recomputing radiation
+and each moist iteration during reverse mode reduces the compiled requirement
+to 5,633,589,656 bytes on the local CPU. The same three-step derivative test now
+checks an 8 GiB temporary-memory ceiling. It still checks the original equations
+against centered differences. Recomputing saves memory and adds reverse-pass
+work; this is not a measured forward speedup.
+
 ## Required remaining work
 
 The reference backend projects transported species after dynamics and after
@@ -363,11 +406,11 @@ limiter or establish matched transport accuracy.
 | --- | --- |
 | Global budgets | Momentum exchange and repair-stage ledgers are connected. Extend the energy audit across dissipation, fixed-deep-soil exchange, phase approximations and long global runs; select gas and particle tracers explicitly. |
 | Radiation schedule | Optional integer-second source schedule now holds heating in K/s and surface fluxes, carries the 170 K initial stratosphere and its source update, and persists caches in restarts. Match the configured interval and callback averaging window in whole-model comparisons. |
-| Dust and cloud opacity | Size-dependent dust and all three cloud optical kernels are implemented. CO2 optical feedback is connected; prescribed dust, moment clouds, interactive lifting and seasonal control pass three-step global gradient checks. Lifting, coagulation, background and dual/local-time control are connected. Global multimode coupling and matched climatology remain. |
+| Dust and cloud opacity | Size-dependent dust and all three cloud optical kernels are implemented. CO2 optical feedback is connected; prescribed dust, moment clouds, interactive lifting and seasonal control pass three-step global gradient checks. Multiple physical populations now connect lifting, coagulation, clouds, settling, opacity diagnostics, surface reservoirs and saved effective inputs. Matched climatology remains. |
 | Soil and frost | Mapped TES/GRS inputs and default case-7 profiles are implemented and checked. Compare diurnal/seasonal response in global runs; modern and legacy material profiles now pass native checks. |
 | CO2 modes | Immediate deposition and optional bulk suspended-cloud phase/settling match native routines and coupled columns. Cloud optical feedback passes a three-step gradient check. Full two-way exchange auditing and long global validation remain pending. The older conservative finite-settling scheme remains a separate model. |
 | Interactive dust | Lifting, advection, sedimentation, surface reservoirs, coagulation and material budgets. |
-| Water | Bulk and moment phase/growth/settling paths, surface exchange, saved effective inputs, state/restarts and optical feedback are connected. The moment kernel checks two physical dust modes; global coupling currently uses one. Long climate validation remains. Bin cloud microphysics is unavailable in the public release. |
+| Water | Bulk and moment phase/growth/settling paths, surface exchange, saved effective inputs, state/restarts and optical feedback are connected. Two physical dust modes pass combined global material, restart and three-step derivative checks. Long climate validation remains. Bin cloud microphysics is unavailable in the public release. |
 | Drag | Rayleigh, Palmer terrain drag and non-orographic gravity-wave drag are implemented and checked. Polar water and terrain maps pass pinned-blob and T21/T42 area checks. Long momentum/energy audits remain. Gravity-wave schemes are off in the default Ames present-Mars setup. |
 | Extended atmosphere | Both 15-band options and CIA are implemented and checked. Non-LTE cooling is implemented with the pinned reference atmosphere. Gas-mixture mass/thermodynamics and source infinite-table regions still need auditing or implementation. |
 | Other release interfaces | Pinned build/preprocessor audit verifies that bin clouds, photochemistry and legacy binned dust sources use fatal placeholders. Tagging imports are excluded by RELEASE. These equations are unavailable in v3.2.1; they are not implemented physics. |
@@ -438,6 +481,15 @@ env PYTHONPATH=package:. python scripts/validate_particle_sedimentation.py \
   --ames-source /path/to/AmesGCM --output outputs/physics-parity/particle-sedimentation.json
 env PYTHONPATH=package:. python scripts/validate_dust_lifting.py \
   --ames-source /path/to/AmesGCM --output outputs/physics-parity/dust-lifting.json
+env PYTHONPATH=package:. python scripts/validate_particle_sedimentation.py \
+  --ames-source /path/to/AmesGCM --dust-modes 2 \
+  --output outputs/physics-parity/multimode-sedimentation.json
+env PYTHONPATH=package:. python scripts/validate_particle_sedimentation.py \
+  --ames-source /path/to/AmesGCM --dust-modes 3 \
+  --output outputs/physics-parity/three-mode-sedimentation.json
+env PYTHONPATH=package:. python scripts/validate_dust_lifting.py \
+  --ames-source /path/to/AmesGCM --dust-modes 2 \
+  --output outputs/physics-parity/multimode-dust-lifting.json
 env PYTHONPATH=package:. python scripts/validate_dust_control.py \
   --ames-source /path/to/AmesGCM --output outputs/physics-parity/dust-control.json
 env PYTHONPATH=package:. python scripts/validate_nonorographic_drag.py \

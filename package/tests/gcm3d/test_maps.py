@@ -344,7 +344,8 @@ def test_comparison_export_preserves_geography_units_season_and_cloud_inventory(
                                    (ds.surface_pressure * ds.sigma).transpose(*ds.air_pressure.dims))
 
 
-def test_reference_maps_backend_runs_water_and_preserves_restart_state(monkeypatch):
+@pytest.mark.parametrize('dust_mode_count',[1,2])
+def test_reference_maps_backend_runs_water_and_preserves_restart_state(monkeypatch,dust_mode_count):
     from src.celestials.planets.mars.reference_constants import AMES_BODY_3D,reference_radiative_forcing
     from src.framework.physics.radiative_transfer import make_radiation_component
     from src.framework.physics.dinosaur_physics import water_inventory
@@ -354,6 +355,10 @@ def test_reference_maps_backend_runs_water_and_preserves_restart_state(monkeypat
     radiation=make_radiation_component(lambda *args:None)
     options=dict(soil_diffusivity=(250./(1500.*627.9))**2,bulk_water=True,
         initial_water_surface_kg_m2=100.,initial_water_vapor_ratio=1e-6,form_bulk_clouds=False)
+    if dust_mode_count>1:
+        options.update(bulk_water=False,moment_water=True,dust_mode_count=dust_mode_count,
+            initial_dust_mass_ratio=[1e-5,2e-5],initial_dust_number_per_kg=[1e8,3e7],
+            initial_dust_surface_kg_m2=[30.,20.])
     kwargs=dict(body=AMES_BODY_3D,truncation='T21',n_layers=4,dt_seconds=5.,
         t_ref_k=180.,forcing=reference_radiative_forcing(),radiation_component=radiation,
         physics_backend='reference',reference_options=options,return_final_state=True)
@@ -362,6 +367,9 @@ def test_reference_maps_backend_runs_water_and_preserves_restart_state(monkeypat
     _,whole=maps.run_maps(**kwargs,n_steps=2)
     assert fields.co2_ice_pa is not None
     assert 'reference column physics' in fields.physics
+    if dust_mode_count>1:
+        assert first.auxiliary_fields['dust_surface_kg_m2'].shape[-1]==dust_mode_count
+        assert 'dust_mass_2' in first.dynamics.tracers
     for actual,expected in zip(jax.tree_util.tree_leaves(second),jax.tree_util.tree_leaves(whole),strict=True):
         np.testing.assert_allclose(actual,expected,rtol=3e-13,atol=3e-13)
     coords=coordinate_system('T21',4);specs=physics_specs(AMES_BODY_3D)

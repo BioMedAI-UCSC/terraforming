@@ -151,6 +151,24 @@ def interactive_step(mass_ratio,number_ratio,temperature,pressure_half,pressure_
         stress_threshold_pa=threshold))
 
 
+def interactive_modes_step(mass_ratio,number_ratio,*arguments,surface_dust_kg_m2,**options):
+    """Source repeats the first mode's flux and reservoir gating for every mode."""
+    mass,number,reservoir=map(jnp.asarray,(mass_ratio,number_ratio,surface_dust_kg_m2))
+    if mass.shape!=number.shape or reservoir.shape!=mass.shape[1:]:
+        raise ValueError('dust modes and surface reservoirs must share their last mode axis')
+    first=interactive_step(mass[...,0],number[...,0],*arguments,
+        surface_dust_kg_m2=reservoir[...,0],**options)
+    results=[first]
+    for mode in range(1,mass.shape[-1]):
+        result=interactive_step(mass[...,mode],number[...,mode],*arguments,
+            surface_dust_kg_m2=reservoir[...,0],**options)
+        results.append(result._replace(surface_dust_kg_m2=reservoir[...,mode]+
+            result.surface_dust_kg_m2-reservoir[...,0]))
+    return LiftingResult(*(jnp.stack([getattr(r,key) for r in results],axis=-1)
+        for key in ('mass_ratio','number_ratio','surface_dust_kg_m2')),
+        {key:jnp.stack([r.diagnostics[key] for r in results],axis=-1) for key in first.diagnostics})
+
+
 def background_step(mass_ratio,number_ratio,pressure_half,pbl_top_layer,temperature_surface,
                     snow,current_opacity,scenario_opacity,scenario_change,surface_dust_kg_m2,
                     dt_seconds,*,extinction_efficiency,effective_radius_m=2e-6,opacity_fraction=1.,
@@ -229,3 +247,29 @@ def background_step(mass_ratio,number_ratio,pressure_half,pbl_top_layer,temperat
         reservoir=reservoir+deposited
     return LiftingResult(q,n,reservoir,dict(injected_kg_m2=injected,deposited_kg_m2=deposited,
         injection_scale=scale,opacity_delta=delta,negative_sink_repair_kg_m2=sink_repair))
+
+
+def background_modes_step(mass_ratio,number_ratio,*arguments,surface_dust_kg_m2,**options):
+    """Source physical-mode loop with per-mode radius and opacity fractions."""
+    mass,number,reservoir=map(jnp.asarray,(mass_ratio,number_ratio,surface_dust_kg_m2))
+    if mass.shape!=number.shape or reservoir.shape!=mass.shape[1:]:
+        raise ValueError('dust modes and surface reservoirs must share their last mode axis')
+    count=mass.shape[-1]
+    efficiency=options.pop('extinction_efficiency')
+    modal={key:jnp.asarray(options.pop(key,default)) for key,default in
+        (('effective_radius_m',2e-6),('extinction_efficiency',efficiency),
+         ('opacity_fraction',jnp.asarray([1.]+[0.]*(count-1))))}
+    for key,value in modal.items():
+        if value.ndim>0 and value.shape!=(count,):
+            raise ValueError(f'{key} must be scalar or have one entry per physical dust mode')
+    fractions=jnp.broadcast_to(modal['opacity_fraction'],(count,))
+    modal['opacity_fraction']=jnp.where(jnp.sum(fractions)==1.,fractions,
+        jnp.asarray([1.]+[0.]*(count-1)))
+    results=[]
+    for mode in range(count):
+        selected={key:value if value.ndim==0 else value[mode] for key,value in modal.items()}
+        results.append(background_step(mass[...,mode],number[...,mode],*arguments,
+            surface_dust_kg_m2=reservoir[...,mode],**selected,**options))
+    return LiftingResult(*(jnp.stack([getattr(r,key) for r in results],axis=-1)
+        for key in ('mass_ratio','number_ratio','surface_dust_kg_m2')),
+        {key:jnp.stack([r.diagnostics[key] for r in results],axis=-1) for key in results[0].diagnostics})

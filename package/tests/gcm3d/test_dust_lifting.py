@@ -67,3 +67,16 @@ def test_dual_opacity_gate_preserves_strict_boundary_and_both_sources(mode):
         assert above.surface_dust_kg_m2==30.
     else:
         assert above.surface_dust_kg_m2<30.
+
+
+def test_physical_modes_share_first_reservoir_gate_and_close_each_column():
+    from src.framework.physics.dust_lifting import interactive_modes_step
+    half=jnp.array([0.,50.,200.,400.,610.]);full=.5*(half[:-1]+half[1:])
+    q=jnp.full((4,2),1e-5);number=jnp.full((4,2),1e8)
+    result=interactive_modes_step(q,number,jnp.full(4,230.),half,full,260.,.05,20.,1,200.,
+        .5,0.,0.,.1,surface_dust_kg_m2=jnp.array([30.,0.]),dt_seconds=100.,limited_reservoir=True)
+    amount=jnp.sum(jnp.diff(half)[:,None]/3.72*(result.mass_ratio-q),axis=0)
+    np.testing.assert_allclose(amount+result.surface_dust_kg_m2,jnp.array([30.,0.]),atol=1e-14)
+    assert np.all(amount>0.)
+    np.testing.assert_array_equal(result.mass_ratio[...,0],result.mass_ratio[...,1])
+    assert result.surface_dust_kg_m2[1]<0.  # Source threshold uses only the first reservoir.

@@ -90,7 +90,8 @@ def _column(t,q,half,full,cold,*,humidity,tolerance_min,tolerance_max,iterations
                 lambda _:(adiabat,unstable,done),None)
             return temp,vapor,qs,dqs,es,adiabat,unstable,done,count+1
         return jax.lax.cond(state[7],lambda s:s,calculate,state)
-    final=jax.lax.fori_loop(0,iterations*len(tolerances),iteration,initial)
+    # Recompute each iteration to bound reverse-pass storage.
+    final=jax.lax.fori_loop(0,iterations*len(tolerances),jax.checkpoint(iteration),initial)
     return final[0],final[1],final[8],~final[7]
 
 

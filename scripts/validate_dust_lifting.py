@@ -8,13 +8,13 @@ import shutil
 import tempfile
 import numpy as np
 from src.framework.gcm._dinosaur import jax
-from src.framework.physics.dust_lifting import interactive_step
+from src.framework.physics.dust_lifting import interactive_step,interactive_modes_step
 from native_reference import compile_routines,extract_routines
 
 BLOB='1e470cc1efb44c6627cbe3168c69c2d1f7640570'
 
 
-def compile_reference(source,destination,compiler,background=False,combined=False):
+def compile_reference(source,destination,compiler,background=False,combined=False,dust_modes=1):
     path=source/'atmos_param_mars/dust_update.F90'
     routines,_=extract_routines(path,BLOB,['dust_update'])
     text=path.read_text();routine=routines[0]
@@ -117,6 +117,23 @@ state(1)=sfc_dust_mass(1,1,1);state(2)=source_dd(1,1,1);state(3)=source_ws(1,1,1
 end subroutine
 end module
 """
+    if dust_modes>1:
+        count=6+3*(dust_modes-1)
+        masses=','.join(map(str,[1]+list(range(7,count+1,3))))
+        cores=','.join(map(str,[5]+list(range(9,count+1,3))))
+        header=header.replace('ndust_mass=1,','ndust_mass='+str(dust_modes)+',').replace('nt_nontag=6','nt_nontag='+str(count))
+        header=header.replace('dust_mass_indx(1)=1,dust_cor_indx(1)=5',
+            f'dust_mass_indx({dust_modes})=(/{masses}/),dust_cor_indx({dust_modes})=(/{cores}/)')
+        header=header.replace('sfc_dust_mass(1,1,1)',f'sfc_dust_mass(1,1,{dust_modes})')
+        for name in ('reff_mom','tau_frac','qext_dt'):
+            header=header.replace(name+'(6',name+'('+str(count))
+        header=header.replace('id_inject(1)',f'id_inject({dust_modes})')
+        adapter=adapter.replace('(n,6)',f'(n,{count})').replace('(1,1,n,6)',f'(1,1,n,{count})')
+        adapter=adapter.replace('ntp=6',f'ntp={count}').replace('state(4)',f'state({4*dust_modes})',1)
+        extra='\ndo nt=2,ndust_mass\nstate(4*nt-3)=sfc_dust_mass(1,1,nt)\n'
+        extra+='state(4*nt-2)=source_dd(1,1,nt);state(4*nt-1)=source_ws(1,1,nt)\n'
+        extra+='state(4*nt)=threshold(1,1)\nenddo\n'
+        adapter=adapter.replace('\nend subroutine\nend module',extra+'end subroutine\nend module')
     library,provenance=compile_routines(path,BLOB,['flux_stress'],header,adapter,destination,compiler)
     provenance.update(interactive_block_sha256=hashlib.sha256(block.encode()).hexdigest(),
         local_declarations_sha256=hashlib.sha256(local.encode()).hexdigest(),
@@ -136,13 +153,17 @@ end module
     return native,provenance
 
 
-def validate(source,compiler):
+def validate(source,compiler,dust_modes=1):
     jax.config.update('jax_enable_x64',True);cases=[]
     f=lambda x:np.asfortranarray(x,dtype=np.float64)
     with tempfile.TemporaryDirectory(prefix='dust-lifting-native-') as tmp:
-        native,provenance=compile_reference(source,Path(tmp),compiler)
+        native,provenance=compile_reference(source,Path(tmp),compiler,dust_modes=dust_modes)
         n=4;half=f([0.,50.,200.,400.,610.]);full=f(.5*(half[:-1]+half[1:]))
         t=f([160.,180.,210.,230.]);q=f(np.broadcast_to([1e-5,1e8,0.,0.,0.,1e-6],(n,6)))
+        if dust_modes>1:
+            q=f(np.concatenate([q,*[np.broadcast_to([m*1e-5,1e8/m,0.],(n,3))
+                for m in range(2,dust_modes+1)]],axis=-1))
+        mass_indices=[0]+list(range(6,q.shape[-1],3));number_indices=[i+1 for i in mass_indices]
         for scheme in range(1,6):
             for flags in ((1,0,0,1,0,0,1,1),(0,1,0,0,1,0,1,1),
                           (0,0,1,1,1,0,1,1),(1,1,1,0,0,1,1,1),
@@ -154,28 +175,34 @@ def validate(source,compiler):
                     (.05,0.,0.,.1,-.5,260.,20.,29.9),(.05,0.,0.,.1,.5,260.,0.,30.1)])
                 for stress,snow,frost,tau,lat,ts,heat,reservoir in scenarios:
                     settings=f([100.,ts,stress,heat,200.,lat,snow,frost,tau,reservoir])
-                    out=f(np.empty_like(q));state=np.empty(4)
+                    out=f(np.empty_like(q));state=np.empty(4*dust_modes)
                     native.interactive(n,1,scheme,settings,half,full,t,q,np.array(flags,dtype=np.int32),out,state)
-                    result=interactive_step(q[:,0],q[:,1],t,half,full,ts,stress,heat,1,200.,
-                        lat,snow,frost,tau,reservoir,100.,stress_options=dict(scheme=scheme),
+                    lift=interactive_step if dust_modes==1 else interactive_modes_step
+                    result=lift(q[:,0] if dust_modes==1 else q[:,mass_indices],
+                        q[:,1] if dust_modes==1 else q[:,number_indices],t,half,full,ts,stress,heat,1,200.,
+                        lat,snow,frost,tau,surface_dust_kg_m2=reservoir if dust_modes==1 else np.full(dust_modes,reservoir),
+                        dt_seconds=100.,stress_options=dict(scheme=scheme),
                         devil_options=dict(dda=bool(flags[0]),dth=bool(flags[1]),fv3=bool(flags[2])),
                         inject_pbl_devils=bool(flags[3]),inject_pbl_stress=bool(flags[4]),
                         limited_reservoir=bool(flags[5]),convective_lift=bool(flags[6]),stress_lift=bool(flags[7]))
-                    np.testing.assert_allclose(result.mass_ratio,out[:,0],rtol=3e-12,atol=1e-20)
-                    np.testing.assert_allclose(result.number_ratio,out[:,1],rtol=3e-12,atol=1e-8)
-                    np.testing.assert_allclose(result.surface_dust_kg_m2,state[0],rtol=3e-14,atol=1e-14)
-                    np.testing.assert_allclose(result.diagnostics['devil_lift_kg_m2'],state[1],rtol=3e-12,atol=1e-20)
-                    np.testing.assert_allclose(result.diagnostics['stress_lift_kg_m2'],state[2],rtol=3e-12,atol=1e-20)
+                    native_mass=out[:,0] if dust_modes==1 else out[:,mass_indices]
+                    native_number=out[:,1] if dust_modes==1 else out[:,number_indices]
+                    select=lambda index:state[index] if dust_modes==1 else state[index::4]
+                    np.testing.assert_allclose(result.mass_ratio,native_mass,rtol=3e-12,atol=1e-20)
+                    np.testing.assert_allclose(result.number_ratio,native_number,rtol=3e-12,atol=1e-8)
+                    np.testing.assert_allclose(result.surface_dust_kg_m2,select(0),rtol=3e-14,atol=1e-14)
+                    np.testing.assert_allclose(result.diagnostics['devil_lift_kg_m2'],select(1),rtol=3e-12,atol=1e-20)
+                    np.testing.assert_allclose(result.diagnostics['stress_lift_kg_m2'],select(2),rtol=3e-12,atol=1e-20)
                     cases.append(dict(scheme=scheme,flags=flags,stress_pa=stress,snow_kg_m2=snow,
                         frost_kg_m2=frost,opacity=tau,latitude_rad=lat,
                         temperature_surface_k=ts,sensible_heat_flux_w_m2=heat,
                         initial_surface_dust_kg_m2=reservoir,
-                        max_mass_ratio_error=float(np.max(abs(result.mass_ratio-out[:,0])))))
+                        dust_modes=dust_modes,max_mass_ratio_error=float(np.max(abs(result.mass_ratio-native_mass)))))
     root=Path(__file__).parents[1]
     paths=['scripts/validate_dust_lifting.py','scripts/native_reference.py','package/src/framework/physics/dust_lifting.py']
     return dict(status='pass',reference=provenance,cases=cases,
         sha256={p:hashlib.sha256((root/p).read_bytes()).hexdigest() for p in paths},
-        limits='One physical interactive dust mode. Background scenario control, dual modes and tags are separate. '
+        limits='Physical interactive dust modes with shared first-reservoir gating. Background scenario control, dual modes and tags are separate. '
             'Collapsed PBL efficiency uses its finite limit; inactive stress divisions use finite surrogates.')
 
 
@@ -183,9 +210,10 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--ames-source',type=Path,required=True)
     parser.add_argument('--output',type=Path,required=True)
+    parser.add_argument('--dust-modes',type=int,choices=(1,2,3),default=1)
     args=parser.parse_args();compiler=shutil.which('gfortran')
     if compiler is None: parser.error('gfortran is required')
-    report=validate(args.ames_source,compiler)
+    report=validate(args.ames_source,compiler,args.dust_modes)
     args.output.parent.mkdir(parents=True,exist_ok=True)
     args.output.write_text(json.dumps(report,indent=2,allow_nan=False)+'\n')
     print(f"{len(report['cases'])} native interactive dust-lifting cases passed")

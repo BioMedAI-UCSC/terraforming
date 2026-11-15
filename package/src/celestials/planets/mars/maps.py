@@ -368,6 +368,7 @@ def run_maps(
                 radiation_update_seconds=options.get('radiation_update_seconds'),
                 initial_water_surface_kg_m2=initial_water,initial_water_vapor_ratio=initial_vapor,
                 moment_water=options.get('moment_water',False),
+                dust_mode_count=options.get('dust_mode_count',1),
                 nonorographic_drag_options=options.get('nonorographic_drag_options'),
                 dust_background_options=options.get('dust_background_options'),
                 moment_cloud_options=options.get('moment_cloud_options'),

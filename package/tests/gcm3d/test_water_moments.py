@@ -111,3 +111,12 @@ def test_previous_effective_inputs_first_call_fallback_and_saved_history_gradien
     with pytest.raises(ValueError,match='match the current'):
         subcycled_cloud_step(190.,191.,610.,q0,q,100.,effective_input_mode=1,
             previous_state=zero._replace(tracers=jnp.zeros(5)))
+def test_physical_mode_names_preserve_primary_order_and_reject_invalid_count():
+    from src.framework.physics.water_moments import MOMENT_PARTICLE_TRACERS,moment_particle_tracers
+    assert moment_particle_tracers()==MOMENT_PARTICLE_TRACERS
+    assert moment_particle_tracers(2)==MOMENT_PARTICLE_TRACERS+(
+        'dust_mass_2','dust_number_2','dust_core_mass_2')
+    for count in (0,-1,1.5,True):
+        with pytest.raises(ValueError,match='positive integer'):
+            moment_particle_tracers(count)
+
