@@ -67,16 +67,28 @@ def test_incomplete_warming_is_never_success():
     assert all(result['sustained_thresholds_k'].values())
 
 
-def test_zero_particles_preserve_gcm_step():
+@pytest.mark.parametrize('air_temperature_k',[200.,130.])
+def test_zero_particles_preserve_gcm_step(air_temperature_k):
     from src.framework.physics.gcm import forced_co2_primitive_equations,positivity_preserving_co2_step
     from src.framework.gcm.dynamics import stepper
     coords,specs,climate=setup_state();particle=aluminium_rod()
+    from src.interventions.aerosols.state import MASS,NUMBER
+    from src.framework.physics.co2_clouds import CO2_CLOUD_TRACER
+    grid=coords.horizontal
+    climate=climate._replace(dynamics=dataclasses.replace(climate.dynamics,
+        temperature_variation=grid.to_modal(np.full((coords.vertical.layers,)+grid.nodal_shape,
+            air_temperature_k-BODY.reference_temperature_k))))
     forcing=dataclasses.replace(mars_gcm.radiative_forcing(co2_radiation_enabled=True),emissivity=1.)
     co2=mars_gcm.co2_forcing()
     reference=positivity_preserving_co2_step(stepper(forced_co2_primitive_equations(
-        coords,BODY,forcing,co2,specs=specs),5.,specs),coords,specs)(climate)
+        coords,BODY,forcing,co2,specs=specs),5.,specs),coords,specs,
+        body=BODY,co2_forcing=co2,dt_seconds=5.)(climate)
     step=coupled_step(coords,specs,BODY,forcing,co2,particle,[],ExperimentOptions(mode='off',dt_s=5.))
     actual=step(initialize(climate,coords,specs,BODY,particle)).climate
-    actual=actual._replace(dynamics=dataclasses.replace(actual.dynamics,tracers={}))
+    actual=actual._replace(dynamics=dataclasses.replace(actual.dynamics,
+        tracers={k:v for k,v in actual.dynamics.tracers.items() if k not in (MASS,NUMBER)}))
+    assert jax.tree_util.tree_structure(actual)==jax.tree_util.tree_structure(reference)
+    if air_temperature_k==130.:
+        assert np.max(grid.to_nodal(actual.dynamics.tracers[CO2_CLOUD_TRACER]))>0
     for a,b in zip(jax.tree_util.tree_leaves(reference),jax.tree_util.tree_leaves(actual)):
         np.testing.assert_allclose(a,b,atol=1e-12,rtol=1e-12)

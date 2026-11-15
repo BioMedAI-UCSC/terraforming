@@ -61,7 +61,8 @@ def coupled_step(coords,specs,body,forcing,co2_forcing,particle,sources,options,
         conserved_particle_tracers=(MASS,NUMBER))
     raw_step=stepper(equation,options.dt_s,specs)
     # Reuse the base projection, while retaining the unprojected particle burden.
-    projected=lambda raw,old: positivity_preserving_co2_step(lambda _:raw,coords,specs)(old)
+    projected=lambda raw,old: positivity_preserving_co2_step(lambda _:raw,coords,specs,
+        body=body,co2_forcing=co2_forcing,dt_seconds=options.dt_s)(old)
     patterns=tuple(injection_pattern(s,coords) for s in sources)
     dt=options.dt_s; grid=coords.horizontal
     weights=quadrature_weights(coords)*body.surface_area_m2

@@ -63,9 +63,11 @@ def test_paired_cli_resume_preserves_all_cases_and_annual_integrals(tmp_path):
     import dataclasses
     from src.interventions.aerosols.pilot import prepare
     from src.interventions.aerosols.starting import save_physical_start
+    from src.interventions.aerosols.state import MASS,NUMBER
     seed,_,context=prepare(dt_s=5,n_layers=4)
     climate=seed.climate._replace(surface_temperature=seed.climate.surface_temperature+3.,
-        dynamics=dataclasses.replace(seed.climate.dynamics,tracers={}))
+        dynamics=dataclasses.replace(seed.climate.dynamics,tracers={
+            k:v for k,v in seed.climate.dynamics.tracers.items() if k not in (MASS,NUMBER)}))
     seed_path=tmp_path/'physical.npz'
     save_physical_start(seed_path,climate,context['configuration']['start_contract'])
     config=AerosolConfig(paired=True,duration_s=5,dt_s=5,n_layers=4,

@@ -93,9 +93,12 @@ def test_physical_start_preserves_absolute_phase_and_checks_contract(tmp_path):
     from .test_aerosol_state import setup_state
     from src.interventions.aerosols.pilot import prepare
     from src.interventions.aerosols.starting import save_physical_start
-    _,_,climate=setup_state()
+    from src.framework.physics.co2_clouds import CO2_CLOUD_TRACER
+    coords,_,climate=setup_state()
     climate=climate._replace(surface_temperature=climate.surface_temperature+3.,
-        dynamics=dataclasses.replace(climate.dynamics,sim_time=jnp.asarray(123.)))
+        dynamics=dataclasses.replace(climate.dynamics,sim_time=jnp.asarray(123.),
+            tracers={CO2_CLOUD_TRACER:coords.horizontal.to_modal(
+                jnp.full((coords.vertical.layers,)+coords.horizontal.nodal_shape,1e-7))}))
     _,_,context=prepare(dt_s=5.,n_layers=4)
     contract=context['configuration']['start_contract']
     path=tmp_path/'physical.npz'
@@ -103,12 +106,14 @@ def test_physical_start_preserves_absolute_phase_and_checks_contract(tmp_path):
     pair,_,context=prepare_pair(dt_s=5.,n_layers=4,initial_climate=path)
     for state in (pair.off,pair.passive,pair.active):
         np.testing.assert_array_equal(state.climate.surface_temperature,climate.surface_temperature)
+        np.testing.assert_array_equal(state.climate.dynamics.tracers[CO2_CLOUD_TRACER],
+            climate.dynamics.tracers[CO2_CLOUD_TRACER])
         assert float(state.climate.dynamics.sim_time)==123.
         assert float(state.elapsed_seconds)==0.
     assert context['configuration']['cases']['active']['initial_climate_sha256']
     with pytest.raises(ValueError,match='configuration'):
         prepare(dt_s=5.,n_layers=4,initial_climate=path,co2_lw_scale=.5)
-    with pytest.raises(ValueError,match='tracer-free'):
+    with pytest.raises(ValueError,match='particle-free'):
         save_physical_start(path,pair.active.climate,contract)
 
 
