@@ -145,6 +145,30 @@ def climate(args):
             print(json.dumps(report), flush=True)
 
 
+def control_statistics(advance, observe, initial, steps, block_steps=300):
+    """Integrate with block rematerialization; return final state and step mean."""
+    if type(steps) is not int or steps < 1 or type(block_steps) is not int or block_steps < 1:
+        raise ValueError("steps and block_steps must be positive static integers")
+    jax, jnp = d.jax, d.jnp
+
+    def tick(carry, _):
+        state, total = carry
+        state = advance(state)
+        return (state, total + observe(state)), None
+
+    def block(carry, _):
+        return jax.lax.scan(tick, carry, None, length=block_steps)[0], None
+
+    full, remainder = divmod(steps, block_steps)
+    carry = (initial, jnp.asarray(0., dtype=jnp.float64))
+    if full:
+        # Keep block boundaries, and recompute each block during the backward pass.
+        carry, _ = jax.lax.scan(jax.checkpoint(block), carry, None, length=full)
+    if remainder:
+        carry, _ = jax.lax.scan(tick, carry, None, length=remainder)
+    return carry[0], carry[1] / steps
+
+
 def spatial(args):
     import cma
     coords, specs, forcing, orography, initial, _ = setup(args.inputs, args.output)
@@ -157,55 +181,125 @@ def spatial(args):
     steps = args.steps
     dt = body.solar_day_seconds / 300
 
-    def objective(albedo):
+    observe = lambda state: jnp.sum(state.surface_temperature[0] * weights)
+
+    def diagnostics(albedo):
         f = dataclasses.replace(forcing, albedo=albedo.reshape(grid.nodal_shape))
         advance = d._build_step(coords, specs, f, dt, orography=orography)
-        final = jax.lax.scan(lambda s, _: (advance(s), None), initial, None, length=steps)[0]
-        return jnp.sum(final.surface_temperature[0] * weights)
+        final, mean = control_statistics(advance, observe, initial, steps)
+        return jnp.stack([observe(final), mean])
 
-    forward, vg = jax.jit(objective), jax.jit(jax.value_and_grad(objective))
+    objective_index = 1 if args.objective == "mean" else 0
+    def objective_aux(albedo):
+        stats = diagnostics(albedo)
+        return stats[objective_index], stats
+
+    statistics_forward = jax.jit(diagnostics)
+    forward = lambda albedo: statistics_forward(albedo)[objective_index]
+    vg = jax.jit(jax.value_and_grad(objective_aux, has_aux=True))
+    protocol = dict(steps=steps, dt_seconds=dt, elapsed_sols=steps/300,
+        elapsed_mars_years=steps*dt/forcing.orbital_period_s, objective=args.objective,
+        controls=base.size, seed=args.seed, evaluations=args.evaluations,
+        audit_directions=args.audit_directions, checkpoint_block_steps=300,
+        bounds=dict(lower=low.tolist(), upper=high.tolist()), methods=args.methods,
+        note="Mean objective is a right-endpoint time mean over all integration steps; no spinup is omitted. Cold-start seasonal control test, not equilibrium or observational calibration.")
+    write(args.output / "protocol.json", protocol)
+    print(json.dumps(dict(phase="baseline_forward", steps=steps, objective=args.objective)), flush=True)
+    baseline_start = time.perf_counter()
+    baseline = np.asarray(statistics_forward(jnp.asarray(base)))
+    if not np.isfinite(baseline).all():
+        write(args.output / "report.json", dict(status="nonfinite_baseline", **protocol))
+        raise FloatingPointError("Nonfinite baseline objective")
+    write(args.output / "baseline.json", dict(final_surface_temperature_k=float(baseline[0]),
+        mean_surface_temperature_k=float(baseline[1]), first_forward_seconds=time.perf_counter()-baseline_start))
+    print(json.dumps(dict(phase="baseline_complete", values_k=baseline.tolist())), flush=True)
     started = time.perf_counter()
-    value, gradient = vg(jnp.asarray(base))
-    value, gradient = float(value), np.asarray(gradient)
-    first_seconds = time.perf_counter()-started
+    value, gradient, audit_pass = float(baseline[objective_index]), None, True
     checks = []
-    indices = np.linspace(0, base.size-1, 12, dtype=int)
-    for index in indices:
-        eps = 1e-4
-        delta = np.zeros_like(base)
-        delta[index] = eps
-        fd = float((forward(jnp.asarray(base+delta))-forward(jnp.asarray(base-delta)))/(2*eps))
-        checks.append(dict(index=int(index), autodiff=float(gradient[index]), finite_difference=fd,
-            passed=bool(np.isclose(gradient[index], fd, rtol=.02, atol=1e-6))))
-    np.savez_compressed(args.output / "sensitivity.npz", gradient=gradient.reshape(grid.nodal_shape),
-        albedo=base.reshape(grid.nodal_shape), lat=np.degrees(grid.latitudes), lon=np.degrees(grid.longitudes))
-    write(args.output / "gradient-checks.json", dict(initial_objective_k=value,
-        first_value_and_gradient_seconds=first_seconds, checks=checks))
-    if not np.isfinite(gradient).all() or not all(x["passed"] for x in checks):
-        raise ValueError("Spatial AD/FD check failed; optimization not launched")
+    if "gradient" in args.methods:
+        print(json.dumps(dict(phase="baseline_reverse", steps=steps)), flush=True)
+        (ad_value, _), gradient = vg(jnp.asarray(base))
+        ad_value, gradient = float(ad_value), np.asarray(gradient)
+        finite = bool(np.isfinite(ad_value) and np.isfinite(gradient).all())
+        audit_pass = finite and bool(np.isclose(ad_value, value, rtol=1e-10, atol=1e-8))
+        np.savez_compressed(args.output / "sensitivity.npz", gradient=gradient.reshape(grid.nodal_shape),
+            albedo=base.reshape(grid.nodal_shape), lat=np.degrees(grid.latitudes), lon=np.degrees(grid.longitudes))
+        if finite:
+            if args.audit_directions:
+                rng = np.random.default_rng(0)
+                directions = [rng.normal(size=base.shape) for _ in range(args.audit_directions)]
+                directions = [v/np.linalg.norm(v) for v in directions]
+                epsilons = (1e-3, 1e-4, 1e-5)
+            else:
+                indices = np.linspace(0, base.size-1, 12, dtype=int)
+                directions = np.zeros((len(indices), base.size))
+                directions[np.arange(len(indices)), indices] = 1.
+                epsilons = (1e-4,)
+            for index, direction in enumerate(directions):
+                ad = float(np.dot(gradient, direction))
+                if not np.isfinite(ad):
+                    checks.append(dict(direction=index, autodiff=None, finite_difference=None,
+                        passed=False, reason="nonfinite_directional_derivative"))
+                    audit_pass = False
+                    continue
+                passed = 0
+                for eps in epsilons:
+                    fd = float((forward(jnp.asarray(base+eps*direction))-
+                                forward(jnp.asarray(base-eps*direction)))/(2*eps))
+                    agrees = bool(np.isfinite(fd) and np.isclose(ad, fd, rtol=.02, atol=1e-6))
+                    checks.append(dict(direction=index, epsilon=eps, autodiff=ad,
+                        finite_difference=fd if np.isfinite(fd) else None, passed=agrees))
+                    passed += agrees
+                    print(json.dumps(dict(phase="gradient_check", **checks[-1])), flush=True)
+                audit_pass = audit_pass and passed >= (2 if args.audit_directions else 1)
+        write(args.output / "gradient-checks.json", dict(initial_objective_k=value,
+            first_value_gradient_and_checks_seconds=time.perf_counter()-started,
+            finite_gradient=finite, gradient_max_abs=float(np.abs(gradient).max()) if finite else None,
+            scientific_acceptance_pass=bool(audit_pass), checks=checks))
+        if args.audit_only:
+            write(args.output / "report.json", dict(status="audit_pass" if audit_pass else "audit_fail", **protocol))
+            if not audit_pass:
+                raise SystemExit(2)
+            return
     results = {}
-    for method in ("gradient", "cma_es", "uniform"):
+    for method in args.methods:
+        if method == "gradient" and not audit_pass:
+            results[method] = dict(status="skipped_failed_gradient_audit", forward_calls=0, backward_calls=0)
+            write(args.output / "optimization.json", results)
+            continue
+        print(json.dumps(dict(phase="optimization_start", method=method)), flush=True)
         trace = []
-        best, best_x = value, base.copy()
+        best, best_x, best_statistics = value, base.copy(), baseline.copy()
         began = time.perf_counter()
         def evaluate(x, derivative=False):
-            nonlocal best, best_x
+            nonlocal best, best_x, best_statistics
             if derivative:
-                y, g = vg(jnp.asarray(x))
-                y, g = float(y), np.asarray(g)
+                (y, stats), g = vg(jnp.asarray(x))
+                y, stats, g = float(y), np.asarray(stats), np.asarray(g)
             else:
-                y, g = float(forward(jnp.asarray(x))), None
-            if not np.isfinite(y) or (g is not None and not np.isfinite(g).all()):
-                raise FloatingPointError("Nonfinite spatial objective/gradient")
-            if y > best:
-                best, best_x = y, np.asarray(x).copy()
-            trace.append(dict(objective_k=y, best_k=best, gradient=derivative,
+                stats = np.asarray(statistics_forward(jnp.asarray(x)))
+                y, g = float(stats[objective_index]), None
+            valid = bool(np.isfinite(y) and np.isfinite(stats).all() and
+                (g is None or np.isfinite(g).all()))
+            if valid and y > best:
+                best, best_x, best_statistics = y, np.asarray(x).copy(), stats.copy()
+            if not valid:
+                np.savez_compressed(args.output / f"{method}-failed-{len(trace):03d}.npz", albedo=x,
+                    statistics=stats, **({"gradient": g} if g is not None else {}))
+            trace.append(dict(objective_k=y if valid else None, best_k=best, gradient=derivative,
+                finite=valid, final_surface_temperature_k=float(stats[0]) if valid else None,
+                mean_surface_temperature_k=float(stats[1]) if valid else None,
                 seconds=time.perf_counter()-began))
-            return y, g
+            write(args.output / f"{method}-progress.json", dict(trace=trace, best_objective_k=best))
+            np.savez_compressed(args.output / f"{method}-best.npz", albedo=best_x.reshape(grid.nodal_shape))
+            print(json.dumps(dict(phase="evaluation", method=method, evaluation=len(trace), **trace[-1])), flush=True)
+            return (y if valid else None), g
         if method == "gradient":
             x = base.copy()
             for _ in range(args.evaluations):
-                _, g = evaluate(x, True)
+                y, g = evaluate(x, True)
+                if y is None:
+                    break
                 # Scale the step in albedo units; projection enforces common bounds.
                 x = np.clip(x + .005*g/max(np.max(np.abs(g)), 1e-30), low, high)
         elif method == "cma_es":
@@ -216,7 +310,8 @@ def spatial(args):
                 candidates = es.ask()
                 if len(trace)+len(candidates) > args.evaluations:
                     candidates = candidates[:args.evaluations-len(trace)]
-                losses = [-evaluate(np.asarray(x))[0] for x in candidates]
+                values = [evaluate(np.asarray(x))[0] for x in candidates]
+                losses = [-y if y is not None else 1e30 for y in values]
                 if len(candidates) == es.popsize:
                     es.tell(candidates, losses)
         else:
@@ -224,12 +319,23 @@ def spatial(args):
                 evaluate(np.clip(base+delta, low, high))
         np.savez_compressed(args.output / f"{method}.npz", albedo=best_x.reshape(grid.nodal_shape))
         results[method] = dict(best_objective_k=best, forward_calls=len(trace),
+            failed_evaluations=sum(not t["finite"] for t in trace),
+            best_final_surface_temperature_k=float(best_statistics[0]),
+            best_mean_surface_temperature_k=float(best_statistics[1]),
             backward_calls=sum(t["gradient"] for t in trace), trace=trace)
         write(args.output / "optimization.json", results)
-    write(args.output / "report.json", dict(status="complete", results=results, steps=steps,
+    failed_evaluations = any(r.get("failed_evaluations", 0) for r in results.values())
+    status = ("gradient_audit_failed" if not audit_pass else
+              "nonfinite_optimization" if failed_evaluations else "complete")
+    write(args.output / "report.json", dict(status=status, results=results, steps=steps,
         dt_seconds=dt, controls=base.size, seed=args.seed, budget_per_method=args.evaluations,
-        objective="maximize area-mean final surface temperature", initial_objective_k=value,
+        objective=("maximize surface temperature averaged over area and time" if args.objective == "mean"
+                   else "maximize area-mean final surface temperature"), initial_objective_k=value,
+        elapsed_sols=steps/300, elapsed_mars_years=steps*dt/forcing.orbital_period_s,
+        scientific_gradient_acceptance_pass=bool(audit_pass) if "gradient" in args.methods else None,
         note="Equal forward calls; backward calls and synchronized wall time are additional costs. Diagonal CMA-ES. Gradient audit/warmup costs reported separately. Cold-start inverse-design pilot, not a climate intervention result."))
+    if not audit_pass or failed_evaluations:
+        raise SystemExit(2)
 
 
 def main():
@@ -242,10 +348,17 @@ def main():
     p.add_argument("--steps", type=int, default=300)
     p.add_argument("--evaluations", type=int, default=64)
     p.add_argument("--seed", type=int, default=0)
+    p.add_argument("--objective", choices=("final", "mean"), default="final")
+    p.add_argument("--methods", nargs="+", choices=("gradient", "cma_es", "uniform"),
+                   default=["gradient", "cma_es", "uniform"])
+    p.add_argument("--audit-directions", type=int, default=0)
+    p.add_argument("--audit-only", action="store_true")
     p.add_argument("--require-gpu", action="store_true")
     a = p.parse_args()
-    if not np.isfinite(a.years) or a.years <= 0 or min(a.steps, a.evaluations) < 1:
+    if not np.isfinite(a.years) or a.years <= 0 or min(a.steps, a.evaluations) < 1 or a.audit_directions < 0:
         p.error("years, steps and evaluations must be positive")
+    if len(set(a.methods)) != len(a.methods) or (a.audit_only and "gradient" not in a.methods):
+        p.error("methods must be unique; audit-only requires the gradient method")
     d.jax.config.update("jax_enable_x64", True)
     if a.require_gpu and d.jax.default_backend() != "gpu":
         raise RuntimeError("GPU required")
