@@ -361,6 +361,7 @@ def run_maps(
             state0=reference_initial_state(state0,coords,specs,
                 temperature_k=t_ref_k or body.reference_temperature_k,
                 soil_layers=options.get('soil_layers',16),bulk_water=options.get('bulk_water',False),
+                radiation_update_seconds=options.get('radiation_update_seconds'),
                 initial_water_surface_kg_m2=initial_water,initial_water_vapor_ratio=initial_vapor)
         step=build_step(coords,specs,body,forcing,dt_seconds,orography=orography,
             radiation_component=radiation_component,

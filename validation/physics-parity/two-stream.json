@@ -320,7 +320,7 @@
   ],
   "radiation_grid_sha256": "7c0cd095eb863e6ec612a79f90f9ad7c2d17a00584eb4d3d46f7aba0a56d424f",
   "source_sha256": "44f6726344236f17681edc7b4bec06ab8e7116cbdfeae3eb8ba961b6b0a2b7de",
-  "kernel_sha256": "834dea8bc852bc87c5c8af26d8e6a32dd108ca12a373ffc7950269bc11afefa4",
+  "kernel_sha256": "33ff375bdd4ba6b7b08eaaf861c821d569da2f9d113decdc257984d81f8f0229",
   "vertical_solver_sha256": "0d01f1d42fe7f086a887a2c0c51cb3b4385d26a3c944b72f81150b8a57ddd991",
   "jax_version": "0.11.0",
   "devices": [

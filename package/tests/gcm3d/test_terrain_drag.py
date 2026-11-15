@@ -5,13 +5,19 @@ pytest.importorskip('dinosaur')
 import jax
 import jax.numpy as jnp
 from src.framework.physics.terrain_drag import tendencies
-from scripts.validate_terrain_drag import column
 
 jax.config.update('jax_enable_x64',True)
 
 
+def column(n):
+    ph=np.geomspace(.001,610.,n+1);p=np.sqrt(ph[:-1]*ph[1:])
+    z=10000.*np.log(610./p);zh=10000.*np.log(610./ph)
+    x=np.linspace(0.,1.,n)
+    return 12.+45.*x,-3.+8.*x,np.linspace(145.,215.,n),p,ph,z,zh
+
+
 def test_terrain_drag_surface_cap_and_reported_force_budget():
-    args=column(12,'sheared')
+    args=column(12)
     result=jax.jit(tendencies)(*args,1500.)
     cap=tendencies(*args,1000.)
     np.testing.assert_allclose(result.u_tendency,cap.u_tendency,rtol=0.,atol=1e-15)
@@ -25,7 +31,7 @@ def test_terrain_drag_surface_cap_and_reported_force_budget():
 
 @pytest.mark.parametrize('calm',[False,True])
 def test_zero_shear_and_calm_wind_have_finite_forward_and_reverse_derivatives(calm):
-    args=list(column(12,'sheared'))
+    args=list(column(12))
     args[0]=jnp.full(12,0. if calm else 30.);args[1]=jnp.zeros(12)
     def objective(offset):
         result=tendencies(args[0]+offset,args[1],*args[2:],300.)
@@ -36,7 +42,7 @@ def test_zero_shear_and_calm_wind_have_finite_forward_and_reverse_derivatives(ca
 
 
 def test_terrain_drag_reverse_gradient_matches_centered_differences():
-    args=column(12,'sheared')
+    args=column(12)
     def objective(sd):
         result=tendencies(*args,sd)
         return jnp.sum(result.u_tendency*jnp.arange(12))+jnp.sum(result.v_tendency)

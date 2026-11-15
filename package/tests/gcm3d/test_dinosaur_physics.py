@@ -302,3 +302,62 @@ def test_nonlte_callback_keeps_interface_fluxes_and_reports_heating_separately()
     nlte=cooling(t,full,.9,.01,radiation_pressure_pa=radgrid.pressure)
     expected=(solar_heating_factor(full)-1.)*sw+infrared_blend(lw,nlte,half[:-1])-lw
     np.testing.assert_allclose(corrected.nonlte_heating_k_s,expected,rtol=2e-11,atol=2e-14)
+
+
+def scheduled_backend(amplitude=1.):
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.framework.gcm.specs import physics_specs
+    from src.framework.gcm._dinosaur import scales
+    from src.framework.physics.gcm import RadiativeFluxDiagnostics
+    from src.celestials.planets.mars.reference_constants import reference_radiative_forcing
+    coords=coordinate_system('T21',4);specs=physics_specs(BODY);grid=coords.horizontal
+    state,_,_=backend_case(temperature_k=180.,surface_temperature_k=180.)
+    state=initial_state(state.dynamics,coords,specs,180.,radiation_update_seconds=20.)
+    time_scale=float(specs.dimensionalize(1.,scales.units.second).magnitude)
+    pressure_scale=float(specs.dimensionalize(1.,scales.units.pascal).magnitude)
+    def radiation(state,*args):
+        seconds=state.dynamics.sim_time*time_scale
+        ps=jnp.exp(grid.to_nodal(state.dynamics.log_surface_pressure))[0]*pressure_scale
+        capacity=BODY.cp_j_kg_k*jnp.asarray(np.diff(coords.vertical.boundaries),dtype=jnp.float64)[:,None,None]*ps/BODY.gravity_m_s2
+        interfaces=jnp.zeros((5,*grid.nodal_shape))
+        surface=jnp.zeros(grid.nodal_shape)
+        return RadiativeFluxDiagnostics(interfaces,interfaces,interfaces,interfaces,
+            capacity*seconds*1e-6*amplitude,surface,surface,
+            stratosphere_flux_convergence_w_m2=100.*amplitude)
+    step=build_step(coords,specs,BODY,reference_radiative_forcing(),5.,radiation_component=radiation,
+        radiation_update_seconds=20.,soil_diffusivity=(250./(1500.*627.9))**2)
+    return state,step,coords,specs
+
+
+def test_radiation_schedule_holds_kelvin_rate_and_stratosphere_until_source_clock_refresh(tmp_path):
+    from src.framework.gcm.restart import save_restart,load_restart
+    state,step,_,_=scheduled_backend()
+    step=jax.jit(step)
+    for count,expected in enumerate((5.,5.,5.,20.,20.),1):
+        state=step(state)
+        np.testing.assert_allclose(state.auxiliary_fields['radiation_heating_k_s'],expected*1e-6,rtol=2e-13)
+        updates=1 if count<4 else 2
+        np.testing.assert_allclose(state.auxiliary_fields['radiation_stratosphere_k'],
+            170.+updates*20.*BODY.gravity_m_s2/BODY.cp_j_kg_k,rtol=3e-14)
+        if count==2:
+            perturbed=state._replace(dynamics=dataclasses.replace(state.dynamics,
+                log_surface_pressure=state.dynamics.log_surface_pressure+
+                    jnp.zeros_like(state.dynamics.log_surface_pressure).at[0,0,0].set(.01)))
+            np.testing.assert_array_equal(step(perturbed).auxiliary_fields['radiation_heating_k_s'],
+                state.auxiliary_fields['radiation_heating_k_s'])
+            path=tmp_path/'scheduled.npz';save_restart(state,path)
+            restored=load_restart(path)
+            for a,b in zip(jax.tree_util.tree_leaves(step(state)),jax.tree_util.tree_leaves(step(restored)),strict=True):
+                np.testing.assert_array_equal(a,b)
+
+
+def test_held_radiation_retains_multistep_reverse_derivative():
+    def objective(amplitude):
+        state,step,_,_=scheduled_backend(amplitude)
+        final=jax.lax.scan(lambda state,_:(step(state),None),state,None,length=5)[0]
+        return jnp.mean(final.dynamics.temperature_variation)+jnp.mean(final.surface_temperature)
+    auto=jax.jit(jax.grad(objective))(1.)
+    assert np.isfinite(auto) and abs(float(auto))>1e-10
+    eps=1e-3
+    finite=(objective(1.+eps)-objective(1.-eps))/(2.*eps)
+    np.testing.assert_allclose(auto,finite,rtol=4e-6,atol=1e-9)

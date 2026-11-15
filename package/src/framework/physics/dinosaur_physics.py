@@ -50,18 +50,27 @@ def remap_gas(temperature,u,v,tracers,pressure_pa,mass_loss,dsigma,body,*,cloud_
 
 
 def initial_state(dynamics,coords,specs,temperature_k=170.,soil_layers=16,*,bulk_water=False,
-                  initial_water_surface_kg_m2=0.,initial_water_vapor_ratio=0.):
+                  initial_water_surface_kg_m2=0.,initial_water_vapor_ratio=0.,
+                  radiation_update_seconds=None):
     """Initialize the existing column state with the reference soil node count."""
     if soil_layers<3:
         raise ValueError("Ames soil requires two evolving nodes and a fixed deep node")
     state=initial_column_state(dynamics,coords,temperature_k,specs)
     ground=jnp.broadcast_to(state.surface_temperature,(soil_layers-1,)+coords.horizontal.nodal_shape)
+    if radiation_update_seconds is not None:
+        if not np.isfinite(radiation_update_seconds) or radiation_update_seconds<=0.:
+            raise ValueError('radiation update interval must be finite and positive')
+        shape=state.surface_temperature.shape
+        fields=dict(radiation_heating_k_s=jnp.zeros((len(coords.vertical.centers),)+shape[1:]),
+            radiation_surface_down_w_m2=jnp.zeros(shape),radiation_initialized=jnp.zeros(shape),
+            radiation_stratosphere_k=jnp.full(shape,170.))
+        state=state._replace(auxiliary_fields=fields)
     if not bulk_water: return state._replace(ground_temperature=ground)
     tracers={WATER_VAPOR_TRACER:coords.horizontal.to_modal(jnp.broadcast_to(
         jnp.asarray(initial_water_vapor_ratio),(len(coords.vertical.centers),)+coords.horizontal.nodal_shape)),
         WATER_CLOUD_TRACER:jnp.zeros_like(dynamics.temperature_variation),**state.dynamics.tracers}
     shape=state.surface_temperature.shape
-    fields=dict(water_surface_kg_m2=jnp.broadcast_to(jnp.asarray(initial_water_surface_kg_m2),shape),
+    fields=dict({} if state.auxiliary_fields is None else state.auxiliary_fields,water_surface_kg_m2=jnp.broadcast_to(jnp.asarray(initial_water_surface_kg_m2),shape),
         water_exchange_coefficient_kg_m2_s=jnp.zeros(shape),
         water_pbl_top_layer=jnp.full(shape,len(coords.vertical.centers)-1,dtype=state.surface_temperature.dtype))
     return state._replace(dynamics=dataclasses.replace(state.dynamics,tracers=tracers),
@@ -151,7 +160,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                rayleigh_options=None,conserve_drag_energy=False,
                suspended_co2_clouds=False,cloud_nuclei_per_kg=1.e5,
                bulk_water=False,water_surface_options=None,water_cloud_options=None,form_bulk_clouds=True,
-               terrain_drag_options=None):
+               terrain_drag_options=None,radiation_update_seconds=None):
     """Dinosaur dynamics followed by Ames-order reference gas-column physics.
 
     Supply a verified radiation component and mapped soil diffusivity. Keeping
@@ -169,6 +178,14 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
     dz=soil_layer_thickness(soil_layers)
     pressure_scale=float(specs.dimensionalize(1.,scales.units.pascal).magnitude)
     velocity_scale=float(specs.dimensionalize(1.,scales.units.meter/scales.units.second).magnitude)
+    time_scale=float(specs.dimensionalize(1.,scales.units.second).magnitude)
+    if radiation_update_seconds is not None:
+        ratio=radiation_update_seconds/dt_seconds
+        if not np.isfinite(ratio) or ratio<1. or not np.isclose(ratio,round(ratio),rtol=0.,atol=1e-10):
+            raise ValueError('radiation interval must be an integer number of physics steps')
+        if not np.isclose(radiation_update_seconds,round(radiation_update_seconds),rtol=0.,atol=1e-10):
+            raise ValueError('radiation update interval must use whole seconds')
+        radiation_interval=round(radiation_update_seconds)
     ref=jnp.asarray(reference_temperature(coords,body))[:,None,None]
     base=primitive_equations(coords,body,specs=specs,orography=orography)
 
@@ -190,6 +207,11 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                 raise ValueError('bulk water requires initialized water reservoirs and exchange history')
             if {WATER_VAPOR_TRACER,WATER_CLOUD_TRACER}-set(state.dynamics.tracers):
                 raise ValueError('bulk water requires vapor and cloud tracers in the initial state')
+        if radiation_update_seconds is not None:
+            required={'radiation_heating_k_s','radiation_surface_down_w_m2',
+                'radiation_initialized','radiation_stratosphere_k'}
+            if state.auxiliary_fields is None or required-set(state.auxiliary_fields):
+                raise ValueError('radiation schedule requires initialized heating and stratosphere state')
         predicted=dry(state)
         if predicted.ground_temperature.shape[0]!=soil_layers-1:
             raise ValueError("state soil nodes do not match the Ames backend configuration")
@@ -213,13 +235,36 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
         gas_tracers=(jnp.stack([grid.to_nodal(dyn.tracers[name]) for name in gas_names],axis=-1)
             if gas_names else jnp.empty(temperature.shape+(0,),dtype=temperature.dtype))
         local_forcing=surface_radiative_forcing(predicted,coords,specs,body,forcing)
-        radiation=radiation_component(predicted,coords,specs,body,local_forcing)
         layer_capacity=body.cp_j_kg_k*jnp.diff(half,axis=0)/body.gravity_m_s2
-        heating=radiation.atmospheric_convergence_w_m2/layer_capacity
-        if radiation.nonlte_heating_k_s is not None:
-            heating=heating+radiation.nonlte_heating_k_s
-        down=(radiation.shortwave_down_w_m2[-1]-radiation.shortwave_up_w_m2[-1]+
-            radiation.longwave_down_w_m2[-1])
+        def evaluate(_):
+            radiation=radiation_component(predicted,coords,specs,body,local_forcing)
+            heating=radiation.atmospheric_convergence_w_m2/layer_capacity
+            if radiation.nonlte_heating_k_s is not None:
+                heating=heating+radiation.nonlte_heating_k_s
+            down=(radiation.shortwave_down_w_m2[-1]-radiation.shortwave_up_w_m2[-1]+
+                radiation.longwave_down_w_m2[-1])
+            strat_rate=body.gravity_m_s2/body.cp_j_kg_k/100.*radiation.stratosphere_flux_convergence_w_m2
+            return heating,down,jnp.broadcast_to(strat_rate,pressure.shape)
+        radiation_fields=None
+        if radiation_update_seconds is None:
+            heating,down,_=evaluate(None)
+        else:
+            fields=predicted.auxiliary_fields
+            seconds=jnp.mod(jnp.rint(predicted.dynamics.sim_time*time_scale).astype(jnp.int64),
+                round(body.solar_day_seconds))
+            refresh=jnp.all(fields['radiation_initialized']==0.)|(jnp.mod(seconds,radiation_interval)==0)
+            def held(_):
+                return fields['radiation_heating_k_s'],fields['radiation_surface_down_w_m2'][0],jnp.zeros_like(pressure)
+            heating,down,strat_rate=jax.lax.cond(refresh,evaluate,held,operand=None)
+            old_strat=fields['radiation_stratosphere_k'][0]
+            strat=old_strat+strat_rate*radiation_update_seconds
+            positive_top=half[0]>0.
+            frost=3182.48/(23.3494-jnp.log(jnp.where(positive_top,half[0]*.01,1.)))
+            floor=jnp.where(positive_top,frost,0.)
+            strat=jnp.where(refresh,jnp.maximum(strat,floor),old_strat)
+            radiation_fields=dict(radiation_heating_k_s=heating,
+                radiation_surface_down_w_m2=down[None],radiation_initialized=jnp.ones_like(down[None]),
+                radiation_stratosphere_k=strat[None])
         soil=jnp.concatenate([predicted.surface_temperature,predicted.ground_temperature],axis=0)
         frost=predicted.co2_ice[0]*pressure_scale/body.gravity_m_s2
         water_state=None
@@ -280,6 +325,8 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             tracers={name:dyn.tracers[name]+grid.to_modal(q[...,i]-tracers[...,i])
                 for i,name in enumerate(names)})
         auxiliary=predicted.auxiliary_fields
+        if radiation_fields is not None:
+            auxiliary={**auxiliary,**radiation_fields}
         if bulk_water:
             auxiliary={**auxiliary,'water_surface_kg_m2':column.bulk_water.surface_water_kg_m2[None],
                 'water_exchange_coefficient_kg_m2_s':column.bulk_water.previous_exchange_coefficient[None],

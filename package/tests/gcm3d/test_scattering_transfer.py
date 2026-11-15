@@ -86,3 +86,20 @@ def test_radiative_transfer_reverse_derivative(kind):
     for eps in (1e-4,1e-5,1e-6):
         finite=(objective(1.+eps)-objective(1.-eps))/(2.*eps)
         np.testing.assert_allclose(auto,finite,rtol=2e-7,atol=1e-8)
+
+
+@pytest.mark.parametrize('depth',[20.,100.,2500.])
+@pytest.mark.parametrize('fraction',[.1,.5,.9])
+def test_capped_thick_layer_sampling_uses_the_original_single_exponent_cap(depth,fraction):
+    from src.framework.physics.scattering_transfer import infrared_fluxes
+    dtau=jnp.array([depth,.1]);offset=jnp.array([depth*fraction,.1])
+    b=jnp.array([1.,2.,3.]);top=.2;surface=2.8
+    actual=infrared_fluxes(dtau,jnp.zeros(2),jnp.zeros(2),b,offset,0.,top,surface)
+    c2=.5*(3.-2.)/.1
+    bottom=(surface-3.-c2)*np.exp(-.2)+2.+c2
+    c1=.5/depth;middle=1.+fraction
+    q=min(2.*depth*fraction,35.);full=min(2.*depth,35.)
+    up=(bottom-2.-c1)*np.exp(q-full)+middle+c1
+    down=(top-1.+c1)*np.exp(-q)+middle-c1
+    np.testing.assert_allclose([actual[0][0],actual[1][0]],np.pi*np.array([up,down]),
+        rtol=4e-13,atol=1e-13)

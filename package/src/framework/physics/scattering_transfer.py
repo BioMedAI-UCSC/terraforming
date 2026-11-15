@@ -45,22 +45,23 @@ def _exponent_coefficients(gamma,rate,optical_depth,taumax):
     return ep+gamma*em,ep-gamma*em,gamma*ep+em,gamma*ep-em
 
 
-def _infrared_layer(depth,w0,g,planck_top,planck_bottom,taumax):
+def _infrared_layer(depth,w0,g,planck_top,planck_bottom,taumax,*,capped_exponent=None):
     """Boundary response of the original hemispheric equations, without B'/tau cancellation."""
     alpha=jnp.sqrt((1.-w0)/(1.-w0*g))
     gamma=(1.-alpha)/(1.+alpha)
     x=alpha*(1.-w0*g)/.5*depth
-    capped=jnp.minimum(x,taumax)
+    capped=jnp.minimum(x,taumax) if capped_exponent is None else capped_exponent
     transmission=jnp.exp(-capped)
     denominator=1.-gamma*gamma*transmission**2
     reflection=gamma*(-jnp.expm1(-2.*capped))/denominator
     through=(1.-gamma*gamma)*transmission/denominator
     absorption=(1.-gamma)*(-jnp.expm1(-capped))/(1.+gamma*transmission)
     # These remainders start at x**2. Direct subtraction loses thin-layer AD.
-    f=jnp.where(x<1e-3,x*x*(.5-x/3.+x*x/8.-x**3/30.+x**4/144.),
-        -jnp.expm1(-capped)-x*transmission)
-    h=jnp.where(x<1e-3,x*x*(-.5+x/6.-x*x/24.+x**3/120.-x**4/720.),
-        -jnp.expm1(-capped)-x)
+    c=capped
+    f=jnp.where(c<1e-3,c*c*(.5-c/3.+c*c/8.-c**3/30.+c**4/144.),
+        -jnp.expm1(-c)-c*transmission)+(c-x)*transmission
+    h=jnp.where(c<1e-3,c*c*(-.5+c/6.-c*c/24.+c**3/120.-c**4/720.),
+        -jnp.expm1(-c)-c)+(c-x)
     coefficient=(1.-gamma)*(f+gamma*transmission*h)/denominator/jnp.where(x!=0.,x,1.)
     slope_term=(planck_bottom-planck_top)*coefficient
     return reflection,through,planck_top*absorption+slope_term,planck_bottom*absorption-slope_term
@@ -99,7 +100,11 @@ def infrared_fluxes(optical_depth,scattering_albedo,asymmetry,planck_boundaries,
         (reflection,through,source_down,next_a,next_b))
     middle=planck[:-1]+(planck[1:]-planck[:-1])*offset/dtau
     ru,tu,_,sdu=_infrared_layer(offset,w0,g,planck[:-1],middle,taumax)
-    rl,tl,sul,_=_infrared_layer(dtau-offset,w0,g,middle,planck[1:],taumax)
+    rate=jnp.sqrt((1.-w0)*(1.-w0*g))/.5
+    # Sampling must share the full layer's cap; independently capping both pieces changes gfluxi.
+    lower_exponent=jnp.minimum(rate*dtau,taumax)-jnp.minimum(rate*offset,taumax)
+    rl,tl,sul,_=_infrared_layer(dtau-offset,w0,g,middle,planck[1:],taumax,
+        capped_exponent=lower_exponent)
     up=(rl*(tu*down_top+sdu)+tl*up_bottom+sul)/(1.-rl*ru)
     down=tu*down_top+ru*up+sdu
     return up*jnp.pi,down*jnp.pi,(a[0]*top_down+b[0]-top_down)*jnp.pi

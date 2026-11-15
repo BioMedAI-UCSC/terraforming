@@ -25,7 +25,7 @@ def rayleigh_per_pa(gravity_m_s2):
 def column_fluxes(temperature,surface_temperature,pressure_half,pressure_full,
                   mu0,solar_intensity,albedo,emissivity,gravity_m_s2,*,particle_optics=None,
                   daylight_fraction=1.,radiation_mode='12band',water_mass_fraction=None,
-                  cia_molar_fractions=None):
+                  cia_molar_fractions=None,stratosphere_temperature=None):
     """Ames fillpt -> optical depths -> spectral fluxes -> layer heat flux.
 
     Inputs use kelvin, Pa and W/m2. solar_intensity has seven bands and includes
@@ -33,7 +33,7 @@ def column_fluxes(temperature,surface_temperature,pressure_half,pressure_full,
     (extinction, scattering, asymmetry-weighted scattering) on every subinterval.
     Dust/cloud particle distributions and optical properties are caller inputs.
     """
-    grid=radiation_grid(pressure_half,pressure_full,temperature,surface_temperature)
+    grid=radiation_grid(pressure_half,pressure_full,temperature,surface_temperature,stratosphere_temperature)
     water=None
     if water_mass_fraction is not None:
         water=jnp.broadcast_to(water_mass_fraction,jnp.shape(temperature))
@@ -64,8 +64,11 @@ def column_fluxes(temperature,surface_temperature,pressure_half,pressure_full,
     swdown=jnp.where(day,visible.down*daylight_fraction,0.)
     netup=swup-swdown+thermal.up-thermal.down
     convergence=jnp.diff(netup,axis=0)
+    strat_ir=thermal.up[0]-thermal.down[0]-thermal.net_top
+    strat_sw=jnp.where(day,(visible.up[0]-visible.down[0]-visible.net_top)*
+        solar_heating_factor(grid.pressure[1]),0.)
     return RadiativeFluxDiagnostics(swdown,swup,thermal.up,thermal.down,
-        convergence,-netup[-1],-netup[0])
+        convergence,-netup[-1],-netup[0],stratosphere_flux_convergence_w_m2=strat_ir+strat_sw)
 
 
 def make_radiation_component(particle_provider,*,radiation_interval_seconds=1848.,
@@ -95,7 +98,10 @@ def make_radiation_component(particle_provider,*,radiation_interval_seconds=1848
         half=jnp.asarray(coords.vertical.boundaries)[:,None,None]*pressure
         full=jnp.asarray(coords.vertical.centers)[:,None,None]*pressure
         surface=state.surface_temperature[0]
-        rad_grid=radiation_grid(half,full,temperature,surface)
+        fields=state.auxiliary_fields
+        strat=(fields['radiation_stratosphere_k'][0] if fields is not None and
+            'radiation_stratosphere_k' in fields else jnp.full_like(surface,170.))
+        rad_grid=radiation_grid(half,full,temperature,surface,strat)
         particles=particle_provider(state,coords,specs,body,forcing,rad_grid)
         time=state.dynamics.sim_time*time_scale
         declination=_declination(time,forcing)
@@ -112,7 +118,7 @@ def make_radiation_component(particle_provider,*,radiation_interval_seconds=1848
         flux=column_fluxes(temperature,surface,half,full,mu,solar,
             forcing.albedo,forcing.emissivity,body.gravity_m_s2,particle_optics=particles,
             daylight_fraction=daylight,radiation_mode=radiation_mode,water_mass_fraction=water,
-            cia_molar_fractions=cia_molar_fractions)
+            cia_molar_fractions=cia_molar_fractions,stratosphere_temperature=strat)
         correction=jnp.zeros_like(temperature)
         capacity=body.cp_j_kg_k*jnp.diff(half,axis=0)/body.gravity_m_s2
         if solar_nonlte:

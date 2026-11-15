@@ -416,6 +416,7 @@ class RadiativeFluxDiagnostics(NamedTuple):
     surface_net_w_m2: object
     toa_net_down_w_m2: object
     nonlte_heating_k_s: object = 0.
+    stratosphere_flux_convergence_w_m2: object = 0.
 
 
 def _validate_radiative_bands(f: RadiativeForcing) -> None:

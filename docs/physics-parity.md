@@ -24,7 +24,7 @@ No complete-model equivalence or speed claim has passed yet.
 | Radiation pressure/temperature grid | `radiation_grid.radiation_grid` | Original `fillpt`; all output arrays agree exactly in the recorded 1/4/12/40-layer cases, with positive and zero top pressure | Supports Dinosaur's zero top without adding ghost mass or a pressure floor |
 | Spectral flux integration | `spectral_flux.visible_spectrum` and `infrared_spectrum` | Original `sfluxv`, `sfluxi`, `getdetau` and flux solvers; 27 cases with weak/mixed/strong gas opacity and both surface-emission scaling settings | Connected to optical aggregation; the special bottom IR sample uses its full, possibly floored, depth |
 | Optical-depth aggregation | `optical_depth.gas_subgrid` and `aggregate_optics` | Original `optcv15`, `optci15`, `tpindex15`, `boxinterp`; 16 clear/dust cases at 1/4/12/40 layers, positive and zero top pressure | Gas absorption, supplied particle scattering/moments and Rayleigh scattering are connected |
-| Composed radiation | `radiative_transfer.column_fluxes` and `make_radiation_component` | Composed original grid, optics and spectral solvers; 16 day/night and clear/dust cases at 4/12 layers; flux errors below 1e-8 W/m2 | Connected to Dinosaur; a three-step reverse derivative passes with full radiation |
+| Composed radiation | `radiative_transfer.column_fluxes` and `make_radiation_component` | Composed original grid, optics and spectral solvers; 32 day/night and clear/dust cases at 4/12 layers, with 170/200 K stratospheres; unchanged interface-flux gates | Connected to Dinosaur; a three-step reverse derivative passes with full radiation |
 | Absolute Planck means | `correlated_k.planck_band_intensities` | Original `setspi`; 50--900 K at 0.1 K nodes | Continuous interpolation preserves temperature derivatives; original integer indexing does not |
 | Soil/surface frost column | `soil_frost.surface_step` and `subsurface_diffusivity` | Original `progts`, `trdslv`, `albedo_calc`; uniform soil plus case-7 subsurface ice at five northern/southern/equatorial latitudes | Connected to PBL; native TES inertia and GRS ice-boundary maps can supply the interfaces |
 | Surface maps | `surface.reference_surface_fields_on_grid` | Four input files match pinned Git blobs; T21/T42 conservative area integrals pass; orientation, longitude seam and northern inertia-cap tests pass | Uses Gaussian cell areas and retains the native cap north of 65 degrees |
@@ -37,6 +37,7 @@ No complete-model equivalence or speed claim has passed yet.
 | Extended gas radiation | `correlated_k`, `spectral_flux` | Original `tpindex15`, `boxinterp`, `sfluxv`, `sfluxi` and transfer solvers; 40 lookup/spectral cases | Both released 15-band options are connected: 32 Gaussian points to 350 K, or 16 points to 800 K. All ten water mixtures are available; source mixture selection remains discrete |
 | Collision-induced absorption | `collision_absorption` | Original `optci15` and `kinter`; 81 cases at 610 Pa, 500 mbar and 10 bar | CO2/CO2 and CO2/H2 infrared continuum is connected, including the source temperature clamp before density/path calculation and zero ghost-layer absorption |
 | Bulk water cloud kernels | `water_bulk` | Original `blkh2o_driver`, `findq`, `sedimh2o` and `fallvel`; 24 roots and 36 columns | Phase change, precipitation threshold, settling and rain/snow accounting are implemented. The original root iteration is checked separately; three Newton corrections remove its stopping noise. Surface exchange, lagged PBL exchange history, cloud optical feedback and global water inventory checks are connected |
+| Radiation holding/stratosphere | `dinosaur_physics`, `radiative_transfer` | Source first-call/modulo-day schedule, cold/warm native stratosphere fluxes and two focused schedule/gradient tests | Optional `radiation_update_seconds` requires matching initial cache fields. K/s rates stay fixed when pressure changes. Stratosphere temperature and held radiation survive restarts |
 | Surface water exchange | `water_surface` | Original `update_water`, `update_water_fv3`, `update_water_blk`; 216 cases | Bulk/bin/moment surface kernels, liquid saturation and latent diagnostics are checked. Bulk mode is connected before PBL using saved exchange coefficients; cloud formation is a separate switch |
 | Surface water optics | `water_surface.optical_properties` | Original `albedo_calc`; 120 threshold/temperature/snow cases | Radiation uses old water; soil uses water after surface exchange. Bare map values are restored when frost falls below the threshold |
 | Legacy soil materials | `soil_frost.subsurface_properties` | Original `progts`; 20 modern/legacy and uniform/case-7 cases | Returns diffusivity and heat capacity. Distinct legacy northern/southern ice inertia and the fixed deep node are retained |
@@ -149,12 +150,17 @@ not smooth at frost onset, branch boundaries, remap donor changes or table knots
 Finite-difference checks use points away from these boundaries. Continuous Planck
 interpolation is the explicit change that replaces the source's integer indexing.
 
+The infrared solver uses one exponent cap for each whole layer, including
+samples inside very thick layers. Capping each sample segment on its own changes
+the reference solution. Nine analytic thick-layer cases and the expanded native
+cold-stratosphere cases check this limit without changing flux tolerances.
+
 ## Required remaining work
 
 | Area | Remaining implementation and acceptance check |
 | --- | --- |
 | Global budgets | Momentum exchange and repair-stage ledgers are connected. Extend the energy audit across dissipation, fixed-deep-soil exchange, phase approximations and long global runs; select gas and particle tracers explicitly. |
-| Radiation schedule | Gas-radiation assembly and Dinosaur coupling pass native and derivative checks. Match radiation evaluation/holding schedules in whole-model comparisons. |
+| Radiation schedule | Optional integer-second source schedule now holds heating in K/s and surface fluxes, carries the 170 K initial stratosphere and its source update, and persists caches in restarts. Match the configured interval and callback averaging window in whole-model comparisons. |
 | Dust and cloud opacity | Size-dependent dust and all three cloud optical kernels are implemented. CO2 optical feedback is connected; prescribed dust scenarios and full water/dust drivers still need integration and matched climatology. |
 | Soil and frost | Mapped TES/GRS inputs and default case-7 profiles are implemented and checked. Compare diurnal/seasonal response in global runs; modern and legacy material profiles now pass native checks. |
 | CO2 modes | Immediate deposition and optional bulk suspended-cloud phase/settling match native routines and coupled columns. Cloud optical feedback passes a three-step gradient check. Full two-way exchange auditing and long global validation remain pending. The older conservative finite-settling scheme remains a separate model. |
@@ -225,7 +231,9 @@ slow group. Later water, terrain, soil and non-LTE work has additional focused
 checks. The refreshed broad run passed 787 tests with 4 skips and 11 slow
 tests deselected. Its one callback-test failure was fixed in the test inputs
 and passed a focused rerun. Final Dinosaur, map-runner and non-LTE checks
-passed all 44 tests. Terrain drag passed five further focused checks. Recorded reference reports carry source and
+passed all 44 tests. Terrain drag passed five further focused checks. The later radiation schedule,
+stratosphere, restart and backend run passed 50 focused tests, and 17 infrared
+solver tests passed. Package-directory test collection also passes. Recorded reference reports carry source and
 asset hashes. Kernel checks do not establish held-out climate accuracy or a
 whole-model speedup. Those experiments remain required.
 
