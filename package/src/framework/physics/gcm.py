@@ -2086,6 +2086,7 @@ def positivity_preserving_co2_step(
     dt_seconds: float | None = None,
     external_co2_mass_change_kg: Callable[[ColumnPhysicsState, float], object] | None = None,
     return_diagnostics: bool = False,
+    inventory_projection: bool = True,
 ):
     """Wrap an IMEX step with positivity and global CO2-mass projections.
 
@@ -2120,6 +2121,9 @@ def positivity_preserving_co2_step(
     instead of just state; callers must explicitly accumulate/check diagnostics.
     Impossible or non-finite inventory targets produce a non-finite pressure
     state (and ``valid_inventory=False``), rather than silently inventing mass.
+    ``inventory_projection=False`` disables numerical reservoir repair and
+    pressure rescaling for paired experiments; physical settling and saturation
+    adjustment remain active. This diagnostic mode can produce negative frost.
     """
     grid = coords.horizontal
     weights = jnp.asarray(grid.quadrature_weights)
@@ -2167,7 +2171,7 @@ def positivity_preserving_co2_step(
             target_total = target_total + external_mass / mass_per_integral
         target_total = target_total - escape_pa / pressure_scale * weight_sum
         raw = step_fn(state)
-        projected = project_co2_reservoirs(raw, coords, specs)
+        projected = project_co2_reservoirs(raw, coords, specs) if inventory_projection else raw
         frost_repaired = projected
         if co2_forcing is not None and co2_forcing.atmospheric_condensation:
             if body is None or dt_seconds is None or not np.isfinite(dt_seconds) or dt_seconds <= 0:
@@ -2202,6 +2206,9 @@ def positivity_preserving_co2_step(
             jnp.log1p((target_atmosphere - atmosphere_integral) / atmosphere_integral),
             jnp.nan,
         )
+        if not inventory_projection:
+            pressure_factor = jnp.asarray(1.)
+            log_factor = jnp.asarray(0.)
         corrected = dataclasses.replace(
             projected.dynamics,
             log_surface_pressure=(
@@ -2226,7 +2233,8 @@ def positivity_preserving_co2_step(
             external_co2_mass_change_kg=external_mass,
             escape_mass_kg=escape_pa / pressure_scale * weight_sum * mass_per_integral,
             negative_frost_repair_kg=negative_frost_integral * mass_per_integral,
-            atmospheric_rescale_kg=(target_atmosphere - atmosphere_integral) * mass_per_integral,
+            atmospheric_rescale_kg=((target_atmosphere - atmosphere_integral) * mass_per_integral
+                                   if inventory_projection else jnp.asarray(0.)),
             pressure_factor=pressure_factor,
             valid_inventory=valid,
             raw_exchange_energy_j=budgets[0][0],
