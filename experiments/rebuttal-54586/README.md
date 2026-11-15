@@ -3,7 +3,7 @@
 This campaign uses `experimenal` source, pinned to a commit at submission.
 It produces new evidence. It does not relabel the submitted paper's results.
 
-Six independent A100 jobs run these tasks:
+Six independent A100 Pods run these tasks:
 
 | Task | Protocol | Outputs |
 |---|---|---|
@@ -24,7 +24,8 @@ stations; global means are saved separately.
 
 All inputs and source bytes are hashed. The runtime archives the exact checkout.
 Every attempt has a separate directory. Completed tasks are retained on retries.
-No Job/Pod deadline, timeout wrapper or timed deletion is used. A nonfinite
+Standalone Pods avoid Nautilus's automatically injected one-day Job TTL.
+No Pod deadline, timeout wrapper or timed deletion is used. A nonfinite
 unprojected result is evidence of failure, not a reason to change the protocol.
 
 ## Limits for the paper
