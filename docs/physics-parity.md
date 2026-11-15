@@ -31,7 +31,9 @@ No complete-model equivalence or speed claim has passed yet.
 | Orbital setup | `reference_constants.reference_radiative_forcing` | Compiled original `mars_calender`, 37 cases over three model years | 668 model sols/year, 88704 s/sol, reference epoch/equinox and unscaled 1356.1 W/m2 solar bands |
 | Solar geometry | `solar_geometry.daylight_geometry` and `averaged_zenith` | Compiled original `sol88`/`zenith`, 27 cases including poles, sunrise/sunset and integration windows | Connected to radiation; the averaging interval is explicit |
 | Immediate CO2 deposition | `co2_condensation.simple_condensation` | Original `co2_condense`, followed by original `pass2` in the coupled column check | Enabled in the experimental backend; suspended-cloud mode remains separate |
-| Coupled gas column | `column_physics.column_physics` | Original PBL, surface, CO2 and convection routines in reference order; clear/winter/thaw/convective cases at 4/12/40 layers; temperature errors below 2e-13 K | Radiation heating and downward surface flux are prescribed inputs |
+| Rayleigh drag | `rayleigh_drag.rayleigh_tendencies` | Original `rayleigh_damping`; 32 cases with surface, top and tropical switches, masks and timescale units | Connected before PBL; optional dissipative reheating remains off by default, as in the source |
+| Suspended CO2 clouds | `co2_microphysics.cloud_step` | Original `co2condsub`, `sedimco2`, `fallvel` and `dtridgl`; 288 cases at 2/4/12/40 layers, at 610 Pa and 500 mbar | Optional column and Dinosaur mode; phase changes, diagnosed size, settling and surface deposition are connected. Cloud optics remain separate |
+| Coupled gas column | `column_physics.column_physics` | Original Rayleigh, PBL, surface, CO2 and convection routines in reference order; 24 clear/winter/thaw/convective cases at 4/12/40 layers, with immediate deposition or suspended clouds; temperature errors below 2e-13 K | Radiation heating and downward surface flux are prescribed inputs |
 | Dinosaur adaptation | `dinosaur_physics.build_step` and `remap_gas` | Cold global smoke, gas inventory, remap energy/momentum/passive material checks, and three-step reverse derivatives checked against finite differences | Ground impulse is recorded; raw/corrected angular momentum and exchange-energy ledgers expose numerical repair changes; whole-model validation remains pending |
 
 The convection sweep mixes heat, winds and tracers. It makes one bottom-to-top
@@ -55,6 +57,7 @@ The new backend keeps Dinosaur dynamics, spectral transforms and JAX arrays.
 It applies the coupled column after the dynamical step. It then remaps the
 changed layer masses onto Dinosaur's sigma grid. The remap conserves donor gas
 enthalpy plus kinetic energy, horizontal momentum and passive tracer material.
+Suspended mode also carries cloud momentum and kinetic energy through the remap.
 The shared pressure repair now preserves all tracer material when it changes
 the gas carrier mass. This also fixes existing callers that carry passive gases.
 
@@ -69,7 +72,25 @@ drag/convection dissipative reheating; those losses must not be hidden as repair
 The backend requires an explicit radiation callback and soil diffusivity. The
 initial cold smoke uses the existing radiation callback; the multi-step gradient
 test also exercises the new full-radiation callback. Nonzero suspended CO2 clouds are
-rejected with a nonfinite result in this immediate-deposition mode.
+rejected in immediate-deposition mode. Set `suspended_co2_clouds=True` in
+`build_step` to use the source bulk cloud scheme. Its cloud tracer must be present
+in the initial state; `initial_state` supplies it. Ice bypasses gas PBL mixing
+and joins all tracers in dry convection. Cloud mass survives gas pressure changes.
+The default radiation remains explicitly clear unless its particle provider
+supplies cloud optics; enabling microphysics alone does not enable cloud opacity.
+
+The bulk cloud source uses pre-phase density and interface temperatures for
+settling, a 590200 J/kg latent heat, mass-derived lognormal radii and a
+concentration-dependent explicit/implicit transport switch. The port preserves
+these details, including the unusual below-cell fall-speed stencil. Its ground
+momentum accounting excludes gas-to-cloud phase transfer and includes deposited
+particle momentum. The local unresolved momentum source is reported separately
+in `co2_cloud.unresolved_momentum_source_kg_m_s`; it is not assigned to the ground.
+The source omits cloud thermal inertia and two-way momentum
+feedback. The energy ledger includes cloud latent/kinetic energy, and angular
+momentum includes suspended mass; neither ledger claims that the source
+approximations conserve total energy or momentum. Native comparisons and gradient
+checks are separate from long global validation.
 
 Native surface input files are sampled with conservative area overlaps. Latitude
 cells integrate Dinosaur's Gaussian weights; longitude wraps at the seam. The
@@ -100,10 +121,10 @@ interpolation is the explicit change that replaces the source's integer indexing
 | Radiation schedule | Gas-radiation assembly and Dinosaur coupling pass native and derivative checks. Match radiation evaluation/holding schedules in whole-model comparisons. |
 | Dust and cloud opacity | Match prescribed dust, Rayleigh scattering, CO2/water cloud optics, radii, particle distributions and radiation feedback. |
 | Soil and frost | Mapped TES/GRS inputs and default case-7 profiles are implemented and checked. Compare diurnal/seasonal response in global runs; optional legacy material settings remain separate. |
-| CO2 modes | The simple immediate-deposition column matches the reference. Port and compare optional suspended-cloud microphysics separately. Existing conservative finite-settling code is not an exact port of either. |
+| CO2 modes | Immediate deposition and optional bulk suspended-cloud phase/settling now match native routines and coupled columns. Cloud optical feedback, full two-way exchange auditing and long global validation remain pending. The older conservative finite-settling scheme remains a separate model. |
 | Interactive dust | Lifting, advection, sedimentation, surface reservoirs, coagulation and material budgets. |
 | Water | Vapor/ice/frost transport, bulk and moment cloud options, latent heat, cloud nuclei and sedimentation, each with explicit switches. |
-| Drag | Orographic and non-orographic gravity-wave options, their inputs, momentum/energy accounting and source-based tests. They are off in the default Ames present-Mars setup. |
+| Drag | Rayleigh surface/top/tropical options are implemented. Orographic and non-orographic gravity-wave options, their inputs, momentum/energy accounting and source-based tests. They are off in the default Ames present-Mars setup. |
 | Extended atmosphere | Optional 15-band/extended gas tables, collision-induced absorption, gas-mixture mass/thermodynamics and non-LTE cooling. |
 | Other release interfaces | Audit chemistry, bin microphysics and tagging against the release's real and null implementations. Do not label a stub as working physics. |
 | Whole-model validation | Matched inputs, switches, grids, resolution studies, spin-up, conservation, held-out observations and native-output comparisons. Dinosaur and FV3 require climate/statistical comparison as well as kernel tests. |
@@ -138,6 +159,10 @@ env PYTHONPATH=package:. python scripts/validate_surface_maps.py \
   --ames-source /path/to/AmesGCM --output outputs/physics-parity/surface-maps.json
 env PYTHONPATH=package:. python scripts/validate_soil_frost.py \
   --ames-source /path/to/AmesGCM --output outputs/physics-parity/surface.json
+env PYTHONPATH=package:. python scripts/validate_rayleigh_drag.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/rayleigh-drag.json
+env PYTHONPATH=package:. python scripts/validate_co2_microphysics.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/co2-clouds.json
 env PYTHONPATH=package:. python scripts/validate_column_physics.py \
   --ames-source /path/to/AmesGCM --output outputs/physics-parity/column.json
 ```
@@ -145,10 +170,12 @@ env PYTHONPATH=package:. python scripts/validate_column_physics.py \
 Small recorded reports are in `validation/physics-parity/`. Local CPU timing is
 kernel evidence only. It does not establish GPU or whole-model performance.
 
-Local validation for this checkpoint: the regular Python suite passed 681 tests
-with 4 skips and 11 slow tests deselected. The earlier full suite passed 658 tests
-with 4 skips before the later physics additions and renames. Focused checks also
-run from `package/` without a repository-root PYTHONPATH, as CI does.
+Local validation for this checkpoint: the broad Python regression run passed
+708 tests with 4 skips and 11 slow tests deselected. Final focused cloud,
+column and Dinosaur checks passed after the momentum-ledger update. These
+include three-step reverse derivatives with the full radiation callback.
+The slow test group is checked separately. The 13 recorded reference/data
+reports include 288 bulk-cloud cases and 24 coupled-column cases.
 The reports are checked against source and asset hashes. These are implementation
 checks, not held-out climate-accuracy results.
 

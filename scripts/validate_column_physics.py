@@ -17,6 +17,8 @@ from native_reference import compile_routines
 from validate_dry_convection import UPDATE_BLOB
 from validate_boundary_layer import compile_reference as compile_pbl
 from validate_soil_frost import compile_reference as compile_surface
+from validate_rayleigh_drag import compile_reference as compile_drag
+from validate_co2_microphysics import compile_reference as compile_clouds
 
 
 def compile_tail(source,destination,compiler):
@@ -31,8 +33,8 @@ end type
 contains
 """
     adapter="""
-subroutine ames_tail(n,ntr,kap,cp,g,latent,t,u,v,r,ph,pf,tout,uout,vout,rout,mass,precip) bind(C)
-integer(c_int), value :: n,ntr
+subroutine ames_tail(n,ntr,condense,kap,cp,g,latent,t,u,v,r,ph,pf,tout,uout,vout,rout,mass,precip) bind(C)
+integer(c_int), value :: n,ntr,condense
 real(c_double), value :: kap,cp,g,latent
 real(c_double), intent(in) :: t(1,1,n),u(1,1,n),v(1,1,n),r(1,1,n,ntr),ph(1,1,n+1),pf(1,1,n)
 real(c_double), intent(out) :: tout(1,1,n),uout(1,1,n),vout(1,1,n),rout(1,1,n,ntr)
@@ -45,7 +47,10 @@ kappa=kap
 co2_lheat=latent
 zeros=0.
 zero_r=0.
-call co2_condense(1,1,1,1,n,1.,clock,t,zeros,ph,pf,precip,mass,co2heat)
+co2heat=0.
+mass=0.
+precip=0.
+if(condense/=0) call co2_condense(1,1,1,1,n,1.,clock,t,zeros,ph,pf,precip,mass,co2heat)
 call pass2(1,1,1,1,n,ntr,1.,clock,u,v,t,r,zeros,zeros,co2heat,zero_r, &
     uout,vout,adj_t,rout,ph(:,:,2:n+1)-ph(:,:,1:n),ph,pf)
 tout=t+co2heat+adj_t
@@ -59,7 +64,7 @@ end module
         UPDATE_BLOB,["co2_condense","pass2"],header,adapter,destination,compiler)
     native=ctypes.CDLL(str(library))
     array=np.ctypeslib.ndpointer(dtype=np.float64,flags="F_CONTIGUOUS")
-    native.ames_tail.argtypes=[ctypes.c_int]*2+[ctypes.c_double]*4+[array]*12
+    native.ames_tail.argtypes=[ctypes.c_int]*3+[ctypes.c_double]*4+[array]*12
     native.ames_tail.restype=None
     return native,provenance
 
@@ -70,11 +75,13 @@ def validate(source,compiler):
     cases=[]
     with tempfile.TemporaryDirectory(prefix="ames-column-") as temporary:
         root=Path(temporary)
-        for name in ('pbl','surface','tail'):
+        for name in ('pbl','surface','tail','drag','clouds'):
             (root/name).mkdir()
         pbl,pbl_prov=compile_pbl(source,root/'pbl',compiler)
         surface,surface_prov=compile_surface(source,root/'surface',compiler)
         tail,tail_prov=compile_tail(source,root/'tail',compiler)
+        drag,drag_prov=compile_drag(source,root/'drag',compiler)
+        clouds,cloud_prov=compile_clouds(source,root/'clouds',compiler)
         for n in (4,12,40):
             ph=np.asfortranarray(np.linspace(0.,1.,n+1)*610.)
             pf=np.asfortranarray((ph[1:]+ph[:-1])*.5)
@@ -88,36 +95,63 @@ def validate(source,compiler):
                     t=np.asfortranarray(np.linspace(180.,300.,n)*(pf/610.)**body.kappa)
                 rad=np.asfortranarray(np.linspace(-1e-5,1e-5,n))
                 predicted=np.asfortranarray(t+rad*300.)
+                du,dv=(np.empty((1,1,n),order='F') for _ in range(2))
+                drag.drag(n,1,0,0,-4000.e6,np.asfortranarray([[610.]]),pf[None,None,:],
+                    np.asfortranarray([[0.]]),u[None,None,:],v[None,None,:],
+                    np.ones((1,1,n),order='F'),du,dv)
+                damped_u=np.asfortranarray(u+du[0,0]*300.)
+                damped_v=np.asfortranarray(v+dv[0,0]*300.)
                 pbl_t,pbl_u,pbl_v=(np.empty(n) for _ in range(3));pbl_r=np.empty_like(r)
                 km,kh=(np.empty(2*n+1) for _ in range(2));fluxes=np.empty(9)
                 pbl.column_physics(n,2,body.gravity_m_s2,body.gas_constant_j_kg_k,body.cp_j_kg_k,
-                    300.,predicted,u,v,r,ph,pf,skin,snow,0.,pbl_t,pbl_u,pbl_v,pbl_r,km,kh,fluxes)
+                    300.,predicted,damped_u,damped_v,r,ph,pf,skin,snow,0.,pbl_t,pbl_u,pbl_v,pbl_r,km,kh,fluxes)
                 soil=np.full(soil_n,skin);soil_new=np.empty(soil_n);ice_new=np.empty(1);phase=np.empty(1)
                 surface.soil_frost(soil_n,300.,250.,610.,snow,down,fluxes[0],fluxes[8],.95,1.,
                     soil,dz,soil_new,ice_new,phase)
-                out_t,out_u,out_v,mass=(np.empty(n) for _ in range(4));out_r=np.empty_like(r);precip=np.empty(1)
-                tail.ames_tail(n,2,body.kappa,body.cp_j_kg_k,body.gravity_m_s2,590000.,
-                    pbl_t,pbl_u,pbl_v,pbl_r,ph,pf,out_t,out_u,out_v,out_r,mass,precip)
-                start=max(0,n-4)
-                weights=np.diff(ph).copy();weights[:start]=0.;weights/=weights.sum()
-                mass+=phase[0]*weights
-                expected=(out_t,out_u,out_v,out_r,soil_new,ice_new[0]+precip[0],mass)
-                actual=column_physics(t,u,v,r,soil,ph,pf,snow,rad,down,300.,body,
-                    soil_thickness=dz,soil_diffusivity=(250./(1500.*627.9))**2,
-                    soil_volumetric_heat_capacity=1500.*627.9,emissivity=.81 if snow>2. else .95,
-                    surface_exchange_start=start)
-                errors=[]
-                for a,b in zip(actual[:7],expected,strict=True):
-                    np.testing.assert_allclose(a,b,rtol=2e-12,atol=2e-12)
-                    errors.append(float(np.max(np.abs(np.asarray(a)-b))))
-                np.testing.assert_allclose(float(actual.co2_ice_kg_m2)-snow,
-                    np.sum(actual.gas_mass_loss_kg_m2),rtol=2e-12,atol=2e-12)
-                assert not np.any(actual.diagnostics['co2_mass_guard'])
-                cases.append(dict(layers=n,case=name,max_absolute_errors=dict(zip(
-                    ("temperature_k","u_ms","v_ms","tracer_ratio","soil_k","co2_ice_kg_m2","gas_mass_loss_kg_m2"),
-                    errors,strict=True)),co2_mass_guard=bool(np.any(actual.diagnostics['co2_mass_guard']))))
+                for cloud_mode in (False,True):
+                    qice=np.asfortranarray(np.geomspace(.001,.01,n))
+                    cloud_t,cloud_q,cloud_loss,radius=(np.empty(n) for _ in range(4))
+                    cloud_deposit=np.empty(1)
+                    if cloud_mode:
+                        clouds.clouds(n,300.,soil_new[0],ph,pf,pbl_t,qice,
+                            np.asfortranarray(kh[2:-1:2]),cloud_t,cloud_q,cloud_loss,cloud_deposit,radius)
+                        tail_t=cloud_t
+                        tail_r=np.asfortranarray(np.column_stack([pbl_r,cloud_q]))
+                    else:
+                        tail_t,tail_r=pbl_t,pbl_r
+                    out_t,out_u,out_v,mass=(np.empty(n) for _ in range(4))
+                    out_r=np.empty_like(tail_r);precip=np.empty(1)
+                    tail.ames_tail(n,tail_r.shape[-1],int(not cloud_mode),body.kappa,
+                        body.cp_j_kg_k,body.gravity_m_s2,590000.,tail_t,pbl_u,pbl_v,
+                        tail_r,ph,pf,out_t,out_u,out_v,out_r,mass,precip)
+                    if cloud_mode:
+                        mass+=cloud_loss
+                        precip+=cloud_deposit
+                    start=max(0,n-4)
+                    weights=np.diff(ph).copy();weights[:start]=0.;weights/=weights.sum()
+                    mass+=phase[0]*weights
+                    expected=(out_t,out_u,out_v,out_r[:,:2],soil_new,ice_new[0]+precip[0],mass)
+                    actual=column_physics(t,u,v,r,soil,ph,pf,snow,rad,down,300.,body,
+                        soil_thickness=dz,soil_diffusivity=(250./(1500.*627.9))**2,
+                        soil_volumetric_heat_capacity=1500.*627.9,emissivity=.81 if snow>2. else .95,
+                        surface_exchange_start=start,suspended_co2_ice_ratio=qice if cloud_mode else None)
+                    errors=[]
+                    for a,b in zip(actual[:7],expected,strict=True):
+                        np.testing.assert_allclose(a,b,rtol=2e-12,atol=2e-12)
+                        errors.append(float(np.max(np.abs(np.asarray(a)-b))))
+                    cloud_change=0.
+                    if cloud_mode:
+                        np.testing.assert_allclose(actual.suspended_co2_ice_ratio,out_r[:,-1],rtol=2e-12,atol=2e-12)
+                        cloud_change=np.sum(np.diff(ph)/body.gravity_m_s2*(actual.suspended_co2_ice_ratio-qice))
+                    np.testing.assert_allclose(float(actual.co2_ice_kg_m2)-snow+cloud_change,
+                        np.sum(actual.gas_mass_loss_kg_m2),rtol=2e-12,atol=2e-12)
+                    assert not np.any(actual.diagnostics["co2_mass_guard"])
+                    cases.append(dict(layers=n,case=name,suspended_clouds=cloud_mode,
+                        max_absolute_errors=dict(zip(
+                        ("temperature_k","u_ms","v_ms","tracer_ratio","soil_k","co2_ice_kg_m2","gas_mass_loss_kg_m2"),
+                        errors,strict=True)),co2_mass_guard=bool(np.any(actual.diagnostics["co2_mass_guard"]))))
     physics=Path(__file__).parents[1]/'package/src/framework/physics'
-    return dict(status="pass",reference=dict(pbl=pbl_prov,surface=surface_prov,tail=tail_prov),cases=cases,
+    return dict(status="pass",reference=dict(rayleigh=drag_prov,pbl=pbl_prov,surface=surface_prov,tail=tail_prov,clouds=cloud_prov),cases=cases,
         source_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         body=dataclasses.asdict(body),
         physics_sha256={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in physics.glob('*.py')},

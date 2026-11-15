@@ -1,6 +1,24 @@
 {
   "status": "pass",
   "reference": {
+    "rayleigh": {
+      "source_git_blob": "ca0b7c0774b1b23cafaee219062c3bffa3d0c4cc",
+      "compiled_source_sha256": "bf32d1539d902fbf607a584e0b81f142d6e3564bdb1ec7fb38723e6539e7c791",
+      "routine_sha256": {
+        "rayleigh_damping": "69199c71add1e1027ef960d4a360a39b6cf26253994b189cd3e96fe93bb19002"
+      },
+      "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+      "compiler_flags": [
+        "-O3",
+        "-cpp",
+        "-fdefault-real-8",
+        "-fdefault-double-8",
+        "-fPIC",
+        "-shared"
+      ],
+      "real_precision_bits": 64,
+      "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged"
+    },
     "pbl": {
       "source_git_blob": "38b3f41e4d07f9a2e3c9d7a689e50577cac7858c",
       "compiled_source_sha256": "488f4d8f33a6f15a88c7aa46743fbfb8e5dc8418a9dc61530fbb37bae681e7a2",
@@ -56,7 +74,7 @@
     },
     "tail": {
       "source_git_blob": "d0351317dfb6edd4c83c01c67d9ad3a39bff3b2d",
-      "compiled_source_sha256": "b4b01d0c20a9561a44ca5ceca257d1ce4bca1c914d6046ec6c08117d53f8f242",
+      "compiled_source_sha256": "bec02d85ada629167bdf74c4fdea7fd60965fb3babe75df7c362624979b77b6e",
       "routine_sha256": {
         "co2_condense": "af9b916ff4b7907671ebc8d3a3d59345b16ef8394e9a816ddc99c18808d27c5c",
         "pass2": "fc30b833f3374fa31fe31a241d43509d835983aa2849d9edd02983e0c573ded2"
@@ -72,16 +90,39 @@
       ],
       "real_precision_bits": 64,
       "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged"
+    },
+    "clouds": {
+      "source_git_blob": "aa566e12d6e01afa346162385055f41d8d2bc18f",
+      "compiled_source_sha256": "f60247e05ada9563f89624a365dfeb41ba6142a93c677c2f692e413751a6d619",
+      "routine_sha256": {
+        "co2condsub": "0ec7c8fb8c1b0a3a84059933e5de42a062b96647d9d885adc6873854e1be2036",
+        "sedimco2": "aaa5bbc18993e3e0094e7e4c4eb9055c83c13620c153693232b5befc1c9a76bd",
+        "fallvel": "d4a2f97df52ef934d7d9493ecb3b0ef8b536a63a746ca888296ca8aea2f55ec2"
+      },
+      "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+      "compiler_flags": [
+        "-O3",
+        "-cpp",
+        "-fdefault-real-8",
+        "-fdefault-double-8",
+        "-fPIC",
+        "-shared"
+      ],
+      "real_precision_bits": 64,
+      "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged",
+      "solver_source_git_blob": "40d8879c3735bbec6cabc63817cad5220f281532",
+      "solver_routine_sha256": "d1075d42213408c12420612f5f79b35634d022de1b29a995934489e8aef1cc21"
     }
   },
   "cases": [
     {
       "layers": 4,
       "case": "clear",
+      "suspended_clouds": false,
       "max_absolute_errors": {
         "temperature_k": 2.842170943040401e-14,
         "u_ms": 3.552713678800501e-15,
-        "v_ms": 8.881784197001252e-16,
+        "v_ms": 1.7763568394002505e-15,
         "tracer_ratio": 1.3552527156068805e-20,
         "soil_k": 8.526512829121202e-14,
         "co2_ice_kg_m2": 0.0,
@@ -91,11 +132,27 @@
     },
     {
       "layers": 4,
-      "case": "winter",
+      "case": "clear",
+      "suspended_clouds": true,
       "max_absolute_errors": {
         "temperature_k": 2.842170943040401e-14,
         "u_ms": 3.552713678800501e-15,
-        "v_ms": 8.881784197001252e-16,
+        "v_ms": 1.7763568394002505e-15,
+        "tracer_ratio": 1.3552527156068805e-20,
+        "soil_k": 8.526512829121202e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 2.7755575615628914e-17
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 4,
+      "case": "winter",
+      "suspended_clouds": false,
+      "max_absolute_errors": {
+        "temperature_k": 0.0,
+        "u_ms": 7.105427357601002e-15,
+        "v_ms": 1.7763568394002505e-15,
         "tracer_ratio": 1.3552527156068805e-20,
         "soil_k": 2.842170943040401e-14,
         "co2_ice_kg_m2": 0.0,
@@ -105,7 +162,23 @@
     },
     {
       "layers": 4,
+      "case": "winter",
+      "suspended_clouds": true,
+      "max_absolute_errors": {
+        "temperature_k": 0.0,
+        "u_ms": 7.105427357601002e-15,
+        "v_ms": 1.7763568394002505e-15,
+        "tracer_ratio": 1.3552527156068805e-20,
+        "soil_k": 2.842170943040401e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 2.220446049250313e-16
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 4,
       "case": "thaw",
+      "suspended_clouds": false,
       "max_absolute_errors": {
         "temperature_k": 2.842170943040401e-14,
         "u_ms": 1.7763568394002505e-15,
@@ -119,12 +192,28 @@
     },
     {
       "layers": 4,
-      "case": "convective",
+      "case": "thaw",
+      "suspended_clouds": true,
       "max_absolute_errors": {
         "temperature_k": 2.842170943040401e-14,
-        "u_ms": 3.552713678800501e-15,
+        "u_ms": 1.7763568394002505e-15,
         "v_ms": 8.881784197001252e-16,
-        "tracer_ratio": 0.0,
+        "tracer_ratio": 1.3552527156068805e-20,
+        "soil_k": 2.842170943040401e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 2.7755575615628914e-17
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 4,
+      "case": "convective",
+      "suspended_clouds": false,
+      "max_absolute_errors": {
+        "temperature_k": 2.842170943040401e-14,
+        "u_ms": 0.0,
+        "v_ms": 8.881784197001252e-16,
+        "tracer_ratio": 1.3552527156068805e-20,
         "soil_k": 5.684341886080802e-14,
         "co2_ice_kg_m2": 1.3322676295501878e-15,
         "gas_mass_loss_kg_m2": 1.3322676295501878e-15
@@ -132,12 +221,28 @@
       "co2_mass_guard": false
     },
     {
+      "layers": 4,
+      "case": "convective",
+      "suspended_clouds": true,
+      "max_absolute_errors": {
+        "temperature_k": 0.0,
+        "u_ms": 0.0,
+        "v_ms": 8.881784197001252e-16,
+        "tracer_ratio": 1.3552527156068805e-20,
+        "soil_k": 5.684341886080802e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 1.9984014443252818e-15
+      },
+      "co2_mass_guard": false
+    },
+    {
       "layers": 12,
       "case": "clear",
+      "suspended_clouds": false,
       "max_absolute_errors": {
         "temperature_k": 5.684341886080802e-14,
-        "u_ms": 3.552713678800501e-15,
-        "v_ms": 8.881784197001252e-16,
+        "u_ms": 7.105427357601002e-15,
+        "v_ms": 1.7763568394002505e-15,
         "tracer_ratio": 1.3552527156068805e-20,
         "soil_k": 5.684341886080802e-14,
         "co2_ice_kg_m2": 0.0,
@@ -147,11 +252,27 @@
     },
     {
       "layers": 12,
+      "case": "clear",
+      "suspended_clouds": true,
+      "max_absolute_errors": {
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 7.105427357601002e-15,
+        "v_ms": 1.7763568394002505e-15,
+        "tracer_ratio": 1.3552527156068805e-20,
+        "soil_k": 5.684341886080802e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 1.3877787807814457e-17
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 12,
       "case": "winter",
+      "suspended_clouds": false,
       "max_absolute_errors": {
         "temperature_k": 2.842170943040401e-14,
         "u_ms": 3.552713678800501e-15,
-        "v_ms": 1.7763568394002505e-15,
+        "v_ms": 8.881784197001252e-16,
         "tracer_ratio": 1.3552527156068805e-20,
         "soil_k": 2.842170943040401e-14,
         "co2_ice_kg_m2": 0.0,
@@ -161,7 +282,23 @@
     },
     {
       "layers": 12,
+      "case": "winter",
+      "suspended_clouds": true,
+      "max_absolute_errors": {
+        "temperature_k": 0.0,
+        "u_ms": 3.552713678800501e-15,
+        "v_ms": 8.881784197001252e-16,
+        "tracer_ratio": 1.3552527156068805e-20,
+        "soil_k": 2.842170943040401e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 4.996003610813204e-16
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 12,
       "case": "thaw",
+      "suspended_clouds": false,
       "max_absolute_errors": {
         "temperature_k": 5.684341886080802e-14,
         "u_ms": 3.552713678800501e-15,
@@ -175,25 +312,57 @@
     },
     {
       "layers": 12,
-      "case": "convective",
+      "case": "thaw",
+      "suspended_clouds": true,
       "max_absolute_errors": {
         "temperature_k": 5.684341886080802e-14,
-        "u_ms": 1.7763568394002505e-15,
+        "u_ms": 3.552713678800501e-15,
         "v_ms": 1.7763568394002505e-15,
         "tracer_ratio": 1.3552527156068805e-20,
-        "soil_k": 8.526512829121202e-14,
+        "soil_k": 2.842170943040401e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 1.3877787807814457e-17
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 12,
+      "case": "convective",
+      "suspended_clouds": false,
+      "max_absolute_errors": {
+        "temperature_k": 1.1368683772161603e-13,
+        "u_ms": 3.552713678800501e-15,
+        "v_ms": 8.881784197001252e-16,
+        "tracer_ratio": 1.3552527156068805e-20,
+        "soil_k": 5.684341886080802e-14,
         "co2_ice_kg_m2": 1.5543122344752192e-15,
         "gas_mass_loss_kg_m2": 9.71445146547012e-16
       },
       "co2_mass_guard": false
     },
     {
-      "layers": 40,
-      "case": "clear",
+      "layers": 12,
+      "case": "convective",
+      "suspended_clouds": true,
       "max_absolute_errors": {
         "temperature_k": 5.684341886080802e-14,
-        "u_ms": 7.105427357601002e-15,
-        "v_ms": 3.552713678800501e-15,
+        "u_ms": 3.552713678800501e-15,
+        "v_ms": 8.881784197001252e-16,
+        "tracer_ratio": 1.3552527156068805e-20,
+        "soil_k": 5.684341886080802e-14,
+        "co2_ice_kg_m2": 2.6426840324903895e-29,
+        "gas_mass_loss_kg_m2": 9.645062526431047e-16
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 40,
+      "case": "clear",
+      "suspended_clouds": false,
+      "max_absolute_errors": {
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 3.552713678800501e-15,
+        "v_ms": 1.7763568394002505e-15,
         "tracer_ratio": 2.710505431213761e-20,
         "soil_k": 5.684341886080802e-14,
         "co2_ice_kg_m2": 0.0,
@@ -203,10 +372,26 @@
     },
     {
       "layers": 40,
-      "case": "winter",
+      "case": "clear",
+      "suspended_clouds": true,
       "max_absolute_errors": {
-        "temperature_k": 2.842170943040401e-14,
+        "temperature_k": 5.684341886080802e-14,
         "u_ms": 3.552713678800501e-15,
+        "v_ms": 1.7763568394002505e-15,
+        "tracer_ratio": 2.710505431213761e-20,
+        "soil_k": 5.684341886080802e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 3.469446951953614e-18
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 40,
+      "case": "winter",
+      "suspended_clouds": false,
+      "max_absolute_errors": {
+        "temperature_k": 0.0,
+        "u_ms": 7.105427357601002e-15,
         "v_ms": 1.7763568394002505e-15,
         "tracer_ratio": 1.3552527156068805e-20,
         "soil_k": 2.842170943040401e-14,
@@ -217,13 +402,29 @@
     },
     {
       "layers": 40,
+      "case": "winter",
+      "suspended_clouds": true,
+      "max_absolute_errors": {
+        "temperature_k": 0.0,
+        "u_ms": 7.105427357601002e-15,
+        "v_ms": 1.7763568394002505e-15,
+        "tracer_ratio": 1.3552527156068805e-20,
+        "soil_k": 2.842170943040401e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 1.5959455978986625e-16
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 40,
       "case": "thaw",
+      "suspended_clouds": false,
       "max_absolute_errors": {
         "temperature_k": 5.684341886080802e-14,
-        "u_ms": 7.105427357601002e-15,
-        "v_ms": 3.552713678800501e-15,
+        "u_ms": 3.552713678800501e-15,
+        "v_ms": 1.7763568394002505e-15,
         "tracer_ratio": 2.710505431213761e-20,
-        "soil_k": 5.684341886080802e-14,
+        "soil_k": 2.842170943040401e-14,
         "co2_ice_kg_m2": 0.0,
         "gas_mass_loss_kg_m2": 0.0
       },
@@ -231,20 +432,51 @@
     },
     {
       "layers": 40,
+      "case": "thaw",
+      "suspended_clouds": true,
+      "max_absolute_errors": {
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 3.552713678800501e-15,
+        "v_ms": 1.7763568394002505e-15,
+        "tracer_ratio": 2.710505431213761e-20,
+        "soil_k": 2.842170943040401e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 3.469446951953614e-18
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 40,
       "case": "convective",
+      "suspended_clouds": false,
       "max_absolute_errors": {
         "temperature_k": 1.1368683772161603e-13,
         "u_ms": 3.552713678800501e-15,
-        "v_ms": 3.552713678800501e-15,
+        "v_ms": 8.881784197001252e-16,
         "tracer_ratio": 5.421010862427522e-20,
         "soil_k": 5.684341886080802e-14,
         "co2_ice_kg_m2": 0.0,
         "gas_mass_loss_kg_m2": 5.551115123125783e-17
       },
       "co2_mass_guard": false
+    },
+    {
+      "layers": 40,
+      "case": "convective",
+      "suspended_clouds": true,
+      "max_absolute_errors": {
+        "temperature_k": 1.1368683772161603e-13,
+        "u_ms": 3.552713678800501e-15,
+        "v_ms": 8.881784197001252e-16,
+        "tracer_ratio": 5.421010862427522e-20,
+        "soil_k": 5.684341886080802e-14,
+        "co2_ice_kg_m2": 6.162975822039155e-32,
+        "gas_mass_loss_kg_m2": 1.1102230246251565e-16
+      },
+      "co2_mass_guard": false
     }
   ],
-  "source_sha256": "53854286eb61513517f3e37b1491bd5dbfbe5dc4e2afcea6be7e14e32e2a6736",
+  "source_sha256": "999e6a912996bfcaaf65fbf51d6c23f2c39efba167d03b36da08056f04626a1f",
   "body": {
     "name": "Mars",
     "radius_m": 3386000.0,
@@ -257,8 +489,9 @@
     "solar_day_s": 88704.0
   },
   "physics_sha256": {
-    "dinosaur_physics.py": "472cc1095eb2db279b7e4309a4c384a1f10682d597b29b93bd29d70994e9d4c2",
+    "dinosaur_physics.py": "f62c58a6a0d08cc462217863351b15db2c14dee87c1f6203f0dc6b2d50c91f63",
     "correlated_k.py": "80074c30fb3495866c677b46ed178e9d722851cde6de597d36e1a4815d7dd3c9",
+    "co2_microphysics.py": "a063d82493337567cd596c653b47f2c9cfe2f551b94f4a7fefb19f1f7c6117d0",
     "solar_geometry.py": "47b862ec8f9a74f0bba3b183457d09d23823bd60025cac9e0cd21c0e46157f53",
     "__init__.py": "62b61692fed54cebab4ecc448648f24af87fd16b2eed5934a478fcbd7b1c2476",
     "radiative_transfer.py": "b104201e743f8141d95824ab520c7192e6b7599febf13040348aad4f9055b7d8",
@@ -267,12 +500,13 @@
     "vertical_solve.py": "0d01f1d42fe7f086a887a2c0c51cb3b4385d26a3c944b72f81150b8a57ddd991",
     "spectral_flux.py": "93b9bf40c669b09277d5c9f262558d1f5f3955c6e6b2b11b9c88a610ae118dec",
     "optical_depth.py": "9a2433d11b36a938bf16b05015613e162216eea65c63bf56188ee958d3d7d0a7",
+    "rayleigh_drag.py": "3efd1d81aadeeb3e92c8fe8e8a3affe15ac03164d9404af4e220a4f32741f145",
     "soil_frost.py": "8dd5ae6ad27426ffdd641b4472ccec7ef5dd94ef3cc60c545fc752d6503dba90",
     "co2_condensation.py": "a018b832c9b81ad29a5aee4f3cf83b94fe992506da66f5101408161bd689cc9e",
     "scattering_transfer.py": "7b3568d50e2f7472220ea032884c5be64f5ed0f1c988848fd5a1b2fab785b644",
     "radiation_grid.py": "7c0cd095eb863e6ec612a79f90f9ad7c2d17a00584eb4d3d46f7aba0a56d424f",
     "boundary_layer.py": "f3b2c8085abbdd94a867aa29d7c767e8d3969b94c56e815dfb73d90f9b6da094",
-    "column_physics.py": "05be00853b8eb1c079c10a5a233da3e60d8264fd38ff5041a8692edfef672df6",
+    "column_physics.py": "b2b19b3534bbb32b9ebfc7c2311aefe63647c510956c23c645f4fbe1a5f1b03d",
     "gcm.py": "069a490d642d46cf9c562051613a419ff34311eb967d296d48856f222abb8c13",
     "dry_convection.py": "11d8f2284b7e95cbb38064400c6e284913599f9a7cc9d3a349f7093f60ecf162"
   },

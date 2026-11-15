@@ -5,7 +5,8 @@ import re
 import subprocess
 
 
-def compile_routines(source, expected_blob, names, header, adapter, destination, compiler):
+def extract_routines(source, expected_blob, names):
+    """Read unchanged routine bodies only after verifying the source blob."""
     raw = Path(source).read_bytes()
     blob = hashlib.sha1(b"blob "+str(len(raw)).encode()+b"\0"+raw).hexdigest()
     if blob != expected_blob:
@@ -22,6 +23,11 @@ def compile_routines(source, expected_blob, names, header, adapter, destination,
         if end is None:
             raise ValueError(f"missing end of reference routine {name}")
         routines.append(text[start.start():start.start()+end.end()])
+    return routines,blob
+
+
+def compile_routines(source, expected_blob, names, header, adapter, destination, compiler):
+    routines,blob=extract_routines(source,expected_blob,names)
     destination = Path(destination)
     code = destination/"reference.f90"
     code.write_text(header+"\n".join(routines)+adapter)

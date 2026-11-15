@@ -52,8 +52,22 @@ def test_sigma_remap_reverse_derivative():
         np.testing.assert_allclose(auto,finite,rtol=2e-7,atol=1e-7)
 
 
+def test_sigma_remap_carries_suspended_mass_momentum_and_energy():
+    weights=jnp.array([.1,.2,.3,.4]);gas=610.*weights/BODY.gravity_m_s2
+    t=jnp.array([140.,160.,180.,200.]);u=jnp.array([50.,30.,10.,-10.]);v=.2*u
+    q=jnp.array([[.01],[.02],[.03],[.04]]);loss=jnp.array([.01,.02,.1,.2])
+    tn,un,vn,qn,ps=remap_gas(t,u,v,q,jnp.asarray(610.),loss,weights,BODY,cloud_index=0)
+    target=ps*weights/BODY.gravity_m_s2
+    old_mass=gas-loss+gas*q[:,0];new_mass=target*(1.+qn[:,0])
+    np.testing.assert_allclose(jnp.sum(target*qn[:,0]),jnp.sum(gas*q[:,0]),rtol=3e-14)
+    for before,after in ((u,un),(v,vn)):
+        np.testing.assert_allclose(jnp.sum(old_mass*before),jnp.sum(new_mass*after),rtol=3e-14)
+    np.testing.assert_allclose(jnp.sum((gas-loss)*BODY.cp_j_kg_k*t+.5*old_mass*(u*u+v*v)),
+        jnp.sum(target*BODY.cp_j_kg_k*tn+.5*new_mass*(un*un+vn*vn)),rtol=3e-14)
+
+
 def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostics=False,
-                 radiation_component=None,wind_speed=0.):
+                 radiation_component=None,wind_speed=0.,suspended_co2_clouds=False):
     from src.framework.gcm.coordinates import coordinate_system
     from src.framework.gcm.specs import physics_specs
     from src.framework.gcm._dinosaur import primitive_equations,scales
@@ -80,7 +94,8 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
         reference_radiative_forcing())
     radiation=two_stream_radiative_fluxes if radiation_component is None else radiation_component
     step=build_step(coords,specs,BODY,forcing,5.,radiation_component=radiation,
-        soil_diffusivity=(250./(1500.*627.9))**2,return_diagnostics=return_diagnostics)
+        soil_diffusivity=(250./(1500.*627.9))**2,return_diagnostics=return_diagnostics,
+        suspended_co2_clouds=suspended_co2_clouds)
     return state,step,grid
 
 
@@ -95,6 +110,36 @@ def test_dinosaur_backend_runs_cold_column_and_preserves_total_inventory():
     assert np.isfinite(float(d.corrected_axial_angular_momentum_kg_m2_s))
     assert np.isfinite(float(d.raw_exchange_energy_j))
     assert np.isfinite(float(d.corrected_exchange_energy_j))
+
+
+def test_reference_cloud_backend_forms_suspended_ice_and_closes_raw_mass():
+    from src.framework.physics.co2_clouds import CO2_CLOUD_TRACER
+    state,step,grid=backend_case(return_diagnostics=True,suspended_co2_clouds=True)
+    final,d=jax.jit(step)(state)
+    assert bool(d.valid_inventory)
+    assert float(jnp.max(grid.to_nodal(final.dynamics.tracers[CO2_CLOUD_TRACER])))>0.
+    np.testing.assert_allclose(d.raw_total_mass_kg,d.target_total_mass_kg,rtol=2e-11)
+    np.testing.assert_allclose(d.corrected_total_mass_kg,d.target_total_mass_kg,rtol=2e-13)
+    assert all(np.isfinite(x).all() for x in jax.tree.leaves(final))
+
+
+@pytest.mark.parametrize('native_radiation',[False,True])
+def test_reference_cloud_backend_multistep_reverse_derivative(native_radiation):
+    from src.framework.physics.co2_clouds import CO2_CLOUD_TRACER
+    from src.framework.physics.radiative_transfer import make_radiation_component
+    radiation=make_radiation_component(lambda *args:None) if native_radiation else None
+    state,step,grid=backend_case(suspended_co2_clouds=True,radiation_component=radiation)
+    def objective(offset):
+        initial=state._replace(surface_temperature=state.surface_temperature+offset)
+        final,_=jax.lax.scan(lambda s,_:(step(s),None),initial,None,length=3)
+        return jnp.mean(final.surface_temperature)+100.*jnp.mean(
+            grid.to_nodal(final.dynamics.tracers[CO2_CLOUD_TRACER]))
+    value,auto=jax.jit(jax.value_and_grad(objective))(0.)
+    assert np.isfinite(value) and np.isfinite(auto) and abs(float(auto))>1e-6
+    forward=jax.jit(objective)
+    for eps in (1e-2,1e-3):
+        finite=(forward(eps)-forward(-eps))/(2.*eps)
+        np.testing.assert_allclose(auto,finite,rtol=3e-5,atol=1e-7)
 
 
 def test_surface_drag_transfers_axial_momentum_to_ground_and_reports_projection():

@@ -70,3 +70,46 @@ def test_coupled_column_reverse_derivative_reaches_radiative_heating():
 def test_coupled_column_rejects_invalid_surface_exchange_region():
     with pytest.raises(ValueError,match='layer index'):
         column_physics(**{**inputs(),'surface_exchange_start':4})
+
+
+def test_optional_drag_reheating_returns_removed_kinetic_energy():
+    kwargs={**inputs(),'u':jnp.full(4,100.),'v':jnp.zeros(4),
+        'rayleigh_options':dict(timescale=900.)}
+    cold=column_physics(**kwargs)
+    warm=column_physics(**kwargs,conserve_drag_energy=True)
+    diagnostic=warm.diagnostics['rayleigh']
+    dt=kwargs['dt_seconds']
+    unew=kwargs['u']+diagnostic['u_tendency_m_s2']*dt
+    removed=.5*(kwargs['u']**2-unew**2)
+    np.testing.assert_allclose(diagnostic['dissipated_heat_k']*BODY.cp_j_kg_k,removed,
+        rtol=2e-14,atol=1e-12)
+    assert not cold.diagnostics['rayleigh']['reheating_enabled']
+    assert warm.diagnostics['rayleigh']['reheating_enabled']
+    assert float(jnp.sum(warm.temperature))>float(jnp.sum(cold.temperature))
+
+
+def test_suspended_mode_closes_gas_cloud_frost_mass_without_mixing_ice_as_gas():
+    kwargs=inputs();q=jnp.array([.001,.005,.002,.01])
+    result=jax.jit(lambda:column_physics(**kwargs,suspended_co2_ice_ratio=q))()
+    gas=jnp.diff(kwargs['pressure_half'])/BODY.gravity_m_s2
+    np.testing.assert_allclose(jnp.sum(gas*(result.suspended_co2_ice_ratio-q))+
+        result.co2_ice_kg_m2-kwargs['co2_ice_kg_m2'],jnp.sum(result.gas_mass_loss_kg_m2),
+        rtol=3e-12,atol=3e-12)
+    assert result.gas_tracers.shape==kwargs['gas_tracers'].shape
+    assert np.min(result.suspended_co2_ice_ratio)>=0.
+    assert np.isfinite(result.diagnostics['co2_cloud']['deposition_momentum_kg_m_s']).all()
+
+
+def test_cloud_momentum_source_is_reported_without_being_given_to_ground():
+    kwargs=inputs();q=jnp.array([.01,.005,.002,.01])
+    result=column_physics(**kwargs,suspended_co2_ice_ratio=q)
+    gas=jnp.diff(kwargs['pressure_half'])/BODY.gravity_m_s2
+    old_mass=gas*(1.+q)
+    new_mass=gas-result.gas_mass_loss_kg_m2+gas*result.suspended_co2_ice_ratio
+    cloud=result.diagnostics['co2_cloud']
+    residual=cloud['ground_momentum_exchange_kg_m_s']+jnp.stack([
+        jnp.sum(new_mass*new-old_mass*old)
+        for old,new in zip((kwargs['u'],kwargs['v']),(result.u,result.v),strict=True)])
+    np.testing.assert_allclose(cloud['unresolved_momentum_source_kg_m_s'],residual,atol=2e-12)
+    # A source approximation must remain visible, rather than becoming ground torque.
+    assert np.max(np.abs(residual))>1e-5
