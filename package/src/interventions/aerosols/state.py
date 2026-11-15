@@ -25,6 +25,10 @@ class AerosolLedger(NamedTuple):
     positivity_redistribution_kg: object
     maximum_raw_relative_mass_error: object
     invalid: object
+    numerical_dry_energy_correction_j: object
+    numerical_frost_latent_correction_j: object
+    last_unprojected_dry_energy_j: object
+    last_projected_dry_energy_j: object
 
 
 class AerosolState(NamedTuple):
@@ -69,8 +73,15 @@ def initialize(climate,coords,specs,body,particle,initial_column_mass_kg_m2=0.):
     surface=jnp.zeros(coords.horizontal.nodal_shape)
     zero=jnp.asarray(0.)
     initial=initial_column_mass_kg_m2*body.surface_area_m2
-    ledger=AerosolLedger(surface,surface,surface,surface,jnp.asarray(initial),zero,zero,zero,
-                         zero,zero,zero,zero,jnp.asarray(False))
+    ledger=AerosolLedger(
+        deposited_mass_kg_m2=surface,deposited_number_m2=surface,
+        collected_mass_kg_m2=surface,collected_number_m2=surface,
+        initial_mass_kg=jnp.asarray(initial),injected_mass_kg=zero,injected_number=zero,
+        re_lofted_mass_kg=zero,numerical_mass_correction_kg=zero,
+        numerical_number_correction=zero,positivity_redistribution_kg=zero,
+        maximum_raw_relative_mass_error=zero,invalid=jnp.asarray(False),
+        numerical_dry_energy_correction_j=zero,numerical_frost_latent_correction_j=zero,
+        last_unprojected_dry_energy_j=zero,last_projected_dry_energy_j=zero)
     return AerosolState(climate,ledger,zero)
 
 
