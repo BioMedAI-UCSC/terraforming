@@ -14,13 +14,15 @@ No complete-model equivalence or speed claim has passed yet.
 
 | Process | Implementation | Native comparison | Coupled status |
 | --- | --- | --- | --- |
+| Vertical pressure grids | `vertical_grid` | Unchanged `set_eta` and released header; 168 cases across all 14 grids | Reference-column sigma adaptation, saved geometry, map continuation and reverse gradients; fixed-pressure terrain interfaces and full-level discretization differ from FV3 |
+| Explicit gas-mass feedback | `dinosaur_physics.remap_gas` and `column_physics` | Unchanged gas-update loops; 108 condensation/sublimation cases | Optional CO2/argon state, initial-CO2-weighted surface exchange, independent species budgets, restart and reverse derivative |
 | Dry convection | `dry_convection.pass2` | Compiled original `pass2`; four 40-layer cases with 2,048 columns, temperature errors below 2e-13 K | `adjust_state` and `build_step` support Dinosaur; explicit reference backend selection is available in the map runner |
 | Legacy dry convection | `legacy_convection.adjust` | Unchanged `legacy_convect` and `potemp1`; 40 strict full-field cases and 8 neutral temperature/wind cases | Optional `convection_scheme="legacy"`; default `"fv3"` retains pass2 and `"none"` disables adjustment. Column budgets, global restart continuation and a three-step gradient pass. Exact neutral nonuniform tracer mixing has a floating-point branch limit |
 | Saturation pressure for moist adjustment | `saturation_pressure` | Unchanged FMS table generators, quadratic lookups and `compute_qs`; 36 cases with 1,815 points each | Both Smithsonian and simple tables, three water/ice phase choices, native humidity caps and explicit temperature derivatives. NASA extended bounds and water constants are retained; nine unit/gradient checks pass |
 | Moist convective adjustment | `moist_convection.adjust` | Unchanged GFDL `moist_conv`, `CONV_DETR` and FMS saturation kernels; 80 column cases | Connected after dry convection and before lifting/cloud microphysics. Five kernel checks, independent latent/material budgets, bulk/moment global water inventories, exact restarts and a three-step reverse derivative pass |
 | PBL surface exchange | `boundary_layer.surface_exchange` | Compiled original `bndcond`, stable/unstable/zero-wind cases | Used by the new column driver |
 | PBL turbulent mixing | `boundary_layer.eddy_coefficients` | Compiled original `eddycoef`, 4/12/40 layers | Used by the new column driver |
-| PBL gas-column driver | `boundary_layer.column_step` | Compiled original `pbl_driver`, `newpbl`, matrix, scaling and solve routines; temperature errors below 1e-13 K | Connected to the soil/frost column and experimental Dinosaur adapter; tracer categories remain pending |
+| PBL gas-column driver | `boundary_layer.column_step` | Compiled original `pbl_driver`, `newpbl`, matrix, scaling and solve routines; temperature errors below 1e-13 K | Connected to soil/frost and Dinosaur; gas species mix separately from cloud and moment particle tracers |
 | Radiation pressure-table staging | `stage_co2_radiation_tables.ames_pressure_interpolation` | Original `laginterp` and `lagrange`; all ten gas mixtures match exactly in the recorded run | Enabled in the existing correlated-k kernel |
 | Radiation dry-table lookup | `correlated_k._interp2_log_table` on the refined pressure grid | Original `tpindex15` and `boxinterp`; 100 temperature/pressure points, including values outside the tables | Enabled in the existing correlated-k kernel |
 | Two-stream flux kernels | `scattering_transfer.visible_fluxes` and `infrared_fluxes` | Original `gfluxv`, `gfluxi`, `dsolver`, `dtridgl`; 1/4/12/40-layer thin/moderate/thick columns | Visible keeps the original solve. IR solves the same hemispheric equations with stable layer adding; the composed check uses unchanged Fortran routines at binary128 without relaxing flux tolerances |
@@ -441,6 +443,39 @@ it does not measure a climate gain. Dinosaur still uses its spectral dynamics
 and sigma grid. Whole-model comparison needs a matched native run, resolution
 checks and climate statistics.
 
+## Explicit CO2 and argon mass
+
+Explicit gas-mass feedback is available with `do_qmass=True` and
+`initial_co2_gas_ratio` in map `reference_options`. Direct initialization takes
+the initial ratio, and `build_step` takes the switch. Initialization assigns the
+remaining fraction to the source's argon tracer. Surface phase exchange uses
+each layer's initial CO2 mass; atmospheric condensation removes CO2 material
+while retaining argon and passive material. The sigma remap then conserves those
+updated inventories. Missing required gas tracers raise an error; removing more
+CO2 than a layer contains returns invalid output. The source uses fixed CO2 gas
+and heat constants and total-pressure condensation even in this mode; the port
+retains those approximations.
+
+The source chooses one surface exchange depth for its entire MPI domain using
+`ANY(abs(latitude)>45 degrees)`. Dinosaur's global domain therefore uses the
+polar depth in this mode. This preserves that domain rule, but cannot reproduce
+the spatial patchwork produced by a different FV3 MPI partition. The default
+released cloud protocol leaves gas-mass feedback off.
+
+The unchanged native gas-update loops pass 108 cases, including condensation,
+sublimation, three pressures and up to 56 levels. Multilevel comparisons check
+species inventories after the separate sigma remap; one-level comparisons also
+check the normalized ratios. Independent checks cover CO2/argon closure,
+initial-layer surface weighting, invalid depletion, global species budgets,
+exact restarts and a three-step reverse derivative.
+
+```sh
+env PYTHONPATH=package:. python scripts/validate_gas_mass.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/gas-mass.json
+env PYTHONPATH=package:. python scripts/validate_vertical_grid.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/vertical-grid.json
+```
+
 ## Required remaining work
 
 The reference backend projects transported species after dynamics and after
@@ -466,7 +501,7 @@ limiter or establish matched transport accuracy.
 | Interactive dust | Lifting, advection, sedimentation, surface reservoirs, coagulation and material budgets. |
 | Water | Bulk and moment phase/growth/settling paths, surface exchange, saved effective inputs, state/restarts and optical feedback are connected. Two physical dust modes pass combined global material, restart and three-step derivative checks. Long climate validation remains. Bin cloud microphysics is unavailable in the public release. |
 | Drag | Rayleigh, Palmer terrain drag and non-orographic gravity-wave drag are implemented and checked. Polar water and terrain maps pass pinned-blob and T21/T42 area checks. Long momentum/energy audits remain. Gravity-wave schemes are off in the default Ames present-Mars setup. |
-| Extended atmosphere | Both 15-band options and CIA are implemented and checked. Non-LTE cooling is implemented with the pinned reference atmosphere. Gas-mixture mass/thermodynamics and source infinite-table regions still need auditing or implementation. |
+| Extended atmosphere | Both 15-band options and CIA are implemented and checked. Non-LTE cooling and explicit CO2/argon gas-mass feedback are implemented. Source mixture thermodynamic approximations and infinite-table regions still need auditing. |
 | Other release interfaces | Pinned build/preprocessor audit verifies that bin clouds, photochemistry and legacy binned dust sources use fatal placeholders. Tagging imports are excluded by RELEASE. These equations are unavailable in v3.2.1; they are not implemented physics. |
 | Whole-model validation | Matched inputs, switches, grids, resolution studies, spin-up, conservation, held-out observations and native-output comparisons. Dinosaur and FV3 require climate/statistical comparison as well as kernel tests. |
 | Performance | Matched physical workloads and precision; record hardware, threads, compilation, transfers, steady-state timings and derivatives separately. |

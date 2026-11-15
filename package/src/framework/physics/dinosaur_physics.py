@@ -24,12 +24,16 @@ from src.framework.physics.tracer_transport import project_tracers
 from src.framework.physics.gcm import (ColumnPhysicsTendencies,column_primitive_equations,
     initial_column_state,positivity_preserving_co2_step,surface_radiative_forcing,_true_anomaly)
 
+CO2_GAS_TRACER='co2_mmr_gas'
+ARGON_GAS_TRACER='ar_mmr_gas'
 
-def remap_gas(temperature,u,v,tracers,pressure_pa,mass_loss,dsigma,body,*,cloud_index=None):
+
+def remap_gas(temperature,u,v,tracers,pressure_pa,mass_loss,dsigma,body,*,cloud_index=None,co2_index=None):
     """Apply Ames layer mass sources, then remap extensive fields to sigma.
 
     As in fv_phys's qratio update, gas tracers retain their material mass when
-    CO2 is removed. Remapping conserves donor gas enthalpy plus kinetic energy
+    CO2 is removed; an explicit CO2 tracer instead loses the condensed mass.
+    Remapping conserves donor gas enthalpy plus kinetic energy
     and horizontal momentum; resolved mixing loss returns as heat. Nonpositive
     donor masses are invalid, not clipped to manufacture a finite climate.
     """
@@ -39,6 +43,12 @@ def remap_gas(temperature,u,v,tracers,pressure_pa,mass_loss,dsigma,body,*,cloud_
     gas=pressure_pa[None]*weights/body.gravity_m_s2
     donor=gas-mass_loss
     valid=jnp.all(donor>0.,axis=0)
+    material=gas[...,None]*tracers
+    if co2_index is not None:
+        if not isinstance(co2_index,int) or not 0<=co2_index<tracers.shape[-1] or co2_index==cloud_index:
+            raise ValueError('CO2 gas index must select a distinct gas tracer')
+        material=material.at[...,co2_index].add(-mass_loss)
+        valid=valid&jnp.all(material[...,co2_index]>=0.,axis=0)
     safe=jnp.where(valid[None],donor,gas)
     new_pressure=body.gravity_m_s2*jnp.sum(safe,axis=0)
     target=new_pressure[None]*weights/body.gravity_m_s2
@@ -46,7 +56,7 @@ def remap_gas(temperature,u,v,tracers,pressure_pa,mass_loss,dsigma,body,*,cloud_
     moving_mass=safe+cloud
     energy=safe*body.cp_j_kg_k*temperature+moving_mass*.5*(u*u+v*v)
     extensive=jnp.concatenate([energy[None],(moving_mass*u)[None],(moving_mass*v)[None],
-        jnp.moveaxis(gas[...,None]*tracers,-1,0)],axis=0)
+        jnp.moveaxis(material,-1,0)],axis=0)
     mapped=_remap_extensive(safe,target,extensive)
     target_mass=target+(0. if cloud_index is None else mapped[3+cloud_index])
     new_u,new_v=mapped[1]/target_mass,mapped[2]/target_mass
@@ -63,7 +73,8 @@ def initial_state(dynamics,coords,specs,temperature_k=170.,soil_layers=16,*,bulk
                   initial_dust_mass_ratio=0.,initial_dust_number_per_kg=0.,
                   initial_dust_surface_kg_m2=30.,nonorographic_drag_options=None,dust_background_options=None,
                   moment_cloud_options=None,moist_convection_options=None,
-                  initial_moist_bulk_surface_water_kg_m2=0.,dust_mode_count=1):
+                  initial_moist_bulk_surface_water_kg_m2=0.,dust_mode_count=1,
+                  initial_co2_gas_ratio=None):
     """Initialize the existing column state with the reference soil node count."""
     if soil_layers<3:
         raise ValueError("Ames soil requires two evolving nodes and a fixed deep node")
@@ -100,6 +111,14 @@ def initial_state(dynamics,coords,specs,temperature_k=170.,soil_layers=16,*,bulk
         state=state._replace(auxiliary_fields=fields)
     state=state._replace(auxiliary_fields={**({} if state.auxiliary_fields is None else state.auxiliary_fields),
         'vertical_sigma_boundaries':jnp.asarray(coords.vertical.boundaries)})
+    if initial_co2_gas_ratio is not None:
+        ratio=jnp.asarray(initial_co2_gas_ratio)
+        ratio=jnp.where(jnp.isfinite(ratio)&(ratio>0.)&(ratio<=1.),ratio,jnp.nan)
+        profile=(len(coords.vertical.centers),)+coords.horizontal.nodal_shape
+        tracers=dict(state.dynamics.tracers)
+        for name,value in ((CO2_GAS_TRACER,ratio),(ARGON_GAS_TRACER,1.-ratio)):
+            tracers[name]=coords.horizontal.to_modal(jnp.broadcast_to(value,profile))
+        state=state._replace(dynamics=dataclasses.replace(state.dynamics,tracers=tracers))
     if not (bulk_water or moment_water): return state._replace(ground_temperature=ground)
     tracers={WATER_VAPOR_TRACER:coords.horizontal.to_modal(jnp.broadcast_to(
         jnp.asarray(initial_water_vapor_ratio),(len(coords.vertical.centers),)+coords.horizontal.nodal_shape)),
@@ -227,7 +246,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                moment_water=False,moment_cloud_options=None,moment_sedimentation=True,
                dust_lifting_options=None,dust_optical_bands=12,dust_opacity_channel=1,
                coagulation_options=None,dust_background_options=None,nonorographic_drag_options=None,
-               convection_scheme='fv3',moist_convection_options=None,dust_mode_count=1):
+               convection_scheme='fv3',moist_convection_options=None,dust_mode_count=1,do_qmass=False):
     """Dinosaur dynamics followed by Ames-order reference gas-column physics.
 
     Supply a verified radiation component and mapped soil diffusivity. Keeping
@@ -305,7 +324,9 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             jnp.asarray(grid.latitudes)[None,:],**source_options)
         nonorographic_drag_options.setdefault('source_index',source_index)
         nonorographic_drag_options.setdefault('source_amplitude',amplitude)
-    below=np.flatnonzero(sigma/sigma[-1]<.991)
+    # Source selects one depth for the entire local domain using ANY latitude.
+    exchange_ratio=.92 if do_qmass and np.any(abs(np.asarray(grid.latitudes))>np.pi/4.) else .991
+    below=np.flatnonzero(sigma/sigma[-1]<exchange_ratio)
     exchange_start=max(0,int(below[-1])-2) if len(below) else 0
     dz=soil_layer_thickness(soil_layers)
     pressure_scale=float(specs.dimensionalize(1.,scales.units.pascal).magnitude)
@@ -401,6 +422,8 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             raise ValueError('suspended CO2 mode requires the cloud tracer in the initial state')
         particles=(CO2_CLOUD_TRACER,WATER_CLOUD_TRACER)+ (moment_names if moment_water else ())
         gas_names=tuple(name for name in names if name not in particles)
+        if do_qmass and (CO2_GAS_TRACER not in gas_names or ARGON_GAS_TRACER not in gas_names):
+            raise ValueError('gas-mass feedback requires initialized CO2 and argon gas tracers')
         cloud_ratio=(grid.to_nodal(dyn.tracers[CO2_CLOUD_TRACER])
             if CO2_CLOUD_TRACER in names else None)
         tracers=(jnp.stack([grid.to_nodal(dyn.tracers[name]) for name in names],axis=-1)
@@ -502,6 +525,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             dt_seconds,body,soil_thickness=dz,soil_diffusivity=soil_diffusivity,
             soil_volumetric_heat_capacity=soil_volumetric_heat_capacity,
             emissivity=soil_forcing.emissivity,surface_exchange_start=exchange_start,
+            co2_gas_index=gas_names.index(CO2_GAS_TRACER) if do_qmass else None,
             latitude_rad=jnp.asarray(grid.latitudes)[None,:],rayleigh_options=rayleigh_options,
             conserve_drag_energy=conserve_drag_energy,
             suspended_co2_ice_ratio=cloud_ratio if suspended_co2_clouds else None,
@@ -535,7 +559,8 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             if names else column.gas_tracers)
         t,unew,vnew,q,new_pressure=remap_gas(column.temperature,column.u,column.v,
             material,pressure,column.gas_mass_loss_kg_m2,dsigma,body,
-            cloud_index=names.index(CO2_CLOUD_TRACER) if suspended_co2_clouds else None)
+            cloud_index=names.index(CO2_CLOUD_TRACER) if suspended_co2_clouds else None,
+            co2_index=names.index(CO2_GAS_TRACER) if do_qmass else None)
         old_gas=pressure[None]*jnp.asarray(dsigma)[:,None,None]/body.gravity_m_s2
         new_gas=new_pressure[None]*jnp.asarray(dsigma)[:,None,None]/body.gravity_m_s2
         impulse=jnp.stack([jnp.sum(old_gas*u-new_gas*unew,axis=0),

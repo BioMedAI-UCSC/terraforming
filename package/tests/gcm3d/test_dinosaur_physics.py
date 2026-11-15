@@ -39,6 +39,27 @@ def test_impossible_donor_mass_is_nonfinite_instead_of_clipped():
     assert not np.isfinite(float(result[-1]))
 
 
+def test_explicit_co2_remap_changes_only_co2_material_and_preserves_gas_closure():
+    weights=jnp.array([.1,.2,.3,.4]);gas=610.*weights/BODY.gravity_m_s2
+    co2=jnp.array([.9,.8,.7,.6]);q=jnp.stack([co2,1.-co2,jnp.full(4,.001)],axis=-1)
+    loss=jnp.array([.01,-.02,.1,.2])
+    def apply(factor):
+        return remap_gas(jnp.full(4,180.),jnp.zeros(4),jnp.zeros(4),q,
+            jnp.asarray(610.),loss*factor,weights,BODY,co2_index=0)
+    *_,ratios,pressure=apply(1.)
+    target=pressure*weights/BODY.gravity_m_s2
+    expected=jnp.sum(gas[:,None]*q,axis=0).at[0].add(-jnp.sum(loss))
+    np.testing.assert_allclose(jnp.sum(target[:,None]*ratios,axis=0),expected,rtol=3e-14)
+    np.testing.assert_allclose(jnp.sum(ratios[:,:2],axis=-1),1.,rtol=3e-14)
+    def objective(factor):
+        *_,r,p=apply(factor)
+        return jnp.sum(p*weights/BODY.gravity_m_s2*r[:,0])
+    np.testing.assert_allclose(jax.grad(objective)(1.),-jnp.sum(loss),rtol=2e-12)
+    impossible=remap_gas(jnp.full(4,180.),jnp.zeros(4),jnp.zeros(4),q,
+        jnp.asarray(610.),gas*.95,weights,BODY,co2_index=0)
+    assert np.isnan(impossible[-1])
+
+
 def test_sigma_remap_reverse_derivative():
     temperature=jnp.array([140.,160.,180.,200.])
     loss=jnp.array([.01,.02,.1,.2])
@@ -71,7 +92,8 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
                  bulk_water=False,initial_water_surface_kg_m2=0.,moment_water=False,
                  dust_lifting_options=None,initial_water_vapor_ratio=1e-6,coagulation_options=None,
                  dust_background_options=None,nonorographic_drag_options=None,effective_input_mode=0,
-                 convection_scheme='fv3',moist_convection_options=None,dust_mode_count=1,sigma_boundaries=None):
+                 convection_scheme='fv3',moist_convection_options=None,dust_mode_count=1,sigma_boundaries=None,
+                 initial_co2_gas_ratio=None,do_qmass=False):
     from src.framework.gcm.coordinates import coordinate_system
     from src.framework.gcm.specs import physics_specs
     from src.framework.gcm._dinosaur import primitive_equations,scales
@@ -98,7 +120,8 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
         moment_water=moment_water,initial_dust_mass_ratio=1e-5,initial_dust_number_per_kg=1e8,
         nonorographic_drag_options=nonorographic_drag_options,dust_background_options=dust_background_options,
         moment_cloud_options=dict(effective_input_mode=effective_input_mode),
-        moist_convection_options=moist_convection_options,dust_mode_count=dust_mode_count)
+        moist_convection_options=moist_convection_options,dust_mode_count=dust_mode_count,
+        initial_co2_gas_ratio=initial_co2_gas_ratio)
     forcing=(radiative_forcing(co2_radiation_enabled=True) if radiation_component is None else
         reference_radiative_forcing())
     radiation=two_stream_radiative_fluxes if radiation_component is None else radiation_component
@@ -109,8 +132,44 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
         dust_lifting_options=dust_lifting_options,dust_optical_bands=15,coagulation_options=coagulation_options,
         dust_background_options=dust_background_options,nonorographic_drag_options=nonorographic_drag_options,
         convection_scheme=convection_scheme,moist_convection_options=moist_convection_options,
-        dust_mode_count=dust_mode_count)
+        dust_mode_count=dust_mode_count,do_qmass=do_qmass)
     return state,step,grid
+
+
+def test_explicit_gas_global_species_budget_restart_and_reverse_derivative(tmp_path):
+    from src.framework.physics.dinosaur_physics import CO2_GAS_TRACER,ARGON_GAS_TRACER
+    from src.framework.gcm.specs import physics_specs
+    from src.framework.gcm._dinosaur import scales
+    from src.framework.gcm.restart import save_restart,load_restart
+    state,step,grid=backend_case(initial_co2_gas_ratio=.9,do_qmass=True,
+        surface_temperature_k=148.037)
+    scale=float(physics_specs(BODY).dimensionalize(1.,scales.units.pascal).magnitude)
+    def inventory(s,name):
+        pressure=jnp.exp(grid.to_nodal(s.dynamics.log_surface_pressure))[0]*scale
+        profile=grid.to_nodal(s.dynamics.tracers[name])
+        mass=jnp.sum(pressure[None]*.25/BODY.gravity_m_s2*profile,axis=0)
+        if name==CO2_GAS_TRACER: mass=mass+s.co2_ice[0]*scale/BODY.gravity_m_s2
+        return jnp.sum(mass*jnp.asarray(grid.quadrature_weights))
+    def evolve(s):
+        return jax.lax.scan(lambda s,_:(step(s),None),s,None,length=3)[0]
+    final=jax.jit(evolve)(state)
+    for name in (CO2_GAS_TRACER,ARGON_GAS_TRACER):
+        np.testing.assert_allclose(inventory(final,name),inventory(state,name),rtol=3e-12)
+    assert float(jnp.mean(final.co2_ice))>float(jnp.mean(state.co2_ice))
+    assert all(np.isfinite(x).all() for x in jax.tree.leaves(final))
+    restored=load_restart(save_restart(final,tmp_path/'gas.npz'))
+    tick=jax.jit(step)
+    for a,b in zip(jax.tree.leaves(tick(final)),jax.tree.leaves(tick(restored)),strict=True):
+        np.testing.assert_array_equal(a,b)
+    def objective(offset):
+        final=evolve(state._replace(surface_temperature=state.surface_temperature+offset))
+        return jnp.mean(jnp.exp(grid.to_nodal(final.dynamics.log_surface_pressure)))*scale
+    auto=jax.jit(jax.grad(objective))(0.);forward=jax.jit(objective);epsilon=1e-4
+    assert np.isfinite(auto) and abs(float(auto))>1e-6
+    np.testing.assert_allclose(auto,(forward(epsilon)-forward(-epsilon))/(2*epsilon),rtol=3e-5,atol=1e-7)
+    missing,invalid,_=backend_case(do_qmass=True)
+    with pytest.raises(ValueError,match='CO2 and argon'):
+        invalid(missing)
 
 
 def test_nonorographic_drag_global_timer_and_restart(tmp_path):

@@ -344,7 +344,8 @@ def test_comparison_export_preserves_geography_units_season_and_cloud_inventory(
     dynamics = dataclasses.replace(dynamics, sim_time=0.,
         tracers={**dynamics.tracers, CO2_CLOUD_TRACER:
                  grid.to_modal(jnp.full((4,) + grid.nodal_shape, cloud_ratio)),
-                 'dust_number':grid.to_modal(jnp.full((4,)+grid.nodal_shape,1e8))})
+                 'dust_number':grid.to_modal(jnp.full((4,)+grid.nodal_shape,1e8)),
+                 'co2_mmr_gas':grid.to_modal(jnp.full((4,)+grid.nodal_shape,.95))})
     state = initial_column_state(dynamics, coords, 200., specs, forcing=forcing)
     # This asymmetric landmark detects north/south flips and lon/lat transposes.
     landmark = 200. + np.arange(64)[:, None] * .1 + np.arange(32)[None, :] * .01
@@ -368,6 +369,8 @@ def test_comparison_export_preserves_geography_units_season_and_cloud_inventory(
         np.testing.assert_allclose(ds['tracer_'+CO2_CLOUD_TRACER],cloud_ratio,atol=1e-14)
         assert ds['tracer_'+CO2_CLOUD_TRACER].attrs['units']=='kg kg-1'
         assert ds.tracer_dust_number.attrs['units']=='kg-1'
+        assert ds.tracer_co2_mmr_gas.attrs['units']=='kg kg-1'
+        np.testing.assert_allclose(ds.tracer_co2_mmr_gas,.95,atol=1e-14)
         expected_number=np.asarray(grid.to_nodal(dynamics.tracers['dust_number'])).transpose(0,2,1)
         np.testing.assert_array_equal(ds.tracer_dust_number[0],expected_number)
         np.testing.assert_allclose(ds.water_surface_kg_m2[0],landmark.T)
@@ -388,6 +391,7 @@ def test_reference_maps_backend_runs_water_and_preserves_restart_state(monkeypat
         initial_water_surface_kg_m2=100.,initial_water_vapor_ratio=1e-6,form_bulk_clouds=False)
     if dust_mode_count>1:
         options.update(bulk_water=False,moment_water=True,dust_mode_count=dust_mode_count,
+            do_qmass=True,initial_co2_gas_ratio=.95,
             initial_dust_mass_ratio=[1e-5,2e-5],initial_dust_number_per_kg=[1e8,3e7],
             initial_dust_surface_kg_m2=[30.,20.])
     kwargs=dict(body=AMES_BODY_3D,truncation='T21',n_layers=4,dt_seconds=5.,
@@ -408,6 +412,7 @@ def test_reference_maps_backend_runs_water_and_preserves_restart_state(monkeypat
     if dust_mode_count>1:
         assert first.auxiliary_fields['dust_surface_kg_m2'].shape[-1]==dust_mode_count
         assert 'dust_mass_2' in first.dynamics.tracers
+        assert 'co2_mmr_gas' in first.dynamics.tracers and 'ar_mmr_gas' in first.dynamics.tracers
     for actual,expected in zip(jax.tree_util.tree_leaves(second),jax.tree_util.tree_leaves(whole),strict=True):
         if boundaries is not None and actual.shape[-2:]==first.dynamics.temperature_variation.shape[-2:]:
             # Different scan lengths can round tiny spectral coefficients differently.

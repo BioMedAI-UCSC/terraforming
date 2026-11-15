@@ -64,7 +64,8 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
                    dust_lifting_options=None,dust_lifting_opacity=None,surface_dust_kg_m2=None,
                    coagulation_options=None,dust_background_options=None,
                    nonorographic_drag_options=None,nonorographic_state=None,moment_history=None,
-                   convection_scheme='fv3',moist_convection_options=None,moist_surface_water_kg_m2=None):
+                   convection_scheme='fv3',moist_convection_options=None,moist_surface_water_kg_m2=None,
+                   co2_gas_index=None):
     """Rayleigh/PBL, soil/frost, CO2 deposition or suspended clouds, convection.
 
     This is the standard present-Mars gas-column process order. Tracers here
@@ -77,6 +78,9 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
         raise ValueError("surface mass exchange start must be a valid layer index")
     if convection_scheme not in ('none','fv3','legacy'):
         raise ValueError('convection scheme must be none, fv3 or legacy')
+    if co2_gas_index is not None and (not isinstance(co2_gas_index,int) or
+        not 0<=co2_gas_index<gas_tracers.shape[-1]):
+        raise ValueError('CO2 gas index must select a gas tracer')
     if moist_convection_options is not None and bulk_water is None:
         raise ValueError('moist convection requires a water vapor tracer and surface water reservoir')
     if moist_convection_options is not None and moment_particles is not None and moist_surface_water_kg_m2 is None:
@@ -331,6 +335,8 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
     selected=jnp.asarray(np.arange(temperature.shape[0])>=surface_exchange_start)
     selected=selected.reshape((temperature.shape[0],)+(1,)*(dp.ndim-1))
     weights=jnp.where(selected,dp,0.)
+    if co2_gas_index is not None:
+        weights=weights*gas_tracers[...,co2_gas_index]
     weights=weights/jnp.sum(weights,axis=0,keepdims=True)
     surface_mass=surface['co2_phase_change_kg_m2']*weights
     mass=mass+surface_mass

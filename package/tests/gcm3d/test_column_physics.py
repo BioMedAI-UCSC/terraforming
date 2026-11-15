@@ -55,6 +55,19 @@ def test_coupled_column_reports_complete_mass_source_and_deposition():
     assert np.all(np.asarray(result.gas_tracers)>=0.)
 
 
+def test_surface_mass_exchange_uses_initial_co2_mass_in_each_selected_layer():
+    co2=jnp.array([.9,.8,.7,.6])
+    kwargs={**inputs(),'temperature':jnp.full(4,210.),'dt_seconds':5.,
+        'gas_tracers':jnp.stack([co2,1.-co2],axis=-1),'surface_exchange_start':1}
+    result=column_physics(**kwargs,co2_gas_index=0)
+    assert float(result.diagnostics['atmospheric_co2_precipitation_kg_m2'])==0.
+    phase=result.diagnostics['surface']['co2_phase_change_kg_m2']
+    assert abs(float(phase))>1e-8
+    weighted=jnp.diff(kwargs['pressure_half'])*co2
+    weighted=weighted.at[0].set(0.)
+    np.testing.assert_allclose(result.gas_mass_loss_kg_m2,phase*weighted/weighted.sum(),rtol=2e-14)
+
+
 def test_coupled_column_reverse_derivative_reaches_radiative_heating():
     kwargs=inputs()
     def objective(heating):

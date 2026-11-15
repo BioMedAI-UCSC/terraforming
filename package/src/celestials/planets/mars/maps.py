@@ -365,6 +365,7 @@ def run_maps(
         initial_dust_number=options.pop('initial_dust_number_per_kg',0.)
         initial_dust_surface=options.pop('initial_dust_surface_kg_m2',30.)
         initial_moist_surface=options.pop('initial_moist_bulk_surface_water_kg_m2',0.)
+        initial_co2_gas=options.pop('initial_co2_gas_ratio',None)
         if 'return_diagnostics' in options:
             raise ValueError('map runner diagnostics use diagnostic_callback')
         if initial_state is None:
@@ -381,6 +382,7 @@ def run_maps(
                 moment_cloud_options=options.get('moment_cloud_options'),
                 moist_convection_options=options.get('moist_convection_options'),
                 initial_moist_bulk_surface_water_kg_m2=initial_moist_surface,
+                initial_co2_gas_ratio=initial_co2_gas,
                 initial_dust_mass_ratio=initial_dust_mass,initial_dust_number_per_kg=initial_dust_number,
                 initial_dust_surface_kg_m2=initial_dust_surface)
         step=build_step(coords,specs,body,forcing,dt_seconds,orography=orography,
@@ -675,7 +677,8 @@ def state_to_comparison_dataset(state, coords, specs, body, forcing):
         attributes=dict(model_tracer_name=name)
         if name in ('dust_number','water_ice_number') or name.startswith('dust_number_'):
             attributes['units']='kg-1'
-        elif name in (CO2_CLOUD_TRACER,WATER_VAPOR_TRACER,WATER_CLOUD_TRACER,'dust_mass','water_core_mass') or name.startswith(('dust_mass_','dust_core_mass_')):
+        elif name in (CO2_CLOUD_TRACER,WATER_VAPOR_TRACER,WATER_CLOUD_TRACER,'dust_mass','water_core_mass',
+                      'co2_mmr_gas','ar_mmr_gas') or name.startswith(('dust_mass_','dust_core_mass_')):
             attributes['units']='kg kg-1'
         tracer_variables['tracer_'+name]=(('time','sigma','lat','lon'),
             level_field(np.asarray(grid.to_nodal(value))),attributes)
