@@ -1,4 +1,4 @@
-"""Stage hashed inputs and submit the six immutable rebuttal jobs to Nautilus."""
+"""Stage hashed inputs and submit six immutable Pods without Job TTL injection."""
 import argparse
 import importlib.util
 import json
@@ -36,42 +36,49 @@ for task in ("projected", "unprojected", "spatial", "radiation", "heating", "sta
     job["spec"]["template"]["metadata"]["labels"].update(job["metadata"]["labels"])
     job["spec"]["template"]["spec"].pop("affinity")
     apply(body["items"][0])
-    campaigns.append(job)
+    campaigns.append(dict(apiVersion="v1", kind="Pod", metadata=job["metadata"],
+        spec=job["spec"]["template"]["spec"]))
     volumes.append(dict(name=task, persistentVolumeClaim=dict(claimName=name)))
     mounts.append(dict(name=task, mountPath=f"/data/{task}"))
 
-stage_name = f"aegis-54586-stage-{a.tag}"
-stage = dict(apiVersion="batch/v1", kind="Job", metadata=dict(name=stage_name), spec=dict(
-    backoffLimit=0, template=dict(spec=dict(restartPolicy="Never", automountServiceAccountToken=False,
+stage_name = f"aegis-54586-stage-{a.tag}-recovery"
+stage = dict(apiVersion="v1", kind="Pod", metadata=dict(name=stage_name), spec=dict(
+    restartPolicy="Never", automountServiceAccountToken=False,
         securityContext=dict(runAsNonRoot=True, runAsUser=10001, runAsGroup=10001, fsGroup=10001),
-        containers=[dict(name="stage", image="busybox:1.37.0", command=["sh", "-c",
+        containers=[dict(name="stage", image=jobs.IMAGE, command=["sh", "-c",
             "until test -f /data/projected/transfer-complete; do sleep 1; done"],
             resources=dict(requests=dict(cpu="1", memory="1Gi"), limits=dict(cpu="1", memory="1Gi")),
             securityContext=dict(allowPrivilegeEscalation=False, readOnlyRootFilesystem=True,
-                capabilities=dict(drop=["ALL"])), volumeMounts=mounts)], volumes=volumes))))
-record = dict(source=a.ref, staged=str(a.staged), stage=stage, jobs=campaigns)
+                capabilities=dict(drop=["ALL"])), volumeMounts=mounts)], volumes=volumes))
+record = dict(source=a.ref, staged=str(a.staged), stage=stage, pods=campaigns,
+    reason="Standalone Pods avoid the cluster-injected one-day Job TTL; PVCs retain inputs and outputs")
 destination = Path(__file__).with_name("deployment.json")
 destination.write_text(json.dumps(record, indent=2)+"\n")
 apply(stage)
 while True:
-    pods = read("get", "pods", "-l", f"job-name={stage_name}")["items"]
-    if pods and pods[0]["status"]["phase"] == "Running":
-        pod = pods[0]["metadata"]["name"]
+    state = read("get", "pod", stage_name)
+    if state["status"]["phase"] == "Running":
+        pod = stage_name
         break
-    if pods and pods[0]["status"]["phase"] == "Failed":
-        raise RuntimeError(pods[0]["status"])
+    if state["status"]["phase"] == "Failed":
+        raise RuntimeError(state["status"])
     time.sleep(2)
 manifest = json.loads((a.staged / "staged-sha256.json").read_text())
 for campaign in campaigns:
     task = campaign["metadata"]["labels"]["task"]
-    for folder in ("reviewer-inputs", "reviewer-windows", "rebuttal-references"):
-        subprocess.run([*kube, "cp", str(a.staged/folder), f"{pod}:/data/{task}/{folder}"], check=True)
+    inspect = "import json,hashlib;from pathlib import Path;m=json.loads("+repr(json.dumps(manifest))+");print(json.dumps([p for p,h in m.items() if not (f:=Path(p.replace('/work/', '/data/"+task+"/',1))).is_file() or hashlib.sha256(f.read_bytes()).hexdigest()!=h]))"
+    missing = json.loads(subprocess.check_output([*kube, "exec", pod, "--", "python", "-c", inspect], text=True))
+    for remote in missing:
+        relative = remote.removeprefix("/work/")
+        destination = f"/data/{task}/{relative}"
+        subprocess.run([*kube, "exec", pod, "--", "mkdir", "-p", str(Path(destination).parent)], check=True)
+        subprocess.run([*kube, "cp", str(a.staged/relative), f"{pod}:{destination}"], check=True)
     subprocess.run([*kube, "cp", str(a.staged/"staged-sha256.json"),
         f"{pod}:/data/{task}/staged-sha256.json"], check=True)
     checks = "".join(f"{digest}  /data/{task}/{path.removeprefix('/work/')}\n" for path, digest in manifest.items())
     verified = subprocess.run([*kube, "exec", "-i", pod, "--", "sha256sum", "-c", "-"],
         input=checks, text=True, capture_output=True, check=True)
-    print(f"Verified {len(manifest)} input hashes for {task}", flush=True)
+    print(f"Verified {len(manifest)} input hashes for {task}; recovered {len(missing)} files", flush=True)
 subprocess.run([*kube, "exec", pod, "--", "touch", "/data/projected/transfer-complete"], check=True)
 while read("get", "pod", pod)["status"]["phase"] not in ("Succeeded", "Failed"):
     time.sleep(2)
@@ -81,4 +88,4 @@ for campaign in campaigns:
     apply(campaign)
 record["submitted"] = [j["metadata"]["name"] for j in campaigns]
 destination.write_text(json.dumps(record, indent=2)+"\n")
-print("Submitted all six jobs; no deadlines or timed deletion", flush=True)
+print("Submitted all six Pods; no deadlines or Job TTL deletion", flush=True)

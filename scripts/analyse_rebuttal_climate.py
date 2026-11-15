@@ -98,6 +98,8 @@ def main():
     def dataset(field):
         return xr.Dataset({name: (("lat", "lon"), field[i].T) for i, name in enumerate(FIELDS)},
             coords=dict(lat=grid["lat"], lon=grid["lon"]))
+    def instantaneous(center):
+        return dataset(values[int(np.argmin(np.abs(times-center)))])
     def compare(model, reference):
         reference = interpolate_periodic(reference, model)
         metrics = {name: weighted_metrics(model[name].values, reference[name].values, model.lat.values)
@@ -124,6 +126,7 @@ def main():
             reference = xr.concat(reference_fields, dim="sample").weighted(
                 xr.DataArray(durations, dims="sample")).mean("sample")
             results[f"ames_ls{target}"] = dict(metrics=compare(model, reference), windows=len(durations),
+                instantaneous_metrics=compare(instantaneous(seasonal_time(target)), reference),
                 operator="matching five-sol intervals centered on reference Ls, duration-weighted")
     for path in sorted((args.references / "macda").glob("*.nc")):
         with xr.open_dataset(path, decode_times=False) as source:
@@ -136,6 +139,8 @@ def main():
                     u=r.uwind.isel(lev=-1), v=r.vwind.isel(lev=-1), co2_ice=r.co2ice*body.gravity_m_s2)).load())
             results[path.stem] = dict(metrics=compare(dataset(np.mean(averages, axis=0)),
                 xr.concat(references, dim="sample").mean("sample")), windows=len(averages),
+                instantaneous_metrics=compare(instantaneous(seasonal_time(float(source.Ls.mean()))),
+                    xr.concat(references, dim="sample").mean("sample")),
                 operator="daily model means centered on each reference daily Ls; equal day weighting",
                 qualification="MACDA reanalysis; reference years differ from prescribed model dust")
     # Use each original MCD map's exact Ls and four local times, rather than a new reference.
@@ -156,6 +161,7 @@ def main():
             raise ValueError("MCD map/local-time count mismatch")
         ref = xr.concat(reference_maps, dim="sample").mean("sample")
         results[path.parent.name] = dict(metrics=compare(dataset(fields), ref),
+            instantaneous_metrics=compare(instantaneous(center), ref),
             operator="four fixed local solar times per longitude, interpolated from model samples", ls=target,
             local_times=local_times, qualification="MCD model comparison; wind-height mismatch remains")
     observations = read_viking(args.references / "viking/vl_avep.dat")
@@ -199,6 +205,8 @@ def main():
     first_year = dict(steps=len(budgets), duration_seconds=len(budgets)*sol/300,
         mean_absolute_correction_fraction=float(np.mean(np.abs(correction))),
         max_absolute_correction_fraction=float(np.max(np.abs(correction))),
+        mean_negative_frost_repair_fraction=float(np.mean(budgets[:, 4]/initial_mass)),
+        max_negative_frost_repair_fraction=float(np.max(budgets[:, 4]/initial_mass)),
         cumulative_signed_correction_fraction=float(np.sum(correction)),
         cumulative_absolute_correction_fraction=float(np.sum(np.abs(correction))),
         maximum_relative_mass_drift=float(np.max(np.abs(budgets[:, 2]/initial_mass-1))),
