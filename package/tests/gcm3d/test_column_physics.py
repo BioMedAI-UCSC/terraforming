@@ -72,6 +72,41 @@ def test_coupled_column_rejects_invalid_surface_exchange_region():
         column_physics(**{**inputs(),'surface_exchange_start':4})
 
 
+def test_nonorographic_drag_uses_old_heights_after_terrain_before_convection(monkeypatch):
+    import importlib
+    module=importlib.import_module('src.framework.physics.column_physics')
+    from src.framework.physics.nonorographic_drag import initial_drag_state
+    from src.framework.physics.terrain_drag import hydrostatic_heights
+    kwargs=inputs();events=[];captured={}
+    terrain=module.terrain_tendencies;wave=module.gravity_wave_step;convection=module.pass2
+    def terrain_check(*args,**options):
+        events.append('terrain')
+        result=terrain(*args,**options)
+        captured['wind']=args[0]+kwargs['dt_seconds']*result.u_tendency
+        return result
+    def wave_check(t,p,z,u,*args,**options):
+        events.append('wave')
+        np.testing.assert_allclose(u,captured['wind'],rtol=1e-14)
+        old_z,_=hydrostatic_heights(kwargs['temperature'],kwargs['pressure_half'],kwargs['pressure_full'],
+            gas_constant=BODY.gas_constant_j_kg_k,gravity=BODY.gravity_m_s2,top_pressure_pa=.03)
+        np.testing.assert_array_equal(z,old_z)
+        result,state=wave(t,p,z,u,*args,**options)
+        captured['post_wave']=u+kwargs['dt_seconds']*result.u_tendency
+        return result,state
+    def convection_check(t,u,*args,**options):
+        events.append('convection')
+        np.testing.assert_array_equal(u,captured['post_wave'])
+        return convection(t,u,*args,**options)
+    monkeypatch.setattr(module,'terrain_tendencies',terrain_check)
+    monkeypatch.setattr(module,'gravity_wave_step',wave_check)
+    monkeypatch.setattr(module,'pass2',convection_check)
+    result=column_physics(**kwargs,terrain_drag_options=dict(top_pressure_pa=.03,terrain_std_m=100.),
+        nonorographic_drag_options=dict(top_pressure_pa=.03,source_index=3,source_amplitude=.08),
+        nonorographic_state=initial_drag_state(kwargs['u']))
+    assert events==['terrain','wave','convection']
+    assert result.nonorographic_state is not None
+
+
 def test_optional_drag_reheating_returns_removed_kinetic_energy():
     kwargs={**inputs(),'u':jnp.full(4,100.),'v':jnp.zeros(4),
         'rayleigh_options':dict(timescale=900.)}

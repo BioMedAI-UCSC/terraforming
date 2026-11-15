@@ -367,6 +367,8 @@ def run_maps(
                 radiation_update_seconds=options.get('radiation_update_seconds'),
                 initial_water_surface_kg_m2=initial_water,initial_water_vapor_ratio=initial_vapor,
                 moment_water=options.get('moment_water',False),
+                nonorographic_drag_options=options.get('nonorographic_drag_options'),
+                dust_background_options=options.get('dust_background_options'),
                 initial_dust_mass_ratio=initial_dust_mass,initial_dust_number_per_kg=initial_dust_number,
                 initial_dust_surface_kg_m2=initial_dust_surface)
         step=build_step(coords,specs,body,forcing,dt_seconds,orography=orography,

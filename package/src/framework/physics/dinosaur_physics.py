@@ -17,6 +17,9 @@ from src.framework.physics.water_moments import MOMENT_PARTICLE_TRACERS
 from src.framework.physics.particle_optics import dust_optics
 from src.framework.physics.radiation_grid import radiation_grid
 from src.framework.physics.dust_lifting import reference_efficiencies
+from src.framework.physics.dust_control import (LocalTimeState,seasonal_sample,local_time_step,
+    validate_local_time_scenario)
+from src.framework.physics.nonorographic_drag import DragState,initial_drag_state,source_parameters,schedule
 from src.framework.physics.gcm import (ColumnPhysicsTendencies,column_primitive_equations,
     initial_column_state,positivity_preserving_co2_step,surface_radiative_forcing,_true_anomaly)
 
@@ -57,7 +60,7 @@ def initial_state(dynamics,coords,specs,temperature_k=170.,soil_layers=16,*,bulk
                   initial_water_surface_kg_m2=0.,initial_water_vapor_ratio=0.,
                   radiation_update_seconds=None,moment_water=False,
                   initial_dust_mass_ratio=0.,initial_dust_number_per_kg=0.,
-                  initial_dust_surface_kg_m2=30.):
+                  initial_dust_surface_kg_m2=30.,nonorographic_drag_options=None,dust_background_options=None):
     """Initialize the existing column state with the reference soil node count."""
     if soil_layers<3:
         raise ValueError("Ames soil requires two evolving nodes and a fixed deep node")
@@ -72,6 +75,20 @@ def initial_state(dynamics,coords,specs,temperature_k=170.,soil_layers=16,*,bulk
         fields=dict(radiation_heating_k_s=jnp.zeros((len(coords.vertical.centers),)+shape[1:]),
             radiation_surface_down_w_m2=jnp.zeros(shape),radiation_initialized=jnp.zeros(shape),
             radiation_stratosphere_k=jnp.full(shape,170.))
+        state=state._replace(auxiliary_fields=fields)
+    if dust_background_options is not None and dust_background_options.get('local_time_scenario') is not None:
+        zero=jnp.zeros(state.surface_temperature.shape)
+        fields={} if state.auxiliary_fields is None else dict(state.auxiliary_fields)
+        fields.update(dust_local_time_opacity=zero,dust_local_time_bin=zero,
+            dust_local_time_initialized=jnp.asarray(0.))
+        state=state._replace(auxiliary_fields=fields)
+    if nonorographic_drag_options is not None:
+        template=jnp.zeros((len(coords.vertical.centers),*coords.horizontal.nodal_shape),dtype=state.surface_temperature.dtype)
+        drag=initial_drag_state(template,update_seconds=nonorographic_drag_options.get('update_seconds',0),
+            offset_seconds=nonorographic_drag_options.get('offset_seconds',0))
+        fields={} if state.auxiliary_fields is None else dict(state.auxiliary_fields)
+        fields.update(nonorographic_u_tendency_m_s2=drag.u_tendency,nonorographic_v_tendency_m_s2=drag.v_tendency,
+            nonorographic_alarm_seconds=drag.alarm_seconds,nonorographic_frequency_seconds=drag.frequency_seconds)
         state=state._replace(auxiliary_fields=fields)
     if not (bulk_water or moment_water): return state._replace(ground_temperature=ground)
     tracers={WATER_VAPOR_TRACER:coords.horizontal.to_modal(jnp.broadcast_to(
@@ -181,7 +198,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                terrain_drag_options=None,radiation_update_seconds=None,
                moment_water=False,moment_cloud_options=None,moment_sedimentation=True,
                dust_lifting_options=None,dust_optical_bands=12,dust_opacity_channel=1,
-               coagulation_options=None,dust_background_options=None):
+               coagulation_options=None,dust_background_options=None,nonorographic_drag_options=None):
     """Dinosaur dynamics followed by Ames-order reference gas-column physics.
 
     Supply a verified radiation component and mapped soil diffusivity. Keeping
@@ -198,18 +215,24 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
     if coagulation_options is not None and not moment_water:
         raise ValueError('dust coagulation requires initialized moment tracers')
     dust_control=dust_lifting_options is not None or dust_background_options is not None
-    background_scenario=None
+    background_scenario=None;local_time_scenario=None
     if dust_background_options is not None:
-        if dust_lifting_options is not None:
-            raise ValueError('combined interactive/background dust requires the separate dual-mode driver')
+        if dust_lifting_options is not None and dust_lifting_options.get('dual_mode',0)<=0:
+            raise ValueError('combined interactive/background dust requires a positive dual mode')
         dust_background_options=dict(dust_background_options)
         background_scenario=dust_background_options.pop('scenario',None)
         background_segment=dust_background_options.pop('segment',False)
+        local_time_scenario=dust_background_options.pop('local_time_scenario',None)
         if background_scenario is None or {'seasons','opacity'}-set(background_scenario):
             raise ValueError('background dust requires mapped seasonal opacity and solar-longitude axes')
         shape=np.shape(background_scenario['seasons'])
         if len(shape)!=1 or shape[0]<2 or np.shape(background_scenario['opacity'])!=(shape[0],*grid.nodal_shape):
             raise ValueError('background dust seasonal maps must match the Dinosaur nodal grid')
+        axis=np.asarray(background_scenario['seasons']);maps=np.asarray(background_scenario['opacity'])
+        if not np.all(np.isfinite(axis)) or np.any(np.diff(axis)<=0.) or axis[0]<0. or axis[-1]!=360. or not np.all(np.isfinite(maps)) or np.any(maps<0.):
+            raise ValueError('background dust requires increasing seasonal nodes ending at 360 and finite nonnegative opacity')
+        if local_time_scenario is not None:
+            validate_local_time_scenario(local_time_scenario,axis,grid.nodal_shape)
         dust_background_options.setdefault('extinction_efficiency',reference_efficiencies(
             dust_background_options.get('effective_radius_m',2e-6),bands=dust_optical_bands)[dust_opacity_channel-1])
     if dust_control:
@@ -222,6 +245,18 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             scheme='moment')
     sigma=np.asarray(coords.vertical.centers,dtype=float)
     dsigma=np.diff(np.asarray(coords.vertical.boundaries,dtype=float))
+    if nonorographic_drag_options is not None:
+        nonorographic_drag_options=dict(nonorographic_drag_options)
+        if 'top_pressure_pa' not in nonorographic_drag_options:
+            raise ValueError('non-orographic drag requires an explicit diagnostic top pressure')
+        schedule(nonorographic_drag_options.get('update_seconds',0),nonorographic_drag_options.get('offset_seconds',0))
+        source_options={name:nonorographic_drag_options.pop(name) for name in
+            ('source_pressure_pa','base_amplitude','equatorial_amplitude','equatorial_width')
+            if name in nonorographic_drag_options}
+        source_index,amplitude=source_parameters(sigma*body.reference_surface_pressure_pa,
+            jnp.asarray(grid.latitudes)[None,:],**source_options)
+        nonorographic_drag_options.setdefault('source_index',source_index)
+        nonorographic_drag_options.setdefault('source_amplitude',amplitude)
     below=np.flatnonzero(sigma/sigma[-1]<.991)
     exchange_start=max(0,int(below[-1])-2) if len(below) else 0
     dz=soil_layer_thickness(soil_layers)
@@ -264,6 +299,15 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             raise ValueError('interactive dust requires initialized reference-opacity history')
         if coagulation_options is not None and 'dust_coagulation_mass_change_kg_m2' not in state.auxiliary_fields:
             raise ValueError('dust coagulation requires the initialized mass-change ledger')
+        if nonorographic_drag_options is not None:
+            required={'nonorographic_u_tendency_m_s2','nonorographic_v_tendency_m_s2',
+                'nonorographic_alarm_seconds','nonorographic_frequency_seconds'}
+            if state.auxiliary_fields is None or required-set(state.auxiliary_fields):
+                raise ValueError('non-orographic drag requires initialized tendencies and timer state')
+        if local_time_scenario is not None:
+            required={'dust_local_time_opacity','dust_local_time_bin','dust_local_time_initialized'}
+            if state.auxiliary_fields is None or required-set(state.auxiliary_fields):
+                raise ValueError('local-time dust requires initialized opacity and bin history')
         if radiation_update_seconds is not None:
             required={'radiation_heating_k_s','radiation_surface_down_w_m2',
                 'radiation_initialized','radiation_stratosphere_k'}
@@ -335,22 +379,34 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                     jnp.sum((optics.infrared[0]-optics.infrared[1])[:,ir_index],axis=0)])
             dust_depth=(dust_diagnostic(None) if radiation_update_seconds is None else
                 jax.lax.cond(refresh,dust_diagnostic,lambda _:predicted.auxiliary_fields['dust_reference_opacity'],None))
-        background_options=None
+        background_options=None;local_time_fields=None
         if background_scenario is not None:
             axis=jnp.asarray(background_scenario['seasons'])
             maps=jnp.asarray(background_scenario['opacity'])
             ls=jnp.mod((_true_anomaly(predicted.dynamics.sim_time*time_scale,forcing)+
                 forcing.ls_perihelion_rad)*180./jnp.pi,360.)
-            upper=jnp.clip(jnp.searchsorted(axis,ls,side='right'),0,len(axis)-1)
-            lower=jnp.mod(upper-1,len(axis))
-            width=axis[upper]-axis[lower];width=jnp.where(width<0.,width+360.,width)
-            weight=(axis[upper]-ls)/width
-            opacity=maps[upper] if background_segment else weight*maps[lower]+(1.-weight)*maps[upper]
-            background_options={**dust_background_options,'scenario_opacity':opacity,
-                'scenario_change':maps[upper]-maps[lower]}
+            opacity,change,_,_=seasonal_sample(axis,maps,ls,segment=background_segment)
+            background_options={**dust_background_options,'scenario_opacity':opacity,'scenario_change':change}
+            if local_time_scenario is not None:
+                fields=predicted.auxiliary_fields
+                history=LocalTimeState(fields['dust_local_time_opacity'][0],fields['dust_local_time_bin'][0])
+                arguments=(maps,local_time_scenario['fractions'],axis,local_time_scenario['bins_hours'],
+                    ls,jnp.asarray(grid.longitudes)[:,None],predicted.dynamics.sim_time*time_scale/forcing.rotation_period_s)
+                local_opacity,fraction,history=jax.lax.cond(fields['dust_local_time_initialized']>0.,
+                    lambda _:local_time_step(*arguments,history),lambda _:local_time_step(*arguments,None),None)
+                background_options.update(scenario_opacity=local_opacity,local_time_fraction=fraction,
+                    dual_scenario_opacity=opacity)
+                local_time_fields=dict(dust_local_time_opacity=history.opacity[None],
+                    dust_local_time_bin=history.bin_index[None].astype(fields['dust_local_time_bin'].dtype),
+                    dust_local_time_initialized=jnp.asarray(1.))
         soil=jnp.concatenate([predicted.surface_temperature,predicted.ground_temperature],axis=0)
         frost=predicted.co2_ice[0]*pressure_scale/body.gravity_m_s2
         water_state=None
+        gravity_wave_state=None
+        if nonorographic_drag_options is not None:
+            fields=predicted.auxiliary_fields
+            gravity_wave_state=DragState(fields['nonorographic_u_tendency_m_s2'],fields['nonorographic_v_tendency_m_s2'],
+                fields['nonorographic_alarm_seconds'],fields['nonorographic_frequency_seconds'])
         if water_cycle:
             fields=predicted.auxiliary_fields
             water_state=BulkWaterColumnState(gas_names.index(WATER_VAPOR_TRACER),
@@ -380,7 +436,8 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             dust_lifting_options=dust_lifting_options,
             dust_lifting_opacity=None if dust_depth is None else dust_depth[dust_opacity_channel-1],
             surface_dust_kg_m2=None if not moment_water else predicted.auxiliary_fields['dust_surface_kg_m2'][0],
-            coagulation_options=coagulation_options,dust_background_options=background_options)
+            coagulation_options=coagulation_options,dust_background_options=background_options,
+            nonorographic_drag_options=nonorographic_drag_options,nonorographic_state=gravity_wave_state)
         columns={name:column.gas_tracers[...,i] for i,name in enumerate(gas_names)}
         if cloud_ratio is not None:
             columns[CO2_CLOUD_TRACER]=(column.suspended_co2_ice_ratio
@@ -418,6 +475,8 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             tracers={name:dyn.tracers[name]+grid.to_modal(q[...,i]-tracers[...,i])
                 for i,name in enumerate(names)})
         auxiliary=predicted.auxiliary_fields
+        if local_time_fields is not None:
+            auxiliary={**auxiliary,**local_time_fields}
         if radiation_fields is not None:
             auxiliary={**auxiliary,**radiation_fields}
         if water_cycle:
@@ -433,6 +492,11 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                 column_change=jnp.sum(mass_change*jnp.diff(half,axis=0)/body.gravity_m_s2,axis=0)
                 auxiliary={**auxiliary,'dust_coagulation_mass_change_kg_m2':
                     auxiliary['dust_coagulation_mass_change_kg_m2']+column_change[None]}
+        if nonorographic_drag_options is not None:
+            drag=column.nonorographic_state
+            auxiliary={**({} if auxiliary is None else auxiliary),
+                'nonorographic_u_tendency_m_s2':drag.u_tendency,'nonorographic_v_tendency_m_s2':drag.v_tendency,
+                'nonorographic_alarm_seconds':drag.alarm_seconds,'nonorographic_frequency_seconds':drag.frequency_seconds}
         return predicted._replace(dynamics=dynamics,surface_temperature=column.soil[:1],
             ground_temperature=column.soil[1:],co2_ice=(column.co2_ice_kg_m2*body.gravity_m_s2/pressure_scale)[None],
             surface_momentum=predicted.surface_momentum+impulse,auxiliary_fields=auxiliary)

@@ -49,3 +49,21 @@ def test_collapsed_pbl_devils_have_finite_limits_and_gradients():
     objective=lambda t:devil_flux(t,260.,500.,500.,3,3,20.,.5,0.,0.,dda=True,dth=True)
     assert np.isfinite(objective(230.))
     assert np.isfinite(jax.grad(objective)(230.))
+
+
+@pytest.mark.parametrize('mode',[1,2,21])
+def test_dual_opacity_gate_preserves_strict_boundary_and_both_sources(mode):
+    half=jnp.array([0.,50.,200.,400.,610.]);full=.5*(half[:-1]+half[1:])
+    def lift(opacity):
+        return interactive_step(jnp.full(4,1e-5),jnp.full(4,1e8),jnp.full(4,230.),
+            half,full,260.,.05,20.,1,200.,.5,0.,0.,opacity,30.,300.,
+            dual_mode=mode,dual_scale=.5,scenario_opacity=.2)
+    boundary=lift(.1);above=lift(.10001)
+    assert boundary.diagnostics['devil_lift_kg_m2']>0.
+    assert boundary.diagnostics['stress_lift_kg_m2']>0.
+    if mode in (1,21):
+        assert above.diagnostics['devil_lift_kg_m2']==0.
+        assert above.diagnostics['stress_lift_kg_m2']==0.
+        assert above.surface_dust_kg_m2==30.
+    else:
+        assert above.surface_dust_kg_m2<30.

@@ -18,6 +18,7 @@ from src.framework.physics.water_moments import subcycled_cloud_step
 from src.framework.physics.particle_sedimentation import sedimentation_step
 from src.framework.physics.dust_lifting import interactive_step as dust_lifting_step,background_step
 from src.framework.physics.dust_coagulation import coagulation_step
+from src.framework.physics.nonorographic_drag import driver_step as gravity_wave_step
 from src.framework.physics.water_surface import (surface_exchange as water_surface_exchange,
     optical_properties as water_optical_properties)
 
@@ -42,6 +43,7 @@ class ColumnResult(NamedTuple):
     suspended_co2_ice_ratio: object = None
     bulk_water: object = None
     moment_particles: object = None
+    nonorographic_state: object = None
 
 
 def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
@@ -55,7 +57,8 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
                    water_radiative_options=None,terrain_drag_options=None,
                    moment_particles=None,moment_cloud_options=None,moment_sedimentation=True,
                    dust_lifting_options=None,dust_lifting_opacity=None,surface_dust_kg_m2=None,
-                   coagulation_options=None,dust_background_options=None):
+                   coagulation_options=None,dust_background_options=None,
+                   nonorographic_drag_options=None,nonorographic_state=None):
     """Rayleigh/PBL, soil/frost, CO2 deposition or suspended clouds, convection.
 
     This is the standard present-Mars gas-column process order. Tracers here
@@ -140,6 +143,21 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
             gravity=body.gravity_m_s2,**options)
         u=u+dt_seconds*factor*terrain.u_tendency
         v=v+dt_seconds*factor*terrain.v_tendency
+    nonorographic=None
+    if nonorographic_drag_options is not None:
+        if nonorographic_state is None:
+            raise ValueError('non-orographic drag requires initialized forcing and timer state')
+        options=dict(nonorographic_drag_options)
+        z,_=hydrostatic_heights(temperature,pressure_half,pressure_full,
+            gas_constant=body.gas_constant_j_kg_k,gravity=body.gravity_m_s2,
+            top_pressure_pa=options.pop('top_pressure_pa'))
+        source_index=options.pop('source_index');source_amplitude=options.pop('source_amplitude')
+        nonorographic,nonorographic_state=gravity_wave_step(t,pressure_full,z,u,v,
+            source_index,source_amplitude,dt_seconds,nonorographic_state,
+            gas_constant=body.gas_constant_j_kg_k,gravity=body.gravity_m_s2,cp=body.cp_j_kg_k,**options)
+        u=u+dt_seconds*nonorographic.u_tendency
+        v=v+dt_seconds*nonorographic.v_tendency
+        t=t+dt_seconds*nonorographic.heating_k_s
     gas_count=r.shape[-1]
     particles=[]
     if cloud is not None: particles.append(cloud.ice_ratio[...,None])
@@ -169,12 +187,18 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
                 speed=jnp.where(speed_squared>0.,jnp.sqrt(jnp.where(speed_squared>0.,speed_squared,1.)),0.)
                 stress=drag*speed
                 p_pbl=jnp.take_along_axis(pressure_full,pbl_top[None],axis=0)[0]
+                lifting_options=dict(dust_lifting_options)
+                if dust_background_options is not None:
+                    if lifting_options.get('dual_mode',0)<=0:
+                        raise ValueError('combined interactive/background dust requires a positive dual mode')
+                    lifting_options['scenario_opacity']=dust_background_options.get('dual_scenario_opacity',
+                        dust_background_options['scenario_opacity'])
                 lifted=dust_lifting_step(moment_particles[...,0],moment_particles[...,1],t,
                     pressure_half,pressure_full,ground[0],stress,pbl['heat_flux_w_m2'],pbl_top,p_pbl,
                     latitude_rad,snow,water_exchange.surface_water_kg_m2,
                     jnp.maximum(dust_lifting_opacity/pressure_full[-1]*610.,1e-10),
                     surface_dust_kg_m2,dt_seconds,gravity=body.gravity_m_s2,
-                    gas_constant=body.gas_constant_j_kg_k,cp=body.cp_j_kg_k,**dust_lifting_options)
+                    gas_constant=body.gas_constant_j_kg_k,cp=body.cp_j_kg_k,**lifting_options)
                 moment_particles=moment_particles.at[...,0].set(lifted.mass_ratio)
                 moment_particles=moment_particles.at[...,1].set(lifted.number_ratio)
                 surface_dust_kg_m2=lifted.surface_dust_kg_m2
@@ -184,7 +208,8 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
                 background=background_step(moment_particles[...,0],moment_particles[...,1],pressure_half,
                     pbl_top,ground[0],snow,jnp.maximum(dust_lifting_opacity/pressure_full[-1]*610.,1e-10),
                     surface_dust_kg_m2=surface_dust_kg_m2,dt_seconds=dt_seconds,
-                    gravity=body.gravity_m_s2,**dust_background_options)
+                    gravity=body.gravity_m_s2,**{key:value for key,value in dust_background_options.items()
+                        if key!='dual_scenario_opacity'})
                 moment_particles=moment_particles.at[...,0].set(background.mass_ratio)
                 moment_particles=moment_particles.at[...,1].set(background.number_ratio)
                 surface_dust_kg_m2=background.surface_dust_kg_m2
@@ -267,6 +292,7 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
         co2_cloud=cloud_diagnostics,
         bulk_water=water_diagnostics,
         terrain_drag={} if terrain is None else dict(terrain._asdict()),
+        nonorographic_drag={} if nonorographic is None else nonorographic.diagnostics,
         rayleigh=dict(u_tendency_m_s2=du,v_tendency_m_s2=dv,dissipated_heat_k=drag_heat,
             reheating_enabled=conserve_drag_energy))
-    return ColumnResult(t,u,v,r,ground,snow+precip,mass,diagnostics,suspended,bulk_water,moment_particles)
+    return ColumnResult(t,u,v,r,ground,snow+precip,mass,diagnostics,suspended,bulk_water,moment_particles,nonorographic_state)

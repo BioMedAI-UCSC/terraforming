@@ -1,0 +1,18 @@
+The nonorographic_drag.py library module is adapted from NOAA-GFDL atmos_phys,
+atmos_param/cg_drag/cg_drag.F90, revision 46817a1, Git blob
+fa555275885d8038641f3b99c7f284f84ff64516.
+https://github.com/NOAA-GFDL/atmos_phys/tree/46817a1
+
+The upstream library is licensed under GNU LGPL version 3. The adapted Python
+module is supplied in source form and can be replaced or modified separately.
+See LGPL-3.0.txt and GPL-3.0.txt in this directory.
+
+The Mars parameter changes follow NASA Ames GCM v3.2.1,
+patches/srcatmos_phys.patch, revision ba47cada5f9eb89c75c4f10d06dbae6e7f9ecb26.
+Copyright 2023 United States Government, as represented by the Administrator of
+the National Aeronautics and Space Administration. Those patches are supplied
+under the Apache License, version 2.0. See Apache-2.0.txt in this directory.
+
+The wave forcing follows Alexander and Dunkerton (1999), as in the upstream
+implementation by M. J. Alexander and L. Bruhwiler. The JAX adaptation retains
+the source equations; its native comparison identifies numerical adaptations.

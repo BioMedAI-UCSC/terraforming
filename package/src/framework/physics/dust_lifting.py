@@ -101,12 +101,13 @@ def interactive_step(mass_ratio,number_ratio,temperature,pressure_half,pressure_
                      stress_radius_m=2e-6,devil_radius_m=2e-6,limited_reservoir=False,
                      initial_surface_dust_kg_m2=30.,reservoir_factor=20.,threshold_stress=.022,
                      threshold_decrease=1e-11,devil_threshold_increase=.2,gravity=3.72,
-                     gas_constant=189.02,cp=735.94):
+                     gas_constant=189.02,cp=735.94,dual_mode=0,dual_scale=1.,scenario_opacity=None):
     """One physical dust mode: source devil/stress order and reservoir feedback.
 
     The unlimited source reservoir may become negative, as in the reference.
     Limited-reservoir mode changes the stress threshold; it does not cap mass.
-    Background scenario control, dual modes and tagged copies are separate.
+    Dual modes 1 and 21 suppress lifting above the scenario opacity target.
+    Background injection follows this step and uses the same old opacity.
     """
     q,n,t,p,full,ts,top,reservoir=map(jnp.asarray,(mass_ratio,number_ratio,temperature,
         pressure_half,pressure_full,temperature_surface,pbl_top_layer,surface_dust_kg_m2))
@@ -114,6 +115,11 @@ def interactive_step(mass_ratio,number_ratio,temperature,pressure_half,pressure_
         raise ValueError('dust and atmosphere grids must match')
     if len(fixed_layers)!=2 or not 0<=fixed_layers[0]<=fixed_layers[1]<t.shape[0]:
         raise ValueError('fixed dust layers must be ordered bottom offsets within the column')
+    if not isinstance(dual_mode,int) or dual_mode<0:
+        raise ValueError('dual dust mode must be a nonnegative integer')
+    if dual_mode in (1,21) and scenario_opacity is None:
+        raise ValueError('opacity-constrained dust lifting requires a scenario opacity')
+    blocked=(dual_scale*jnp.asarray(scenario_opacity)-opacity<0.) if dual_mode in (1,21) else False
     q,n=jnp.maximum(q,1e-31),jnp.maximum(n,1e-31)
     layer_mass=jnp.diff(p,axis=0)/gravity
     def inject(q,n,amount,radius,pbl):
@@ -124,6 +130,7 @@ def interactive_step(mass_ratio,number_ratio,temperature,pressure_half,pressure_
         devil=devil_flux(t[-1],ts,full[-1],pressure_pbl,top,t.shape[0]-1,sensible_heat_flux,
             latitude_rad,snow,frost,gas_constant=gas_constant,cp=cp,gravity=gravity,
             **({} if devil_options is None else devil_options))
+        devil=jnp.where(blocked,0.,devil)
         if limited_reservoir:
             increase=threshold_stress*jnp.expm1(2.*reservoir_factor*(initial_surface_dust_kg_m2-reservoir))
             devil=jnp.where(increase>devil_threshold_increase,0.,devil)
@@ -136,6 +143,7 @@ def interactive_step(mass_ratio,number_ratio,temperature,pressure_half,pressure_
             threshold=threshold_stress*jnp.exp(2.*reservoir_factor*(initial_surface_dust_kg_m2-reservoir))-threshold_decrease*dt_seconds
         wind=stress_flux(stress,threshold,full[-1]/(gas_constant*t[-1]),latitude_rad,snow,frost,opacity,
             gravity=gravity,**({} if stress_options is None else stress_options))
+        wind=jnp.where(blocked,0.,wind)
         wind=jnp.maximum(wind*dt_seconds,0.)
         q,n=inject(q,n,wind,stress_radius_m,inject_pbl_stress)
         reservoir=reservoir-wind

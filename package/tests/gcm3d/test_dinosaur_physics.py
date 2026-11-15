@@ -70,7 +70,7 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
                  radiation_component=None,wind_speed=0.,suspended_co2_clouds=False,
                  bulk_water=False,initial_water_surface_kg_m2=0.,moment_water=False,
                  dust_lifting_options=None,initial_water_vapor_ratio=1e-6,coagulation_options=None,
-                 dust_background_options=None):
+                 dust_background_options=None,nonorographic_drag_options=None):
     from src.framework.gcm.coordinates import coordinate_system
     from src.framework.gcm.specs import physics_specs
     from src.framework.gcm._dinosaur import primitive_equations,scales
@@ -94,7 +94,8 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
         dyn=dataclasses.replace(dyn,vorticity=vor,divergence=div)
     state=initial_state(dyn,coords,specs,temperature_k=surface_temperature_k,bulk_water=bulk_water,
         initial_water_surface_kg_m2=initial_water_surface_kg_m2,initial_water_vapor_ratio=initial_water_vapor_ratio,
-        moment_water=moment_water,initial_dust_mass_ratio=1e-5,initial_dust_number_per_kg=1e8)
+        moment_water=moment_water,initial_dust_mass_ratio=1e-5,initial_dust_number_per_kg=1e8,
+        nonorographic_drag_options=nonorographic_drag_options,dust_background_options=dust_background_options)
     forcing=(radiative_forcing(co2_radiation_enabled=True) if radiation_component is None else
         reference_radiative_forcing())
     radiation=two_stream_radiative_fluxes if radiation_component is None else radiation_component
@@ -103,8 +104,42 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
         suspended_co2_clouds=suspended_co2_clouds,bulk_water=bulk_water,moment_water=moment_water,
         moment_cloud_options=dict(latent_heat=True,microtimestep=1.),
         dust_lifting_options=dust_lifting_options,dust_optical_bands=15,coagulation_options=coagulation_options,
-        dust_background_options=dust_background_options)
+        dust_background_options=dust_background_options,nonorographic_drag_options=nonorographic_drag_options)
     return state,step,grid
+
+
+def test_nonorographic_drag_global_timer_and_restart(tmp_path):
+    from src.framework.gcm.restart import save_restart,load_restart
+    options=dict(top_pressure_pa=.03,update_seconds=15,offset_seconds=5,conserve_energy=True)
+    state,step,_=backend_case(temperature_k=200.,surface_temperature_k=200.,wind_speed=40.,
+        nonorographic_drag_options=options)
+    tick=jax.jit(step);first=tick(state)
+    assert all(np.isfinite(x).all() for x in jax.tree.leaves(first))
+    saved=first.auxiliary_fields['nonorographic_u_tendency_m_s2']
+    assert float(jnp.max(jnp.abs(saved)))>0.
+    assert first.auxiliary_fields['nonorographic_alarm_seconds']==15.
+    second=tick(first)
+    np.testing.assert_array_equal(saved,second.auxiliary_fields['nonorographic_u_tendency_m_s2'])
+    assert second.auxiliary_fields['nonorographic_alarm_seconds']==10.
+    restored=load_restart(save_restart(second,tmp_path/'gravity-wave.npz'))
+    for a,b in zip(jax.tree.leaves(tick(second)),jax.tree.leaves(tick(restored)),strict=True):
+        np.testing.assert_array_equal(a,b)
+    assert tick(tick(second)).auxiliary_fields['nonorographic_alarm_seconds']==15.
+
+
+def test_nonorographic_drag_global_multistep_reverse_derivative():
+    state,step,_=backend_case(temperature_k=200.,surface_temperature_k=200.,wind_speed=40.,
+        nonorographic_drag_options=dict(top_pressure_pa=.03,update_seconds=15,offset_seconds=5,
+            conserve_energy=True))
+    def objective(offset):
+        initial=state._replace(surface_temperature=state.surface_temperature+offset)
+        final,_=jax.lax.scan(lambda s,_:(step(s),None),initial,None,length=3)
+        return jnp.mean(final.surface_temperature)+1e3*jnp.mean(final.auxiliary_fields['nonorographic_u_tendency_m_s2'])
+    auto=jax.jit(jax.grad(objective))(0.);forward=jax.jit(objective)
+    assert np.isfinite(auto) and abs(float(auto))>1e-6
+    for epsilon in (1e-3,1e-4):
+        fd=(forward(epsilon)-forward(-epsilon))/(2.*epsilon)
+        np.testing.assert_allclose(auto,fd,rtol=2e-5,atol=2e-7)
 
 
 def test_dinosaur_backend_runs_cold_column_and_preserves_total_inventory():
@@ -230,7 +265,8 @@ def test_bulk_water_backend_multistep_reverse_derivative():
 
 
 @pytest.mark.parametrize('interactive,coagulation,background',[
-    (False,False,False),(True,False,False),(True,True,False),(False,False,True)])
+    (False,False,False),(True,False,False),(True,True,False),(False,False,True),
+    (True,True,True),(True,True,'local')])
 def test_moment_water_cloud_feedback_material_and_restart(tmp_path,interactive,coagulation,background):
     from src.framework.physics.water_bulk import WATER_CLOUD_TRACER,WATER_VAPOR_TRACER
     from src.framework.physics.particle_optics import make_particle_provider
@@ -245,13 +281,21 @@ def test_moment_water_cloud_feedback_material_and_restart(tmp_path,interactive,c
     coords=coordinate_system('T21',4)
     scenario=dict(seasons=jnp.array([0.,90.,180.,270.,360.]),
         opacity=jnp.full((5,*coords.horizontal.nodal_shape),2.))
+    background_options=dict(scenario=scenario) if background else None
+    if background=='local':
+        background_options['local_time_scenario']=dict(seasons=scenario['seasons'],bins_hours=[0.,12.,24.],
+            fractions=jnp.full((5,*coords.horizontal.nodal_shape,2),.5))
     state,step,grid=backend_case(temperature_k=170.,surface_temperature_k=180.,
         moment_water=True,return_diagnostics=True,radiation_component=radiation,
-        wind_speed=40. if interactive else 0.,dust_lifting_options={} if interactive else None,
+        wind_speed=40. if interactive else 0.,
+        dust_lifting_options=(dict(dual_mode=1) if background else {}) if interactive else None,
         coagulation_options={} if coagulation else None,
-        dust_background_options=dict(scenario=scenario) if background else None)
+        dust_background_options=background_options)
     tick=jax.jit(step);first,d=tick(state)
     assert all(np.isfinite(x).all() for x in jax.tree.leaves(first))
+    if background=='local':
+        assert first.auxiliary_fields['dust_local_time_initialized']==1.
+        assert np.any(first.auxiliary_fields['dust_local_time_opacity']>0.)
     assert float(jnp.max(grid.to_nodal(first.dynamics.tracers[WATER_CLOUD_TRACER])))>0.
     np.testing.assert_allclose(d.raw_water_mass_kg,d.target_water_mass_kg,rtol=3e-11)
     np.testing.assert_allclose(d.corrected_water_mass_kg,d.target_water_mass_kg,rtol=3e-11)
@@ -282,7 +326,7 @@ def test_moment_water_cloud_feedback_material_and_restart(tmp_path,interactive,c
         np.testing.assert_array_equal(a,b)
 
 
-@pytest.mark.parametrize('interactive,background',[(False,False),(True,False),(False,True)])
+@pytest.mark.parametrize('interactive,background',[(False,False),(True,False),(False,True),(True,True),(True,'local')])
 def test_moment_cloud_multistep_reverse_derivative(interactive,background):
     from src.framework.physics.water_bulk import WATER_CLOUD_TRACER,WATER_VAPOR_TRACER
     from src.framework.physics.particle_optics import make_particle_provider
@@ -295,10 +339,14 @@ def test_moment_cloud_multistep_reverse_derivative(interactive,background):
     coords=coordinate_system('T21',4)
     scenario=dict(seasons=jnp.array([0.,90.,180.,270.,360.]),
         opacity=jnp.full((5,*coords.horizontal.nodal_shape),2.))
+    background_options=dict(scenario=scenario) if background else None
+    if background=='local':
+        background_options['local_time_scenario']=dict(seasons=scenario['seasons'],bins_hours=[0.,12.,24.],
+            fractions=jnp.full((5,*coords.horizontal.nodal_shape,2),.5))
     state,step,grid=backend_case(temperature_k=170.,surface_temperature_k=180.,
         moment_water=True,radiation_component=radiation,wind_speed=40. if interactive else 0.,
-        dust_lifting_options={} if interactive else None,
-        dust_background_options=dict(scenario=scenario) if background else None,
+        dust_lifting_options=(dict(dual_mode=1) if background else {}) if interactive else None,
+        dust_background_options=background_options,
         # Keep the derivative probe within one source water-mixture bin.
         initial_water_vapor_ratio=1.1e-6)
     def objective(amplitude):

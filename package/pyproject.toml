@@ -35,7 +35,7 @@ where = ["."]
 include = ["src*"]
 
 [tool.setuptools.package-data]
-"src.framework.physics" = ["*.npz"]
+"src.framework.physics" = ["*.npz", "licenses/*.txt"]
 "src.interventions.aerosols" = ["assets/*.csv", "assets/*.json"]
 
 [tool.pytest.ini_options]

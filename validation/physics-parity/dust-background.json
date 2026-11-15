@@ -2,7 +2,7 @@
   "status": "pass",
   "reference": {
     "source_git_blob": "1e470cc1efb44c6627cbe3168c69c2d1f7640570",
-    "compiled_source_sha256": "a5117449a5f7d42f2842b5fd3102bfc96967caad168045c9151a55fef31d80a4",
+    "compiled_source_sha256": "d0427a045b6a10484e099dbc391bfabca91246f0b4fe600017144781c97fc477",
     "routine_sha256": {
       "flux_stress": "d6d521999c51fabb7fc8d97da2ab3eb79f31c5b55915bd3167d94a50dac7056f"
     },
@@ -1469,10 +1469,10 @@
   ],
   "sha256": {
     "scripts/validate_dust_background.py": "5402e7e8956d70510ae8b38b246a54e0f767a0d8c5e94a8d3fb7015d7e067c17",
-    "scripts/validate_dust_lifting.py": "c148396e323f12ce3a55dcf861e17a9a9e472159c786b51f4cf65b442e37e2a1",
+    "scripts/validate_dust_lifting.py": "0848196125d5763434233e8c0dd5cea8749c8fa0b123c8e4825e11a2e0b960b1",
     "scripts/native_reference.py": "2e3b0e2f65b685f86fcfdd1b4643b54c5582b81af36a0874a43d9eedc2675d76",
     "scripts/validate_particle_optics.py": "11dbfdf70bd83d08775dcaece9d306bcbe8d6e39670b4bd7d728296d8f7f67f6",
-    "package/src/framework/physics/dust_lifting.py": "a8e1428d36c305559fd4c571af3d65e12a783043e2271e2f528ca3f666384691",
+    "package/src/framework/physics/dust_lifting.py": "793454b10cef9deaf2203311e8dda4eeacec17f4650cc14f456a9c51c3f0f75a",
     "package/src/framework/physics/particle_optics.py": "125ec57c6d71d99082eb31b98b64be357c3287c721e4b73b149311852138895f",
     "package/src/framework/physics/particle_optical_tables.npz": "ae3328d6cabec02bf75f60e749a35985a397ca537e05536573cfc781117c330f"
   },

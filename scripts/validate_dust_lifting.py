@@ -14,14 +14,14 @@ from native_reference import compile_routines,extract_routines
 BLOB='1e470cc1efb44c6627cbe3168c69c2d1f7640570'
 
 
-def compile_reference(source,destination,compiler,background=False):
+def compile_reference(source,destination,compiler,background=False,combined=False):
     path=source/'atmos_param_mars/dust_update.F90'
     routines,_=extract_routines(path,BLOB,['dust_update'])
     text=path.read_text();routine=routines[0]
     declarations=text[text.index('logical,public :: firstcall'):text.index('namelist /dust_update_nml/')]
     local=routine[routine.index('! -----Local'):routine.index('mcpu0 =')]
     opening='if (Background) then' if background else 'if (interact) then'
-    closing='endif ! End of background test' if background else 'endif ! end interact'
+    closing='endif ! End of background test' if background or combined else 'endif ! end interact'
     start=routine.index(opening)
     stop=routine.index(closing,start)+len(closing)
     block=routine[start:stop]
@@ -50,6 +50,11 @@ send_data=.false.
 end function
 """
     adapter="""
+subroutine dual_config(mode,scale) bind(C)
+integer(c_int),value :: mode
+real(c_double),value :: scale
+dual_mode=mode;dual_scale=scale
+end subroutine
 subroutine background_config(options,flags) bind(C)
 real(c_double),intent(in) :: options(8)
 integer(c_int),intent(in) :: flags(4)
@@ -91,11 +96,13 @@ source_dd=0;source_ws=0;source_bg=0;dmcol=0;dncol=0;dccol=0
 masspbl=sum(delp(:,:,top+1:n),dim=3)/grav
 masspblfix=delp(:,:,n)/grav
 """
-    if background:
-        adapter+="""interact=.false.;Background=.true.;Time=0;i=1;j=1
+    if background or combined:
+        adapter+="""Background=.true.;Time=0;i=1;j=1
 tau_scenario=bg_options(1);dtau=bg_options(2);tauscale=bg_options(3);injscale=bg_options(4)
 qext_dt=bg_options(5);reff_mom=bg_options(6);injec_type=int(bg_options(7));sinkscale=bg_options(8)
+dtau_current=dual_scale*tau_scenario-tau_current
 """
+    if background: adapter+='interact=.false.\n'
     adapter+=block+"""
 do k=1,n
  outq(k,:)=rnew(1,1,k,:)
@@ -115,7 +122,8 @@ end module
         local_declarations_sha256=hashlib.sha256(local.encode()).hexdigest(),
         adaptation='Unchanged flux_stress body and contiguous '+opening+' source block; '
             'single-column input/output adapter; RELEASE preprocessing; '+
-            ('interactive/dual/tag modes excluded' if background else 'background/dual/tag modes excluded'))
+            ('combined interactive/background source blocks; tags excluded' if combined else
+             'interactive/dual/tag modes excluded' if background else 'background/dual/tag modes excluded'))
     native=ctypes.CDLL(str(library))
     array=np.ctypeslib.ndpointer(dtype=np.float64,flags='F_CONTIGUOUS')
     integers=np.ctypeslib.ndpointer(dtype=np.int32,flags='F_CONTIGUOUS')
@@ -123,6 +131,8 @@ end module
     native.interactive.restype=None
     native.background_config.argtypes=[array,np.ctypeslib.ndpointer(dtype=np.int32,flags='F_CONTIGUOUS')]
     native.background_config.restype=None
+    native.dual_config.argtypes=[ctypes.c_int,ctypes.c_double]
+    native.dual_config.restype=None
     return native,provenance
 
 
