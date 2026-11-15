@@ -16,7 +16,7 @@ from src.framework.physics.co2_microphysics import cloud_step,phase_change,trans
 from src.framework.physics.water_bulk import cloud_step as water_cloud_step
 from src.framework.physics.water_moments import subcycled_cloud_step
 from src.framework.physics.particle_sedimentation import sedimentation_step
-from src.framework.physics.dust_lifting import interactive_step as dust_lifting_step
+from src.framework.physics.dust_lifting import interactive_step as dust_lifting_step,background_step
 from src.framework.physics.dust_coagulation import coagulation_step
 from src.framework.physics.water_surface import (surface_exchange as water_surface_exchange,
     optical_properties as water_optical_properties)
@@ -55,7 +55,7 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
                    water_radiative_options=None,terrain_drag_options=None,
                    moment_particles=None,moment_cloud_options=None,moment_sedimentation=True,
                    dust_lifting_options=None,dust_lifting_opacity=None,surface_dust_kg_m2=None,
-                   coagulation_options=None):
+                   coagulation_options=None,dust_background_options=None):
     """Rayleigh/PBL, soil/frost, CO2 deposition or suspended clouds, convection.
 
     This is the standard present-Mars gas-column process order. Tracers here
@@ -67,7 +67,7 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
     if not isinstance(surface_exchange_start,int) or not 0<=surface_exchange_start<temperature.shape[0]:
         raise ValueError("surface mass exchange start must be a valid layer index")
     initial_wind=(u,v)
-    if moment_particles is None and (dust_lifting_options is not None or coagulation_options is not None):
+    if moment_particles is None and (dust_lifting_options is not None or coagulation_options is not None or dust_background_options is not None):
         raise ValueError('dust lifting and coagulation require physical moment particles')
     initial_moments=None
     if moment_particles is not None:
@@ -178,6 +178,16 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
                 moment_particles=moment_particles.at[...,0].set(lifted.mass_ratio)
                 moment_particles=moment_particles.at[...,1].set(lifted.number_ratio)
                 surface_dust_kg_m2=lifted.surface_dust_kg_m2
+            if dust_background_options is not None:
+                if dust_lifting_opacity is None or surface_dust_kg_m2 is None:
+                    raise ValueError('background dust requires reference opacity and a surface reservoir')
+                background=background_step(moment_particles[...,0],moment_particles[...,1],pressure_half,
+                    pbl_top,ground[0],snow,jnp.maximum(dust_lifting_opacity/pressure_full[-1]*610.,1e-10),
+                    surface_dust_kg_m2=surface_dust_kg_m2,dt_seconds=dt_seconds,
+                    gravity=body.gravity_m_s2,**dust_background_options)
+                moment_particles=moment_particles.at[...,0].set(background.mass_ratio)
+                moment_particles=moment_particles.at[...,1].set(background.number_ratio)
+                surface_dust_kg_m2=background.surface_dust_kg_m2
             if coagulation_options is not None:
                 coagulated=coagulation_step(t,pressure_full,moment_particles[...,0,None],
                     moment_particles[...,1,None],dt_seconds,gravity=body.gravity_m_s2,
@@ -221,6 +231,8 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
             water_diagnostics['moment_cloud']=dict(moment_result._asdict())
             if dust_lifting_options is not None:
                 water_diagnostics['dust_lifting']=lifted.diagnostics
+            if dust_background_options is not None:
+                water_diagnostics['dust_background']=background.diagnostics
             if coagulation_options is not None:
                 water_diagnostics['dust_coagulation']=coagulated.diagnostics
             if moment_sedimentation:

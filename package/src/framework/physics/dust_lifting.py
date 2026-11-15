@@ -4,7 +4,7 @@ NASA-derived algorithms: Copyright 2023 United States Government as represented
 by NASA. NASA Open Source Agreement 1.3; see the repository's reference license.
 """
 from typing import NamedTuple
-from src.framework.gcm._dinosaur import jnp
+from src.framework.gcm._dinosaur import jax,jnp
 
 
 def stress_flux(stress,threshold,density,latitude_rad,snow,frost,opacity,*,scheme=1,
@@ -69,6 +69,30 @@ class LiftingResult(NamedTuple):
     diagnostics: object
 
 
+def reference_efficiencies(effective_radius_m=2e-6,*,bands=12):
+    """Original initracer fixed-radius VIS extinction and IR absorption."""
+    from src.framework.physics.particle_optics import load_tables,_distribution,_average
+    if bands not in (12,15): raise ValueError('dust optical tables require 12 or 15 bands')
+    data=load_tables()
+    radius=jnp.clip(jnp.asarray(effective_radius_m),1e-7,50e-6)
+    distribution=_distribution(radius,data['moment_edges_m'],.63676)
+    visible=_average(data[f'dust_{bands}_sw'][0],distribution)
+    infrared=_average(data[f'dust_{bands}_ir'][0],distribution)
+    index=3 if bands==12 else 6
+    return jnp.stack([visible[...,0,5],infrared[...,0,index]-infrared[...,1,index]])
+
+
+def _inject(q,n,layer_mass,top,amount,particle_mass,pbl,fixed_layers):
+    level=jnp.arange(q.shape[0]).reshape((q.shape[0],)+(1,)*(q.ndim-1))
+    chosen=level>=top if pbl else ((level>=q.shape[0]-1-fixed_layers[1])&
+        (level<=q.shape[0]-1-fixed_layers[0]))
+    carrier=jnp.sum(jnp.where(chosen,layer_mass,0.),axis=0)
+    addition=jnp.where(chosen,amount/jnp.where(carrier>0.,carrier,1.),0.)
+    valid=(carrier>0.)&(top>=0)&(top<q.shape[0]) if pbl else carrier>0.
+    addition=jnp.where(valid,addition,jnp.nan)
+    return q+addition,n+addition/particle_mass
+
+
 def interactive_step(mass_ratio,number_ratio,temperature,pressure_half,pressure_full,
                      temperature_surface,stress,sensible_heat_flux,pbl_top_layer,pressure_pbl,
                      latitude_rad,snow,frost,opacity,surface_dust_kg_m2,dt_seconds,*,
@@ -92,16 +116,9 @@ def interactive_step(mass_ratio,number_ratio,temperature,pressure_half,pressure_
         raise ValueError('fixed dust layers must be ordered bottom offsets within the column')
     q,n=jnp.maximum(q,1e-31),jnp.maximum(n,1e-31)
     layer_mass=jnp.diff(p,axis=0)/gravity
-    level=jnp.arange(t.shape[0]).reshape((t.shape[0],)+(1,)*(t.ndim-1))
     def inject(q,n,amount,radius,pbl):
-        chosen=level>=top if pbl else ((level>=t.shape[0]-1-fixed_layers[1])&
-            (level<=t.shape[0]-1-fixed_layers[0]))
-        carrier=jnp.sum(jnp.where(chosen,layer_mass,0.),axis=0)
-        addition=jnp.where(chosen,amount/jnp.where(carrier>0.,carrier,1.),0.)
-        valid=(carrier>0.)&(top>=0)&(top<t.shape[0]) if pbl else carrier>0.
-        addition=jnp.where(valid,addition,jnp.nan)
         particle_mass=4./3.*jnp.pi*2500.*(radius*jnp.exp(-.5*.63676**2))**3
-        return q+addition,n+addition/particle_mass
+        return _inject(q,n,layer_mass,top,amount,particle_mass,pbl,fixed_layers)
     devil=jnp.zeros_like(reservoir);wind=jnp.zeros_like(reservoir)
     if convective_lift:
         devil=devil_flux(t[-1],ts,full[-1],pressure_pbl,top,t.shape[0]-1,sensible_heat_flux,
@@ -124,3 +141,83 @@ def interactive_step(mass_ratio,number_ratio,temperature,pressure_half,pressure_
         reservoir=reservoir-wind
     return LiftingResult(q,n,reservoir,dict(devil_lift_kg_m2=devil,stress_lift_kg_m2=wind,
         stress_threshold_pa=threshold))
+
+
+def background_step(mass_ratio,number_ratio,pressure_half,pbl_top_layer,temperature_surface,
+                    snow,current_opacity,scenario_opacity,scenario_change,surface_dust_kg_m2,
+                    dt_seconds,*,extinction_efficiency,effective_radius_m=2e-6,opacity_fraction=1.,
+                    opacity_scale=1.,injection_scale=1.,injection_type=1,inject_through_pbl=True,
+                    fixed_layers=(0,0),minimum_temperature_k=120.,exclude_caps=True,
+                    minimum_scenario_change=-999.,local_time_fraction=None,local_time_scale=0.,
+                    remove_excess=False,sink_scale=1.,bottom_sink=False,
+                    model_sol_seconds=88704.,gravity=3.72):
+    """Source scenario-driven dust injection and removal for one physical mode.
+
+    `current_opacity` is the source 610 Pa diagnostic; `scenario_change` is the
+    difference between the two bounding seasonal maps. Coefficients are the
+    original fixed-radius VIS extinction or IR absorption efficiencies.
+    Bottom removal tallies material before clearing a cell. Surface deposition
+    uses the local column, replacing the source's stale loop-index access.
+    These repairs give finite conservative meanings to undefined source cases.
+    """
+    q,n,p,top,ts,snow,current,scenario,change,reservoir=map(jnp.asarray,(mass_ratio,number_ratio,
+        pressure_half,pbl_top_layer,temperature_surface,snow,current_opacity,scenario_opacity,
+        scenario_change,surface_dust_kg_m2))
+    if q.shape!=n.shape or p.shape!=(q.shape[0]+1,*q.shape[1:]):
+        raise ValueError('background dust and pressure interfaces must match')
+    if len(fixed_layers)!=2 or not 0<=fixed_layers[0]<=fixed_layers[1]<q.shape[0]:
+        raise ValueError('fixed dust layers must be ordered bottom offsets within the column')
+    if injection_type not in range(1,8): raise ValueError('dust injection type must be 1 through 7')
+    q,n=jnp.maximum(q,1e-31),jnp.maximum(n,1e-31)
+    current=jnp.maximum(current,1e-10)
+    ratio=scenario*opacity_scale/current
+    scale=jnp.broadcast_to(jnp.asarray(injection_scale),ratio.shape)
+    if injection_type==2:
+        average=jnp.sum(jnp.where(ratio>1.,ratio,0.))/jnp.maximum(jnp.sum(ratio>1.),1.)
+        scale=jnp.full_like(ratio,jnp.maximum(average,1.))
+    elif injection_type==3: scale=jnp.where(ratio>1.,ratio,scale)
+    elif injection_type==4: scale=jnp.where(ratio>1.,jnp.exp(ratio-1.),scale)
+    elif injection_type>=5: scale=jnp.where(ratio>1.,ratio**(injection_type-3),scale)
+    delta=scenario*opacity_scale-current
+    if local_time_fraction is not None:
+        delta=jnp.where(jnp.asarray(local_time_fraction)>0.,
+            (jnp.asarray(local_time_fraction)*local_time_scale+scale)/scale*delta,0.)
+    blocked=(change<=minimum_scenario_change)|(ts<minimum_temperature_k)
+    if exclude_caps: blocked=blocked|(snow>.9)
+    delta=jnp.where(blocked,0.,delta)
+    rm=effective_radius_m*jnp.exp(-2.5*.63676**2)
+    rss=rm*jnp.exp(.63676**2)
+    mass_particle=4./3.*jnp.pi*2500.*rm**3*jnp.exp(4.5*.63676**2)
+    injected=jnp.where(delta>0.,opacity_fraction*4./3.*scale*delta*2500.*rm**3*
+        jnp.exp(4.5*.63676**2)*dt_seconds/(extinction_efficiency*rss**2*model_sol_seconds),0.)
+    layer_mass=jnp.diff(p,axis=0)/gravity
+    q,n=_inject(q,n,layer_mass,top,injected,mass_particle,inject_through_pbl,fixed_layers)
+    reservoir=reservoir-injected
+    deposited=jnp.zeros_like(injected);sink_repair=jnp.zeros_like(injected)
+    if remove_excess:
+        column_mass=jnp.sum(layer_mass,axis=0)
+        sink=jnp.minimum(opacity_fraction*sink_scale*(scenario*opacity_scale-current)/
+            (extinction_efficiency*jnp.pi*rss**2)/column_mass,0.)
+        requested_number=-sink*dt_seconds/model_sol_seconds
+        requested_mass=requested_number*mass_particle
+        mean_mass=jnp.sum(q*layer_mass,axis=0)/column_mass
+        mean_number=jnp.sum(n*layer_mass,axis=0)/column_mass
+        removed_mass=jnp.minimum(requested_mass,mean_mass)
+        removed_number=jnp.minimum(requested_number,mean_number)
+        # The source adds 1e-32 to these caps, allowing a tiny negative ratio.
+        sink_repair=jnp.maximum(jnp.minimum(requested_mass,mean_mass+1e-32)-mean_mass,0.)*column_mass
+        if bottom_sink:
+            def remove(values,amount):
+                def cell(remaining,row):
+                    value,carrier=row
+                    removed=jnp.minimum(value*carrier,remaining)
+                    return remaining-removed,value-removed/carrier
+                return jax.lax.scan(cell,amount*column_mass,(values[::-1],layer_mass[::-1]))[1][::-1]
+            q,n=remove(q,removed_mass),remove(n,removed_number)
+        else:
+            q=q*(1.-removed_mass/jnp.where(mean_mass>0.,mean_mass,1.))
+            n=n*(1.-removed_number/jnp.where(mean_number>0.,mean_number,1.))
+        deposited=removed_mass*column_mass
+        reservoir=reservoir+deposited
+    return LiftingResult(q,n,reservoir,dict(injected_kg_m2=injected,deposited_kg_m2=deposited,
+        injection_scale=scale,opacity_delta=delta,negative_sink_repair_kg_m2=sink_repair))

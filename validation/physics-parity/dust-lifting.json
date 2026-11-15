@@ -2,7 +2,7 @@
   "status": "pass",
   "reference": {
     "source_git_blob": "1e470cc1efb44c6627cbe3168c69c2d1f7640570",
-    "compiled_source_sha256": "bd755c24a277f1a60e54789bd951de25bd681e29574ba45097c795b5c14a190e",
+    "compiled_source_sha256": "2e0854fd7428dfba384b050096d5b8d14acea32cf2e7e05d2ceabccb65ca27a3",
     "routine_sha256": {
       "flux_stress": "d6d521999c51fabb7fc8d97da2ab3eb79f31c5b55915bd3167d94a50dac7056f"
     },
@@ -16,7 +16,7 @@
       "-shared"
     ],
     "real_precision_bits": 64,
-    "adaptation": "Unchanged flux_stress body and contiguous if(interact) source block; single-column input/output adapter; RELEASE preprocessing; background/dual/tag modes excluded",
+    "adaptation": "Unchanged flux_stress body and contiguous if (interact) then source block; single-column input/output adapter; RELEASE preprocessing; background/dual/tag modes excluded",
     "interactive_block_sha256": "624b4ebe151734be9235ce10823f162402f23f35f34289161874e3f21d540001",
     "local_declarations_sha256": "872de457794436b1f8e0f9007b113c6473d8f9a2809603b17cc85cbf60df3171"
   },
@@ -5523,9 +5523,9 @@
     }
   ],
   "sha256": {
-    "scripts/validate_dust_lifting.py": "0f1789a5fdcea00cb24faef7b61aeb26ca3cafb13ae776f434b9f16cf2a83d7f",
+    "scripts/validate_dust_lifting.py": "c148396e323f12ce3a55dcf861e17a9a9e472159c786b51f4cf65b442e37e2a1",
     "scripts/native_reference.py": "2e3b0e2f65b685f86fcfdd1b4643b54c5582b81af36a0874a43d9eedc2675d76",
-    "package/src/framework/physics/dust_lifting.py": "72d2a7bba1550b2c029ca95da176eca20ebdeec244d4215f76a558c94ff661ce"
+    "package/src/framework/physics/dust_lifting.py": "a8e1428d36c305559fd4c571af3d65e12a783043e2271e2f528ca3f666384691"
   },
   "limits": "One physical interactive dust mode. Background scenario control, dual modes and tags are separate. Collapsed PBL efficiency uses its finite limit; inactive stress divisions use finite surrogates."
 }

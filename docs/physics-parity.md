@@ -41,6 +41,7 @@ No complete-model equivalence or speed claim has passed yet.
 | Moment water nucleation/growth | `water_moments` | Original `nuclea`, `growthrate2`, `fshape2`, `scrit_tdep`, `nucleacond`; 175 kinetic, coupled and native-substep cases | One or two physical dust modes are checked in the kernel. The one-mode Dinosaur path connects surface exchange, convection, subcycling, latent heat and coated-cloud optics. Material, restarts and a three-step reverse derivative are checked |
 | Dust/cloud moment settling | `particle_sedimentation` | Original `init_sedim`, `sedim`, `fallvel`, `dtridgl`; 432 columns with 2/4/12/40 levels, 610 Pa or 500 mbar, explicit/implicit transport and core scavenging on/off | Reuses the checked continuity solver. Dust and core enter the surface dust reservoir; ice enters surface water. Particle-number loss and the source lifting-override budget imbalance are exposed |
 | Interactive dust lifting | `dust_lifting` | Unchanged `flux_stress` and contiguous interactive source block; 250 cases | All five stress formulas, three dust-devil options, PBL/fixed-layer injection and reservoir-dependent thresholds are checked. One-mode global coupling uses the current PBL, source drag coefficient and held radiation-time reference opacity |
+| Seasonal dust control | `dust_lifting.background_step` | Unchanged background source block on defined branches, plus original size optics; 132 cases | All seven injection scalings, PBL/fixed-layer injection, seasonal cuts, cap/temperature masks, uniform and bottom removal are implemented. Native comparisons cover defined injection/uniform-sink cases. Independent material and gradient checks cover explicit sink repairs; global cloud feedback and restarts pass |
 | Dust coagulation | `dust_coagulation` | Original `coagul_main`, collision kernels, table setup and interpolation; 152 cases with four columns each, table or `FULLCOAG`, one or two physical modes | Brownian, gravitational and diffusion-enhanced collisions are implemented. Equal sizes have exact zero differential settling. Source interpolation quirks, number reconstruction, small mass regularization and inactive-column mass loss remain visible |
 | Radiation holding/stratosphere | `dinosaur_physics`, `radiative_transfer` | Source first-call/modulo-day schedule, cold/warm native stratosphere fluxes and two focused schedule/gradient tests | Optional `radiation_update_seconds` requires matching initial cache fields. K/s rates stay fixed when pressure changes. Stratosphere temperature and held radiation survive restarts |
 | Surface water exchange | `water_surface` | Original `update_water`, `update_water_fv3`, `update_water_blk`; 216 cases | Bulk/bin/moment surface kernels, liquid saturation and latent diagnostics are checked. Bulk mode is connected before PBL using saved exchange coefficients; cloud formation is a separate switch |
@@ -94,6 +95,25 @@ collision checks. The cumulative `dust_coagulation_mass_change_kg_m2` field
 records the resulting mass change. It is not hidden as surface deposition.
 The source turbulent-inertia kernel has an uninitialized dissipation rate;
 there is no defined rate to port for that switch.
+
+Set `dust_background_options={"scenario": mapped_scenario}` for seasonal dust
+control. Supply maps on the Dinosaur grid, in the selected visible or infrared
+channel. `load_scenario_on_grid(..., map_scale=3.67)` gives the source visible
+scaling; use `map_scale=1.` for infrared. The driver interpolates opacity and
+retains the difference between the bounding seasonal maps. `segment=True`
+selects the upper map. Fixed-radius injection coefficients come from the pinned
+optical tables. `remove_excess=True` enables the optional sink;
+`bottom_sink=True` removes material from the ground upward.
+
+The original bottom sink clears a cell before adding its contents to the removed
+amount. It can then read below the column. Its surface-deposit calculation also
+uses loop indices after those loops have ended. The port counts material before
+clearing a cell and uses the local column. It caps removal at available mass and
+number, replacing the source's extra 1e-32 allowance for negative tracers.
+`negative_sink_repair_kg_m2` records that mass correction. These branches have
+independent mass checks; no native agreement is claimed where the source reads
+out of bounds. Combined interactive/background dual modes and local-time history
+remain separate work.
 
 Reverse derivatives are checked within the source gas-mixture bins. Crossing a
 bin can change the forward radiation result abruptly. A dust perturbation in
@@ -220,7 +240,7 @@ claimed only where the original lookup is defined.
 | --- | --- |
 | Global budgets | Momentum exchange and repair-stage ledgers are connected. Extend the energy audit across dissipation, fixed-deep-soil exchange, phase approximations and long global runs; select gas and particle tracers explicitly. |
 | Radiation schedule | Optional integer-second source schedule now holds heating in K/s and surface fluxes, carries the 170 K initial stratosphere and its source update, and persists caches in restarts. Match the configured interval and callback averaging window in whole-model comparisons. |
-| Dust and cloud opacity | Size-dependent dust and all three cloud optical kernels are implemented. CO2 optical feedback is connected; prescribed dust, moment clouds and interactive lifting pass three-step global gradient checks. Lifting and coagulation kernels are checked. Background/dual opacity control, global multimode coupling and matched climatology remain. |
+| Dust and cloud opacity | Size-dependent dust and all three cloud optical kernels are implemented. CO2 optical feedback is connected; prescribed dust, moment clouds, interactive lifting and seasonal control pass three-step global gradient checks. Lifting, coagulation and background control are connected. Dual/local-time control, global multimode coupling and matched climatology remain. |
 | Soil and frost | Mapped TES/GRS inputs and default case-7 profiles are implemented and checked. Compare diurnal/seasonal response in global runs; modern and legacy material profiles now pass native checks. |
 | CO2 modes | Immediate deposition and optional bulk suspended-cloud phase/settling match native routines and coupled columns. Cloud optical feedback passes a three-step gradient check. Full two-way exchange auditing and long global validation remain pending. The older conservative finite-settling scheme remains a separate model. |
 | Interactive dust | Lifting, advection, sedimentation, surface reservoirs, coagulation and material budgets. |
@@ -282,6 +302,8 @@ env PYTHONPATH=package:. python scripts/validate_dust_lifting.py \
   --ames-source /path/to/AmesGCM --output outputs/physics-parity/dust-lifting.json
 env PYTHONPATH=package:. python scripts/validate_dust_coagulation.py \
   --ames-source /path/to/AmesGCM --output outputs/physics-parity/dust-coagulation.json
+env PYTHONPATH=package:. python scripts/validate_dust_background.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/dust-background.json
 env PYTHONPATH=package:. python scripts/validate_water_surface.py \
   --ames-source /path/to/AmesGCM --output outputs/physics-parity/water-surface.json
 env PYTHONPATH=package:. python scripts/validate_terrain_drag.py \

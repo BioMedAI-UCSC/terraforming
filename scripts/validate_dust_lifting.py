@@ -14,31 +14,49 @@ from native_reference import compile_routines,extract_routines
 BLOB='1e470cc1efb44c6627cbe3168c69c2d1f7640570'
 
 
-def compile_reference(source,destination,compiler):
+def compile_reference(source,destination,compiler,background=False):
     path=source/'atmos_param_mars/dust_update.F90'
     routines,_=extract_routines(path,BLOB,['dust_update'])
     text=path.read_text();routine=routines[0]
     declarations=text[text.index('logical,public :: firstcall'):text.index('namelist /dust_update_nml/')]
     local=routine[routine.index('! -----Local'):routine.index('mcpu0 =')]
-    start=routine.index('if (interact) then')
-    stop=routine.index('endif ! end interact',start)+len('endif ! end interact')
+    opening='if (Background) then' if background else 'if (interact) then'
+    closing='endif ! End of background test' if background else 'endif ! end interact'
+    start=routine.index(opening)
+    stop=routine.index(closing,start)+len(closing)
     block=routine[start:stop]
     header="""#define RELEASE
 module constants_mod
 implicit none
-real,parameter :: grav=3.72d0,cp_air=735.94d0,rdgas=189.02d0,pi=acos(-1.d0)
+real,parameter :: grav=3.72d0,cp_air=735.94d0,rdgas=189.02d0,pi=acos(-1.d0),seconds_per_day=88704.d0
 end module
 module reference_mod
 use iso_c_binding
 use constants_mod
 implicit none
-integer,parameter :: ndust_mass=1,bins_length=2,radbins_length=1
+integer,parameter :: ndust_mass=1,bins_length=2,radbins_length=1,nt_nontag=6
 integer :: dust_mass_indx(1)=1,dust_cor_indx(1)=5
 real,parameter :: dpden_dt=2500.d0,dev_dt=.63676d0,athird=1.d0/3.d0
 real,parameter :: Reff_dd=2.d-6,Reff_stress=2.d-6
 real :: sfc_dust_mass(1,1,1)
+real :: reff_mom(6)=2.d-6,tau_frac(6)=1.,qext_dt(6,2)=2.,bg_options(8)=0.
+logical :: changeradius=.false.,ltfrac=.false.
+integer :: id_tauadd=0,id_inject(1)=0
 """+declarations+'\ncontains\n'
+    header+="""logical function send_data(id,values,clock,istart,jstart)
+integer :: id,clock,istart,jstart
+real :: values(:,:)
+send_data=.false.
+end function
+"""
     adapter="""
+subroutine background_config(options,flags) bind(C)
+real(c_double),intent(in) :: options(8)
+integer(c_int),intent(in) :: flags(4)
+bg_options=options
+sink_bd=flags(1)/=0;bottom_sink=flags(2)/=0
+no_assim_over_caps=flags(3)/=0;inject_pbl_bd=flags(4)/=0
+end subroutine
 subroutine interactive(n,top,scheme,settings,half,full,temp,q,flags,outq,state) bind(C)
 integer(c_int),value :: n,top,scheme
 real(c_double),intent(in) :: settings(10),half(n+1),full(n),temp(n),q(n,6)
@@ -46,6 +64,7 @@ integer(c_int),intent(in) :: flags(8)
 real(c_double),intent(out) :: outq(n,6),state(4)
 integer,parameter :: is=1,ie=1,js=1,je=1,ntp=6
 integer :: kd
+integer :: Time
 real :: dt,t(1,1,n),r(1,1,n,6),p_half(1,1,n+1),p_full(1,1,n)
 real :: p_pbl(1,1),tsfc(1,1),snow(1,1),frost(1,1),stress(1,1),lat(1,1),shflx(1,1)
 integer :: k_pbl(1,1)
@@ -71,25 +90,39 @@ qextref=2;flux=0;fluxrem=0;fluxdda=0;fluxdth=0;fluxfv3=0
 source_dd=0;source_ws=0;source_bg=0;dmcol=0;dncol=0;dccol=0
 masspbl=sum(delp(:,:,top+1:n),dim=3)/grav
 masspblfix=delp(:,:,n)/grav
-"""+block+"""
+"""
+    if background:
+        adapter+="""interact=.false.;Background=.true.;Time=0;i=1;j=1
+tau_scenario=bg_options(1);dtau=bg_options(2);tauscale=bg_options(3);injscale=bg_options(4)
+qext_dt=bg_options(5);reff_mom=bg_options(6);injec_type=int(bg_options(7));sinkscale=bg_options(8)
+"""
+    adapter+=block+"""
 do k=1,n
  outq(k,:)=rnew(1,1,k,:)
 enddo
 state(1)=sfc_dust_mass(1,1,1);state(2)=source_dd(1,1,1);state(3)=source_ws(1,1,1)
-state(4)=threshold(1,1)
+"""
+    if background:
+        adapter+='state(2)=source_bg(1,1,1);state(4)=fluxrem(1,1,1)\n'
+    else:
+        adapter+='state(4)=threshold(1,1)\n'
+    adapter+="""
 end subroutine
 end module
 """
     library,provenance=compile_routines(path,BLOB,['flux_stress'],header,adapter,destination,compiler)
     provenance.update(interactive_block_sha256=hashlib.sha256(block.encode()).hexdigest(),
         local_declarations_sha256=hashlib.sha256(local.encode()).hexdigest(),
-        adaptation='Unchanged flux_stress body and contiguous if(interact) source block; '
-            'single-column input/output adapter; RELEASE preprocessing; background/dual/tag modes excluded')
+        adaptation='Unchanged flux_stress body and contiguous '+opening+' source block; '
+            'single-column input/output adapter; RELEASE preprocessing; '+
+            ('interactive/dual/tag modes excluded' if background else 'background/dual/tag modes excluded'))
     native=ctypes.CDLL(str(library))
     array=np.ctypeslib.ndpointer(dtype=np.float64,flags='F_CONTIGUOUS')
     integers=np.ctypeslib.ndpointer(dtype=np.int32,flags='F_CONTIGUOUS')
     native.interactive.argtypes=[ctypes.c_int]*3+[array]*5+[integers]+[array]*2
     native.interactive.restype=None
+    native.background_config.argtypes=[array,np.ctypeslib.ndpointer(dtype=np.int32,flags='F_CONTIGUOUS')]
+    native.background_config.restype=None
     return native,provenance
 
 

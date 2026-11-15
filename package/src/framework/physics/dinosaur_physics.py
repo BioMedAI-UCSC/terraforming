@@ -16,8 +16,9 @@ from src.framework.physics.water_bulk import WATER_VAPOR_TRACER,WATER_CLOUD_TRAC
 from src.framework.physics.water_moments import MOMENT_PARTICLE_TRACERS
 from src.framework.physics.particle_optics import dust_optics
 from src.framework.physics.radiation_grid import radiation_grid
+from src.framework.physics.dust_lifting import reference_efficiencies
 from src.framework.physics.gcm import (ColumnPhysicsTendencies,column_primitive_equations,
-    initial_column_state,positivity_preserving_co2_step,surface_radiative_forcing)
+    initial_column_state,positivity_preserving_co2_step,surface_radiative_forcing,_true_anomaly)
 
 
 def remap_gas(temperature,u,v,tracers,pressure_pa,mass_loss,dsigma,body,*,cloud_index=None):
@@ -180,7 +181,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                terrain_drag_options=None,radiation_update_seconds=None,
                moment_water=False,moment_cloud_options=None,moment_sedimentation=True,
                dust_lifting_options=None,dust_optical_bands=12,dust_opacity_channel=1,
-               coagulation_options=None):
+               coagulation_options=None,dust_background_options=None):
     """Dinosaur dynamics followed by Ames-order reference gas-column physics.
 
     Supply a verified radiation component and mapped soil diffusivity. Keeping
@@ -196,7 +197,22 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
     water_cycle=bulk_water or moment_water
     if coagulation_options is not None and not moment_water:
         raise ValueError('dust coagulation requires initialized moment tracers')
-    if dust_lifting_options is not None:
+    dust_control=dust_lifting_options is not None or dust_background_options is not None
+    background_scenario=None
+    if dust_background_options is not None:
+        if dust_lifting_options is not None:
+            raise ValueError('combined interactive/background dust requires the separate dual-mode driver')
+        dust_background_options=dict(dust_background_options)
+        background_scenario=dust_background_options.pop('scenario',None)
+        background_segment=dust_background_options.pop('segment',False)
+        if background_scenario is None or {'seasons','opacity'}-set(background_scenario):
+            raise ValueError('background dust requires mapped seasonal opacity and solar-longitude axes')
+        shape=np.shape(background_scenario['seasons'])
+        if len(shape)!=1 or shape[0]<2 or np.shape(background_scenario['opacity'])!=(shape[0],*grid.nodal_shape):
+            raise ValueError('background dust seasonal maps must match the Dinosaur nodal grid')
+        dust_background_options.setdefault('extinction_efficiency',reference_efficiencies(
+            dust_background_options.get('effective_radius_m',2e-6),bands=dust_optical_bands)[dust_opacity_channel-1])
+    if dust_control:
         if not moment_water:
             raise ValueError('interactive dust requires initialized moment tracers')
         if dust_optical_bands not in (12,15) or dust_opacity_channel not in (1,2):
@@ -244,7 +260,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             raise ValueError('moment water requires dust mass/number and cloud number/core tracers')
         if moment_water and 'dust_surface_kg_m2' not in state.auxiliary_fields:
             raise ValueError('moment water requires the initialized dust surface reservoir')
-        if dust_lifting_options is not None and 'dust_reference_opacity' not in state.auxiliary_fields:
+        if dust_control and 'dust_reference_opacity' not in state.auxiliary_fields:
             raise ValueError('interactive dust requires initialized reference-opacity history')
         if coagulation_options is not None and 'dust_coagulation_mass_change_kg_m2' not in state.auxiliary_fields:
             raise ValueError('dust coagulation requires the initialized mass-change ledger')
@@ -308,7 +324,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                 radiation_surface_down_w_m2=down[None],radiation_initialized=jnp.ones_like(down[None]),
                 radiation_stratosphere_k=strat[None])
         dust_depth=None
-        if dust_lifting_options is not None:
+        if dust_control:
             def dust_diagnostic(_):
                 radgrid=radiation_grid(half,full,temperature,predicted.surface_temperature[0])
                 optics=dust_optics(grid.to_nodal(dyn.tracers['dust_mass'])[...,None],
@@ -319,6 +335,19 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                     jnp.sum((optics.infrared[0]-optics.infrared[1])[:,ir_index],axis=0)])
             dust_depth=(dust_diagnostic(None) if radiation_update_seconds is None else
                 jax.lax.cond(refresh,dust_diagnostic,lambda _:predicted.auxiliary_fields['dust_reference_opacity'],None))
+        background_options=None
+        if background_scenario is not None:
+            axis=jnp.asarray(background_scenario['seasons'])
+            maps=jnp.asarray(background_scenario['opacity'])
+            ls=jnp.mod((_true_anomaly(predicted.dynamics.sim_time*time_scale,forcing)+
+                forcing.ls_perihelion_rad)*180./jnp.pi,360.)
+            upper=jnp.clip(jnp.searchsorted(axis,ls,side='right'),0,len(axis)-1)
+            lower=jnp.mod(upper-1,len(axis))
+            width=axis[upper]-axis[lower];width=jnp.where(width<0.,width+360.,width)
+            weight=(axis[upper]-ls)/width
+            opacity=maps[upper] if background_segment else weight*maps[lower]+(1.-weight)*maps[upper]
+            background_options={**dust_background_options,'scenario_opacity':opacity,
+                'scenario_change':maps[upper]-maps[lower]}
         soil=jnp.concatenate([predicted.surface_temperature,predicted.ground_temperature],axis=0)
         frost=predicted.co2_ice[0]*pressure_scale/body.gravity_m_s2
         water_state=None
@@ -351,7 +380,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             dust_lifting_options=dust_lifting_options,
             dust_lifting_opacity=None if dust_depth is None else dust_depth[dust_opacity_channel-1],
             surface_dust_kg_m2=None if not moment_water else predicted.auxiliary_fields['dust_surface_kg_m2'][0],
-            coagulation_options=coagulation_options)
+            coagulation_options=coagulation_options,dust_background_options=background_options)
         columns={name:column.gas_tracers[...,i] for i,name in enumerate(gas_names)}
         if cloud_ratio is not None:
             columns[CO2_CLOUD_TRACER]=(column.suspended_co2_ice_ratio

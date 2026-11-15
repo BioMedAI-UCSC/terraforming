@@ -69,7 +69,8 @@ def test_sigma_remap_carries_suspended_mass_momentum_and_energy():
 def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostics=False,
                  radiation_component=None,wind_speed=0.,suspended_co2_clouds=False,
                  bulk_water=False,initial_water_surface_kg_m2=0.,moment_water=False,
-                 dust_lifting_options=None,initial_water_vapor_ratio=1e-6,coagulation_options=None):
+                 dust_lifting_options=None,initial_water_vapor_ratio=1e-6,coagulation_options=None,
+                 dust_background_options=None):
     from src.framework.gcm.coordinates import coordinate_system
     from src.framework.gcm.specs import physics_specs
     from src.framework.gcm._dinosaur import primitive_equations,scales
@@ -101,7 +102,8 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
         soil_diffusivity=(250./(1500.*627.9))**2,return_diagnostics=return_diagnostics,
         suspended_co2_clouds=suspended_co2_clouds,bulk_water=bulk_water,moment_water=moment_water,
         moment_cloud_options=dict(latent_heat=True,microtimestep=1.),
-        dust_lifting_options=dust_lifting_options,dust_optical_bands=15,coagulation_options=coagulation_options)
+        dust_lifting_options=dust_lifting_options,dust_optical_bands=15,coagulation_options=coagulation_options,
+        dust_background_options=dust_background_options)
     return state,step,grid
 
 
@@ -227,8 +229,9 @@ def test_bulk_water_backend_multistep_reverse_derivative():
         np.testing.assert_allclose(auto,finite,rtol=3e-5,atol=1e-7)
 
 
-@pytest.mark.parametrize('interactive,coagulation',[(False,False),(True,False),(True,True)])
-def test_moment_water_cloud_feedback_material_and_restart(tmp_path,interactive,coagulation):
+@pytest.mark.parametrize('interactive,coagulation,background',[
+    (False,False,False),(True,False,False),(True,True,False),(False,False,True)])
+def test_moment_water_cloud_feedback_material_and_restart(tmp_path,interactive,coagulation,background):
     from src.framework.physics.water_bulk import WATER_CLOUD_TRACER,WATER_VAPOR_TRACER
     from src.framework.physics.particle_optics import make_particle_provider
     from src.framework.physics.radiative_transfer import make_radiation_component
@@ -239,10 +242,14 @@ def test_moment_water_cloud_feedback_material_and_restart(tmp_path,interactive,c
         dust_tracers=(('dust_mass','dust_number'),),
         water_moment_tracers=(WATER_CLOUD_TRACER,'water_core_mass','water_ice_number')),
         radiation_mode='extended',water_vapor_tracer=WATER_VAPOR_TRACER)
+    coords=coordinate_system('T21',4)
+    scenario=dict(seasons=jnp.array([0.,90.,180.,270.,360.]),
+        opacity=jnp.full((5,*coords.horizontal.nodal_shape),2.))
     state,step,grid=backend_case(temperature_k=170.,surface_temperature_k=180.,
         moment_water=True,return_diagnostics=True,radiation_component=radiation,
         wind_speed=40. if interactive else 0.,dust_lifting_options={} if interactive else None,
-        coagulation_options={} if coagulation else None)
+        coagulation_options={} if coagulation else None,
+        dust_background_options=dict(scenario=scenario) if background else None)
     tick=jax.jit(step);first,d=tick(state)
     assert all(np.isfinite(x).all() for x in jax.tree.leaves(first))
     assert float(jnp.max(grid.to_nodal(first.dynamics.tracers[WATER_CLOUD_TRACER])))>0.
@@ -264,7 +271,7 @@ def test_moment_water_cloud_feedback_material_and_restart(tmp_path,interactive,c
     if coagulation:
         assert float(jnp.max(jnp.abs(first.auxiliary_fields['dust_coagulation_mass_change_kg_m2'])))>0.
     difference=first.auxiliary_fields['dust_surface_kg_m2']-state.auxiliary_fields['dust_surface_kg_m2']
-    if interactive:
+    if interactive or background:
         assert float(jnp.min(difference))<0.
         assert float(jnp.max(first.auxiliary_fields['dust_reference_opacity']))>0.
     else:
@@ -275,8 +282,8 @@ def test_moment_water_cloud_feedback_material_and_restart(tmp_path,interactive,c
         np.testing.assert_array_equal(a,b)
 
 
-@pytest.mark.parametrize('interactive',[False,True])
-def test_moment_cloud_multistep_reverse_derivative(interactive):
+@pytest.mark.parametrize('interactive,background',[(False,False),(True,False),(False,True)])
+def test_moment_cloud_multistep_reverse_derivative(interactive,background):
     from src.framework.physics.water_bulk import WATER_CLOUD_TRACER,WATER_VAPOR_TRACER
     from src.framework.physics.particle_optics import make_particle_provider
     from src.framework.physics.radiative_transfer import make_radiation_component
@@ -284,9 +291,14 @@ def test_moment_cloud_multistep_reverse_derivative(interactive):
         dust_tracers=(('dust_mass','dust_number'),),
         water_moment_tracers=(WATER_CLOUD_TRACER,'water_core_mass','water_ice_number')),
         radiation_mode='extended',water_vapor_tracer=WATER_VAPOR_TRACER)
+    from src.framework.gcm.coordinates import coordinate_system
+    coords=coordinate_system('T21',4)
+    scenario=dict(seasons=jnp.array([0.,90.,180.,270.,360.]),
+        opacity=jnp.full((5,*coords.horizontal.nodal_shape),2.))
     state,step,grid=backend_case(temperature_k=170.,surface_temperature_k=180.,
         moment_water=True,radiation_component=radiation,wind_speed=40. if interactive else 0.,
         dust_lifting_options={} if interactive else None,
+        dust_background_options=dict(scenario=scenario) if background else None,
         # Keep the derivative probe within one source water-mixture bin.
         initial_water_vapor_ratio=1.1e-6)
     def objective(amplitude):
