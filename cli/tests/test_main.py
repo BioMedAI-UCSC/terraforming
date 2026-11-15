@@ -16,6 +16,33 @@ from click.testing import CliRunner
 from cli.main import cli
 
 
+def test_mars_run_wizard_supports_intervention_type(monkeypatch):
+    # Regression for issue #53: the wizard must expose intervention inputs.
+    from cli import output, runner
+
+    captured = {}
+
+    def run_intervention(cfg):
+        captured["cfg"] = cfg
+        return []
+
+    monkeypatch.setattr(runner, "run_intervention", run_intervention)
+    monkeypatch.setattr(output, "dispatch", lambda results, cfg: None)
+
+    result = CliRunner().invoke(
+        cli,
+        ["mars", "run", "--yes"],
+        input="5\n\n\n2\nCF4:1e9\nSF6:5e8\n\n\n\n\n\n\n",
+    )
+
+    assert result.exit_code == 0, result.output
+    assert "intervention" in result.output
+    assert "Mars years" in result.output
+    assert captured["cfg"].experiment.type.value == "intervention"
+    assert captured["cfg"].intervention.n_years == 2
+    assert captured["cfg"].intervention.injection == {"CF4": 1e9, "SF6": 5e8}
+
+
 def test_mars_maps_help_exits_zero():
     result = CliRunner().invoke(cli, ["mars", "maps", "--help"])
     assert result.exit_code == 0
