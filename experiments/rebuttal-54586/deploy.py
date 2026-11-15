@@ -72,9 +72,9 @@ for campaign in campaigns:
     missing = json.loads(subprocess.check_output([*kube, "exec", pod, "--", "python", "-c", inspect], text=True))
     for remote in missing:
         relative = remote.removeprefix("/work/")
-        destination = f"/data/{task}/{relative}"
-        subprocess.run([*kube, "exec", pod, "--", "mkdir", "-p", str(Path(destination).parent)], check=True)
-        subprocess.run([*kube, "cp", str(a.staged/relative), f"{pod}:{destination}"], check=True)
+        remote_destination = f"/data/{task}/{relative}"
+        subprocess.run([*kube, "exec", pod, "--", "mkdir", "-p", str(Path(remote_destination).parent)], check=True)
+        subprocess.run([*kube, "cp", str(a.staged/relative), f"{pod}:{remote_destination}"], check=True)
     subprocess.run([*kube, "cp", str(a.staged/"staged-sha256.json"),
         f"{pod}:/data/{task}/staged-sha256.json"], check=True)
     checks = "".join(f"{digest}  /data/{task}/{path.removeprefix('/work/')}\n" for path, digest in manifest.items())
