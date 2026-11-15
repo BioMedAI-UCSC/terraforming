@@ -30,25 +30,41 @@ def ice_depth(latitude_rad,minimum_depth_m,grs_latitude_deg):
     return jnp.minimum(-(40.*transition/2.-minimum_depth_m),10.)
 
 
-def subsurface_diffusivity(latitude_rad,thermal_inertia,grs_latitude_deg,soil_layers=16):
-    """Reference case-7 soil/ice interfaces with the default nonlegacy material.
+def subsurface_properties(latitude_rad,thermal_inertia,grs_latitude_deg,soil_layers=16,*,
+                          legacy=False,subsurface_ice=True,ice_case=7,
+                          southern_minimum_layers=7,north_ice_inertia=1000.,south_ice_inertia=1000.):
+    """Original soil diffusivity and heat capacity, including legacy materials.
 
-    Supply mapped thermal inertia and GRS ice-boundary latitude in degrees.
-    Keep the source's sharp interface and distinct north/south minimum depths.
+    Only case 7 changes the profile in the released source; other integer cases
+    retain a uniform column. The deepest node is fixed by the surface solver.
     """
     dz=soil_layer_thickness(soil_layers)
-    if soil_layers<7:
-        raise ValueError("case-7 subsurface ice requires at least seven soil nodes")
+    if not isinstance(ice_case,int) or isinstance(ice_case,bool):
+        raise ValueError('soil ice case must be an integer')
+    if not isinstance(southern_minimum_layers,int) or southern_minimum_layers<1:
+        raise ValueError('southern minimum must select valid soil layers')
+    if subsurface_ice and ice_case==7 and soil_layers<max(4,southern_minimum_layers):
+        raise ValueError('case-7 subsurface ice requires enough soil nodes for its minimum depths')
     latitude,inertia,grs=jnp.broadcast_arrays(latitude_rad,thermal_inertia,grs_latitude_deg)
-    minimum=jnp.where(latitude>=0.,jnp.sum(dz[:4]),jnp.sum(dz[:7]))
+    capacity=1481.39*840. if legacy else 1500.*627.9
+    icy_capacity=1781.99*1404.09 if legacy else capacity
+    levels=jnp.arange(1,soil_layers+1).reshape((soil_layers,)+(1,)*latitude.ndim)
+    cumulative=jnp.asarray(np.cumsum(dz[:soil_layers])).reshape((soil_layers,)+(1,)*latitude.ndim)
+    minimum=jnp.where(latitude>=0.,jnp.sum(dz[:4]),jnp.sum(dz[:southern_minimum_layers]))
     depth=ice_depth(latitude,minimum,grs)
-    interfaces=jnp.arange(1,soil_layers).reshape((soil_layers-1,)+(1,)*latitude.ndim)
-    cumulative=jnp.asarray(np.cumsum(dz[:soil_layers-1])).reshape(
-        (soil_layers-1,)+(1,)*latitude.ndim)
-    icy=(interfaces>=2)&(depth[None]<cumulative)
-    capacity=1500.*627.9
+    icy=(levels>=2)&(levels<soil_layers)&(depth[None]<cumulative)
+    icy=icy&subsurface_ice&(ice_case==7)
+    ice_inertia=jnp.where(latitude>=0.,1100. if legacy else north_ice_inertia,
+        2236.995 if legacy else south_ice_inertia)
     background=jnp.where(inertia>0.,(inertia/capacity)**2,jnp.nan)
-    return jnp.where(icy,(1000./capacity)**2,background[None])
+    diffusion=jnp.where(icy[:-1],(ice_inertia/icy_capacity)**2,background[None])
+    heat_capacity=jnp.where(icy,icy_capacity,capacity)
+    return diffusion,heat_capacity
+
+
+def subsurface_diffusivity(latitude_rad,thermal_inertia,grs_latitude_deg,soil_layers=16):
+    """Default case-7 profile; use subsurface_properties for legacy material."""
+    return subsurface_properties(latitude_rad,thermal_inertia,grs_latitude_deg,soil_layers)[0]
 
 
 def surface_step(soil,thickness,diffusivity,volumetric_heat_capacity,pressure_pa,

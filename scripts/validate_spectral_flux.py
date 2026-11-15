@@ -14,7 +14,7 @@ from native_reference import compile_routines
 from validate_correlated_k_tables import RADIATION_BLOB
 
 
-def compile_reference(source,destination,compiler):
+def compile_reference(source,destination,compiler,*,mode='12band'):
     header="""module reference_mod
 use iso_c_binding
 implicit none
@@ -64,6 +64,13 @@ call sfluxi(p,t,dtau,cumul,rsf,g,w,top(1),net,up,down,gas,tops,nets,ups,downs,.f
 end subroutine
 end module
 """
+    if mode!='12band':
+        # Change adapter dimensions, never the extracted Fortran routine bodies.
+        def dimensions(text):
+            text=text.replace('=5,','=8,').replace('(5,','(8,').replace(',5,',',8,').replace('(5)','(8)')
+            if mode=='15band': text=text.replace('17','33').replace('16','32')
+            return text
+        header,adapter=map(dimensions,(header,adapter))
     lib,provenance=compile_routines(source/'atmos_param_mars/Rad/rtmod_mgcm.F90',
         RADIATION_BLOB,['sfluxv','sfluxi','getdetau','gfluxv','gfluxi','dsolver','dtridgl'],
         header,adapter,destination,compiler)

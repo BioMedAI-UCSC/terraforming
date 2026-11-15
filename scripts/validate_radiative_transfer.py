@@ -12,6 +12,7 @@ from src.framework.physics.radiative_transfer import column_fluxes,rayleigh_per_
 from validate_optical_depth import compile_reference as compile_optics
 from validate_spectral_flux import compile_reference as compile_spectral
 from validate_scattering_transfer import compile_reference as compile_grid
+from validate_infrared_precision import compile_reference as compile_quad
 
 
 def validate(source,compiler):
@@ -21,11 +22,12 @@ def validate(source,compiler):
     cases=[]
     with tempfile.TemporaryDirectory(prefix='ames-radiative-driver-') as temporary:
         root=Path(temporary)
-        for name in ('optics','spectral','grid'):
+        for name in ('optics','spectral','grid','quad'):
             (root/name).mkdir()
         optics,op=compile_optics(source,root/'optics',compiler)
         spectral,sp=compile_spectral(source,root/'spectral',compiler)
         grid_native,gp=compile_grid(source,root/'grid',compiler)
+        quad,qp=compile_quad(source,root/'quad',compiler)
         optics.ames_init(f(data['log10_k_sw_ames']),f(data['log10_k_ir_ames']),
             f(data['pressure_mbar_ames']),f(data['temperature_k']),f(rayleigh_per_pa(3.72)*100.))
         for n in (4,12):
@@ -60,13 +62,17 @@ def validate(source,compiler):
                         spectral.ames_lw(n+1,.05,0,*optical[5:],f(p/100.),f(tl),
                             f(data['ames_planck_intensity_ir'].T),f(np.diff(data['ir_bounds_cm1'])),
                             f(data['clear_fraction_ir']),f(data['gauss_weights']),irup,irdown,topnet)
+                        fp64_up,fp64_down=irup.copy(),irdown.copy()
+                        quad.ames_lw(n+1,.05,0,*optical[5:],f(p/100.),f(tl),
+                            f(data['ames_planck_intensity_ir'].T),f(np.diff(data['ir_bounds_cm1'])),
+                            f(data['clear_fraction_ir']),f(data['gauss_weights']),irup,irdown,topnet)
                         net=up-down+irup-irdown
                         expected=(down,up,irup,irdown,np.diff(net),-net[-1],-net[0])
                         actual=column_fluxes(t,200.,half,full,mu,solar,.25,.95,3.72,particle_optics=particles)
                         errors=[]
                         interface_error=np.zeros(n+1)
                         roundoff=64.*np.finfo(np.float64).eps*max(1.,float(np.max(np.abs(net))))
-                        for field,(value,ref) in enumerate(zip(actual,expected,strict=True)):
+                        for field,(value,ref) in enumerate(zip(actual[:7],expected,strict=True)):
                             if field<4:
                                 np.testing.assert_allclose(value,ref,rtol=3e-10,atol=3e-9,
                                     err_msg=f'layers={n}, top={top}, loading={loading}, mu={mu}, field={field}')
@@ -78,15 +84,18 @@ def validate(source,compiler):
                                 assert np.all(np.abs(np.asarray(value)-ref)<=bound+roundoff)
                             errors.append(float(np.max(np.abs(np.asarray(value)-ref))))
                         cases.append(dict(layers=n,top_pressure_pa=top,particle_loading=loading,
-                            mu0=mu,max_flux_errors_w_m2=errors))
+                            mu0=mu,max_flux_errors_w_m2=errors,
+                            native_fp64_ir_cancellation_error_w_m2=float(max(np.max(np.abs(fp64_up-irup)),
+                                np.max(np.abs(fp64_down-irdown))))))
     repo=Path(__file__).parents[1]
     paths=['scripts/validate_radiative_transfer.py','scripts/validate_optical_depth.py',
-        'scripts/validate_spectral_flux.py','scripts/validate_scattering_transfer.py']
+        'scripts/validate_spectral_flux.py','scripts/validate_scattering_transfer.py',
+        'scripts/validate_infrared_precision.py']
     paths.extend(str(p.relative_to(repo)) for p in (repo/'package/src/framework/physics').glob('*.py'))
     paths.append('package/src/framework/physics/co2_12band_tables.npz')
-    return dict(status='pass',reference=dict(grid=gp,optics=op,spectral=sp),cases=cases,
+    return dict(status='pass',reference=dict(grid=gp,optics=op,spectral=sp,infrared_quadruple=qp),cases=cases,
         sha256={p:hashlib.sha256((repo/p).read_bytes()).hexdigest() for p in paths},
-        limits='composed default-12-band radiation with prescribed particle cross sections; Planck temperatures at reference nodes; microphysics and global climate validation are separate')
+        limits='Composed default-12-band radiation with prescribed particle cross sections. Original IR routines run at binary128 with unchanged interface-flux gates; FP64 cancellation error is recorded separately. Planck temperatures are at reference nodes; microphysics and global climate validation are separate')
 
 
 if __name__=='__main__':

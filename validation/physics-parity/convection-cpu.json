@@ -28,10 +28,10 @@
         "v_ms": 2.842170943040401e-14,
         "tracer_ratio": 2.168404344971009e-19
       },
-      "native_seconds": 0.0007889270549640059,
-      "jax_seconds": 0.000872914562933147,
-      "native_over_jax_speed_ratio": 0.9037849618559138,
-      "first_jax_call_seconds": 0.09738658368587494
+      "native_seconds": 0.000967143732123077,
+      "jax_seconds": 0.001003052038140595,
+      "native_over_jax_speed_ratio": 0.9642009540361605,
+      "first_jax_call_seconds": 0.11493787495419383
     },
     {
       "case": "unstable",
@@ -41,10 +41,10 @@
         "v_ms": 3.197442310920451e-14,
         "tracer_ratio": 2.710505431213761e-19
       },
-      "native_seconds": 0.003993810410611332,
-      "jax_seconds": 0.0009674353990703821,
-      "native_over_jax_speed_ratio": 4.128245063648717,
-      "first_jax_call_seconds": 0.001036291942000389
+      "native_seconds": 0.004845145833678543,
+      "jax_seconds": 0.0010787749895825982,
+      "native_over_jax_speed_ratio": 4.4913405302001275,
+      "first_jax_call_seconds": 0.0011565419845283031
     },
     {
       "case": "mixed",
@@ -54,10 +54,10 @@
         "v_ms": 2.842170943040401e-14,
         "tracer_ratio": 3.2526065174565133e-19
       },
-      "native_seconds": 0.0030224958434700968,
-      "jax_seconds": 0.0016383082838729024,
-      "native_over_jax_speed_ratio": 1.8448883358662047,
-      "first_jax_call_seconds": 0.0016070832498371601
+      "native_seconds": 0.008281229133717715,
+      "jax_seconds": 0.0043569104047492145,
+      "native_over_jax_speed_ratio": 1.900711367553216,
+      "first_jax_call_seconds": 0.0018382919952273369
     },
     {
       "case": "nonuniform",
@@ -67,10 +67,10 @@
         "v_ms": 2.842170943040401e-14,
         "tracer_ratio": 3.2526065174565133e-19
       },
-      "native_seconds": 0.00290224791970104,
-      "jax_seconds": 0.0015495728934183718,
-      "native_over_jax_speed_ratio": 1.8729341046348937,
-      "first_jax_call_seconds": 0.002552832942456007
+      "native_seconds": 0.005562854139134288,
+      "jax_seconds": 0.003653287491761148,
+      "native_over_jax_speed_ratio": 1.5226981593098197,
+      "first_jax_call_seconds": 0.004301541019231081
     }
   ],
   "source_sha256": "31f30419734a27eea4fa50e89724f048579a8d6fb0302bab0cd674c302e83315",

@@ -2,7 +2,7 @@
   "status": "pass",
   "reference": {
     "source_git_blob": "aca56974025103ab408ecf866cc78b25779fc469",
-    "compiled_source_sha256": "ac31f5ed03d638c5ac031e34103f83b82f1b2230793a2defa8e4e25b0acf1fbb",
+    "compiled_source_sha256": "aae4956d2fc1027434337b46ce5433906415e0431d6ede736475d8c96494ede3",
     "routine_sha256": {
       "progts": "7e601fd57399c056f315d17e18a856a7030a0c25e4cb67e8342851a985817510",
       "trdslv": "d07cc6aa1fa368a7f5592c75df9f3ba2a102ab0b1066d0efbe1d4e833b5130a0",
@@ -22,6 +22,846 @@
     "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged"
   },
   "cases": [
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 200.0,
+      "snow_kg_m2": -0.01,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 200.0,
+      "snow_kg_m2": -0.01,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 200.0,
+      "snow_kg_m2": -0.01,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 200.0,
+      "snow_kg_m2": 0.0,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 200.0,
+      "snow_kg_m2": 0.0,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 200.0,
+      "snow_kg_m2": 0.0,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 200.0,
+      "snow_kg_m2": 0.01,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 200.0,
+      "snow_kg_m2": 0.01,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 200.0,
+      "snow_kg_m2": 0.01,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 200.0,
+      "snow_kg_m2": 2.0,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 200.0,
+      "snow_kg_m2": 2.0,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 200.0,
+      "snow_kg_m2": 2.0,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 200.0,
+      "snow_kg_m2": 2.001,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 200.0,
+      "snow_kg_m2": 2.001,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 200.0,
+      "snow_kg_m2": 2.001,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 272.999,
+      "snow_kg_m2": -0.01,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 272.999,
+      "snow_kg_m2": -0.01,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 272.999,
+      "snow_kg_m2": -0.01,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 272.999,
+      "snow_kg_m2": 0.0,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 272.999,
+      "snow_kg_m2": 0.0,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 272.999,
+      "snow_kg_m2": 0.0,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 272.999,
+      "snow_kg_m2": 0.01,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 272.999,
+      "snow_kg_m2": 0.01,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 272.999,
+      "snow_kg_m2": 0.01,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 272.999,
+      "snow_kg_m2": 2.0,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 272.999,
+      "snow_kg_m2": 2.0,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 272.999,
+      "snow_kg_m2": 2.0,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 272.999,
+      "snow_kg_m2": 2.001,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 272.999,
+      "snow_kg_m2": 2.001,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 272.999,
+      "snow_kg_m2": 2.001,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 273.0,
+      "snow_kg_m2": -0.01,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 273.0,
+      "snow_kg_m2": -0.01,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 273.0,
+      "snow_kg_m2": -0.01,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 273.0,
+      "snow_kg_m2": 0.0,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 273.0,
+      "snow_kg_m2": 0.0,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 273.0,
+      "snow_kg_m2": 0.0,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 273.0,
+      "snow_kg_m2": 0.01,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 273.0,
+      "snow_kg_m2": 0.01,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 273.0,
+      "snow_kg_m2": 0.01,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 273.0,
+      "snow_kg_m2": 2.0,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 273.0,
+      "snow_kg_m2": 2.0,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 273.0,
+      "snow_kg_m2": 2.0,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 273.0,
+      "snow_kg_m2": 2.001,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 273.0,
+      "snow_kg_m2": 2.001,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 273.0,
+      "snow_kg_m2": 2.001,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 290.0,
+      "snow_kg_m2": -0.01,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 290.0,
+      "snow_kg_m2": -0.01,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 290.0,
+      "snow_kg_m2": -0.01,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 290.0,
+      "snow_kg_m2": 0.0,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 290.0,
+      "snow_kg_m2": 0.0,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 290.0,
+      "snow_kg_m2": 0.0,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 290.0,
+      "snow_kg_m2": 0.01,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 290.0,
+      "snow_kg_m2": 0.01,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 290.0,
+      "snow_kg_m2": 0.01,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 290.0,
+      "snow_kg_m2": 2.0,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 290.0,
+      "snow_kg_m2": 2.0,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 290.0,
+      "snow_kg_m2": 2.0,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 290.0,
+      "snow_kg_m2": 2.001,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 290.0,
+      "snow_kg_m2": 2.001,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": false,
+      "temperature_k": 290.0,
+      "snow_kg_m2": 2.001,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 200.0,
+      "snow_kg_m2": -0.01,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 200.0,
+      "snow_kg_m2": -0.01,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 200.0,
+      "snow_kg_m2": -0.01,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 200.0,
+      "snow_kg_m2": 0.0,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 200.0,
+      "snow_kg_m2": 0.0,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 200.0,
+      "snow_kg_m2": 0.0,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 200.0,
+      "snow_kg_m2": 0.01,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 200.0,
+      "snow_kg_m2": 0.01,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 200.0,
+      "snow_kg_m2": 0.01,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 200.0,
+      "snow_kg_m2": 2.0,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 200.0,
+      "snow_kg_m2": 2.0,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 200.0,
+      "snow_kg_m2": 2.0,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 200.0,
+      "snow_kg_m2": 2.001,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 200.0,
+      "snow_kg_m2": 2.001,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 200.0,
+      "snow_kg_m2": 2.001,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 272.999,
+      "snow_kg_m2": -0.01,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 272.999,
+      "snow_kg_m2": -0.01,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 272.999,
+      "snow_kg_m2": -0.01,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 272.999,
+      "snow_kg_m2": 0.0,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 272.999,
+      "snow_kg_m2": 0.0,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 272.999,
+      "snow_kg_m2": 0.0,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 272.999,
+      "snow_kg_m2": 0.01,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 272.999,
+      "snow_kg_m2": 0.01,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 272.999,
+      "snow_kg_m2": 0.01,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 272.999,
+      "snow_kg_m2": 2.0,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 272.999,
+      "snow_kg_m2": 2.0,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 272.999,
+      "snow_kg_m2": 2.0,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 272.999,
+      "snow_kg_m2": 2.001,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 272.999,
+      "snow_kg_m2": 2.001,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 272.999,
+      "snow_kg_m2": 2.001,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 273.0,
+      "snow_kg_m2": -0.01,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 273.0,
+      "snow_kg_m2": -0.01,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 273.0,
+      "snow_kg_m2": -0.01,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 273.0,
+      "snow_kg_m2": 0.0,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 273.0,
+      "snow_kg_m2": 0.0,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 273.0,
+      "snow_kg_m2": 0.0,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 273.0,
+      "snow_kg_m2": 0.01,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 273.0,
+      "snow_kg_m2": 0.01,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 273.0,
+      "snow_kg_m2": 0.01,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 273.0,
+      "snow_kg_m2": 2.0,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 273.0,
+      "snow_kg_m2": 2.0,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 273.0,
+      "snow_kg_m2": 2.0,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 273.0,
+      "snow_kg_m2": 2.001,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 273.0,
+      "snow_kg_m2": 2.001,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 273.0,
+      "snow_kg_m2": 2.001,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 290.0,
+      "snow_kg_m2": -0.01,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 290.0,
+      "snow_kg_m2": -0.01,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 290.0,
+      "snow_kg_m2": -0.01,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 290.0,
+      "snow_kg_m2": 0.0,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 290.0,
+      "snow_kg_m2": 0.0,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 290.0,
+      "snow_kg_m2": 0.0,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 290.0,
+      "snow_kg_m2": 0.01,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 290.0,
+      "snow_kg_m2": 0.01,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 290.0,
+      "snow_kg_m2": 0.01,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 290.0,
+      "snow_kg_m2": 2.0,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 290.0,
+      "snow_kg_m2": 2.0,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 290.0,
+      "snow_kg_m2": 2.0,
+      "water_kg_m2": 2.001
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 290.0,
+      "snow_kg_m2": 2.001,
+      "water_kg_m2": 1.999
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 290.0,
+      "snow_kg_m2": 2.001,
+      "water_kg_m2": 2.0
+    },
+    {
+      "case": "water-surface-optics",
+      "liquid": true,
+      "temperature_k": 290.0,
+      "snow_kg_m2": 2.001,
+      "water_kg_m2": 2.001
+    },
     {
       "layers": 4,
       "case": "bare-warming",
@@ -182,10 +1022,151 @@
       "latitude_rad": 1.3,
       "max_soil_error_k": 5.684341886080802e-14,
       "ice_error_kg_m2": 0.0
+    },
+    {
+      "case": "soil-materials",
+      "legacy": false,
+      "ice_case": 0,
+      "latitude_rad": -1.3,
+      "max_soil_error_k": 5.684341886080802e-14
+    },
+    {
+      "case": "soil-materials",
+      "legacy": false,
+      "ice_case": 0,
+      "latitude_rad": -0.7,
+      "max_soil_error_k": 5.684341886080802e-14
+    },
+    {
+      "case": "soil-materials",
+      "legacy": false,
+      "ice_case": 0,
+      "latitude_rad": 0.0,
+      "max_soil_error_k": 5.684341886080802e-14
+    },
+    {
+      "case": "soil-materials",
+      "legacy": false,
+      "ice_case": 0,
+      "latitude_rad": 0.7,
+      "max_soil_error_k": 5.684341886080802e-14
+    },
+    {
+      "case": "soil-materials",
+      "legacy": false,
+      "ice_case": 0,
+      "latitude_rad": 1.3,
+      "max_soil_error_k": 5.684341886080802e-14
+    },
+    {
+      "case": "soil-materials",
+      "legacy": false,
+      "ice_case": 7,
+      "latitude_rad": -1.3,
+      "max_soil_error_k": 2.842170943040401e-14
+    },
+    {
+      "case": "soil-materials",
+      "legacy": false,
+      "ice_case": 7,
+      "latitude_rad": -0.7,
+      "max_soil_error_k": 5.684341886080802e-14
+    },
+    {
+      "case": "soil-materials",
+      "legacy": false,
+      "ice_case": 7,
+      "latitude_rad": 0.0,
+      "max_soil_error_k": 5.684341886080802e-14
+    },
+    {
+      "case": "soil-materials",
+      "legacy": false,
+      "ice_case": 7,
+      "latitude_rad": 0.7,
+      "max_soil_error_k": 5.684341886080802e-14
+    },
+    {
+      "case": "soil-materials",
+      "legacy": false,
+      "ice_case": 7,
+      "latitude_rad": 1.3,
+      "max_soil_error_k": 5.684341886080802e-14
+    },
+    {
+      "case": "soil-materials",
+      "legacy": true,
+      "ice_case": 0,
+      "latitude_rad": -1.3,
+      "max_soil_error_k": 5.684341886080802e-14
+    },
+    {
+      "case": "soil-materials",
+      "legacy": true,
+      "ice_case": 0,
+      "latitude_rad": -0.7,
+      "max_soil_error_k": 5.684341886080802e-14
+    },
+    {
+      "case": "soil-materials",
+      "legacy": true,
+      "ice_case": 0,
+      "latitude_rad": 0.0,
+      "max_soil_error_k": 5.684341886080802e-14
+    },
+    {
+      "case": "soil-materials",
+      "legacy": true,
+      "ice_case": 0,
+      "latitude_rad": 0.7,
+      "max_soil_error_k": 5.684341886080802e-14
+    },
+    {
+      "case": "soil-materials",
+      "legacy": true,
+      "ice_case": 0,
+      "latitude_rad": 1.3,
+      "max_soil_error_k": 5.684341886080802e-14
+    },
+    {
+      "case": "soil-materials",
+      "legacy": true,
+      "ice_case": 7,
+      "latitude_rad": -1.3,
+      "max_soil_error_k": 5.684341886080802e-14
+    },
+    {
+      "case": "soil-materials",
+      "legacy": true,
+      "ice_case": 7,
+      "latitude_rad": -0.7,
+      "max_soil_error_k": 5.684341886080802e-14
+    },
+    {
+      "case": "soil-materials",
+      "legacy": true,
+      "ice_case": 7,
+      "latitude_rad": 0.0,
+      "max_soil_error_k": 5.684341886080802e-14
+    },
+    {
+      "case": "soil-materials",
+      "legacy": true,
+      "ice_case": 7,
+      "latitude_rad": 0.7,
+      "max_soil_error_k": 5.684341886080802e-14
+    },
+    {
+      "case": "soil-materials",
+      "legacy": true,
+      "ice_case": 7,
+      "latitude_rad": 1.3,
+      "max_soil_error_k": 2.842170943040401e-14
     }
   ],
-  "source_sha256": "c8f895c48c9e4608c5c360389e74a4e363da59c36e944387c36a1cefb965ed10",
-  "kernel_sha256": "8dd5ae6ad27426ffdd641b4472ccec7ef5dd94ef3cc60c545fc752d6503dba90",
+  "source_sha256": "834dd6eb08fafd463f0fbdf59358415fd2b2069e0dcc0b857e4096b490174365",
+  "kernel_sha256": "c0c17bceefb7e04bc03d383994eb7e9f34c892959c2f1abbe4f8bbcbcb1f848d",
+  "water_surface_sha256": "a9b6006b64953372871ee6f627fb8589eea6aaac19542b59a55266719a89e2c4",
   "vertical_solver_sha256": "0d01f1d42fe7f086a887a2c0c51cb3b4385d26a3c944b72f81150b8a57ddd991",
   "jax_version": "0.11.0",
   "devices": [

@@ -33,8 +33,8 @@
   "lookup_cases": 100,
   "max_planck_intensity_error": 1.7763568394002505e-15,
   "source_sha256": "81d5816d9899dcbab61337f31f3d55a603a45865493abe9af56a8e9c888639bf",
-  "stage_sha256": "02bd1a2c28f37ad28b866a4d373d45ffcd86240419ff43138ad115222a76af04",
-  "kernel_sha256": "80074c30fb3495866c677b46ed178e9d722851cde6de597d36e1a4815d7dd3c9",
+  "stage_sha256": "b42c8a46862d569355e0de8594bfe6c8dade535a31f908bb05622953df3f8030",
+  "kernel_sha256": "fde79069ec8e8742e6deafcf6077e0c376d48840b1b2bcbf9f6086cc6484629e",
   "asset_sha256": "0c48a86efd4618d3fdc0e52cd2bc5ca063fc7ac006ebfee09a46bee01d159d6c",
   "jax_version": "0.11.0",
   "devices": [

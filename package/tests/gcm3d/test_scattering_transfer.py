@@ -23,6 +23,29 @@ def test_absorption_only_infrared_matches_exact_transfer():
     np.testing.assert_allclose(top,jnp.pi*(.2+.1*jnp.exp(-2.*jnp.sum(depth))),rtol=2e-13)
 
 
+def test_thin_linear_source_and_gradient_match_independent_formal_integral():
+    depth=1.e-9;sample=.4*depth
+    nodes,weights=np.polynomial.legendre.leggauss(8)
+    def integrate(a,b,fn):
+        points=.5*(b-a)*nodes+.5*(b+a)
+        return .5*(b-a)*np.sum(weights*fn(points))
+    def source(s): return 4.+2.*s/depth
+    expected_up=11.*np.exp(-2.*(depth-sample))+integrate(sample,depth,
+        lambda s:2.*source(s)*np.exp(-2.*(s-sample)))
+    expected_down=3.*np.exp(-2.*sample)+integrate(0.,sample,
+        lambda s:2.*source(s)*np.exp(-2.*(sample-s)))
+    def evaluate(top_planck):
+        return infrared_fluxes(jnp.array([depth]),jnp.zeros(1),jnp.zeros(1),
+            jnp.array([top_planck,6.]),jnp.array([sample]),0.,3.,11.)
+    actual=jax.jit(evaluate)(4.)
+    np.testing.assert_allclose(actual[0][0],np.pi*expected_up,rtol=2e-15)
+    np.testing.assert_allclose(actual[1][0],np.pi*expected_down,rtol=2e-15)
+    derivative=jax.jit(jax.grad(lambda b:evaluate(b)[0][0]))(4.)
+    expected_derivative=np.pi*integrate(sample,depth,
+        lambda s:2.*(1.-s/depth)*np.exp(-2.*(s-sample)))
+    np.testing.assert_allclose(derivative,expected_derivative,rtol=2e-14,atol=1e-24)
+
+
 @pytest.mark.parametrize("w",[0.,.5,.999])
 def test_isothermal_infrared_equilibrium(w):
     depth=jnp.array([.1,.2,.3])

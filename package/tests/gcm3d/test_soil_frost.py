@@ -82,5 +82,22 @@ def test_case7_interfaces_keep_north_south_depths_and_inertia_gradients():
     auto=jax.grad(objective)(250.)
     finite=(objective(250.01)-objective(249.99))/.02
     np.testing.assert_allclose(auto,finite,rtol=1e-9,atol=1e-14)
-    with pytest.raises(ValueError,match='seven'):
+    with pytest.raises(ValueError,match='minimum depths'):
         subsurface_diffusivity(1.,250.,60.,4)
+
+
+@pytest.mark.parametrize('legacy',[False,True])
+def test_soil_material_switches_keep_native_hemisphere_values_and_fixed_deep_node(legacy):
+    from src.framework.physics.soil_frost import subsurface_properties
+    lat=jnp.array([1.3,-1.3])
+    diffusion,capacity=subsurface_properties(lat,250.,60.,legacy=legacy)
+    dry=1481.39*840. if legacy else 1500.*627.9
+    ice=1781.99*1404.09 if legacy else dry
+    np.testing.assert_allclose(capacity[0],dry)
+    np.testing.assert_allclose(capacity[-2],ice)
+    np.testing.assert_allclose(capacity[-1],dry)
+    expected=(jnp.array([1100.,2236.995]) if legacy else jnp.array([1000.,1000.]))/ice
+    np.testing.assert_allclose(diffusion[-1],expected**2)
+    uniform,uniform_capacity=subsurface_properties(lat,250.,60.,legacy=legacy,ice_case=3)
+    np.testing.assert_allclose(uniform,(250./dry)**2)
+    np.testing.assert_allclose(uniform_capacity,dry)

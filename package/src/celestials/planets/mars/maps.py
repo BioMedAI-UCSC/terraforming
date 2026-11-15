@@ -265,6 +265,8 @@ def run_maps(
     hyperdiffusion_tau_seconds: float | Literal["auto"] | None = "auto",
     radiation_component=None,
     neural_tendency=None,
+    physics_backend: Literal["standard", "reference"] = "standard",
+    reference_options=None,
 ) -> MarsMapFields | tuple[MarsMapFields, object]:
     """Run the Mars dycore over MOLA terrain and return lat/lon map fields.
 
@@ -281,12 +283,24 @@ def run_maps(
     ``radiation_component`` optionally replaces the radiative flux callable when
     forcing.co2_radiation_enabled is true. Use the lower-level parameterized
     rollout API for training; map conversion and reporting are host operations.
+    The reference backend requires an explicit radiation callback and soil
+    options for dinosaur_physics.build_step. It owns its CO2 cycle. Initial
+    water inventory options apply only to a new run; restarts retain theirs.
 
     Hyperdiffusion defaults to a shortest-mode e-folding time of 0.1 rotations
     at T42, scaled by 42/truncation for finer/coarser grids. This numerical
     default is not a climate calibration. Pass a positive time in seconds to
     override it or ``None`` to explicitly disable it for comparison runs.
     """
+    if physics_backend not in ('standard','reference'):
+        raise ValueError('physics_backend must be standard or reference')
+    if reference_options is not None and physics_backend!='reference':
+        raise ValueError('reference_options require the reference physics backend')
+    if physics_backend=='reference':
+        if forcing is None or radiation_component is None or reference_options is None:
+            raise ValueError('reference backend requires explicit forcing, radiation and soil options')
+        if co2_forcing is not None or neural_tendency is not None:
+            raise ValueError('reference backend uses its own CO2 column; separate CO2/neural forcing is unsupported')
     if body is None:
         from src.celestials.planets.mars import MARS_BODY_3D
 
@@ -335,7 +349,24 @@ def run_maps(
 
     state0 = (initial_rest_state(coords, specs, body, elevation_nodal_m, t_ref_k, p0_pa)
               if initial_state is None else initial_state)
-    if forcing is None:
+    if physics_backend=='reference':
+        from src.framework.physics.dinosaur_physics import build_step,initial_state as reference_initial_state
+        options=dict(reference_options)
+        initial_water=options.pop('initial_water_surface_kg_m2',0.)
+        initial_vapor=options.pop('initial_water_vapor_ratio',0.)
+        if 'return_diagnostics' in options:
+            raise ValueError('map runner diagnostics use diagnostic_callback')
+        if initial_state is None:
+            state0=dataclasses.replace(state0,sim_time=0.)
+            state0=reference_initial_state(state0,coords,specs,
+                temperature_k=t_ref_k or body.reference_temperature_k,
+                soil_layers=options.get('soil_layers',16),bulk_water=options.get('bulk_water',False),
+                initial_water_surface_kg_m2=initial_water,initial_water_vapor_ratio=initial_vapor)
+        step=build_step(coords,specs,body,forcing,dt_seconds,orography=orography,
+            radiation_component=radiation_component,
+            hyperdiffusion_tau_seconds=hyperdiffusion_tau_seconds,**options)
+        physics_label='Dinosaur dynamics + reference column physics'
+    elif forcing is None:
         equation = build_primitive_equations(coords, body, specs=specs, orography=orography)
         physics_label = "dry dynamics; no radiation/CO2/dust"
     else:
@@ -400,29 +431,29 @@ def run_maps(
         if surface_components:
             physics_label += " + " + " + ".join(surface_components)
 
-        # Diurnal-terminator CFL: the subsolar point sweeps 360° per rotation, so
-        # the day/night terminator crosses one longitude cell in
-        # rotation_period/n_lon seconds. The sharp terminator is not band-limited,
-        # and with the nonlinear T^4 feedback a step that lets it jump more than
-        # ~half a cell aliases and diverges to NaN (verified: T42 needs
-        # dt<=~350s, T21 <=~700s). Require >=2 steps per cell and refuse a step
-        # too coarse rather than emit silently-NaN maps.
-        if getattr(forcing, "diurnal", False):
-            n_lon = len(grid.longitudes)
-            max_stable_dt = forcing.rotation_period_s / (2.0 * n_lon)
-            if dt_seconds > max_stable_dt:
-                raise ValueError(
-                    f"dt_seconds={dt_seconds:g} is too coarse for the diurnal "
-                    f"forcing at {truncation} (n_lon={n_lon}); the moving "
-                    f"terminator aliases and the run diverges. Use dt_seconds "
-                    f"<= {max_stable_dt:g}, coarsen the truncation, or pass a "
-                    f"forcing with diurnal=False (daily-mean insolation)."
-                )
-
-    step = stepper(
-        equation, dt_seconds, specs, coords=coords,
-        hyperdiffusion_tau_seconds=hyperdiffusion_tau_seconds,
-    )
+    # Diurnal-terminator CFL: the subsolar point sweeps 360° per rotation, so
+    # the day/night terminator crosses one longitude cell in
+    # rotation_period/n_lon seconds. The sharp terminator is not band-limited,
+    # and with the nonlinear T^4 feedback a step that lets it jump more than
+    # ~half a cell aliases and diverges to NaN (verified: T42 needs
+    # dt<=~350s, T21 <=~700s). Require >=2 steps per cell and refuse a step
+    # too coarse rather than emit silently-NaN maps.
+    if getattr(forcing, "diurnal", False):
+        n_lon = len(grid.longitudes)
+        max_stable_dt = forcing.rotation_period_s / (2.0 * n_lon)
+        if dt_seconds > max_stable_dt:
+            raise ValueError(
+                f"dt_seconds={dt_seconds:g} is too coarse for the diurnal "
+                f"forcing at {truncation} (n_lon={n_lon}); the moving "
+                f"terminator aliases and the run diverges. Use dt_seconds "
+                f"<= {max_stable_dt:g}, coarsen the truncation, or pass a "
+                f"forcing with diurnal=False (daily-mean insolation)."
+            )
+    if physics_backend!='reference':
+        step = stepper(
+            equation, dt_seconds, specs, coords=coords,
+            hyperdiffusion_tau_seconds=hyperdiffusion_tau_seconds,
+        )
     if hyperdiffusion_tau_seconds is not None:
         physics_label += (
             " + eighth-order wind/temperature hyperdiffusion "
@@ -484,7 +515,7 @@ def run_maps(
         surface_temperature_map = np.asarray(
             specs.dimensionalize(column_final.surface_temperature, _u.kelvin).magnitude
         )[0].T
-    if co2_forcing is not None:
+    if co2_forcing is not None or physics_backend=='reference':
         co2_ice = column_final.co2_ice
         ice_pa = np.asarray(
             specs.dimensionalize(jnp.asarray(co2_ice), _u.pascal).magnitude

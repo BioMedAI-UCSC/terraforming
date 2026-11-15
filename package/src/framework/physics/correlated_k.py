@@ -47,8 +47,24 @@ def load_ames_co2_tables_jax() -> dict[str, object]:
     }
 
 
+@lru_cache(maxsize=3)
+def load_radiation_tables(mode='12band'):
+    """Numeric reference tables for the three released radiation configurations."""
+    if mode=='12band': return load_ames_co2_tables()
+    if mode not in ('15band','extended'):
+        raise ValueError('radiation mode must be 12band, 15band or extended')
+    with np.load(_ASSET.with_name(f'co2_{mode}_tables.npz'),allow_pickle=False) as archive:
+        return {name:archive[name] for name in archive.files}
+
+
+def radiation_tables_jax(mode='12band'):
+    """Convert cached host tables while avoiding escaped tracers across rollouts."""
+    return {name:jnp.asarray(value) for name,value in load_radiation_tables(mode).items()
+        if np.issubdtype(value.dtype,np.number) and 'mixtures' not in name}
+
+
 def _interp2_log_table(table, temperature_axis, pressure_axis, temperature_k,
-                       pressure_mbar):
+                       pressure_mbar,*,mixture_index=None):
     """Bilinear interpolation of log10(k) on T and log10-pressure axes."""
     t_axis = jnp.asarray(temperature_axis)
     p_axis = jnp.log10(jnp.asarray(pressure_axis))
@@ -60,23 +76,40 @@ def _interp2_log_table(table, temperature_axis, pressure_axis, temperature_k,
     ft = (t - t_axis[it]) / (t_axis[it + 1] - t_axis[it])
     fp = (p - p_axis[ip]) / (p_axis[ip + 1] - p_axis[ip])
     values = jnp.asarray(table)
-    v00, v10 = values[it, ip], values[it + 1, ip]
-    v01, v11 = values[it, ip + 1], values[it + 1, ip + 1]
+    def lookup(ti,pi):
+        return values[ti,pi] if mixture_index is None else values[ti,pi,mixture_index]
+    v00, v10 = lookup(it,ip),lookup(it+1,ip)
+    v01, v11 = lookup(it,ip+1),lookup(it+1,ip+1)
     return ((1.0 - ft)[..., None, None] *
             ((1.0 - fp)[..., None, None] * v00 + fp[..., None, None] * v01)
             + ft[..., None, None] *
             ((1.0 - fp)[..., None, None] * v10 + fp[..., None, None] * v11))
 
 
-def correlated_k_optical_depths(temperature_k, pressure_mid_pa, delta_pressure_pa):
+def correlated_k_optical_depths(temperature_k, pressure_mid_pa, delta_pressure_pa,*,
+                               mode='12band',water_mass_fraction=None):
     """Return SW/LW gas optical depths as ``(band, g, layer, lon, lat)``."""
-    data = load_ames_co2_tables_jax()
+    data = radiation_tables_jax(mode)
     pressure_mbar = pressure_mid_pa / 100.0
     delta_mbar = delta_pressure_pa / 100.0
     common = (data["temperature_k"], data["pressure_mbar_ames"], temperature_k,
               pressure_mbar)
-    log_sw = _interp2_log_table(data["log10_k_sw_ames"], *common)
-    log_ir = _interp2_log_table(data["log10_k_ir_ames"], *common)
+    if mode!='12band':
+        tables=load_radiation_tables(mode)
+        water=0. if water_mass_fraction is None else water_mass_fraction
+        mixture=jnp.clip(jnp.searchsorted(data['water_mass_fractions'],jnp.asarray(water),side='right')-1,0,9)
+        log_sw=_box_lookup(tables['log10_k_sw_mixtures_ames'],*common,mixture)
+        log_ir=_box_lookup(tables['log10_k_ir_mixtures_ames'],*common,mixture)
+    elif water_mass_fraction is None:
+        log_sw = _interp2_log_table(data["log10_k_sw_ames"], *common)
+        log_ir = _interp2_log_table(data["log10_k_ir_ames"], *common)
+    else:
+        # tpindex15 selects a mixture bin; it does not interpolate water amount.
+        mixture=jnp.clip(jnp.searchsorted(data['water_mass_fractions'],
+            jnp.asarray(water_mass_fraction),side='right')-1,0,9)
+        tables=load_radiation_tables(mode)
+        log_sw=_interp2_log_table(tables['log10_k_sw_mixtures_ames'],*common,mixture_index=mixture)
+        log_ir=_interp2_log_table(tables['log10_k_ir_mixtures_ames'],*common,mixture_index=mixture)
     scale = CO2_COLUMN_FACTOR_PER_MBAR * delta_mbar[..., None, None]
     tau_sw = scale * 10.0 ** log_sw
     tau_ir = scale * 10.0 ** log_ir
@@ -86,6 +119,26 @@ def correlated_k_optical_depths(temperature_k, pressure_mid_pa, delta_pressure_p
     return jnp.moveaxis(tau_sw, (-2, -1), (0, 1)), jnp.moveaxis(
         tau_ir, (-2, -1), (0, 1)
     )
+
+
+def _box_lookup(table,taxis,paxis,temperature,pressure,mixture):
+    """tpindex15/boxinterp branch arithmetic, including nonfinite source entries."""
+    temperature,pressure=map(jnp.asarray,(temperature,pressure))
+    logp=jnp.log10(jnp.maximum(pressure,1e-12));logaxis=jnp.log10(paxis)
+    ti=(temperature>taxis[0])&(temperature<taxis[-1])
+    pi=(logp>logaxis[0])&(logp<logaxis[-1])
+    it=jnp.clip(jnp.searchsorted(taxis,temperature,side='right')-1,0,len(taxis)-1)
+    ip=jnp.clip(jnp.searchsorted(logaxis,logp,side='right')-1,0,len(logaxis)-1)
+    jt=jnp.minimum(it+ti.astype(int),len(taxis)-1)
+    jp=jnp.minimum(ip+pi.astype(int),len(logaxis)-1)
+    ft=(temperature-taxis[it])/jnp.where(ti,taxis[jt]-taxis[it],1.)
+    fp=(logp-logaxis[ip])/jnp.where(pi,logaxis[jp]-logaxis[ip],1.)
+    values=jnp.asarray(table)
+    a,b=values[it,ip,mixture],values[jt,ip,mixture]
+    c,d=values[it,jp,mixture],values[jt,jp,mixture]
+    row0=a+jnp.where(ti[...,None,None],(b-a)*ft[...,None,None],0.)
+    row1=c+jnp.where(ti[...,None,None],(d-c)*ft[...,None,None],0.)
+    return row0+jnp.where(pi[...,None,None],(row1-row0)*fp[...,None,None],0.)
 
 
 def channel_weights(clear_fraction):
@@ -109,14 +162,14 @@ def planck_band_fractions(temperature_k):
     return jnp.moveaxis(result, -1, 0)
 
 
-def planck_band_intensities(temperature_k):
+def planck_band_intensities(temperature_k,*,mode='12band'):
     """Ames absolute W/m2/sr/(cm^-1) means, continuously interpolated in T.
 
     At the 0.1 K reference nodes this uses setspi's unnormalized integrals.
     Continuous interpolation replaces the original integer temperature index
     so gradients reach temperature. Native validation covers 50--900 K.
     """
-    data=load_ames_co2_tables_jax()
+    data=radiation_tables_jax(mode)
     axis=data['ames_planck_temperature_k']
     values=data['ames_planck_intensity_ir']
     temperature=jnp.asarray(temperature_k)

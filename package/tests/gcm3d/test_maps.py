@@ -342,3 +342,37 @@ def test_comparison_export_preserves_geography_units_season_and_cloud_inventory(
         np.testing.assert_allclose(ds.local_solar_time[0], (12. + ds.lon / 15.) % 24.)
         np.testing.assert_allclose(ds.air_pressure,
                                    (ds.surface_pressure * ds.sigma).transpose(*ds.air_pressure.dims))
+
+
+def test_reference_maps_backend_runs_water_and_preserves_restart_state(monkeypatch):
+    from src.celestials.planets.mars.reference_constants import AMES_BODY_3D,reference_radiative_forcing
+    from src.framework.physics.radiative_transfer import make_radiation_component
+    from src.framework.physics.dinosaur_physics import water_inventory
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.framework.gcm.specs import physics_specs
+    monkeypatch.setattr(maps,'regrid_to_nodal',lambda coords,mola_path=None:np.zeros(coords.horizontal.nodal_shape))
+    radiation=make_radiation_component(lambda *args:None)
+    options=dict(soil_diffusivity=(250./(1500.*627.9))**2,bulk_water=True,
+        initial_water_surface_kg_m2=100.,initial_water_vapor_ratio=1e-6,form_bulk_clouds=False)
+    kwargs=dict(body=AMES_BODY_3D,truncation='T21',n_layers=4,dt_seconds=5.,
+        t_ref_k=180.,forcing=reference_radiative_forcing(),radiation_component=radiation,
+        physics_backend='reference',reference_options=options,return_final_state=True)
+    fields,first=maps.run_maps(**kwargs,n_steps=1)
+    _,second=maps.run_maps(**kwargs,n_steps=1,initial_state=first)
+    _,whole=maps.run_maps(**kwargs,n_steps=2)
+    assert fields.co2_ice_pa is not None
+    assert 'reference column physics' in fields.physics
+    for actual,expected in zip(jax.tree_util.tree_leaves(second),jax.tree_util.tree_leaves(whole),strict=True):
+        np.testing.assert_allclose(actual,expected,rtol=3e-13,atol=3e-13)
+    coords=coordinate_system('T21',4);specs=physics_specs(AMES_BODY_3D)
+    np.testing.assert_allclose(water_inventory(second,coords,specs,AMES_BODY_3D),
+        water_inventory(first,coords,specs,AMES_BODY_3D),rtol=3e-12)
+
+
+@pytest.mark.parametrize('kwargs,match',[
+    ({'physics_backend':'other'},'physics_backend'),
+    ({'reference_options':{}},'reference_options'),
+    ({'physics_backend':'reference'},'requires explicit'),
+])
+def test_reference_maps_backend_rejects_incomplete_configuration(kwargs,match):
+    with pytest.raises(ValueError,match=match): maps.run_maps(**kwargs)

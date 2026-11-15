@@ -60,7 +60,8 @@ def fall_velocity(radius_m,temperature,density,*,gravity=3.72,particle_density=I
 
 
 def sedimentation(ice_ratio,pressure_half,pressure_full,temperature,temperature_surface,radius_m,
-                  heat_diffusivity,dt_seconds,*,gas_constant=189.02,gravity=3.72):
+                  heat_diffusivity,dt_seconds,*,gas_constant=189.02,gravity=3.72,
+                  particle_density=ICE_DENSITY,density_temperature=None):
     """Original sedimco2 explicit/implicit flux switch and open-bottom deposit.
 
     Temperature must be the pre-phase temperature, as in the released driver.
@@ -75,16 +76,17 @@ def sedimentation(ice_ratio,pressure_half,pressure_full,temperature,temperature_
         raise ValueError('CO2 sedimentation requires matching grids and at least two layers')
     if k.shape!=(n-1,*t.shape[1:]):
         raise ValueError('heat diffusivity must have N-1 internal interfaces')
-    return _sediment(q,p,full,t,ts,r,k,dt_seconds,gas_constant,gravity)
+    return _sediment(q,p,full,t,ts,r,k,dt_seconds,gas_constant,gravity,
+        particle_density,density_temperature)
 
 
-def _sediment(q,p,full,t,ts,r,k,dt,gas_constant,gravity):
-    density=full/(gas_constant*t)
+def _sediment(q,p,full,t,ts,r,k,dt,gas_constant,gravity,particle_density,density_temperature):
+    density=full/(gas_constant*(t if density_temperature is None else density_temperature))
     thickness=jnp.diff(p,axis=0)/gravity/density
     concentration=q*density
     boundary_t=jnp.concatenate([.5*(t[:-1]+t[1:]),.5*(ts+t[-1])[None]])
-    boundary_rho=jnp.concatenate([p[1:-1]/(gas_constant*boundary_t[:-1]),density[-1:]])
-    w=-fall_velocity(r[1:],boundary_t[1:],boundary_rho[1:],gravity=gravity)
+    boundary_rho=jnp.concatenate([p[1:-1]/(gas_constant*boundary_t[:-1]),full[-1:]/(gas_constant*t[-1:])])
+    w=-fall_velocity(r[1:],boundary_t[1:],boundary_rho[1:],gravity=gravity,particle_density=particle_density)
     spacing=.5*(thickness[:-1]+thickness[1:])
     active=k!=0.
     safe_k=jnp.where(active,k,1.)

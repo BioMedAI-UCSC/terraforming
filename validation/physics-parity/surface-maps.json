@@ -102,7 +102,7 @@
   "sha256": {
     "scripts/validate_surface_maps.py": "b27de8c46486cbc8ef2ab3073c0e0ba06041459f93794eba2f47004a0b566440",
     "package/src/celestials/planets/mars/surface.py": "d5233f4fb9dbe25e8dbcbb5362837782a6c9e37dc4aeb4e5b5812c904f2f0b90",
-    "package/src/framework/physics/soil_frost.py": "8dd5ae6ad27426ffdd641b4472ccec7ef5dd94ef3cc60c545fc752d6503dba90"
+    "package/src/framework/physics/soil_frost.py": "c0c17bceefb7e04bc03d383994eb7e9f34c892959c2f1abbe4f8bbcbcb1f848d"
   },
   "limits": "Gaussian lat/lon conservative area remap; source emissivity above one is preserved; does not establish FV3/Dinosaur climate agreement"
 }

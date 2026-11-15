@@ -4,7 +4,7 @@ NASA-derived algorithms: Copyright 2023 United States Government as represented
 by NASA. NASA Open Source Agreement 1.3; see the repository's Ames reference.
 Vertical levels are axis zero; trailing dimensions are independent channels.
 """
-from src.framework.gcm._dinosaur import jnp
+from src.framework.gcm._dinosaur import jax,jnp
 from src.framework.physics.vertical_solve import solve_tridiagonal
 
 
@@ -45,39 +45,64 @@ def _exponent_coefficients(gamma,rate,optical_depth,taumax):
     return ep+gamma*em,ep-gamma*em,gamma*ep+em,gamma*ep-em
 
 
+def _infrared_layer(depth,w0,g,planck_top,planck_bottom,taumax):
+    """Boundary response of the original hemispheric equations, without B'/tau cancellation."""
+    alpha=jnp.sqrt((1.-w0)/(1.-w0*g))
+    gamma=(1.-alpha)/(1.+alpha)
+    x=alpha*(1.-w0*g)/.5*depth
+    capped=jnp.minimum(x,taumax)
+    transmission=jnp.exp(-capped)
+    denominator=1.-gamma*gamma*transmission**2
+    reflection=gamma*(-jnp.expm1(-2.*capped))/denominator
+    through=(1.-gamma*gamma)*transmission/denominator
+    absorption=(1.-gamma)*(-jnp.expm1(-capped))/(1.+gamma*transmission)
+    # These remainders start at x**2. Direct subtraction loses thin-layer AD.
+    f=jnp.where(x<1e-3,x*x*(.5-x/3.+x*x/8.-x**3/30.+x**4/144.),
+        -jnp.expm1(-capped)-x*transmission)
+    h=jnp.where(x<1e-3,x*x*(-.5+x/6.-x*x/24.+x**3/120.-x**4/720.),
+        -jnp.expm1(-capped)-x)
+    coefficient=(1.-gamma)*(f+gamma*transmission*h)/denominator/jnp.where(x!=0.,x,1.)
+    slope_term=(planck_bottom-planck_top)*coefficient
+    return reflection,through,planck_top*absorption+slope_term,planck_bottom*absorption-slope_term
+
+
 def infrared_fluxes(optical_depth,scattering_albedo,asymmetry,planck_boundaries,
                     evaluation_depth,reflectivity,btop,bsurf,*,taumax=35.):
-    """Ames gfluxi with supplied absolute band Planck intensities.
+    """Original IR hemispheric equations with stable layer adding and linear sources.
 
-    ``planck_boundaries`` has one more level than optical_depth. The caller
-    supplies the original radiative subgrid, including its special lower
-    layer. evaluation_depth is measured from each radiation layer's top.
-    Return upward/downward flux at those depths and the net upward TOA flux.
-    Intensities are converted to hemispheric flux by pi, as in gfluxi.
+    Integrate the same linear Planck profile and retain the source exponent cap.
+    Boundary source terms use exponential remainders instead of subtracting
+    terms proportional to 1/tau. This keeps thin-layer reverse derivatives usable.
     """
     dtau,w0,g,planck,offset=map(jnp.asarray,
         (optical_depth,scattering_albedo,asymmetry,planck_boundaries,evaluation_depth))
     if planck.shape!=(dtau.shape[0]+1,*dtau.shape[1:]) or offset.shape!=dtau.shape:
-        raise ValueError("Planck levels and evaluation depths must match the radiation grid")
-    alpha=jnp.sqrt((1.-w0)/(1.-w0*g))
-    rate=alpha*(1.-w0*g)/.5
-    slope=(planck[1:]-planck[:-1])/dtau
-    base=planck[:-1]
-    gamma=(1.-alpha)/(1.+alpha)
-    term=.5/(1.-w0*g)
-    cp=base+slope*dtau+slope*term
-    cm=base+slope*dtau-slope*term
-    cpm1=base+slope*term
-    cmm1=base-slope*term
-    e1,e2,e3,e4=_exponent_coefficients(gamma,rate,dtau,taumax)
-    positive,negative=dsolver(gamma,cp,cm,cpm1,cmm1,e1,e2,e3,e4,btop,bsurf,reflectivity)
-    ep=jnp.exp(jnp.minimum(taumax,rate*offset))
-    em=1./ep
-    up=(positive*ep+gamma*negative*em+base+slope*offset+slope*term)*jnp.pi
-    down=(positive*ep*gamma+negative*em+base+slope*offset-slope*term)*jnp.pi
-    top_up=positive[0]+gamma[0]*negative[0]+cpm1[0]
-    top_down=positive[0]*gamma[0]+negative[0]+cmm1[0]
-    return up,down,(top_up-top_down)*jnp.pi
+        raise ValueError('Planck levels and evaluation depths must match the radiation grid')
+    reflection,through,source_up,source_down=_infrared_layer(dtau,w0,g,planck[:-1],planck[1:],taumax)
+    shape=dtau[0].shape
+    def add_layer(below,row):
+        a,b=below;r,t,su,sd=row
+        inverse=1./(1.-a*r)
+        combined=(r+t*a*t*inverse,su+t*(a*sd+b)*inverse)
+        return combined,(combined,below)
+    _,((a,b),(next_a,next_b))=jax.lax.scan(add_layer,
+        (jnp.broadcast_to(jnp.asarray(reflectivity),shape),jnp.broadcast_to(jnp.asarray(bsurf),shape)),
+        tuple(x[::-1] for x in (reflection,through,source_up,source_down)))
+    a,b,next_a,next_b=(x[::-1] for x in (a,b,next_a,next_b))
+    top_down=jnp.broadcast_to(jnp.asarray(btop),shape)
+    def propagate(down_top,row):
+        r,t,sd,an,bn=row
+        up_bottom=(an*t*down_top+an*sd+bn)/(1.-an*r)
+        down_bottom=t*down_top+r*up_bottom+sd
+        return down_bottom,(down_top,up_bottom)
+    _,(down_top,up_bottom)=jax.lax.scan(propagate,top_down,
+        (reflection,through,source_down,next_a,next_b))
+    middle=planck[:-1]+(planck[1:]-planck[:-1])*offset/dtau
+    ru,tu,_,sdu=_infrared_layer(offset,w0,g,planck[:-1],middle,taumax)
+    rl,tl,sul,_=_infrared_layer(dtau-offset,w0,g,middle,planck[1:],taumax)
+    up=(rl*(tu*down_top+sdu)+tl*up_bottom+sul)/(1.-rl*ru)
+    down=tu*down_top+ru*up+sdu
+    return up*jnp.pi,down*jnp.pi,(a[0]*top_down+b[0]-top_down)*jnp.pi
 
 
 def visible_fluxes(optical_depth,scattering_albedo,asymmetry,cumulative_sublevels,

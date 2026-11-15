@@ -16,10 +16,11 @@ class OpticalColumn(NamedTuple):
     gas_column: object
 
 
-def gas_subgrid(grid):
+def gas_subgrid(grid,*,mode='12band',water_mass_fraction=None):
     """Dry-CO2 optical depths at every original fillpt subinterval, in Pa."""
     sw,ir=correlated_k_optical_depths(grid.lookup_temperature[1:],
-        grid.lookup_pressure[1:],jnp.diff(grid.pressure,axis=0))
+        grid.lookup_pressure[1:],jnp.diff(grid.pressure,axis=0),mode=mode,
+        water_mass_fraction=water_mass_fraction)
     return tuple(jnp.moveaxis(x,(0,1),(1,2)) for x in (sw,ir))
 
 
@@ -37,8 +38,8 @@ def aggregate_optics(gas,particle_extinction,particle_scattering,
     expected=gas.shape[:2]+gas.shape[3:]
     if ext.shape!=expected or scat.shape!=expected or moment.shape!=expected:
         raise ValueError("particle optical depths must match subintervals and spectral bands")
-    if gas.shape[0]%2 or gas.shape[2]!=17:
-        raise ValueError("Ames optics requires paired subintervals and 17 Gaussian channels")
+    if gas.shape[0]%2 or gas.shape[2] not in (17,33):
+        raise ValueError("reference optics requires paired subintervals and 17 or 33 Gaussian channels")
     ray=jnp.zeros_like(ext) if rayleigh is None else jnp.broadcast_to(rayleigh,ext.shape)
     if infrared and rayleigh is not None:
         raise ValueError("Ames infrared optics does not include Rayleigh scattering")

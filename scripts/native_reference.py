@@ -14,12 +14,14 @@ def extract_routines(source, expected_blob, names):
     text = raw.decode()
     routines = []
     for name in names:
-        start = re.search(r"(?im)^(?:real(?:\*8)?\s+)?(subroutine|function)\s+"+
-            re.escape(name)+r"\s*\(",text)
+        start = re.search(r"(?im)^[ \t]*(?:real(?:\*8)?\s+)?(subroutine|function)\s+"+
+            re.escape(name)+r"\s*(?:&\s*)?\(",text)
         if start is None:
             raise ValueError(f"missing reference routine {name}")
-        end = re.search(r"(?im)^end\s+"+start.group(1)+r"\s+"+re.escape(name)+r"\b",
+        end = re.search(r"(?im)^[ \t]*end\s+"+start.group(1)+r"\s+"+re.escape(name)+r"\b",
             text[start.start():])
+        if end is None:
+            end = re.search(r"(?im)^[ \t]*end[ \t]*$",text[start.start():])
         if end is None:
             raise ValueError(f"missing end of reference routine {name}")
         routines.append(text[start.start():start.start()+end.end()])

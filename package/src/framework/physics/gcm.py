@@ -172,24 +172,46 @@ class RadiativeForcing:
     co2_frost_emissivity_north: float = 0.81
     co2_frost_emissivity_south: float = 0.88
 
+    water_frost_radiative_properties: bool = False
+    water_frost_threshold_m: float = 1.e6
+    water_ice_albedo: float = .4
+    water_liquid_albedo: float = .07
+    water_emissivity: float = 1.
+    liquid_water_albedo: bool = False
+
 
 def surface_radiative_forcing(state, coords, specs, body, forcing):
-    """Apply the Ames CO2 snow optical properties above 2 kg/m2 of frost."""
-    if not forcing.co2_frost_radiative_properties:
+    """Apply reference CO2 and optional surface-water optical properties."""
+    if not (forcing.co2_frost_radiative_properties or forcing.water_frost_radiative_properties):
         return forcing
     for name in ("co2_frost_albedo_north", "co2_frost_albedo_south",
-                 "co2_frost_emissivity_north", "co2_frost_emissivity_south"):
+                 "co2_frost_emissivity_north", "co2_frost_emissivity_south",
+                 "water_ice_albedo", "water_liquid_albedo", "water_emissivity"):
         value = getattr(forcing, name)
         if not np.isfinite(value) or not 0.0 <= value <= 1.0:
             raise ValueError(f"{name} must be finite and in [0, 1]")
+    if not np.isfinite(forcing.water_frost_threshold_m) or forcing.water_frost_threshold_m < 0.:
+        raise ValueError("water_frost_threshold_m must be finite and nonnegative")
     scale = float(specs.dimensionalize(1.0, _u.pascal).magnitude)
-    covered = state.co2_ice[0] > 2.0 * body.gravity_m_s2 / scale
-    north = jnp.asarray(coords.horizontal.latitudes)[None, :] > 0.0
-    albedo = jnp.where(north, forcing.co2_frost_albedo_north, forcing.co2_frost_albedo_south)
-    emissivity = jnp.where(north, forcing.co2_frost_emissivity_north, forcing.co2_frost_emissivity_south)
-    return dataclasses.replace(forcing,
-        albedo=jnp.where(covered, albedo, forcing.albedo),
-        emissivity=jnp.where(covered, emissivity, forcing.emissivity))
+    snow = state.co2_ice[0] * scale / body.gravity_m_s2
+    albedo, emissivity = forcing.albedo, forcing.emissivity
+    if forcing.co2_frost_radiative_properties:
+        north = jnp.asarray(coords.horizontal.latitudes)[None, :] > 0.0
+        albedo = jnp.where(state.co2_ice[0] > 2. * body.gravity_m_s2 / scale,
+            jnp.where(north, forcing.co2_frost_albedo_north, forcing.co2_frost_albedo_south), albedo)
+        emissivity = jnp.where(state.co2_ice[0] > 2. * body.gravity_m_s2 / scale,
+            jnp.where(north, forcing.co2_frost_emissivity_north, forcing.co2_frost_emissivity_south), emissivity)
+    if forcing.water_frost_radiative_properties:
+        from src.framework.physics.water_surface import optical_properties
+        fields = state.auxiliary_fields
+        if fields is None or 'water_surface_kg_m2' not in fields:
+            raise ValueError("water frost optics require the surface water reservoir")
+        albedo, emissivity = optical_properties(albedo, emissivity, state.surface_temperature[0],
+            snow, fields['water_surface_kg_m2'][0],
+            frost_threshold_m=forcing.water_frost_threshold_m,ice_albedo=forcing.water_ice_albedo,
+            liquid_albedo=forcing.water_liquid_albedo,water_emissivity=forcing.water_emissivity,
+            liquid_water=forcing.liquid_water_albedo)
+    return dataclasses.replace(forcing, albedo=albedo, emissivity=emissivity)
 
 
 # ── Keplerian orbit ───────────────────────────────────────────────────────────
@@ -373,6 +395,7 @@ class ColumnPhysicsState(NamedTuple):
     co2_ice: object
     ground_temperature: object
     surface_momentum: object = None
+    auxiliary_fields: object = None
 
 
 class SurfaceEnergyDiagnostics(NamedTuple):
@@ -392,6 +415,7 @@ class RadiativeFluxDiagnostics(NamedTuple):
     atmospheric_convergence_w_m2: object
     surface_net_w_m2: object
     toa_net_down_w_m2: object
+    nonlte_heating_k_s: object = 0.
 
 
 def _validate_radiative_bands(f: RadiativeForcing) -> None:
@@ -445,6 +469,7 @@ class ColumnPhysicsTendencies(NamedTuple):
     ground_temperature: object
     tracers: object
     surface_momentum: object = None
+    auxiliary_fields: object = None
 
 
 def column_primitive_equations(base, parameterization):
@@ -470,10 +495,18 @@ def column_primitive_equations(base, parameterization):
                 for name, value in dry.tracers.items()
             },
         )
+        auxiliary=None
+        provided={} if phy.auxiliary_fields is None else phy.auxiliary_fields
+        expected={} if state.auxiliary_fields is None else state.auxiliary_fields
+        if set(provided)-set(expected):
+            raise ValueError('auxiliary tendencies require matching initial-state fields')
+        if state.auxiliary_fields is not None:
+            auxiliary={key:provided.get(key,jnp.zeros_like(value)) for key,value in expected.items()}
         return ColumnPhysicsState(
             dynamics, phy.surface_temperature, phy.co2_ice, phy.ground_temperature,
             (None if state.surface_momentum is None else
              jnp.zeros_like(state.surface_momentum) if phy.surface_momentum is None else phy.surface_momentum),
+            auxiliary,
         )
 
     def implicit_terms(state):
@@ -483,6 +516,7 @@ def column_primitive_equations(base, parameterization):
             jnp.zeros_like(state.co2_ice),
             jnp.zeros_like(state.ground_temperature),
             None if state.surface_momentum is None else jnp.zeros_like(state.surface_momentum),
+            jax.tree_util.tree_map(jnp.zeros_like,state.auxiliary_fields),
         )
 
     def implicit_inverse(state, step_size):
@@ -492,6 +526,7 @@ def column_primitive_equations(base, parameterization):
             state.co2_ice,
             state.ground_temperature,
             state.surface_momentum,
+            state.auxiliary_fields,
         )
 
     return time_integration.ImplicitExplicitODE.from_functions(
@@ -524,6 +559,9 @@ def compose_column_parameterizations(*parameterizations):
             (None if state.surface_momentum is None else
              sum((v.surface_momentum for v in values if v.surface_momentum is not None),
                  jnp.zeros_like(state.surface_momentum))),
+            (None if state.auxiliary_fields is None else {
+                key:sum((v.auxiliary_fields.get(key,0.) for v in values if v.auxiliary_fields is not None),
+                    jnp.zeros_like(value)) for key,value in state.auxiliary_fields.items()}),
         )
     return combined
 
@@ -2016,6 +2054,9 @@ class CO2ProjectionDiagnostics(NamedTuple):
     frost_repaired_total_mass_kg: object = None
     settled_total_mass_kg: object = None
     saturation_adjusted_total_mass_kg: object = None
+    raw_water_mass_kg: object = None
+    corrected_water_mass_kg: object = None
+    target_water_mass_kg: object = None
 
 
 def co2_exchange_budgets(state, coords, specs, body, cf):

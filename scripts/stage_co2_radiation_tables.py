@@ -98,7 +98,7 @@ def _planck_fractions() -> tuple[np.ndarray, np.ndarray]:
     return temperatures, values
 
 
-def ames_planck_intensities():
+def ames_planck_intensities(ir_bounds_cm1=IR_BOUNDS_CM1):
     """Absolute Planck band means from Ames setspi's 12-point quadrature."""
     temperatures=np.arange(500,9001,dtype=np.float64)/10.
     nodes=np.array([-.981560634246719,-.904117256370475,-.769902674194305,
@@ -109,8 +109,8 @@ def ames_planck_intensities():
         .203167426723066,.233492536538355,.249147045813403,
         .249147045813403,.233492536538355,.203167426723066,
         .160078328543346,.106939325995318,.047175336386512])
-    values=np.empty((len(temperatures),5))
-    for band,(lo,hi) in enumerate(zip(IR_BOUNDS_CM1[:-1],IR_BOUNDS_CM1[1:],strict=True)):
+    values=np.empty((len(temperatures),len(ir_bounds_cm1)-1))
+    for band,(lo,hi) in enumerate(zip(ir_bounds_cm1[:-1],ir_bounds_cm1[1:],strict=True)):
         a,b=1.e-2/hi,1.e-2/lo
         bpa,bma=(b+a)/2.,(b-a)/2.
         ans=np.zeros_like(temperatures)

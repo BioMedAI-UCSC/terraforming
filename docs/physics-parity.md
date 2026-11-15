@@ -14,13 +14,13 @@ No complete-model equivalence or speed claim has passed yet.
 
 | Process | Implementation | Native comparison | Coupled status |
 | --- | --- | --- | --- |
-| Dry convection | `dry_convection.pass2` | Compiled original `pass2`; four 40-layer cases with 2,048 columns, temperature errors below 2e-13 K | `adjust_state` and `build_step` support Dinosaur; production runner selection remains pending |
+| Dry convection | `dry_convection.pass2` | Compiled original `pass2`; four 40-layer cases with 2,048 columns, temperature errors below 2e-13 K | `adjust_state` and `build_step` support Dinosaur; explicit reference backend selection is available in the map runner |
 | PBL surface exchange | `boundary_layer.surface_exchange` | Compiled original `bndcond`, stable/unstable/zero-wind cases | Used by the new column driver |
 | PBL turbulent mixing | `boundary_layer.eddy_coefficients` | Compiled original `eddycoef`, 4/12/40 layers | Used by the new column driver |
 | PBL gas-column driver | `boundary_layer.column_step` | Compiled original `pbl_driver`, `newpbl`, matrix, scaling and solve routines; temperature errors below 1e-13 K | Connected to the soil/frost column and experimental Dinosaur adapter; tracer categories remain pending |
 | Radiation pressure-table staging | `stage_co2_radiation_tables.ames_pressure_interpolation` | Original `laginterp` and `lagrange`; all ten gas mixtures match exactly in the recorded run | Enabled in the existing correlated-k kernel |
 | Radiation dry-table lookup | `correlated_k._interp2_log_table` on the refined pressure grid | Original `tpindex15` and `boxinterp`; 100 temperature/pressure points, including values outside the tables | Enabled in the existing correlated-k kernel |
-| Two-stream flux kernels | `scattering_transfer.visible_fluxes` and `infrared_fluxes` | Original `gfluxv`, `gfluxi`, `dsolver`, `dtridgl`; 1/4/12/40-layer thin/moderate/thick columns | Connected to the full gas-radiation driver; retain the source reciprocal-pivot arithmetic in the rotated solve |
+| Two-stream flux kernels | `scattering_transfer.visible_fluxes` and `infrared_fluxes` | Original `gfluxv`, `gfluxi`, `dsolver`, `dtridgl`; 1/4/12/40-layer thin/moderate/thick columns | Visible keeps the original solve. IR solves the same hemispheric equations with stable layer adding; the composed check uses unchanged Fortran routines at binary128 without relaxing flux tolerances |
 | Radiation pressure/temperature grid | `radiation_grid.radiation_grid` | Original `fillpt`; all output arrays agree exactly in the recorded 1/4/12/40-layer cases, with positive and zero top pressure | Supports Dinosaur's zero top without adding ghost mass or a pressure floor |
 | Spectral flux integration | `spectral_flux.visible_spectrum` and `infrared_spectrum` | Original `sfluxv`, `sfluxi`, `getdetau` and flux solvers; 27 cases with weak/mixed/strong gas opacity and both surface-emission scaling settings | Connected to optical aggregation; the special bottom IR sample uses its full, possibly floored, depth |
 | Optical-depth aggregation | `optical_depth.gas_subgrid` and `aggregate_optics` | Original `optcv15`, `optci15`, `tpindex15`, `boxinterp`; 16 clear/dust cases at 1/4/12/40 layers, positive and zero top pressure | Gas absorption, supplied particle scattering/moments and Rayleigh scattering are connected |
@@ -32,7 +32,17 @@ No complete-model equivalence or speed claim has passed yet.
 | Solar geometry | `solar_geometry.daylight_geometry` and `averaged_zenith` | Compiled original `sol88`/`zenith`, 27 cases including poles, sunrise/sunset and integration windows | Connected to radiation; the averaging interval is explicit |
 | Immediate CO2 deposition | `co2_condensation.simple_condensation` | Original `co2_condense`, followed by original `pass2` in the coupled column check | Enabled in the experimental backend; suspended-cloud mode remains separate |
 | Rayleigh drag | `rayleigh_drag.rayleigh_tendencies` | Original `rayleigh_damping`; 32 cases with surface, top and tropical switches, masks and timescale units | Connected before PBL; optional dissipative reheating remains off by default, as in the source |
-| Suspended CO2 clouds | `co2_microphysics.cloud_step` | Original `co2condsub`, `sedimco2`, `fallvel` and `dtridgl`; 288 cases at 2/4/12/40 layers, at 610 Pa and 500 mbar | Optional column and Dinosaur mode; phase changes, diagnosed size, settling and surface deposition are connected. Cloud optics remain separate |
+| Suspended CO2 clouds | `co2_microphysics.cloud_step` | Original `co2condsub`, `sedimco2`, `fallvel` and `dtridgl`; 288 cases at 2/4/12/40 layers, at 610 Pa and 500 mbar | Optional column and Dinosaur mode; formation, size, settling, deposition and 15-band cloud optical feedback are connected. A three-step rollout derivative passes finite differences |
+| Particle optical properties | `particle_optics` | Original `opt_dst`, `calc_opts`, `opt_co2cld`, `opt_cld_blk`, `opt_cld`; 84 cases, both band configurations and 2/12/40 layers | Fourteen size-dependent tables and the brightness correction retain pinned input blobs and source REAL*4 precision; dust populations, lognormal distributions, coated ice and bulk ice/liquid switching are implemented |
+| Extended gas radiation | `correlated_k`, `spectral_flux` | Original `tpindex15`, `boxinterp`, `sfluxv`, `sfluxi` and transfer solvers; 40 lookup/spectral cases | Both released 15-band options are connected: 32 Gaussian points to 350 K, or 16 points to 800 K. All ten water mixtures are available; source mixture selection remains discrete |
+| Collision-induced absorption | `collision_absorption` | Original `optci15` and `kinter`; 81 cases at 610 Pa, 500 mbar and 10 bar | CO2/CO2 and CO2/H2 infrared continuum is connected, including the source temperature clamp before density/path calculation and zero ghost-layer absorption |
+| Bulk water cloud kernels | `water_bulk` | Original `blkh2o_driver`, `findq`, `sedimh2o` and `fallvel`; 24 roots and 36 columns | Phase change, precipitation threshold, settling and rain/snow accounting are implemented. The original root iteration is checked separately; three Newton corrections remove its stopping noise. Surface exchange, lagged PBL exchange history, cloud optical feedback and global water inventory checks are connected |
+| Surface water exchange | `water_surface` | Original `update_water`, `update_water_fv3`, `update_water_blk`; 216 cases | Bulk/bin/moment surface kernels, liquid saturation and latent diagnostics are checked. Bulk mode is connected before PBL using saved exchange coefficients; cloud formation is a separate switch |
+| Surface water optics | `water_surface.optical_properties` | Original `albedo_calc`; 120 threshold/temperature/snow cases | Radiation uses old water; soil uses water after surface exchange. Bare map values are restored when frost falls below the threshold |
+| Legacy soil materials | `soil_frost.subsurface_properties` | Original `progts`; 20 modern/legacy and uniform/case-7 cases | Returns diffusivity and heat capacity. Distinct legacy northern/southern ice inertia and the fixed deep node are retained |
+| Terrain gravity-wave drag | `terrain_drag` | Original `palmer_drag` and `IR_damping`; 90 columns and 40 damping pressures | Connected before convection. Calm wind and zero shear use finite limits. Original early exits and force imbalance are retained and reported. Zero-top grids require an explicit finite diagnostic top pressure for drag heights |
+| Non-LTE heating | `nonlte_cooling` | Original `simple_nltecool` and `interpnlte`; 54 columns and interpolation-history cases | Pinned MGITM atmosphere is staged. Solar attenuation is connected; optional longwave cooling requires explicit CO2/atomic-oxygen tracers. The longwave option is excluded by the original RELEASE flag. Heating corrections are separate from interface fluxes |
+| Water state/restarts | `dinosaur_physics`, restart format 4 | Independent global water inventories, full cloud-feedback restart and three-step reverse derivatives | Surface water and lagged PBL state persist across restarts. Versions 2 and 3 remain readable; trace-water thermodynamics follows the source approximation |
 | Coupled gas column | `column_physics.column_physics` | Original Rayleigh, PBL, surface, CO2 and convection routines in reference order; 24 clear/winter/thaw/convective cases at 4/12/40 layers, with immediate deposition or suspended clouds; temperature errors below 2e-13 K | Radiation heating and downward surface flux are prescribed inputs |
 | Dinosaur adaptation | `dinosaur_physics.build_step` and `remap_gas` | Cold global smoke, gas inventory, remap energy/momentum/passive material checks, and three-step reverse derivatives checked against finite differences | Ground impulse is recorded; raw/corrected angular momentum and exchange-energy ledgers expose numerical repair changes; whole-model validation remains pending |
 
@@ -78,6 +88,10 @@ in the initial state; `initial_state` supplies it. Ice bypasses gas PBL mixing
 and joins all tracers in dry convection. Cloud mass survives gas pressure changes.
 The default radiation remains explicitly clear unless its particle provider
 supplies cloud optics; enabling microphysics alone does not enable cloud opacity.
+Use `make_particle_provider(bands=15, co2_cloud_tracer=CO2_CLOUD_TRACER)` with
+`make_radiation_component(..., radiation_mode='extended')` for the released
+high-pressure gas tables and CO2 cloud feedback. `radiation_mode='15band'`
+selects the separate 32-point, 350 K tables. The default remains `12band`.
 
 The bulk cloud source uses pre-phase density and interface temperatures for
 settling, a 590200 J/kg latent heat, mass-derived lognormal radii and a
@@ -103,6 +117,28 @@ explicit, including its midnight phase and daylight fraction. Matched performanc
 runs must also match the radiation evaluation schedule; Ames normally holds
 radiative tendencies between its configured radiation updates.
 
+The IR layer solver uses stable exponential remainders and boundary adding.
+It retains the source hemispheric equations, linear Planck profile and exponent
+cap. This avoids subtracting large terms proportional to `1/tau` in thin layers.
+The original FP64 composed solver loses about 5e-7 W/m2 in one recorded case.
+The binary128 native comparison retains the same strict interface-flux gates;
+FP64 cancellation is recorded separately. Thin-layer formal-integral tests and
+forward/reverse derivative checks pass without enlarging their tolerances.
+
+The released 800 K IR input contains 2,941 positive infinite coefficients in
+some water-mixture cells. The loader retains them. Native comparison checks
+matching nonfinite results separately from finite coefficient errors. These
+input regions cannot be called validated finite climate states. Gas-only and
+tested cloudy rollouts use finite cells; water-cycle coupling must enforce and
+audit its actual thermodynamic states. No replacement coefficients are invented.
+
+Bulk water uses the original bracketed Newton/bisection iteration, including
+its unusual derivative and absolute `1e-8` step tolerance. Three corrections
+then solve the same saturation equation to roundoff. The smooth objective and
+implicit derivative are checked against an independent Brent solve and actual
+forward finite differences. The original iteration still matches Fortran;
+whole-driver differences due to its stopping tolerance are recorded explicitly.
+
 The source CO2 mass guard is retained and reported. It can break the latent heat
 ledger in extreme states because the original routine limits removed mass while
 retaining the full temperature adjustment. The backend rejects such states;
@@ -119,13 +155,13 @@ interpolation is the explicit change that replaces the source's integer indexing
 | --- | --- |
 | Global budgets | Momentum exchange and repair-stage ledgers are connected. Extend the energy audit across dissipation, fixed-deep-soil exchange, phase approximations and long global runs; select gas and particle tracers explicitly. |
 | Radiation schedule | Gas-radiation assembly and Dinosaur coupling pass native and derivative checks. Match radiation evaluation/holding schedules in whole-model comparisons. |
-| Dust and cloud opacity | Match prescribed dust, Rayleigh scattering, CO2/water cloud optics, radii, particle distributions and radiation feedback. |
-| Soil and frost | Mapped TES/GRS inputs and default case-7 profiles are implemented and checked. Compare diurnal/seasonal response in global runs; optional legacy material settings remain separate. |
-| CO2 modes | Immediate deposition and optional bulk suspended-cloud phase/settling now match native routines and coupled columns. Cloud optical feedback, full two-way exchange auditing and long global validation remain pending. The older conservative finite-settling scheme remains a separate model. |
+| Dust and cloud opacity | Size-dependent dust and all three cloud optical kernels are implemented. CO2 optical feedback is connected; prescribed dust scenarios and full water/dust drivers still need integration and matched climatology. |
+| Soil and frost | Mapped TES/GRS inputs and default case-7 profiles are implemented and checked. Compare diurnal/seasonal response in global runs; modern and legacy material profiles now pass native checks. |
+| CO2 modes | Immediate deposition and optional bulk suspended-cloud phase/settling match native routines and coupled columns. Cloud optical feedback passes a three-step gradient check. Full two-way exchange auditing and long global validation remain pending. The older conservative finite-settling scheme remains a separate model. |
 | Interactive dust | Lifting, advection, sedimentation, surface reservoirs, coagulation and material budgets. |
-| Water | Vapor/ice/frost transport, bulk and moment cloud options, latent heat, cloud nuclei and sedimentation, each with explicit switches. |
-| Drag | Rayleigh surface/top/tropical options are implemented. Orographic and non-orographic gravity-wave options, their inputs, momentum/energy accounting and source-based tests. They are off in the default Ames present-Mars setup. |
-| Extended atmosphere | Optional 15-band/extended gas tables, collision-induced absorption, gas-mixture mass/thermodynamics and non-LTE cooling. |
+| Water | Bulk phase/threshold/settling kernels and both optical families are implemented. Surface exchange, state/restarts, bulk global coupling and optical feedback are connected. Moment nucleation/growth, bin cloud microphysics and long climate validation remain pending. |
+| Drag | Rayleigh and Palmer terrain drag are implemented and checked. Polar water and terrain maps now pass pinned-blob and T21/T42 area checks. Complete non-orographic drag, and run long momentum/energy audits. They are off in the default Ames present-Mars setup. |
+| Extended atmosphere | Both 15-band options and CIA are implemented and checked. Non-LTE cooling is implemented with the pinned reference atmosphere. Gas-mixture mass/thermodynamics and source infinite-table regions still need auditing or implementation. |
 | Other release interfaces | Audit chemistry, bin microphysics and tagging against the release's real and null implementations. Do not label a stub as working physics. |
 | Whole-model validation | Matched inputs, switches, grids, resolution studies, spin-up, conservation, held-out observations and native-output comparisons. Dinosaur and FV3 require climate/statistical comparison as well as kernel tests. |
 | Performance | Matched physical workloads and precision; record hardware, threads, compilation, transfers, steady-state timings and derivatives separately. |
@@ -165,19 +201,33 @@ env PYTHONPATH=package:. python scripts/validate_co2_microphysics.py \
   --ames-source /path/to/AmesGCM --output outputs/physics-parity/co2-clouds.json
 env PYTHONPATH=package:. python scripts/validate_column_physics.py \
   --ames-source /path/to/AmesGCM --output outputs/physics-parity/column.json
+env PYTHONPATH=package:. python scripts/validate_particle_optics.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/particle-optics.json
+env PYTHONPATH=package:. python scripts/validate_extended_radiation.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/extended-radiation.json
+env PYTHONPATH=package:. python scripts/validate_collision_absorption.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/collision-absorption.json
+env PYTHONPATH=package:. python scripts/validate_bulk_water.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/bulk-water.json
+env PYTHONPATH=package:. python scripts/validate_water_surface.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/water-surface.json
+env PYTHONPATH=package:. python scripts/validate_terrain_drag.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/terrain-drag.json
+env PYTHONPATH=package:. python scripts/validate_nonlte_cooling.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/nonlte-cooling.json
 ```
 
 Small recorded reports are in `validation/physics-parity/`. Local CPU timing is
 kernel evidence only. It does not establish GPU or whole-model performance.
 
-Local validation for this checkpoint: the broad Python regression run passed
-708 tests with 4 skips and 11 slow tests deselected. Final focused cloud,
-column and Dinosaur checks passed after the momentum-ledger update. These
-include three-step reverse derivatives with the full radiation callback.
-The slow test group is checked separately. The 13 recorded reference/data
-reports include 288 bulk-cloud cases and 24 coupled-column cases.
-The reports are checked against source and asset hashes. These are implementation
-checks, not held-out climate-accuracy results.
+The broad Python regression run passed 758 tests with 4 skips, including the
+slow group. Later water, terrain, soil and non-LTE work has additional focused
+checks. The refreshed broad run passed 787 tests with 4 skips and 11 slow
+tests deselected. Its one callback-test failure was fixed in the test inputs
+and passed a focused rerun. Final Dinosaur, map-runner and non-LTE checks
+passed all 44 tests. Terrain drag passed five further focused checks. Recorded reference reports carry source and
+asset hashes. Kernel checks do not establish held-out climate accuracy or a
+whole-model speedup. Those experiments remain required.
 
 NASA-derived algorithms remain subject to the [NASA Open Source Agreement
 1.3](../iclr-results/06-co2-physics/ames-reference/NOSA.pdf). The source notices

@@ -8,10 +8,11 @@ import numpy as np
 
 from src.framework.gcm._dinosaur import jax,jnp,scales,spherical_harmonic
 from src.framework.gcm.dynamics import primitive_equations,reference_temperature,stepper
-from src.framework.physics.column_physics import column_physics
+from src.framework.physics.column_physics import column_physics,BulkWaterColumnState
 from src.framework.physics.soil_frost import soil_layer_thickness
 from src.framework.physics.co2_clouds import _remap_extensive,CO2_CLOUD_TRACER
 from src.framework.physics.co2_microphysics import LATENT_HEAT as CLOUD_LATENT_HEAT
+from src.framework.physics.water_bulk import WATER_VAPOR_TRACER,WATER_CLOUD_TRACER
 from src.framework.physics.gcm import (ColumnPhysicsTendencies,column_primitive_equations,
     initial_column_state,positivity_preserving_co2_step,surface_radiative_forcing)
 
@@ -48,13 +49,38 @@ def remap_gas(temperature,u,v,tracers,pressure_pa,mass_loss,dsigma,body,*,cloud_
         jnp.where(valid,new_pressure,jnp.nan))
 
 
-def initial_state(dynamics,coords,specs,temperature_k=170.,soil_layers=16):
+def initial_state(dynamics,coords,specs,temperature_k=170.,soil_layers=16,*,bulk_water=False,
+                  initial_water_surface_kg_m2=0.,initial_water_vapor_ratio=0.):
     """Initialize the existing column state with the reference soil node count."""
     if soil_layers<3:
         raise ValueError("Ames soil requires two evolving nodes and a fixed deep node")
     state=initial_column_state(dynamics,coords,temperature_k,specs)
     ground=jnp.broadcast_to(state.surface_temperature,(soil_layers-1,)+coords.horizontal.nodal_shape)
-    return state._replace(ground_temperature=ground)
+    if not bulk_water: return state._replace(ground_temperature=ground)
+    tracers={WATER_VAPOR_TRACER:coords.horizontal.to_modal(jnp.broadcast_to(
+        jnp.asarray(initial_water_vapor_ratio),(len(coords.vertical.centers),)+coords.horizontal.nodal_shape)),
+        WATER_CLOUD_TRACER:jnp.zeros_like(dynamics.temperature_variation),**state.dynamics.tracers}
+    shape=state.surface_temperature.shape
+    fields=dict(water_surface_kg_m2=jnp.broadcast_to(jnp.asarray(initial_water_surface_kg_m2),shape),
+        water_exchange_coefficient_kg_m2_s=jnp.zeros(shape),
+        water_pbl_top_layer=jnp.full(shape,len(coords.vertical.centers)-1,dtype=state.surface_temperature.dtype))
+    return state._replace(dynamics=dataclasses.replace(state.dynamics,tracers=tracers),
+        ground_temperature=ground,auxiliary_fields=fields)
+
+
+def water_inventory(state,coords,specs,body):
+    """SI water mass in gas/ice tracers and the surface reservoir, independently of CO2."""
+    grid=coords.horizontal
+    scale=float(specs.dimensionalize(1.,scales.units.pascal).magnitude)
+    ps=jnp.exp(grid.to_nodal(state.dynamics.log_surface_pressure))[0]*scale
+    gas=ps[None]*jnp.asarray(np.diff(coords.vertical.boundaries))[:,None,None]/body.gravity_m_s2
+    ratios=sum((grid.to_nodal(state.dynamics.tracers[name]) for name in
+        (WATER_VAPOR_TRACER,WATER_CLOUD_TRACER) if name in state.dynamics.tracers),jnp.zeros_like(gas))
+    water=jnp.sum(gas*ratios,axis=0)
+    if state.auxiliary_fields is not None and 'water_surface_kg_m2' in state.auxiliary_fields:
+        water=water+state.auxiliary_fields['water_surface_kg_m2'][0]
+    weights=jnp.asarray(grid.quadrature_weights)
+    return jnp.sum(water*weights)/jnp.sum(weights)*body.surface_area_m2
 
 
 def axial_angular_momentum(state,coords,specs,body):
@@ -123,7 +149,9 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                soil_diffusivity,soil_volumetric_heat_capacity=1500.*627.9,
                soil_layers=16,orography=None,hyperdiffusion_tau_seconds=None,return_diagnostics=False,
                rayleigh_options=None,conserve_drag_energy=False,
-               suspended_co2_clouds=False,cloud_nuclei_per_kg=1.e5):
+               suspended_co2_clouds=False,cloud_nuclei_per_kg=1.e5,
+               bulk_water=False,water_surface_options=None,water_cloud_options=None,form_bulk_clouds=True,
+               terrain_drag_options=None):
     """Dinosaur dynamics followed by Ames-order reference gas-column physics.
 
     Supply a verified radiation component and mapped soil diffusivity. Keeping
@@ -156,6 +184,12 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
         hyperdiffusion_tau_seconds=hyperdiffusion_tau_seconds)
 
     def advance(state):
+        if bulk_water:
+            required={'water_surface_kg_m2','water_exchange_coefficient_kg_m2_s','water_pbl_top_layer'}
+            if state.auxiliary_fields is None or required-set(state.auxiliary_fields):
+                raise ValueError('bulk water requires initialized water reservoirs and exchange history')
+            if {WATER_VAPOR_TRACER,WATER_CLOUD_TRACER}-set(state.dynamics.tracers):
+                raise ValueError('bulk water requires vapor and cloud tracers in the initial state')
         predicted=dry(state)
         if predicted.ground_temperature.shape[0]!=soil_layers-1:
             raise ValueError("state soil nodes do not match the Ames backend configuration")
@@ -171,7 +205,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
         names=tuple(dyn.tracers)
         if suspended_co2_clouds and CO2_CLOUD_TRACER not in names:
             raise ValueError('suspended CO2 mode requires the cloud tracer in the initial state')
-        gas_names=tuple(name for name in names if name!=CO2_CLOUD_TRACER)
+        gas_names=tuple(name for name in names if name not in (CO2_CLOUD_TRACER,WATER_CLOUD_TRACER))
         cloud_ratio=(grid.to_nodal(dyn.tracers[CO2_CLOUD_TRACER])
             if CO2_CLOUD_TRACER in names else None)
         tracers=(jnp.stack([grid.to_nodal(dyn.tracers[name]) for name in names],axis=-1)
@@ -182,22 +216,43 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
         radiation=radiation_component(predicted,coords,specs,body,local_forcing)
         layer_capacity=body.cp_j_kg_k*jnp.diff(half,axis=0)/body.gravity_m_s2
         heating=radiation.atmospheric_convergence_w_m2/layer_capacity
+        if radiation.nonlte_heating_k_s is not None:
+            heating=heating+radiation.nonlte_heating_k_s
         down=(radiation.shortwave_down_w_m2[-1]-radiation.shortwave_up_w_m2[-1]+
             radiation.longwave_down_w_m2[-1])
         soil=jnp.concatenate([predicted.surface_temperature,predicted.ground_temperature],axis=0)
         frost=predicted.co2_ice[0]*pressure_scale/body.gravity_m_s2
+        water_state=None
+        if bulk_water:
+            fields=predicted.auxiliary_fields
+            water_state=BulkWaterColumnState(gas_names.index(WATER_VAPOR_TRACER),
+                grid.to_nodal(dyn.tracers[WATER_CLOUD_TRACER]),fields['water_surface_kg_m2'][0],
+                fields['water_exchange_coefficient_kg_m2_s'][0],fields['water_pbl_top_layer'][0])
+        # Soil sees post-exchange water; radiation above sees the old reservoir.
+        soil_forcing=surface_radiative_forcing(predicted,coords,specs,body,
+            dataclasses.replace(forcing,water_frost_radiative_properties=False))
+        water_optics=(dict(frost_threshold_m=forcing.water_frost_threshold_m,
+            ice_albedo=forcing.water_ice_albedo,liquid_albedo=forcing.water_liquid_albedo,
+            water_emissivity=forcing.water_emissivity,liquid_water=forcing.liquid_water_albedo)
+            if forcing.water_frost_radiative_properties else None)
         column=column_physics(temperature,u,v,gas_tracers,soil,half,full,frost,heating,down,
             dt_seconds,body,soil_thickness=dz,soil_diffusivity=soil_diffusivity,
             soil_volumetric_heat_capacity=soil_volumetric_heat_capacity,
-            emissivity=local_forcing.emissivity,surface_exchange_start=exchange_start,
+            emissivity=soil_forcing.emissivity,surface_exchange_start=exchange_start,
             latitude_rad=jnp.asarray(grid.latitudes)[None,:],rayleigh_options=rayleigh_options,
             conserve_drag_energy=conserve_drag_energy,
             suspended_co2_ice_ratio=cloud_ratio if suspended_co2_clouds else None,
-            cloud_nuclei_per_kg=cloud_nuclei_per_kg)
+            cloud_nuclei_per_kg=cloud_nuclei_per_kg,bulk_water=water_state,
+            water_surface_options=water_surface_options,water_cloud_options=water_cloud_options,
+            form_bulk_clouds=form_bulk_clouds,water_radiative_options=water_optics,
+            terrain_drag_options=terrain_drag_options)
         columns={name:column.gas_tracers[...,i] for i,name in enumerate(gas_names)}
         if cloud_ratio is not None:
             columns[CO2_CLOUD_TRACER]=(column.suspended_co2_ice_ratio
                 if suspended_co2_clouds else cloud_ratio)
+        if WATER_CLOUD_TRACER in names:
+            columns[WATER_CLOUD_TRACER]=(column.bulk_water.ice_ratio if bulk_water else
+                grid.to_nodal(dyn.tracers[WATER_CLOUD_TRACER]))
         material=(jnp.stack([columns[name] for name in names],axis=-1)
             if names else column.gas_tracers)
         t,unew,vnew,q,new_pressure=remap_gas(column.temperature,column.u,column.v,
@@ -214,6 +269,8 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             (unew-u)/velocity_scale,(vnew-v)/velocity_scale)
         unsupported_cloud=(jnp.any(grid.to_nodal(dyn.tracers[CO2_CLOUD_TRACER])!=0.)
             if CO2_CLOUD_TRACER in dyn.tracers and not suspended_co2_clouds else False)
+        if WATER_CLOUD_TRACER in names and not bulk_water:
+            unsupported_cloud=unsupported_cloud|jnp.any(grid.to_nodal(dyn.tracers[WATER_CLOUD_TRACER])!=0.)
         invalid=jnp.any(column.diagnostics['co2_mass_guard'])|unsupported_cloud
         new_temperature=dyn.temperature_variation+grid.to_modal(t-temperature)
         new_temperature=jnp.where(invalid,jnp.nan,new_temperature)
@@ -222,9 +279,14 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             log_surface_pressure=dyn.log_surface_pressure+grid.to_modal(jnp.log(new_pressure/pressure)[None]),
             tracers={name:dyn.tracers[name]+grid.to_modal(q[...,i]-tracers[...,i])
                 for i,name in enumerate(names)})
+        auxiliary=predicted.auxiliary_fields
+        if bulk_water:
+            auxiliary={**auxiliary,'water_surface_kg_m2':column.bulk_water.surface_water_kg_m2[None],
+                'water_exchange_coefficient_kg_m2_s':column.bulk_water.previous_exchange_coefficient[None],
+                'water_pbl_top_layer':column.bulk_water.previous_pbl_top_layer[None]}
         return predicted._replace(dynamics=dynamics,surface_temperature=column.soil[:1],
             ground_temperature=column.soil[1:],co2_ice=(column.co2_ice_kg_m2*body.gravity_m_s2/pressure_scale)[None],
-            surface_momentum=predicted.surface_momentum+impulse)
+            surface_momentum=predicted.surface_momentum+impulse,auxiliary_fields=auxiliary)
 
     if not return_diagnostics:
         return positivity_preserving_co2_step(advance,coords,specs,body=body)
@@ -240,5 +302,9 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                 soil_volumetric_heat_capacity=soil_volumetric_heat_capacity),
             raw_axial_angular_momentum_kg_m2_s=axial_angular_momentum(raw,coords,specs,body),
             corrected_axial_angular_momentum_kg_m2_s=axial_angular_momentum(final,coords,specs,body))
+        if bulk_water:
+            diagnostics=diagnostics._replace(raw_water_mass_kg=water_inventory(raw,coords,specs,body),
+                corrected_water_mass_kg=water_inventory(final,coords,specs,body),
+                target_water_mass_kg=water_inventory(state,coords,specs,body))
         return final,diagnostics
     return audited

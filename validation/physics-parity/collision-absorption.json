@@ -1,0 +1,937 @@
+{
+  "status": "pass",
+  "reference": {
+    "source_git_blob": "40d8879c3735bbec6cabc63817cad5220f281532",
+    "compiled_source_sha256": "acc1cab2be444b06626d44a5d76925440155560c80bc0ffb55866470e9a60db0",
+    "routine_sha256": {
+      "optci15": "f025b920a4f972de80853e40f4e9be13d668838625c441d4b51eff67d42f3df6",
+      "tpindex15": "5c28d9fa469aed1d3246ece4f83656623faceb9812b8ae4156a04e48c785fb2b",
+      "boxinterp": "c730f46a9887ddd91eb676a99384eb9e12abaef9d026f3de53e2326f50ab65a3",
+      "kinter": "6c30b1f4e075ded23c51ce6f07a595a8806eab074c0194875fe2d08b1a6b3e7f"
+    },
+    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+    "compiler_flags": [
+      "-O3",
+      "-cpp",
+      "-fdefault-real-8",
+      "-fdefault-double-8",
+      "-fPIC",
+      "-shared"
+    ],
+    "real_precision_bits": 64,
+    "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged"
+  },
+  "cases": [
+    {
+      "layers": 2,
+      "surface_pressure_pa": 610.0,
+      "temperature_range_k": [
+        50.0,
+        90.0
+      ],
+      "co2_molar_fraction": 1.0,
+      "h2_molar_fraction": 0.0,
+      "max_absolute_error": 1.3010426069826053e-18
+    },
+    {
+      "layers": 2,
+      "surface_pressure_pa": 610.0,
+      "temperature_range_k": [
+        50.0,
+        90.0
+      ],
+      "co2_molar_fraction": 0.9,
+      "h2_molar_fraction": 0.1,
+      "max_absolute_error": 4.336808689942018e-19
+    },
+    {
+      "layers": 2,
+      "surface_pressure_pa": 610.0,
+      "temperature_range_k": [
+        50.0,
+        90.0
+      ],
+      "co2_molar_fraction": 0.5,
+      "h2_molar_fraction": 0.5,
+      "max_absolute_error": 2.168404344971009e-19
+    },
+    {
+      "layers": 2,
+      "surface_pressure_pa": 610.0,
+      "temperature_range_k": [
+        140.0,
+        300.0
+      ],
+      "co2_molar_fraction": 1.0,
+      "h2_molar_fraction": 0.0,
+      "max_absolute_error": 3.7947076036992655e-19
+    },
+    {
+      "layers": 2,
+      "surface_pressure_pa": 610.0,
+      "temperature_range_k": [
+        140.0,
+        300.0
+      ],
+      "co2_molar_fraction": 0.9,
+      "h2_molar_fraction": 0.1,
+      "max_absolute_error": 2.710505431213761e-19
+    },
+    {
+      "layers": 2,
+      "surface_pressure_pa": 610.0,
+      "temperature_range_k": [
+        140.0,
+        300.0
+      ],
+      "co2_molar_fraction": 0.5,
+      "h2_molar_fraction": 0.5,
+      "max_absolute_error": 8.131516293641283e-20
+    },
+    {
+      "layers": 2,
+      "surface_pressure_pa": 610.0,
+      "temperature_range_k": [
+        750.0,
+        950.0
+      ],
+      "co2_molar_fraction": 1.0,
+      "h2_molar_fraction": 0.0,
+      "max_absolute_error": 6.776263578034403e-21
+    },
+    {
+      "layers": 2,
+      "surface_pressure_pa": 610.0,
+      "temperature_range_k": [
+        750.0,
+        950.0
+      ],
+      "co2_molar_fraction": 0.9,
+      "h2_molar_fraction": 0.1,
+      "max_absolute_error": 6.776263578034403e-21
+    },
+    {
+      "layers": 2,
+      "surface_pressure_pa": 610.0,
+      "temperature_range_k": [
+        750.0,
+        950.0
+      ],
+      "co2_molar_fraction": 0.5,
+      "h2_molar_fraction": 0.5,
+      "max_absolute_error": 1.3552527156068805e-20
+    },
+    {
+      "layers": 2,
+      "surface_pressure_pa": 50000.0,
+      "temperature_range_k": [
+        50.0,
+        90.0
+      ],
+      "co2_molar_fraction": 1.0,
+      "h2_molar_fraction": 0.0,
+      "max_absolute_error": 7.105427357601002e-15
+    },
+    {
+      "layers": 2,
+      "surface_pressure_pa": 50000.0,
+      "temperature_range_k": [
+        50.0,
+        90.0
+      ],
+      "co2_molar_fraction": 0.9,
+      "h2_molar_fraction": 0.1,
+      "max_absolute_error": 3.552713678800501e-15
+    },
+    {
+      "layers": 2,
+      "surface_pressure_pa": 50000.0,
+      "temperature_range_k": [
+        50.0,
+        90.0
+      ],
+      "co2_molar_fraction": 0.5,
+      "h2_molar_fraction": 0.5,
+      "max_absolute_error": 2.6645352591003757e-15
+    },
+    {
+      "layers": 2,
+      "surface_pressure_pa": 50000.0,
+      "temperature_range_k": [
+        140.0,
+        300.0
+      ],
+      "co2_molar_fraction": 1.0,
+      "h2_molar_fraction": 0.0,
+      "max_absolute_error": 2.220446049250313e-15
+    },
+    {
+      "layers": 2,
+      "surface_pressure_pa": 50000.0,
+      "temperature_range_k": [
+        140.0,
+        300.0
+      ],
+      "co2_molar_fraction": 0.9,
+      "h2_molar_fraction": 0.1,
+      "max_absolute_error": 1.7763568394002505e-15
+    },
+    {
+      "layers": 2,
+      "surface_pressure_pa": 50000.0,
+      "temperature_range_k": [
+        140.0,
+        300.0
+      ],
+      "co2_molar_fraction": 0.5,
+      "h2_molar_fraction": 0.5,
+      "max_absolute_error": 6.106226635438361e-16
+    },
+    {
+      "layers": 2,
+      "surface_pressure_pa": 50000.0,
+      "temperature_range_k": [
+        750.0,
+        950.0
+      ],
+      "co2_molar_fraction": 1.0,
+      "h2_molar_fraction": 0.0,
+      "max_absolute_error": 5.551115123125783e-17
+    },
+    {
+      "layers": 2,
+      "surface_pressure_pa": 50000.0,
+      "temperature_range_k": [
+        750.0,
+        950.0
+      ],
+      "co2_molar_fraction": 0.9,
+      "h2_molar_fraction": 0.1,
+      "max_absolute_error": 5.551115123125783e-17
+    },
+    {
+      "layers": 2,
+      "surface_pressure_pa": 50000.0,
+      "temperature_range_k": [
+        750.0,
+        950.0
+      ],
+      "co2_molar_fraction": 0.5,
+      "h2_molar_fraction": 0.5,
+      "max_absolute_error": 5.551115123125783e-17
+    },
+    {
+      "layers": 2,
+      "surface_pressure_pa": 1000000.0,
+      "temperature_range_k": [
+        50.0,
+        90.0
+      ],
+      "co2_molar_fraction": 1.0,
+      "h2_molar_fraction": 0.0,
+      "max_absolute_error": 3.637978807091713e-12
+    },
+    {
+      "layers": 2,
+      "surface_pressure_pa": 1000000.0,
+      "temperature_range_k": [
+        50.0,
+        90.0
+      ],
+      "co2_molar_fraction": 0.9,
+      "h2_molar_fraction": 0.1,
+      "max_absolute_error": 2.2737367544323206e-12
+    },
+    {
+      "layers": 2,
+      "surface_pressure_pa": 1000000.0,
+      "temperature_range_k": [
+        50.0,
+        90.0
+      ],
+      "co2_molar_fraction": 0.5,
+      "h2_molar_fraction": 0.5,
+      "max_absolute_error": 9.094947017729282e-13
+    },
+    {
+      "layers": 2,
+      "surface_pressure_pa": 1000000.0,
+      "temperature_range_k": [
+        140.0,
+        300.0
+      ],
+      "co2_molar_fraction": 1.0,
+      "h2_molar_fraction": 0.0,
+      "max_absolute_error": 7.958078640513122e-13
+    },
+    {
+      "layers": 2,
+      "surface_pressure_pa": 1000000.0,
+      "temperature_range_k": [
+        140.0,
+        300.0
+      ],
+      "co2_molar_fraction": 0.9,
+      "h2_molar_fraction": 0.1,
+      "max_absolute_error": 7.958078640513122e-13
+    },
+    {
+      "layers": 2,
+      "surface_pressure_pa": 1000000.0,
+      "temperature_range_k": [
+        140.0,
+        300.0
+      ],
+      "co2_molar_fraction": 0.5,
+      "h2_molar_fraction": 0.5,
+      "max_absolute_error": 1.7053025658242404e-13
+    },
+    {
+      "layers": 2,
+      "surface_pressure_pa": 1000000.0,
+      "temperature_range_k": [
+        750.0,
+        950.0
+      ],
+      "co2_molar_fraction": 1.0,
+      "h2_molar_fraction": 0.0,
+      "max_absolute_error": 2.842170943040401e-14
+    },
+    {
+      "layers": 2,
+      "surface_pressure_pa": 1000000.0,
+      "temperature_range_k": [
+        750.0,
+        950.0
+      ],
+      "co2_molar_fraction": 0.9,
+      "h2_molar_fraction": 0.1,
+      "max_absolute_error": 2.842170943040401e-14
+    },
+    {
+      "layers": 2,
+      "surface_pressure_pa": 1000000.0,
+      "temperature_range_k": [
+        750.0,
+        950.0
+      ],
+      "co2_molar_fraction": 0.5,
+      "h2_molar_fraction": 0.5,
+      "max_absolute_error": 5.684341886080802e-14
+    },
+    {
+      "layers": 12,
+      "surface_pressure_pa": 610.0,
+      "temperature_range_k": [
+        50.0,
+        90.0
+      ],
+      "co2_molar_fraction": 1.0,
+      "h2_molar_fraction": 0.0,
+      "max_absolute_error": 6.505213034913027e-19
+    },
+    {
+      "layers": 12,
+      "surface_pressure_pa": 610.0,
+      "temperature_range_k": [
+        50.0,
+        90.0
+      ],
+      "co2_molar_fraction": 0.9,
+      "h2_molar_fraction": 0.1,
+      "max_absolute_error": 1.3010426069826053e-18
+    },
+    {
+      "layers": 12,
+      "surface_pressure_pa": 610.0,
+      "temperature_range_k": [
+        50.0,
+        90.0
+      ],
+      "co2_molar_fraction": 0.5,
+      "h2_molar_fraction": 0.5,
+      "max_absolute_error": 2.168404344971009e-19
+    },
+    {
+      "layers": 12,
+      "surface_pressure_pa": 610.0,
+      "temperature_range_k": [
+        140.0,
+        300.0
+      ],
+      "co2_molar_fraction": 1.0,
+      "h2_molar_fraction": 0.0,
+      "max_absolute_error": 3.3881317890172014e-20
+    },
+    {
+      "layers": 12,
+      "surface_pressure_pa": 610.0,
+      "temperature_range_k": [
+        140.0,
+        300.0
+      ],
+      "co2_molar_fraction": 0.9,
+      "h2_molar_fraction": 0.1,
+      "max_absolute_error": 4.0657581468206416e-20
+    },
+    {
+      "layers": 12,
+      "surface_pressure_pa": 610.0,
+      "temperature_range_k": [
+        140.0,
+        300.0
+      ],
+      "co2_molar_fraction": 0.5,
+      "h2_molar_fraction": 0.5,
+      "max_absolute_error": 2.710505431213761e-20
+    },
+    {
+      "layers": 12,
+      "surface_pressure_pa": 610.0,
+      "temperature_range_k": [
+        750.0,
+        950.0
+      ],
+      "co2_molar_fraction": 1.0,
+      "h2_molar_fraction": 0.0,
+      "max_absolute_error": 6.776263578034403e-21
+    },
+    {
+      "layers": 12,
+      "surface_pressure_pa": 610.0,
+      "temperature_range_k": [
+        750.0,
+        950.0
+      ],
+      "co2_molar_fraction": 0.9,
+      "h2_molar_fraction": 0.1,
+      "max_absolute_error": 5.082197683525802e-21
+    },
+    {
+      "layers": 12,
+      "surface_pressure_pa": 610.0,
+      "temperature_range_k": [
+        750.0,
+        950.0
+      ],
+      "co2_molar_fraction": 0.5,
+      "h2_molar_fraction": 0.5,
+      "max_absolute_error": 1.6940658945086007e-20
+    },
+    {
+      "layers": 12,
+      "surface_pressure_pa": 50000.0,
+      "temperature_range_k": [
+        50.0,
+        90.0
+      ],
+      "co2_molar_fraction": 1.0,
+      "h2_molar_fraction": 0.0,
+      "max_absolute_error": 1.0658141036401503e-14
+    },
+    {
+      "layers": 12,
+      "surface_pressure_pa": 50000.0,
+      "temperature_range_k": [
+        50.0,
+        90.0
+      ],
+      "co2_molar_fraction": 0.9,
+      "h2_molar_fraction": 0.1,
+      "max_absolute_error": 1.0658141036401503e-14
+    },
+    {
+      "layers": 12,
+      "surface_pressure_pa": 50000.0,
+      "temperature_range_k": [
+        50.0,
+        90.0
+      ],
+      "co2_molar_fraction": 0.5,
+      "h2_molar_fraction": 0.5,
+      "max_absolute_error": 3.552713678800501e-15
+    },
+    {
+      "layers": 12,
+      "surface_pressure_pa": 50000.0,
+      "temperature_range_k": [
+        140.0,
+        300.0
+      ],
+      "co2_molar_fraction": 1.0,
+      "h2_molar_fraction": 0.0,
+      "max_absolute_error": 2.220446049250313e-16
+    },
+    {
+      "layers": 12,
+      "surface_pressure_pa": 50000.0,
+      "temperature_range_k": [
+        140.0,
+        300.0
+      ],
+      "co2_molar_fraction": 0.9,
+      "h2_molar_fraction": 0.1,
+      "max_absolute_error": 3.3306690738754696e-16
+    },
+    {
+      "layers": 12,
+      "surface_pressure_pa": 50000.0,
+      "temperature_range_k": [
+        140.0,
+        300.0
+      ],
+      "co2_molar_fraction": 0.5,
+      "h2_molar_fraction": 0.5,
+      "max_absolute_error": 4.440892098500626e-16
+    },
+    {
+      "layers": 12,
+      "surface_pressure_pa": 50000.0,
+      "temperature_range_k": [
+        750.0,
+        950.0
+      ],
+      "co2_molar_fraction": 1.0,
+      "h2_molar_fraction": 0.0,
+      "max_absolute_error": 1.6653345369377348e-16
+    },
+    {
+      "layers": 12,
+      "surface_pressure_pa": 50000.0,
+      "temperature_range_k": [
+        750.0,
+        950.0
+      ],
+      "co2_molar_fraction": 0.9,
+      "h2_molar_fraction": 0.1,
+      "max_absolute_error": 5.551115123125783e-17
+    },
+    {
+      "layers": 12,
+      "surface_pressure_pa": 50000.0,
+      "temperature_range_k": [
+        750.0,
+        950.0
+      ],
+      "co2_molar_fraction": 0.5,
+      "h2_molar_fraction": 0.5,
+      "max_absolute_error": 1.1102230246251565e-16
+    },
+    {
+      "layers": 12,
+      "surface_pressure_pa": 1000000.0,
+      "temperature_range_k": [
+        50.0,
+        90.0
+      ],
+      "co2_molar_fraction": 1.0,
+      "h2_molar_fraction": 0.0,
+      "max_absolute_error": 1.8189894035458565e-12
+    },
+    {
+      "layers": 12,
+      "surface_pressure_pa": 1000000.0,
+      "temperature_range_k": [
+        50.0,
+        90.0
+      ],
+      "co2_molar_fraction": 0.9,
+      "h2_molar_fraction": 0.1,
+      "max_absolute_error": 2.7284841053187847e-12
+    },
+    {
+      "layers": 12,
+      "surface_pressure_pa": 1000000.0,
+      "temperature_range_k": [
+        50.0,
+        90.0
+      ],
+      "co2_molar_fraction": 0.5,
+      "h2_molar_fraction": 0.5,
+      "max_absolute_error": 9.094947017729282e-13
+    },
+    {
+      "layers": 12,
+      "surface_pressure_pa": 1000000.0,
+      "temperature_range_k": [
+        140.0,
+        300.0
+      ],
+      "co2_molar_fraction": 1.0,
+      "h2_molar_fraction": 0.0,
+      "max_absolute_error": 1.1368683772161603e-13
+    },
+    {
+      "layers": 12,
+      "surface_pressure_pa": 1000000.0,
+      "temperature_range_k": [
+        140.0,
+        300.0
+      ],
+      "co2_molar_fraction": 0.9,
+      "h2_molar_fraction": 0.1,
+      "max_absolute_error": 1.7053025658242404e-13
+    },
+    {
+      "layers": 12,
+      "surface_pressure_pa": 1000000.0,
+      "temperature_range_k": [
+        140.0,
+        300.0
+      ],
+      "co2_molar_fraction": 0.5,
+      "h2_molar_fraction": 0.5,
+      "max_absolute_error": 1.1368683772161603e-13
+    },
+    {
+      "layers": 12,
+      "surface_pressure_pa": 1000000.0,
+      "temperature_range_k": [
+        750.0,
+        950.0
+      ],
+      "co2_molar_fraction": 1.0,
+      "h2_molar_fraction": 0.0,
+      "max_absolute_error": 2.842170943040401e-14
+    },
+    {
+      "layers": 12,
+      "surface_pressure_pa": 1000000.0,
+      "temperature_range_k": [
+        750.0,
+        950.0
+      ],
+      "co2_molar_fraction": 0.9,
+      "h2_molar_fraction": 0.1,
+      "max_absolute_error": 4.263256414560601e-14
+    },
+    {
+      "layers": 12,
+      "surface_pressure_pa": 1000000.0,
+      "temperature_range_k": [
+        750.0,
+        950.0
+      ],
+      "co2_molar_fraction": 0.5,
+      "h2_molar_fraction": 0.5,
+      "max_absolute_error": 2.842170943040401e-14
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 610.0,
+      "temperature_range_k": [
+        50.0,
+        90.0
+      ],
+      "co2_molar_fraction": 1.0,
+      "h2_molar_fraction": 0.0,
+      "max_absolute_error": 4.336808689942018e-19
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 610.0,
+      "temperature_range_k": [
+        50.0,
+        90.0
+      ],
+      "co2_molar_fraction": 0.9,
+      "h2_molar_fraction": 0.1,
+      "max_absolute_error": 2.168404344971009e-19
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 610.0,
+      "temperature_range_k": [
+        50.0,
+        90.0
+      ],
+      "co2_molar_fraction": 0.5,
+      "h2_molar_fraction": 0.5,
+      "max_absolute_error": 2.168404344971009e-19
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 610.0,
+      "temperature_range_k": [
+        140.0,
+        300.0
+      ],
+      "co2_molar_fraction": 1.0,
+      "h2_molar_fraction": 0.0,
+      "max_absolute_error": 1.3552527156068805e-20
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 610.0,
+      "temperature_range_k": [
+        140.0,
+        300.0
+      ],
+      "co2_molar_fraction": 0.9,
+      "h2_molar_fraction": 0.1,
+      "max_absolute_error": 2.0328790734103208e-20
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 610.0,
+      "temperature_range_k": [
+        140.0,
+        300.0
+      ],
+      "co2_molar_fraction": 0.5,
+      "h2_molar_fraction": 0.5,
+      "max_absolute_error": 5.421010862427522e-20
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 610.0,
+      "temperature_range_k": [
+        750.0,
+        950.0
+      ],
+      "co2_molar_fraction": 1.0,
+      "h2_molar_fraction": 0.0,
+      "max_absolute_error": 1.3552527156068805e-20
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 610.0,
+      "temperature_range_k": [
+        750.0,
+        950.0
+      ],
+      "co2_molar_fraction": 0.9,
+      "h2_molar_fraction": 0.1,
+      "max_absolute_error": 8.470329472543003e-21
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 610.0,
+      "temperature_range_k": [
+        750.0,
+        950.0
+      ],
+      "co2_molar_fraction": 0.5,
+      "h2_molar_fraction": 0.5,
+      "max_absolute_error": 1.0164395367051604e-20
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 50000.0,
+      "temperature_range_k": [
+        50.0,
+        90.0
+      ],
+      "co2_molar_fraction": 1.0,
+      "h2_molar_fraction": 0.0,
+      "max_absolute_error": 4.440892098500626e-15
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 50000.0,
+      "temperature_range_k": [
+        50.0,
+        90.0
+      ],
+      "co2_molar_fraction": 0.9,
+      "h2_molar_fraction": 0.1,
+      "max_absolute_error": 3.552713678800501e-15
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 50000.0,
+      "temperature_range_k": [
+        50.0,
+        90.0
+      ],
+      "co2_molar_fraction": 0.5,
+      "h2_molar_fraction": 0.5,
+      "max_absolute_error": 1.3322676295501878e-15
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 50000.0,
+      "temperature_range_k": [
+        140.0,
+        300.0
+      ],
+      "co2_molar_fraction": 1.0,
+      "h2_molar_fraction": 0.0,
+      "max_absolute_error": 1.6653345369377348e-16
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 50000.0,
+      "temperature_range_k": [
+        140.0,
+        300.0
+      ],
+      "co2_molar_fraction": 0.9,
+      "h2_molar_fraction": 0.1,
+      "max_absolute_error": 1.1102230246251565e-16
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 50000.0,
+      "temperature_range_k": [
+        140.0,
+        300.0
+      ],
+      "co2_molar_fraction": 0.5,
+      "h2_molar_fraction": 0.5,
+      "max_absolute_error": 2.220446049250313e-16
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 50000.0,
+      "temperature_range_k": [
+        750.0,
+        950.0
+      ],
+      "co2_molar_fraction": 1.0,
+      "h2_molar_fraction": 0.0,
+      "max_absolute_error": 5.551115123125783e-17
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 50000.0,
+      "temperature_range_k": [
+        750.0,
+        950.0
+      ],
+      "co2_molar_fraction": 0.9,
+      "h2_molar_fraction": 0.1,
+      "max_absolute_error": 5.551115123125783e-17
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 50000.0,
+      "temperature_range_k": [
+        750.0,
+        950.0
+      ],
+      "co2_molar_fraction": 0.5,
+      "h2_molar_fraction": 0.5,
+      "max_absolute_error": 4.163336342344337e-17
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 1000000.0,
+      "temperature_range_k": [
+        50.0,
+        90.0
+      ],
+      "co2_molar_fraction": 1.0,
+      "h2_molar_fraction": 0.0,
+      "max_absolute_error": 1.8189894035458565e-12
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 1000000.0,
+      "temperature_range_k": [
+        50.0,
+        90.0
+      ],
+      "co2_molar_fraction": 0.9,
+      "h2_molar_fraction": 0.1,
+      "max_absolute_error": 9.094947017729282e-13
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 1000000.0,
+      "temperature_range_k": [
+        50.0,
+        90.0
+      ],
+      "co2_molar_fraction": 0.5,
+      "h2_molar_fraction": 0.5,
+      "max_absolute_error": 6.821210263296962e-13
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 1000000.0,
+      "temperature_range_k": [
+        140.0,
+        300.0
+      ],
+      "co2_molar_fraction": 1.0,
+      "h2_molar_fraction": 0.0,
+      "max_absolute_error": 5.684341886080802e-14
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 1000000.0,
+      "temperature_range_k": [
+        140.0,
+        300.0
+      ],
+      "co2_molar_fraction": 0.9,
+      "h2_molar_fraction": 0.1,
+      "max_absolute_error": 5.684341886080802e-14
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 1000000.0,
+      "temperature_range_k": [
+        140.0,
+        300.0
+      ],
+      "co2_molar_fraction": 0.5,
+      "h2_molar_fraction": 0.5,
+      "max_absolute_error": 1.1368683772161603e-13
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 1000000.0,
+      "temperature_range_k": [
+        750.0,
+        950.0
+      ],
+      "co2_molar_fraction": 1.0,
+      "h2_molar_fraction": 0.0,
+      "max_absolute_error": 2.842170943040401e-14
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 1000000.0,
+      "temperature_range_k": [
+        750.0,
+        950.0
+      ],
+      "co2_molar_fraction": 0.9,
+      "h2_molar_fraction": 0.1,
+      "max_absolute_error": 1.4210854715202004e-14
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 1000000.0,
+      "temperature_range_k": [
+        750.0,
+        950.0
+      ],
+      "co2_molar_fraction": 0.5,
+      "h2_molar_fraction": 0.5,
+      "max_absolute_error": 4.263256414560601e-14
+    }
+  ],
+  "optical_inputs": {
+    "kbbar_8band_100_800.dat": {
+      "git_blob": "5c699474da6e6231c061a389fbda932e86db609f",
+      "sha256": "39bef700ffff54c51a75d397d4c53570cde6a046b23f59d50f0578420458d80c"
+    },
+    "kgbar_8band_100_800.dat": {
+      "git_blob": "508eed3dddd6cd0e86689fae7f05cfb67588848d",
+      "sha256": "90028836819542195630acc43e4e2e3f45cc6952c1c3954372ae8ab17f193d8a"
+    },
+    "khbar_8band_T20_100_800.dat": {
+      "git_blob": "2f1d46c136f9a5eae89b9969af29085296673d44",
+      "sha256": "4174915989a49662ddb723a9d7f448c694bc0a499e5b6127d4d8bc638da5c6ae"
+    }
+  },
+  "sha256": {
+    "scripts/validate_collision_absorption.py": "bcbad7c9a582095b36685a8bdeadd4d45a6c1831df9f7954e62a74c351d76b22",
+    "scripts/stage_collision_absorption.py": "8f0784d4aa4746483a8df54ba34a6c773f4ebba434c13d7d4cb3499464f5472b",
+    "package/src/framework/physics/collision_absorption.py": "9917895e8a70dfea4bef2ffcbda417d20e11fbe30db85ba21ba8878de6a1a34f",
+    "package/src/framework/physics/collision_absorption_tables.npz": "44c41b39ae9e1be221d121b1cb9c50322b76d369d8916b70c70a6595a2678dc6"
+  }
+}

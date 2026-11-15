@@ -7,7 +7,7 @@ import jax.numpy as jnp
 
 from src.celestials.planets.mars.reference_constants import AMES_BODY_3D as BODY
 from src.framework.physics.co2_condensation import simple_condensation
-from src.framework.physics.column_physics import column_physics
+from src.framework.physics.column_physics import column_physics,BulkWaterColumnState
 from src.framework.physics.soil_frost import soil_layer_thickness
 
 jax.config.update('jax_enable_x64',True)
@@ -113,3 +113,72 @@ def test_cloud_momentum_source_is_reported_without_being_given_to_ground():
     np.testing.assert_allclose(cloud['unresolved_momentum_source_kg_m_s'],residual,atol=2e-12)
     # A source approximation must remain visible, rather than becoming ground torque.
     assert np.max(np.abs(residual))>1e-5
+
+
+def test_bulk_water_column_keeps_water_and_co2_reservoirs_separate():
+    kwargs=inputs()
+    water=BulkWaterColumnState(0,jnp.full(4,.001),100.,.001,2.)
+    result=jax.jit(lambda:column_physics(**kwargs,bulk_water=water,
+        suspended_co2_ice_ratio=jnp.zeros(4)))()
+    gas=jnp.diff(kwargs['pressure_half'])/BODY.gravity_m_s2
+    before=jnp.sum(gas*(kwargs['gas_tracers'][:,0]+water.ice_ratio))+water.surface_water_kg_m2
+    after=jnp.sum(gas*(result.gas_tracers[:,0]+result.bulk_water.ice_ratio))+result.bulk_water.surface_water_kg_m2
+    np.testing.assert_allclose(after,before,rtol=3e-12,atol=3e-12)
+    np.testing.assert_allclose(result.co2_ice_kg_m2-kwargs['co2_ice_kg_m2']+
+        jnp.sum(gas*result.suspended_co2_ice_ratio),jnp.sum(result.gas_mass_loss_kg_m2),
+        rtol=3e-12,atol=3e-12)
+    assert result.bulk_water.previous_exchange_coefficient>=0.
+    assert 0<=result.bulk_water.previous_pbl_top_layer<4
+
+
+def test_bulk_water_column_reverse_derivative_reaches_surface_exchange_history():
+    kwargs={**inputs(),'temperature':jnp.array([150.,180.,210.,240.]),'soil':jnp.full(16,250.)}
+    def objective(coefficient):
+        water=BulkWaterColumnState(0,jnp.full(4,.001),100.,coefficient,2.)
+        result=column_physics(**kwargs,bulk_water=water)
+        return jnp.mean(result.temperature)+result.bulk_water.surface_water_kg_m2
+    auto=jax.jit(jax.grad(objective))(.001)
+    assert np.isfinite(auto) and abs(float(auto))>1e-6
+    for eps in (1e-6,1e-7):
+        finite=(objective(.001+eps)-objective(.001-eps))/(2.*eps)
+        np.testing.assert_allclose(auto,finite,rtol=3e-6,atol=1e-6)
+
+
+def test_bulk_surface_cycle_can_run_with_cloud_formation_disabled():
+    kwargs=inputs()
+    water=BulkWaterColumnState(0,jnp.zeros(4),100.,.001,2.)
+    result=column_physics(**kwargs,bulk_water=water,form_bulk_clouds=False)
+    np.testing.assert_array_equal(result.bulk_water.ice_ratio,0.)
+    assert result.diagnostics['bulk_water']['cloud']=={}
+    gas=jnp.diff(kwargs['pressure_half'])/BODY.gravity_m_s2
+    before=jnp.sum(gas*kwargs['gas_tracers'][:,0])+100.
+    after=jnp.sum(gas*result.gas_tracers[:,0])+result.bulk_water.surface_water_kg_m2
+    np.testing.assert_allclose(after,before,rtol=3e-12,atol=3e-12)
+
+
+def test_soil_water_emissivity_uses_post_exchange_inventory_and_restores_bare_map():
+    kwargs={**inputs(),'co2_ice_kg_m2':0.,'soil':jnp.full(16,250.),'emissivity':.73}
+    water=BulkWaterColumnState(0,jnp.zeros(4),.0001,.01,3.)
+    options=dict(frost_threshold_m=5e-8,water_emissivity=1.)
+    result=column_physics(**kwargs,bulk_water=water,form_bulk_clouds=False,
+        water_radiative_options=options)
+    assert result.bulk_water.surface_water_kg_m2<options['frost_threshold_m']*1000.
+    assert result.diagnostics['surface']['emissivity']==.73
+    frozen=column_physics(**kwargs,bulk_water=water._replace(previous_exchange_coefficient=0.),
+        form_bulk_clouds=False,water_radiative_options=options)
+    assert frozen.diagnostics['surface']['emissivity']==1.
+    assert not np.array_equal(frozen.soil,result.soil)
+
+
+def test_terrain_drag_is_applied_before_convection_and_keeps_its_source_residual():
+    half=jnp.geomspace(.001,610.,13);full=jnp.sqrt(half[:-1]*half[1:])
+    kwargs={**inputs(),'pressure_half':half,'pressure_full':full,
+        'temperature':jnp.linspace(145.,215.,12),'u':jnp.linspace(12.,57.,12),
+        'v':jnp.linspace(-3.,5.,12),'gas_tracers':jnp.zeros((12,0)),
+        'radiative_heating_k_s':jnp.zeros(12),'soil':jnp.full(16,215.),'co2_ice_kg_m2':0.}
+    options=dict(top_pressure_pa=.001,terrain_std_m=300.)
+    result=jax.jit(lambda:column_physics(**kwargs,terrain_drag_options=options))()
+    plain=column_physics(**kwargs)
+    assert np.isfinite(result.temperature).all()
+    assert np.max(np.abs(result.u-plain.u))>1e-8
+    assert result.diagnostics['terrain_drag']['surface_stress_pa']>0.

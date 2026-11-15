@@ -362,8 +362,8 @@
   ],
   "sha256": {
     "scripts/validate_optical_depth.py": "d607f6381d6f7a6b136cc58da7650a8a838aaed13b7c910a407ca88bdf20e57b",
-    "package/src/framework/physics/optical_depth.py": "9a2433d11b36a938bf16b05015613e162216eea65c63bf56188ee958d3d7d0a7",
-    "package/src/framework/physics/correlated_k.py": "80074c30fb3495866c677b46ed178e9d722851cde6de597d36e1a4815d7dd3c9",
+    "package/src/framework/physics/optical_depth.py": "aa759a6216cf53187ebc5730f87a9cd6d65f9f30c7e6dd93f6c7ad14ae6d9db0",
+    "package/src/framework/physics/correlated_k.py": "fde79069ec8e8742e6deafcf6077e0c376d48840b1b2bcbf9f6086cc6484629e",
     "package/src/framework/physics/radiation_grid.py": "7c0cd095eb863e6ec612a79f90f9ad7c2d17a00584eb4d3d46f7aba0a56d424f",
     "package/src/framework/physics/co2_12band_tables.npz": "0c48a86efd4618d3fdc0e52cd2bc5ca063fc7ac006ebfee09a46bee01d159d6c"
   },

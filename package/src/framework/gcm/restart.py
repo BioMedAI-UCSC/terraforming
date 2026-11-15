@@ -16,7 +16,7 @@ from src.framework.gcm._dinosaur import jax, jnp, primitive_equations
 from src.framework.gcm.dynamics import integrate
 from src.framework.physics.gcm import ColumnPhysicsState
 
-RESTART_FORMAT_VERSION = 3
+RESTART_FORMAT_VERSION = 4
 
 
 def save_restart(state: ColumnPhysicsState, path) -> Path:
@@ -25,11 +25,14 @@ def save_restart(state: ColumnPhysicsState, path) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     dyn = state.dynamics
     tracer_names = sorted(dyn.tracers)
+    auxiliary_names=sorted(state.auxiliary_fields or {})
     metadata = {
         "format_version": RESTART_FORMAT_VERSION,
         "tracer_names": tracer_names,
         "sim_time_is_none": dyn.sim_time is None,
         "surface_momentum_is_none": state.surface_momentum is None,
+        "auxiliary_fields_is_none": state.auxiliary_fields is None,
+        "auxiliary_field_names": auxiliary_names,
     }
     arrays = {
         "metadata": np.asarray(json.dumps(metadata)),
@@ -47,6 +50,8 @@ def save_restart(state: ColumnPhysicsState, path) -> Path:
         arrays["surface_momentum"] = np.asarray(state.surface_momentum)
     for index, name in enumerate(tracer_names):
         arrays[f"tracer_{index}"] = np.asarray(dyn.tracers[name])
+    for index,name in enumerate(auxiliary_names):
+        arrays[f'auxiliary_{index}']=np.asarray(state.auxiliary_fields[name])
     np.savez_compressed(path, **arrays)
     return path
 
@@ -57,7 +62,7 @@ def load_restart(path) -> ColumnPhysicsState:
     with np.load(path, allow_pickle=False) as data:
         metadata = json.loads(str(data["metadata"]))
         version = metadata.get("format_version")
-        if version not in (2, RESTART_FORMAT_VERSION):
+        if version not in (2, 3, RESTART_FORMAT_VERSION):
             raise ValueError(
                 f"unsupported gcm3d restart version {version!r}; "
                 f"expected {RESTART_FORMAT_VERSION}"
@@ -78,6 +83,12 @@ def load_restart(path) -> ColumnPhysicsState:
             tracers=tracers,
             sim_time=sim_time,
         )
+        auxiliary=None
+        if version==4 and not metadata['auxiliary_fields_is_none']:
+            names=metadata['auxiliary_field_names']
+            if not all(isinstance(name,str) and name for name in names) or len(set(names))!=len(names):
+                raise ValueError('restart auxiliary field names must be unique nonempty strings')
+            auxiliary={name:jnp.asarray(data[f'auxiliary_{index}']) for index,name in enumerate(names)}
         return ColumnPhysicsState(
             dynamics,
             jnp.asarray(data["surface_temperature"]),
@@ -85,6 +96,7 @@ def load_restart(path) -> ColumnPhysicsState:
             jnp.asarray(data["ground_temperature"]),
             (jnp.zeros((2,) + data["surface_temperature"].shape[1:]) if version == 2 else
              None if metadata["surface_momentum_is_none"] else jnp.asarray(data["surface_momentum"])),
+            auxiliary,
         )
 
 

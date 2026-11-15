@@ -42,8 +42,8 @@
       "kind": "infrared",
       "scale_surface_flux": false,
       "max_errors_w_m2": [
-        0.0,
-        2.353672812205332e-14,
+        2.842170943040401e-14,
+        2.2648549702353193e-14,
         1.4210854715202004e-14
       ]
     },
@@ -54,8 +54,8 @@
       "scale_surface_flux": true,
       "max_errors_w_m2": [
         1.4210854715202004e-14,
-        2.1760371282653068e-14,
-        0.0
+        3.952393967665557e-14,
+        4.973799150320701e-14
       ]
     },
     {
@@ -75,8 +75,8 @@
       "kind": "infrared",
       "scale_surface_flux": false,
       "max_errors_w_m2": [
-        0.0,
-        4.440892098500626e-15,
+        1.4210854715202004e-14,
+        7.105427357601002e-15,
         0.0
       ]
     },
@@ -87,8 +87,8 @@
       "scale_surface_flux": true,
       "max_errors_w_m2": [
         1.4210854715202004e-14,
-        8.881784197001252e-15,
-        0.0
+        5.773159728050814e-15,
+        7.105427357601002e-15
       ]
     },
     {
@@ -108,8 +108,8 @@
       "kind": "infrared",
       "scale_surface_flux": false,
       "max_errors_w_m2": [
-        1.4210854715202004e-14,
-        3.552713678800501e-15,
+        7.105427357601002e-15,
+        7.105427357601002e-15,
         1.4210854715202004e-14
       ]
     },
@@ -119,9 +119,9 @@
       "kind": "infrared",
       "scale_surface_flux": true,
       "max_errors_w_m2": [
-        7.105427357601002e-15,
-        1.2434497875801753e-14,
-        1.4210854715202004e-14
+        0.0,
+        8.881784197001252e-16,
+        7.105427357601002e-15
       ]
     },
     {
@@ -141,9 +141,9 @@
       "kind": "infrared",
       "scale_surface_flux": false,
       "max_errors_w_m2": [
-        2.842170943040401e-14,
         1.4210854715202004e-14,
-        1.4210854715202004e-14
+        3.552713678800501e-15,
+        7.105427357601002e-15
       ]
     },
     {
@@ -153,8 +153,8 @@
       "scale_surface_flux": true,
       "max_errors_w_m2": [
         1.4210854715202004e-14,
-        2.842170943040401e-14,
-        1.4210854715202004e-14
+        1.4210854715202004e-14,
+        0.0
       ]
     },
     {
@@ -175,8 +175,8 @@
       "scale_surface_flux": false,
       "max_errors_w_m2": [
         2.842170943040401e-14,
-        3.907985046680551e-14,
-        2.1316282072803006e-14
+        3.552713678800501e-14,
+        2.842170943040401e-14
       ]
     },
     {
@@ -185,9 +185,9 @@
       "kind": "infrared",
       "scale_surface_flux": true,
       "max_errors_w_m2": [
-        5.684341886080802e-14,
-        2.1316282072803006e-14,
-        7.105427357601002e-15
+        1.4210854715202004e-14,
+        2.842170943040401e-14,
+        2.1316282072803006e-14
       ]
     },
     {
@@ -208,8 +208,8 @@
       "scale_surface_flux": false,
       "max_errors_w_m2": [
         1.4210854715202004e-14,
-        1.7763568394002505e-14,
-        1.4210854715202004e-14
+        7.105427357601002e-15,
+        0.0
       ]
     },
     {
@@ -218,9 +218,9 @@
       "kind": "infrared",
       "scale_surface_flux": true,
       "max_errors_w_m2": [
-        1.4210854715202004e-14,
-        7.105427357601002e-15,
-        7.105427357601002e-15
+        2.842170943040401e-14,
+        3.552713678800501e-15,
+        2.1316282072803006e-14
       ]
     },
     {
@@ -240,9 +240,9 @@
       "kind": "infrared",
       "scale_surface_flux": false,
       "max_errors_w_m2": [
-        1.1368683772161603e-13,
+        5.684341886080802e-14,
         8.526512829121202e-14,
-        1.4210854715202004e-14
+        2.842170943040401e-14
       ]
     },
     {
@@ -252,8 +252,8 @@
       "scale_surface_flux": true,
       "max_errors_w_m2": [
         1.7053025658242404e-13,
-        8.526512829121202e-14,
-        4.263256414560601e-14
+        5.684341886080802e-14,
+        7.105427357601002e-14
       ]
     },
     {
@@ -274,8 +274,8 @@
       "scale_surface_flux": false,
       "max_errors_w_m2": [
         5.684341886080802e-14,
-        8.526512829121202e-14,
-        1.4210854715202004e-14
+        1.1368683772161603e-13,
+        2.842170943040401e-14
       ]
     },
     {
@@ -286,7 +286,7 @@
       "max_errors_w_m2": [
         1.1368683772161603e-13,
         5.684341886080802e-14,
-        2.842170943040401e-14
+        1.4210854715202004e-14
       ]
     },
     {
@@ -307,8 +307,8 @@
       "scale_surface_flux": false,
       "max_errors_w_m2": [
         1.7053025658242404e-13,
-        5.684341886080802e-14,
-        1.4210854715202004e-14
+        1.1368683772161603e-13,
+        0.0
       ]
     },
     {
@@ -318,16 +318,16 @@
       "scale_surface_flux": true,
       "max_errors_w_m2": [
         1.1368683772161603e-13,
-        1.1368683772161603e-13,
-        2.842170943040401e-14
+        5.684341886080802e-14,
+        0.0
       ]
     }
   ],
   "sha256": {
-    "scripts/validate_spectral_flux.py": "82b7f7cba7166d368b0042daae2ef8196821c948db651a0579043eac61ab52d8",
-    "package/src/framework/physics/spectral_flux.py": "93b9bf40c669b09277d5c9f262558d1f5f3955c6e6b2b11b9c88a610ae118dec",
-    "package/src/framework/physics/scattering_transfer.py": "7b3568d50e2f7472220ea032884c5be64f5ed0f1c988848fd5a1b2fab785b644",
-    "package/src/framework/physics/correlated_k.py": "80074c30fb3495866c677b46ed178e9d722851cde6de597d36e1a4815d7dd3c9",
+    "scripts/validate_spectral_flux.py": "5368b4de0eaefb3492af65f00ea0167519b75200e9557f7c8ef986e5cedf3cce",
+    "package/src/framework/physics/spectral_flux.py": "3b1d1fcbc7eb78cf435cb45e388432909d1ee15bef5ed9716429c2b97efec766",
+    "package/src/framework/physics/scattering_transfer.py": "834dea8bc852bc87c5c8af26d8e6a32dd108ca12a373ffc7950269bc11afefa4",
+    "package/src/framework/physics/correlated_k.py": "fde79069ec8e8742e6deafcf6077e0c376d48840b1b2bcbf9f6086cc6484629e",
     "package/src/framework/physics/vertical_solve.py": "0d01f1d42fe7f086a887a2c0c51cb3b4385d26a3c944b72f81150b8a57ddd991",
     "package/src/framework/physics/co2_12band_tables.npz": "0c48a86efd4618d3fdc0e52cd2bc5ca063fc7ac006ebfee09a46bee01d159d6c"
   },

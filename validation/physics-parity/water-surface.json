@@ -1,0 +1,3058 @@
+{
+  "status": "pass",
+  "reference": {
+    "source_git_blob": "ca0b7c0774b1b23cafaee219062c3bffa3d0c4cc",
+    "compiled_source_sha256": "a76a057cc5e5101a7c6937bbde621d4e044fe0546f9b58d88015304a3876c337",
+    "routine_sha256": {
+      "update_water": "b7324900b834321e8edac578dcc3f817b6b2387ae5bc205a1a15933197318c7f",
+      "update_water_fv3": "479ac370390d9fcbced1dd852db1724e2b8cb07281e05808d671eb3e4354ea09",
+      "update_water_blk": "63ea477bf99427a91d6476b26e17a8132d3943383f43f1c0cd7b35519acc3f1a"
+    },
+    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+    "compiler_flags": [
+      "-O3",
+      "-cpp",
+      "-fdefault-real-8",
+      "-fdefault-double-8",
+      "-fPIC",
+      "-shared"
+    ],
+    "real_precision_bits": 64,
+    "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged",
+    "preprocessor_definitions": [
+      "RELEASE"
+    ]
+  },
+  "cases": [
+    {
+      "layers": 2,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        5.048709793414476e-29,
+        0.0,
+        2.6469779601696886e-23
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "limited",
+      "max_errors": [
+        2.5849394142282115e-26,
+        3.308722450212111e-24,
+        9.693522803355793e-27,
+        6.776263578034403e-21,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        5.169878828456423e-26,
+        2.0194839173657902e-28,
+        0.0,
+        6.352747104407253e-22
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        3.3881317890172014e-21,
+        0.0,
+        8.881784197001252e-16
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        1.1368683772161603e-13
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        6.938893903907228e-18,
+        1.3552527156068805e-20,
+        0.0,
+        1.4210854715202004e-14
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        5.048709793414476e-29,
+        0.0,
+        2.6469779601696886e-23
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "limited",
+      "max_errors": [
+        2.5849394142282115e-26,
+        3.308722450212111e-24,
+        9.693522803355793e-27,
+        6.776263578034403e-21,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        5.169878828456423e-26,
+        2.0194839173657902e-28,
+        0.0,
+        6.352747104407253e-22
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        3.3881317890172014e-21,
+        0.0,
+        8.881784197001252e-16
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        1.1368683772161603e-13
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        6.938893903907228e-18,
+        1.3552527156068805e-20,
+        0.0,
+        1.4210854715202004e-14
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        5.048709793414476e-29,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "limited",
+      "max_errors": [
+        2.5849394142282115e-26,
+        3.308722450212111e-24,
+        9.693522803355793e-27,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        1.0339757656912846e-25,
+        4.0389678347315804e-28,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        3.3881317890172014e-21,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        1.3877787807814457e-17,
+        2.710505431213761e-20,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        5.048709793414476e-29,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "limited",
+      "max_errors": [
+        2.5849394142282115e-26,
+        3.308722450212111e-24,
+        9.693522803355793e-27,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        1.0339757656912846e-25,
+        4.0389678347315804e-28,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        3.3881317890172014e-21,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        1.3877787807814457e-17,
+        2.710505431213761e-20,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        5.048709793414476e-29,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "limited",
+      "max_errors": [
+        2.5849394142282115e-26,
+        3.308722450212111e-24,
+        9.693522803355793e-27,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        5.169878828456423e-26,
+        2.0194839173657902e-28,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        3.3881317890172014e-21,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        6.938893903907228e-18,
+        1.3552527156068805e-20,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        5.048709793414476e-29,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "limited",
+      "max_errors": [
+        2.5849394142282115e-26,
+        3.308722450212111e-24,
+        9.693522803355793e-27,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        5.169878828456423e-26,
+        2.0194839173657902e-28,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        3.3881317890172014e-21,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        6.938893903907228e-18,
+        1.3552527156068805e-20,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        5.048709793414476e-29,
+        0.0,
+        2.6469779601696886e-23
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "limited",
+      "max_errors": [
+        2.0679515313825692e-25,
+        3.308722450212111e-24,
+        9.693522803355793e-27,
+        5.421010862427522e-20,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        5.169878828456423e-26,
+        2.0194839173657902e-28,
+        0.0,
+        6.352747104407253e-22
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        3.3881317890172014e-21,
+        0.0,
+        8.881784197001252e-16
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        1.1368683772161603e-13
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        6.938893903907228e-18,
+        1.3552527156068805e-20,
+        0.0,
+        1.4210854715202004e-14
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        5.048709793414476e-29,
+        0.0,
+        2.6469779601696886e-23
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "limited",
+      "max_errors": [
+        1.0339757656912846e-25,
+        3.308722450212111e-24,
+        9.693522803355793e-27,
+        2.710505431213761e-20,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        5.169878828456423e-26,
+        2.0194839173657902e-28,
+        0.0,
+        6.352747104407253e-22
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        3.3881317890172014e-21,
+        0.0,
+        8.881784197001252e-16
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        1.1368683772161603e-13
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        6.938893903907228e-18,
+        1.3552527156068805e-20,
+        0.0,
+        1.4210854715202004e-14
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        5.048709793414476e-29,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "limited",
+      "max_errors": [
+        2.0679515313825692e-25,
+        3.308722450212111e-24,
+        9.693522803355793e-27,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        1.0339757656912846e-25,
+        4.0389678347315804e-28,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        3.3881317890172014e-21,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        1.3877787807814457e-17,
+        2.710505431213761e-20,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        5.048709793414476e-29,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "limited",
+      "max_errors": [
+        1.0339757656912846e-25,
+        3.308722450212111e-24,
+        9.693522803355793e-27,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        1.0339757656912846e-25,
+        4.0389678347315804e-28,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        3.3881317890172014e-21,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        1.3877787807814457e-17,
+        2.710505431213761e-20,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        5.048709793414476e-29,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "limited",
+      "max_errors": [
+        2.0679515313825692e-25,
+        3.308722450212111e-24,
+        9.693522803355793e-27,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        5.169878828456423e-26,
+        2.0194839173657902e-28,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        3.3881317890172014e-21,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        6.938893903907228e-18,
+        1.3552527156068805e-20,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        5.048709793414476e-29,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "limited",
+      "max_errors": [
+        1.0339757656912846e-25,
+        3.308722450212111e-24,
+        9.693522803355793e-27,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        5.169878828456423e-26,
+        2.0194839173657902e-28,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        3.3881317890172014e-21,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        6.938893903907228e-18,
+        1.3552527156068805e-20,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "wet",
+      "max_errors": [
+        1.2924697071141057e-26,
+        0.0,
+        5.048709793414476e-29,
+        3.639594695233322e-23,
+        2.6469779601696886e-23
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "limited",
+      "max_errors": [
+        8.271806125530277e-25,
+        3.308722450212111e-24,
+        9.693522803355793e-27,
+        2.168404344971009e-19,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        5.169878828456423e-26,
+        2.0194839173657902e-28,
+        0.0,
+        6.352747104407253e-22
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "wet",
+      "max_errors": [
+        1.734723475976807e-18,
+        0.0,
+        3.3881317890172014e-21,
+        4.884981308350689e-15,
+        8.881784197001252e-16
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        1.1368683772161603e-13
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        6.938893903907228e-18,
+        1.3552527156068805e-20,
+        0.0,
+        1.4210854715202004e-14
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bulk",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        5.048709793414476e-29,
+        0.0,
+        2.6469779601696886e-23
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "limited",
+      "max_errors": [
+        2.0679515313825692e-25,
+        3.308722450212111e-24,
+        9.693522803355793e-27,
+        5.421010862427522e-20,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        5.169878828456423e-26,
+        2.0194839173657902e-28,
+        0.0,
+        6.352747104407253e-22
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        3.3881317890172014e-21,
+        0.0,
+        8.881784197001252e-16
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        1.1368683772161603e-13
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        6.938893903907228e-18,
+        1.3552527156068805e-20,
+        0.0,
+        1.4210854715202004e-14
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bulk",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "wet",
+      "max_errors": [
+        1.2924697071141057e-26,
+        0.0,
+        5.048709793414476e-29,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "limited",
+      "max_errors": [
+        8.271806125530277e-25,
+        3.308722450212111e-24,
+        9.693522803355793e-27,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        1.0339757656912846e-25,
+        4.0389678347315804e-28,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "wet",
+      "max_errors": [
+        1.734723475976807e-18,
+        0.0,
+        3.3881317890172014e-21,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "deposition",
+      "max_errors": [
+        3.469446951953614e-18,
+        1.3877787807814457e-17,
+        2.710505431213761e-20,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "moment",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        5.048709793414476e-29,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "limited",
+      "max_errors": [
+        2.0679515313825692e-25,
+        3.308722450212111e-24,
+        9.693522803355793e-27,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        1.0339757656912846e-25,
+        4.0389678347315804e-28,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        3.3881317890172014e-21,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "deposition",
+      "max_errors": [
+        3.469446951953614e-18,
+        1.3877787807814457e-17,
+        2.710505431213761e-20,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "moment",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "wet",
+      "max_errors": [
+        1.2924697071141057e-26,
+        0.0,
+        5.048709793414476e-29,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "limited",
+      "max_errors": [
+        8.271806125530277e-25,
+        3.308722450212111e-24,
+        9.693522803355793e-27,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        5.169878828456423e-26,
+        2.0194839173657902e-28,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 140.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "wet",
+      "max_errors": [
+        1.734723475976807e-18,
+        0.0,
+        3.3881317890172014e-21,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        6.938893903907228e-18,
+        1.3552527156068805e-20,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 240.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bin",
+      "inject_through_pbl": false,
+      "surface_temperature_k": 290.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        5.048709793414476e-29,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "limited",
+      "max_errors": [
+        2.0679515313825692e-25,
+        3.308722450212111e-24,
+        9.693522803355793e-27,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        5.169878828456423e-26,
+        2.0194839173657902e-28,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 140.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        3.3881317890172014e-21,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        6.938893903907228e-18,
+        1.3552527156068805e-20,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 240.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "wet",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "limited",
+      "max_errors": [
+        0.0,
+        1.550963648536927e-25,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "deposition",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "scheme": "bin",
+      "inject_through_pbl": true,
+      "surface_temperature_k": 290.0,
+      "case": "invalid",
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  ],
+  "sha256": {
+    "scripts/validate_water_surface.py": "a7a650b3b7211a40c90e2fdac29559350e1922ab83cee0ca79005a95b3121f48",
+    "package/src/framework/physics/water_surface.py": "a9b6006b64953372871ee6f627fb8589eea6aaac19542b59a55266719a89e2c4",
+    "package/src/framework/physics/water_bulk.py": "563b225222538936e923bbdb4f8e3de82c9f20434870545a53dc0f6fc71b8f61"
+  },
+  "limits": "Released bulk/moment/bin water surface exchange; source latent formulas retained literally; full water driver coupling requires separate checks"
+}

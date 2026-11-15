@@ -6,7 +6,7 @@ Arrays use (radiation layer, spectral band, Gaussian channel, ...).
 """
 from typing import NamedTuple
 from src.framework.gcm._dinosaur import jnp
-from src.framework.physics.correlated_k import load_ames_co2_tables_jax,planck_band_intensities
+from src.framework.physics.correlated_k import radiation_tables_jax,planck_band_intensities
 from src.framework.physics.scattering_transfer import visible_fluxes,infrared_fluxes
 
 
@@ -34,13 +34,13 @@ def _mask_unused(values,active):
 
 
 def visible_spectrum(dtau,scattering_albedo,asymmetry,cumulative,gas_column,
-                     mu0,solar_intensity,reflectivity):
+                     mu0,solar_intensity,reflectivity,*,mode='12band'):
     """Original sfluxv channel merging and surface reflection, for mu0 > 0.
 
     gas_column excludes the clear channel and contains gas opacity only.
     Night is handled by the outer radiation driver, as in Ames.
     """
-    data=load_ames_co2_tables_jax()
+    data=radiation_tables_jax(mode)
     active,weights=_channel_selection(gas_column,data['clear_fraction_sw'],data['gauss_weights'],1.e-3)
     dtau,w,g,cumulative=(_mask_unused(jnp.asarray(x),active)
         for x in (dtau,scattering_albedo,asymmetry,cumulative))
@@ -54,13 +54,14 @@ def visible_spectrum(dtau,scattering_albedo,asymmetry,cumulative,gas_column,
 
 
 def infrared_spectrum(dtau,scattering_albedo,asymmetry,cumulative,gas_column,
-                      pressure_levels,temperature_levels,reflectivity,*,scale_surface_flux=False):
+                      pressure_levels,temperature_levels,reflectivity,*,scale_surface_flux=False,
+                      mode='12band'):
     """Original sfluxi channel merging, top emission and spectral integration.
 
     Continuous Planck interpolation is the explicit adaptation for temperature
     gradients. The default leaves surface emission unscaled, as in Ames.
     """
-    data=load_ames_co2_tables_jax()
+    data=radiation_tables_jax(mode)
     active,weights=_channel_selection(gas_column,data['clear_fraction_ir'],data['gauss_weights'],5.e-3)
     dtau,w,g,cumulative=(_mask_unused(jnp.asarray(x),active)
         for x in (dtau,scattering_albedo,asymmetry,cumulative))
@@ -68,9 +69,9 @@ def infrared_spectrum(dtau,scattering_albedo,asymmetry,cumulative,gas_column,
     if pressure.shape!=temperature.shape or pressure.shape[0]!=2*dtau.shape[0]+1:
         raise ValueError("infrared spectral transfer requires the Ames radiation subgrid")
     boundary_t=jnp.concatenate([temperature[1::2],temperature[-1:]],axis=0)
-    planck=jnp.moveaxis(planck_band_intensities(boundary_t),0,1)[:,:,None]
+    planck=jnp.moveaxis(planck_band_intensities(boundary_t,mode=mode),0,1)[:,:,None]
     planck=jnp.broadcast_to(planck,(dtau.shape[0]+1,)+dtau.shape[1:])
-    width=jnp.diff(data['ir_bounds_cm1']).reshape((5,)+(1,)*(dtau.ndim-2))
+    width=jnp.diff(data['ir_bounds_cm1']).reshape((len(data['ir_bounds_cm1'])-1,)+(1,)*(dtau.ndim-2))
     surface=(1.-reflectivity)*planck[-1]
     if scale_surface_flux:
         integral=3.14159*jnp.sum(width[:,0]*surface[:,0],axis=0)

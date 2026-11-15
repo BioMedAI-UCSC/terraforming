@@ -9,7 +9,8 @@ import tempfile
 
 import numpy as np
 from src.framework.gcm._dinosaur import jax
-from src.framework.physics.soil_frost import soil_layer_thickness,surface_step,subsurface_diffusivity
+from src.framework.physics.soil_frost import soil_layer_thickness,surface_step,subsurface_diffusivity,subsurface_properties
+from src.framework.physics.water_surface import optical_properties
 from native_reference import compile_routines
 
 
@@ -42,6 +43,37 @@ end interface
 contains
 """
     adapter="""
+subroutine soil_legacy(n,dt,ti,pressure,snow,dn,sh,ds,emiss,latitude,legacy,icecase,soil,dz,out,ice,phase) bind(C)
+integer(c_int), value :: n,legacy,icecase
+real(c_double), value :: dt,ti,pressure,snow,dn,sh,ds,emiss,latitude
+real(c_double), intent(in) :: soil(n),dz(n+1)
+real(c_double), intent(out) :: out(n),ice(1),phase(1)
+use_legacy_soil=legacy/=0
+subsfc_ice_case=icecase
+do_subsfc_ice=.true.
+call soil_frost(n,dt,ti,pressure,snow,dn,sh,ds,emiss,latitude,soil,dz,out,ice,phase)
+use_legacy_soil=.false.
+subsfc_ice_case=7
+do_subsfc_ice=.false.
+end subroutine
+subroutine water_optics(t,snow,water,threshold,liquid,a,e) bind(C)
+real(c_double), value :: t,snow,water,threshold
+integer(c_int), value :: liquid
+real(c_double), intent(out) :: a(1),e(1)
+real :: ts(1,1),sn(1,1),frost(1,1),alb(1,1),em(1,1),zeros(1,1),ps(1,1),lat(1,1)
+sfc_albedo=.25
+sfc_emiss=.95
+ts=t
+sn=snow
+frost=water
+zeros=0.
+ps=610.
+lat=1.
+frost_threshold=threshold
+call albedo_calc(1,1,1,1,zeros,lat,zeros,ts,ps,sn,frost,alb,em,liquid/=0)
+a(1)=alb(1,1)
+e(1)=em(1,1)
+end subroutine
 subroutine soil_frost_profile(n,dt,ti,pressure,snow,dn,sh,ds,emiss,latitude,soil,dz,out,ice,phase) bind(C)
 integer(c_int), value :: n
 real(c_double), value :: dt,ti,pressure,snow,dn,sh,ds,emiss,latitude
@@ -112,6 +144,10 @@ end module
     native.soil_frost.restype=None
     native.soil_frost_profile.argtypes=native.soil_frost.argtypes
     native.soil_frost_profile.restype=None
+    native.soil_legacy.argtypes=[ctypes.c_int]+[ctypes.c_double]*9+[ctypes.c_int]*2+[array]*5
+    native.soil_legacy.restype=None
+    native.water_optics.argtypes=[ctypes.c_double]*4+[ctypes.c_int,array,array]
+    native.water_optics.restype=None
     return native,provenance
 
 
@@ -120,6 +156,19 @@ def validate(source,compiler):
     cases=[]
     with tempfile.TemporaryDirectory(prefix="ames-surface-") as temporary:
         native,provenance=compile_reference(source,Path(temporary),compiler)
+        for liquid in (False,True):
+            for t in (200.,272.999,273.,290.):
+                for snow in (-.01,0.,.01,2.,2.001):
+                    for water in (1.999,2.,2.001):
+                        a=np.empty(1);e=np.empty(1)
+                        native.water_optics(t,snow,water,.002,int(liquid),a,e)
+                        base_a=.65 if snow>2. else .25
+                        base_e=.81 if snow>2. else .95
+                        actual=optical_properties(base_a,base_e,t,snow,water,
+                            frost_threshold_m=.002,liquid_water=liquid)
+                        np.testing.assert_allclose(actual,[a[0],e[0]],rtol=0.,atol=0.)
+                        cases.append(dict(case='water-surface-optics',liquid=liquid,
+                            temperature_k=t,snow_kg_m2=snow,water_kg_m2=water))
         definitions=[("bare-warming",200.,0.,180.),("bare-cooling",160.,0.,0.),
             ("new-frost",148.,0.,0.),("frost-cooling",148.,100.,0.),
             ("frost-sublimation",148.,100.,100.),("frost-exhausted",148.,.001,100.),
@@ -161,10 +210,25 @@ def validate(source,compiler):
             cases.append(dict(layers=n,case='case-7-subsurface-ice',latitude_rad=latitude,
                 max_soil_error_k=float(np.max(np.abs(np.asarray(actual[0])-result))),
                 ice_error_kg_m2=float(abs(float(actual[1])-ice[0]))))
+        for legacy in (False,True):
+            for icecase in (0,7):
+                for latitude in (-1.3,-.7,0.,.7,1.3):
+                    soil=np.asfortranarray(np.linspace(170.,180.,n))
+                    result=np.empty(n);ice=np.empty(1);phase=np.empty(1)
+                    native.soil_legacy(n,300.,250.,610.,0.,100.,-2.,.5,.95,latitude,
+                        int(legacy),icecase,soil,dz,result,ice,phase)
+                    diffusion,capacity=subsurface_properties(latitude,250.,60.,n,legacy=legacy,ice_case=icecase)
+                    actual=surface_step(soil,dz,diffusion,capacity,610.,0.,100.,-2.,.5,.95,300.)
+                    np.testing.assert_allclose(actual[0],result,rtol=2e-12,atol=2e-12)
+                    np.testing.assert_allclose(actual[1],ice[0],rtol=2e-12,atol=2e-12)
+                    cases.append(dict(case='soil-materials',legacy=legacy,ice_case=icecase,latitude_rad=latitude,
+                        max_soil_error_k=float(np.max(np.abs(np.asarray(actual[0])-result)))))
     return dict(status="pass",reference=provenance,cases=cases,
         source_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         kernel_sha256=hashlib.sha256(Path(__file__).parents[1].joinpath(
             "package/src/framework/physics/soil_frost.py").read_bytes()).hexdigest(),
+        water_surface_sha256=hashlib.sha256(Path(__file__).parents[1].joinpath(
+            "package/src/framework/physics/water_surface.py").read_bytes()).hexdigest(),
         vertical_solver_sha256=hashlib.sha256(Path(__file__).parents[1].joinpath(
             "package/src/framework/physics/vertical_solve.py").read_bytes()).hexdigest(),
         jax_version=jax.__version__,devices=[str(x) for x in jax.devices()],
