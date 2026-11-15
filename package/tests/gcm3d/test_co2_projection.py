@@ -96,6 +96,19 @@ def test_declared_source_or_sink_survives_projection_with_exact_escape(model, so
     np.testing.assert_array_equal(final.dynamics.temperature_variation, raw.dynamics.temperature_variation)
 
 
+def test_projection_off_keeps_raw_mass_error_and_physical_state(model):
+    coords, specs, initial = model
+    raw_step = source_step(model, lambda s, dt: jnp.asarray(0.), pressure_error_pa=.1)
+    raw = raw_step(initial)
+    final, diagnostics = jax.jit(positivity_preserving_co2_step(
+        raw_step, coords, specs, body=BODY, dt_seconds=300.,
+        inventory_projection=False, return_diagnostics=True))(initial)
+    np.testing.assert_array_equal(final.dynamics.log_surface_pressure, raw.dynamics.log_surface_pressure)
+    assert mass_kg(final, coords, specs) > mass_kg(initial, coords, specs)
+    assert float(diagnostics.atmospheric_rescale_kg) == 0.
+    assert float(diagnostics.pressure_factor) == 1.
+
+
 def test_undeclared_source_is_still_a_closed_budget(model):
     coords, specs, initial = model
     raw_step = source_step(model, lambda state, dt: 1e12)
