@@ -206,10 +206,19 @@ def nucleation_condensation(temperature,pressure_pa,tracers,dt_seconds,*,
         jnp.maximum(-dn,new_dn-dn)/dt_seconds,sat,m)
 
 
+class EffectiveState(NamedTuple):
+    temperature: object
+    tracers: object
+    dust_mass: object
+    dust_number: object
+    initialized: object = True
+
+
 def subcycled_cloud_step(initial_temperature,temperature,pressure_pa,initial_tracers,tracers,
                          dt_seconds,*,microtimestep=-1.,initial_dust_mass=None,dust_mass=None,
-                         initial_dust_number=None,dust_number=None,**options):
-    """Source micro_driver effective-input ramp and substeps (subeffmode=0).
+                         initial_dust_number=None,dust_number=None,effective_input_mode=0,
+                         previous_state=None,**options):
+    """Source micro_driver effective-input ramp and substeps.
 
     Inputs before physics and before clouds are separate. Positive tracer
     tendencies enter over the substeps. Negative tendencies act immediately.
@@ -219,6 +228,8 @@ def subcycled_cloud_step(initial_temperature,temperature,pressure_pa,initial_tra
         raise ValueError('moment cloud time step must be finite and positive')
     if not np.isfinite(microtimestep) or microtimestep==0.:
         raise ValueError('microtimestep must be finite and nonzero')
+    if effective_input_mode not in (0,1):
+        raise ValueError('effective cloud input mode must be 0 or 1')
     count=max(int(dt_seconds/microtimestep),1);step=dt_seconds/count
     t0,t,p,q0,q=map(jnp.asarray,(initial_temperature,temperature,pressure_pa,initial_tracers,tracers))
     q0,q=jnp.maximum(q0,0.),jnp.maximum(q,0.)
@@ -229,6 +240,15 @@ def subcycled_cloud_step(initial_temperature,temperature,pressure_pa,initial_tra
         dm0,dm=q0[...,0,None],q[...,0,None];dn0,dn=q0[...,1,None],q[...,1,None]
     else:
         dm0,dm,dn0,dn=map(lambda x:jnp.maximum(jnp.asarray(x),0.),arrays)
+    if effective_input_mode==1 and previous_state is not None:
+        old=previous_state
+        if (np.shape(old.temperature)!=t0.shape or np.shape(old.tracers)!=q0.shape or
+            np.shape(old.dust_mass)!=dm0.shape or np.shape(old.dust_number)!=dn0.shape):
+            raise ValueError('previous effective cloud fields must match the current column and modes')
+        t0=jnp.where(old.initialized,old.temperature,t0)
+        q0=jnp.where(old.initialized,jnp.maximum(old.tracers,0.),q0)
+        dm0=jnp.where(old.initialized,jnp.maximum(old.dust_mass,0.),dm0)
+        dn0=jnp.where(old.initialized,jnp.maximum(old.dust_number,0.),dn0)
     effective=jnp.minimum(q0,q);dm_eff=jnp.minimum(dm0,dm);dn_eff=jnp.minimum(dn0,dn)
     heat_ramp=(t-t0)/count
     ramps=((q-effective)/count,(dm-dm_eff)/count,(dn-dn_eff)/count)

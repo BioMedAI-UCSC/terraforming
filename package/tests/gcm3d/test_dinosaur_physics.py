@@ -70,7 +70,7 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
                  radiation_component=None,wind_speed=0.,suspended_co2_clouds=False,
                  bulk_water=False,initial_water_surface_kg_m2=0.,moment_water=False,
                  dust_lifting_options=None,initial_water_vapor_ratio=1e-6,coagulation_options=None,
-                 dust_background_options=None,nonorographic_drag_options=None):
+                 dust_background_options=None,nonorographic_drag_options=None,effective_input_mode=0):
     from src.framework.gcm.coordinates import coordinate_system
     from src.framework.gcm.specs import physics_specs
     from src.framework.gcm._dinosaur import primitive_equations,scales
@@ -95,14 +95,15 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
     state=initial_state(dyn,coords,specs,temperature_k=surface_temperature_k,bulk_water=bulk_water,
         initial_water_surface_kg_m2=initial_water_surface_kg_m2,initial_water_vapor_ratio=initial_water_vapor_ratio,
         moment_water=moment_water,initial_dust_mass_ratio=1e-5,initial_dust_number_per_kg=1e8,
-        nonorographic_drag_options=nonorographic_drag_options,dust_background_options=dust_background_options)
+        nonorographic_drag_options=nonorographic_drag_options,dust_background_options=dust_background_options,
+        moment_cloud_options=dict(effective_input_mode=effective_input_mode))
     forcing=(radiative_forcing(co2_radiation_enabled=True) if radiation_component is None else
         reference_radiative_forcing())
     radiation=two_stream_radiative_fluxes if radiation_component is None else radiation_component
     step=build_step(coords,specs,BODY,forcing,5.,radiation_component=radiation,
         soil_diffusivity=(250./(1500.*627.9))**2,return_diagnostics=return_diagnostics,
         suspended_co2_clouds=suspended_co2_clouds,bulk_water=bulk_water,moment_water=moment_water,
-        moment_cloud_options=dict(latent_heat=True,microtimestep=1.),
+        moment_cloud_options=dict(latent_heat=True,microtimestep=1.,effective_input_mode=effective_input_mode),
         dust_lifting_options=dust_lifting_options,dust_optical_bands=15,coagulation_options=coagulation_options,
         dust_background_options=dust_background_options,nonorographic_drag_options=nonorographic_drag_options)
     return state,step,grid
@@ -264,10 +265,10 @@ def test_bulk_water_backend_multistep_reverse_derivative():
         np.testing.assert_allclose(auto,finite,rtol=3e-5,atol=1e-7)
 
 
-@pytest.mark.parametrize('interactive,coagulation,background',[
-    (False,False,False),(True,False,False),(True,True,False),(False,False,True),
-    (True,True,True),(True,True,'local')])
-def test_moment_water_cloud_feedback_material_and_restart(tmp_path,interactive,coagulation,background):
+@pytest.mark.parametrize('interactive,coagulation,background,effective_input_mode',[
+    (False,False,False,0),(True,False,False,0),(True,True,False,0),(False,False,True,0),
+    (True,True,True,0),(True,True,'local',0),(True,True,'local',1)])
+def test_moment_water_cloud_feedback_material_and_restart(tmp_path,interactive,coagulation,background,effective_input_mode):
     from src.framework.physics.water_bulk import WATER_CLOUD_TRACER,WATER_VAPOR_TRACER
     from src.framework.physics.particle_optics import make_particle_provider
     from src.framework.physics.radiative_transfer import make_radiation_component
@@ -290,12 +291,15 @@ def test_moment_water_cloud_feedback_material_and_restart(tmp_path,interactive,c
         wind_speed=40. if interactive else 0.,
         dust_lifting_options=(dict(dual_mode=1) if background else {}) if interactive else None,
         coagulation_options={} if coagulation else None,
-        dust_background_options=background_options)
+        dust_background_options=background_options,effective_input_mode=effective_input_mode)
     tick=jax.jit(step);first,d=tick(state)
     assert all(np.isfinite(x).all() for x in jax.tree.leaves(first))
     if background=='local':
         assert first.auxiliary_fields['dust_local_time_initialized']==1.
         assert np.any(first.auxiliary_fields['dust_local_time_opacity']>0.)
+    if effective_input_mode:
+        assert first.auxiliary_fields['moment_previous_initialized']==1.
+        assert np.all(first.auxiliary_fields['moment_previous_temperature_k']>0.)
     assert float(jnp.max(grid.to_nodal(first.dynamics.tracers[WATER_CLOUD_TRACER])))>0.
     np.testing.assert_allclose(d.raw_water_mass_kg,d.target_water_mass_kg,rtol=3e-11)
     np.testing.assert_allclose(d.corrected_water_mass_kg,d.target_water_mass_kg,rtol=3e-11)
@@ -326,8 +330,9 @@ def test_moment_water_cloud_feedback_material_and_restart(tmp_path,interactive,c
         np.testing.assert_array_equal(a,b)
 
 
-@pytest.mark.parametrize('interactive,background',[(False,False),(True,False),(False,True),(True,True),(True,'local')])
-def test_moment_cloud_multistep_reverse_derivative(interactive,background):
+@pytest.mark.parametrize('interactive,background,effective_input_mode',[
+    (False,False,0),(True,False,0),(False,True,0),(True,True,0),(True,'local',0),(True,'local',1)])
+def test_moment_cloud_multistep_reverse_derivative(interactive,background,effective_input_mode):
     from src.framework.physics.water_bulk import WATER_CLOUD_TRACER,WATER_VAPOR_TRACER
     from src.framework.physics.particle_optics import make_particle_provider
     from src.framework.physics.radiative_transfer import make_radiation_component
@@ -348,7 +353,7 @@ def test_moment_cloud_multistep_reverse_derivative(interactive,background):
         dust_lifting_options=(dict(dual_mode=1) if background else {}) if interactive else None,
         dust_background_options=background_options,
         # Keep the derivative probe within one source water-mixture bin.
-        initial_water_vapor_ratio=1.1e-6)
+        initial_water_vapor_ratio=1.1e-6,effective_input_mode=effective_input_mode)
     def objective(amplitude):
         dyn=dataclasses.replace(state.dynamics,tracers={**state.dynamics.tracers,
             'dust_mass':state.dynamics.tracers['dust_mass']*amplitude,

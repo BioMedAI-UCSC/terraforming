@@ -10,7 +10,7 @@ import tempfile
 import numpy as np
 from src.framework.gcm._dinosaur import jax
 from src.framework.physics.water_moments import (nucleation_rates,growth_coefficient,shape_factor,size_grid,
-    nucleation_condensation,subcycled_cloud_step)
+    nucleation_condensation,subcycled_cloud_step,EffectiveState)
 from native_reference import extract_routines
 
 BLOB='4897f72860b59d7effeb6650dbf3d4484b3aca71'
@@ -223,6 +223,14 @@ def validate(source,compiler):
                         atol=allowance*2.8343e6/735.94+1e-15)
                     cases.append(dict(case='native-substep-composition',substeps=substeps,modes=modes,
                         latent_heat=latent,max_tracer_error=float(np.max(abs(actual.tracer_tendency-(current_q-q)/dt)))))
+                    # Seed all history fields: the released driver never fills its dust-history arrays.
+                    historical=subcycled_cloud_step(t0-4.,t,p,q0*.5,q,dt,microtimestep=microdt,
+                        initial_dust_mass=dm0*.5,dust_mass=dm,initial_dust_number=dn0*.5,dust_number=dn,
+                        effective_input_mode=1,previous_state=EffectiveState(t0,q0,dm0,dn0),latent_heat=latent)
+                    for value,expected in zip(historical[:4],actual[:4],strict=True):
+                        np.testing.assert_array_equal(value,expected)
+                    cases.append(dict(case='seeded-previous-effective-substeps',substeps=substeps,modes=modes,
+                        latent_heat=latent))
     root=Path(__file__).parents[1]
     return dict(status='pass',reference=provenance,original_fp64_reference=fp_provenance,cases=cases,
         sha256={name:hashlib.sha256((root/name).read_bytes()).hexdigest() for name in
@@ -233,7 +241,9 @@ def validate(source,compiler):
             'Binary128 only resolves the geometric cancellation; it does not change the source equations. '
             'Empty bins use zero weight; dry vapor uses saturation pressure directly. '
             'The shared implicit root removes the native 1e-8 stopping noise. '
-            'Outer dust sedimentation, previous-effective-state mode and long climate validation remain separate.')
+            'Previous effective input uses seeded history with native substeps; the released driver never '
+            'fills its dust-history arrays. The port saves pre-cloud dust alongside source pre-cloud Q '
+            'and post-cloud T. Outer sedimentation and long climate validation remain separate.')
 
 
 def main():

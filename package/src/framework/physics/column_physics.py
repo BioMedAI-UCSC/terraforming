@@ -14,7 +14,7 @@ from src.framework.physics.rayleigh_drag import rayleigh_tendencies
 from src.framework.physics.terrain_drag import tendencies as terrain_tendencies,hydrostatic_heights
 from src.framework.physics.co2_microphysics import cloud_step,phase_change,transport_concentration
 from src.framework.physics.water_bulk import cloud_step as water_cloud_step
-from src.framework.physics.water_moments import subcycled_cloud_step
+from src.framework.physics.water_moments import subcycled_cloud_step,EffectiveState
 from src.framework.physics.particle_sedimentation import sedimentation_step
 from src.framework.physics.dust_lifting import interactive_step as dust_lifting_step,background_step
 from src.framework.physics.dust_coagulation import coagulation_step
@@ -44,6 +44,7 @@ class ColumnResult(NamedTuple):
     bulk_water: object = None
     moment_particles: object = None
     nonorographic_state: object = None
+    moment_history: object = None
 
 
 def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
@@ -58,7 +59,7 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
                    moment_particles=None,moment_cloud_options=None,moment_sedimentation=True,
                    dust_lifting_options=None,dust_lifting_opacity=None,surface_dust_kg_m2=None,
                    coagulation_options=None,dust_background_options=None,
-                   nonorographic_drag_options=None,nonorographic_state=None):
+                   nonorographic_drag_options=None,nonorographic_state=None,moment_history=None):
     """Rayleigh/PBL, soil/frost, CO2 deposition or suspended clouds, convection.
 
     This is the standard present-Mars gas-column process order. Tracers here
@@ -222,8 +223,12 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
             moments=jnp.stack([moment_particles[...,0],moment_particles[...,1],ice,
                 moment_particles[...,2],moment_particles[...,3],r[...,bulk_water.vapor_index]],axis=-1)
             moment_result=subcycled_cloud_step(temperature,t,pressure_full,initial_moments,moments,
-                dt_seconds,cp=body.cp_j_kg_k,
+                dt_seconds,cp=body.cp_j_kg_k,previous_state=moment_history,
                 **({} if moment_cloud_options is None else moment_cloud_options))
+            if moment_cloud_options is not None and moment_cloud_options.get('effective_input_mode',0)==1:
+                # Source saves post-cloud T but pre-cloud Q; its dust history is never filled.
+                moment_history=EffectiveState(t+dt_seconds*moment_result.temperature_tendency,
+                    moments,moments[...,0,None],moments[...,1,None])
             moments=moments+dt_seconds*moment_result.tracer_tendency
             t=t+dt_seconds*moment_result.temperature_tendency
             if moment_sedimentation:
@@ -295,4 +300,5 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
         nonorographic_drag={} if nonorographic is None else nonorographic.diagnostics,
         rayleigh=dict(u_tendency_m_s2=du,v_tendency_m_s2=dv,dissipated_heat_k=drag_heat,
             reheating_enabled=conserve_drag_energy))
-    return ColumnResult(t,u,v,r,ground,snow+precip,mass,diagnostics,suspended,bulk_water,moment_particles,nonorographic_state)
+    return ColumnResult(t,u,v,r,ground,snow+precip,mass,diagnostics,suspended,bulk_water,
+        moment_particles,nonorographic_state,moment_history)

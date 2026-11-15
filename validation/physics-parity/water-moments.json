@@ -1472,11 +1472,23 @@
       "max_tracer_error": 2.117582368135751e-22
     },
     {
+      "case": "seeded-previous-effective-substeps",
+      "substeps": 1,
+      "modes": 1,
+      "latent_heat": false
+    },
+    {
       "case": "native-substep-composition",
       "substeps": 1,
       "modes": 1,
       "latent_heat": true,
       "max_tracer_error": 2.117582368135751e-22
+    },
+    {
+      "case": "seeded-previous-effective-substeps",
+      "substeps": 1,
+      "modes": 1,
+      "latent_heat": true
     },
     {
       "case": "native-substep-composition",
@@ -1486,11 +1498,23 @@
       "max_tracer_error": 2.3283064365386963e-10
     },
     {
+      "case": "seeded-previous-effective-substeps",
+      "substeps": 1,
+      "modes": 2,
+      "latent_heat": false
+    },
+    {
       "case": "native-substep-composition",
       "substeps": 1,
       "modes": 2,
       "latent_heat": true,
       "max_tracer_error": 2.3283064365386963e-10
+    },
+    {
+      "case": "seeded-previous-effective-substeps",
+      "substeps": 1,
+      "modes": 2,
+      "latent_heat": true
     },
     {
       "case": "native-substep-composition",
@@ -1500,11 +1524,23 @@
       "max_tracer_error": 4.235164736271502e-22
     },
     {
+      "case": "seeded-previous-effective-substeps",
+      "substeps": 5,
+      "modes": 1,
+      "latent_heat": false
+    },
+    {
       "case": "native-substep-composition",
       "substeps": 5,
       "modes": 1,
       "latent_heat": true,
       "max_tracer_error": 3.1763735522036263e-22
+    },
+    {
+      "case": "seeded-previous-effective-substeps",
+      "substeps": 5,
+      "modes": 1,
+      "latent_heat": true
     },
     {
       "case": "native-substep-composition",
@@ -1514,6 +1550,12 @@
       "max_tracer_error": 1.862645149230957e-09
     },
     {
+      "case": "seeded-previous-effective-substeps",
+      "substeps": 5,
+      "modes": 2,
+      "latent_heat": false
+    },
+    {
       "case": "native-substep-composition",
       "substeps": 5,
       "modes": 2,
@@ -1521,11 +1563,23 @@
       "max_tracer_error": 9.313225746154785e-09
     },
     {
+      "case": "seeded-previous-effective-substeps",
+      "substeps": 5,
+      "modes": 2,
+      "latent_heat": true
+    },
+    {
       "case": "native-substep-composition",
       "substeps": 10,
       "modes": 1,
       "latent_heat": false,
       "max_tracer_error": 3.1763735522036263e-22
+    },
+    {
+      "case": "seeded-previous-effective-substeps",
+      "substeps": 10,
+      "modes": 1,
+      "latent_heat": false
     },
     {
       "case": "native-substep-composition",
@@ -1535,6 +1589,12 @@
       "max_tracer_error": 2.117582368135751e-22
     },
     {
+      "case": "seeded-previous-effective-substeps",
+      "substeps": 10,
+      "modes": 1,
+      "latent_heat": true
+    },
+    {
       "case": "native-substep-composition",
       "substeps": 10,
       "modes": 2,
@@ -1542,17 +1602,29 @@
       "max_tracer_error": 3.1763735522036263e-22
     },
     {
+      "case": "seeded-previous-effective-substeps",
+      "substeps": 10,
+      "modes": 2,
+      "latent_heat": false
+    },
+    {
       "case": "native-substep-composition",
       "substeps": 10,
       "modes": 2,
       "latent_heat": true,
       "max_tracer_error": 4.656612873077393e-10
+    },
+    {
+      "case": "seeded-previous-effective-substeps",
+      "substeps": 10,
+      "modes": 2,
+      "latent_heat": true
     }
   ],
   "sha256": {
-    "scripts/validate_water_moments.py": "381450aa312026e91b971a916486980a6e7d4c5c3952d0eff18dfc7e5ae80498",
-    "package/src/framework/physics/water_moments.py": "edd34acfbbddf9140f0173c21d2137cecdc6bbf90eb14e1e546383a86b877380",
+    "scripts/validate_water_moments.py": "332f9121b5ff5e84837cea054fc3c320f7317288c40ffc164c7078e239e6c863",
+    "package/src/framework/physics/water_moments.py": "5388222985b4084fa172a2a02b5bd01aeae8050de192c4d9ab0b1e51a8b3741e",
     "package/src/framework/physics/water_bulk.py": "563b225222538936e923bbdb4f8e3de82c9f20434870545a53dc0f6fc71b8f61"
   },
-  "limits": "Native nucleacond and kinetic primitives; source subeffmode=0 ramp composed with native calls. Original FP64 geometry cancellation and contact-case-1 subsaturated NaNs are recorded. Binary128 only resolves the geometric cancellation; it does not change the source equations. Empty bins use zero weight; dry vapor uses saturation pressure directly. The shared implicit root removes the native 1e-8 stopping noise. Outer dust sedimentation, previous-effective-state mode and long climate validation remain separate."
+  "limits": "Native nucleacond and kinetic primitives; source subeffmode=0 ramp composed with native calls. Original FP64 geometry cancellation and contact-case-1 subsaturated NaNs are recorded. Binary128 only resolves the geometric cancellation; it does not change the source equations. Empty bins use zero weight; dry vapor uses saturation pressure directly. The shared implicit root removes the native 1e-8 stopping noise. Previous effective input uses seeded history with native substeps; the released driver never fills its dust-history arrays. The port saves pre-cloud dust alongside source pre-cloud Q and post-cloud T. Outer sedimentation and long climate validation remain separate."
 }

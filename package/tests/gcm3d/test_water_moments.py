@@ -5,7 +5,8 @@ import pytest
 pytest.importorskip('dinosaur')
 from src.framework.gcm._dinosaur import jax,jnp
 from src.framework.physics.water_bulk import saturation_ratio
-from src.framework.physics.water_moments import nucleation_condensation,shape_factor,subcycled_cloud_step
+from src.framework.physics.water_moments import (nucleation_condensation,shape_factor,subcycled_cloud_step,
+    EffectiveState)
 
 jax.config.update('jax_enable_x64',True)
 
@@ -85,3 +86,28 @@ def test_subcycle_ramps_other_physics_and_has_reverse_gradient():
     direct=nucleation_condensation(191.,610.,q,100.)
     for actual,expected in zip(one,direct):
         np.testing.assert_allclose(actual,expected,rtol=1e-12,atol=1e-11)
+
+
+def test_previous_effective_inputs_first_call_fallback_and_saved_history_gradient():
+    q0=jnp.array([1e-5,1e8,1e-6,1e6,1e-8,saturation_ratio(190.,610.)*3.])
+    q=q0.at[0].multiply(.9).at[5].multiply(1.2)
+    zero=EffectiveState(0.,jnp.zeros(6),jnp.zeros(1),jnp.zeros(1),False)
+    standard=subcycled_cloud_step(190.,191.,610.,q0,q,100.,microtimestep=20.,latent_heat=True)
+    first=subcycled_cloud_step(190.,191.,610.,q0,q,100.,microtimestep=20.,latent_heat=True,
+        effective_input_mode=1,previous_state=zero)
+    for actual,expected in zip(first,standard,strict=True):
+        np.testing.assert_array_equal(actual,expected)
+    def objective(previous_t):
+        history=EffectiveState(previous_t,q0,q0[0,None],q0[1,None])
+        result=subcycled_cloud_step(180.,191.,610.,q0*.8,q,100.,microtimestep=20.,latent_heat=True,
+            effective_input_mode=1,previous_state=history)
+        return result.tracer_tendency[2]*1e8+result.temperature_tendency*1e2
+    auto=jax.jit(jax.grad(objective))(190.)
+    fd=(objective(190.0001)-objective(189.9999))/.0002
+    assert np.isfinite(auto) and abs(float(auto))>1e-9
+    np.testing.assert_allclose(auto,fd,rtol=2e-5,atol=1e-9)
+    with pytest.raises(ValueError,match='0 or 1'):
+        subcycled_cloud_step(190.,191.,610.,q0,q,100.,effective_input_mode=2)
+    with pytest.raises(ValueError,match='match the current'):
+        subcycled_cloud_step(190.,191.,610.,q0,q,100.,effective_input_mode=1,
+            previous_state=zero._replace(tracers=jnp.zeros(5)))

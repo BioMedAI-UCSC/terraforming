@@ -13,7 +13,7 @@ from src.framework.physics.soil_frost import soil_layer_thickness
 from src.framework.physics.co2_clouds import _remap_extensive,CO2_CLOUD_TRACER
 from src.framework.physics.co2_microphysics import LATENT_HEAT as CLOUD_LATENT_HEAT
 from src.framework.physics.water_bulk import WATER_VAPOR_TRACER,WATER_CLOUD_TRACER
-from src.framework.physics.water_moments import MOMENT_PARTICLE_TRACERS
+from src.framework.physics.water_moments import MOMENT_PARTICLE_TRACERS,EffectiveState
 from src.framework.physics.particle_optics import dust_optics
 from src.framework.physics.radiation_grid import radiation_grid
 from src.framework.physics.dust_lifting import reference_efficiencies
@@ -60,7 +60,8 @@ def initial_state(dynamics,coords,specs,temperature_k=170.,soil_layers=16,*,bulk
                   initial_water_surface_kg_m2=0.,initial_water_vapor_ratio=0.,
                   radiation_update_seconds=None,moment_water=False,
                   initial_dust_mass_ratio=0.,initial_dust_number_per_kg=0.,
-                  initial_dust_surface_kg_m2=30.,nonorographic_drag_options=None,dust_background_options=None):
+                  initial_dust_surface_kg_m2=30.,nonorographic_drag_options=None,dust_background_options=None,
+                  moment_cloud_options=None):
     """Initialize the existing column state with the reference soil node count."""
     if soil_layers<3:
         raise ValueError("Ames soil requires two evolving nodes and a fixed deep node")
@@ -108,6 +109,10 @@ def initial_state(dynamics,coords,specs,temperature_k=170.,soil_layers=16,*,bulk
         fields['dust_surface_kg_m2']=jnp.broadcast_to(jnp.asarray(initial_dust_surface_kg_m2),shape)
         fields['dust_reference_opacity']=jnp.zeros((2,*shape[1:]))
         fields['dust_coagulation_mass_change_kg_m2']=jnp.zeros(shape)
+        if moment_cloud_options is not None and moment_cloud_options.get('effective_input_mode',0)==1:
+            profile=(len(coords.vertical.centers),*coords.horizontal.nodal_shape)
+            fields.update(moment_previous_temperature_k=jnp.zeros(profile),
+                moment_previous_tracers=jnp.zeros((*profile,6)),moment_previous_initialized=jnp.asarray(0.))
     return state._replace(dynamics=dataclasses.replace(state.dynamics,tracers=tracers),
         ground_temperature=ground,auxiliary_fields=fields)
 
@@ -212,6 +217,9 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
     if bulk_water and moment_water:
         raise ValueError('bulk water and moment water cannot be enabled together')
     water_cycle=bulk_water or moment_water
+    previous_effective=(moment_cloud_options or {}).get('effective_input_mode',0)==1
+    if previous_effective and not moment_water:
+        raise ValueError('previous effective cloud state requires moment-water tracers')
     if coagulation_options is not None and not moment_water:
         raise ValueError('dust coagulation requires initialized moment tracers')
     dust_control=dust_lifting_options is not None or dust_background_options is not None
@@ -308,6 +316,10 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             required={'dust_local_time_opacity','dust_local_time_bin','dust_local_time_initialized'}
             if state.auxiliary_fields is None or required-set(state.auxiliary_fields):
                 raise ValueError('local-time dust requires initialized opacity and bin history')
+        if previous_effective:
+            required={'moment_previous_temperature_k','moment_previous_tracers','moment_previous_initialized'}
+            if state.auxiliary_fields is None or required-set(state.auxiliary_fields):
+                raise ValueError('previous effective clouds require initialized temperature and tracer history')
         if radiation_update_seconds is not None:
             required={'radiation_heating_k_s','radiation_surface_down_w_m2',
                 'radiation_initialized','radiation_stratosphere_k'}
@@ -402,7 +414,11 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
         soil=jnp.concatenate([predicted.surface_temperature,predicted.ground_temperature],axis=0)
         frost=predicted.co2_ice[0]*pressure_scale/body.gravity_m_s2
         water_state=None
-        gravity_wave_state=None
+        gravity_wave_state=None;moment_history=None
+        if previous_effective:
+            fields=predicted.auxiliary_fields;previous=fields['moment_previous_tracers']
+            moment_history=EffectiveState(fields['moment_previous_temperature_k'],previous,
+                previous[...,0,None],previous[...,1,None],fields['moment_previous_initialized']>0.)
         if nonorographic_drag_options is not None:
             fields=predicted.auxiliary_fields
             gravity_wave_state=DragState(fields['nonorographic_u_tendency_m_s2'],fields['nonorographic_v_tendency_m_s2'],
@@ -437,7 +453,8 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             dust_lifting_opacity=None if dust_depth is None else dust_depth[dust_opacity_channel-1],
             surface_dust_kg_m2=None if not moment_water else predicted.auxiliary_fields['dust_surface_kg_m2'][0],
             coagulation_options=coagulation_options,dust_background_options=background_options,
-            nonorographic_drag_options=nonorographic_drag_options,nonorographic_state=gravity_wave_state)
+            nonorographic_drag_options=nonorographic_drag_options,nonorographic_state=gravity_wave_state,
+            moment_history=moment_history)
         columns={name:column.gas_tracers[...,i] for i,name in enumerate(gas_names)}
         if cloud_ratio is not None:
             columns[CO2_CLOUD_TRACER]=(column.suspended_co2_ice_ratio
@@ -477,6 +494,9 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
         auxiliary=predicted.auxiliary_fields
         if local_time_fields is not None:
             auxiliary={**auxiliary,**local_time_fields}
+        if previous_effective:
+            auxiliary={**auxiliary,'moment_previous_temperature_k':column.moment_history.temperature,
+                'moment_previous_tracers':column.moment_history.tracers,'moment_previous_initialized':jnp.asarray(1.)}
         if radiation_fields is not None:
             auxiliary={**auxiliary,**radiation_fields}
         if water_cycle:

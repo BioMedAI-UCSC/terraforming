@@ -369,6 +369,7 @@ def run_maps(
                 moment_water=options.get('moment_water',False),
                 nonorographic_drag_options=options.get('nonorographic_drag_options'),
                 dust_background_options=options.get('dust_background_options'),
+                moment_cloud_options=options.get('moment_cloud_options'),
                 initial_dust_mass_ratio=initial_dust_mass,initial_dust_number_per_kg=initial_dust_number,
                 initial_dust_surface_kg_m2=initial_dust_surface)
         step=build_step(coords,specs,body,forcing,dt_seconds,orography=orography,
