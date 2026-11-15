@@ -16,6 +16,8 @@ from src.framework.physics.co2_microphysics import cloud_step,phase_change,trans
 from src.framework.physics.water_bulk import cloud_step as water_cloud_step
 from src.framework.physics.water_moments import subcycled_cloud_step
 from src.framework.physics.particle_sedimentation import sedimentation_step
+from src.framework.physics.dust_lifting import interactive_step as dust_lifting_step
+from src.framework.physics.dust_coagulation import coagulation_step
 from src.framework.physics.water_surface import (surface_exchange as water_surface_exchange,
     optical_properties as water_optical_properties)
 
@@ -51,7 +53,9 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
                    cloud_nuclei_per_kg=1.e5,bulk_water=None,
                    water_surface_options=None,water_cloud_options=None,form_bulk_clouds=True,
                    water_radiative_options=None,terrain_drag_options=None,
-                   moment_particles=None,moment_cloud_options=None,moment_sedimentation=True):
+                   moment_particles=None,moment_cloud_options=None,moment_sedimentation=True,
+                   dust_lifting_options=None,dust_lifting_opacity=None,surface_dust_kg_m2=None,
+                   coagulation_options=None):
     """Rayleigh/PBL, soil/frost, CO2 deposition or suspended clouds, convection.
 
     This is the standard present-Mars gas-column process order. Tracers here
@@ -63,6 +67,8 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
     if not isinstance(surface_exchange_start,int) or not 0<=surface_exchange_start<temperature.shape[0]:
         raise ValueError("surface mass exchange start must be a valid layer index")
     initial_wind=(u,v)
+    if moment_particles is None and (dust_lifting_options is not None or coagulation_options is not None):
+        raise ValueError('dust lifting and coagulation require physical moment particles')
     initial_moments=None
     if moment_particles is not None:
         if bulk_water is None:
@@ -142,6 +148,9 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
     if moment_particles is not None: particles.append(moment_particles)
     if particles: r=jnp.concatenate([r,*particles],axis=-1)
     t,u,v,r=pass2(t,u,v,r,pressure_half,pressure_full,body.kappa)
+    average=.5*(pbl['heat_diffusivity_m2_s']+pbl['momentum_diffusivity_m2_s'])
+    connected=jnp.cumprod((average[::-1]>.01).astype(int),axis=0)
+    pbl_top=temperature.shape[0]-1-jnp.sum(connected,axis=0)
     suspended=None
     if cloud is not None:
         suspended=r[...,gas_count]
@@ -151,6 +160,30 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
         water_deposit=0.
         if moment_particles is not None:
             moment_particles=r[...,moment_start:moment_start+4]
+            if dust_lifting_options is not None:
+                if dust_lifting_opacity is None or surface_dust_kg_m2 is None:
+                    raise ValueError('interactive dust requires reference opacity and a surface reservoir')
+                rho=pressure_half[-1]/(body.gas_constant_j_kg_k*temperature[-1])
+                drag=rho*pbl['surface_momentum_coefficient']*pbl['wind_speed_ms']
+                speed_squared=u[-1]**2+v[-1]**2
+                speed=jnp.where(speed_squared>0.,jnp.sqrt(jnp.where(speed_squared>0.,speed_squared,1.)),0.)
+                stress=drag*speed
+                p_pbl=jnp.take_along_axis(pressure_full,pbl_top[None],axis=0)[0]
+                lifted=dust_lifting_step(moment_particles[...,0],moment_particles[...,1],t,
+                    pressure_half,pressure_full,ground[0],stress,pbl['heat_flux_w_m2'],pbl_top,p_pbl,
+                    latitude_rad,snow,water_exchange.surface_water_kg_m2,
+                    jnp.maximum(dust_lifting_opacity/pressure_full[-1]*610.,1e-10),
+                    surface_dust_kg_m2,dt_seconds,gravity=body.gravity_m_s2,
+                    gas_constant=body.gas_constant_j_kg_k,cp=body.cp_j_kg_k,**dust_lifting_options)
+                moment_particles=moment_particles.at[...,0].set(lifted.mass_ratio)
+                moment_particles=moment_particles.at[...,1].set(lifted.number_ratio)
+                surface_dust_kg_m2=lifted.surface_dust_kg_m2
+            if coagulation_options is not None:
+                coagulated=coagulation_step(t,pressure_full,moment_particles[...,0,None],
+                    moment_particles[...,1,None],dt_seconds,gravity=body.gravity_m_s2,
+                    gas_constant=body.gas_constant_j_kg_k,**coagulation_options)
+                moment_particles=moment_particles.at[...,0].add(dt_seconds*coagulated.mass_tendency[...,0])
+                moment_particles=moment_particles.at[...,1].add(dt_seconds*coagulated.number_tendency[...,0])
             moments=jnp.stack([moment_particles[...,0],moment_particles[...,1],ice,
                 moment_particles[...,2],moment_particles[...,3],r[...,bulk_water.vapor_index]],axis=-1)
             moment_result=subcycled_cloud_step(temperature,t,pressure_full,initial_moments,moments,
@@ -176,22 +209,27 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
             t=water_result.temperature
             ice=water_result.ice_ratio
             water_deposit=water_result.deposition_kg_m2
-        average=.5*(pbl['heat_diffusivity_m2_s']+pbl['momentum_diffusivity_m2_s'])
-        connected=jnp.cumprod((average[::-1]>.01).astype(int),axis=0)
-        top=temperature.shape[0]-1-jnp.sum(connected,axis=0)
         rho=pressure_half[-1]/(body.gas_constant_j_kg_k*temperature[-1])
         exchange_coefficient=rho*pbl['surface_heat_coefficient']*pbl['friction_velocity_ms']
         bulk_water=BulkWaterColumnState(bulk_water.vapor_index,ice,
             water_exchange.surface_water_kg_m2+water_deposit,
-            exchange_coefficient,top.astype(t.dtype))
+            exchange_coefficient,pbl_top.astype(t.dtype))
         water_diagnostics=dict(surface=water_exchange.diagnostics,
             cloud={} if water_result is None else water_result.diagnostics,
             upward_surface_flux_kg_m2_s=water_exchange.upward_flux_kg_m2_s)
         if moment_particles is not None:
             water_diagnostics['moment_cloud']=dict(moment_result._asdict())
+            if dust_lifting_options is not None:
+                water_diagnostics['dust_lifting']=lifted.diagnostics
+            if coagulation_options is not None:
+                water_diagnostics['dust_coagulation']=coagulated.diagnostics
             if moment_sedimentation:
                 water_diagnostics['particle_sedimentation']=dict(sediment.diagnostics,
                     dust_deposit_kg_m2=sediment.surface_deposit[...,0])
+                if surface_dust_kg_m2 is not None:
+                    surface_dust_kg_m2=surface_dust_kg_m2+sediment.surface_deposit[...,0]
+            if surface_dust_kg_m2 is not None:
+                water_diagnostics['dust_surface_kg_m2']=surface_dust_kg_m2
     r=r[...,:gas_count]
     dp=jnp.diff(pressure_half,axis=0)
     selected=jnp.asarray(np.arange(temperature.shape[0])>=surface_exchange_start)

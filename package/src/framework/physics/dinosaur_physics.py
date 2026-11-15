@@ -14,6 +14,8 @@ from src.framework.physics.co2_clouds import _remap_extensive,CO2_CLOUD_TRACER
 from src.framework.physics.co2_microphysics import LATENT_HEAT as CLOUD_LATENT_HEAT
 from src.framework.physics.water_bulk import WATER_VAPOR_TRACER,WATER_CLOUD_TRACER
 from src.framework.physics.water_moments import MOMENT_PARTICLE_TRACERS
+from src.framework.physics.particle_optics import dust_optics
+from src.framework.physics.radiation_grid import radiation_grid
 from src.framework.physics.gcm import (ColumnPhysicsTendencies,column_primitive_equations,
     initial_column_state,positivity_preserving_co2_step,surface_radiative_forcing)
 
@@ -86,6 +88,8 @@ def initial_state(dynamics,coords,specs,temperature_k=170.,soil_layers=16,*,bulk
         water_pbl_top_layer=jnp.full(shape,len(coords.vertical.centers)-1,dtype=state.surface_temperature.dtype))
     if moment_water:
         fields['dust_surface_kg_m2']=jnp.broadcast_to(jnp.asarray(initial_dust_surface_kg_m2),shape)
+        fields['dust_reference_opacity']=jnp.zeros((2,*shape[1:]))
+        fields['dust_coagulation_mass_change_kg_m2']=jnp.zeros(shape)
     return state._replace(dynamics=dataclasses.replace(state.dynamics,tracers=tracers),
         ground_temperature=ground,auxiliary_fields=fields)
 
@@ -174,7 +178,9 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                suspended_co2_clouds=False,cloud_nuclei_per_kg=1.e5,
                bulk_water=False,water_surface_options=None,water_cloud_options=None,form_bulk_clouds=True,
                terrain_drag_options=None,radiation_update_seconds=None,
-               moment_water=False,moment_cloud_options=None,moment_sedimentation=True):
+               moment_water=False,moment_cloud_options=None,moment_sedimentation=True,
+               dust_lifting_options=None,dust_optical_bands=12,dust_opacity_channel=1,
+               coagulation_options=None):
     """Dinosaur dynamics followed by Ames-order reference gas-column physics.
 
     Supply a verified radiation component and mapped soil diffusivity. Keeping
@@ -188,6 +194,13 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
     if bulk_water and moment_water:
         raise ValueError('bulk water and moment water cannot be enabled together')
     water_cycle=bulk_water or moment_water
+    if coagulation_options is not None and not moment_water:
+        raise ValueError('dust coagulation requires initialized moment tracers')
+    if dust_lifting_options is not None:
+        if not moment_water:
+            raise ValueError('interactive dust requires initialized moment tracers')
+        if dust_optical_bands not in (12,15) or dust_opacity_channel not in (1,2):
+            raise ValueError('dust optics require 12/15 bands and visible/infrared channel 1/2')
     if moment_water:
         water_surface_options=dict({} if water_surface_options is None else water_surface_options,
             scheme='moment')
@@ -231,6 +244,10 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             raise ValueError('moment water requires dust mass/number and cloud number/core tracers')
         if moment_water and 'dust_surface_kg_m2' not in state.auxiliary_fields:
             raise ValueError('moment water requires the initialized dust surface reservoir')
+        if dust_lifting_options is not None and 'dust_reference_opacity' not in state.auxiliary_fields:
+            raise ValueError('interactive dust requires initialized reference-opacity history')
+        if coagulation_options is not None and 'dust_coagulation_mass_change_kg_m2' not in state.auxiliary_fields:
+            raise ValueError('dust coagulation requires the initialized mass-change ledger')
         if radiation_update_seconds is not None:
             required={'radiation_heating_k_s','radiation_surface_down_w_m2',
                 'radiation_initialized','radiation_stratosphere_k'}
@@ -290,6 +307,18 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             radiation_fields=dict(radiation_heating_k_s=heating,
                 radiation_surface_down_w_m2=down[None],radiation_initialized=jnp.ones_like(down[None]),
                 radiation_stratosphere_k=strat[None])
+        dust_depth=None
+        if dust_lifting_options is not None:
+            def dust_diagnostic(_):
+                radgrid=radiation_grid(half,full,temperature,predicted.surface_temperature[0])
+                optics=dust_optics(grid.to_nodal(dyn.tracers['dust_mass'])[...,None],
+                    grid.to_nodal(dyn.tracers['dust_number'])[...,None],radgrid.pressure,
+                    bands=dust_optical_bands,gravity=body.gravity_m_s2)
+                ir_index=3 if dust_optical_bands==12 else 6
+                return jnp.stack([jnp.sum(optics.visible[0][:,5],axis=0),
+                    jnp.sum((optics.infrared[0]-optics.infrared[1])[:,ir_index],axis=0)])
+            dust_depth=(dust_diagnostic(None) if radiation_update_seconds is None else
+                jax.lax.cond(refresh,dust_diagnostic,lambda _:predicted.auxiliary_fields['dust_reference_opacity'],None))
         soil=jnp.concatenate([predicted.surface_temperature,predicted.ground_temperature],axis=0)
         frost=predicted.co2_ice[0]*pressure_scale/body.gravity_m_s2
         water_state=None
@@ -318,7 +347,11 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             terrain_drag_options=terrain_drag_options,
             moment_particles=(jnp.stack([grid.to_nodal(dyn.tracers[name]) for name in
                 MOMENT_PARTICLE_TRACERS],axis=-1) if moment_water else None),
-            moment_cloud_options=moment_cloud_options,moment_sedimentation=moment_sedimentation)
+            moment_cloud_options=moment_cloud_options,moment_sedimentation=moment_sedimentation,
+            dust_lifting_options=dust_lifting_options,
+            dust_lifting_opacity=None if dust_depth is None else dust_depth[dust_opacity_channel-1],
+            surface_dust_kg_m2=None if not moment_water else predicted.auxiliary_fields['dust_surface_kg_m2'][0],
+            coagulation_options=coagulation_options)
         columns={name:column.gas_tracers[...,i] for i,name in enumerate(gas_names)}
         if cloud_ratio is not None:
             columns[CO2_CLOUD_TRACER]=(column.suspended_co2_ice_ratio
@@ -362,9 +395,15 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             auxiliary={**auxiliary,'water_surface_kg_m2':column.bulk_water.surface_water_kg_m2[None],
                 'water_exchange_coefficient_kg_m2_s':column.bulk_water.previous_exchange_coefficient[None],
                 'water_pbl_top_layer':column.bulk_water.previous_pbl_top_layer[None]}
-        if moment_water and moment_sedimentation:
-            dust_deposit=column.diagnostics['bulk_water']['particle_sedimentation']['dust_deposit_kg_m2']
-            auxiliary={**auxiliary,'dust_surface_kg_m2':auxiliary['dust_surface_kg_m2']+dust_deposit[None]}
+        if moment_water:
+            auxiliary={**auxiliary,'dust_surface_kg_m2':column.diagnostics['bulk_water']['dust_surface_kg_m2'][None]}
+            if dust_depth is not None:
+                auxiliary={**auxiliary,'dust_reference_opacity':dust_depth}
+            if coagulation_options is not None:
+                mass_change=column.diagnostics['bulk_water']['dust_coagulation']['dust_mass_change_kg_kg']
+                column_change=jnp.sum(mass_change*jnp.diff(half,axis=0)/body.gravity_m_s2,axis=0)
+                auxiliary={**auxiliary,'dust_coagulation_mass_change_kg_m2':
+                    auxiliary['dust_coagulation_mass_change_kg_m2']+column_change[None]}
         return predicted._replace(dynamics=dynamics,surface_temperature=column.soil[:1],
             ground_temperature=column.soil[1:],co2_ice=(column.co2_ice_kg_m2*body.gravity_m_s2/pressure_scale)[None],
             surface_momentum=predicted.surface_momentum+impulse,auxiliary_fields=auxiliary)
