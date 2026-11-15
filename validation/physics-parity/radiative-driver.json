@@ -1,0 +1,341 @@
+{
+  "status": "pass",
+  "reference": {
+    "grid": {
+      "source_git_blob": "40d8879c3735bbec6cabc63817cad5220f281532",
+      "compiled_source_sha256": "f48f4901cca2fa12a2473710c361c2290c2e5b91ecfdbf49a990682c57195bf3",
+      "routine_sha256": {
+        "fillpt": "92f19bb77d974a418d4cf255cd1ce21a099dd3c88741efd2fda6d292b261f0b0",
+        "dsolver": "89a0b9599cd1c639a160089b221a78eb889eb8b2e10760786e3cb6d8547dc3b4",
+        "dtridgl": "d1075d42213408c12420612f5f79b35634d022de1b29a995934489e8aef1cc21",
+        "gfluxv": "8c4339adf78c246b66dcfb5936b7c6cde04ff610c05ea34879eaf4d61ebecb5f",
+        "gfluxi": "80a6a23ae64878b9b18751443e4ce10585e391c24945fb1d88cdc9ba08f1162d"
+      },
+      "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+      "compiler_flags": [
+        "-O3",
+        "-cpp",
+        "-fdefault-real-8",
+        "-fdefault-double-8",
+        "-fPIC",
+        "-shared"
+      ],
+      "real_precision_bits": 64,
+      "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged"
+    },
+    "optics": {
+      "source_git_blob": "40d8879c3735bbec6cabc63817cad5220f281532",
+      "compiled_source_sha256": "d991cfa0c2ea0d8c7fc86515ca19b0a90f9ab3d1d32160ae7d1477fb05c1ce9c",
+      "routine_sha256": {
+        "optcv15": "6ea07e5df780a2146b41404bc80c246ad90601a823e93abe44ca7a9bd8d02917",
+        "optci15": "f025b920a4f972de80853e40f4e9be13d668838625c441d4b51eff67d42f3df6",
+        "tpindex15": "5c28d9fa469aed1d3246ece4f83656623faceb9812b8ae4156a04e48c785fb2b",
+        "boxinterp": "c730f46a9887ddd91eb676a99384eb9e12abaef9d026f3de53e2326f50ab65a3",
+        "kinter": "6c30b1f4e075ded23c51ce6f07a595a8806eab074c0194875fe2d08b1a6b3e7f"
+      },
+      "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+      "compiler_flags": [
+        "-O3",
+        "-cpp",
+        "-fdefault-real-8",
+        "-fdefault-double-8",
+        "-fPIC",
+        "-shared"
+      ],
+      "real_precision_bits": 64,
+      "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged"
+    },
+    "spectral": {
+      "source_git_blob": "40d8879c3735bbec6cabc63817cad5220f281532",
+      "compiled_source_sha256": "2a3109f13e2f6d15f85298137d32e42984e98ddcdde702cfabeb9996bcd1a8bb",
+      "routine_sha256": {
+        "sfluxv": "36c5ef99ee192213762445a476c913c183e61b04906bcbef4a0724d8c10a8895",
+        "sfluxi": "1d97b41ac639ac0b9adc9aef3339882978cace5cc3d80052097458621fc2edaf",
+        "getdetau": "9b2147439435b3abf64cd0f045ef5e88d149a7dfbb9c1f1d7037fc60403ff924",
+        "gfluxv": "8c4339adf78c246b66dcfb5936b7c6cde04ff610c05ea34879eaf4d61ebecb5f",
+        "gfluxi": "80a6a23ae64878b9b18751443e4ce10585e391c24945fb1d88cdc9ba08f1162d",
+        "dsolver": "89a0b9599cd1c639a160089b221a78eb889eb8b2e10760786e3cb6d8547dc3b4",
+        "dtridgl": "d1075d42213408c12420612f5f79b35634d022de1b29a995934489e8aef1cc21"
+      },
+      "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+      "compiler_flags": [
+        "-O3",
+        "-cpp",
+        "-fdefault-real-8",
+        "-fdefault-double-8",
+        "-fPIC",
+        "-shared"
+      ],
+      "real_precision_bits": 64,
+      "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged"
+    }
+  },
+  "cases": [
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "max_flux_errors_w_m2": [
+        8.526512829121202e-13,
+        8.526512829121202e-13,
+        1.4210854715202004e-14,
+        9.769962616701378e-15,
+        1.0516032489249483e-12,
+        7.105427357601002e-13,
+        1.3073986337985843e-12
+      ]
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        1.4210854715202004e-14,
+        9.769962616701378e-15,
+        2.842170943040401e-14,
+        1.4210854715202004e-14,
+        1.4210854715202004e-14
+      ]
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "max_flux_errors_w_m2": [
+        0.0,
+        1.522650450169749e-09,
+        1.4210854715202004e-14,
+        7.105427357601002e-15,
+        1.5227357152980403e-09,
+        7.105427357601002e-14,
+        8.526512829121202e-14
+      ]
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        1.4210854715202004e-14,
+        7.105427357601002e-15,
+        1.4210854715202004e-14,
+        7.105427357601002e-15,
+        0.0
+      ]
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "max_flux_errors_w_m2": [
+        1.5347723092418164e-12,
+        1.0658141036401503e-12,
+        2.842170943040401e-14,
+        8.881784197001252e-15,
+        7.389644451905042e-13,
+        4.263256414560601e-13,
+        1.0516032489249483e-12
+      ]
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        2.842170943040401e-14,
+        8.881784197001252e-15,
+        2.842170943040401e-14,
+        2.842170943040401e-14,
+        1.4210854715202004e-14
+      ]
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "max_flux_errors_w_m2": [
+        1.7053025658242404e-13,
+        1.522650450169749e-09,
+        1.4210854715202004e-14,
+        1.4210854715202004e-14,
+        1.522721504443325e-09,
+        5.684341886080802e-14,
+        1.1368683772161603e-13
+      ]
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        1.4210854715202004e-14,
+        1.4210854715202004e-14,
+        1.4210854715202004e-14,
+        1.4210854715202004e-14,
+        1.4210854715202004e-14
+      ]
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "max_flux_errors_w_m2": [
+        9.663381206337363e-13,
+        1.4637180356658064e-12,
+        2.842170943040401e-14,
+        1.5987211554602254e-14,
+        7.389644451905042e-13,
+        2.842170943040401e-14,
+        4.547473508864641e-13
+      ]
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        2.842170943040401e-14,
+        1.5987211554602254e-14,
+        5.684341886080802e-14,
+        1.4210854715202004e-14,
+        0.0
+      ]
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "max_flux_errors_w_m2": [
+        1.1368683772161603e-13,
+        1.9184653865522705e-13,
+        2.842170943040401e-14,
+        2.1316282072803006e-14,
+        2.5579538487363607e-13,
+        1.4210854715202004e-14,
+        2.2737367544323206e-13
+      ]
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        2.842170943040401e-14,
+        2.1316282072803006e-14,
+        2.842170943040401e-14,
+        7.105427357601002e-15,
+        1.4210854715202004e-14
+      ]
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "max_flux_errors_w_m2": [
+        1.3642420526593924e-12,
+        2.1032064978498966e-12,
+        1.4210854715202004e-14,
+        1.84297022087776e-14,
+        7.673861546209082e-13,
+        3.126388037344441e-13,
+        1.6484591469634324e-12
+      ]
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        1.4210854715202004e-14,
+        1.84297022087776e-14,
+        1.4210854715202004e-14,
+        0.0,
+        1.4210854715202004e-14
+      ]
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "max_flux_errors_w_m2": [
+        1.7053025658242404e-13,
+        6.7998442432326556e-09,
+        4.263256414560601e-14,
+        3.1530333899354446e-14,
+        6.799609764129855e-09,
+        1.4210854715202004e-14,
+        6.799837137805298e-09
+      ]
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        4.263256414560601e-14,
+        3.1530333899354446e-14,
+        4.263256414560601e-14,
+        1.4210854715202004e-14,
+        0.0
+      ]
+    }
+  ],
+  "sha256": {
+    "scripts/validate_radiative_transfer.py": "da4252c17a4cb5641dc0c2a4839420c5b00d2494e5224a752dcfe200e61cb3f4",
+    "scripts/validate_optical_depth.py": "d607f6381d6f7a6b136cc58da7650a8a838aaed13b7c910a407ca88bdf20e57b",
+    "scripts/validate_spectral_flux.py": "82b7f7cba7166d368b0042daae2ef8196821c948db651a0579043eac61ab52d8",
+    "scripts/validate_scattering_transfer.py": "44f6726344236f17681edc7b4bec06ab8e7116cbdfeae3eb8ba961b6b0a2b7de",
+    "package/src/framework/physics/dinosaur_physics.py": "472cc1095eb2db279b7e4309a4c384a1f10682d597b29b93bd29d70994e9d4c2",
+    "package/src/framework/physics/correlated_k.py": "80074c30fb3495866c677b46ed178e9d722851cde6de597d36e1a4815d7dd3c9",
+    "package/src/framework/physics/solar_geometry.py": "47b862ec8f9a74f0bba3b183457d09d23823bd60025cac9e0cd21c0e46157f53",
+    "package/src/framework/physics/__init__.py": "62b61692fed54cebab4ecc448648f24af87fd16b2eed5934a478fcbd7b1c2476",
+    "package/src/framework/physics/radiative_transfer.py": "b104201e743f8141d95824ab520c7192e6b7599febf13040348aad4f9055b7d8",
+    "package/src/framework/physics/co2_clouds.py": "1dde7b8e4bfd83db36dcee4318511c9e00869139ad35dfad880deb49d13c1107",
+    "package/src/framework/physics/twostream.py": "173ec4fbfb69f004a441f69c3dd7d344e5726d7b8a01af86d65e3857eca69185",
+    "package/src/framework/physics/vertical_solve.py": "0d01f1d42fe7f086a887a2c0c51cb3b4385d26a3c944b72f81150b8a57ddd991",
+    "package/src/framework/physics/spectral_flux.py": "93b9bf40c669b09277d5c9f262558d1f5f3955c6e6b2b11b9c88a610ae118dec",
+    "package/src/framework/physics/optical_depth.py": "9a2433d11b36a938bf16b05015613e162216eea65c63bf56188ee958d3d7d0a7",
+    "package/src/framework/physics/soil_frost.py": "8dd5ae6ad27426ffdd641b4472ccec7ef5dd94ef3cc60c545fc752d6503dba90",
+    "package/src/framework/physics/co2_condensation.py": "a018b832c9b81ad29a5aee4f3cf83b94fe992506da66f5101408161bd689cc9e",
+    "package/src/framework/physics/scattering_transfer.py": "7b3568d50e2f7472220ea032884c5be64f5ed0f1c988848fd5a1b2fab785b644",
+    "package/src/framework/physics/radiation_grid.py": "7c0cd095eb863e6ec612a79f90f9ad7c2d17a00584eb4d3d46f7aba0a56d424f",
+    "package/src/framework/physics/boundary_layer.py": "f3b2c8085abbdd94a867aa29d7c767e8d3969b94c56e815dfb73d90f9b6da094",
+    "package/src/framework/physics/column_physics.py": "05be00853b8eb1c079c10a5a233da3e60d8264fd38ff5041a8692edfef672df6",
+    "package/src/framework/physics/gcm.py": "069a490d642d46cf9c562051613a419ff34311eb967d296d48856f222abb8c13",
+    "package/src/framework/physics/dry_convection.py": "11d8f2284b7e95cbb38064400c6e284913599f9a7cc9d3a349f7093f60ecf162",
+    "package/src/framework/physics/co2_12band_tables.npz": "0c48a86efd4618d3fdc0e52cd2bc5ca063fc7ac006ebfee09a46bee01d159d6c"
+  },
+  "limits": "composed default-12-band radiation with prescribed particle cross sections; Planck temperatures at reference nodes; microphysics and global climate validation are separate"
+}

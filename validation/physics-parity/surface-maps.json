@@ -1,0 +1,108 @@
+{
+  "status": "pass",
+  "reference_commit": "ba47cada5f9eb89c75c4f10d06dbae6e7f9ecb26",
+  "inputs": {
+    "mars_thermal_inertia8_2011.nc": {
+      "git_blob": "e91fc91677b866e9c3c9ddbe42e33204c96ae20f",
+      "sha256": "43756c80ff8052a9123b71530942ed267b8c8af24e137bc3ba27b47b69c53476"
+    },
+    "mars_TES_albedo8_new.nc": {
+      "git_blob": "c6d3ae52404a89686809865a7621ed9b97f6337c",
+      "sha256": "4e4cc150a58be27bef0c3713d432789154b94e64c804ddeaf07eee7119e34fd7"
+    },
+    "mars_sfc_emissivity8.nc": {
+      "git_blob": "8b92607e72bc87d594942c23cc2dd251aa097b94",
+      "sha256": "23b53ed48a530679606f6fdf7b6fafbd0d92d022c507eb94dadb109b74dbab5d"
+    },
+    "GRS_interp16.nc": {
+      "git_blob": "6420557ea160ebab630e3aa53e82f36f74f67c13",
+      "sha256": "7c718ccec796fe1937b37f9ee9606cbf7720703c17eb0031076e9ef4fbda576f"
+    }
+  },
+  "cases": [
+    {
+      "truncation": "T21",
+      "shape": [
+        64,
+        32
+      ],
+      "fields": {
+        "thermal_inertia": {
+          "source_area_mean": 201.3973233643164,
+          "remapped_area_mean": 201.39732336431632,
+          "final_min": 40.889286505760154,
+          "final_max": 1137.1507436328804
+        },
+        "albedo": {
+          "source_area_mean": 0.20391939843504808,
+          "remapped_area_mean": 0.20391939843504808,
+          "final_min": 0.10047838171846787,
+          "final_max": 0.31973276273133744
+        },
+        "emissivity": {
+          "source_area_mean": 0.9750918863765228,
+          "remapped_area_mean": 0.9750918863765241,
+          "final_min": 0.92788871432568,
+          "final_max": 1.0006937295567868
+        },
+        "grs_ice_latitude_deg": {
+          "source_area_mean": -1.4093517504495108,
+          "remapped_area_mean": -1.409351750449542,
+          "final_min": -57.75138888888887,
+          "final_max": 58.59652777777784
+        }
+      },
+      "emissivity_above_one_cells": 2,
+      "soil_diffusivity_shape": [
+        15,
+        64,
+        32
+      ]
+    },
+    {
+      "truncation": "T42",
+      "shape": [
+        128,
+        64
+      ],
+      "fields": {
+        "thermal_inertia": {
+          "source_area_mean": 201.3973233643164,
+          "remapped_area_mean": 201.39732336431632,
+          "final_min": 39.320391927286686,
+          "final_max": 1150.0000000000002
+        },
+        "albedo": {
+          "source_area_mean": 0.20391939843504808,
+          "remapped_area_mean": 0.20391939843504803,
+          "final_min": 0.09597590104938121,
+          "final_max": 0.31999994455441844
+        },
+        "emissivity": {
+          "source_area_mean": 0.9750918863765228,
+          "remapped_area_mean": 0.975091886376524,
+          "final_min": 0.9217857508289284,
+          "final_max": 1.003644162211463
+        },
+        "grs_ice_latitude_deg": {
+          "source_area_mean": -1.4093517504495108,
+          "remapped_area_mean": -1.4093517504495345,
+          "final_min": -57.99861111111114,
+          "final_max": 58.60625000000004
+        }
+      },
+      "emissivity_above_one_cells": 32,
+      "soil_diffusivity_shape": [
+        15,
+        128,
+        64
+      ]
+    }
+  ],
+  "sha256": {
+    "scripts/validate_surface_maps.py": "b27de8c46486cbc8ef2ab3073c0e0ba06041459f93794eba2f47004a0b566440",
+    "package/src/celestials/planets/mars/surface.py": "d5233f4fb9dbe25e8dbcbb5362837782a6c9e37dc4aeb4e5b5812c904f2f0b90",
+    "package/src/framework/physics/soil_frost.py": "8dd5ae6ad27426ffdd641b4472ccec7ef5dd94ef3cc60c545fc752d6503dba90"
+  },
+  "limits": "Gaussian lat/lon conservative area remap; source emissivity above one is preserved; does not establish FV3/Dinosaur climate agreement"
+}

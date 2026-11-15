@@ -1,0 +1,360 @@
+{
+  "status": "pass",
+  "reference": {
+    "source_git_blob": "9f7b1123dee77e14ac740234eddd02d646218ba7",
+    "compiled_source_sha256": "52302ea04a6093690871c47997b1c47b195711ab8eab37f72390e6382e9e994d",
+    "routine_sha256": {
+      "mars_calender": "469bcec017a52f3ff00598f8798b5559682a73da8cebe3d5a9cc424b89bc16df",
+      "sol88": "ae6897ebc5680bafa7ec8fc697c1e55af36af3b4c185e36b49e25b7c66b4546b",
+      "zenith": "c8e806d1ceb9b5cb302baff5414f774c4ad9876b4fbd197ef90408f008ee71cc"
+    },
+    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+    "compiler_flags": [
+      "-O3",
+      "-cpp",
+      "-fdefault-real-8",
+      "-fdefault-double-8",
+      "-fPIC",
+      "-shared"
+    ],
+    "real_precision_bits": 64,
+    "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged",
+    "source_patch_git_blob": "6deea614300cc5340dfd5bd02fc2d5ddc1bdebee",
+    "source_patch_sha256": "15267ed7a494065b5ad7fe2583be95ab8c920b68f5292cdfb3adc3dd98e6bc43"
+  },
+  "orbit_cases": 37,
+  "max_orbit_error": 7.840215437089414e-15,
+  "geometry_cases": [
+    {
+      "declination": 0.0,
+      "day_fraction": 0.0,
+      "half_angle": 0.01,
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        1.1102230246251565e-16,
+        0.0
+      ]
+    },
+    {
+      "declination": 0.0,
+      "day_fraction": 0.0,
+      "half_angle": 0.3,
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        1.1102230246251565e-16,
+        0.0
+      ]
+    },
+    {
+      "declination": 0.0,
+      "day_fraction": 0.0,
+      "half_angle": 2.0,
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        1.1102230246251565e-16,
+        0.0
+      ]
+    },
+    {
+      "declination": 0.0,
+      "day_fraction": 0.25,
+      "half_angle": 0.01,
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        1.1102230246251565e-16,
+        0.0
+      ]
+    },
+    {
+      "declination": 0.0,
+      "day_fraction": 0.25,
+      "half_angle": 0.3,
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        1.1102230246251565e-16,
+        0.0
+      ]
+    },
+    {
+      "declination": 0.0,
+      "day_fraction": 0.25,
+      "half_angle": 2.0,
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "declination": 0.0,
+      "day_fraction": 0.55,
+      "half_angle": 0.01,
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        1.1102230246251565e-16,
+        0.0
+      ]
+    },
+    {
+      "declination": 0.0,
+      "day_fraction": 0.55,
+      "half_angle": 0.3,
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        1.1102230246251565e-16,
+        0.0
+      ]
+    },
+    {
+      "declination": 0.0,
+      "day_fraction": 0.55,
+      "half_angle": 2.0,
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        5.551115123125783e-17,
+        0.0
+      ]
+    },
+    {
+      "declination": -0.44,
+      "day_fraction": 0.0,
+      "half_angle": 0.01,
+      "max_errors": [
+        2.220446049250313e-16,
+        2.220446049250313e-16,
+        1.1102230246251565e-16,
+        2.220446049250313e-16,
+        1.1102230246251565e-14
+      ]
+    },
+    {
+      "declination": -0.44,
+      "day_fraction": 0.0,
+      "half_angle": 0.3,
+      "max_errors": [
+        2.220446049250313e-16,
+        2.220446049250313e-16,
+        1.1102230246251565e-16,
+        1.942890293094024e-16,
+        4.440892098500626e-16
+      ]
+    },
+    {
+      "declination": -0.44,
+      "day_fraction": 0.0,
+      "half_angle": 2.0,
+      "max_errors": [
+        2.220446049250313e-16,
+        2.220446049250313e-16,
+        1.1102230246251565e-16,
+        4.440892098500626e-16,
+        2.7755575615628914e-16
+      ]
+    },
+    {
+      "declination": -0.44,
+      "day_fraction": 0.25,
+      "half_angle": 0.01,
+      "max_errors": [
+        2.220446049250313e-16,
+        2.220446049250313e-16,
+        1.1102230246251565e-16,
+        1.1102230246251565e-16,
+        1.1102230246251565e-14
+      ]
+    },
+    {
+      "declination": -0.44,
+      "day_fraction": 0.25,
+      "half_angle": 0.3,
+      "max_errors": [
+        2.220446049250313e-16,
+        2.220446049250313e-16,
+        1.1102230246251565e-16,
+        2.220446049250313e-16,
+        4.440892098500626e-16
+      ]
+    },
+    {
+      "declination": -0.44,
+      "day_fraction": 0.25,
+      "half_angle": 2.0,
+      "max_errors": [
+        2.220446049250313e-16,
+        2.220446049250313e-16,
+        1.1102230246251565e-16,
+        4.440892098500626e-16,
+        2.7755575615628914e-16
+      ]
+    },
+    {
+      "declination": -0.44,
+      "day_fraction": 0.55,
+      "half_angle": 0.01,
+      "max_errors": [
+        2.220446049250313e-16,
+        2.220446049250313e-16,
+        1.1102230246251565e-16,
+        1.1102230246251565e-16,
+        0.0
+      ]
+    },
+    {
+      "declination": -0.44,
+      "day_fraction": 0.55,
+      "half_angle": 0.3,
+      "max_errors": [
+        2.220446049250313e-16,
+        2.220446049250313e-16,
+        1.1102230246251565e-16,
+        2.220446049250313e-16,
+        4.440892098500626e-16
+      ]
+    },
+    {
+      "declination": -0.44,
+      "day_fraction": 0.55,
+      "half_angle": 2.0,
+      "max_errors": [
+        2.220446049250313e-16,
+        2.220446049250313e-16,
+        1.1102230246251565e-16,
+        4.440892098500626e-16,
+        2.7755575615628914e-16
+      ]
+    },
+    {
+      "declination": 0.44,
+      "day_fraction": 0.0,
+      "half_angle": 0.01,
+      "max_errors": [
+        2.220446049250313e-16,
+        1.1102230246251565e-16,
+        1.1102230246251565e-16,
+        1.1102230246251565e-16,
+        0.0
+      ]
+    },
+    {
+      "declination": 0.44,
+      "day_fraction": 0.0,
+      "half_angle": 0.3,
+      "max_errors": [
+        2.220446049250313e-16,
+        1.1102230246251565e-16,
+        1.1102230246251565e-16,
+        2.220446049250313e-16,
+        4.440892098500626e-16
+      ]
+    },
+    {
+      "declination": 0.44,
+      "day_fraction": 0.0,
+      "half_angle": 2.0,
+      "max_errors": [
+        2.220446049250313e-16,
+        1.1102230246251565e-16,
+        1.1102230246251565e-16,
+        3.885780586188048e-16,
+        2.7755575615628914e-16
+      ]
+    },
+    {
+      "declination": 0.44,
+      "day_fraction": 0.25,
+      "half_angle": 0.01,
+      "max_errors": [
+        2.220446049250313e-16,
+        1.1102230246251565e-16,
+        1.1102230246251565e-16,
+        1.1102230246251565e-16,
+        0.0
+      ]
+    },
+    {
+      "declination": 0.44,
+      "day_fraction": 0.25,
+      "half_angle": 0.3,
+      "max_errors": [
+        2.220446049250313e-16,
+        1.1102230246251565e-16,
+        1.1102230246251565e-16,
+        1.942890293094024e-16,
+        4.440892098500626e-16
+      ]
+    },
+    {
+      "declination": 0.44,
+      "day_fraction": 0.25,
+      "half_angle": 2.0,
+      "max_errors": [
+        2.220446049250313e-16,
+        1.1102230246251565e-16,
+        1.1102230246251565e-16,
+        3.3306690738754696e-16,
+        2.7755575615628914e-16
+      ]
+    },
+    {
+      "declination": 0.44,
+      "day_fraction": 0.55,
+      "half_angle": 0.01,
+      "max_errors": [
+        2.220446049250313e-16,
+        1.1102230246251565e-16,
+        1.1102230246251565e-16,
+        2.220446049250313e-16,
+        1.1102230246251565e-14
+      ]
+    },
+    {
+      "declination": 0.44,
+      "day_fraction": 0.55,
+      "half_angle": 0.3,
+      "max_errors": [
+        2.220446049250313e-16,
+        1.1102230246251565e-16,
+        1.1102230246251565e-16,
+        1.942890293094024e-16,
+        4.440892098500626e-16
+      ]
+    },
+    {
+      "declination": 0.44,
+      "day_fraction": 0.55,
+      "half_angle": 2.0,
+      "max_errors": [
+        2.220446049250313e-16,
+        1.1102230246251565e-16,
+        1.1102230246251565e-16,
+        3.3306690738754696e-16,
+        2.7755575615628914e-16
+      ]
+    }
+  ],
+  "sha256": {
+    "scripts/validate_solar_geometry.py": "ed8af1c73823a470c9e485c2c97ce7f5ba4ecf8169474ecec000c12641cdc608",
+    "package/src/framework/physics/solar_geometry.py": "47b862ec8f9a74f0bba3b183457d09d23823bd60025cac9e0cd21c0e46157f53",
+    "package/src/celestials/planets/mars/reference_constants.py": "e410d605c35e9abf8b35776884a65a7f0616af582a46d007118f55b4fb9c2ac2",
+    "package/src/framework/physics/gcm.py": "069a490d642d46cf9c562051613a419ff34311eb967d296d48856f222abb8c13"
+  },
+  "limits": "periodic orbital phase and sol88/zenith; reference longwave update scheduling and spin-up are separate"
+}

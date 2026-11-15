@@ -2,7 +2,7 @@
 from src.framework.gcm._dinosaur import jax,jnp
 
 
-def solve_tridiagonal(lower,diagonal,upper,rhs):
+def solve_tridiagonal(lower,diagonal,upper,rhs,*,reciprocal_pivot=False):
     c0=upper[0]/diagonal[0]
     d0=rhs[0]/diagonal[0]
 
@@ -10,8 +10,13 @@ def solve_tridiagonal(lower,diagonal,upper,rhs):
         c_prev,d_prev=carry
         lo,diag,up,right=row
         pivot=diag-lo*c_prev
-        c=up/pivot
-        d=(right-lo*d_prev)/pivot
+        if reciprocal_pivot:
+            inverse=1./pivot
+            c=up*inverse
+            d=(right-lo*d_prev)*inverse
+        else:
+            c=up/pivot
+            d=(right-lo*d_prev)/pivot
         return (c,d),(c,d)
 
     _,(c_tail,d_tail)=jax.lax.scan(eliminate,(c0,d0),

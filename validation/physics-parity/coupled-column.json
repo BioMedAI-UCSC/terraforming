@@ -1,0 +1,284 @@
+{
+  "status": "pass",
+  "reference": {
+    "pbl": {
+      "source_git_blob": "38b3f41e4d07f9a2e3c9d7a689e50577cac7858c",
+      "compiled_source_sha256": "488f4d8f33a6f15a88c7aa46743fbfb8e5dc8418a9dc61530fbb37bae681e7a2",
+      "routine_sha256": {
+        "initpbl": "31e60ac5530e6d4e38a83f6fc68b63c14a88cb0da765a121f292303c66197488",
+        "pbl_driver": "faef75218c885ce40c983744b7d6ace60b8cc70930533ff1f04b7f75e181e51f",
+        "newpbl": "2bcff80158ef4bdbbdd376b900dab9826f12430d93d873e88eab38e1f465ec0e",
+        "eddycoef": "91d022aacaa59977aef018487336a0aa72618783c951b372ab216284b2da6145",
+        "bndcond": "726026b09a043adbc4402a0d90ec8537334a0d92bb6eca0c63c113c8a620b11f",
+        "scldef": "de17eb292fffc040056902829841494a1f6521f69e1c48552c30adcc306265a6",
+        "watsat_pbl": "ef07728d5d1063881acc8076f1a225d7c45f5e8e94e8a627919332f904d563a9",
+        "matrix": "eee81dd7fc3f9dc73cbcd1d5e9be894d5ae877a785a500842219cc1ce935de74",
+        "solve": "6e49a3a2348edb3b9234d8aa5f13a14fadc6839d87bbd736f051851fcaf74d26",
+        "descale": "1b979e879dab393128a1b9fdef024455c43a6a2235939c85abcc04326895bb6f",
+        "solve_unstable": "2a4bac92fbc032932548d64aa66fa411104eac886d03ac318853274e75f33c25",
+        "fh": "de6254a4d67cf1734656d09ccae634b75461b82a05794b09658af38ba5477f22",
+        "fhprime": "ad0104f62bc408891150b1fdb0acef26563925a7b6cce2d0af77e733fb1234f1",
+        "fm": "bd86444cf2d640e8c457f72b68c929f4fb4dbe640e2339782b4ae76f56861ef3",
+        "fmprime": "017ab4d645c70b08919d9e2bbd1131eba6e6e8c21890e29e11458602a133ba25"
+      },
+      "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+      "compiler_flags": [
+        "-O3",
+        "-cpp",
+        "-fdefault-real-8",
+        "-fdefault-double-8",
+        "-fPIC",
+        "-shared"
+      ],
+      "real_precision_bits": 64,
+      "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged"
+    },
+    "surface": {
+      "source_git_blob": "aca56974025103ab408ecf866cc78b25779fc469",
+      "compiled_source_sha256": "ac31f5ed03d638c5ac031e34103f83b82f1b2230793a2defa8e4e25b0acf1fbb",
+      "routine_sha256": {
+        "progts": "7e601fd57399c056f315d17e18a856a7030a0c25e4cb67e8342851a985817510",
+        "trdslv": "d07cc6aa1fa368a7f5592c75df9f3ba2a102ab0b1066d0efbe1d4e833b5130a0",
+        "icedepth": "7c36d99c69d1c782b7602f4b983f6a057dbd2d9a3245690eab99f510cea8571e",
+        "albedo_calc": "55e85f91ec407cd4e492c156e01bbe443a6b9d63fea959f89f1e50ec049eb2e4"
+      },
+      "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+      "compiler_flags": [
+        "-O3",
+        "-cpp",
+        "-fdefault-real-8",
+        "-fdefault-double-8",
+        "-fPIC",
+        "-shared"
+      ],
+      "real_precision_bits": 64,
+      "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged"
+    },
+    "tail": {
+      "source_git_blob": "d0351317dfb6edd4c83c01c67d9ad3a39bff3b2d",
+      "compiled_source_sha256": "b4b01d0c20a9561a44ca5ceca257d1ce4bca1c914d6046ec6c08117d53f8f242",
+      "routine_sha256": {
+        "co2_condense": "af9b916ff4b7907671ebc8d3a3d59345b16ef8394e9a816ddc99c18808d27c5c",
+        "pass2": "fc30b833f3374fa31fe31a241d43509d835983aa2849d9edd02983e0c573ded2"
+      },
+      "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+      "compiler_flags": [
+        "-O3",
+        "-cpp",
+        "-fdefault-real-8",
+        "-fdefault-double-8",
+        "-fPIC",
+        "-shared"
+      ],
+      "real_precision_bits": 64,
+      "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged"
+    }
+  },
+  "cases": [
+    {
+      "layers": 4,
+      "case": "clear",
+      "max_absolute_errors": {
+        "temperature_k": 2.842170943040401e-14,
+        "u_ms": 3.552713678800501e-15,
+        "v_ms": 8.881784197001252e-16,
+        "tracer_ratio": 1.3552527156068805e-20,
+        "soil_k": 8.526512829121202e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 0.0
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 4,
+      "case": "winter",
+      "max_absolute_errors": {
+        "temperature_k": 2.842170943040401e-14,
+        "u_ms": 3.552713678800501e-15,
+        "v_ms": 8.881784197001252e-16,
+        "tracer_ratio": 1.3552527156068805e-20,
+        "soil_k": 2.842170943040401e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 0.0
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 4,
+      "case": "thaw",
+      "max_absolute_errors": {
+        "temperature_k": 2.842170943040401e-14,
+        "u_ms": 1.7763568394002505e-15,
+        "v_ms": 8.881784197001252e-16,
+        "tracer_ratio": 1.3552527156068805e-20,
+        "soil_k": 2.842170943040401e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 0.0
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 4,
+      "case": "convective",
+      "max_absolute_errors": {
+        "temperature_k": 2.842170943040401e-14,
+        "u_ms": 3.552713678800501e-15,
+        "v_ms": 8.881784197001252e-16,
+        "tracer_ratio": 0.0,
+        "soil_k": 5.684341886080802e-14,
+        "co2_ice_kg_m2": 1.3322676295501878e-15,
+        "gas_mass_loss_kg_m2": 1.3322676295501878e-15
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 12,
+      "case": "clear",
+      "max_absolute_errors": {
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 3.552713678800501e-15,
+        "v_ms": 8.881784197001252e-16,
+        "tracer_ratio": 1.3552527156068805e-20,
+        "soil_k": 5.684341886080802e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 0.0
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 12,
+      "case": "winter",
+      "max_absolute_errors": {
+        "temperature_k": 2.842170943040401e-14,
+        "u_ms": 3.552713678800501e-15,
+        "v_ms": 1.7763568394002505e-15,
+        "tracer_ratio": 1.3552527156068805e-20,
+        "soil_k": 2.842170943040401e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 4.718447854656915e-16
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 12,
+      "case": "thaw",
+      "max_absolute_errors": {
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 3.552713678800501e-15,
+        "v_ms": 1.7763568394002505e-15,
+        "tracer_ratio": 1.3552527156068805e-20,
+        "soil_k": 2.842170943040401e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 5.421010862427522e-20
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 12,
+      "case": "convective",
+      "max_absolute_errors": {
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 1.7763568394002505e-15,
+        "v_ms": 1.7763568394002505e-15,
+        "tracer_ratio": 1.3552527156068805e-20,
+        "soil_k": 8.526512829121202e-14,
+        "co2_ice_kg_m2": 1.5543122344752192e-15,
+        "gas_mass_loss_kg_m2": 9.71445146547012e-16
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 40,
+      "case": "clear",
+      "max_absolute_errors": {
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 7.105427357601002e-15,
+        "v_ms": 3.552713678800501e-15,
+        "tracer_ratio": 2.710505431213761e-20,
+        "soil_k": 5.684341886080802e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 0.0
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 40,
+      "case": "winter",
+      "max_absolute_errors": {
+        "temperature_k": 2.842170943040401e-14,
+        "u_ms": 3.552713678800501e-15,
+        "v_ms": 1.7763568394002505e-15,
+        "tracer_ratio": 1.3552527156068805e-20,
+        "soil_k": 2.842170943040401e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 1.5265566588595902e-16
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 40,
+      "case": "thaw",
+      "max_absolute_errors": {
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 7.105427357601002e-15,
+        "v_ms": 3.552713678800501e-15,
+        "tracer_ratio": 2.710505431213761e-20,
+        "soil_k": 5.684341886080802e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 0.0
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 40,
+      "case": "convective",
+      "max_absolute_errors": {
+        "temperature_k": 1.1368683772161603e-13,
+        "u_ms": 3.552713678800501e-15,
+        "v_ms": 3.552713678800501e-15,
+        "tracer_ratio": 5.421010862427522e-20,
+        "soil_k": 5.684341886080802e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 5.551115123125783e-17
+      },
+      "co2_mass_guard": false
+    }
+  ],
+  "source_sha256": "53854286eb61513517f3e37b1491bd5dbfbe5dc4e2afcea6be7e14e32e2a6736",
+  "body": {
+    "name": "Mars",
+    "radius_m": 3386000.0,
+    "gravity_m_s2": 3.72,
+    "rotation_period_s": 88642.88969244076,
+    "gas_constant_j_kg_k": 189.02,
+    "cp_j_kg_k": 735.94,
+    "reference_temperature_k": 200.0,
+    "reference_surface_pressure_pa": 610.0,
+    "solar_day_s": 88704.0
+  },
+  "physics_sha256": {
+    "dinosaur_physics.py": "472cc1095eb2db279b7e4309a4c384a1f10682d597b29b93bd29d70994e9d4c2",
+    "correlated_k.py": "80074c30fb3495866c677b46ed178e9d722851cde6de597d36e1a4815d7dd3c9",
+    "solar_geometry.py": "47b862ec8f9a74f0bba3b183457d09d23823bd60025cac9e0cd21c0e46157f53",
+    "__init__.py": "62b61692fed54cebab4ecc448648f24af87fd16b2eed5934a478fcbd7b1c2476",
+    "radiative_transfer.py": "b104201e743f8141d95824ab520c7192e6b7599febf13040348aad4f9055b7d8",
+    "co2_clouds.py": "1dde7b8e4bfd83db36dcee4318511c9e00869139ad35dfad880deb49d13c1107",
+    "twostream.py": "173ec4fbfb69f004a441f69c3dd7d344e5726d7b8a01af86d65e3857eca69185",
+    "vertical_solve.py": "0d01f1d42fe7f086a887a2c0c51cb3b4385d26a3c944b72f81150b8a57ddd991",
+    "spectral_flux.py": "93b9bf40c669b09277d5c9f262558d1f5f3955c6e6b2b11b9c88a610ae118dec",
+    "optical_depth.py": "9a2433d11b36a938bf16b05015613e162216eea65c63bf56188ee958d3d7d0a7",
+    "soil_frost.py": "8dd5ae6ad27426ffdd641b4472ccec7ef5dd94ef3cc60c545fc752d6503dba90",
+    "co2_condensation.py": "a018b832c9b81ad29a5aee4f3cf83b94fe992506da66f5101408161bd689cc9e",
+    "scattering_transfer.py": "7b3568d50e2f7472220ea032884c5be64f5ed0f1c988848fd5a1b2fab785b644",
+    "radiation_grid.py": "7c0cd095eb863e6ec612a79f90f9ad7c2d17a00584eb4d3d46f7aba0a56d424f",
+    "boundary_layer.py": "f3b2c8085abbdd94a867aa29d7c767e8d3969b94c56e815dfb73d90f9b6da094",
+    "column_physics.py": "05be00853b8eb1c079c10a5a233da3e60d8264fd38ff5041a8692edfef672df6",
+    "gcm.py": "069a490d642d46cf9c562051613a419ff34311eb967d296d48856f222abb8c13",
+    "dry_convection.py": "11d8f2284b7e95cbb38064400c6e284913599f9a7cc9d3a349f7093f60ecf162"
+  },
+  "jax_version": "0.11.0",
+  "devices": [
+    "cpu:0"
+  ],
+  "limits": "coupled column with prescribed radiative heating/downward flux; Dinosaur gas-mass remap and full radiation/global validation remain pending"
+}

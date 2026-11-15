@@ -15,7 +15,7 @@
 **[Documentation](https://biomedai-ucsc.github.io/terraforming-docs/)** ·
 **[GCM architecture](docs/package/gcm3d/architecture.md)** ·
 **[Physics status and limitations](docs/ideas/gcm3d-physics-limitations.md)** ·
-**[AmesGCM comparison](docs/ideas/amesgcm-comparison.md)**
+**[AmesGCM comparison](docs/ideas/reference-gcm-comparison.md)**
 
 **[Run experiments on Nautilus](apps/nautalis/README.md)** ·
 **[Paper revision and reproduction steps](docs/paper-reproduction.md)**

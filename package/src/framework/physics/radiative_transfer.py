@@ -1,0 +1,94 @@
+"""Differentiable default-12-band Ames radiation from column state to fluxes.
+
+NASA-derived algorithms: Copyright 2023 United States Government as represented
+by NASA. NASA Open Source Agreement 1.3; see the repository's Ames reference.
+"""
+from src.framework.gcm._dinosaur import jnp,scales
+from src.framework.gcm.dynamics import reference_temperature
+from src.framework.physics.radiation_grid import radiation_grid
+from src.framework.physics.optical_depth import gas_subgrid,aggregate_optics
+from src.framework.physics.spectral_flux import visible_spectrum,infrared_spectrum
+from src.framework.physics.gcm import RadiativeFluxDiagnostics,_declination,solar_flux
+from src.framework.physics.correlated_k import load_ames_co2_tables_jax
+from src.framework.physics.solar_geometry import daylight_geometry,averaged_zenith
+
+
+def rayleigh_per_pa(gravity_m_s2):
+    """Original setspv Rayleigh formula, with pressure measured in Pa."""
+    boundaries=jnp.array([2222.22,3087.37,4030.63,5370.57,7651.11,12500.,25000.,41666.67])
+    wavelength=1.e4/(.5*(boundaries[1:]+boundaries[:-1]))
+    return (8.7/gravity_m_s2)*1.527*(1.+.013/wavelength**2)/wavelength**4/9.423e6
+
+
+def column_fluxes(temperature,surface_temperature,pressure_half,pressure_full,
+                  mu0,solar_intensity,albedo,emissivity,gravity_m_s2,*,particle_optics=None,
+                  daylight_fraction=1.):
+    """Ames fillpt -> optical depths -> spectral fluxes -> layer heat flux.
+
+    Inputs use kelvin, Pa and W/m2. solar_intensity has seven bands and includes
+    the orbital distance factor. Optional particle_optics gives SW and IR tuples
+    (extinction, scattering, asymmetry-weighted scattering) on every subinterval.
+    Dust/cloud particle distributions and optical properties are caller inputs.
+    """
+    grid=radiation_grid(pressure_half,pressure_full,temperature,surface_temperature)
+    gases=gas_subgrid(grid)
+    if particle_optics is None:
+        particle_optics=tuple((jnp.zeros(gas.shape[:2]+gas.shape[3:]),)*3 for gas in gases)
+    if len(particle_optics)!=2:
+        raise ValueError("radiation requires both visible and infrared particle optics")
+    delta=jnp.diff(grid.pressure,axis=0)
+    ray=rayleigh_per_pa(gravity_m_s2)
+    ray=ray.reshape((1,7)+(1,)*(delta.ndim-1))*delta[:,None]
+    sw=aggregate_optics(gases[0],*particle_optics[0],ray)
+    ir=aggregate_optics(gases[1],*particle_optics[1],infrared=True)
+    day=jnp.asarray(mu0)>=1.e-4
+    safe_mu=jnp.where(day,mu0,1.)
+    visible=visible_spectrum(*sw,safe_mu,solar_intensity,albedo)
+    thermal=infrared_spectrum(*ir,grid.pressure,grid.temperature,1.-emissivity)
+    swup=jnp.where(day,visible.up*daylight_fraction,0.)
+    swdown=jnp.where(day,visible.down*daylight_fraction,0.)
+    netup=swup-swdown+thermal.up-thermal.down
+    convergence=jnp.diff(netup,axis=0)
+    return RadiativeFluxDiagnostics(swdown,swup,thermal.up,thermal.down,
+        convergence,-netup[-1],-netup[0])
+
+
+def make_radiation_component(particle_provider,*,radiation_interval_seconds=1848.):
+    """Build the Ames backend callback with an explicit particle-input provider.
+
+    The provider receives (state, coords, specs, body, forcing, radiation_grid)
+    and returns both spectral particle tuples, or None for an explicitly clear
+    experiment. Geometry follows the source's partial-day averaging and its
+    optional daylight-mean cosine/fraction mode. Radiation is evaluated each
+    Dinosaur step; the averaging interval remains an explicit reference input.
+    """
+    import math
+    if not math.isfinite(radiation_interval_seconds) or radiation_interval_seconds<=0.:
+        raise ValueError('radiation averaging interval must be finite and positive')
+    def component(state,coords,specs,body,forcing):
+        grid=coords.horizontal
+        pressure_scale=float(specs.dimensionalize(1.,scales.units.pascal).magnitude)
+        time_scale=float(specs.dimensionalize(1.,scales.units.second).magnitude)
+        pressure=jnp.exp(grid.to_nodal(state.dynamics.log_surface_pressure))[0]*pressure_scale
+        temperature=grid.to_nodal(state.dynamics.temperature_variation)+jnp.asarray(
+            reference_temperature(coords,body))[:,None,None]
+        half=jnp.asarray(coords.vertical.boundaries)[:,None,None]*pressure
+        full=jnp.asarray(coords.vertical.centers)[:,None,None]*pressure
+        surface=state.surface_temperature[0]
+        rad_grid=radiation_grid(half,full,temperature,surface)
+        particles=particle_provider(state,coords,specs,body,forcing,rad_grid)
+        time=state.dynamics.sim_time*time_scale
+        declination=_declination(time,forcing)
+        latitude=jnp.asarray(grid.latitudes)[None,:]
+        if forcing.diurnal:
+            fraction=jnp.mod(time/forcing.rotation_period_s,1.)
+            half_angle=.5*jnp.pi*radiation_interval_seconds/forcing.rotation_period_s
+            mu,daylight=averaged_zenith(fraction,declination,
+                jnp.asarray(grid.longitudes)[:,None],latitude,half_angle)
+        else:
+            _,mu,daylight=daylight_geometry(declination,latitude)
+        solar=load_ames_co2_tables_jax()['solar_weights']*solar_flux(time,forcing)
+        return column_fluxes(temperature,surface,half,full,mu,solar,
+            forcing.albedo,forcing.emissivity,body.gravity_m_s2,particle_optics=particles,
+            daylight_fraction=daylight)
+    return component

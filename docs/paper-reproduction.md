@@ -130,7 +130,7 @@ original release file (large), then extract the compact surface/dust product:
 ```sh
 mkdir -p data/ames/fv3betaout1
 curl -fL https://data.nas.nasa.gov/legacygcm/fv3betaout1/fv3betaout1/03340.atmos_average_zstd.nc -o data/ames/fv3betaout1/03340.atmos_average_zstd.nc
-.venv/bin/python scripts/stage_ames_surface_reference.py data/ames/fv3betaout1/03340.atmos_average_zstd.nc data/ames/fv3betaout1/ames_surface_reference.nc
+.venv/bin/python scripts/stage_surface_reference.py data/ames/fv3betaout1/03340.atmos_average_zstd.nc data/ames/fv3betaout1/ames_surface_reference.nc
 env PYTHONPATH=apps/mars-calibration .venv/bin/python apps/mars-calibration/prepare_inputs.py --repo . --restart outputs/paper/windows/my32_q0_s0-restart.npz --output outputs/paper/inputs
 ```
 
@@ -192,7 +192,7 @@ For fresh seasonal spinup with untuned (1,1,1) controls:
 2006 sols is a requested pilot, not proof of equilibration. Extend using the
 identical command plus `--resume` if seasonal pressure, frost, surface T or deep
 soil fail the convergence criteria. `export_mars_seasonal_checkpoints.py` exports
-matched seasonal evaluation windows; `benchmark_ames.py`, `benchmark_mcd.py`,
+matched seasonal evaluation windows; `benchmark_reference_climate.py`, `benchmark_mcd.py`,
 `evaluate_arco_seasonal.py`, and `tform mars compare` perform the documented
 reference comparisons. Their exact options and contracts are in
 `docs/differentiable-experiments.md`, `docs/ideas/iclr-minimal-validation.md`, and
@@ -212,7 +212,7 @@ gradient preflight. Per-member and archive SHA-256 files are tracked under
 and heat-capacity corrections. Global-mean surface-temperature agreement alone
 does not validate local winds: sampled annual peak Mach reaches 3.158 at 150 s.
 
-`docs/ames-surface-mass-transport.md` describes the missing mass, enthalpy and
+`docs/surface-mass-transport.md` describes the missing mass, enthalpy and
 momentum coupling and the common frost heat capacity. This prescribed-column
 check reproduces its budget improvement without external observations:
 

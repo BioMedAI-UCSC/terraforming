@@ -30,7 +30,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("checkpoints", type=Path)
     parser.add_argument("surface_properties", type=Path)
-    parser.add_argument("ames_reference", type=Path)
+    parser.add_argument("native_reference", type=Path)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--targets", default="0,90,180,270")
     parser.add_argument("--half-width", type=float, default=6.0)
@@ -62,7 +62,7 @@ def main() -> int:
         base, coords.horizontal, args.surface_properties
     )
     dust_ls, visible, longwave = _ames_dust_climatology(
-        args.ames_reference, coords.horizontal
+        args.native_reference, coords.horizontal
     )
     forcing = dataclasses.replace(
         base, **ABLATIONS["convection"],

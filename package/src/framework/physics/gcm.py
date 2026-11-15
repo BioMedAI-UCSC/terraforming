@@ -44,7 +44,7 @@ from typing import Callable, NamedTuple
 
 import numpy as np
 
-from src.framework.physics import ames_radiation
+from src.framework.physics import correlated_k
 from src.framework.gcm._dinosaur import (
     jax,
     jnp,
@@ -682,30 +682,30 @@ def column_radiative_fluxes(
     if f.ames_correlated_k_enabled:
         pressure_mid_pa = sigma_mid * ps_pa[None]
         delta_pressure_pa = dsigma * ps_pa[None]
-        sw_tau, lw_tau = ames_radiation.correlated_k_optical_depths(
+        sw_tau, lw_tau = correlated_k.correlated_k_optical_depths(
             air_k, pressure_mid_pa, delta_pressure_pa
         )
         lw_tau = lw_tau * f.ames_co2_longwave_opacity_scale
-        data = ames_radiation.load_ames_co2_tables_jax()
-        sw_channel_weights = ames_radiation.channel_weights(
+        data = correlated_k.load_ames_co2_tables_jax()
+        sw_channel_weights = correlated_k.channel_weights(
             data["clear_fraction_sw"]
         )
-        lw_channel_weights = ames_radiation.channel_weights(
+        lw_channel_weights = correlated_k.channel_weights(
             data["clear_fraction_ir"]
         )
         # Fixed-size Ames/Wolff dust optics are spectral by gas-table band and
         # applied consistently to every correlated-k channel in that band.
-        reference_extinction = ames_radiation.DUST_SW_EXTINCTION[5]
+        reference_extinction = correlated_k.DUST_SW_EXTINCTION[5]
         dust_column = dust_visible * column_pressure_ratio
         dust_ext_sw = (
             dust_column[None, None, None] * dust_layer_fraction[None, None]
-            * ames_radiation.DUST_SW_EXTINCTION[:, None, None, None, None]
+            * correlated_k.DUST_SW_EXTINCTION[:, None, None, None, None]
             / reference_extinction
         )
         dust_ssa_sw = (
-            ames_radiation.DUST_SW_SCATTERING / ames_radiation.DUST_SW_EXTINCTION
+            correlated_k.DUST_SW_SCATTERING / correlated_k.DUST_SW_EXTINCTION
         )[:, None, None, None, None]
-        dust_g_sw = ames_radiation.DUST_SW_ASYMMETRY[:, None, None, None, None]
+        dust_g_sw = correlated_k.DUST_SW_ASYMMETRY[:, None, None, None, None]
         total_sw_tau = sw_tau + dust_ext_sw
         omega_sw = dust_ext_sw * dust_ssa_sw / jnp.clip(total_sw_tau, 1.0e-30, None)
         g_sw = jnp.where(dust_ext_sw > 0.0, dust_g_sw, 0.0)
@@ -730,15 +730,15 @@ def column_radiative_fluxes(
         # The prescribed IR opacity is a separate Ames field; do not infer it
         # from visible opacity. Normalize the five spectral extinction values to
         # the 9-micron-like reference interval used by the column product.
-        reference_ir_extinction = ames_radiation.DUST_IR_EXTINCTION[3]
+        reference_ir_extinction = correlated_k.DUST_IR_EXTINCTION[3]
         dust_ir_column = dust_longwave * column_pressure_ratio
         dust_ext_ir = (
             dust_ir_column[None, None, None] * dust_layer_fraction[None, None]
-            * ames_radiation.DUST_IR_EXTINCTION[:, None, None, None, None]
+            * correlated_k.DUST_IR_EXTINCTION[:, None, None, None, None]
             / reference_ir_extinction
         )
         dust_abs_ir = dust_ext_ir * (1.0 - (
-            ames_radiation.DUST_IR_SCATTERING / ames_radiation.DUST_IR_EXTINCTION
+            correlated_k.DUST_IR_SCATTERING / correlated_k.DUST_IR_EXTINCTION
         )[:, None, None, None, None])
         lw_tau = lw_tau + dust_abs_ir * f.ames_dust_longwave_opacity_scale
         lw_trans = jnp.exp(-jnp.clip(lw_tau / 0.5, 0.0, 50.0))
@@ -780,8 +780,8 @@ def column_radiative_fluxes(
         sw = jnp.sum(down_levels, axis=(1, 2))
         sw_up = jnp.sum(up_levels, axis=(1, 2))
 
-        planck_air = ames_radiation.planck_band_fractions(air_k)
-        planck_surface = ames_radiation.planck_band_fractions(surface_k)
+        planck_air = correlated_k.planck_band_fractions(air_k)
+        planck_surface = correlated_k.planck_band_fractions(surface_k)
         channel = lw_channel_weights[:, :, None, None]
         thermal_emission = (
             blackbody_air[None, None] * planck_air[:, None] * channel[:, :, None]

@@ -11,7 +11,7 @@ The torch `Planet`/`TimeController` model is deprecated and does not drive the G
 | Body and units | `framework.gcm.body`, `specs` | SI constants and body-based nondimensionalization |
 | Grid | `framework.gcm.coordinates` | Spherical harmonics and terrain-following sigma levels |
 | Dynamics | `framework.gcm.dynamics` | Dinosaur dry primitive equations and IMEX stepper |
-| Column physics | `framework.physics.gcm`, `ames_radiation` | Explicit radiation, heat/momentum, regolith and CO₂ tendencies |
+| Column physics | `framework.physics.gcm`, `correlated_k` | Explicit radiation, heat/momentum, regolith and CO₂ tendencies |
 | Mars configuration | `celestials.planets.mars` | Constants, forcing, MOLA/TES/dust adapters and maps |
 | Learning | `framework.gcm.learning`, `framework.neural` | Parameterized rollouts, replacement radiation and heating |
 | Experiments | `apps/mars-calibration`, `scripts` | Frozen inputs, optimization, ablations and acceptance |

@@ -1,0 +1,339 @@
+{
+  "status": "pass",
+  "reference": {
+    "source_git_blob": "40d8879c3735bbec6cabc63817cad5220f281532",
+    "compiled_source_sha256": "2a3109f13e2f6d15f85298137d32e42984e98ddcdde702cfabeb9996bcd1a8bb",
+    "routine_sha256": {
+      "sfluxv": "36c5ef99ee192213762445a476c913c183e61b04906bcbef4a0724d8c10a8895",
+      "sfluxi": "1d97b41ac639ac0b9adc9aef3339882978cace5cc3d80052097458621fc2edaf",
+      "getdetau": "9b2147439435b3abf64cd0f045ef5e88d149a7dfbb9c1f1d7037fc60403ff924",
+      "gfluxv": "8c4339adf78c246b66dcfb5936b7c6cde04ff610c05ea34879eaf4d61ebecb5f",
+      "gfluxi": "80a6a23ae64878b9b18751443e4ce10585e391c24945fb1d88cdc9ba08f1162d",
+      "dsolver": "89a0b9599cd1c639a160089b221a78eb889eb8b2e10760786e3cb6d8547dc3b4",
+      "dtridgl": "d1075d42213408c12420612f5f79b35634d022de1b29a995934489e8aef1cc21"
+    },
+    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+    "compiler_flags": [
+      "-O3",
+      "-cpp",
+      "-fdefault-real-8",
+      "-fdefault-double-8",
+      "-fPIC",
+      "-shared"
+    ],
+    "real_precision_bits": 64,
+    "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged"
+  },
+  "cases": [
+    {
+      "layers": 2,
+      "case": "clear-merged",
+      "kind": "visible",
+      "scale_surface_flux": false,
+      "max_errors_w_m2": [
+        1.4210854715202004e-14,
+        2.842170943040401e-14,
+        1.1368683772161603e-13
+      ]
+    },
+    {
+      "layers": 2,
+      "case": "clear-merged",
+      "kind": "infrared",
+      "scale_surface_flux": false,
+      "max_errors_w_m2": [
+        0.0,
+        2.353672812205332e-14,
+        1.4210854715202004e-14
+      ]
+    },
+    {
+      "layers": 2,
+      "case": "clear-merged",
+      "kind": "infrared",
+      "scale_surface_flux": true,
+      "max_errors_w_m2": [
+        1.4210854715202004e-14,
+        2.1760371282653068e-14,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "case": "mixed",
+      "kind": "visible",
+      "scale_surface_flux": false,
+      "max_errors_w_m2": [
+        9.237055564881302e-14,
+        5.684341886080802e-14,
+        5.684341886080802e-14
+      ]
+    },
+    {
+      "layers": 2,
+      "case": "mixed",
+      "kind": "infrared",
+      "scale_surface_flux": false,
+      "max_errors_w_m2": [
+        0.0,
+        4.440892098500626e-15,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "case": "mixed",
+      "kind": "infrared",
+      "scale_surface_flux": true,
+      "max_errors_w_m2": [
+        1.4210854715202004e-14,
+        8.881784197001252e-15,
+        0.0
+      ]
+    },
+    {
+      "layers": 2,
+      "case": "absorbing",
+      "kind": "visible",
+      "scale_surface_flux": false,
+      "max_errors_w_m2": [
+        1.2079226507921703e-13,
+        5.684341886080802e-14,
+        2.8421709430404007e-13
+      ]
+    },
+    {
+      "layers": 2,
+      "case": "absorbing",
+      "kind": "infrared",
+      "scale_surface_flux": false,
+      "max_errors_w_m2": [
+        1.4210854715202004e-14,
+        3.552713678800501e-15,
+        1.4210854715202004e-14
+      ]
+    },
+    {
+      "layers": 2,
+      "case": "absorbing",
+      "kind": "infrared",
+      "scale_surface_flux": true,
+      "max_errors_w_m2": [
+        7.105427357601002e-15,
+        1.2434497875801753e-14,
+        1.4210854715202004e-14
+      ]
+    },
+    {
+      "layers": 5,
+      "case": "clear-merged",
+      "kind": "visible",
+      "scale_surface_flux": false,
+      "max_errors_w_m2": [
+        3.623767952376511e-13,
+        1.4210854715202004e-13,
+        2.8421709430404007e-13
+      ]
+    },
+    {
+      "layers": 5,
+      "case": "clear-merged",
+      "kind": "infrared",
+      "scale_surface_flux": false,
+      "max_errors_w_m2": [
+        2.842170943040401e-14,
+        1.4210854715202004e-14,
+        1.4210854715202004e-14
+      ]
+    },
+    {
+      "layers": 5,
+      "case": "clear-merged",
+      "kind": "infrared",
+      "scale_surface_flux": true,
+      "max_errors_w_m2": [
+        1.4210854715202004e-14,
+        2.842170943040401e-14,
+        1.4210854715202004e-14
+      ]
+    },
+    {
+      "layers": 5,
+      "case": "mixed",
+      "kind": "visible",
+      "scale_surface_flux": false,
+      "max_errors_w_m2": [
+        1.1013412404281553e-13,
+        1.1368683772161603e-13,
+        1.7053025658242404e-13
+      ]
+    },
+    {
+      "layers": 5,
+      "case": "mixed",
+      "kind": "infrared",
+      "scale_surface_flux": false,
+      "max_errors_w_m2": [
+        2.842170943040401e-14,
+        3.907985046680551e-14,
+        2.1316282072803006e-14
+      ]
+    },
+    {
+      "layers": 5,
+      "case": "mixed",
+      "kind": "infrared",
+      "scale_surface_flux": true,
+      "max_errors_w_m2": [
+        5.684341886080802e-14,
+        2.1316282072803006e-14,
+        7.105427357601002e-15
+      ]
+    },
+    {
+      "layers": 5,
+      "case": "absorbing",
+      "kind": "visible",
+      "scale_surface_flux": false,
+      "max_errors_w_m2": [
+        4.831690603168681e-13,
+        1.1368683772161603e-13,
+        6.821210263296962e-13
+      ]
+    },
+    {
+      "layers": 5,
+      "case": "absorbing",
+      "kind": "infrared",
+      "scale_surface_flux": false,
+      "max_errors_w_m2": [
+        1.4210854715202004e-14,
+        1.7763568394002505e-14,
+        1.4210854715202004e-14
+      ]
+    },
+    {
+      "layers": 5,
+      "case": "absorbing",
+      "kind": "infrared",
+      "scale_surface_flux": true,
+      "max_errors_w_m2": [
+        1.4210854715202004e-14,
+        7.105427357601002e-15,
+        7.105427357601002e-15
+      ]
+    },
+    {
+      "layers": 13,
+      "case": "clear-merged",
+      "kind": "visible",
+      "scale_surface_flux": false,
+      "max_errors_w_m2": [
+        1.3500311979441904e-12,
+        3.410605131648481e-13,
+        9.663381206337363e-13
+      ]
+    },
+    {
+      "layers": 13,
+      "case": "clear-merged",
+      "kind": "infrared",
+      "scale_surface_flux": false,
+      "max_errors_w_m2": [
+        1.1368683772161603e-13,
+        8.526512829121202e-14,
+        1.4210854715202004e-14
+      ]
+    },
+    {
+      "layers": 13,
+      "case": "clear-merged",
+      "kind": "infrared",
+      "scale_surface_flux": true,
+      "max_errors_w_m2": [
+        1.7053025658242404e-13,
+        8.526512829121202e-14,
+        4.263256414560601e-14
+      ]
+    },
+    {
+      "layers": 13,
+      "case": "mixed",
+      "kind": "visible",
+      "scale_surface_flux": false,
+      "max_errors_w_m2": [
+        4.305888978706207e-12,
+        1.5916157281026244e-12,
+        4.320099833421409e-12
+      ]
+    },
+    {
+      "layers": 13,
+      "case": "mixed",
+      "kind": "infrared",
+      "scale_surface_flux": false,
+      "max_errors_w_m2": [
+        5.684341886080802e-14,
+        8.526512829121202e-14,
+        1.4210854715202004e-14
+      ]
+    },
+    {
+      "layers": 13,
+      "case": "mixed",
+      "kind": "infrared",
+      "scale_surface_flux": true,
+      "max_errors_w_m2": [
+        1.1368683772161603e-13,
+        5.684341886080802e-14,
+        2.842170943040401e-14
+      ]
+    },
+    {
+      "layers": 13,
+      "case": "absorbing",
+      "kind": "visible",
+      "scale_surface_flux": false,
+      "max_errors_w_m2": [
+        2.877698079828406e-13,
+        8.526512829121202e-14,
+        3.979039320256561e-13
+      ]
+    },
+    {
+      "layers": 13,
+      "case": "absorbing",
+      "kind": "infrared",
+      "scale_surface_flux": false,
+      "max_errors_w_m2": [
+        1.7053025658242404e-13,
+        5.684341886080802e-14,
+        1.4210854715202004e-14
+      ]
+    },
+    {
+      "layers": 13,
+      "case": "absorbing",
+      "kind": "infrared",
+      "scale_surface_flux": true,
+      "max_errors_w_m2": [
+        1.1368683772161603e-13,
+        1.1368683772161603e-13,
+        2.842170943040401e-14
+      ]
+    }
+  ],
+  "sha256": {
+    "scripts/validate_spectral_flux.py": "82b7f7cba7166d368b0042daae2ef8196821c948db651a0579043eac61ab52d8",
+    "package/src/framework/physics/spectral_flux.py": "93b9bf40c669b09277d5c9f262558d1f5f3955c6e6b2b11b9c88a610ae118dec",
+    "package/src/framework/physics/scattering_transfer.py": "7b3568d50e2f7472220ea032884c5be64f5ed0f1c988848fd5a1b2fab785b644",
+    "package/src/framework/physics/correlated_k.py": "80074c30fb3495866c677b46ed178e9d722851cde6de597d36e1a4815d7dd3c9",
+    "package/src/framework/physics/vertical_solve.py": "0d01f1d42fe7f086a887a2c0c51cb3b4385d26a3c944b72f81150b8a57ddd991",
+    "package/src/framework/physics/co2_12band_tables.npz": "0c48a86efd4618d3fdc0e52cd2bc5ca063fc7ac006ebfee09a46bee01d159d6c"
+  },
+  "jax_version": "0.11.0",
+  "devices": [
+    "cpu:0"
+  ],
+  "limits": "spectral aggregation with supplied optics; continuous Planck interpolation checked at reference temperature nodes; full radiation driver remains pending"
+}
