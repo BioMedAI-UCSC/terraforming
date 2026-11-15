@@ -277,8 +277,10 @@ def reference_rest_state(coords,specs,body,elevation_nodal_m):
     pressure=jnp.exp(grid.to_nodal(dynamics.log_surface_pressure))*scale
     weights=jnp.asarray(grid.quadrature_weights)
     mean=jnp.sum(pressure*weights)/jnp.sum(weights)
-    shift=jnp.broadcast_to(jnp.log(705./mean),pressure.shape)
-    return dataclasses.replace(dynamics,log_surface_pressure=dynamics.log_surface_pressure+grid.to_modal(shift))
+    unit=jnp.zeros_like(dynamics.log_surface_pressure).at[...,0,0].set(1.)
+    normalization=jnp.mean(grid.to_nodal(unit))
+    corrected=dynamics.log_surface_pressure.at[...,0,0].add(jnp.log(705./mean)/normalization)
+    return dataclasses.replace(dynamics,log_surface_pressure=corrected)
 
 
 def main() -> int:
@@ -289,7 +291,7 @@ def main() -> int:
     parser.add_argument("--config", choices=["all", "reference", *ABLATIONS], default="all")
     parser.add_argument("--mola-path",type=Path,help="explicit staged MOLA raster; required for reference runs")
     parser.add_argument("--truncation", default="T21")
-    parser.add_argument("--layers", type=int, default=12)
+    parser.add_argument("--layers", type=int, default=None)
     parser.add_argument("--dt", type=float, default=None)
     parser.add_argument("--initial-ls", type=float, default=0.0)
     parser.add_argument("--diurnal", action="store_true", help="resolve local-time forcing instead of daily-mean sunlight")
@@ -323,6 +325,7 @@ def main() -> int:
     args = parser.parse_args()
     reference=args.config=='reference'
     if args.dt is None: args.dt=231. if reference else 300.
+    if args.layers is None: args.layers=56 if reference else 12
     if reference and (args.mola_path is None or not args.mola_path.is_file()):
         parser.error('reference runs require --mola-path with an existing staged raster')
     if reference and (args.ames_dust_reference is not None or
@@ -356,7 +359,11 @@ def main() -> int:
         )
 
     configs = list(ABLATIONS) if args.config == "all" else [args.config]
-    coords = coordinate_system(args.truncation, args.layers)
+    sigma=None
+    if reference:
+        from src.framework.physics.vertical_grid import sigma_boundaries as reference_sigma_boundaries
+        sigma=reference_sigma_boundaries(args.layers)
+    coords = coordinate_system(args.truncation, args.layers,sigma_boundaries=sigma)
     grid = coords.horizontal
     body=MARS_BODY_3D;radiation=None;reference_options=None;input_hashes={}
     if reference:
@@ -439,7 +446,8 @@ def main() -> int:
                 initial_mean_surface_pressure_pa=705.,reference_protocol='present-Mars-clouds-v3.2',
                 radiation_mode='12band',radiation_update_seconds=8*args.dt,
                 reference_release_commit='ba47cada5f9eb89c75c4f10d06dbae6e7f9ecb26',
-                reference_build_blob='83b611e6527cf26bef3ec0064c05aebe0bb0d080')
+                reference_build_blob='83b611e6527cf26bef3ec0064c05aebe0bb0d080',
+                sigma_boundaries=sigma.tolist())
         if restart_path.exists():
             if not args.resume:
                 raise ValueError(f"{restart_path} exists; use --resume or a new output directory")
@@ -580,6 +588,7 @@ def main() -> int:
         remaining = steps_total - completed
         fields, state = run_maps(
             body=body,mola_path=args.mola_path,p0_pa=705. if reference else None,
+            sigma_boundaries=sigma,
             truncation=args.truncation, n_layers=args.layers,
             dt_seconds=args.dt, n_steps=remaining, forcing=forcing,
             co2_forcing=None if reference else co2_forcing(energy_limited=True),

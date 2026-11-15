@@ -17,11 +17,25 @@ RUN apt-get update \
 
 WORKDIR /opt
 RUN python3.12 -m venv /opt/venv
-# Install the current framework as a dependency, including uncommitted physics fixes.
+# Keep the locked environment cached when only physics source changes.
+COPY package/pyproject.toml /opt/dependencies/framework.toml
+COPY apps/mars-calibration/pyproject.toml /opt/dependencies/application.toml
+COPY apps/mars-calibration/constraints.txt /opt/dependencies/constraints.txt
+RUN --mount=type=cache,target=/root/.cache/pip python - <<'PY'
+import subprocess
+import sys
+import tomllib
+from pathlib import Path
+framework=tomllib.loads(Path('/opt/dependencies/framework.toml').read_text())['project']
+application=tomllib.loads(Path('/opt/dependencies/application.toml').read_text())['project']
+requirements=framework['dependencies']+framework['optional-dependencies']['gcm3d']
+requirements += [value for value in application['dependencies'] if not value.startswith('terraforming[')]
+subprocess.check_call([sys.executable,'-m','pip','install','-c','/opt/dependencies/constraints.txt',*requirements])
+PY
 COPY package /opt/framework
 COPY apps/mars-calibration /opt/application
 RUN --mount=type=cache,target=/root/.cache/pip \
-    python -m pip install -c /opt/application/constraints.txt /opt/framework /opt/application && python -m pip check \
+    python -m pip install --no-deps /opt/framework /opt/application && python -m pip check \
     && pip freeze > /opt/environment.txt \
     && groupadd --gid 10001 calibration \
     && useradd --uid 10001 --gid 10001 --no-create-home --shell /usr/sbin/nologin calibration \

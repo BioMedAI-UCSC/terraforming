@@ -405,6 +405,19 @@ The cold start sets global mean gas pressure to 705 Pa. Terrain pressure
 differences stay hydrostatic. This matches the source's dry-mass target rather
 than assigning 705 Pa at zero elevation.
 
+The reference runner defaults to the released 56-level grid. All 14 released
+grid sizes (24 through 87 levels) are available. The unchanged native `set_eta`
+matches 168 pressure-grid cases. Dinosaur freezes each grid's reference-column
+pressure fractions, sets the top boundary to zero, and uses arithmetic centers.
+Its sigma coordinates cannot retain FV3's fixed-pressure hybrid interfaces
+over changing terrain. Saved restarts include the selected boundaries and reject
+different vertical geometry.
+
+The cold start filters pressure with the same terrain modes as the dynamical
+core. An actual MOLA dry check reduced false wind after five seconds from
+0.225396 m/s to 1.30e-12 m/s. Independent high-mode terrain tests cover uniform
+and stretched grids. This removes an initialization imbalance.
+
 ```sh
 env PYTHONPATH=package:. python scripts/run_gcm3d_ablation.py /path/to/AmesGCM/data \
   --config reference --mola-path /path/to/megt90n000cb.img \
@@ -421,7 +434,9 @@ devices, JAX/NumPy/Python versions and image package list. Wind-height metadata
 uses the selected body's constants and reference temperature.
 
 The two-step production smoke check is finite. Relative CO2, water and dust
-inventory changes are below 5e-14. This checks the runner and its bookkeeping;
+inventory changes are below 5e-14. A separate 56-level run completed ten
+231-second steps, including radiation cache refresh, with finite outputs;
+relative total CO2 drift was below 5e-15. This checks the runner and its bookkeeping;
 it does not measure a climate gain. Dinosaur still uses its spectral dynamics
 and sigma grid. Whole-model comparison needs a matched native run, resolution
 checks and climate statistics.

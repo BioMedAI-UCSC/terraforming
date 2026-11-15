@@ -98,6 +98,8 @@ def initial_state(dynamics,coords,specs,temperature_k=170.,soil_layers=16,*,bulk
         fields.update(nonorographic_u_tendency_m_s2=drag.u_tendency,nonorographic_v_tendency_m_s2=drag.v_tendency,
             nonorographic_alarm_seconds=drag.alarm_seconds,nonorographic_frequency_seconds=drag.frequency_seconds)
         state=state._replace(auxiliary_fields=fields)
+    state=state._replace(auxiliary_fields={**({} if state.auxiliary_fields is None else state.auxiliary_fields),
+        'vertical_sigma_boundaries':jnp.asarray(coords.vertical.boundaries)})
     if not (bulk_water or moment_water): return state._replace(ground_temperature=ground)
     tracers={WATER_VAPOR_TRACER:coords.horizontal.to_modal(jnp.broadcast_to(
         jnp.asarray(initial_water_vapor_ratio),(len(coords.vertical.centers),)+coords.horizontal.nodal_shape)),
@@ -236,6 +238,8 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
     those approximations. General-mixture thermodynamics is separate.
     """
     grid=coords.horizontal
+    custom_vertical=not np.array_equal(np.asarray(coords.vertical.boundaries),
+        np.linspace(0.,1.,len(coords.vertical.centers)+1,dtype=np.float32))
     moment_names=moment_particle_tracers(dust_mode_count)
     dust_mass_names=(moment_names[0],)+moment_names[4::3]
     dust_number_names=(moment_names[1],)+moment_names[5::3]
@@ -329,6 +333,15 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
         hyperdiffusion_tau_seconds=hyperdiffusion_tau_seconds)
 
     def advance_with_transport(state):
+        geometry_valid=jnp.asarray(True)
+        auxiliary={} if state.auxiliary_fields is None else state.auxiliary_fields
+        if 'vertical_sigma_boundaries' in auxiliary:
+            saved=auxiliary['vertical_sigma_boundaries']
+            if saved.shape!=np.shape(coords.vertical.boundaries):
+                raise ValueError('saved sigma boundaries do not match the configured layer count')
+            geometry_valid=jnp.all(saved==jnp.asarray(coords.vertical.boundaries))
+        elif custom_vertical:
+            raise ValueError('custom sigma physics requires saved vertical boundaries')
         if water_cycle:
             required={'water_surface_kg_m2','water_exchange_coefficient_kg_m2_s','water_pbl_top_layer'}
             if state.auxiliary_fields is None or required-set(state.auxiliary_fields):
@@ -536,7 +549,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             if CO2_CLOUD_TRACER in dyn.tracers and not suspended_co2_clouds else False)
         if WATER_CLOUD_TRACER in names and not water_cycle:
             unsupported_cloud=unsupported_cloud|jnp.any(grid.to_nodal(dyn.tracers[WATER_CLOUD_TRACER])!=0.)
-        invalid=jnp.any(column.diagnostics['co2_mass_guard'])|unsupported_cloud
+        invalid=jnp.any(column.diagnostics['co2_mass_guard'])|unsupported_cloud|~geometry_valid
         new_temperature=dyn.temperature_variation+grid.to_modal(t-temperature)
         new_temperature=jnp.where(invalid,jnp.nan,new_temperature)
         dynamics=dataclasses.replace(dyn,temperature_variation=new_temperature,

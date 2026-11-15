@@ -71,7 +71,7 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
                  bulk_water=False,initial_water_surface_kg_m2=0.,moment_water=False,
                  dust_lifting_options=None,initial_water_vapor_ratio=1e-6,coagulation_options=None,
                  dust_background_options=None,nonorographic_drag_options=None,effective_input_mode=0,
-                 convection_scheme='fv3',moist_convection_options=None,dust_mode_count=1):
+                 convection_scheme='fv3',moist_convection_options=None,dust_mode_count=1,sigma_boundaries=None):
     from src.framework.gcm.coordinates import coordinate_system
     from src.framework.gcm.specs import physics_specs
     from src.framework.gcm._dinosaur import primitive_equations,scales
@@ -79,7 +79,7 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
     from src.celestials.planets.mars.gcm import radiative_forcing
     from src.celestials.planets.mars.reference_constants import reference_radiative_forcing
     from src.framework.physics.gcm import two_stream_radiative_fluxes
-    coords=coordinate_system('T21',4);specs=physics_specs(BODY);grid=coords.horizontal
+    coords=coordinate_system('T21',4,sigma_boundaries=sigma_boundaries);specs=physics_specs(BODY);grid=coords.horizontal
     zeros=jnp.zeros((4,)+grid.modal_shape)
     pressure=float(specs.nondimensionalize(610.*scales.units.pascal))
     ref=jnp.asarray(reference_temperature(coords,BODY))[:,None,None]
@@ -286,6 +286,28 @@ def test_reference_cloud_backend_forms_suspended_ice_and_closes_raw_mass():
     np.testing.assert_allclose(d.raw_total_mass_kg,d.target_total_mass_kg,rtol=2e-11)
     np.testing.assert_allclose(d.corrected_total_mass_kg,d.target_total_mass_kg,rtol=2e-13)
     assert all(np.isfinite(x).all() for x in jax.tree.leaves(final))
+
+
+def test_stretched_sigma_global_gradient_and_invalid_geometry(tmp_path):
+    from src.framework.physics.radiative_transfer import make_radiation_component
+    from src.framework.gcm.restart import save_restart,load_restart
+    state,step,grid=backend_case(temperature_k=170.,surface_temperature_k=180.037,
+        radiation_component=make_radiation_component(lambda *args:None),
+        sigma_boundaries=[0.,.001,.05,.5,1.])
+    tick=jax.jit(step);first=tick(state)
+    restored=load_restart(save_restart(first,tmp_path/'stretched.npz'))
+    for a,b in zip(jax.tree.leaves(tick(first)),jax.tree.leaves(tick(restored)),strict=True):
+        np.testing.assert_array_equal(a,b)
+    def objective(offset):
+        initial=state._replace(surface_temperature=state.surface_temperature+offset)
+        final,_=jax.lax.scan(lambda s,_:(step(s),None),initial,None,length=3)
+        return jnp.mean(final.surface_temperature)
+    auto=jax.jit(jax.grad(objective))(0.);forward=jax.jit(objective);epsilon=1e-4
+    assert np.isfinite(auto) and abs(float(auto))>1e-6
+    np.testing.assert_allclose(auto,(forward(epsilon)-forward(-epsilon))/(2*epsilon),rtol=3e-5,atol=1e-7)
+    fields={**state.auxiliary_fields,'vertical_sigma_boundaries':jnp.array([0.,.002,.05,.5,1.])}
+    invalid=tick(state._replace(auxiliary_fields=fields))
+    assert np.isnan(np.asarray(invalid.dynamics.temperature_variation)).all()
 
 
 @pytest.mark.parametrize('native_radiation',[False,True])

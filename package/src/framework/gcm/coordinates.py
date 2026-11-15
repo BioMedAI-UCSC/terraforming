@@ -8,6 +8,7 @@ does not depend on which body is being simulated — so this module takes no
 """
 
 from __future__ import annotations
+import numpy as np
 
 from src.framework.gcm._dinosaur import (
     coordinate_systems,
@@ -47,6 +48,7 @@ def grid(truncation: str = "T42") -> spherical_harmonic.Grid:
 def coordinate_system(
     truncation: str = "T42",
     n_layers: int = 25,
+    *,sigma_boundaries=None,
 ) -> coordinate_systems.CoordinateSystem:
     """Build a ``CoordinateSystem`` = spectral grid × sigma levels.
 
@@ -55,13 +57,19 @@ def coordinate_system(
     truncation : {"T21", "T42", "T85"}
         Horizontal spectral truncation (see :func:`grid`).
     n_layers : int
-        Number of equidistant terrain-following sigma levels (p/p_s). Sigma
+        Number of terrain-following sigma levels (p/p_s). Sigma
         coordinates rescale with surface pressure automatically — essential for
         bodies with large seasonal surface-pressure swings (e.g. Mars's CO2
         cycle moves ~25 % of the atmosphere).
     """
     if n_layers < 1:
         raise ValueError(f"n_layers must be >= 1, got {n_layers}")
-    return coordinate_systems.CoordinateSystem(
-        grid(truncation), sigma_coordinates.SigmaCoordinates.equidistant(n_layers)
-    )
+    if sigma_boundaries is None:
+        vertical=sigma_coordinates.SigmaCoordinates.equidistant(n_layers)
+    else:
+        boundaries=np.asarray(sigma_boundaries,dtype=float)
+        if (boundaries.shape!=(n_layers+1,) or not np.all(np.isfinite(boundaries)) or
+            boundaries[0]!=0. or boundaries[-1]!=1. or np.any(np.diff(boundaries)<=0.)):
+            raise ValueError('sigma boundaries must increase from zero to one and match n_layers')
+        vertical=sigma_coordinates.SigmaCoordinates(boundaries)
+    return coordinate_systems.CoordinateSystem(grid(truncation),vertical)

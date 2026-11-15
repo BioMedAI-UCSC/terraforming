@@ -56,8 +56,9 @@ def test_reference_cold_start_sets_global_dry_mass_and_keeps_hydrostatic_terrain
     weights=np.asarray(grid.quadrature_weights)
     assert np.sum(pressure*weights)/np.sum(weights)==pytest.approx(705.,rel=2e-14)
     expected=np.exp(-body.gravity_m_s2*elevation/(body.gas_constant_j_kg_k*body.reference_temperature_k))
-    # The analytic profile also includes the existing spectral transform error.
-    np.testing.assert_allclose(pressure/pressure.mean(),expected/expected.mean(),rtol=3e-12)
+    from src.celestials.planets.mars.maps import hydrostatic_surface_pressure_pa
+    hydrostatic=hydrostatic_surface_pressure_pa(elevation,body,p0_pa=705.)
+    np.testing.assert_allclose(hydrostatic,705.*expected,rtol=2e-15)
     original=driver.initial_rest_state(coords,specs,body,elevation,p0_pa=705.)
     original_pressure=np.exp(np.asarray(grid.to_nodal(original.log_surface_pressure)))[0]*scale
     np.testing.assert_allclose(pressure/pressure.mean(),original_pressure/original_pressure.mean(),rtol=2e-14)

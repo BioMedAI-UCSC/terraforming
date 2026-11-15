@@ -160,9 +160,8 @@ def initial_rest_state(coords, specs, body, elevation_nodal_m, t_ref_k=None, p0_
     """A rest, isothermal Mars state with surface pressure balanced to the terrain.
 
     Winds are zero and the temperature is the reference profile (temperature
-    variation zero); only the surface pressure carries the topography, via
-    :func:`hydrostatic_surface_pressure_pa`. Running the dycore from here lets
-    the terrain-driven pressure gradients spin up the circulation.
+    variation zero). Log pressure uses the same spectral cutoff as the terrain
+    lower boundary, so unresolved terrain modes do not launch false winds.
     """
     grid = coords.horizontal
     # Surface pressure on the (1, n_lon, n_lat) surface nodal grid.
@@ -170,7 +169,7 @@ def initial_rest_state(coords, specs, body, elevation_nodal_m, t_ref_k=None, p0_
         np.asarray(elevation_nodal_m), body, t_ref_k, p0_pa
     ).reshape(coords.surface_nodal_shape)
     ps_nd = np.asarray(specs.nondimensionalize(ps_pa * _u.pascal))
-    log_sp = grid.to_modal(jnp.asarray(np.log(ps_nd)))
+    log_sp = grid.clip_wavenumbers(grid.to_modal(jnp.asarray(np.log(ps_nd))))
 
     zeros_modal = jnp.zeros((coords.vertical.layers,) + grid.modal_shape)
     return primitive_equations.State(
@@ -211,6 +210,7 @@ class MarsMapFields:
     temperature_kind: str = "lowest_layer_air"
     hyperdiffusion_tau_seconds: float | None = None
     reference_scale_height_m: float | None = None
+    wind_sigma: float | None = None
 
     @property
     def wind_speed_ms(self) -> np.ndarray:
@@ -230,7 +230,7 @@ class MarsMapFields:
     @property
     def wind_level_sigma(self) -> float:
         """Sigma midpoint represented by the exported lowest-layer wind."""
-        return 1.0 - 0.5 / self.n_layers
+        return self.wind_sigma if self.wind_sigma is not None else 1.0 - 0.5 / self.n_layers
 
     @property
     def approximate_wind_height_m(self) -> float:
@@ -268,6 +268,7 @@ def run_maps(
     neural_tendency=None,
     physics_backend: Literal["standard", "reference"] = "standard",
     reference_options=None,
+    sigma_boundaries=None,
 ) -> MarsMapFields | tuple[MarsMapFields, object]:
     """Run the Mars dycore over MOLA terrain and return lat/lon map fields.
 
@@ -334,7 +335,7 @@ def run_maps(
             "by the radiatively-forced surface temperature)."
         )
 
-    coords = coordinate_system(truncation=truncation, n_layers=n_layers)
+    coords = coordinate_system(truncation=truncation, n_layers=n_layers,sigma_boundaries=sigma_boundaries)
     specs = physics_specs(body)
     grid = coords.horizontal
 
@@ -352,6 +353,11 @@ def run_maps(
               if initial_state is None else initial_state)
     if physics_backend=='reference':
         from src.framework.physics.dinosaur_physics import build_step,initial_state as reference_initial_state
+        if initial_state is not None:
+            saved=({} if state0.auxiliary_fields is None else state0.auxiliary_fields).get('vertical_sigma_boundaries')
+            if (saved is None and sigma_boundaries is not None) or (saved is not None and
+                not np.array_equal(np.asarray(saved),np.asarray(coords.vertical.boundaries))):
+                raise ValueError('reference restart sigma boundaries differ or are missing')
         options=dict(reference_options)
         initial_water=options.pop('initial_water_surface_kg_m2',0.)
         initial_vapor=options.pop('initial_water_vapor_ratio',0.)
@@ -600,6 +606,7 @@ def run_maps(
         physics=physics_label,
         hyperdiffusion_tau_seconds=hyperdiffusion_tau_seconds,
         reference_scale_height_m=body.gas_constant_j_kg_k*(t_ref_k or body.reference_temperature_k)/body.gravity_m_s2,
+        wind_sigma=float(coords.vertical.centers[-1]),
         co2_ice_pa=co2_ice_map,
         rotation_period_s=body.solar_day_seconds,
         sidereal_rotation_period_s=body.rotation_period_s,

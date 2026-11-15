@@ -44,6 +44,26 @@ class TestHydrostaticPressure:
         assert 60.0 < float(high) < 120.0
 
 
+@pytest.mark.parametrize('boundaries',[None,[0.,.001,.05,.5,1.]])
+def test_cold_start_balances_the_same_terrain_modes_as_the_dycore(boundaries):
+    import jax.numpy as jnp
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.framework.gcm.specs import physics_specs
+    from src.framework.gcm.dynamics import primitive_equations,stepper
+    from src.framework.gcm._dinosaur import spherical_harmonic,scales
+    from src.celestials.planets.mars.reference_constants import AMES_BODY_3D as body
+    coords=coordinate_system('T21',4,sigma_boundaries=boundaries);grid=coords.horizontal;specs=physics_specs(body)
+    terrain_modes=jnp.zeros(grid.modal_shape).at[0,2].set(1500.).at[0,-1].set(1500.)
+    elevation=np.asarray(grid.to_nodal(terrain_modes))
+    orography=topo.mola_modal_orography(coords,specs,elevation_nodal_m=elevation)
+    initial=maps.initial_rest_state(coords,specs,body,elevation)
+    equation=primitive_equations(coords,body,specs,orography=orography)
+    final=jax.jit(stepper(equation,5.,specs))(initial)
+    u,v=spherical_harmonic.vor_div_to_uv_nodal(grid,final.vorticity,final.divergence)
+    scale=float(specs.dimensionalize(1.,scales.units.meter/scales.units.second).magnitude)
+    assert float(jnp.max(jnp.hypot(u,v)))*scale<1e-8
+
+
 @needs_mola
 class TestRunMaps:
 
@@ -348,14 +368,15 @@ def test_comparison_export_preserves_geography_units_season_and_cloud_inventory(
         np.testing.assert_allclose(ds['tracer_'+CO2_CLOUD_TRACER],cloud_ratio,atol=1e-14)
         assert ds['tracer_'+CO2_CLOUD_TRACER].attrs['units']=='kg kg-1'
         assert ds.tracer_dust_number.attrs['units']=='kg-1'
-        np.testing.assert_allclose(ds.tracer_dust_number,1e8,rtol=1e-13)
+        expected_number=np.asarray(grid.to_nodal(dynamics.tracers['dust_number'])).transpose(0,2,1)
+        np.testing.assert_array_equal(ds.tracer_dust_number[0],expected_number)
         np.testing.assert_allclose(ds.water_surface_kg_m2[0],landmark.T)
         assert ds.dust_surface_kg_m2.dims==('time','dust_mode','lat','lon')
         np.testing.assert_allclose(ds.dust_surface_kg_m2[0,1],2.*landmark.T)
 
 
-@pytest.mark.parametrize('dust_mode_count',[1,2])
-def test_reference_maps_backend_runs_water_and_preserves_restart_state(monkeypatch,dust_mode_count):
+@pytest.mark.parametrize('dust_mode_count,boundaries',[(1,None),(2,None),(2,[0.,.01,.1,.5,1.])])
+def test_reference_maps_backend_runs_water_and_preserves_restart_state(monkeypatch,dust_mode_count,boundaries):
     from src.celestials.planets.mars.reference_constants import AMES_BODY_3D,reference_radiative_forcing
     from src.framework.physics.radiative_transfer import make_radiation_component
     from src.framework.physics.dinosaur_physics import water_inventory
@@ -370,6 +391,7 @@ def test_reference_maps_backend_runs_water_and_preserves_restart_state(monkeypat
             initial_dust_mass_ratio=[1e-5,2e-5],initial_dust_number_per_kg=[1e8,3e7],
             initial_dust_surface_kg_m2=[30.,20.])
     kwargs=dict(body=AMES_BODY_3D,truncation='T21',n_layers=4,dt_seconds=5.,
+        sigma_boundaries=boundaries,
         t_ref_k=180.,forcing=reference_radiative_forcing(),radiation_component=radiation,
         physics_backend='reference',reference_options=options,return_final_state=True)
     fields,first=maps.run_maps(**kwargs,n_steps=1)
@@ -379,12 +401,21 @@ def test_reference_maps_backend_runs_water_and_preserves_restart_state(monkeypat
     assert 'reference column physics' in fields.physics
     expected_height=-AMES_BODY_3D.gas_constant_j_kg_k*180./AMES_BODY_3D.gravity_m_s2*np.log(fields.wind_level_sigma)
     assert fields.approximate_wind_height_m==pytest.approx(expected_height)
+    assert fields.wind_level_sigma==pytest.approx(.75 if boundaries is not None else .875)
+    if boundaries is not None:
+        with pytest.raises(ValueError,match='restart sigma boundaries'):
+            maps.run_maps(**{**kwargs,'sigma_boundaries':[0.,.02,.1,.5,1.]},n_steps=1,initial_state=first)
     if dust_mode_count>1:
         assert first.auxiliary_fields['dust_surface_kg_m2'].shape[-1]==dust_mode_count
         assert 'dust_mass_2' in first.dynamics.tracers
     for actual,expected in zip(jax.tree_util.tree_leaves(second),jax.tree_util.tree_leaves(whole),strict=True):
+        if boundaries is not None and actual.shape[-2:]==first.dynamics.temperature_variation.shape[-2:]:
+            # Different scan lengths can round tiny spectral coefficients differently.
+            from src.framework.gcm.coordinates import grid as spectral_grid
+            actual=spectral_grid('T21').to_nodal(actual)
+            expected=spectral_grid('T21').to_nodal(expected)
         np.testing.assert_allclose(actual,expected,rtol=3e-13,atol=3e-13)
-    coords=coordinate_system('T21',4);specs=physics_specs(AMES_BODY_3D)
+    coords=coordinate_system('T21',4,sigma_boundaries=boundaries);specs=physics_specs(AMES_BODY_3D)
     np.testing.assert_allclose(water_inventory(second,coords,specs,AMES_BODY_3D),
         water_inventory(first,coords,specs,AMES_BODY_3D),rtol=3e-12)
 
