@@ -1,0 +1,193 @@
+{
+  "status": "pass",
+  "reference": {
+    "source_git_blob": "38b3f41e4d07f9a2e3c9d7a689e50577cac7858c",
+    "compiled_source_sha256": "e6c8dfb08dbe70e6e28b79484d7b4dd5ef4ee33f6bee74a1202c4583c6295c8c",
+    "routine_sha256": {
+      "initpbl": "31e60ac5530e6d4e38a83f6fc68b63c14a88cb0da765a121f292303c66197488",
+      "pbl_driver": "faef75218c885ce40c983744b7d6ace60b8cc70930533ff1f04b7f75e181e51f",
+      "newpbl": "2bcff80158ef4bdbbdd376b900dab9826f12430d93d873e88eab38e1f465ec0e",
+      "eddycoef": "91d022aacaa59977aef018487336a0aa72618783c951b372ab216284b2da6145",
+      "bndcond": "726026b09a043adbc4402a0d90ec8537334a0d92bb6eca0c63c113c8a620b11f",
+      "scldef": "de17eb292fffc040056902829841494a1f6521f69e1c48552c30adcc306265a6",
+      "watsat_pbl": "ef07728d5d1063881acc8076f1a225d7c45f5e8e94e8a627919332f904d563a9",
+      "matrix": "eee81dd7fc3f9dc73cbcd1d5e9be894d5ae877a785a500842219cc1ce935de74",
+      "solve": "6e49a3a2348edb3b9234d8aa5f13a14fadc6839d87bbd736f051851fcaf74d26",
+      "descale": "1b979e879dab393128a1b9fdef024455c43a6a2235939c85abcc04326895bb6f",
+      "solve_unstable": "2a4bac92fbc032932548d64aa66fa411104eac886d03ac318853274e75f33c25",
+      "fh": "de6254a4d67cf1734656d09ccae634b75461b82a05794b09658af38ba5477f22",
+      "fhprime": "ad0104f62bc408891150b1fdb0acef26563925a7b6cce2d0af77e733fb1234f1",
+      "fm": "bd86444cf2d640e8c457f72b68c929f4fb4dbe640e2339782b4ae76f56861ef3",
+      "fmprime": "017ab4d645c70b08919d9e2bbd1131eba6e6e8c21890e29e11458602a133ba25"
+    },
+    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+    "compiler_flags": [
+      "-O3",
+      "-cpp",
+      "-fdefault-real-8",
+      "-fdefault-double-8",
+      "-fPIC",
+      "-shared"
+    ],
+    "real_precision_bits": 64,
+    "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged"
+  },
+  "cases": [
+    {
+      "layers": 4,
+      "case": "stable",
+      "max_absolute_eddy_errors": {
+        "km": 5.684341886080802e-14,
+        "kh": 0.0,
+        "richardson": 0.0,
+        "shear_squared": 0.0
+      },
+      "max_absolute_surface_error": 0.0,
+      "max_absolute_column_errors": {
+        "temperature_k": 2.842170943040401e-14,
+        "u_ms": 3.552713678800501e-15,
+        "v_ms": 3.552713678800501e-15,
+        "tracer_ratio": 1.3552527156068805e-20
+      }
+    },
+    {
+      "layers": 4,
+      "case": "unstable",
+      "max_absolute_eddy_errors": {
+        "km": 4.547473508864641e-13,
+        "kh": 9.094947017729282e-13,
+        "richardson": 2.7755575615628914e-17,
+        "shear_squared": 0.0
+      },
+      "max_absolute_surface_error": 0.0,
+      "max_absolute_column_errors": {
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 3.552713678800501e-15,
+        "v_ms": 3.552713678800501e-15,
+        "tracer_ratio": 1.3552527156068805e-20
+      }
+    },
+    {
+      "layers": 4,
+      "case": "zero-wind",
+      "max_absolute_eddy_errors": {
+        "km": 0.0,
+        "kh": 0.0,
+        "richardson": 2.220446049250313e-16,
+        "shear_squared": 0.0
+      },
+      "max_absolute_surface_error": 0.0,
+      "max_absolute_column_errors": {
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 0.0,
+        "v_ms": 0.0,
+        "tracer_ratio": 6.776263578034403e-21
+      }
+    },
+    {
+      "layers": 12,
+      "case": "stable",
+      "max_absolute_eddy_errors": {
+        "km": 6.821210263296962e-13,
+        "kh": 6.821210263296962e-13,
+        "richardson": 1.3877787807814457e-17,
+        "shear_squared": 6.938893903907228e-18
+      },
+      "max_absolute_surface_error": 2.220446049250313e-16,
+      "max_absolute_column_errors": {
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 1.7763568394002505e-15,
+        "v_ms": 3.552713678800501e-15,
+        "tracer_ratio": 1.3552527156068805e-20
+      }
+    },
+    {
+      "layers": 12,
+      "case": "unstable",
+      "max_absolute_eddy_errors": {
+        "km": 1.3642420526593924e-12,
+        "kh": 1.8189894035458565e-12,
+        "richardson": 1.3877787807814457e-17,
+        "shear_squared": 1.3877787807814457e-17
+      },
+      "max_absolute_surface_error": 2.220446049250313e-16,
+      "max_absolute_column_errors": {
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 7.105427357601002e-15,
+        "v_ms": 1.4210854715202004e-14,
+        "tracer_ratio": 1.3552527156068805e-20
+      }
+    },
+    {
+      "layers": 12,
+      "case": "zero-wind",
+      "max_absolute_eddy_errors": {
+        "km": 3.410605131648481e-13,
+        "kh": 4.547473508864641e-13,
+        "richardson": 1.1102230246251565e-16,
+        "shear_squared": 0.0
+      },
+      "max_absolute_surface_error": 4.547473508864641e-13,
+      "max_absolute_column_errors": {
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 0.0,
+        "v_ms": 0.0,
+        "tracer_ratio": 2.710505431213761e-20
+      }
+    },
+    {
+      "layers": 40,
+      "case": "stable",
+      "max_absolute_eddy_errors": {
+        "km": 6.821210263296962e-13,
+        "kh": 9.094947017729282e-13,
+        "richardson": 2.7755575615628914e-17,
+        "shear_squared": 1.734723475976807e-18
+      },
+      "max_absolute_surface_error": 3.469446951953614e-18,
+      "max_absolute_column_errors": {
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 1.0658141036401503e-14,
+        "v_ms": 7.105427357601002e-15,
+        "tracer_ratio": 2.710505431213761e-20
+      }
+    },
+    {
+      "layers": 40,
+      "case": "unstable",
+      "max_absolute_eddy_errors": {
+        "km": 1.3642420526593924e-12,
+        "kh": 2.7284841053187847e-12,
+        "richardson": 2.7755575615628914e-17,
+        "shear_squared": 6.938893903907228e-18
+      },
+      "max_absolute_surface_error": 2.220446049250313e-16,
+      "max_absolute_column_errors": {
+        "temperature_k": 8.526512829121202e-14,
+        "u_ms": 1.4210854715202004e-14,
+        "v_ms": 7.105427357601002e-15,
+        "tracer_ratio": 2.710505431213761e-20
+      }
+    },
+    {
+      "layers": 40,
+      "case": "zero-wind",
+      "max_absolute_eddy_errors": {
+        "km": 4.547473508864641e-13,
+        "kh": 4.547473508864641e-13,
+        "richardson": 1.6653345369377348e-16,
+        "shear_squared": 0.0
+      },
+      "max_absolute_surface_error": 0.0,
+      "max_absolute_column_errors": {
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 0.0,
+        "v_ms": 0.0,
+        "tracer_ratio": 1.3552527156068805e-20
+      }
+    }
+  ],
+  "source_sha256": "ca7e113990aa978d5ac7e38da0c386c281032eb129540331c4936f5623585bc5",
+  "kernel_sha256": "6d5e49da9511d249f2651c954ad912d29a8b0a988c52a6b8507aa80e23f42dcc",
+  "limits": "gas PBL driver with default switches only; global surface energy coupling and model validation remain pending"
+}

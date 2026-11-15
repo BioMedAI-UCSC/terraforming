@@ -1248,32 +1248,8 @@ def _implicit_vertical_diffusion_tendency(
         lower = lower.at[k + 1].set(-timestep_s * ratio * rate)
         diagonal = diagonal.at[k + 1].add(timestep_s * ratio * rate)
 
-    c0 = upper[0] / diagonal[0]
-    d0 = field_si[0] / diagonal[0]
-
-    def eliminate(carry, row):
-        c_prev, d_prev = carry
-        lo, diag, up, rhs = row
-        pivot = diag - lo * c_prev
-        c = up / pivot
-        d = (rhs - lo * d_prev) / pivot
-        return (c, d), (c, d)
-
-    (_, _), (c_tail, d_tail) = jax.lax.scan(
-        eliminate, (c0, d0), (lower[1:], diagonal[1:], upper[1:], field_si[1:])
-    )
-    c_prime = jnp.concatenate([c0[None], c_tail], axis=0)
-    d_prime = jnp.concatenate([d0[None], d_tail], axis=0)
-
-    def substitute(next_value, row):
-        c, d = row
-        value = d - c * next_value
-        return value, value
-
-    _, reversed_solution = jax.lax.scan(
-        substitute, d_prime[-1], (c_prime[:-1][::-1], d_prime[:-1][::-1])
-    )
-    new = jnp.concatenate([reversed_solution[::-1], d_prime[-1:]], axis=0)
+    from src.framework.physics.vertical_solve import solve_tridiagonal
+    new = solve_tridiagonal(lower,diagonal,upper,field_si)
     tendency_si = (new - field_si) / timestep_s
     if velocity:
         tendency = specs.nondimensionalize(

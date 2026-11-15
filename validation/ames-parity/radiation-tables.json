@@ -1,0 +1,36 @@
+{
+  "status": "pass",
+  "reference": {
+    "source_git_blob": "40d8879c3735bbec6cabc63817cad5220f281532",
+    "compiled_source_sha256": "44ef4a46237e35e6d5cdcf7587a8376b7b4766b5b2777557fabaee57c326ad84",
+    "routine_sha256": {
+      "laginterp": "aefc9d2c78030d6f8f0c37de694cd07774083a13e3f0e36d2a56bcec29ad5b05",
+      "lagrange": "7703124f363db0955e4e3417e57389b3d0ab442bb8f6ae7183a8f708ad640131",
+      "tpindex15": "5c28d9fa469aed1d3246ece4f83656623faceb9812b8ae4156a04e48c785fb2b",
+      "boxinterp": "c730f46a9887ddd91eb676a99384eb9e12abaef9d026f3de53e2326f50ab65a3"
+    },
+    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+    "compiler_flags": [
+      "-O3",
+      "-cpp",
+      "-fdefault-real-8",
+      "-fdefault-double-8",
+      "-fPIC",
+      "-shared"
+    ],
+    "real_precision_bits": 64,
+    "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged"
+  },
+  "max_log10_table_errors": {
+    "ir": 0.0,
+    "sw": 0.0
+  },
+  "max_log10_lookup_errors": {
+    "ir": 1.4210854715202004e-14,
+    "sw": 1.4210854715202004e-14
+  },
+  "lookup_cases": 100,
+  "source_sha256": "c73efcfb532cbb34c4a5b5f01c8d9dba657ac1572ef7703e02c3e44083734f46",
+  "stage_sha256": "ce60364c358e231234ee926323ec2a0b96c5aa85f2d840f24a4393ccb965da36",
+  "limits": "12-band gas-table preparation and dry-mixture lookup only; radiative transfer and cloud feedback require separate validation"
+}

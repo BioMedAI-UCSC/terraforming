@@ -20,6 +20,13 @@ def test_staged_table_dimensions_weights_and_source_hashes():
     data = ames_radiation.load_ames_co2_tables()
     assert data["log10_k_ir"].shape == (7, 11, 5, 16)
     assert data["log10_k_sw"].shape == (7, 11, 7, 16)
+    assert data["log10_k_ir_ames"].shape == (7,51,5,16)
+    assert data["log10_k_sw_ames"].shape == (7,51,7,16)
+    assert data["log10_k_ir_mixtures_ames"].shape == (7,51,10,5,16)
+    assert data["log10_k_sw_mixtures_ames"].shape == (7,51,10,7,16)
+    for kind in ("ir","sw"):
+        np.testing.assert_allclose(data[f"log10_k_{kind}_ames"][:,::5],
+            data[f"log10_k_{kind}"],rtol=2e-14,atol=2e-14)
     assert np.sum(data["gauss_weights"]) == pytest.approx(1.0)
     assert np.sum(data["solar_weights"]) == pytest.approx(1.0)
     assert np.allclose(np.sum(data["planck_fraction_ir"], axis=1), 1.0)
@@ -70,3 +77,30 @@ def test_channel_weights_preserve_each_spectral_band():
     for key in ("clear_fraction_sw", "clear_fraction_ir"):
         weights = np.asarray(ames_radiation.channel_weights(data[key]))
         assert np.allclose(weights.sum(axis=1), 1.0)
+
+
+def test_ames_pressure_staging_reproduces_cubic_and_preserves_source_points():
+    from scripts.stage_ames_co2_radiation import (
+        ames_pressure_interpolation,P_FINE_LOG_MBAR,P_REF_MBAR)
+    axis=np.log10(P_REF_MBAR)
+    polynomial=lambda p:-20.+.1*p+.01*p*p+.001*p*p*p
+    table=polynomial(axis)[None,:,None,None]
+    refined=ames_pressure_interpolation(table)
+    np.testing.assert_allclose(refined[0,:,0,0],polynomial(P_FINE_LOG_MBAR),rtol=2e-14,atol=2e-14)
+
+
+def test_native_pressure_grid_changes_off_grid_opacity_and_preserves_gradients():
+    data=ames_radiation.load_ames_co2_tables()
+    def lookup(temperature,pressure):
+        return ames_radiation._interp2_log_table(data['log10_k_ir_ames'],
+            data['temperature_k'],data['pressure_mbar_ames'],temperature,pressure)
+    actual=lookup(210.,3.)
+    old=ames_radiation._interp2_log_table(data['log10_k_ir'],
+        data['temperature_k'],data['pressure_mbar'],210.,3.)
+    assert float(jnp.max(jnp.abs(actual-old)))>1e-3
+    def objective(scale):
+        return jnp.sum(lookup(210.*scale,3.*scale))
+    auto=jax.grad(objective)(1.)
+    for eps in (1e-4,1e-5,1e-6):
+        finite=(objective(1.+eps)-objective(1.-eps))/(2.*eps)
+        np.testing.assert_allclose(auto,finite,rtol=2e-7,atol=1e-7)

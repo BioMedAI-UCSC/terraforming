@@ -1,0 +1,92 @@
+{
+  "status": "pass",
+  "reference": {
+    "commit": "ba47cada5f9eb89c75c4f10d06dbae6e7f9ecb26",
+    "source_git_blob": "d0351317dfb6edd4c83c01c67d9ad3a39bff3b2d",
+    "compiled_source_sha256": "d8198d9d7b234878a431e68c7e0ea7c61387c90b08a5a09a1fc45d3373c6bf5b",
+    "routine_sha256": {
+      "pass2": "fc30b833f3374fa31fe31a241d43509d835983aa2849d9edd02983e0c573ded2"
+    },
+    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+    "compiler_flags": [
+      "-O3",
+      "-cpp",
+      "-fdefault-real-8",
+      "-fdefault-double-8",
+      "-fPIC",
+      "-shared"
+    ],
+    "real_precision_bits": 64,
+    "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged"
+  },
+  "cases": [
+    {
+      "case": "stable",
+      "max_absolute_errors": {
+        "temperature_k": 2.842170943040401e-14,
+        "u_ms": 2.1316282072803006e-14,
+        "v_ms": 2.842170943040401e-14,
+        "tracer_ratio": 2.168404344971009e-19
+      },
+      "native_seconds": 0.0008236458525061607,
+      "jax_seconds": 0.0008761666482314468,
+      "native_over_jax_speed_ratio": 0.9400561573174465,
+      "first_jax_call_seconds": 0.12616654206067324
+    },
+    {
+      "case": "unstable",
+      "max_absolute_errors": {
+        "temperature_k": 1.1368683772161603e-13,
+        "u_ms": 2.842170943040401e-14,
+        "v_ms": 3.197442310920451e-14,
+        "tracer_ratio": 2.710505431213761e-19
+      },
+      "native_seconds": 0.004139433312229812,
+      "jax_seconds": 0.001072166650556028,
+      "native_over_jax_speed_ratio": 3.8608114793377437,
+      "first_jax_call_seconds": 0.001208208967000246
+    },
+    {
+      "case": "mixed",
+      "max_absolute_errors": {
+        "temperature_k": 8.526512829121202e-14,
+        "u_ms": 2.842170943040401e-14,
+        "v_ms": 2.842170943040401e-14,
+        "tracer_ratio": 3.2526065174565133e-19
+      },
+      "native_seconds": 0.0030124603770673277,
+      "jax_seconds": 0.0015983333345502616,
+      "native_over_jax_speed_ratio": 1.884751016542474,
+      "first_jax_call_seconds": 0.0017224578186869621
+    },
+    {
+      "case": "nonuniform",
+      "max_absolute_errors": {
+        "temperature_k": 8.526512829121202e-14,
+        "u_ms": 2.842170943040401e-14,
+        "v_ms": 2.842170943040401e-14,
+        "tracer_ratio": 3.2526065174565133e-19
+      },
+      "native_seconds": 0.0027870562626048923,
+      "jax_seconds": 0.0016285582911223172,
+      "native_over_jax_speed_ratio": 1.711364142013117,
+      "first_jax_call_seconds": 0.0016183331608772278
+    }
+  ],
+  "source_sha256": "8253d0a83bdc5b0bf1c335c69a882c29645584e31da4953863b164ab50940429",
+  "kernel_sha256": "11d8f2284b7e95cbb38064400c6e284913599f9a7cc9d3a349f7093f60ecf162",
+  "columns": 2048,
+  "layers": 40,
+  "repeats": 20,
+  "constants": {
+    "gas_constant_j_kg_k": 189.02,
+    "cp_j_kg_k": 735.94,
+    "source": "Ames v3.2.1 patches/srcFMS.patch"
+  },
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "jax_version": "0.11.0",
+  "devices": [
+    "cpu:0"
+  ],
+  "limits": "pass2 kernel only; FP64 tolerance agreement, not bitwise identity or whole-model climate/speed equivalence"
+}

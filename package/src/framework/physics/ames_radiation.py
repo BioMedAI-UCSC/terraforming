@@ -73,10 +73,10 @@ def correlated_k_optical_depths(temperature_k, pressure_mid_pa, delta_pressure_p
     data = load_ames_co2_tables_jax()
     pressure_mbar = pressure_mid_pa / 100.0
     delta_mbar = delta_pressure_pa / 100.0
-    common = (data["temperature_k"], data["pressure_mbar"], temperature_k,
+    common = (data["temperature_k"], data["pressure_mbar_ames"], temperature_k,
               pressure_mbar)
-    log_sw = _interp2_log_table(data["log10_k_sw"], *common)
-    log_ir = _interp2_log_table(data["log10_k_ir"], *common)
+    log_sw = _interp2_log_table(data["log10_k_sw_ames"], *common)
+    log_ir = _interp2_log_table(data["log10_k_ir_ames"], *common)
     scale = CO2_COLUMN_FACTOR_PER_MBAR * delta_mbar[..., None, None]
     tau_sw = scale * 10.0 ** log_sw
     tau_ir = scale * 10.0 ** log_ir

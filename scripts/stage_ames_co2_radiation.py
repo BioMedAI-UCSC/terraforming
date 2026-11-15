@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """Decode the bundled Ames 12-band Fortran tables into a compact JAX asset.
 
-Only the nearly pure-CO2 mixture (H2O mass fraction 1e-7) is staged for the
-present dry Mars GCM. The source records and dimensions follow ``set_bands``,
+The source records and dimensions follow ``set_bands``,
 ``setrad``, ``laginterp``, ``optcv``, and ``optci`` in AmesGCM's
 ``atmos_param_mars/Rad/rtmod_mgcm.F90``.
 """
@@ -19,6 +18,8 @@ import numpy as np
 
 T_REF_K = np.arange(50.0, 351.0, 50.0)
 P_REF_MBAR = 10.0 ** np.arange(-6.0, 5.0)
+P_FINE_LOG_MBAR = np.round(np.linspace(-6.,4.,51),1)
+WATER_MASS_FRACTIONS = np.array([1e-7,1e-6,1e-5,1e-4,1e-3,.01,.1,.2,.3,.4])
 GAUSS_WEIGHTS = np.array([
     4.8083554740e-2, 1.0563099137e-1, 1.4901065679e-1,
     1.7227479710e-1, 1.7227479710e-1, 1.4901065679e-1,
@@ -53,10 +54,32 @@ def decode(path: Path, bands: int) -> tuple[np.ndarray, np.ndarray]:
             raise ValueError(f"unexpected trailing bytes in {path}")
     if coefficients.size != np.prod(shape) or clear_fraction.size != bands:
         raise ValueError(f"unexpected Ames table dimensions in {path}")
-    # Fortran's first index is contiguous. Select the driest mixture and omit
-    # the 17th clear channel, whose gas coefficient is defined as zero.
-    table = coefficients.reshape(shape, order="F")[:, :, 0, :, :16]
+    # Fortran's first index is contiguous. Omit the 17th clear channel,
+    # whose gas coefficient is defined as zero.
+    table = coefficients.reshape(shape, order="F")[..., :16]
     return np.log10(np.maximum(table, 1.0e-200)), clear_fraction.copy()
+
+
+def ames_pressure_interpolation(log_table):
+    """Ames laginterp: four-point cubic log(k), then the 51-point RT grid."""
+    log_table = np.asarray(log_table)
+    coarse = np.log10(P_REF_MBAR)
+    rows = []
+    for p in P_FINE_LOG_MBAR[:-1]:
+        interval = min(max(int(np.floor(p-coarse[0])),0),len(coarse)-2)
+        first = min(max(interval-1,0),len(coarse)-4)
+        x = coarse[first:first+4]
+        y = log_table[:,first:first+4]
+        value = np.zeros_like(y[:,0])
+        for k in range(4):
+            others = [i for i in range(4) if i!=k]
+            numerator = (p-x[others[0]])*(p-x[others[1]])*(p-x[others[2]])
+            denominator = (x[k]-x[others[0]])*(x[k]-x[others[1]])*(x[k]-x[others[2]])
+            value += numerator*y[:,k]/denominator
+        # Preserve laginterp's conversion back to k and then to log(k).
+        rows.append(np.log10(10.**value))
+    rows.append(np.log10(10.**log_table[:,-1]))
+    return np.stack(rows,axis=1)
 
 
 def _planck_fractions() -> tuple[np.ndarray, np.ndarray]:
@@ -92,8 +115,14 @@ def main() -> None:
     args.output.parent.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(
         args.output,
-        log10_k_ir=ir,
-        log10_k_sw=sw,
+        log10_k_ir=ir[:,:,0],
+        log10_k_sw=sw[:,:,0],
+        log10_k_ir_ames=ames_pressure_interpolation(ir)[:,:,0],
+        log10_k_sw_ames=ames_pressure_interpolation(sw)[:,:,0],
+        pressure_mbar_ames=10.**P_FINE_LOG_MBAR,
+        water_mass_fractions=WATER_MASS_FRACTIONS,
+        log10_k_ir_mixtures_ames=ames_pressure_interpolation(ir),
+        log10_k_sw_mixtures_ames=ames_pressure_interpolation(sw),
         clear_fraction_ir=ir_clear,
         clear_fraction_sw=sw_clear,
         gauss_weights=GAUSS_WEIGHTS,
@@ -105,7 +134,7 @@ def main() -> None:
         ir_bounds_cm1=IR_BOUNDS_CM1,
         source_ir_sha256=hashlib.sha256(ir_path.read_bytes()).hexdigest(),
         source_sw_sha256=hashlib.sha256(sw_path.read_bytes()).hexdigest(),
-        source="NASA Ames Mars GCM v3.2.1 12-band CO2/H2O tables; dry-mixture slice",
+        source="NASA Ames Mars GCM v3.2.1 12-band CO2/H2O tables; full mixtures and laginterp pressure grid",
     )
     print(f"staged {args.output}")
     print(f"IR log10(k): {ir.min():.3f} .. {ir.max():.3f}")
