@@ -387,6 +387,45 @@ checks an 8 GiB temporary-memory ceiling. It still checks the original equations
 against centered differences. Recomputing saves memory and adds reverse-pass
 work; this is not a measured forward speedup.
 
+The combined two-population reverse pass initially required 14,049,478,256
+temporary bytes. Recomputing each coagulation bin update reduces this to
+5,652,882,496 bytes on the local CPU. That test also enforces the 8 GiB ceiling
+and retains its two finite-difference probes. Native coagulation equations and
+the number of bins are unchanged.
+
+## Run the released present-Mars cloud configuration
+
+The production runner now has an explicit `reference` configuration. It uses
+the released `build_run/fms_mars_clouds_v3.2` cloud switches: transported moment
+dust, MY30 background dust, moment water clouds with contact parameter 0.95,
+30-second cloud substeps without latent reheating, 12-band radiation, and the
+top Rayleigh sponge. Radiation refreshes every eight physics steps. The surface
+and soil use the four released TES/GRS maps; polar water uses the pinned cap map.
+The cold start sets global mean gas pressure to 705 Pa. Terrain pressure
+differences stay hydrostatic. This matches the source's dry-mass target rather
+than assigning 705 Pa at zero elevation.
+
+```sh
+env PYTHONPATH=package:. python scripts/run_gcm3d_ablation.py /path/to/AmesGCM/data \
+  --config reference --mola-path /path/to/megt90n000cb.img \
+  --truncation T42 --layers 56 --dt 231 --sols 668 --chunk-sols 5 \
+  --cooldown-seconds 0 --output-dir outputs/reference-climate
+```
+
+Use `--resume` with the same source and inputs. The runner rejects changed
+physics or input hashes. Each checkpoint stores the full restart, a NetCDF with
+all atmospheric levels and physical coordinates, and CO2/water/dust inventories.
+The source archive captures the imported package, including installed wheels,
+its data assets and license notices. Separate runtime records identify the
+devices, JAX/NumPy/Python versions and image package list. Wind-height metadata
+uses the selected body's constants and reference temperature.
+
+The two-step production smoke check is finite. Relative CO2, water and dust
+inventory changes are below 5e-14. This checks the runner and its bookkeeping;
+it does not measure a climate gain. Dinosaur still uses its spectral dynamics
+and sigma grid. Whole-model comparison needs a matched native run, resolution
+checks and climate statistics.
+
 ## Required remaining work
 
 The reference backend projects transported species after dynamics and after

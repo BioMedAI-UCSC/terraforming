@@ -210,6 +210,7 @@ class MarsMapFields:
     insolation_sampling: str = "none"
     temperature_kind: str = "lowest_layer_air"
     hyperdiffusion_tau_seconds: float | None = None
+    reference_scale_height_m: float | None = None
 
     @property
     def wind_speed_ms(self) -> np.ndarray:
@@ -236,7 +237,7 @@ class MarsMapFields:
         """Hydrostatic reference height of the exported lowest-layer midpoint."""
         from src.celestials.planets.mars import MARS_BODY_3D
 
-        scale_height = (
+        scale_height = self.reference_scale_height_m if self.reference_scale_height_m is not None else (
             MARS_BODY_3D.gas_constant_j_kg_k
             * MARS_BODY_3D.reference_temperature_k
             / MARS_BODY_3D.gravity_m_s2
@@ -598,6 +599,7 @@ def run_maps(
         dt_seconds=dt_seconds,
         physics=physics_label,
         hyperdiffusion_tau_seconds=hyperdiffusion_tau_seconds,
+        reference_scale_height_m=body.gas_constant_j_kg_k*(t_ref_k or body.reference_temperature_k)/body.gravity_m_s2,
         co2_ice_pa=co2_ice_map,
         rotation_period_s=body.solar_day_seconds,
         sidereal_rotation_period_s=body.rotation_period_s,
@@ -659,8 +661,31 @@ def state_to_comparison_dataset(state, coords, specs, body, forcing):
     def surface_field(values):
         return values.T[None, ...]
 
+    from src.framework.physics.co2_clouds import CO2_CLOUD_TRACER
+    from src.framework.physics.water_bulk import WATER_VAPOR_TRACER,WATER_CLOUD_TRACER
+    tracer_variables={}
+    for name,value in dyn.tracers.items():
+        attributes=dict(model_tracer_name=name)
+        if name in ('dust_number','water_ice_number') or name.startswith('dust_number_'):
+            attributes['units']='kg-1'
+        elif name in (CO2_CLOUD_TRACER,WATER_VAPOR_TRACER,WATER_CLOUD_TRACER,'dust_mass','water_core_mass') or name.startswith(('dust_mass_','dust_core_mass_')):
+            attributes['units']='kg kg-1'
+        tracer_variables['tracer_'+name]=(('time','sigma','lat','lon'),
+            level_field(np.asarray(grid.to_nodal(value))),attributes)
+    reservoirs={};extra_coordinates={}
+    auxiliary={} if state.auxiliary_fields is None else state.auxiliary_fields
+    for name in ('water_surface_kg_m2','dust_surface_kg_m2','moist_bulk_surface_water_kg_m2'):
+        if name not in auxiliary: continue
+        value=np.asarray(auxiliary[name])
+        if name=='dust_surface_kg_m2' and value.ndim==4:
+            dimensions=('time','dust_mode','lat','lon');value=value.transpose(0,3,2,1)
+            extra_coordinates['dust_mode']=np.arange(1,value.shape[1]+1)
+        else:
+            dimensions=('time','lat','lon');value=surface_field(value[0])
+        reservoirs[name]=(dimensions,value,{'units':'kg m-2'})
     return xr.Dataset(
         data_vars={
+            **tracer_variables,**reservoirs,
             "surface_pressure": (("time", "lat", "lon"), surface_field(surface_pressure), {"units": "Pa"}),
             "surface_temperature": (("time", "lat", "lon"), surface_field(surface_temperature), {"units": "K"}),
             "air_temperature": (("time", "sigma", "lat", "lon"), level_field(air_temperature), {"units": "K"}),
@@ -683,6 +708,7 @@ def state_to_comparison_dataset(state, coords, specs, body, forcing):
             "solar_longitude": (("time",), [ls_deg], {"units": "degree"}),
         },
         coords={
+            **extra_coordinates,
             "time": ("time", [elapsed_sols], {"units": "sol"}),
             "sigma": ("sigma", sigma, {"units": "1", "positive": "down"}),
             "soil_layer": np.arange(ground_temperature.shape[0]),

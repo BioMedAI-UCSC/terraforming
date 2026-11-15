@@ -496,7 +496,13 @@ def test_moment_cloud_multistep_reverse_derivative(interactive,background,effect
         final,_=jax.lax.scan(lambda s,_:(step(s),None),state._replace(dynamics=dyn),None,length=3)
         return jnp.mean(final.surface_temperature)+jnp.mean(
             grid.to_nodal(final.dynamics.tracers[WATER_CLOUD_TRACER]))*1e6
-    auto=jax.jit(jax.grad(objective))(1.)
+    reverse=jax.jit(jax.grad(objective))
+    if dust_mode_count>1:
+        reverse=reverse.lower(1.).compile()
+        memory=reverse.memory_analysis()
+        if memory is not None:
+            assert memory.temp_size_in_bytes<8*1024**3
+    auto=reverse(1.)
     assert np.isfinite(auto) and abs(float(auto))>1e-8
     forward=jax.jit(objective)
     for eps in (1e-3,1e-4):

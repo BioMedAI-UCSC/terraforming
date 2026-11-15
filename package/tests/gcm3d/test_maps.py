@@ -323,11 +323,14 @@ def test_comparison_export_preserves_geography_units_season_and_cloud_inventory(
     cloud_ratio = .01
     dynamics = dataclasses.replace(dynamics, sim_time=0.,
         tracers={**dynamics.tracers, CO2_CLOUD_TRACER:
-                 grid.to_modal(jnp.full((4,) + grid.nodal_shape, cloud_ratio))})
+                 grid.to_modal(jnp.full((4,) + grid.nodal_shape, cloud_ratio)),
+                 'dust_number':grid.to_modal(jnp.full((4,)+grid.nodal_shape,1e8))})
     state = initial_column_state(dynamics, coords, 200., specs, forcing=forcing)
     # This asymmetric landmark detects north/south flips and lon/lat transposes.
     landmark = 200. + np.arange(64)[:, None] * .1 + np.arange(32)[None, :] * .01
-    state = state._replace(surface_temperature=jnp.asarray(landmark[None]))
+    dust=jnp.stack([landmark,2.*landmark],axis=-1)[None]
+    state = state._replace(surface_temperature=jnp.asarray(landmark[None]),
+        auxiliary_fields=dict(water_surface_kg_m2=jnp.asarray(landmark[None]),dust_surface_kg_m2=dust))
     path = maps.save_comparison_netcdf(state, coords, specs, body, forcing, tmp_path / "state.nc")
     with xr.open_dataset(path, decode_times=False) as ds:
         np.testing.assert_allclose(ds.surface_temperature.isel(time=0), landmark.T)
@@ -342,6 +345,13 @@ def test_comparison_export_preserves_geography_units_season_and_cloud_inventory(
         np.testing.assert_allclose(ds.local_solar_time[0], (12. + ds.lon / 15.) % 24.)
         np.testing.assert_allclose(ds.air_pressure,
                                    (ds.surface_pressure * ds.sigma).transpose(*ds.air_pressure.dims))
+        np.testing.assert_allclose(ds['tracer_'+CO2_CLOUD_TRACER],cloud_ratio,atol=1e-14)
+        assert ds['tracer_'+CO2_CLOUD_TRACER].attrs['units']=='kg kg-1'
+        assert ds.tracer_dust_number.attrs['units']=='kg-1'
+        np.testing.assert_allclose(ds.tracer_dust_number,1e8,rtol=1e-13)
+        np.testing.assert_allclose(ds.water_surface_kg_m2[0],landmark.T)
+        assert ds.dust_surface_kg_m2.dims==('time','dust_mode','lat','lon')
+        np.testing.assert_allclose(ds.dust_surface_kg_m2[0,1],2.*landmark.T)
 
 
 @pytest.mark.parametrize('dust_mode_count',[1,2])
@@ -367,6 +377,8 @@ def test_reference_maps_backend_runs_water_and_preserves_restart_state(monkeypat
     _,whole=maps.run_maps(**kwargs,n_steps=2)
     assert fields.co2_ice_pa is not None
     assert 'reference column physics' in fields.physics
+    expected_height=-AMES_BODY_3D.gas_constant_j_kg_k*180./AMES_BODY_3D.gravity_m_s2*np.log(fields.wind_level_sigma)
+    assert fields.approximate_wind_height_m==pytest.approx(expected_height)
     if dust_mode_count>1:
         assert first.auxiliary_fields['dust_surface_kg_m2'].shape[-1]==dust_mode_count
         assert 'dust_mass_2' in first.dynamics.tracers

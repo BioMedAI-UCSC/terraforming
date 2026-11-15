@@ -21,11 +21,12 @@ RUN python3.12 -m venv /opt/venv
 COPY package /opt/framework
 COPY apps/mars-calibration /opt/application
 RUN --mount=type=cache,target=/root/.cache/pip \
-    python -m pip install /opt/framework /opt/application && python -m pip check \
+    python -m pip install -c /opt/application/constraints.txt /opt/framework /opt/application && python -m pip check \
     && pip freeze > /opt/environment.txt \
     && groupadd --gid 10001 calibration \
     && useradd --uid 10001 --gid 10001 --no-create-home --shell /usr/sbin/nologin calibration \
     && chown -R 10001:10001 /opt/application
+COPY scripts /opt/scripts
 WORKDIR /opt/application
 USER 10001:10001
 ENTRYPOINT ["mars-calibration"]

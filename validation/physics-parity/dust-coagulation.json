@@ -2025,7 +2025,7 @@
   "sha256": {
     "scripts/validate_dust_coagulation.py": "f29f72aff21f31ebdf279b659b6f2c1a085267e7de7c82afc0d2c5cdcb700d6a",
     "scripts/native_reference.py": "2e3b0e2f65b685f86fcfdd1b4643b54c5582b81af36a0874a43d9eedc2675d76",
-    "package/src/framework/physics/dust_coagulation.py": "a98647dc616fd2161c0214bbb15ca8de1d4877996c3fa6e2f4304c7fa009247b"
+    "package/src/framework/physics/dust_coagulation.py": "54a4a2e20ff8f6ffaa68dea3b73a0571dd824049d259e0e14ac910b4002387fa"
   },
   "limits": "Physical modes in table and FULLCOAG paths. Source table corner order, pressure fallback, number reconstruction and 1e-15 mass regularization are retained. Empty-bin ratios use zero weight. Equal radii have explicit zero differential settling to preserve the source identity in compiled reverse derivatives. Inactive columns retain the source floor repair and mass loss, recorded by diagnostics. Their raw+dt*tendency<=0 cancellation can select different floor branches; that comparison records the exact source 1e-15 mass-tendency floor bound separately. Turbulent inertia has uninitialized epsilon in the source."
 }

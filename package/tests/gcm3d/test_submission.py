@@ -40,6 +40,29 @@ def test_checkpoint_history_rejects_reversed_time(tmp_path):
         )
 
 
+def test_reference_cold_start_sets_global_dry_mass_and_keeps_hydrostatic_terrain():
+    pytest.importorskip('dinosaur')
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.framework.gcm.specs import physics_specs
+    from src.framework.gcm._dinosaur import jax,scales
+    from src.celestials.planets.mars.reference_constants import AMES_BODY_3D as body
+    jax.config.update('jax_enable_x64',True)
+    driver=_script('run_gcm3d_ablation');coords=coordinate_system('T21',4);grid=coords.horizontal
+    specs=physics_specs(body)
+    elevation=np.broadcast_to(2000.*np.sin(np.asarray(grid.latitudes))[None,:],grid.nodal_shape)
+    state=driver.reference_rest_state(coords,specs,body,elevation)
+    scale=float(specs.dimensionalize(1.,scales.units.pascal).magnitude)
+    pressure=np.exp(np.asarray(grid.to_nodal(state.log_surface_pressure)))[0]*scale
+    weights=np.asarray(grid.quadrature_weights)
+    assert np.sum(pressure*weights)/np.sum(weights)==pytest.approx(705.,rel=2e-14)
+    expected=np.exp(-body.gravity_m_s2*elevation/(body.gas_constant_j_kg_k*body.reference_temperature_k))
+    # The analytic profile also includes the existing spectral transform error.
+    np.testing.assert_allclose(pressure/pressure.mean(),expected/expected.mean(),rtol=3e-12)
+    original=driver.initial_rest_state(coords,specs,body,elevation,p0_pa=705.)
+    original_pressure=np.exp(np.asarray(grid.to_nodal(original.log_surface_pressure)))[0]*scale
+    np.testing.assert_allclose(pressure/pressure.mean(),original_pressure/original_pressure.mean(),rtol=2e-14)
+
+
 def test_staged_arco_time_is_martian_sol_not_cf_datetime(tmp_path):
     stage = _script("stage_arco_macda")
     time = xr.DataArray([0.5], dims="time")

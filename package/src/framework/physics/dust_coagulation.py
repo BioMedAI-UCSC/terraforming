@@ -157,7 +157,8 @@ def coagulation_step(temperature,pressure,mass_ratios,number_ratios,dt_seconds,*
             new[..., :,None]*total[...,None,:],0.),axis=(-2,-1))*dt_seconds/volume[k]
         term2=jnp.sum((1.-fractions[k,:,k])*kernel[...,k,:]*total,axis=-1)*dt_seconds
         return new.at[...,k].set((total[...,k]+factor*term1)/(1.+factor*term2))
-    new=jax.lax.fori_loop(0,25,update,jnp.zeros_like(total))
+    # Recompute each bin update instead of saving collision arrays for all bins.
+    new=jax.lax.fori_loop(0,25,jax.checkpoint(update),jnp.zeros_like(total))
     denominator=jnp.sum(new*volume,axis=-1)
     new=new*(jnp.sum(total*volume,axis=-1)/jnp.where(denominator!=0.,denominator,1.))[...,None]
     active=jnp.sum(total,axis=-1)/rho>1000.

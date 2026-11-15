@@ -52,6 +52,19 @@ compatible NVIDIA driver. The host CUDA toolkit is not used. `pip freeze` is
 saved in the image and copied into results. A build-specific Docker ignore file
 excludes datasets, outputs, and caches from the context.
 
+The image constrains shared dependencies to `uv.lock`. CI checks the export.
+After a lockfile update, refresh it with:
+
+```sh
+uv export --frozen --all-packages --extra gcm3d --no-dev --no-emit-workspace --no-hashes --no-annotate --no-header --output-file apps/mars-calibration/constraints.txt
+```
+
+The image also includes `/opt/scripts/run_gcm3d_ablation.py`. Its `--config reference`
+path runs the released present-Mars cloud setup. See
+[the physics protocol](../../docs/physics-parity.md#run-the-released-present-mars-cloud-configuration)
+for inputs, parameters and output records. Set the Job command to `python`
+and pass that script and its arguments when running this protocol.
+
 ## Transfer and submit
 
 Use your existing Nautilus namespace and credentials; replace `YOUR_NAMESPACE`

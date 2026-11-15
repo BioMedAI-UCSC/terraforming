@@ -49,6 +49,11 @@ jobs:
       - name: Install workspace + gcm3d extra (dinosaur + jax)
         run: uv sync --dev --all-packages --extra gcm3d
 
+      - name: Check experiment dependency constraints
+        run: |
+          uv export --frozen --all-packages --extra gcm3d --no-dev --no-emit-workspace --no-hashes --no-annotate --no-header --output-file /tmp/reference-constraints.txt
+          diff -u apps/mars-calibration/constraints.txt /tmp/reference-constraints.txt
+
       - name: gcm3d tests
         working-directory: package
         env:
