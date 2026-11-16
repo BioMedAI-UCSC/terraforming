@@ -55,13 +55,27 @@ def test_reference_cold_start_sets_global_dry_mass_and_keeps_hydrostatic_terrain
     pressure=np.exp(np.asarray(grid.to_nodal(state.log_surface_pressure)))[0]*scale
     weights=np.asarray(grid.quadrature_weights)
     assert np.sum(pressure*weights)/np.sum(weights)==pytest.approx(705.,rel=2e-14)
-    expected=np.exp(-body.gravity_m_s2*elevation/(body.gas_constant_j_kg_k*body.reference_temperature_k))
+    expected=np.exp(-body.gravity_m_s2*elevation/(body.gas_constant_j_kg_k*170.))
     from src.celestials.planets.mars.maps import hydrostatic_surface_pressure_pa
-    hydrostatic=hydrostatic_surface_pressure_pa(elevation,body,p0_pa=705.)
+    hydrostatic=hydrostatic_surface_pressure_pa(elevation,body,t_ref_k=170.,p0_pa=705.)
     np.testing.assert_allclose(hydrostatic,705.*expected,rtol=2e-15)
-    original=driver.initial_rest_state(coords,specs,body,elevation,p0_pa=705.)
+    original=driver.initial_rest_state(coords,specs,body,elevation,t_ref_k=170.,p0_pa=705.)
     original_pressure=np.exp(np.asarray(grid.to_nodal(original.log_surface_pressure)))[0]*scale
     np.testing.assert_allclose(pressure/pressure.mean(),original_pressure/original_pressure.mean(),rtol=2e-14)
+    from src.framework.gcm.dynamics import reference_temperature
+    air=grid.to_nodal(state.temperature_variation)+np.asarray(reference_temperature(coords,body))[:,None,None]
+    np.testing.assert_allclose(air,170.,atol=1e-12)
+
+
+def test_reference_cold_surface_profile_retains_source_transition_and_polar_values():
+    pytest.importorskip('dinosaur')
+    driver=_script('run_gcm3d_ablation')
+    lat=np.deg2rad(np.array([-90.,-15.0001,-15.,0.,90.]))
+    values=np.asarray(driver.reference_surface_temperature_k(lat))
+    expected=[165.+55.5*.5*(1.+np.cos((x+.261799)*180./75.)) if x<np.deg2rad(-15.)
+        else 167.+52.*np.cos((x+.261799)*90./105.) for x in lat]
+    np.testing.assert_allclose(values,expected,rtol=2e-15)
+    assert values[0]<values[3] and values[-1]<values[3]
 
 
 def test_staged_arco_time_is_martian_sol_not_cf_datetime(tmp_path):

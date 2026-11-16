@@ -406,6 +406,17 @@ and soil use the four released TES/GRS maps; polar water uses the pinned cap map
 The cold start sets global mean gas pressure to 705 Pa. Terrain pressure
 differences stay hydrostatic. This matches the source's dry-mass target rather
 than assigning 705 Pa at zero elevation.
+Air starts at the released 170 K isothermal default. The surface and all soil
+nodes start from the released latitude profile. An unchanged native initializer
+matches 184 latitude samples, including the southern branch transition.
+The shared map initializer now uses an explicit temperature for both the air
+and hydrostatic pressure; it previously changed pressure alone.
+
+Use the released `mars_topo_mola16.nc` for matched comparisons. Its units and
+global cell-center axes are checked, then its cell-area integral is retained
+on the Gaussian grid. Orientation, the longitude seam and invalid input checks
+have independent tests. The original 4-pixels-per-degree MEGDR image remains
+available for existing map runs.
 
 The reference runner defaults to the released 56-level grid. All 14 released
 grid sizes (24 through 87 levels) are available. The unchanged native `set_eta`
@@ -422,7 +433,7 @@ and stretched grids. This removes an initialization imbalance.
 
 ```sh
 env PYTHONPATH=package:. python scripts/run_gcm3d_ablation.py /path/to/AmesGCM/data \
-  --config reference --mola-path /path/to/megt90n000cb.img \
+  --config reference --mola-path /path/to/AmesGCM/data/mars_topo_mola16.nc \
   --truncation T42 --layers 56 --dt 231 --sols 668 --chunk-sols 5 \
   --cooldown-seconds 0 --output-dir outputs/reference-climate
 ```
@@ -442,6 +453,18 @@ relative total CO2 drift was below 5e-15. This checks the runner and its bookkee
 it does not measure a climate gain. Dinosaur still uses its spectral dynamics
 and sigma grid. Whole-model comparison needs a matched native run, resolution
 checks and climate statistics.
+
+The corrected initial state and source MOLA16 file completed another ten steps
+with finite outputs. The composed native radiation check now includes the
+released 56-level grids, with positive and zero top pressure: 48 cases pass.
+The top boundary matters. In a clear 170 K night column, the first-cell cooling
+rate is about -0.000802 K/s with the native 0.001319 Pa top, and -0.0400 K/s
+with the Dinosaur zero top. Lower cells agree closely in that check. The
+excluded native top pressure is about 1.87e-6 of 705 Pa. This grid adaptation
+must remain explicit in upper-atmosphere and climate comparisons.
+
+The reusable Fortran/MPI runtime and parallel 100-sol preparation/compute
+protocol are described in [the comparison experiment](../experiments/reference-comparison/README.md).
 
 ## Explicit CO2 and argon mass
 

@@ -271,7 +271,7 @@ def reference_configuration(grid,data_directory,dt_seconds):
 
 def reference_rest_state(coords,specs,body,elevation_nodal_m):
     """Match the released cloud run's 705 Pa dry-mass target over terrain."""
-    dynamics=initial_rest_state(coords,specs,body,elevation_nodal_m,p0_pa=705.)
+    dynamics=initial_rest_state(coords,specs,body,elevation_nodal_m,t_ref_k=170.,p0_pa=705.)
     grid=coords.horizontal
     scale=float(specs.dimensionalize(1.,scales.units.pascal).magnitude)
     pressure=jnp.exp(grid.to_nodal(dynamics.log_surface_pressure))*scale
@@ -281,6 +281,14 @@ def reference_rest_state(coords,specs,body,elevation_nodal_m):
     normalization=jnp.mean(grid.to_nodal(unit))
     corrected=dynamics.log_surface_pressure.at[...,0,0].add(jnp.log(705./mean)/normalization)
     return dataclasses.replace(dynamics,log_surface_pressure=corrected)
+
+
+def reference_surface_temperature_k(latitude_rad):
+    """Released mars_surface cold start with use_equilibrated_ts enabled."""
+    latitude=jnp.asarray(latitude_rad)
+    return jnp.where(latitude < -15.*jnp.pi/180.,
+        165.+55.5*.5*(1.+jnp.cos((latitude+.261799)*180./75.)),
+        167.+52.*jnp.cos((latitude+.261799)*90./105.))
 
 
 def main() -> int:
@@ -447,6 +455,7 @@ def main() -> int:
                 radiation_mode='12band',radiation_update_seconds=8*args.dt,
                 reference_release_commit='ba47cada5f9eb89c75c4f10d06dbae6e7f9ecb26',
                 reference_build_blob='83b611e6527cf26bef3ec0064c05aebe0bb0d080',
+                initial_air_temperature_k=170.,initial_surface_profile='released-equilibrated-latitude',
                 sigma_boundaries=sigma.tolist())
         if restart_path.exists():
             if not args.resume:
@@ -531,8 +540,13 @@ def main() -> int:
             if reference:
                 from src.framework.physics.dinosaur_physics import initial_state as reference_initial_state
                 initial_options={key:value for key,value in reference_options.items() if key.startswith('initial_')}
-                state=reference_initial_state(initial_dynamics,coords,specs,temperature_k=body.reference_temperature_k,
+                state=reference_initial_state(initial_dynamics,coords,specs,temperature_k=170.,
                     moment_water=True,radiation_update_seconds=8*args.dt,**initial_options)
+                surface=reference_surface_temperature_k(jnp.asarray(grid.latitudes))[None,None,:]
+                surface=surface*float(specs.nondimensionalize(1.*scales.units.kelvin))
+                surface=jnp.broadcast_to(surface,state.surface_temperature.shape)
+                state=state._replace(surface_temperature=surface,
+                    ground_temperature=jnp.broadcast_to(surface,state.ground_temperature.shape))
                 initial_state=state
             else:
                 initial_state = initial_column_state(initial_dynamics,coords,body.reference_temperature_k,

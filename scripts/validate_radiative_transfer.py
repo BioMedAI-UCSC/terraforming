@@ -30,9 +30,14 @@ def validate(source,compiler):
         quad,qp=compile_quad(source,root/'quad',compiler)
         optics.ames_init(f(data['log10_k_sw_ames']),f(data['log10_k_ir_ames']),
             f(data['pressure_mbar_ames']),f(data['temperature_k']),f(rayleigh_per_pa(3.72)*100.))
-        for n in (4,12):
+        for n in (4,12,56):
             for top in (0.,.13):
                 half=f(np.geomspace(.13,613.,n+1));half[0]=top
+                if n==56:
+                    from src.framework.physics.vertical_grid import pressure_interfaces
+                    half=f(pressure_interfaces(n,705.,705.)).copy()
+                    if top==0.: half[0]=0.
+                    top=float(half[0])
                 for strat_temperature in (170.,200.):
                     full=f((half[1:]+half[:-1])*.5)
                     t=f(np.full(n,200.))

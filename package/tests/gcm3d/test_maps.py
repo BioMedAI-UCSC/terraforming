@@ -45,7 +45,8 @@ class TestHydrostaticPressure:
 
 
 @pytest.mark.parametrize('boundaries',[None,[0.,.001,.05,.5,1.]])
-def test_cold_start_balances_the_same_terrain_modes_as_the_dycore(boundaries):
+@pytest.mark.parametrize('temperature',[None,170.])
+def test_cold_start_balances_the_same_terrain_modes_as_the_dycore(boundaries,temperature):
     import jax.numpy as jnp
     from src.framework.gcm.coordinates import coordinate_system
     from src.framework.gcm.specs import physics_specs
@@ -56,7 +57,7 @@ def test_cold_start_balances_the_same_terrain_modes_as_the_dycore(boundaries):
     terrain_modes=jnp.zeros(grid.modal_shape).at[0,2].set(1500.).at[0,-1].set(1500.)
     elevation=np.asarray(grid.to_nodal(terrain_modes))
     orography=topo.mola_modal_orography(coords,specs,elevation_nodal_m=elevation)
-    initial=maps.initial_rest_state(coords,specs,body,elevation)
+    initial=maps.initial_rest_state(coords,specs,body,elevation,t_ref_k=temperature)
     equation=primitive_equations(coords,body,specs,orography=orography)
     final=jax.jit(stepper(equation,5.,specs))(initial)
     u,v=spherical_harmonic.vor_div_to_uv_nodal(grid,final.vorticity,final.divergence)

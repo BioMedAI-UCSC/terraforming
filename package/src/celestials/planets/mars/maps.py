@@ -159,8 +159,8 @@ def hydrostatic_surface_pressure_pa(elevation_m, body, t_ref_k=None, p0_pa=None)
 def initial_rest_state(coords, specs, body, elevation_nodal_m, t_ref_k=None, p0_pa=None):
     """A rest, isothermal Mars state with surface pressure balanced to the terrain.
 
-    Winds are zero and the temperature is the reference profile (temperature
-    variation zero). Log pressure uses the same spectral cutoff as the terrain
+    Winds are zero. The selected isothermal temperature sets both the air and
+    hydrostatic pressure. Log pressure uses the same spectral cutoff as the terrain
     lower boundary, so unresolved terrain modes do not launch false winds.
     """
     grid = coords.horizontal
@@ -172,10 +172,16 @@ def initial_rest_state(coords, specs, body, elevation_nodal_m, t_ref_k=None, p0_
     log_sp = grid.clip_wavenumbers(grid.to_modal(jnp.asarray(np.log(ps_nd))))
 
     zeros_modal = jnp.zeros((coords.vertical.layers,) + grid.modal_shape)
+    temperature_variation=zeros_modal
+    if t_ref_k is not None:
+        selected=float(specs.nondimensionalize(t_ref_k*_u.kelvin))
+        offset=selected-jnp.asarray(reference_temperature(coords,body))
+        temperature_variation=grid.to_modal(jnp.broadcast_to(offset[:,None,None],
+            (coords.vertical.layers,)+grid.nodal_shape))
     return primitive_equations.State(
         vorticity=zeros_modal,
         divergence=zeros_modal,
-        temperature_variation=zeros_modal,
+        temperature_variation=temperature_variation,
         log_surface_pressure=log_sp,
     )
 
