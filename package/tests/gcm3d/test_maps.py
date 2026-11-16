@@ -379,8 +379,9 @@ def test_comparison_export_preserves_geography_units_season_and_cloud_inventory(
         np.testing.assert_allclose(ds.dust_surface_kg_m2[0,1],2.*landmark.T)
 
 
-@pytest.mark.parametrize('dust_mode_count,boundaries',[(1,None),(2,None),(2,[0.,.01,.1,.5,1.])])
-def test_reference_maps_backend_runs_water_and_preserves_restart_state(monkeypatch,dust_mode_count,boundaries):
+@pytest.mark.parametrize('dust_mode_count,boundaries,thermal',[(1,None,False),(2,None,False),
+    (2,[0.,.01,.1,.5,1.],False),(1,None,True)])
+def test_reference_maps_backend_runs_water_and_preserves_restart_state(monkeypatch,dust_mode_count,boundaries,thermal):
     from src.celestials.planets.mars.reference_constants import AMES_BODY_3D,reference_radiative_forcing
     from src.framework.physics.radiative_transfer import make_radiation_component
     from src.framework.physics.dinosaur_physics import water_inventory
@@ -390,6 +391,9 @@ def test_reference_maps_backend_runs_water_and_preserves_restart_state(monkeypat
     radiation=make_radiation_component(lambda *args:None)
     options=dict(soil_diffusivity=(250./(1500.*627.9))**2,bulk_water=True,
         initial_water_surface_kg_m2=100.,initial_water_vapor_ratio=1e-6,form_bulk_clouds=False)
+    if thermal:
+        radiation=None
+        options['thermal_relaxation_options']=dict(equilibrium=185.,timescale=100.)
     if dust_mode_count>1:
         options.update(bulk_water=False,moment_water=True,dust_mode_count=dust_mode_count,
             do_qmass=True,initial_co2_gas_ratio=.95,

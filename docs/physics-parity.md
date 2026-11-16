@@ -516,6 +516,7 @@ limiter or establish matched transport accuracy.
 
 | Area | Remaining implementation and acceptance check |
 | --- | --- |
+| Thermal relaxation | Fixed-profile, evolving-height and analytic Held--Suarez kernels match 36 unchanged native cases, including the original FMS interpolation. Fixed and height forcing connect to the Dinosaur step through `thermal_relaxation_options` and replace radiation on every step. NetCDF readers preserve the source equal-level-count bypass and reuse the native-checked bilinear map. Analytic forcing remains an explicit kernel because the released dispatch does not call it. Command-line selection and whole-model profile comparisons remain. |
 | Global budgets | Momentum exchange and repair-stage ledgers are connected. Extend the energy audit across dissipation, fixed-deep-soil exchange, phase approximations and long global runs; select gas and particle tracers explicitly. |
 | Radiation schedule | Optional integer-second source schedule now holds heating in K/s and surface fluxes, carries the 170 K initial stratosphere and its source update, and persists caches in restarts. Match the configured interval and callback averaging window in whole-model comparisons. |
 | Dust and cloud opacity | Size-dependent dust and all three cloud optical kernels are implemented. CO2 optical feedback is connected; prescribed dust, moment clouds, interactive lifting and seasonal control pass three-step global gradient checks. Multiple physical populations now connect lifting, coagulation, clouds, settling, opacity diagnostics, surface reservoirs and saved effective inputs. Matched climatology remains. |
@@ -547,6 +548,18 @@ unchanged Ames source and its radiation input data. The scripts check the Git
 blob identity before compiling the original routines. Small module declarations
 and C adapters replace unused FMS infrastructure; the routine bodies stay intact.
 The compiler uses double precision, as the Ames GNU build template does.
+
+Thermal relaxation also needs the pinned FMS checkout used by the native build.
+Its height interpolation rejects out-of-range columns. The JAX kernel returns
+nonfinite values for those columns. It does not extend endpoint temperatures.
+Height forcing requires an explicit diagnostic top pressure for the Dinosaur
+zero-pressure upper boundary, as in the existing terrain-height adaptation.
+
+```sh
+env PYTHONPATH=package:. python scripts/validate_thermal_relaxation.py \
+  --ames-source /path/to/AmesGCM --fms-source /path/to/FMS \
+  --output outputs/physics-parity/thermal-relaxation.json
+```
 
 ```sh
 env PYTHONPATH=package:. python scripts/validate_dry_convection.py \

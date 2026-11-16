@@ -16,6 +16,7 @@ from src.framework.physics.water_bulk import WATER_VAPOR_TRACER,WATER_CLOUD_TRAC
 from src.framework.physics.water_moments import moment_particle_tracers,EffectiveState
 from src.framework.physics.particle_optics import dust_optics
 from src.framework.physics.radiation_grid import radiation_grid
+from src.framework.physics.terrain_drag import hydrostatic_heights
 from src.framework.physics.dust_lifting import reference_efficiencies
 from src.framework.physics.dust_control import (LocalTimeState,seasonal_sample,local_time_step,
     validate_local_time_scenario)
@@ -246,7 +247,8 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                moment_water=False,moment_cloud_options=None,moment_sedimentation=True,
                dust_lifting_options=None,dust_optical_bands=12,dust_opacity_channel=1,
                coagulation_options=None,dust_background_options=None,nonorographic_drag_options=None,
-               convection_scheme='fv3',moist_convection_options=None,dust_mode_count=1,do_qmass=False):
+               convection_scheme='fv3',moist_convection_options=None,dust_mode_count=1,do_qmass=False,
+               thermal_relaxation_options=None):
     """Dinosaur dynamics followed by Ames-order reference gas-column physics.
 
     Supply a verified radiation component and mapped soil diffusivity. Keeping
@@ -257,6 +259,14 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
     those approximations. General-mixture thermodynamics is separate.
     """
     grid=coords.horizontal
+    if thermal_relaxation_options is not None:
+        if radiation_component is not None or radiation_update_seconds is not None:
+            raise ValueError('thermal relaxation replaces radiation and must be evaluated every step')
+        unknown=set(thermal_relaxation_options)-{'equilibrium','timescale','source_height','top_pressure_pa'}
+        if unknown or 'equilibrium' not in thermal_relaxation_options:
+            raise ValueError('thermal relaxation requires equilibrium and supported forcing options')
+        if 'source_height' in thermal_relaxation_options and 'top_pressure_pa' not in thermal_relaxation_options:
+            raise ValueError('height relaxation requires an explicit diagnostic top pressure')
     custom_vertical=not np.array_equal(np.asarray(coords.vertical.boundaries),
         np.linspace(0.,1.,len(coords.vertical.centers)+1,dtype=np.float32))
     moment_names=moment_particle_tracers(dust_mode_count)
@@ -435,6 +445,18 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
         # Recompute spectra in reverse mode instead of saving every band/channel.
         @jax.checkpoint
         def evaluate(_):
+            if thermal_relaxation_options is not None:
+                from src.framework.physics.thermal_relaxation import fixed_tendency,height_tendency
+                options=thermal_relaxation_options
+                arguments=dict(timescale=options.get('timescale',-4.))
+                if 'source_height' in options:
+                    z,_=hydrostatic_heights(temperature,half,full,
+                        gas_constant=body.gas_constant_j_kg_k,gravity=body.gravity_m_s2,
+                        top_pressure_pa=options['top_pressure_pa'])
+                    heating,_=height_tendency(temperature,z,options['source_height'],options['equilibrium'],**arguments)
+                else:
+                    heating=fixed_tendency(temperature,options['equilibrium'],**arguments)
+                return heating,jnp.zeros_like(pressure),jnp.zeros_like(pressure)
             radiation=radiation_component(predicted,coords,specs,body,local_forcing)
             heating=radiation.atmospheric_convergence_w_m2/layer_capacity
             if radiation.nonlte_heating_k_s is not None:

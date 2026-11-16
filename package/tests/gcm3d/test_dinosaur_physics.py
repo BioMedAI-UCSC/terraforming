@@ -93,7 +93,7 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
                  dust_lifting_options=None,initial_water_vapor_ratio=1e-6,coagulation_options=None,
                  dust_background_options=None,nonorographic_drag_options=None,effective_input_mode=0,
                  convection_scheme='fv3',moist_convection_options=None,dust_mode_count=1,sigma_boundaries=None,
-                 initial_co2_gas_ratio=None,do_qmass=False):
+                 initial_co2_gas_ratio=None,do_qmass=False,thermal_relaxation_options=None):
     from src.framework.gcm.coordinates import coordinate_system
     from src.framework.gcm.specs import physics_specs
     from src.framework.gcm._dinosaur import primitive_equations,scales
@@ -125,6 +125,7 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
     forcing=(radiative_forcing(co2_radiation_enabled=True) if radiation_component is None else
         reference_radiative_forcing())
     radiation=two_stream_radiative_fluxes if radiation_component is None else radiation_component
+    if thermal_relaxation_options is not None: radiation=None
     step=build_step(coords,specs,BODY,forcing,5.,radiation_component=radiation,
         soil_diffusivity=(250./(1500.*627.9))**2,return_diagnostics=return_diagnostics,
         suspended_co2_clouds=suspended_co2_clouds,bulk_water=bulk_water,moment_water=moment_water,
@@ -132,8 +133,28 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
         dust_lifting_options=dust_lifting_options,dust_optical_bands=15,coagulation_options=coagulation_options,
         dust_background_options=dust_background_options,nonorographic_drag_options=nonorographic_drag_options,
         convection_scheme=convection_scheme,moist_convection_options=moist_convection_options,
-        dust_mode_count=dust_mode_count,do_qmass=do_qmass)
+        dust_mode_count=dust_mode_count,do_qmass=do_qmass,
+        thermal_relaxation_options=thermal_relaxation_options)
     return state,step,grid
+
+
+@pytest.mark.parametrize('height',[False,True])
+def test_thermal_relaxation_reaches_global_rollout_and_reverse_derivative(height):
+    def objective(target):
+        options=dict(equilibrium=target,timescale=100.)
+        if height:
+            from src.framework.gcm.coordinates import grid as spectral_grid
+            shape=(4,*spectral_grid('T21').nodal_shape)
+            source=jnp.broadcast_to(jnp.array([1e6,1e5,1e4,-1000.])[:,None,None],shape)
+            options.update(source_height=source,equilibrium=target+source*1e-5,top_pressure_pa=1e-6)
+        state,step,grid=backend_case(temperature_k=180.,surface_temperature_k=180.,convection_scheme='none',
+            thermal_relaxation_options=options)
+        for _ in range(3): state=step(state)
+        return jnp.mean(grid.to_nodal(state.dynamics.temperature_variation))
+    automatic=jax.grad(objective)(185.)
+    finite=(objective(185.001)-objective(184.999))/.002
+    assert np.isfinite(automatic) and automatic>0.
+    np.testing.assert_allclose(automatic,finite,rtol=2e-5,atol=1e-7)
 
 
 def test_explicit_gas_global_species_budget_restart_and_reverse_derivative(tmp_path):

@@ -305,8 +305,9 @@ def run_maps(
     if reference_options is not None and physics_backend!='reference':
         raise ValueError('reference_options require the reference physics backend')
     if physics_backend=='reference':
-        if forcing is None or radiation_component is None or reference_options is None:
-            raise ValueError('reference backend requires explicit forcing, radiation and soil options')
+        thermal=(reference_options is not None and reference_options.get('thermal_relaxation_options') is not None)
+        if forcing is None or reference_options is None or (radiation_component is None and not thermal):
+            raise ValueError('reference backend requires explicit forcing, radiation or thermal relaxation, and soil options')
         if co2_forcing is not None or neural_tendency is not None:
             raise ValueError('reference backend uses its own CO2 column; separate CO2/neural forcing is unsupported')
     if body is None:
