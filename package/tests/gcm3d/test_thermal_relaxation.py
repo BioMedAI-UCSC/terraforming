@@ -35,17 +35,20 @@ def test_analytic_boundary_rate_and_mask():
         analytic_tendency(jnp.ones(4),pressure,1000.,0.,1000.,kappa=.25,sigma_boundary=1.)
 
 
-def test_equilibrium_reader_keeps_equal_level_values_and_interpolates_other_counts(tmp_path):
+@pytest.mark.parametrize('time_axis',[False,True])
+def test_equilibrium_reader_keeps_equal_level_values_and_interpolates_other_counts(tmp_path,time_axis):
     xr=pytest.importorskip('xarray')
     from types import SimpleNamespace
     grid=SimpleNamespace(longitudes=np.deg2rad([0.,90.,359.]),latitudes=np.deg2rad([-80.,0.,80.]))
     values=np.broadcast_to(np.array([180.,220.,260.])[:,None,None],(3,2,4)).copy()
     path=tmp_path/'equilibrium.nc'
     def write(z):
-        xr.Dataset({'teq':(('level','lat','lon'),values),'zzf':(('level','lat','lon'),
+        data=xr.Dataset({'teq':(('level','lat','lon'),values),'zzf':(('level','lat','lon'),
             np.broadcast_to(np.array(z)[:,None,None],values.shape)),
             'pfull':('level',[.1,1.,10.]),'lonb':('lonb',np.arange(0.,361.,90.)),
-            'latb':('latb',[-90.,0.,90.])},coords={'lat':[-45.,45.],'lon':[45.,135.,225.,315.]}).to_netcdf(path)
+            'latb':('latb',[-90.,0.,90.])},coords={'lat':[-45.,45.],'lon':[45.,135.,225.,315.]})
+        if time_axis: data=data.expand_dims(time=[0.])
+        data.to_netcdf(path)
     write([30000.,15000.,0.])
     equal=load_equilibrium(grid,path,[0.,1.,2.,3.])
     np.testing.assert_allclose(equal,values[:,0,0,None,None]*np.ones((3,3,3)))

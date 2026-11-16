@@ -76,27 +76,31 @@ def load_equilibrium(grid,path,pressure_half,*,height=False,spectral_core=False)
             half[0]<0. or np.any(np.diff(half)<=0.):
         raise ValueError('half-level pressures must be finite, nonnegative and increase')
     with xr.open_dataset(path,decode_times=False) as data:
-        def field(name):
+        def sample(name):
             value=data[name]
             if 'time' in value.dims:
                 if value.sizes['time']!=1: raise ValueError('equilibrium input requires one time sample')
                 value=value.isel(time=0)
+            return value
+        def field(name):
+            value=sample(name)
             vertical=[dimension for dimension in value.dims if dimension not in ('lat','lon')]
             if len(vertical)!=1: raise ValueError('equilibrium fields need one vertical dimension')
             result=np.asarray(value.transpose(vertical[0],'lat','lon'),dtype=float)
             if not np.isfinite(result).all(): raise ValueError('equilibrium fields must be finite')
             return result
         values=field('teq');levels=len(half)-1
+        bounds=tuple(sample(name) for name in ('lonb','latb'))
         if np.any(values<=0.): raise ValueError('equilibrium temperature must be positive')
         if height:
             heights=field('zzf')
             if heights.shape!=values.shape or len(values)!=levels:
                 raise ValueError('height equilibrium and model level counts must match the released reader')
-            mapped=tuple(bilinear_map(grid,value,data.lonb,data.latb) for value in (values,heights))
+            mapped=tuple(bilinear_map(grid,value,*bounds) for value in (values,heights))
             if np.any(np.diff(mapped[1],axis=0)>=0.):
                 raise ValueError('equilibrium heights must decrease strictly')
             return mapped
-        pressure=np.asarray(data.pfull,dtype=float)*100.
+        pressure=np.asarray(sample('pfull'),dtype=float)*100.
         if pressure.shape!=(len(values),) or not np.isfinite(pressure).all() or \
                 np.any(pressure<=0.) or np.any(np.diff(pressure)<=0.):
             raise ValueError('equilibrium pressure levels must be positive and increase')
@@ -108,4 +112,4 @@ def load_equilibrium(grid,path,pressure_half,*,height=False,spectral_core=False)
                 positive=half[:-1]>0.
                 full=np.where(positive,np.diff(half)/np.log(half[1:]/np.where(positive,half[:-1],1.)),0.)
             values=np.apply_along_axis(lambda column:np.interp(full,pressure,column),0,values)
-        return bilinear_map(grid,values,data.lonb,data.latb)
+        return bilinear_map(grid,values,*bounds)

@@ -517,7 +517,7 @@ limiter or establish matched transport accuracy.
 
 | Area | Remaining implementation and acceptance check |
 | --- | --- |
-| Thermal relaxation | Fixed-profile, evolving-height and analytic Held--Suarez kernels match 36 unchanged native cases, including the original FMS interpolation. Fixed and height forcing connect to the Dinosaur step and command-line runner, replace radiation on every step, and retain profile hashes/timescales in restart identity. NetCDF readers preserve the source equal-level-count bypass and reuse the native-checked bilinear map. Analytic forcing remains an explicit kernel because the released dispatch does not call it. Native reader/composed-profile and long climate comparisons remain. |
+| Thermal relaxation | Fixed-profile, evolving-height and analytic Held--Suarez kernels match 36 unchanged native cases, including the original FMS interpolation. Fixed and height forcing connect to the Dinosaur step and command-line runner, replace radiation on every step, and retain profile hashes/timescales in restart identity. NetCDF readers preserve the source equal-level-count bypass and reuse the native-checked bilinear map. Analytic forcing remains an explicit kernel because the released dispatch does not call it. Thirty-two native NetCDF reader/composed-damping cases also pass, including pressure interpolation, equal-count bypass, poles, seam and singleton time axes. NetCDF-Fortran I/O adapters replace FMS parallel I/O. Long climate comparisons remain. |
 | Simple radiation | `simple_radiation` implements the released fixed-dust profile, `ecoeffs`/`scatter_calc`, `swheat`, `lwheat` and five-sol SW ramp. Twenty-four native columns and 24 independent scattering cases pass. The callback, map/restart path and three-step reverse derivative are connected. CLI selection is `--config reference --reference-radiation simple`. The source's unused emissivity argument and surface-only IR suppression are preserved; SPEC_CORE-only modulation is excluded by the release flags. |
 | Global budgets | Momentum exchange and repair-stage ledgers are connected. Extend the energy audit across dissipation, fixed-deep-soil exchange, phase approximations and long global runs; select gas and particle tracers explicitly. |
 | Radiation schedule | Optional integer-second source schedule now holds heating in K/s and surface fluxes, carries the 170 K initial stratosphere and its source update, and persists caches in restarts. Match the configured interval and callback averaging window in whole-model comparisons. |
@@ -560,7 +560,9 @@ two steps. This checks startup and continuation, not climate stability.
 
 ## Reproduce the native checks
 
-Install a Fortran compiler and the normal locked JAX environment. Supply the
+Install a Fortran compiler and the normal locked JAX environment.
+The equilibrium-profile validator also needs netCDF-Fortran and netCDF-C,
+with `nf-config` and `nc-config` on PATH. Supply the
 unchanged Ames source and its radiation input data. The scripts check the Git
 blob identity before compiling the original routines. Small module declarations
 and C adapters replace unused FMS infrastructure; the routine bodies stay intact.
@@ -576,6 +578,10 @@ zero-pressure upper boundary, as in the existing terrain-height adaptation.
 env PYTHONPATH=package:. python scripts/validate_thermal_relaxation.py \
   --ames-source /path/to/AmesGCM --fms-source /path/to/FMS \
   --output outputs/physics-parity/thermal-relaxation.json
+env PYTHONPATH=package:. python scripts/validate_equilibrium_profiles.py \
+  --ames-source /path/to/AmesGCM --fms-source /path/to/FMS \
+  --fms-bilinear-source /path/to/FMS/horiz_interp/include/horiz_interp_bilinear.inc \
+  --output outputs/physics-parity/equilibrium-profiles.json
 env PYTHONPATH=package:. python scripts/validate_simple_radiation.py \
   --ames-source /path/to/AmesGCM --output outputs/physics-parity/simple-radiation.json
 ```
