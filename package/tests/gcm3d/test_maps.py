@@ -380,7 +380,7 @@ def test_comparison_export_preserves_geography_units_season_and_cloud_inventory(
 
 
 @pytest.mark.parametrize('dust_mode_count,boundaries,thermal',[(1,None,False),(2,None,False),
-    (2,[0.,.01,.1,.5,1.],False),(1,None,True),(1,None,'simple'),(1,None,'height')])
+    (2,[0.,.01,.1,.5,1.],False),(1,None,True),(1,None,'simple'),(1,None,'height'),(1,None,'feedback-off')])
 def test_reference_maps_backend_runs_water_and_preserves_restart_state(monkeypatch,dust_mode_count,boundaries,thermal):
     from src.celestials.planets.mars.reference_constants import AMES_BODY_3D,reference_radiative_forcing
     from src.framework.physics.radiative_transfer import make_radiation_component
@@ -391,7 +391,9 @@ def test_reference_maps_backend_runs_water_and_preserves_restart_state(monkeypat
     radiation=make_radiation_component(lambda *args:None)
     options=dict(soil_diffusivity=(250./(1500.*627.9))**2,bulk_water=True,
         initial_water_surface_kg_m2=100.,initial_water_vapor_ratio=1e-6,form_bulk_clouds=False)
-    if thermal=='simple':
+    if thermal=='feedback-off':
+        options.update(do_co2_condensation=False,do_atmos_co2_loss=False,do_co2_condensation_cycle=False)
+    elif thermal=='simple':
         from src.framework.physics.simple_radiation import make_radiation_component as simple_radiation
         radiation=simple_radiation()
     elif thermal:

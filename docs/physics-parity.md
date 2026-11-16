@@ -523,6 +523,7 @@ limiter or establish matched transport accuracy.
 | Dust and cloud opacity | Size-dependent dust and all three cloud optical kernels are implemented. CO2 optical feedback is connected; prescribed dust, moment clouds, interactive lifting and seasonal control pass three-step global gradient checks. Multiple physical populations now connect lifting, coagulation, clouds, settling, opacity diagnostics, surface reservoirs and saved effective inputs. Matched climatology remains. |
 | Soil and frost | Mapped TES/GRS inputs and default case-7 profiles are implemented and checked. Compare diurnal/seasonal response in global runs; modern and legacy material profiles now pass native checks. |
 | CO2 modes | Immediate deposition and optional bulk suspended-cloud phase/settling match native routines and coupled columns. Cloud optical feedback passes a three-step gradient check. Full two-way exchange auditing and long global validation remain pending. The older conservative finite-settling scheme remains a separate model. |
+| CO2 switches | Atmospheric condensation, atmospheric loss and gas-mass feedback are independent source controls. Ninety-six unchanged native control-block cases check all combinations and initial-CO2-weighted surface exchange. Column tests retain condensation heating when precipitation loss is disabled, and retain surface snow when mass feedback is disabled. Held suspended clouds still mix as tracers when their phase driver is off. Global tests check disabled-feedback behavior, exact restart continuation and three-step reverse derivatives. |
 | Interactive dust | Lifting, advection, sedimentation, surface reservoirs, coagulation and material budgets. |
 | Water | Bulk and moment phase/growth/settling paths, surface exchange, saved effective inputs, state/restarts and optical feedback are connected. Two physical dust modes pass combined global material, restart and three-step derivative checks. Long climate validation remains. Bin cloud microphysics is unavailable in the public release. |
 | Drag | Rayleigh, Palmer terrain drag and non-orographic gravity-wave drag are implemented and checked. Polar water and terrain maps pass pinned-blob and T21/T42 area checks. Long momentum/energy audits remain. Gravity-wave schemes are off in the default Ames present-Mars setup. |
@@ -578,6 +579,30 @@ The optional near-infrared CO2 term is exactly zero at night; its inactive
 square root uses a finite reverse-mode branch. The surface-only infrared
 suppression does not recompute atmospheric heating, matching the source's
 non-conservative diagnostic behavior for that optional switch.
+
+The reference runner also accepts `--no-co2-condensation`,
+`--no-atmos-co2-loss` and `--no-co2-mass-feedback`. The defaults keep all three
+source switches enabled. Disabled atmospheric loss keeps condensation heating
+but removes its precipitation deposit and gas loss. Disabled mass feedback
+keeps phase heating and surface snow but resets the whole gas-mass tendency.
+Those settings can deliberately break the source's gas-plus-ice inventory.
+For these non-conservative modes the Dinosaur wrapper disables its closed-CO2
+inventory repair, including pressure rescaling. Otherwise the repair would
+silently restore the pressure response that the switch disables. Diagnostics
+retain the closed inventory as a reference so the intended source imbalance
+remains visible. Numerical drift and positivity without that repair still need
+long-run checks. These are source experiment controls, not conservation fixes.
+Non-default controls are saved in restart identity.
+
+The CO2-control native check compiles the unchanged released routing block.
+It seeds phase-driver outputs whose equations have separate native validators.
+This isolates switch behavior from already checked phase and PBL kernels; it
+does not claim a new whole-native-model comparison.
+
+```sh
+env PYTHONPATH=package:. python scripts/validate_co2_controls.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/co2-controls.json
+```
 
 ```sh
 env PYTHONPATH=package:. python scripts/validate_dry_convection.py \

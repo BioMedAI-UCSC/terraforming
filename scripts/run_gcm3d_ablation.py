@@ -324,6 +324,9 @@ def main() -> int:
     parser.add_argument('--reference-radiation',choices=('spectral','simple','fixed','height'),default='spectral')
     parser.add_argument('--equilibrium-profile',type=Path,help='released teq/zzf NetCDF input for fixed or height relaxation')
     parser.add_argument('--thermal-timescale',type=float,default=-4.,help='negative values use 86400-second days; positive values use seconds; zero disables')
+    for flag,destination in (('co2-condensation','do_co2_condensation'),('atmos-co2-loss','do_atmos_co2_loss'),
+                             ('co2-mass-feedback','do_co2_condensation_cycle')):
+        parser.add_argument('--'+flag,dest=destination,action=argparse.BooleanOptionalAction,default=True)
     parser.add_argument("--truncation", default="T21")
     parser.add_argument("--layers", type=int, default=None)
     parser.add_argument("--dt", type=float, default=None)
@@ -360,6 +363,10 @@ def main() -> int:
     reference=args.config=='reference'
     if not reference and (args.reference_radiation!='spectral' or args.equilibrium_profile is not None or args.thermal_timescale!=-4.):
         parser.error('alternate reference radiation requires --config reference')
+    co2_controls={name:getattr(args,name) for name in
+        ('do_co2_condensation','do_atmos_co2_loss','do_co2_condensation_cycle')}
+    if not reference and not all(co2_controls.values()):
+        parser.error('CO2 process switches require --config reference')
     thermal=args.reference_radiation in ('fixed','height')
     if thermal!=(args.equilibrium_profile is not None):
         parser.error('fixed and height relaxation require --equilibrium-profile; other modes do not use it')
@@ -411,6 +418,7 @@ def main() -> int:
     body=MARS_BODY_3D;radiation=None;reference_options=None;input_hashes={};alternate_radiation_metadata={}
     if reference:
         body,base,radiation,reference_options,input_hashes=reference_configuration(grid,args.surface_properties,args.dt)
+        reference_options.update(co2_controls)
         input_hashes['mola']=hashlib.sha256(args.mola_path.read_bytes()).hexdigest()
         if args.reference_radiation!='spectral':
             radiation,overrides,alternate_radiation_metadata=alternate_reference_radiation(
@@ -498,6 +506,7 @@ def main() -> int:
                 initial_air_temperature_k=170.,initial_surface_profile='released-equilibrated-latitude',
                 sigma_boundaries=sigma.tolist())
             config.update(alternate_radiation_metadata)
+            if not all(co2_controls.values()): config['co2_process_switches']=co2_controls
         if restart_path.exists():
             if not args.resume:
                 raise ValueError(f"{restart_path} exists; use --resume or a new output directory")

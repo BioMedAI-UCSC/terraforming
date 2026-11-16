@@ -93,7 +93,8 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
                  dust_lifting_options=None,initial_water_vapor_ratio=1e-6,coagulation_options=None,
                  dust_background_options=None,nonorographic_drag_options=None,effective_input_mode=0,
                  convection_scheme='fv3',moist_convection_options=None,dust_mode_count=1,sigma_boundaries=None,
-                 initial_co2_gas_ratio=None,do_qmass=False,thermal_relaxation_options=None):
+                 initial_co2_gas_ratio=None,do_qmass=False,thermal_relaxation_options=None,
+                 do_co2_condensation=True,do_atmos_co2_loss=True,do_co2_condensation_cycle=True):
     from src.framework.gcm.coordinates import coordinate_system
     from src.framework.gcm.specs import physics_specs
     from src.framework.gcm._dinosaur import primitive_equations,scales
@@ -134,7 +135,9 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
         dust_background_options=dust_background_options,nonorographic_drag_options=nonorographic_drag_options,
         convection_scheme=convection_scheme,moist_convection_options=moist_convection_options,
         dust_mode_count=dust_mode_count,do_qmass=do_qmass,
-        thermal_relaxation_options=thermal_relaxation_options)
+        thermal_relaxation_options=thermal_relaxation_options,
+        do_co2_condensation=do_co2_condensation,do_atmos_co2_loss=do_atmos_co2_loss,
+        do_co2_condensation_cycle=do_co2_condensation_cycle)
     return state,step,grid
 
 
@@ -168,6 +171,48 @@ def test_simple_radiation_reaches_global_rollout_and_reverse_derivative():
     finite=(objective(1.0001)-objective(.9999))/.0002
     assert np.isfinite(automatic) and automatic!=0.
     np.testing.assert_allclose(automatic,finite,rtol=2e-5,atol=1e-7)
+
+
+@pytest.mark.parametrize('suspended,loss,feedback',[(False,True,False),(True,True,False),(True,False,True)])
+def test_disabled_co2_feedback_is_not_undone_by_global_inventory_projection(tmp_path,suspended,loss,feedback):
+    from src.framework.gcm.restart import save_restart,load_restart
+    state,step,_=backend_case(return_diagnostics=True,suspended_co2_clouds=suspended,
+        do_atmos_co2_loss=loss,do_co2_condensation_cycle=feedback)
+    tick=jax.jit(step)
+    first,diagnostics=tick(state)
+    assert all(np.isfinite(x).all() for x in jax.tree.leaves(first))
+    assert diagnostics.pressure_factor==1. and diagnostics.atmospheric_rescale_kg==0.
+    np.testing.assert_allclose(diagnostics.corrected_total_mass_kg,diagnostics.raw_total_mass_kg,rtol=2e-14)
+    assert abs(float(diagnostics.raw_total_mass_kg-diagnostics.target_total_mass_kg))>1e8
+    resumed=load_restart(save_restart(first,tmp_path/'co2-controls.npz'))
+    expected,_=tick(first);actual,_=tick(resumed)
+    for a,b in zip(jax.tree.leaves(actual),jax.tree.leaves(expected),strict=True):
+        np.testing.assert_array_equal(a,b)
+
+
+def test_disabled_co2_condensation_keeps_suspended_tracer_without_forming_clouds():
+    from src.framework.physics.co2_clouds import CO2_CLOUD_TRACER
+    state,step,grid=backend_case(suspended_co2_clouds=True,do_co2_condensation=False)
+    final=jax.jit(step)(state)
+    np.testing.assert_array_equal(grid.to_nodal(final.dynamics.tracers[CO2_CLOUD_TRACER]),0.)
+    assert all(np.isfinite(x).all() for x in jax.tree.leaves(final))
+
+
+@pytest.mark.parametrize('condensation,loss,feedback',[(False,True,True),(True,True,False),(True,False,True)])
+def test_co2_controls_keep_three_step_reverse_derivatives(condensation,loss,feedback):
+    state,step,grid=backend_case(suspended_co2_clouds=True,do_co2_condensation=condensation,
+        do_atmos_co2_loss=loss,do_co2_condensation_cycle=feedback)
+    shape=(4,*grid.nodal_shape)
+    def objective(offset):
+        dynamics=dataclasses.replace(state.dynamics,temperature_variation=
+            state.dynamics.temperature_variation+grid.to_modal(jnp.full(shape,offset)))
+        current=state._replace(dynamics=dynamics)
+        for _ in range(3): current=step(current)
+        return jnp.mean(current.surface_temperature)+.01*jnp.mean(grid.to_nodal(current.dynamics.temperature_variation))
+    automatic=jax.grad(objective)(0.)
+    finite=(objective(.001)-objective(-.001))/.002
+    assert np.isfinite(automatic) and automatic!=0.
+    np.testing.assert_allclose(automatic,finite,rtol=3e-5,atol=1e-7)
 
 
 def test_explicit_gas_global_species_budget_restart_and_reverse_derivative(tmp_path):

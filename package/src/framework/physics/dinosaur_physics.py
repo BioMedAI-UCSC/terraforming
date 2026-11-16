@@ -248,7 +248,8 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                dust_lifting_options=None,dust_optical_bands=12,dust_opacity_channel=1,
                coagulation_options=None,dust_background_options=None,nonorographic_drag_options=None,
                convection_scheme='fv3',moist_convection_options=None,dust_mode_count=1,do_qmass=False,
-               thermal_relaxation_options=None):
+               thermal_relaxation_options=None,do_co2_condensation=True,do_atmos_co2_loss=True,
+               do_co2_condensation_cycle=True):
     """Dinosaur dynamics followed by Ames-order reference gas-column physics.
 
     Supply a verified radiation component and mapped soil diffusivity. Keeping
@@ -548,6 +549,8 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             soil_volumetric_heat_capacity=soil_volumetric_heat_capacity,
             emissivity=soil_forcing.emissivity,surface_exchange_start=exchange_start,
             co2_gas_index=gas_names.index(CO2_GAS_TRACER) if do_qmass else None,
+            do_co2_condensation=do_co2_condensation,do_atmos_co2_loss=do_atmos_co2_loss,
+            do_co2_condensation_cycle=do_co2_condensation_cycle,
             latitude_rad=jnp.asarray(grid.latitudes)[None,:],rayleigh_options=rayleigh_options,
             conserve_drag_energy=conserve_drag_energy,
             suspended_co2_ice_ratio=cloud_ratio if suspended_co2_clouds else None,
@@ -657,13 +660,16 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
     def advance(state):
         return advance_with_transport(state)[0]
 
+    # Disabled feedback can intentionally change total gas+ice inventory in the source.
+    project_inventory=(do_co2_condensation_cycle and
+        (not suspended_co2_clouds or do_atmos_co2_loss or not do_co2_condensation))
     if not return_diagnostics:
-        return positivity_preserving_co2_step(advance,coords,specs,body=body)
+        return positivity_preserving_co2_step(advance,coords,specs,body=body,inventory_projection=project_inventory)
 
     def audited(state):
         raw,transport_diagnostics,moist_diagnostics=advance_with_transport(state)
         final,diagnostics=positivity_preserving_co2_step(lambda _:raw,coords,specs,
-            body=body,return_diagnostics=True)(state)
+            body=body,return_diagnostics=True,inventory_projection=project_inventory)(state)
         diagnostics=diagnostics._replace(
             raw_exchange_energy_j=exchange_energy(raw,coords,specs,body,
                 soil_volumetric_heat_capacity=soil_volumetric_heat_capacity),

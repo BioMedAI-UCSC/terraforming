@@ -112,7 +112,7 @@ def test_alternate_reference_radiation_records_profile_and_timescale_for_restart
 def test_alternate_reference_cli_rejects_unsupported_combinations(monkeypatch):
     import sys
     driver=_script('run_gcm3d_ablation')
-    for arguments in (['--reference-radiation','simple'],['--thermal-timescale','-2.'],
+    for arguments in (['--reference-radiation','simple'],['--thermal-timescale','-2.'],['--no-co2-mass-feedback'],
                       ['--config','reference','--reference-radiation','height']):
         monkeypatch.setattr(sys,'argv',['run_gcm3d_ablation.py','unused-surface',*arguments])
         with pytest.raises(SystemExit) as stopped: driver.main()

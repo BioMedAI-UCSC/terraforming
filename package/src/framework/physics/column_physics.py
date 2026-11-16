@@ -65,7 +65,8 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
                    coagulation_options=None,dust_background_options=None,
                    nonorographic_drag_options=None,nonorographic_state=None,moment_history=None,
                    convection_scheme='fv3',moist_convection_options=None,moist_surface_water_kg_m2=None,
-                   co2_gas_index=None):
+                   co2_gas_index=None,do_co2_condensation=True,do_atmos_co2_loss=True,
+                   do_co2_condensation_cycle=True):
     """Rayleigh/PBL, soil/frost, CO2 deposition or suspended clouds, convection.
 
     This is the standard present-Mars gas-column process order. Tracers here
@@ -137,8 +138,11 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
         bulk_latent_derivative=0. if water_exchange is None else water_exchange.latent_derivative_w_m2_k)
     surface['emissivity']=emissivity
     cloud=None
+    has_co2_cloud=suspended_co2_ice_ratio is not None
     cloud_diagnostics={}
-    if suspended_co2_ice_ratio is None:
+    if not do_co2_condensation:
+        mass=jnp.zeros_like(t);precip=jnp.zeros_like(t[-1]);guard=jnp.zeros_like(t,dtype=bool)
+    elif not has_co2_cloud:
         t,mass,precip,guard=simple_condensation(t,pressure_half,pressure_full,
             body.cp_j_kg_k,body.gravity_m_s2,latent_heat)
     else:
@@ -153,6 +157,8 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
         cloud_diagnostics['deposition_momentum_kg_m_s']=deposit_momentum
         t,mass,precip=cloud.temperature,cloud.gas_mass_loss_kg_m2,cloud.deposition_kg_m2
         guard=jnp.zeros_like(t,dtype=bool)
+    if not do_atmos_co2_loss:
+        mass=jnp.zeros_like(mass);precip=jnp.zeros_like(precip)
     terrain=None
     if terrain_drag_options is not None:
         options=dict(terrain_drag_options)
@@ -182,7 +188,8 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
         t=t+dt_seconds*nonorographic.heating_k_s
     gas_count=r.shape[-1]
     particles=[]
-    if cloud is not None: particles.append(cloud.ice_ratio[...,None])
+    if has_co2_cloud:
+        particles.append((cloud.ice_ratio if cloud is not None else jnp.asarray(suspended_co2_ice_ratio))[...,None])
     if bulk_water is not None: particles.append(jnp.asarray(bulk_water.ice_ratio)[...,None])
     moment_start=gas_count+len(particles)
     if moment_particles is not None: particles.append(moment_particles)
@@ -217,11 +224,11 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
     connected=jnp.cumprod((average[::-1]>.01).astype(int),axis=0)
     pbl_top=temperature.shape[0]-1-jnp.sum(connected,axis=0)
     suspended=None
-    if cloud is not None:
+    if has_co2_cloud:
         suspended=r[...,gas_count]
     water_diagnostics={};water_result=None
     if bulk_water is not None:
-        ice=r[...,gas_count+int(cloud is not None)]
+        ice=r[...,gas_count+int(has_co2_cloud)]
         water_deposit=0.
         if moment_particles is not None:
             moment_particles=r[...,moment_start:moment_start+particle_count]
@@ -332,20 +339,23 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
                 water_diagnostics['dust_surface_kg_m2']=surface_dust_kg_m2
     r=r[...,:gas_count]
     dp=jnp.diff(pressure_half,axis=0)
-    selected=jnp.asarray(np.arange(temperature.shape[0])>=surface_exchange_start)
-    selected=selected.reshape((temperature.shape[0],)+(1,)*(dp.ndim-1))
-    weights=jnp.where(selected,dp,0.)
-    if co2_gas_index is not None:
-        weights=weights*gas_tracers[...,co2_gas_index]
-    weights=weights/jnp.sum(weights,axis=0,keepdims=True)
-    surface_mass=surface['co2_phase_change_kg_m2']*weights
-    mass=mass+surface_mass
-    if cloud is not None:
+    if do_co2_condensation_cycle:
+        selected=jnp.asarray(np.arange(temperature.shape[0])>=surface_exchange_start)
+        selected=selected.reshape((temperature.shape[0],)+(1,)*(dp.ndim-1))
+        weights=jnp.where(selected,dp,0.)
+        if co2_gas_index is not None:
+            weights=weights*gas_tracers[...,co2_gas_index]
+        weights=weights/jnp.sum(weights,axis=0,keepdims=True)
+        surface_mass=surface['co2_phase_change_kg_m2']*weights
+        mass=mass+surface_mass
+    else:
+        surface_mass=jnp.zeros_like(mass);mass=jnp.zeros_like(mass)
+    if has_co2_cloud:
         gas=dp/body.gravity_m_s2
         # Only drag, surface phase exchange and deposited ice torque the ground.
         ground_impulse=jnp.stack([jnp.sum(gas*(before-after)+surface_mass*after,axis=0)
             for before,after in zip(initial_wind,pbl_wind,strict=True)])
-        ground_impulse=ground_impulse+cloud_diagnostics['deposition_momentum_kg_m_s']
+        ground_impulse=ground_impulse+cloud_diagnostics.get('deposition_momentum_kg_m_s',0.)
         cloud_diagnostics['ground_momentum_exchange_kg_m_s']=ground_impulse
         old_mass=gas*(1.+jnp.asarray(suspended_co2_ice_ratio))
         new_mass=gas-mass+gas*suspended
@@ -361,6 +371,8 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
         convection=convection,
         moist_convection={} if moist is None else moist._asdict(),
         rayleigh=dict(u_tendency_m_s2=du,v_tendency_m_s2=dv,dissipated_heat_k=drag_heat,
-            reheating_enabled=conserve_drag_energy))
+            reheating_enabled=conserve_drag_energy),
+        co2_controls=dict(condensation=do_co2_condensation,atmospheric_loss=do_atmos_co2_loss,
+            mass_feedback=do_co2_condensation_cycle))
     return ColumnResult(t,u,v,r,ground,snow+precip,mass,diagnostics,suspended,bulk_water,
         moment_particles,nonorographic_state,moment_history,moist_surface_water_kg_m2)

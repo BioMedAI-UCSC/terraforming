@@ -55,6 +55,47 @@ def test_coupled_column_reports_complete_mass_source_and_deposition():
     assert np.all(np.asarray(result.gas_tracers)>=0.)
 
 
+@pytest.mark.parametrize('condensation',[False,True])
+@pytest.mark.parametrize('atmospheric_loss',[False,True])
+@pytest.mark.parametrize('feedback',[False,True])
+def test_co2_source_switches_keep_heating_precipitation_and_mass_feedback_separate(condensation,atmospheric_loss,feedback):
+    kwargs={**inputs(),'convection_scheme':'none'}
+    full=column_physics(**kwargs)
+    result=column_physics(**kwargs,do_co2_condensation=condensation,
+        do_atmos_co2_loss=atmospheric_loss,do_co2_condensation_cycle=feedback)
+    precip=result.diagnostics['atmospheric_co2_precipitation_kg_m2']
+    expected_precip=full.diagnostics['atmospheric_co2_precipitation_kg_m2'] if condensation and atmospheric_loss else 0.
+    np.testing.assert_allclose(precip,expected_precip,rtol=2e-14)
+    surface=full.diagnostics['surface']['co2_phase_change_kg_m2']
+    np.testing.assert_allclose(result.co2_ice_kg_m2,kwargs['co2_ice_kg_m2']+surface+expected_precip,rtol=2e-14)
+    if feedback:
+        np.testing.assert_allclose(jnp.sum(result.gas_mass_loss_kg_m2),surface+expected_precip,rtol=2e-14,atol=1e-14)
+    else:
+        np.testing.assert_array_equal(result.gas_mass_loss_kg_m2,0.)
+    if condensation:
+        np.testing.assert_array_equal(result.temperature,full.temperature)
+    else:
+        assert np.any(np.asarray(result.temperature)<np.asarray(full.temperature))
+
+
+def test_disabled_co2_cloud_phase_driver_keeps_cloud_tracer_and_water_index():
+    kwargs={**inputs(),'convection_scheme':'none'}
+    cloud=jnp.linspace(.001,.004,4)
+    water=BulkWaterColumnState(1,jnp.full(4,.0001),100.,0.,3)
+    result=column_physics(**kwargs,suspended_co2_ice_ratio=cloud,bulk_water=water,
+        form_bulk_clouds=False,do_co2_condensation=False)
+    np.testing.assert_array_equal(result.suspended_co2_ice_ratio,cloud)
+    np.testing.assert_array_equal(result.bulk_water.ice_ratio,water.ice_ratio)
+    assert 'ground_momentum_exchange_kg_m_s' in result.diagnostics['co2_cloud']
+
+
+def test_disabled_mass_feedback_skips_undefined_empty_co2_layer_weights():
+    kwargs={**inputs(),'gas_tracers':jnp.zeros((4,2))}
+    result=column_physics(**kwargs,co2_gas_index=0,do_co2_condensation_cycle=False)
+    assert np.isfinite(result.temperature).all()
+    np.testing.assert_array_equal(result.gas_mass_loss_kg_m2,0.)
+
+
 def test_surface_mass_exchange_uses_initial_co2_mass_in_each_selected_layer():
     co2=jnp.array([.9,.8,.7,.6])
     kwargs={**inputs(),'temperature':jnp.full(4,210.),'dt_seconds':5.,
