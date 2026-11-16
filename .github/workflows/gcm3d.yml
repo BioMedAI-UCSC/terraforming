@@ -77,7 +77,13 @@ jobs:
           assert sorted(node for shard in shards for node in shard) == sorted(nodes)
           selected = shards[int(os.environ["SHARD_INDEX"])]
           assert selected
-          subprocess.run([*command, "-v", *selected], check=True)
+          # Large coupled JAX models retain allocator memory within a process.
+          global_cases = [node for node in selected if node.startswith("tests/gcm3d/test_dinosaur_physics.py::")]
+          batches = [[node for node in selected if node not in global_cases], *[[node] for node in global_cases]]
+          assert sorted(node for batch in batches for node in batch) == sorted(selected)
+          for batch in batches:
+              if batch:
+                  subprocess.run([*command, "-v", *batch], check=True)
           PYTEST
 
       - name: Calibration application regressions
