@@ -352,8 +352,7 @@ def test_comparison_export_preserves_geography_units_season_and_cloud_inventory(
     landmark = 200. + np.arange(64)[:, None] * .1 + np.arange(32)[None, :] * .01
     dust=jnp.stack([landmark,2.*landmark],axis=-1)[None]
     state = state._replace(surface_temperature=jnp.asarray(landmark[None]),
-        auxiliary_fields=dict(water_surface_kg_m2=jnp.asarray(landmark[None]),dust_surface_kg_m2=dust,
-            dust_water_frost_kg_m2=jnp.asarray(.01*landmark[None])))
+        auxiliary_fields=dict(water_surface_kg_m2=jnp.asarray(landmark[None]),dust_surface_kg_m2=dust))
     path = maps.save_comparison_netcdf(state, coords, specs, body, forcing, tmp_path / "state.nc")
     with xr.open_dataset(path, decode_times=False) as ds:
         np.testing.assert_allclose(ds.surface_temperature.isel(time=0), landmark.T)
@@ -378,15 +377,12 @@ def test_comparison_export_preserves_geography_units_season_and_cloud_inventory(
         np.testing.assert_allclose(ds.water_surface_kg_m2[0],landmark.T)
         assert ds.dust_surface_kg_m2.dims==('time','dust_mode','lat','lon')
         np.testing.assert_allclose(ds.dust_surface_kg_m2[0,1],2.*landmark.T)
-        np.testing.assert_allclose(ds.dust_water_frost_kg_m2[0],.01*landmark.T)
-        assert ds.dust_water_frost_kg_m2.attrs['units']=='kg m-2'
-        assert 'not an additional water inventory' in ds.dust_water_frost_kg_m2.attrs['long_name']
 
 
 @pytest.mark.parametrize('dust_mode_count,boundaries,thermal',[(1,None,False),(2,None,False),
     (2,[0.,.01,.1,.5,1.],False),(1,None,True),(1,None,'simple'),(1,None,'height'),
     (1,None,'feedback-off'),(1,None,'no-surface'),(1,None,'no-diffusion'),(1,None,'no-pbl'),
-    (1,None,'dust-only'),(2,None,'dust-only'),(1,None,'bulk-independent-dust'),(2,None,'bulk-independent-dust')])
+    (1,None,'dust-only'),(2,None,'dust-only')])
 def test_reference_maps_backend_runs_water_and_preserves_restart_state(monkeypatch,dust_mode_count,boundaries,thermal):
     from src.celestials.planets.mars.reference_constants import AMES_BODY_3D,reference_radiative_forcing
     from src.framework.physics.radiative_transfer import make_radiation_component
@@ -413,8 +409,8 @@ def test_reference_maps_backend_runs_water_and_preserves_restart_state(monkeypat
     elif thermal=='simple':
         from src.framework.physics.simple_radiation import make_radiation_component as simple_radiation
         radiation=simple_radiation()
-    elif thermal in ('dust-only','bulk-independent-dust'):
-        options.update(bulk_water=thermal=='bulk-independent-dust',moment_dust=True,
+    elif thermal=='dust-only':
+        options.update(bulk_water=False,moment_dust=True,
             dust_mode_count=dust_mode_count)
     elif thermal:
         radiation=None
@@ -428,7 +424,7 @@ def test_reference_maps_backend_runs_water_and_preserves_restart_state(monkeypat
             do_qmass=True,initial_co2_gas_ratio=.95,
             initial_dust_mass_ratio=[1e-5,2e-5],initial_dust_number_per_kg=[1e8,3e7],
             initial_dust_surface_kg_m2=[30.,20.])
-        if thermal not in ('dust-only','bulk-independent-dust'):
+        if thermal!='dust-only':
             options.update(bulk_water=False,moment_water=True)
     kwargs=dict(body=AMES_BODY_3D,truncation='T21',n_layers=4,dt_seconds=5.,
         sigma_boundaries=boundaries,
@@ -449,10 +445,10 @@ def test_reference_maps_backend_runs_water_and_preserves_restart_state(monkeypat
         assert first.auxiliary_fields['dust_surface_kg_m2'].shape[-1]==dust_mode_count
         assert 'dust_mass_2' in first.dynamics.tracers
         assert 'co2_mmr_gas' in first.dynamics.tracers and 'ar_mmr_gas' in first.dynamics.tracers
-    if thermal in ('dust-only','bulk-independent-dust'):
+    if thermal=='dust-only':
         assert 'water_ice_number' not in first.dynamics.tracers
         assert 'water_core_mass' not in first.dynamics.tracers
-        frost='dust_water_frost_kg_m2' if thermal=='bulk-independent-dust' else 'water_surface_kg_m2'
+        frost='water_surface_kg_m2'
         np.testing.assert_array_equal(first.auxiliary_fields[frost],second.auxiliary_fields[frost])
     for actual,expected in zip(jax.tree_util.tree_leaves(second),jax.tree_util.tree_leaves(whole),strict=True):
         if boundaries is not None and actual.shape[-2:]==first.dynamics.temperature_variation.shape[-2:]:
@@ -473,3 +469,14 @@ def test_reference_maps_backend_runs_water_and_preserves_restart_state(monkeypat
 ])
 def test_reference_maps_backend_rejects_incomplete_configuration(kwargs,match):
     with pytest.raises(ValueError,match=match): maps.run_maps(**kwargs)
+
+
+def test_reference_maps_rejects_bulk_water_with_moment_dust(monkeypatch):
+    from src.celestials.planets.mars.reference_constants import AMES_BODY_3D,reference_radiative_forcing
+    from src.framework.physics.radiative_transfer import make_radiation_component
+    monkeypatch.setattr(maps,'regrid_to_nodal',lambda coords,mola_path=None:np.zeros(coords.horizontal.nodal_shape))
+    with pytest.raises(ValueError,match='cannot combine bulk water with moment dust or water'):
+        maps.run_maps(body=AMES_BODY_3D,truncation='T21',n_layers=4,dt_seconds=5.,n_steps=1,
+            forcing=reference_radiative_forcing(),physics_backend='reference',
+            radiation_component=make_radiation_component(lambda *args:None),
+            reference_options=dict(soil_diffusivity=1e-8,bulk_water=True,moment_dust=True))

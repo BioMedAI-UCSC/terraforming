@@ -21,7 +21,7 @@
   "sha256": {
     "scripts/validate_initial_conditions.py": "4203c455fb1d57d5f15574e887d97fd7f916d0aa00569e7b7b03947de62038ee",
     "scripts/run_gcm3d_ablation.py": "c216fd5a923baff593b63b29305dd1196ac2e01470656b8664301c0fe5bc2d05",
-    "package/src/celestials/planets/mars/maps.py": "9918da68fe413d6e4bd8561dea8f238bb079447e294138817de44102fc4a4154"
+    "package/src/celestials/planets/mars/maps.py": "1ebb0dff9d1197d462e6d34ba88927b13aa8c72dc5ffe2940a8d97f2a2d9c34e"
   },
   "limits": "Unchanged surface cold-start block and pinned isothermal default; Dinosaur retains its separately tested hydrostatic pressure normalization and sigma adaptation."
 }

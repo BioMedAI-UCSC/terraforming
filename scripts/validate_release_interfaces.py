@@ -1,11 +1,13 @@
 """Audit real and unavailable physics interfaces in the pinned public release."""
 import argparse
+import ctypes
 import hashlib
 import json
 from pathlib import Path
 import re
 import shutil
 import subprocess
+import tempfile
 from native_reference import extract_routines
 
 BLOBS={
@@ -15,6 +17,7 @@ BLOBS={
     'atmos_param_mars/sedim_mod.F90':'df1424b6258a68d7dfb6c7b5ebfb7180224070ad',
     'atmos_param_mars/BLcode/pblmod_mgcm.F90':'38b3f41e4d07f9a2e3c9d7a689e50577cac7858c',
     'atmos_param_mars/micromod_mgcm.F90':'4897f72860b59d7effeb6650dbf3d4484b3aca71',
+    'atmos_param_mars/aerosol_util.F90':'353441748fa247b8d938e4993f06d313268580f7',
 }
 
 # Each released driver control needs an explicit implementation or exclusion.
@@ -94,6 +97,45 @@ def validate(source,compiler):
     raw_micro=(source/'atmos_param_mars/micromod_mgcm.F90').read_text()
     without_comments='\n'.join(line.split('!',1)[0] for line in raw_micro.splitlines())
     assert len(re.findall(r'\bfacsubl\b',without_comments,re.I))==2
+    aerosol=(source/'atmos_param_mars/aerosol_util.F90').read_text()
+    guards='\n'.join(line for line in aerosol.splitlines() if line.startswith('if (do_moment_'))
+    assert len(guards.splitlines())==3
+    adapter='''module validity_mod
+use iso_c_binding
+implicit none
+integer,parameter :: FATAL=1
+logical :: do_moment_dust,do_moment_water,do_bulk_water,invalid
+contains
+subroutine error_mesg(name,message,level)
+character(*),intent(in) :: name,message
+integer,intent(in) :: level
+invalid=.true.
+end subroutine
+subroutine check_modes(dust,water,bulk,allowed) bind(C)
+integer(c_int),value :: dust,water,bulk
+integer(c_int),intent(out) :: allowed
+do_moment_dust=dust/=0;do_moment_water=water/=0;do_bulk_water=bulk/=0;invalid=.false.
+'''+guards+'''
+allowed=merge(0,1,invalid)
+end subroutine
+end module
+'''
+    mode_cases=[]
+    with tempfile.TemporaryDirectory(prefix='aerosol-validity-native-') as temporary:
+        code=Path(temporary)/'modes.f90';code.write_text(adapter)
+        library=Path(temporary)/'modes.so'
+        subprocess.run([compiler,'-O3','-ffree-line-length-none','-fPIC','-shared',str(code),'-o',str(library)],
+            cwd=temporary,check=True)
+        native=ctypes.CDLL(str(library))
+        native.check_modes.argtypes=[ctypes.c_int]*3+[ctypes.POINTER(ctypes.c_int)]
+        native.check_modes.restype=None
+        for dust in (False,True):
+            for water in (False,True):
+                for bulk in (False,True):
+                    allowed=ctypes.c_int(-1)
+                    native.check_modes(int(dust),int(water),int(bulk),ctypes.byref(allowed))
+                    assert allowed.value==int((not water or dust) and not (bulk and (dust or water)))
+                    mode_cases.append(dict(moment_dust=dust,moment_water=water,bulk_water=bulk,allowed=bool(allowed.value)))
     flags=['-cpp','-E','-P',*definitions]
     release=subprocess.check_output([compiler,*flags,str(path)],text=True)
     assert 'use null_physics_mod, only: cloud_physics' in release
@@ -120,8 +162,9 @@ def validate(source,compiler):
         source_git_blobs=BLOBS,preprocessor_flags=flags,
         preprocessed_sha256=hashlib.sha256(release.encode()).hexdigest(),
         moment_cloud_guard_sha256=hashlib.sha256(guard.encode()).hexdigest(),
+        aerosol_mode_guard_sha256=hashlib.sha256(guards.encode()).hexdigest(),
         compiler=subprocess.check_output([compiler,'--version'],text=True).splitlines()[0]),
-        cases=cases,driver_controls=inventory,module_controls=module_controls,
+        cases=cases,driver_controls=inventory,module_controls=module_controls,aerosol_mode_cases=mode_cases,
         excluded_build_interfaces=dict(required_definition='fv3_turb',calls=excluded,
             alternate_preprocessed_sha256=hashlib.sha256(alternate.encode()).hexdigest()),
         sha256={name:hashlib.sha256((root/name).read_bytes()).hexdigest() for name in

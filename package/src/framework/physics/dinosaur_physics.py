@@ -83,8 +83,8 @@ def initial_state(dynamics,coords,specs,temperature_k=170.,soil_layers=16,*,bulk
     moment_names=(moment_particle_tracers if moment_water else dust_particle_tracers)(dust_mode_count)
     if dust_mode_count>1 and not dust_active:
         raise ValueError('multiple dust populations require initialized moment tracers')
-    if bulk_water and moment_water:
-        raise ValueError('bulk water and moment water cannot be enabled together')
+    if bulk_water and dust_active:
+        raise ValueError('the released model cannot combine bulk water with moment dust or water')
     if moist_convection_options is not None and not (bulk_water or moment_water):
         raise ValueError('moist convection requires initialized water vapor and a surface water reservoir')
     state=initial_column_state(dynamics,coords,temperature_k,specs)
@@ -150,9 +150,6 @@ def initial_state(dynamics,coords,specs,temperature_k=170.,soil_layers=16,*,bulk
         frost=fields['water_surface_kg_m2']
         fields['water_surface_kg_m2']=jnp.where(jnp.isfinite(frost)&(frost>=0.),frost,jnp.nan)
     if dust_active:
-        if bulk_water and not moment_water:
-            frost=jnp.broadcast_to(jnp.asarray(initial_water_surface_kg_m2),shape)
-            fields['dust_water_frost_kg_m2']=jnp.where(jnp.isfinite(frost)&(frost>=0.),frost,jnp.nan)
         fields['dust_surface_kg_m2']=jnp.broadcast_to(jnp.asarray(initial_dust_surface_kg_m2),
             (*shape,dust_mode_count) if dust_mode_count>1 else shape)
         fields['dust_reference_opacity']=jnp.zeros((2,*shape[1:]))
@@ -297,8 +294,8 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
     dust_number_names=((moment_names[1],)+moment_names[5::3] if moment_water else moment_names[1::2])
     if dust_mode_count>1 and not dust_active:
         raise ValueError('multiple dust populations require initialized moment tracers')
-    if bulk_water and moment_water:
-        raise ValueError('bulk water and moment water cannot be enabled together')
+    if bulk_water and dust_active:
+        raise ValueError('the released model cannot combine bulk water with moment dust or water')
     water_cycle=bulk_water or moment_water
     if convection_scheme not in ('none','fv3','legacy'):
         raise ValueError('convection scheme must be none, fv3 or legacy')
@@ -411,7 +408,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             inactive=set(moment_particle_tracers(dust_mode_count))-set(moment_names)
             if inactive&set(state.dynamics.tracers):
                 raise ValueError('dust-only state must not contain moment-water cloud/core tracers')
-            required={'water_surface_kg_m2'}|({'dust_water_frost_kg_m2'} if bulk_water else set())
+            required={'water_surface_kg_m2'}
             if required-set(state.auxiliary_fields or {}):
                 raise ValueError('dust-only state requires the saved fixed surface-water boundary')
         if dust_active and 'dust_surface_kg_m2' not in state.auxiliary_fields:
@@ -604,7 +601,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             moment_particles=(jnp.stack([grid.to_nodal(dyn.tracers[name]) for name in
                 moment_names],axis=-1) if dust_active else None),
             moment_water=moment_water,dust_surface_water_kg_m2=(None if moment_water or not dust_active else
-                predicted.auxiliary_fields.get('dust_water_frost_kg_m2',predicted.auxiliary_fields['water_surface_kg_m2'])[0]),
+                predicted.auxiliary_fields['water_surface_kg_m2'][0]),
             moment_cloud_options=moment_cloud_options,moment_sedimentation=moment_sedimentation,
             particle_scavenging=particle_scavenging,
             form_moment_clouds=form_moment_clouds,

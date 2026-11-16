@@ -149,6 +149,27 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
     return state,step,grid
 
 
+@pytest.mark.parametrize('water,dust,bulk,valid',[
+    (False,False,False,True),(False,False,True,True),
+    (False,True,False,True),(False,True,True,False),
+    (True,False,False,True),(True,False,True,False),
+    (True,True,False,True),(True,True,True,False)])
+def test_released_aerosol_mode_validity_applies_to_initialization_and_step(water,dust,bulk,valid):
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.framework.gcm.specs import physics_specs
+    from src.celestials.planets.mars.reference_constants import reference_radiative_forcing
+    base,_,_=backend_case()
+    coords=coordinate_system('T21',4);specs=physics_specs(BODY)
+    options=dict(bulk_water=bulk,moment_water=water,moment_dust=dust)
+    actions=(lambda:initial_state(base.dynamics,coords,specs,**options),
+        lambda:build_step(coords,specs,BODY,reference_radiative_forcing(),5.,
+            radiation_component=lambda *args:None,soil_diffusivity=1e-8,**options))
+    for action in actions:
+        if valid: assert action() is not None
+        else:
+            with pytest.raises(ValueError,match='cannot combine bulk water with moment dust or water'): action()
+
+
 @pytest.mark.parametrize('height',[False,True])
 def test_thermal_relaxation_reaches_global_rollout_and_reverse_derivative(height):
     def objective(target):
@@ -247,8 +268,7 @@ def test_surface_controls_keep_global_reverse_derivatives(control):
 
 
 @pytest.mark.parametrize('modes',[1,2])
-@pytest.mark.parametrize('bulk',[False,True])
-def test_independent_dust_transport_radiation_material_and_restart(tmp_path,modes,bulk):
+def test_independent_dust_transport_radiation_material_and_restart(tmp_path,modes):
     from src.framework.physics.particle_optics import make_particle_provider
     from src.framework.physics.radiative_transfer import make_radiation_component
     from src.framework.physics.water_moments import dust_particle_tracers
@@ -261,11 +281,11 @@ def test_independent_dust_transport_radiation_material_and_restart(tmp_path,mode
     names=dust_particle_tracers(modes);pairs=tuple(zip(names[::2],names[1::2]))
     radiation=make_radiation_component(make_particle_provider(bands=12,dust_tracers=pairs))
     state,step,grid=backend_case(temperature_k=180.,surface_temperature_k=180.,moment_dust=True,
-        dust_mode_count=modes,bulk_water=bulk,initial_water_surface_kg_m2=100.,
+        dust_mode_count=modes,initial_water_surface_kg_m2=100.,
         radiation_component=radiation,coagulation_options={},dust_background_options=dict(
             scenario=dict(seasons=[0.,360.],opacity=np.full((2,*coords.horizontal.nodal_shape),.4))))
-    assert (WATER_VAPOR_TRACER in state.dynamics.tracers)==bulk
-    assert (WATER_CLOUD_TRACER in state.dynamics.tracers)==bulk
+    assert WATER_VAPOR_TRACER not in state.dynamics.tracers
+    assert WATER_CLOUD_TRACER not in state.dynamics.tracers
     assert 'water_core_mass' not in state.dynamics.tracers and 'water_ice_number' not in state.dynamics.tracers
     pressure_scale=float(specs.dimensionalize(1.,scales.units.pascal).magnitude)
     def inventory(current):
@@ -282,11 +302,8 @@ def test_independent_dust_transport_radiation_material_and_restart(tmp_path,mode
     restored=load_restart(save_restart(first,tmp_path/'dust-only.npz'))
     for actual,expected in zip(jax.tree.leaves(tick(restored)),jax.tree.leaves(second),strict=True):
         np.testing.assert_array_equal(actual,expected)
-    if not bulk:
-        np.testing.assert_array_equal(state.auxiliary_fields['water_surface_kg_m2'],second.auxiliary_fields['water_surface_kg_m2'])
-        assert 'water_exchange_coefficient_kg_m2_s' not in second.auxiliary_fields
-    else:
-        np.testing.assert_array_equal(state.auxiliary_fields['dust_water_frost_kg_m2'],second.auxiliary_fields['dust_water_frost_kg_m2'])
+    np.testing.assert_array_equal(state.auxiliary_fields['water_surface_kg_m2'],second.auxiliary_fields['water_surface_kg_m2'])
+    assert 'water_exchange_coefficient_kg_m2_s' not in second.auxiliary_fields
 
 
 @pytest.mark.parametrize('water',[False,True])
@@ -296,7 +313,7 @@ def test_no_forcing_advances_dynamics_without_radiation_or_surface_updates(tmp_p
         raise AssertionError('no-forcing mode must not evaluate radiation')
     state,step,_=backend_case(temperature_k=180.,surface_temperature_k=220.,wind_speed=40.,
         radiation_component=unused_radiation,no_forcing=True,return_diagnostics=True,
-        bulk_water=water,moment_dust=water,initial_water_surface_kg_m2=10.)
+        moment_water=water,initial_water_surface_kg_m2=10.)
     tick=jax.jit(step);first,diagnostics=tick(state);second,_=tick(first)
     assert first.dynamics.sim_time>state.dynamics.sim_time
     assert np.all(np.isfinite(first.dynamics.temperature_variation))

@@ -45,7 +45,7 @@ No complete-model equivalence or speed claim has passed yet.
 | Bulk water cloud kernels | `water_bulk` | Original `blkh2o_driver`, `findq`, `sedimh2o` and `fallvel`; 24 roots and 36 columns | Phase change, precipitation threshold, settling and rain/snow accounting are implemented. The original root iteration is checked separately; three Newton corrections remove its stopping noise. Surface exchange, lagged PBL exchange history, cloud optical feedback and global water inventory checks are connected |
 | Moment water nucleation/growth | `water_moments` | Original `nuclea`, `growthrate2`, `fshape2`, `scrit_tdep`, `nucleacond`; 187 kinetic, coupled and native-substep cases | One or two physical dust modes are checked in the kernel. The one-mode Dinosaur path connects surface exchange, convection, subcycling, latent heat, saved effective input and coated-cloud optics. Material, restarts and a three-step reverse derivative are checked |
 | Dust/cloud moment settling | `particle_sedimentation` | Original `init_sedim`, `sedim`, `fallvel`, `dtridgl`; 432 columns with 2/4/12/40 levels, 610 Pa or 500 mbar, explicit/implicit transport and core scavenging on/off | Reuses the checked continuity solver. Dust and core enter the surface dust reservoir; ice enters surface water. Particle-number loss and the source lifting-override budget imbalance are exposed |
-| Independent moment dust | `dust_sedimentation_step`, `column_physics`, `dinosaur_physics` | 432 unchanged native settling cases for each of one, two and three physical dust modes, with inactive water/core slots zero | Dust transport, lifting, seasonal control, coagulation, settling and optics work without moment-water physics. One/two-mode global material, restart and three-step gradient checks pass; bulk-water coupling keeps a separate fixed dust-gating frost boundary |
+| Independent moment dust | `dust_sedimentation_step`, `column_physics`, `dinosaur_physics` | 432 unchanged native settling cases for each of one, two and three physical dust modes, with inactive water/core slots zero | Dust transport, lifting, seasonal control, coagulation, settling and optics work without moment-water physics. One/two-mode global material, restart and three-step gradient checks pass; the native bulk/moment mode restrictions are enforced |
 | Interactive dust lifting | `dust_lifting` | Unchanged `flux_stress` and contiguous interactive source block; 250 cases | All five stress formulas, three dust-devil options, PBL/fixed-layer injection and reservoir-dependent thresholds are checked. One-mode global coupling uses the current PBL, source drag coefficient and held radiation-time reference opacity |
 | Seasonal dust control | `dust_lifting.background_step` | Unchanged background source block on defined branches, plus original size optics; 132 cases | All seven injection scalings, PBL/fixed-layer injection, seasonal cuts, cap/temperature masks, uniform and bottom removal are implemented. Native comparisons cover defined injection/uniform-sink cases. Independent material and gradient checks cover explicit sink repairs; global cloud feedback and restarts pass |
 | Combined/local-time dust control | `dust_lifting`, `dust_control` | Unchanged interactive/background blocks and local-time history block; 72 combined cases and 210 local-time cases | Source opacity gates and process order are implemented. Mapped local-time fractions and saved opacity/bin history are connected to Dinosaur and restarts |
@@ -568,9 +568,11 @@ for dust lifting and surface optics. It does not create water vapor, cloud
 moments or water exchange history. The persistent dust tracers contain only
 mass/number pairs. The settling adapter supplies zero inactive cloud/core slots
 locally because the unchanged native routine uses fixed tracer indices.
-When bulk water and independent dust are both active, `dust_water_frost_kg_m2`
-stores the fixed moment-frost boundary used by dust gates. It is not another
-water inventory. NetCDF exports retain this field's map orientation and units.
+The native release rejects bulk water combined with moment dust or moment
+water. Initialization, step construction, standalone columns and map runs now
+enforce that rule. The obsolete mixed-mode frost field has been removed.
+The Python moment-water option includes the dust populations required by
+the source; independent moment dust remains available without water physics.
 The real-input 56-level T21 dust-only smoke completed one step, then resumed to
 two steps. This checks startup and continuation, not climate stability.
 

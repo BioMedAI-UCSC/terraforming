@@ -102,6 +102,8 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
         raise ValueError('dust lifting and coagulation require physical moment particles')
     initial_moments=None
     if moment_water is None: moment_water=moment_particles is not None and bulk_water is not None
+    if not moment_water and moment_particles is not None and bulk_water is not None:
+        raise ValueError('the released model cannot combine bulk water with moment dust')
     if moment_water:
         water_surface_options=dict({} if water_surface_options is None else water_surface_options,scheme='moment')
     if moment_particles is not None:

@@ -8,7 +8,8 @@
       "build_run/compile.bash": "3a43a2fdb4e26dc0980e3e5bfaa5efbe0861a597",
       "atmos_param_mars/sedim_mod.F90": "df1424b6258a68d7dfb6c7b5ebfb7180224070ad",
       "atmos_param_mars/BLcode/pblmod_mgcm.F90": "38b3f41e4d07f9a2e3c9d7a689e50577cac7858c",
-      "atmos_param_mars/micromod_mgcm.F90": "4897f72860b59d7effeb6650dbf3d4484b3aca71"
+      "atmos_param_mars/micromod_mgcm.F90": "4897f72860b59d7effeb6650dbf3d4484b3aca71",
+      "atmos_param_mars/aerosol_util.F90": "353441748fa247b8d938e4993f06d313268580f7"
     },
     "preprocessor_flags": [
       "-cpp",
@@ -20,6 +21,7 @@
     ],
     "preprocessed_sha256": "4bafca1acd02f2e53ec6830bcf94a9d43e34d97dc4be09346dafd35089bd2c56",
     "moment_cloud_guard_sha256": "da60a441db330ce2399dc8f71fc2d57381cd1ca3c51ee0fb7db33914e33c745d",
+    "aerosol_mode_guard_sha256": "3fbb0171ae057f5d64576ed6a330a9abae137e57a01c8bb6c33c8df7c5ce74ed",
     "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0"
   },
   "cases": [
@@ -368,6 +370,56 @@
       "implementation": "moment_cloud_options.contact"
     }
   ],
+  "aerosol_mode_cases": [
+    {
+      "moment_dust": false,
+      "moment_water": false,
+      "bulk_water": false,
+      "allowed": true
+    },
+    {
+      "moment_dust": false,
+      "moment_water": false,
+      "bulk_water": true,
+      "allowed": true
+    },
+    {
+      "moment_dust": false,
+      "moment_water": true,
+      "bulk_water": false,
+      "allowed": false
+    },
+    {
+      "moment_dust": false,
+      "moment_water": true,
+      "bulk_water": true,
+      "allowed": false
+    },
+    {
+      "moment_dust": true,
+      "moment_water": false,
+      "bulk_water": false,
+      "allowed": true
+    },
+    {
+      "moment_dust": true,
+      "moment_water": false,
+      "bulk_water": true,
+      "allowed": false
+    },
+    {
+      "moment_dust": true,
+      "moment_water": true,
+      "bulk_water": false,
+      "allowed": true
+    },
+    {
+      "moment_dust": true,
+      "moment_water": true,
+      "bulk_water": true,
+      "allowed": false
+    }
+  ],
   "excluded_build_interfaces": {
     "required_definition": "fv3_turb",
     "calls": [
@@ -382,7 +434,7 @@
     "alternate_preprocessed_sha256": "146631ad81c35fed0dd3b9c3b7ff82cbd7d4370858457d121eb179e7288dfbb8"
   },
   "sha256": {
-    "scripts/validate_release_interfaces.py": "68bfe871c72d56e148673353ffa2966dee286496c0870e164ae9931f101b8c44",
+    "scripts/validate_release_interfaces.py": "67593f03b3472c25f299cd88023826fb000a4105dac618243d7d66b1ae212e3f",
     "scripts/native_reference.py": "2e3b0e2f65b685f86fcfdd1b4643b54c5582b81af36a0874a43d9eedc2675d76"
   },
   "limits": "The inventory covers the main driver plus sedimentation, PBL and moment-cloud controls. The moment-cloud guard leaves tendency outputs zero and cloud history inactive when cloud formation is disabled. Numerical behavior uses the separate native reports and integration checks. Bin-cloud microphysics, photochemistry and legacy binned dust-source equations are not in these released implementations. Tagging imports are excluded by RELEASE. Moment water, bulk water and moment dust have separate real modules and validations. Alternate FV3 turbulence calls require fv3_turb, which the pinned build does not define; this exclusion does not implement or validate those alternate schemes."

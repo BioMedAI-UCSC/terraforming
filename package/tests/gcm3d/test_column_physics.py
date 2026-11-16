@@ -121,6 +121,13 @@ def test_no_surface_rejects_reservoirs_missing_from_released_initialization():
         column_physics(**inputs(),bulk_water=water,do_mars_surface=False)
 
 
+def test_bulk_water_rejects_independent_moment_dust_as_in_released_source():
+    water=BulkWaterColumnState(0,jnp.zeros(4),10.,0.,3)
+    with pytest.raises(ValueError,match='cannot combine bulk water with moment dust'):
+        column_physics(**inputs(),bulk_water=water,moment_water=False,
+            moment_particles=jnp.broadcast_to(jnp.array([1e-5,1e8]),(4,2)))
+
+
 @pytest.mark.parametrize('modes',[1,2])
 def test_disabled_scavenging_retains_nonzero_cloud_cores_and_each_material_budget(modes):
     from src.framework.physics.water_moments import saturation_ratio

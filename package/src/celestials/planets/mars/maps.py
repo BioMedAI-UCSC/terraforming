@@ -695,7 +695,7 @@ def state_to_comparison_dataset(state, coords, specs, body, forcing):
             level_field(np.asarray(grid.to_nodal(value))),attributes)
     reservoirs={};extra_coordinates={}
     auxiliary={} if state.auxiliary_fields is None else state.auxiliary_fields
-    for name in ('water_surface_kg_m2','dust_surface_kg_m2','moist_bulk_surface_water_kg_m2','dust_water_frost_kg_m2'):
+    for name in ('water_surface_kg_m2','dust_surface_kg_m2','moist_bulk_surface_water_kg_m2'):
         if name not in auxiliary: continue
         value=np.asarray(auxiliary[name])
         if name=='dust_surface_kg_m2' and value.ndim==4:
@@ -704,8 +704,6 @@ def state_to_comparison_dataset(state, coords, specs, body, forcing):
         else:
             dimensions=('time','lat','lon');value=surface_field(value[0])
         attributes={'units':'kg m-2'}
-        if name=='dust_water_frost_kg_m2':
-            attributes['long_name']='Fixed moment frost for dust source gates; not an additional water inventory'
         reservoirs[name]=(dimensions,value,attributes)
     return xr.Dataset(
         data_vars={
