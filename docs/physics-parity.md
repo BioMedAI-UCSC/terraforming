@@ -543,7 +543,7 @@ env PYTHONPATH=package:. python scripts/validate_vertical_grid.py \
 ## Supported release scope
 
 The port targets supported configurations in the released v3.2.1 model.
-The NASA user guide (Table B.2, PDF page 189) and the pinned cloud runscript
+The NASA user guide (Table B.1, PDF page 189) and the pinned cloud runscript
 explicitly mark bin-dust radiation mode 2 as "not supported". Its retained
 compatibility paths are excluded from the required port. The source's bin-cloud
 and binned-dust microphysics drivers are fatal placeholders and remain excluded.
@@ -552,6 +552,24 @@ documented early-Mars bulk-cloud scheme remain in scope. The older fixed-radius
 bin-cloud optical routine is retained in the source, but has no verified
 deprecation notice and is unused by the matched cloud setup. It is optional
 compatibility work, not an acceptance gate for that benchmark.
+
+## Surface infrared normalization
+
+`--config reference --scale-surface-ir-flux` forwards the supported
+`do_irflux_scale` switch through the production callback to the spectral solver.
+The default is false, as in the pinned source. Enabled runs record the switch
+in restart identity. Changing it requires a new output directory.
+
+The original normalization uses `5.67e-8*T_surface**4` and `3.14159`.
+The transfer solver uses full pi, so the emitted integrated flux is
+`5.67e-8*T_surface**4*pi/3.14159`. This source constant difference is retained.
+The scaling cancels emissivity from the emitted term; reflected downward
+radiation still depends on surface reflectivity. Ninety-six composed native
+columns cover both settings, day/night, particles, top pressure and 4/12/56
+layers. Budget and reverse derivative checks cover both settings. A coupled
+three-step derivative and exact restart check also pass. A real-input T21/56-level
+smoke completed and resumed to two steps. Disabling the switch rejects resume
+and preserves the checkpoint.
 
 ## Required remaining work
 
@@ -590,7 +608,7 @@ limiter or establish matched transport accuracy.
 | CO2 switches | Atmospheric condensation, atmospheric loss and gas-mass feedback are independent source controls. Ninety-six unchanged native control-block cases check all combinations and initial-CO2-weighted surface exchange. Another 384 unchanged initialization cases check configurable exchange depths and strict pressure/latitude boundaries. Column tests retain condensation heating when precipitation loss is disabled, and retain surface snow when mass feedback is disabled. Held suspended clouds still mix as tracers when their phase driver is off. Global tests check disabled-feedback behavior, exact restart continuation and three-step reverse derivatives. |
 | Surface/diffusion controls | `do_mars_surface`, `do_vert_diff` and `do_ames_pbl` now select the released active branches. Without Mars surface physics, radiation sees 170 K, albedo 0.25 and emissivity 1; soil/CO2 surface exchange is inactive while drag and convection remain available. Twelve unchanged native `diffuse` cases prove the release fallback leaves tendencies unchanged because `fv3_turb` is excluded. Inactive PBL exchange fields are defined as zero instead of copying uninitialized source values. Surface-dependent water/dust modes are rejected without the source's surface reservoir initialization. |
 | Process controls | `freeze_tracer_fields`, `no_forcing` and the released `gust_fact` correction are connected to Dinosaur and the runner. Native blocks check tracer freezing, no-forcing early return and gust stress; column/global checks retain surface/history changes under freezing and skip all physical updates under no forcing. The released tracer-source/sink helper has no caller. Alternate gust/turbulence drivers are excluded by build flags. |
-| Module controls | PBL `htflux_recalc`, settling `scaveng` and moment-cloud `makeclouds` are connected through the column, Dinosaur and runner. Seeded-cloud tests cover retained cores, independent water settling/surface exchange, exact restarts and three-step derivatives. The audit also records the seven moment-cloud namelist entries, including its unused module-local `facsubl`. Continue the audit of the other modules. |
+| Module controls | Surface IR normalization is connected and checked. The supported alternate 12-band interpolation (`use_boxinterp12=false`) and solar normalization (`scale_by_scon`) still need a source-to-backend audit. PBL `htflux_recalc`, settling `scaveng` and moment-cloud `makeclouds` are connected through the column, Dinosaur and runner. Seeded-cloud tests cover retained cores, independent water settling/surface exchange, exact restarts and three-step derivatives. The audit also records the seven moment-cloud namelist entries, including its unused module-local `facsubl`. Continue the audit of the other modules. |
 | Interactive dust | Lifting, advection, sedimentation, surface reservoirs, coagulation and material budgets are connected independently of moment water. Matched climate validation remains. |
 | Water | Bulk and moment phase/growth/settling paths, surface exchange, saved effective inputs, state/restarts and optical feedback are connected. Two physical dust modes pass combined global material, restart and three-step derivative checks. Long climate validation remains. Bin cloud microphysics is unavailable in the public release. |
 | Drag | Rayleigh, Palmer terrain drag and non-orographic gravity-wave drag are implemented and checked. Polar water and terrain maps pass pinned-blob and T21/T42 area checks. Long momentum/energy audits remain. Gravity-wave schemes are off in the default Ames present-Mars setup. |

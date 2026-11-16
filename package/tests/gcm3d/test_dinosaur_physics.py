@@ -372,6 +372,31 @@ def test_frozen_dust_retains_dry_transport_but_keeps_surface_sources_and_restart
         np.testing.assert_array_equal(actual,expected)
 
 
+def test_scaled_surface_ir_preserves_restart_and_three_step_gradient(tmp_path):
+    from src.framework.physics.radiative_transfer import make_radiation_component
+    from src.framework.gcm.restart import save_restart,load_restart
+    options=dict(temperature_k=200.037,surface_temperature_k=240.037,
+        do_co2_condensation=False,do_co2_condensation_cycle=False)
+    state,step,grid=backend_case(**options,
+        radiation_component=make_radiation_component(lambda *args:None,scale_surface_flux=True))
+    _,unscaled,_=backend_case(**options,
+        radiation_component=make_radiation_component(lambda *args:None))
+    tick=jax.jit(step);first=tick(state)
+    baseline=jax.jit(unscaled)(state)
+    assert np.any(np.asarray(first.surface_temperature)!=np.asarray(baseline.surface_temperature))
+    restored=load_restart(save_restart(first,tmp_path/'scaled-ir.npz'))
+    for actual,expected in zip(jax.tree.leaves(tick(restored)),jax.tree.leaves(tick(first)),strict=True):
+        np.testing.assert_array_equal(actual,expected)
+    def objective(temperature_change):
+        current=state._replace(surface_temperature=state.surface_temperature+temperature_change)
+        for _ in range(3): current=step(current)
+        return jnp.mean(current.surface_temperature)+jnp.mean(grid.to_nodal(current.dynamics.temperature_variation))
+    automatic=jax.jit(jax.grad(objective))(0.);forward=jax.jit(objective)
+    assert np.isfinite(automatic) and automatic>0.
+    for epsilon in (.001,.0005):
+        np.testing.assert_allclose(automatic,(forward(epsilon)-forward(-epsilon))/(2.*epsilon),rtol=2e-5,atol=1e-7)
+
+
 def test_recalculated_pbl_heat_flux_changes_soil_and_preserves_restart_and_three_step_gradient(tmp_path):
     from src.framework.gcm.restart import save_restart,load_restart
     options=dict(temperature_k=200.037,surface_temperature_k=240.037,wind_speed=40.,

@@ -25,7 +25,7 @@ def rayleigh_per_pa(gravity_m_s2):
 def column_fluxes(temperature,surface_temperature,pressure_half,pressure_full,
                   mu0,solar_intensity,albedo,emissivity,gravity_m_s2,*,particle_optics=None,
                   daylight_fraction=1.,radiation_mode='12band',water_mass_fraction=None,
-                  cia_molar_fractions=None,stratosphere_temperature=None):
+                  cia_molar_fractions=None,stratosphere_temperature=None,scale_surface_flux=False):
     """Ames fillpt -> optical depths -> spectral fluxes -> layer heat flux.
 
     Inputs use kelvin, Pa and W/m2. solar_intensity has seven bands and includes
@@ -59,7 +59,8 @@ def column_fluxes(temperature,surface_temperature,pressure_half,pressure_full,
     day=jnp.asarray(mu0)>=1.e-4
     safe_mu=jnp.where(day,mu0,1.)
     visible=visible_spectrum(*sw,safe_mu,solar_intensity,albedo,mode=radiation_mode)
-    thermal=infrared_spectrum(*ir,grid.pressure,grid.temperature,1.-emissivity,mode=radiation_mode)
+    thermal=infrared_spectrum(*ir,grid.pressure,grid.temperature,1.-emissivity,
+        mode=radiation_mode,scale_surface_flux=scale_surface_flux)
     swup=jnp.where(day,visible.up*daylight_fraction,0.)
     swdown=jnp.where(day,visible.down*daylight_fraction,0.)
     netup=swup-swdown+thermal.up-thermal.down
@@ -73,7 +74,7 @@ def column_fluxes(temperature,surface_temperature,pressure_half,pressure_full,
 
 def make_radiation_component(particle_provider,*,radiation_interval_seconds=1848.,
                              radiation_mode='12band',water_vapor_tracer=None,cia_molar_fractions=None,
-                             solar_nonlte=True,nonlte_tracers=None):
+                             solar_nonlte=True,nonlte_tracers=None,scale_surface_flux=False):
     """Build the Ames backend callback with an explicit particle-input provider.
 
     The provider receives (state, coords, specs, body, forcing, radiation_grid)
@@ -118,7 +119,8 @@ def make_radiation_component(particle_provider,*,radiation_interval_seconds=1848
         flux=column_fluxes(temperature,surface,half,full,mu,solar,
             forcing.albedo,forcing.emissivity,body.gravity_m_s2,particle_optics=particles,
             daylight_fraction=daylight,radiation_mode=radiation_mode,water_mass_fraction=water,
-            cia_molar_fractions=cia_molar_fractions,stratosphere_temperature=strat)
+            cia_molar_fractions=cia_molar_fractions,stratosphere_temperature=strat,
+            scale_surface_flux=scale_surface_flux)
         correction=jnp.zeros_like(temperature)
         capacity=body.cp_j_kg_k*jnp.diff(half,axis=0)/body.gravity_m_s2
         if solar_nonlte:

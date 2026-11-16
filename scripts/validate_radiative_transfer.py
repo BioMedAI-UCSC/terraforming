@@ -59,24 +59,24 @@ def validate(source,compiler):
                             optical.extend([np.zeros((2*n+3,bands,17),order='F'),np.zeros((bands,16),order='F')])
                         optics.optical_depth(n,f(p/100.),f(tm),f(pm/100.),amount,*cross,*optical)
                         solar=f(np.array([12.7,24.2,54.6,145.9,354.9,657.5,106.3])/1.524**2)
-                        for mu in (.6,0.):
+                        for mu,scale_surface in ((.6,False),(0.,False),(.6,True),(0.,True)):
                             up=np.zeros(n+1);down=np.zeros(n+1);topnet=np.zeros(1)
                             if mu>0.:
                                 spectral.ames_sw(n+1,mu,.25,*optical[:5],solar,
                                     f(data['clear_fraction_sw']),f(data['gauss_weights']),up,down,topnet)
                             visible_top=topnet[0]
                             irup=np.zeros(n+1);irdown=np.zeros(n+1)
-                            spectral.ames_lw(n+1,.05,0,*optical[5:],f(p/100.),f(tl),
+                            spectral.ames_lw(n+1,.05,int(scale_surface),*optical[5:],f(p/100.),f(tl),
                                 f(data['ames_planck_intensity_ir'].T),f(np.diff(data['ir_bounds_cm1'])),
                                 f(data['clear_fraction_ir']),f(data['gauss_weights']),irup,irdown,topnet)
                             fp64_up,fp64_down=irup.copy(),irdown.copy()
-                            quad.ames_lw(n+1,.05,0,*optical[5:],f(p/100.),f(tl),
+                            quad.ames_lw(n+1,.05,int(scale_surface),*optical[5:],f(p/100.),f(tl),
                                 f(data['ames_planck_intensity_ir'].T),f(np.diff(data['ir_bounds_cm1'])),
                                 f(data['clear_fraction_ir']),f(data['gauss_weights']),irup,irdown,topnet)
                             net=up-down+irup-irdown
                             expected=(down,up,irup,irdown,np.diff(net),-net[-1],-net[0])
                             actual=column_fluxes(t,200.,half,full,mu,solar,.25,.95,3.72,particle_optics=particles,
-                                stratosphere_temperature=strat_temperature)
+                                stratosphere_temperature=strat_temperature,scale_surface_flux=scale_surface)
                             strat_ir=irup[0]-irdown[0]-topnet[0]
                             factor=2.2e4*(p[1]/100.)/(1.+2.2e4*(p[1]/100.))
                             strat_sw=(up[0]-down[0]-visible_top)*factor
@@ -105,7 +105,7 @@ def validate(source,compiler):
                                 abs(sample_sw-(up[0]-down[0])*factor)+abs(boundary-native_boundary)+roundoff)
                             assert strat_error<=strat_bound
                             cases.append(dict(layers=n,top_pressure_pa=top,particle_loading=loading,
-                                mu0=mu,stratosphere_temperature_k=strat_temperature,max_flux_errors_w_m2=errors,
+                                mu0=mu,scale_surface_flux=scale_surface,stratosphere_temperature_k=strat_temperature,max_flux_errors_w_m2=errors,
                                 stratosphere_flux_error_w_m2=strat_error,
                                 native_fp64_ir_cancellation_error_w_m2=float(max(np.max(np.abs(fp64_up-irup)),
                                     np.max(np.abs(fp64_down-irdown))))))

@@ -112,7 +112,9 @@ def test_alternate_reference_radiation_records_profile_and_timescale_for_restart
 def test_alternate_reference_cli_rejects_unsupported_combinations(monkeypatch):
     import sys
     driver=_script('run_gcm3d_ablation')
-    for arguments in (['--reference-radiation','simple'],['--thermal-timescale','-2.'],['--no-co2-mass-feedback'],
+    for arguments in (['--scale-surface-ir-flux'],
+                      ['--config','reference','--reference-radiation','simple','--scale-surface-ir-flux'],
+                      ['--reference-radiation','simple'],['--thermal-timescale','-2.'],['--no-co2-mass-feedback'],
                       ['--no-vertical-diffusion'],['--no-reference-pbl'],['--no-moment-water'],
                       ['--freeze-tracer-fields'],['--no-forcing'],['--gust-factor','2.'],['--gust-factor','nan'],
                       ['--recalculate-heat-flux'],['--lifting-suppresses-settling'],['--dust-opacity-from-aerosol'],
@@ -138,7 +140,8 @@ def test_disabled_reference_process_switch_rejects_nonreference_config(monkeypat
 
 @pytest.mark.parametrize('water',[False,True])
 @pytest.mark.parametrize('from_aerosol',[False,True])
-def test_reference_configuration_keeps_dust_and_frost_independent_of_water(monkeypatch,tmp_path,water,from_aerosol):
+@pytest.mark.parametrize('scale_surface',[False,True])
+def test_reference_configuration_keeps_dust_and_frost_independent_of_water(monkeypatch,tmp_path,water,from_aerosol,scale_surface):
     from src.framework.gcm.coordinates import coordinate_system
     from src.celestials.planets.mars import surface,boundary_inputs,dust_scenario
     from src.framework.physics import particle_optics,radiative_transfer
@@ -149,12 +152,17 @@ def test_reference_configuration_keeps_dust_and_frost_independent_of_water(monke
     monkeypatch.setattr(boundary_inputs,'polar_water_on_grid',lambda *args:frost)
     monkeypatch.setattr(dust_scenario,'load_scenario_on_grid',lambda *args,**kwargs:dict(fixture=True,**kwargs))
     monkeypatch.setattr(particle_optics,'make_particle_provider',lambda **kwargs:kwargs)
-    monkeypatch.setattr(radiative_transfer,'make_radiation_component',lambda provider,**kwargs:provider)
+    radiation_options={}
+    def radiation_factory(provider,**kwargs):
+        radiation_options.update(kwargs)
+        return provider
+    monkeypatch.setattr(radiative_transfer,'make_radiation_component',radiation_factory)
     inputs=('mars_thermal_inertia8_2011.nc','mars_TES_albedo8_new.nc','mars_sfc_emissivity8.nc',
         'GRS_interp16.nc','npcflag8.nc','DustScenario_MY30.nc')
     for name in inputs: (tmp_path/name).write_bytes(name.encode())
     _,forcing,provider,options,hashes=_script('run_gcm3d_ablation').reference_configuration(
-        grid,tmp_path,231.,moment_water=water,dust_opacity_from_aerosol=from_aerosol)
+        grid,tmp_path,231.,moment_water=water,dust_opacity_from_aerosol=from_aerosol,scale_surface_flux=scale_surface)
+    assert radiation_options['scale_surface_flux'] is scale_surface
     assert options['moment_water'] is water and options['moment_dust'] is not water
     assert (options['moment_cloud_options'] is not None)==water
     assert (provider['water_moment_tracers'] is not None)==water
