@@ -235,7 +235,7 @@ def _ames_dust_climatology(path: Path, grid):
 
 def reference_configuration(grid,data_directory,dt_seconds,*,moment_water=True,dust_opacity_from_aerosol=False,
                             scale_surface_flux=False,solar_constant_w_m2=None,linear_k_interpolation=False,
-                            shortwave_ramp_sols=-1.,fixed_calendar_date=-1):
+                            shortwave_ramp_sols=-1.,fixed_calendar_date=-1,surface_map_options=None):
     """Released present-Mars cloud switches from build_run/fms_mars_clouds_v3.2."""
     from src.celestials.planets.mars.reference_constants import AMES_BODY_3D,reference_radiative_forcing
     from src.celestials.planets.mars.surface import reference_surface_fields_on_grid
@@ -246,7 +246,7 @@ def reference_configuration(grid,data_directory,dt_seconds,*,moment_water=True,d
     from src.framework.physics.radiative_transfer import make_radiation_component
     from src.framework.physics.water_bulk import WATER_CLOUD_TRACER
     data_directory=Path(data_directory)
-    fields=reference_surface_fields_on_grid(grid,data_directory)
+    fields=reference_surface_fields_on_grid(grid,data_directory,**(surface_map_options or {}))
     diffusivity,capacity=subsurface_properties(jnp.asarray(grid.latitudes)[None,:],
         fields['thermal_inertia'],fields['grs_ice_latitude_deg'])
     scenario=load_scenario_on_grid(grid,data_directory/'DustScenario_MY30.nc',map_scale=3.67)
@@ -295,9 +295,10 @@ def reference_rest_state(coords,specs,body,elevation_nodal_m):
     return dataclasses.replace(dynamics,log_surface_pressure=corrected)
 
 
-def reference_surface_temperature_k(latitude_rad):
-    """Released mars_surface cold start with use_equilibrated_ts enabled."""
+def reference_surface_temperature_k(latitude_rad,*,equilibrated=True,soil_temperature_k=170.):
+    """Released equilibrated-latitude or uniform soil cold start."""
     latitude=jnp.asarray(latitude_rad)
+    if not equilibrated: return jnp.full_like(latitude,soil_temperature_k)
     return jnp.where(latitude < -15.*jnp.pi/180.,
         165.+55.5*.5*(1.+jnp.cos((latitude+.261799)*180./75.)),
         167.+52.*jnp.cos((latitude+.261799)*90./105.))
@@ -372,6 +373,13 @@ def main() -> int:
     for flag,destination in (('mars-surface','do_mars_surface'),('vertical-diffusion','do_vert_diff'),
                              ('reference-pbl','do_ames_pbl')):
         parser.add_argument('--'+flag,dest=destination,action=argparse.BooleanOptionalAction,default=True)
+    parser.add_argument('--equilibrated-surface',action=argparse.BooleanOptionalAction,default=True,
+        help='use the released latitude profile; disable for uniform initial soil temperature')
+    parser.add_argument('--soil-temperature',type=float,default=170.,help='uniform initial soil temperature in K')
+    parser.add_argument('--north-inertia',type=float,default=-900.,help='replace thermal inertia north of the cap latitude when positive')
+    parser.add_argument('--north-inertia-latitude',type=float,default=65.,help='north thermal-inertia boundary in degrees')
+    parser.add_argument('--north-inertia-maximum',type=float,default=800.,help='thermal-inertia cap north of the boundary')
+    parser.add_argument('--regional-inertia-scale',type=float,default=-100.,help='positive thermal-inertia multiplier strictly between -50 and +30 degrees')
     parser.add_argument("--truncation", default="T21")
     parser.add_argument("--layers", type=int, default=None)
     parser.add_argument("--dt", type=float, default=None)
@@ -421,6 +429,21 @@ def main() -> int:
         if not np.isfinite(args.solar_constant) or args.solar_constant<=0.:
             parser.error('solar constant must be finite and positive')
     solar_constant=589. if args.reference_radiation=='simple' and args.solar_constant is None else args.solar_constant
+    if not np.isfinite(args.soil_temperature) or args.soil_temperature<=0.:
+        parser.error('initial soil temperature must be finite and positive')
+    initial_surface_controls={}
+    if not args.equilibrated_surface: initial_surface_controls['equilibrated']=False
+    if args.soil_temperature!=170.: initial_surface_controls['soil_temperature_k']=args.soil_temperature
+    if initial_surface_controls and (not reference or not args.do_mars_surface):
+        parser.error('initial soil controls require --config reference with Mars surface physics')
+    surface_map_defaults=dict(north_inertia=-900.,north_latitude_deg=65.,north_maximum=800.,regional_scale=-100.)
+    surface_map_options=dict(north_inertia=args.north_inertia,north_latitude_deg=args.north_inertia_latitude,
+        north_maximum=args.north_inertia_maximum,regional_scale=args.regional_inertia_scale)
+    if (not all(np.isfinite(value) for value in surface_map_options.values()) or
+        abs(args.north_inertia_latitude)>90. or args.north_inertia_maximum<=0.):
+        parser.error('surface inertia controls require finite values, a valid latitude and a positive cap')
+    surface_map_controls={name:value for name,value in surface_map_options.items() if value!=surface_map_defaults[name]}
+    if surface_map_controls and not reference: parser.error('surface inertia controls require --config reference')
     process_defaults=dict(freeze_tracer_fields=False,no_forcing=False,gust_factor=0.,recalculate_heat_flux=False,
         particle_scavenging=True,form_moment_clouds=True,lifting_suppresses_settling=False,dust_opacity_from_aerosol=False,
         co2_exchange_ratio_pole=.92,co2_exchange_ratio_trop=.991)
@@ -496,7 +519,8 @@ def main() -> int:
             grid,args.surface_properties,args.dt,moment_water=args.moment_water,
             dust_opacity_from_aerosol=args.dust_opacity_from_aerosol,scale_surface_flux=args.scale_surface_ir_flux,
             solar_constant_w_m2=solar_constant,linear_k_interpolation=args.linear_k_interpolation,
-            shortwave_ramp_sols=args.shortwave_ramp_sols,fixed_calendar_date=args.fixed_radiation_date)
+            shortwave_ramp_sols=args.shortwave_ramp_sols,fixed_calendar_date=args.fixed_radiation_date,
+            surface_map_options=surface_map_controls)
         reference_options.update(co2_controls)
         reference_options.update(surface_controls)
         reference_options.update(process_controls)
@@ -599,6 +623,10 @@ def main() -> int:
                 config.setdefault('reference_radiation_controls',{})['shortwave_ramp_sols']=args.shortwave_ramp_sols
             if args.fixed_radiation_date>=0:
                 config.setdefault('reference_radiation_controls',{})['fixed_calendar_date']=args.fixed_radiation_date
+            if surface_map_controls: config['reference_surface_map_controls']=surface_map_controls
+            if initial_surface_controls: config['reference_initial_surface_controls']=initial_surface_controls
+            if not args.equilibrated_surface:
+                config.update(initial_surface_profile='uniform',initial_soil_temperature_k=args.soil_temperature)
             if not all(co2_controls.values()): config['co2_process_switches']=co2_controls
             if not all(surface_controls.values()): config['surface_process_switches']=surface_controls
             if process_controls: config['reference_process_controls']=process_controls
@@ -695,7 +723,8 @@ def main() -> int:
                     moment_dust=reference_options.get('moment_dust',False),
                     dust_background_options=reference_options.get('dust_background_options'),
                     radiation_update_seconds=reference_options.get('radiation_update_seconds'),**initial_options)
-                surface=(reference_surface_temperature_k(jnp.asarray(grid.latitudes))[None,None,:]
+                surface=(reference_surface_temperature_k(jnp.asarray(grid.latitudes),
+                    equilibrated=args.equilibrated_surface,soil_temperature_k=args.soil_temperature)[None,None,:]
                     if args.do_mars_surface else jnp.full((1,1,len(grid.latitudes)),170.))
                 surface=surface*float(specs.nondimensionalize(1.*scales.units.kelvin))
                 surface=jnp.broadcast_to(surface,state.surface_temperature.shape)

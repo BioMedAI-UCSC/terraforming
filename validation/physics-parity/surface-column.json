@@ -1165,7 +1165,7 @@
     }
   ],
   "source_sha256": "834dd6eb08fafd463f0fbdf59358415fd2b2069e0dcc0b857e4096b490174365",
-  "kernel_sha256": "c0c17bceefb7e04bc03d383994eb7e9f34c892959c2f1abbe4f8bbcbcb1f848d",
+  "kernel_sha256": "4a13944a2874b71af0efa8b8ad33befd1987380fa9290c2576812bdb7bd1dba2",
   "water_surface_sha256": "a9b6006b64953372871ee6f627fb8589eea6aaac19542b59a55266719a89e2c4",
   "vertical_solver_sha256": "0d01f1d42fe7f086a887a2c0c51cb3b4385d26a3c944b72f81150b8a57ddd991",
   "jax_version": "0.11.0",

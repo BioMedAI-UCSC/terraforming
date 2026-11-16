@@ -113,14 +113,20 @@ def surface_fields_on_grid(grid, path: str | Path):
     return fields["albedo"], fields["thermal_inertia"]
 
 
-def reference_surface_fields_on_grid(grid,data_directory):
+def reference_surface_fields_on_grid(grid,data_directory,*,north_inertia=-900.,north_latitude_deg=65.,
+                                     north_maximum=800.,regional_scale=-100.):
     """Load the supplied reference TES/GRS maps without substituting climatology.
 
     The latitude/longitude interpolation adapts the reference input maps to
-    Dinosaur. Retain the source's 800-TIU maximum north of 65 degrees.
+    Dinosaur. Apply the source's north-cap replacement/limit, then regional
+    inertia scaling. Defaults retain the 800-TIU maximum north of 65 degrees.
     """
     import xarray as xr
 
+    from src.framework.physics.soil_frost import surface_thermal_inertia
+    controls=np.asarray([north_inertia,north_latitude_deg,north_maximum,regional_scale])
+    if not np.isfinite(controls).all() or abs(north_latitude_deg)>90. or north_maximum<=0.:
+        raise ValueError('surface inertia controls require finite values, a valid latitude and a positive cap')
     source=Path(data_directory)
     fields={}
     inputs={
@@ -147,7 +153,7 @@ def reference_surface_fields_on_grid(grid,data_directory):
     # The reference TES map includes values up to 1.0093; Ames does not clip them.
     if np.any(fields['emissivity']<=0.) or np.any(np.abs(fields['grs_ice_latitude_deg'])>90.):
         raise ValueError('reference emissivity or GRS ice-boundary latitude is invalid')
-    north=np.degrees(np.asarray(grid.latitudes))[None,:]>65.
-    fields['thermal_inertia']=np.where(north,np.minimum(fields['thermal_inertia'],800.),
-        fields['thermal_inertia'])
+    fields['thermal_inertia']=np.asarray(surface_thermal_inertia(np.asarray(grid.latitudes)[None,:],
+        fields['thermal_inertia'],north_inertia=north_inertia,north_latitude_deg=north_latitude_deg,
+        north_maximum=north_maximum,regional_scale=regional_scale,xp=np))
     return fields

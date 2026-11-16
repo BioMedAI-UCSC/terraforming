@@ -30,6 +30,18 @@ def ice_depth(latitude_rad,minimum_depth_m,grs_latitude_deg):
     return jnp.minimum(-(40.*transition/2.-minimum_depth_m),10.)
 
 
+
+def surface_thermal_inertia(latitude_rad,inertia,*,north_inertia=-900.,north_latitude_deg=65.,
+                            north_maximum=800.,regional_scale=-100.,xp=jnp):
+    """Released north-cap replacement/cap, then strict -50 to +30 deg scaling."""
+    latitude,inertia=xp.broadcast_arrays(latitude_rad,inertia)
+    north=latitude>north_latitude_deg*xp.pi/180.
+    result=xp.where(north&(north_inertia>0.),north_inertia,inertia)
+    result=xp.where(north&(result>north_maximum),north_maximum,result)
+    region=(latitude>-50.*xp.pi/180.)&(latitude<30.*xp.pi/180.)
+    return xp.where(region&(regional_scale>0.),regional_scale*result,result)
+
+
 def subsurface_properties(latitude_rad,thermal_inertia,grs_latitude_deg,soil_layers=16,*,
                           legacy=False,subsurface_ice=True,ice_case=7,
                           southern_minimum_layers=7,north_ice_inertia=1000.,south_ice_inertia=1000.):

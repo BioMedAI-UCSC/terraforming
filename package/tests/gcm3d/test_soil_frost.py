@@ -101,3 +101,15 @@ def test_soil_material_switches_keep_native_hemisphere_values_and_fixed_deep_nod
     uniform,uniform_capacity=subsurface_properties(lat,250.,60.,legacy=legacy,ice_case=3)
     np.testing.assert_allclose(uniform,(250./dry)**2)
     np.testing.assert_allclose(uniform_capacity,dry)
+
+
+def test_surface_inertia_adjustments_keep_reverse_derivatives_through_active_controls():
+    from src.framework.physics.soil_frost import surface_thermal_inertia
+    latitude=jnp.deg2rad(jnp.array([-60.,-40.,20.,70.]))
+    def objective(value):
+        return jnp.sum(surface_thermal_inertia(latitude,jnp.array([200.,300.,400.,500.])*value,
+            north_inertia=600.*value,north_maximum=800.,regional_scale=2.*value))
+    derivative=jax.jit(jax.grad(objective))(1.)
+    np.testing.assert_allclose(derivative,3600.,rtol=2e-15)
+    epsilon=1e-5
+    np.testing.assert_allclose(derivative,(objective(1.+epsilon)-objective(1.-epsilon))/(2.*epsilon),rtol=2e-10)

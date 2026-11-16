@@ -222,8 +222,11 @@ def test_reference_configuration_keeps_dust_and_frost_independent_of_water(monke
     from src.framework.physics import particle_optics,radiative_transfer,prescribed_dust
     grid=coordinate_system('T21',4).horizontal
     frost=np.arange(np.prod(grid.nodal_shape)).reshape(grid.nodal_shape)*.01
-    monkeypatch.setattr(surface,'reference_surface_fields_on_grid',lambda *args:
-        dict(albedo=.25,emissivity=.95,thermal_inertia=250.,grs_ice_latitude_deg=60.))
+    surface_options={}
+    def surface_fields(*args,**kwargs):
+        surface_options.update(kwargs)
+        return dict(albedo=.25,emissivity=.95,thermal_inertia=250.,grs_ice_latitude_deg=60.)
+    monkeypatch.setattr(surface,'reference_surface_fields_on_grid',surface_fields)
     monkeypatch.setattr(boundary_inputs,'polar_water_on_grid',lambda *args:frost)
     monkeypatch.setattr(dust_scenario,'load_scenario_on_grid',lambda *args,**kwargs:dict(fixture=True,**kwargs))
     monkeypatch.setattr(particle_optics,'make_particle_provider',lambda **kwargs:kwargs)
@@ -242,7 +245,9 @@ def test_reference_configuration_keeps_dust_and_frost_independent_of_water(monke
     for name in inputs: (tmp_path/name).write_bytes(name.encode())
     _,forcing,provider,options,hashes=_script('run_gcm3d_ablation').reference_configuration(
         grid,tmp_path,231.,moment_water=water,dust_opacity_from_aerosol=from_aerosol,scale_surface_flux=scale_surface,
-        solar_constant_w_m2=solar_constant,linear_k_interpolation=linear,shortwave_ramp_sols=5.,fixed_calendar_date=100)
+        solar_constant_w_m2=solar_constant,linear_k_interpolation=linear,shortwave_ramp_sols=5.,fixed_calendar_date=100,
+        surface_map_options=dict(north_inertia=900.,regional_scale=1.2))
+    assert surface_options==dict(north_inertia=900.,regional_scale=1.2)
     assert radiation_options['linear_k_interpolation'] is linear
     assert radiation_options['shortwave_ramp_sols']==5.
     assert radiation_options['fixed_calendar_date']==100
@@ -311,3 +316,61 @@ def test_arco_ls_window_avoids_source_time_gap():
     selected = np.asarray(source.time.isel(time=slice(start, stop)))
     assert stop - start == 2 * stage.SAMPLES_PER_SOL
     assert np.allclose(np.diff(selected), 1.0 / stage.SAMPLES_PER_SOL)
+
+
+@pytest.mark.parametrize('arguments',[
+    ['--north-inertia','500'],['--north-inertia-latitude','60'],
+    ['--north-inertia-maximum','700'],['--regional-inertia-scale','1.5'],
+    ['--config','reference','--north-inertia','nan'],
+    ['--config','reference','--north-inertia-latitude','91'],
+    ['--config','reference','--north-inertia-maximum','0'],
+    ['--config','reference','--regional-inertia-scale','inf']])
+def test_surface_inertia_cli_rejects_invalid_controls_before_input_loading(monkeypatch,capsys,arguments):
+    import sys
+    driver=_script('run_gcm3d_ablation')
+    monkeypatch.setattr(sys,'argv',['run_gcm3d_ablation.py','unused-surface',*arguments])
+    with pytest.raises(SystemExit) as stopped: driver.main()
+    assert stopped.value.code==2
+    assert 'surface inertia controls require' in capsys.readouterr().err
+
+
+def test_surface_inertia_cli_forwards_controls_to_reference_configuration(monkeypatch,tmp_path):
+    import sys
+    driver=_script('run_gcm3d_ablation')
+    class ConfigurationReached(Exception): pass
+    def capture(*args,**kwargs):
+        assert kwargs['surface_map_options']==dict(north_inertia=900.,north_latitude_deg=60.,
+            north_maximum=700.,regional_scale=1.5)
+        raise ConfigurationReached
+    monkeypatch.setattr(driver,'reference_configuration',capture)
+    mola=tmp_path/'mola';mola.touch()
+    monkeypatch.setattr(sys,'argv',['run_gcm3d_ablation.py',str(tmp_path),'--config','reference',
+        '--mola-path',str(mola),'--truncation','T21','--layers','24',
+        '--north-inertia','900','--north-inertia-latitude','60',
+        '--north-inertia-maximum','700','--regional-inertia-scale','1.5'])
+    with pytest.raises(ConfigurationReached): driver.main()
+
+
+def test_reference_uniform_surface_preserves_temperature_and_reverse_derivative():
+    from src.framework.gcm._dinosaur import jax,jnp
+    jax.config.update('jax_enable_x64',True)
+    driver=_script('run_gcm3d_ablation');latitude=jnp.deg2rad(jnp.array([-90.,-15.,0.,70.,90.]))
+    actual=driver.reference_surface_temperature_k(latitude,equilibrated=False,soil_temperature_k=180.)
+    np.testing.assert_array_equal(actual,180.)
+    derivative=jax.jit(jax.grad(lambda temperature:jnp.sum(driver.reference_surface_temperature_k(
+        latitude,equilibrated=False,soil_temperature_k=temperature))))(180.)
+    assert derivative==5.
+
+
+@pytest.mark.parametrize('arguments',[
+    ['--no-equilibrated-surface'],['--soil-temperature','180'],
+    ['--config','reference','--soil-temperature','nan'],
+    ['--config','reference','--soil-temperature','0'],
+    ['--config','reference','--no-mars-surface','--no-equilibrated-surface']])
+def test_uniform_soil_cli_rejects_invalid_controls_before_input_loading(monkeypatch,capsys,arguments):
+    import sys
+    driver=_script('run_gcm3d_ablation')
+    monkeypatch.setattr(sys,'argv',['run_gcm3d_ablation.py','unused-surface',*arguments])
+    with pytest.raises(SystemExit) as stopped: driver.main()
+    assert stopped.value.code==2
+    assert 'soil' in capsys.readouterr().err

@@ -74,3 +74,17 @@ def test_conservative_surface_remap_averages_both_sides_of_longitude_seam():
     field=xr.DataArray([[2.,4.,6.,10.]],dims=('lat','lon'))
     actual=conservative_surface_field(grid,field)
     np.testing.assert_allclose(actual[:,0],[6.,3.,5.,8.],atol=1e-14)
+
+
+def test_reference_map_controls_keep_source_regions_and_operation_order(tmp_path):
+    write_reference_maps(tmp_path)
+    grid=SimpleNamespace(latitudes=np.deg2rad([-80.,-50.,-49.,29.,30.,65.,80.]),
+        longitudes=np.deg2rad([0.,120.,240.]),quadrature_weights=np.ones(7))
+    fields=reference_surface_fields_on_grid(grid,tmp_path,north_inertia=1000.,north_maximum=700.,regional_scale=2.)
+    np.testing.assert_allclose(fields['thermal_inertia'],np.broadcast_to([900.,900.,1800.,1800.,900.,900.,700.],(3,7)))
+    overlap=reference_surface_fields_on_grid(grid,tmp_path,north_inertia=1000.,north_latitude_deg=0.,
+        north_maximum=700.,regional_scale=2.)
+    np.testing.assert_allclose(overlap['thermal_inertia'][:,3],1400.)
+    for options in (dict(north_maximum=0.),dict(north_latitude_deg=91.),dict(regional_scale=np.nan)):
+        with pytest.raises(ValueError,match='inertia controls'):
+            reference_surface_fields_on_grid(grid,tmp_path,**options)

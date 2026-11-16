@@ -30,21 +30,33 @@ def validate(source,compiler):
     assert re.search(r'^\+\s*do_isothermal\s*=\s*\.true\.',patch.decode(),re.M|re.I)
     text=surface.decode();start=text.index('    if (use_equilibrated_ts) then')
     block=text[start:text.index('    sfc_snow(:,:)= 0.0',start)]
+    edit_start=text.index('if( edit_subsfc_temp  ) then')
+    edit=text[edit_start:text.index('\nendif',edit_start)+len('\nendif')]
+    assert 'tsoil(:,:,nlayers+1)=  150.0' in edit
+    driver=(source/'atmos_param_mars/mars_physics.F90').read_bytes()
+    assert blob(driver)=='ca0b7c0774b1b23cafaee219062c3bffa3d0c4cc'
+    assert 'dimension(is:ie,js:je,nlayers)      ::  tgrnd' in text
+    assert 'dimension(is:ie,js:je,nlayers)     ::  tg_dt' in text
+    assert 'real, dimension(size(t,1),size(t,2),size(tsoil,3))  :: tgrnd,' in driver.decode()
+    assert 'tgrnd=tgrnd+tg_tnd' in driver.decode()
     code='''module reference_mod
 use iso_c_binding
 implicit none
 contains
-subroutine cold_start(n,latitude,temperature,soil) bind(C)
-integer(c_int),value :: n
+subroutine cold_start(n,equilibrated,edit_deep,uniform_temperature,latitude,temperature,soil) bind(C)
+integer(c_int),value :: n,equilibrated,edit_deep
+real(c_double),value :: uniform_temperature
 real(c_double),intent(in) :: latitude(n)
 real(c_double),intent(out) :: temperature(n),soil(n,17)
 real :: lat(n,1),t_surf(n,1),tsoil(n,1,17)
-real,parameter :: pi=3.1415926535897932384626433832795,soil_temp=170.
+real,parameter :: pi=3.1415926535897932384626433832795
+real :: soil_temp
 integer,parameter :: nlayers=16
-logical,parameter :: use_equilibrated_ts=.true.
+logical :: use_equilibrated_ts,edit_subsfc_temp
 integer :: k
 lat(:,1)=latitude
-'''+block+'''
+soil_temp=uniform_temperature;use_equilibrated_ts=equilibrated/=0;edit_subsfc_temp=edit_deep/=0
+'''+block+edit+'''
 temperature=t_surf(:,1)
 soil=tsoil(:,1,:)
 end subroutine
@@ -57,12 +69,20 @@ end module
         subprocess.run([compiler,*flags,'reference.f90','-o','reference.so'],cwd=directory,check=True)
         native=ctypes.CDLL(str(directory/'reference.so'))
         array=np.ctypeslib.ndpointer(dtype=np.float64,flags='F_CONTIGUOUS')
-        native.cold_start.argtypes=[ctypes.c_int,array,array,array];native.cold_start.restype=None
-        expected=np.empty_like(lat);soil=np.empty((len(lat),17),order='F')
-        native.cold_start(len(lat),lat,expected,soil)
-    actual=np.asarray(reference_surface_temperature_k(lat))
-    np.testing.assert_allclose(actual,expected,rtol=2e-15,atol=1e-13)
-    np.testing.assert_array_equal(soil,np.broadcast_to(expected[:,None],soil.shape))
+        native.cold_start.argtypes=[ctypes.c_int]*3+[ctypes.c_double,array,array,array];native.cold_start.restype=None
+        expected=np.empty_like(lat);soil=np.empty((len(lat),17),order='F');cases=[]
+        for equilibrated in (False,True):
+            for temperature in (150.,170.,230.):
+                for edit_deep in (False,True):
+                    native.cold_start(len(lat),int(equilibrated),int(edit_deep),temperature,lat,expected,soil)
+                    actual=np.asarray(reference_surface_temperature_k(lat,equilibrated=equilibrated,
+                        soil_temperature_k=temperature))
+                    np.testing.assert_allclose(actual,expected,rtol=2e-15,atol=1e-13)
+                    np.testing.assert_array_equal(soil[:,:16],np.broadcast_to(expected[:,None],(len(lat),16)))
+                    deep=np.where((np.abs(lat)>70.*np.pi/180.)&edit_deep,150.,expected)
+                    np.testing.assert_array_equal(soil[:,16],deep)
+                    cases.append(dict(equilibrated=equilibrated,soil_temperature_k=temperature,
+                        edit_subsfc_temp=edit_deep,max_surface_error_k=float(np.max(abs(actual-expected)))))
     root=Path(__file__).parents[1]
     paths=('scripts/validate_initial_conditions.py','scripts/run_gcm3d_ablation.py',
         'package/src/celestials/planets/mars/maps.py')
@@ -70,10 +90,13 @@ end module
         block_sha256=hashlib.sha256(block.encode()).hexdigest(),
         compiled_source_sha256=hashlib.sha256(code.encode()).hexdigest(),compiler_flags=flags,
         compiler=subprocess.check_output([compiler,'--version'],text=True).splitlines()[0]),
-        initial_air_temperature_k=170.,latitude_cases=len(lat),soil_nodes=17,
-        max_surface_error_k=float(np.max(abs(actual-expected))),
+        initial_air_temperature_k=170.,latitude_cases=len(lat),initialization_cases=cases,
+        initialized_soil_nodes=17,solver_soil_nodes=16,
+        extra_node_audit=dict(driver_git_blob=blob(driver),edit_block_sha256=hashlib.sha256(edit.encode()).hexdigest(),
+            status="edit_subsfc_temp changes only entry 17; progts input/output declarations cover 16 entries; caller extra tendency is unwritten"),
+        max_surface_error_k=max(case['max_surface_error_k'] for case in cases),
         sha256={path:hashlib.sha256((root/path).read_bytes()).hexdigest() for path in paths},
-        limits='Unchanged surface cold-start block and pinned isothermal default; Dinosaur retains its separately tested hydrostatic pressure normalization and sigma adaptation.')
+        limits='Unchanged surface cold-start and optional extra-node reset blocks; the unused initialized entry and unwritten caller tendency are audited, not copied into active physics. Pinned isothermal atmosphere default; Dinosaur retains its separately tested hydrostatic pressure normalization and sigma adaptation.')
 
 
 if __name__=='__main__':
@@ -85,4 +108,4 @@ if __name__=='__main__':
     report=validate(args.ames_source,compiler)
     args.output.parent.mkdir(parents=True,exist_ok=True)
     args.output.write_text(json.dumps(report,indent=2,allow_nan=False)+'\n')
-    print(f"{report['latitude_cases']} native cold-start latitude cases passed")
+    print(f"{len(report['initialization_cases'])} native initializations across {report['latitude_cases']} latitudes passed")

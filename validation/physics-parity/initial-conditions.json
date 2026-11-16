@@ -4,7 +4,7 @@
     "surface_git_blob": "aca56974025103ab408ecf866cc78b25779fc469",
     "patch_git_blob": "4116b38b088d4f39a5d8c1da76acc1ffb07847db",
     "block_sha256": "fd9e136cd13553c72de80b451103dfb01b518185aab5ea4b5267532d27df38b5",
-    "compiled_source_sha256": "3a45ca4d46e254b56328564eb2acf6b2ca77be993798ba4a13ca160291331a7f",
+    "compiled_source_sha256": "75a3bd8771d8bb86ee7ab578cf94a0f693c8f7ce4ca5b7fb42cc46d731cb11a6",
     "compiler_flags": [
       "-O3",
       "-fdefault-real-8",
@@ -16,12 +16,92 @@
   },
   "initial_air_temperature_k": 170.0,
   "latitude_cases": 184,
-  "soil_nodes": 17,
+  "initialization_cases": [
+    {
+      "equilibrated": false,
+      "soil_temperature_k": 150.0,
+      "edit_subsfc_temp": false,
+      "max_surface_error_k": 0.0
+    },
+    {
+      "equilibrated": false,
+      "soil_temperature_k": 150.0,
+      "edit_subsfc_temp": true,
+      "max_surface_error_k": 0.0
+    },
+    {
+      "equilibrated": false,
+      "soil_temperature_k": 170.0,
+      "edit_subsfc_temp": false,
+      "max_surface_error_k": 0.0
+    },
+    {
+      "equilibrated": false,
+      "soil_temperature_k": 170.0,
+      "edit_subsfc_temp": true,
+      "max_surface_error_k": 0.0
+    },
+    {
+      "equilibrated": false,
+      "soil_temperature_k": 230.0,
+      "edit_subsfc_temp": false,
+      "max_surface_error_k": 0.0
+    },
+    {
+      "equilibrated": false,
+      "soil_temperature_k": 230.0,
+      "edit_subsfc_temp": true,
+      "max_surface_error_k": 0.0
+    },
+    {
+      "equilibrated": true,
+      "soil_temperature_k": 150.0,
+      "edit_subsfc_temp": false,
+      "max_surface_error_k": 2.842170943040401e-14
+    },
+    {
+      "equilibrated": true,
+      "soil_temperature_k": 150.0,
+      "edit_subsfc_temp": true,
+      "max_surface_error_k": 2.842170943040401e-14
+    },
+    {
+      "equilibrated": true,
+      "soil_temperature_k": 170.0,
+      "edit_subsfc_temp": false,
+      "max_surface_error_k": 2.842170943040401e-14
+    },
+    {
+      "equilibrated": true,
+      "soil_temperature_k": 170.0,
+      "edit_subsfc_temp": true,
+      "max_surface_error_k": 2.842170943040401e-14
+    },
+    {
+      "equilibrated": true,
+      "soil_temperature_k": 230.0,
+      "edit_subsfc_temp": false,
+      "max_surface_error_k": 2.842170943040401e-14
+    },
+    {
+      "equilibrated": true,
+      "soil_temperature_k": 230.0,
+      "edit_subsfc_temp": true,
+      "max_surface_error_k": 2.842170943040401e-14
+    }
+  ],
+  "initialized_soil_nodes": 17,
+  "solver_soil_nodes": 16,
+  "extra_node_audit": {
+    "driver_git_blob": "ca0b7c0774b1b23cafaee219062c3bffa3d0c4cc",
+    "edit_block_sha256": "49137cdcb2d2bbe50686cd7e4e102a936020607e7a489c7b9467406481623c9c",
+    "status": "edit_subsfc_temp changes only entry 17; progts input/output declarations cover 16 entries; caller extra tendency is unwritten"
+  },
   "max_surface_error_k": 2.842170943040401e-14,
   "sha256": {
-    "scripts/validate_initial_conditions.py": "4203c455fb1d57d5f15574e887d97fd7f916d0aa00569e7b7b03947de62038ee",
-    "scripts/run_gcm3d_ablation.py": "b71fe7f2c91c4dd02cfef4f7270973786774468ca4d05141cba6ba835a03629e",
+    "scripts/validate_initial_conditions.py": "3ccb5deff7d4fc161dd3feda00f4d10eb32e518fabe4e0efa3a9a16cb61bd425",
+    "scripts/run_gcm3d_ablation.py": "b717cc79e2a0f5fac163834846ee73c79e1120f541b141697dcb24cfdb5e7ff6",
     "package/src/celestials/planets/mars/maps.py": "1ebb0dff9d1197d462e6d34ba88927b13aa8c72dc5ffe2940a8d97f2a2d9c34e"
   },
-  "limits": "Unchanged surface cold-start block and pinned isothermal default; Dinosaur retains its separately tested hydrostatic pressure normalization and sigma adaptation."
+  "limits": "Unchanged surface cold-start and optional extra-node reset blocks; the unused initialized entry and unwritten caller tendency are audited, not copied into active physics. Pinned isothermal atmosphere default; Dinosaur retains its separately tested hydrostatic pressure normalization and sigma adaptation."
 }

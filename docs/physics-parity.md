@@ -667,6 +667,45 @@ limitation, not a deprecation claim.
 
 
 
+
+## Surface-map and initial-temperature controls
+
+The released regional thermal-inertia controls are connected through
+`reference_surface_fields_on_grid`, the shared `surface_thermal_inertia`
+equations and the runner. `--north-inertia` replaces values strictly north of
+`--north-inertia-latitude` when positive. `--north-inertia-maximum` then caps
+that region. A positive `--regional-inertia-scale` multiplies values strictly
+between -50 and +30 degrees, after the northern operations. The source name
+`rescale_sh_ti` covers this exact region, including its northern part.
+Defaults retain the existing 800-unit cap north of 65 degrees. Map loading
+uses NumPy to preserve input precision; the shared JAX equations retain reverse
+derivatives through inertia and active controls.
+
+Ninety-six cases compile the unchanged native adjustment block. They check
+strict boundaries, nearby representable coordinates, overlapping regions,
+inactive controls and operation order. Both NumPy and compiled JAX agree with
+the native outputs. T21/T42 conservative area checks still pass. At zero
+latitude the JAX CPU comparison uses the closest normal floating-point values;
+its hardware flushes smaller subnormal values to zero.
+
+`--no-equilibrated-surface --soil-temperature 180` selects uniform initial soil
+instead of the released latitude profile. The air still starts at 170 K.
+Twelve unchanged native initialization configurations cover uniform and latitude
+profiles, three uniform temperatures and the optional source extra-node reset.
+All active soil entries match. Non-default map and initialization controls are
+saved in restart identity; invalid controls are rejected before input loading.
+A real-input T21/56-level run with all four map controls and a uniform 180 K
+soil completes two steps with restart continuation. Changing the northern
+value, regional scale, profile selection or soil temperature rejects resume
+without modifying the checkpoint.
+
+The source's `edit_subsfc_temp` writes a 17th entry poleward of 70 degrees, but
+`progts` declares 16 input and output soil entries. The caller adds the returned
+tendency to all 17 entries, leaving its extra tendency unwritten. The port
+retains the 16 defined solver entries. It does not apply that extra-entry reset
+to the active deepest node. The initial-condition audit pins both source files,
+checks these declarations and compiles the original reset block.
+
 ## User-supplied prescribed dust optics
 
 `prescribed_dust.fixed_optics(..., optical_properties=(visible, infrared))`
