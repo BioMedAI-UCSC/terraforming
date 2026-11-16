@@ -94,7 +94,8 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
                  dust_background_options=None,nonorographic_drag_options=None,effective_input_mode=0,
                  convection_scheme='fv3',moist_convection_options=None,dust_mode_count=1,sigma_boundaries=None,
                  initial_co2_gas_ratio=None,do_qmass=False,thermal_relaxation_options=None,
-                 do_co2_condensation=True,do_atmos_co2_loss=True,do_co2_condensation_cycle=True):
+                 do_co2_condensation=True,do_atmos_co2_loss=True,do_co2_condensation_cycle=True,
+                 do_mars_surface=True,do_vert_diff=True,do_ames_pbl=True):
     from src.framework.gcm.coordinates import coordinate_system
     from src.framework.gcm.specs import physics_specs
     from src.framework.gcm._dinosaur import primitive_equations,scales
@@ -137,7 +138,8 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
         dust_mode_count=dust_mode_count,do_qmass=do_qmass,
         thermal_relaxation_options=thermal_relaxation_options,
         do_co2_condensation=do_co2_condensation,do_atmos_co2_loss=do_atmos_co2_loss,
-        do_co2_condensation_cycle=do_co2_condensation_cycle)
+        do_co2_condensation_cycle=do_co2_condensation_cycle,
+        do_mars_surface=do_mars_surface,do_vert_diff=do_vert_diff,do_ames_pbl=do_ames_pbl)
     return state,step,grid
 
 
@@ -200,7 +202,8 @@ def test_disabled_co2_condensation_keeps_suspended_tracer_without_forming_clouds
 
 @pytest.mark.parametrize('condensation,loss,feedback',[(False,True,True),(True,True,False),(True,False,True)])
 def test_co2_controls_keep_three_step_reverse_derivatives(condensation,loss,feedback):
-    state,step,grid=backend_case(suspended_co2_clouds=True,do_co2_condensation=condensation,
+    # Keep both probes inside a Planck interval; 140 K is a slope discontinuity.
+    state,step,grid=backend_case(temperature_k=140.037,suspended_co2_clouds=True,do_co2_condensation=condensation,
         do_atmos_co2_loss=loss,do_co2_condensation_cycle=feedback)
     shape=(4,*grid.nodal_shape)
     def objective(offset):
@@ -210,9 +213,31 @@ def test_co2_controls_keep_three_step_reverse_derivatives(condensation,loss,feed
         for _ in range(3): current=step(current)
         return jnp.mean(current.surface_temperature)+.01*jnp.mean(grid.to_nodal(current.dynamics.temperature_variation))
     automatic=jax.grad(objective)(0.)
-    finite=(objective(.001)-objective(-.001))/.002
     assert np.isfinite(automatic) and automatic!=0.
-    np.testing.assert_allclose(automatic,finite,rtol=3e-5,atol=1e-7)
+    for epsilon in (.001,.0005):
+        finite=(objective(epsilon)-objective(-epsilon))/(2.*epsilon)
+        np.testing.assert_allclose(automatic,finite,rtol=3e-5,atol=1e-7)
+
+
+@pytest.mark.parametrize('control',['do_mars_surface','do_vert_diff','do_ames_pbl'])
+def test_surface_controls_keep_global_reverse_derivatives(control):
+    from src.framework.physics.simple_radiation import make_radiation_component
+    state,step,grid=backend_case(temperature_k=180.,surface_temperature_k=170.,
+        radiation_component=make_radiation_component(),**{control:False})
+    def objective(offset):
+        dynamics=dataclasses.replace(state.dynamics,temperature_variation=
+            state.dynamics.temperature_variation+grid.to_modal(jnp.full((4,*grid.nodal_shape),offset)))
+        current=state._replace(dynamics=dynamics)
+        for _ in range(3): current=step(current)
+        if control=='do_mars_surface':
+            current=current._replace(dynamics=dataclasses.replace(current.dynamics,
+                temperature_variation=jnp.where(jnp.all(current.surface_temperature==170.),
+                    current.dynamics.temperature_variation,jnp.nan)))
+        return jnp.mean(grid.to_nodal(current.dynamics.temperature_variation))
+    automatic=jax.grad(objective)(0.)
+    finite=(objective(.001)-objective(-.001))/.002
+    assert np.isfinite(automatic) and automatic>0.
+    np.testing.assert_allclose(automatic,finite,rtol=2e-5,atol=1e-7)
 
 
 def test_explicit_gas_global_species_budget_restart_and_reverse_derivative(tmp_path):

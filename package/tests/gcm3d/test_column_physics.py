@@ -96,6 +96,31 @@ def test_disabled_mass_feedback_skips_undefined_empty_co2_layer_weights():
     np.testing.assert_array_equal(result.gas_mass_loss_kg_m2,0.)
 
 
+@pytest.mark.parametrize('control',['do_mars_surface','do_vert_diff','do_ames_pbl'])
+def test_inactive_surface_or_pbl_does_not_mix_air_or_apply_surface_drag(control):
+    kwargs={**inputs(),'convection_scheme':'none','rayleigh_options':dict(timescale=0.),
+        'do_co2_condensation':False}
+    result=column_physics(**kwargs,**{control:False})
+    np.testing.assert_array_equal(result.temperature,kwargs['temperature']+
+        kwargs['radiative_heating_k_s']*kwargs['dt_seconds'])
+    np.testing.assert_array_equal(result.u,kwargs['u']);np.testing.assert_array_equal(result.v,kwargs['v'])
+    np.testing.assert_array_equal(result.gas_tracers,kwargs['gas_tracers'])
+    for key in ('heat_flux_w_m2','stress_x_pa','stress_y_pa','heat_diffusivity_m2_s','momentum_diffusivity_m2_s'):
+        np.testing.assert_array_equal(result.diagnostics['pbl'][key],0.)
+    if control=='do_mars_surface':
+        assert result.soil[0]==170. and result.co2_ice_kg_m2==kwargs['co2_ice_kg_m2']
+        np.testing.assert_array_equal(result.soil[1:],kwargs['soil'][1:])
+        np.testing.assert_array_equal(result.gas_mass_loss_kg_m2,0.)
+    else:
+        assert not np.array_equal(result.soil,kwargs['soil'])
+
+
+def test_no_surface_rejects_reservoirs_missing_from_released_initialization():
+    water=BulkWaterColumnState(0,jnp.zeros(4),100.,0.,3.)
+    with pytest.raises(ValueError,match='does not initialize'):
+        column_physics(**inputs(),bulk_water=water,do_mars_surface=False)
+
+
 def test_surface_mass_exchange_uses_initial_co2_mass_in_each_selected_layer():
     co2=jnp.array([.9,.8,.7,.6])
     kwargs={**inputs(),'temperature':jnp.full(4,210.),'dt_seconds':5.,

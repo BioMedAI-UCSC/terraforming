@@ -1,0 +1,84 @@
+{
+  "status": "pass",
+  "reference": {
+    "source_git_blob": "ca0b7c0774b1b23cafaee219062c3bffa3d0c4cc",
+    "compiled_source_sha256": "4d345da414e8db25e8224b9d2e0be4a5cb2c4e5c38374f0f4332fd1cccd4a484",
+    "routine_sha256": {
+      "diffuse": "949adf7a847464298558e0f807bbd566f7d49cad50bbe9705c90d75b9811049e"
+    },
+    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+    "compiler_flags": [
+      "-O3",
+      "-cpp",
+      "-fdefault-real-8",
+      "-fdefault-double-8",
+      "-fPIC",
+      "-shared"
+    ],
+    "real_precision_bits": 64,
+    "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged",
+    "fixed_boundary_block_sha256": "bc781a3990ff06d63f7596d5fc8ac6743abbcee243be1dce3cae6a3d88f8cd26"
+  },
+  "fixed_boundary": {
+    "temperature_k": 170.0,
+    "albedo": 0.25,
+    "emissivity": 1.0
+  },
+  "cases": [
+    {
+      "levels": 2,
+      "seed": 0.0
+    },
+    {
+      "levels": 2,
+      "seed": 1.0
+    },
+    {
+      "levels": 2,
+      "seed": -0.1
+    },
+    {
+      "levels": 4,
+      "seed": 0.0
+    },
+    {
+      "levels": 4,
+      "seed": 1.0
+    },
+    {
+      "levels": 4,
+      "seed": -0.1
+    },
+    {
+      "levels": 40,
+      "seed": 0.0
+    },
+    {
+      "levels": 40,
+      "seed": 1.0
+    },
+    {
+      "levels": 40,
+      "seed": -0.1
+    },
+    {
+      "levels": 56,
+      "seed": 0.0
+    },
+    {
+      "levels": 56,
+      "seed": 1.0
+    },
+    {
+      "levels": 56,
+      "seed": -0.1
+    }
+  ],
+  "sha256": {
+    "scripts/validate_surface_controls.py": "105200b9043335646daf1c1b2ee9751c378623f9925811047aeb9a1ab460a1ed",
+    "package/src/framework/physics/boundary_layer.py": "ecae22187db8d06253c34e1a385982bda1e3a238c497e109d29c1daf5448bcae",
+    "package/src/framework/physics/column_physics.py": "aee7e6364e9796646a4e4c7cea4691396a433577eae842c8dd4a6222720894b5",
+    "package/src/framework/physics/dinosaur_physics.py": "d4e610e520158c63efab2253cc5f6839b66c19bfd45b2a28bcaeeec8c0594c3e"
+  },
+  "limits": "Unchanged fixed-boundary assignments and original diffuse compiled with released flags: tendency outputs remain unchanged because fv3_turb is excluded. Inactive PBL exchange fields are undefined in source; the port defines them as zero, tested separately. Surface-dependent water/dust configurations without initialized reservoirs are rejected."
+}

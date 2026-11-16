@@ -188,7 +188,7 @@
     }
   ],
   "source_sha256": "ae2da33c4f8fc7dea28267705475b12364317c3806d46bc5669a683f08c90ef0",
-  "kernel_sha256": "f3b2c8085abbdd94a867aa29d7c767e8d3969b94c56e815dfb73d90f9b6da094",
+  "kernel_sha256": "ecae22187db8d06253c34e1a385982bda1e3a238c497e109d29c1daf5448bcae",
   "vertical_solver_sha256": "0d01f1d42fe7f086a887a2c0c51cb3b4385d26a3c944b72f81150b8a57ddd991",
   "jax_version": "0.11.0",
   "devices": [

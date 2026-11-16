@@ -8,7 +8,7 @@ import numpy as np
 from src.framework.gcm._dinosaur import jnp
 from src.framework.physics.co2_condensation import simple_condensation
 from src.framework.physics.dry_convection import pass2
-from src.framework.physics.boundary_layer import column_step
+from src.framework.physics.boundary_layer import column_step,inactive_diagnostics
 from src.framework.physics.soil_frost import surface_step
 from src.framework.physics.rayleigh_drag import rayleigh_tendencies
 from src.framework.physics.terrain_drag import tendencies as terrain_tendencies,hydrostatic_heights
@@ -66,7 +66,7 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
                    nonorographic_drag_options=None,nonorographic_state=None,moment_history=None,
                    convection_scheme='fv3',moist_convection_options=None,moist_surface_water_kg_m2=None,
                    co2_gas_index=None,do_co2_condensation=True,do_atmos_co2_loss=True,
-                   do_co2_condensation_cycle=True):
+                   do_co2_condensation_cycle=True,do_mars_surface=True,do_vert_diff=True,do_ames_pbl=True):
     """Rayleigh/PBL, soil/frost, CO2 deposition or suspended clouds, convection.
 
     This is the standard present-Mars gas-column process order. Tracers here
@@ -86,6 +86,12 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
         raise ValueError('moist convection requires a water vapor tracer and surface water reservoir')
     if moist_convection_options is not None and moment_particles is not None and moist_surface_water_kg_m2 is None:
         raise ValueError('moment-water moist convection requires its separate bulk precipitation reservoir')
+    if not do_mars_surface:
+        if bulk_water is not None or moment_particles is not None:
+            raise ValueError('the released no-surface branch does not initialize water/dust surface reservoirs')
+        soil=jnp.asarray(soil).at[0].set(170.)
+        emissivity=1.
+        do_co2_condensation=False;do_co2_condensation_cycle=False
     initial_wind=(u,v)
     if moment_particles is None and (dust_lifting_options is not None or coagulation_options is not None or dust_background_options is not None):
         raise ValueError('dust lifting and coagulation require physical moment particles')
@@ -121,21 +127,31 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
     drag_heat=-((u+.5*du*dt_seconds)*du+(v+.5*dv*dt_seconds)*dv)*dt_seconds/body.cp_j_kg_k
     if conserve_drag_energy:
         predicted=predicted+drag_heat
-    t,u,v,r,pbl=column_step(predicted,u+du*dt_seconds,v+dv*dt_seconds,gas_tracers,
-        pressure_half,pressure_full,soil[0],
-        dt_seconds,body.gas_constant_j_kg_k,body.cp_j_kg_k,body.gravity_m_s2,
-        surface_co2_ice=co2_ice_kg_m2,
-        surface_water_ice=0. if bulk_water is None else bulk_water.surface_water_kg_m2)
+    if do_mars_surface and do_vert_diff and do_ames_pbl:
+        t,u,v,r,pbl=column_step(predicted,u+du*dt_seconds,v+dv*dt_seconds,gas_tracers,
+            pressure_half,pressure_full,soil[0],
+            dt_seconds,body.gas_constant_j_kg_k,body.cp_j_kg_k,body.gravity_m_s2,
+            surface_co2_ice=co2_ice_kg_m2,
+            surface_water_ice=0. if bulk_water is None else bulk_water.surface_water_kg_m2)
+    else:
+        t,u,v,r=predicted,u+du*dt_seconds,v+dv*dt_seconds,gas_tracers
+        pbl=inactive_diagnostics(t,u,v)
     pbl_wind=(u,v)
     if water_exchange is not None and water_radiative_options is not None:
         _,emissivity=water_optical_properties(0.,emissivity,soil[0],co2_ice_kg_m2,
             water_exchange.surface_water_kg_m2,**water_radiative_options)
-    ground,snow,surface=surface_step(soil,soil_thickness,soil_diffusivity,
-        soil_volumetric_heat_capacity,pressure_half[-1],co2_ice_kg_m2,
-        downward_surface_flux_w_m2,pbl['heat_flux_w_m2'],
-        pbl['heat_flux_surface_derivative_w_m2_k'],emissivity,dt_seconds,latent_heat=latent_heat,
-        bulk_latent_flux=0. if water_exchange is None else water_exchange.latent_flux_w_m2,
-        bulk_latent_derivative=0. if water_exchange is None else water_exchange.latent_derivative_w_m2_k)
+    if do_mars_surface:
+        ground,snow,surface=surface_step(soil,soil_thickness,soil_diffusivity,
+            soil_volumetric_heat_capacity,pressure_half[-1],co2_ice_kg_m2,
+            downward_surface_flux_w_m2,pbl['heat_flux_w_m2'],
+            pbl['heat_flux_surface_derivative_w_m2_k'],emissivity,dt_seconds,latent_heat=latent_heat,
+            bulk_latent_flux=0. if water_exchange is None else water_exchange.latent_flux_w_m2,
+            bulk_latent_derivative=0. if water_exchange is None else water_exchange.latent_derivative_w_m2_k)
+    else:
+        ground=soil;snow=co2_ice_kg_m2
+        surface=dict(co2_phase_change_kg_m2=jnp.zeros_like(soil[0]),
+            frost_temperature_k=3182.48/(23.3494-jnp.log(pressure_half[-1]*.01)),
+            frost_retry=jnp.zeros_like(soil[0],dtype=bool))
     surface['emissivity']=emissivity
     cloud=None
     has_co2_cloud=suspended_co2_ice_ratio is not None

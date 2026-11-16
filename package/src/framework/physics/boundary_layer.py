@@ -91,6 +91,19 @@ def eddy_coefficients(upper, lower, dxi_upper, dxi_lower, inverse_height_spacing
     return jnp.maximum(km,.001),jnp.maximum(kh,.001),richardson,memory
 
 
+def inactive_diagnostics(temperature,u,v):
+    """No turbulent exchange; define source-uninitialized inactive fields as zero."""
+    zero=jnp.zeros_like(temperature[0]);interface=jnp.zeros_like(temperature[:-1])
+    names=('heat_flux_w_m2','stress_x_pa','stress_y_pa','heat_flux_surface_derivative_w_m2_k',
+        'heat_flux_atmosphere_derivative_w_m2_k','surface_heat_coefficient','surface_momentum_coefficient',
+        'friction_velocity_ms','temperature_scale_k','bulk_richardson')
+    fields={name:zero for name in names}
+    fields.update({name:interface for name in ('heat_diffusivity_m2_s','momentum_diffusivity_m2_s',
+        'richardson','shear_squared')})
+    fields['wind_speed_ms']=_sqrt_with_zero_subgradient(u[-1]**2+v[-1]**2)
+    return fields
+
+
 def column_step(temperature,u,v,tracers,pressure_half,pressure_full,surface_temperature,
                 dt_seconds,gas_constant,cp,gravity,*,surface_co2_ice=0.,surface_water_ice=0.):
     """Ames boundary_layer/pbl_driver/newpbl for predicted gas fields.

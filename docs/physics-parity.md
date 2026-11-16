@@ -524,6 +524,7 @@ limiter or establish matched transport accuracy.
 | Soil and frost | Mapped TES/GRS inputs and default case-7 profiles are implemented and checked. Compare diurnal/seasonal response in global runs; modern and legacy material profiles now pass native checks. |
 | CO2 modes | Immediate deposition and optional bulk suspended-cloud phase/settling match native routines and coupled columns. Cloud optical feedback passes a three-step gradient check. Full two-way exchange auditing and long global validation remain pending. The older conservative finite-settling scheme remains a separate model. |
 | CO2 switches | Atmospheric condensation, atmospheric loss and gas-mass feedback are independent source controls. Ninety-six unchanged native control-block cases check all combinations and initial-CO2-weighted surface exchange. Column tests retain condensation heating when precipitation loss is disabled, and retain surface snow when mass feedback is disabled. Held suspended clouds still mix as tracers when their phase driver is off. Global tests check disabled-feedback behavior, exact restart continuation and three-step reverse derivatives. |
+| Surface/diffusion controls | `do_mars_surface`, `do_vert_diff` and `do_ames_pbl` now select the released active branches. Without Mars surface physics, radiation sees 170 K, albedo 0.25 and emissivity 1; soil/CO2 surface exchange is inactive while drag and convection remain available. Twelve unchanged native `diffuse` cases prove the release fallback leaves tendencies unchanged because `fv3_turb` is excluded. Inactive PBL exchange fields are defined as zero instead of copying uninitialized source values. Surface-dependent water/dust modes are rejected without the source's surface reservoir initialization. |
 | Interactive dust | Lifting, advection, sedimentation, surface reservoirs, coagulation and material budgets. |
 | Water | Bulk and moment phase/growth/settling paths, surface exchange, saved effective inputs, state/restarts and optical feedback are connected. Two physical dust modes pass combined global material, restart and three-step derivative checks. Long climate validation remains. Bin cloud microphysics is unavailable in the public release. |
 | Drag | Rayleigh, Palmer terrain drag and non-orographic gravity-wave drag are implemented and checked. Polar water and terrain maps pass pinned-blob and T21/T42 area checks. Long momentum/energy audits remain. Gravity-wave schemes are off in the default Ames present-Mars setup. |
@@ -594,6 +595,23 @@ remains visible. Numerical drift and positivity without that repair still need
 long-run checks. These are source experiment controls, not conservation fixes.
 Non-default controls are saved in restart identity.
 
+Use `--no-vertical-diffusion` or `--no-reference-pbl` to disable the released
+PBL exchange. The alternative FV3 turbulence drivers are not compiled into
+the pinned release. The source leaves several exchange/history values unset
+on these inactive paths. The port uses zero heat/stress coefficients and zero
+eddy diffusivity, and diagnoses the bottom cell as the inactive PBL top. This
+is an explicit deterministic extension of undefined source fields. The soil
+solver remains active when Mars surface physics is enabled.
+
+`--no-mars-surface` fixes the radiative boundary at the source's 170 K,
+albedo 0.25 and emissivity 1. The command-line preset requires simple or thermal
+forcing and disables transported surface dust/water, whose reservoirs the
+native no-surface initialization does not allocate. The map API can also use
+an explicitly supplied spectral component with valid atmospheric inputs.
+Unused soil storage is frozen; CO2 surface/atmospheric phase exchange is skipped.
+Rayleigh/gravity-wave drag and convection retain their configured behavior.
+The initial fixed boundary and non-default switches are recorded for restarts.
+
 The CO2-control native check compiles the unchanged released routing block.
 It seeds phase-driver outputs whose equations have separate native validators.
 This isolates switch behavior from already checked phase and PBL kernels; it
@@ -602,6 +620,8 @@ does not claim a new whole-native-model comparison.
 ```sh
 env PYTHONPATH=package:. python scripts/validate_co2_controls.py \
   --ames-source /path/to/AmesGCM --output outputs/physics-parity/co2-controls.json
+env PYTHONPATH=package:. python scripts/validate_surface_controls.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/surface-controls.json
 ```
 
 ```sh

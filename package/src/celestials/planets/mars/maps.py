@@ -392,6 +392,9 @@ def run_maps(
                 initial_co2_gas_ratio=initial_co2_gas,
                 initial_dust_mass_ratio=initial_dust_mass,initial_dust_number_per_kg=initial_dust_number,
                 initial_dust_surface_kg_m2=initial_dust_surface)
+            if not options.get('do_mars_surface',True):
+                state0=state0._replace(surface_temperature=jnp.full_like(state0.surface_temperature,170.),
+                    ground_temperature=jnp.full_like(state0.ground_temperature,170.))
         step=build_step(coords,specs,body,forcing,dt_seconds,orography=orography,
             radiation_component=radiation_component,
             hyperdiffusion_tau_seconds=hyperdiffusion_tau_seconds,**options)

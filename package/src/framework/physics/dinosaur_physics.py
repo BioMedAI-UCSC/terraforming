@@ -249,7 +249,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                coagulation_options=None,dust_background_options=None,nonorographic_drag_options=None,
                convection_scheme='fv3',moist_convection_options=None,dust_mode_count=1,do_qmass=False,
                thermal_relaxation_options=None,do_co2_condensation=True,do_atmos_co2_loss=True,
-               do_co2_condensation_cycle=True):
+               do_co2_condensation_cycle=True,do_mars_surface=True,do_vert_diff=True,do_ames_pbl=True):
     """Dinosaur dynamics followed by Ames-order reference gas-column physics.
 
     Supply a verified radiation component and mapped soil diffusivity. Keeping
@@ -260,6 +260,11 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
     those approximations. General-mixture thermodynamics is separate.
     """
     grid=coords.horizontal
+    if not do_mars_surface:
+        if bulk_water or moment_water:
+            raise ValueError('the released no-surface branch requires water/dust surface reservoirs to be disabled')
+        forcing=dataclasses.replace(forcing,albedo=.25,emissivity=1.,
+            co2_frost_radiative_properties=False,water_frost_radiative_properties=False)
     if thermal_relaxation_options is not None:
         if radiation_component is not None or radiation_update_seconds is not None:
             raise ValueError('thermal relaxation replaces radiation and must be evaluated every step')
@@ -415,6 +420,8 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             if state.auxiliary_fields is None or required-set(state.auxiliary_fields):
                 raise ValueError('radiation schedule requires initialized heating and stratosphere state')
         predicted=dry(state)
+        if not do_mars_surface:
+            predicted=predicted._replace(surface_temperature=jnp.full_like(predicted.surface_temperature,170.))
         transported,transport_diagnostics=project_tracers(state.dynamics,predicted.dynamics,coords)
         predicted=predicted._replace(dynamics=transported)
         if predicted.ground_temperature.shape[0]!=soil_layers-1:
@@ -551,6 +558,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             co2_gas_index=gas_names.index(CO2_GAS_TRACER) if do_qmass else None,
             do_co2_condensation=do_co2_condensation,do_atmos_co2_loss=do_atmos_co2_loss,
             do_co2_condensation_cycle=do_co2_condensation_cycle,
+            do_mars_surface=do_mars_surface,do_vert_diff=do_vert_diff,do_ames_pbl=do_ames_pbl,
             latitude_rad=jnp.asarray(grid.latitudes)[None,:],rayleigh_options=rayleigh_options,
             conserve_drag_energy=conserve_drag_energy,
             suspended_co2_ice_ratio=cloud_ratio if suspended_co2_clouds else None,
@@ -661,8 +669,8 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
         return advance_with_transport(state)[0]
 
     # Disabled feedback can intentionally change total gas+ice inventory in the source.
-    project_inventory=(do_co2_condensation_cycle and
-        (not suspended_co2_clouds or do_atmos_co2_loss or not do_co2_condensation))
+    project_inventory=(not do_mars_surface or (do_co2_condensation_cycle and
+        (not suspended_co2_clouds or do_atmos_co2_loss or not do_co2_condensation)))
     if not return_diagnostics:
         return positivity_preserving_co2_step(advance,coords,specs,body=body,inventory_projection=project_inventory)
 

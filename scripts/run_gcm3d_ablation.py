@@ -327,6 +327,9 @@ def main() -> int:
     for flag,destination in (('co2-condensation','do_co2_condensation'),('atmos-co2-loss','do_atmos_co2_loss'),
                              ('co2-mass-feedback','do_co2_condensation_cycle')):
         parser.add_argument('--'+flag,dest=destination,action=argparse.BooleanOptionalAction,default=True)
+    for flag,destination in (('mars-surface','do_mars_surface'),('vertical-diffusion','do_vert_diff'),
+                             ('reference-pbl','do_ames_pbl')):
+        parser.add_argument('--'+flag,dest=destination,action=argparse.BooleanOptionalAction,default=True)
     parser.add_argument("--truncation", default="T21")
     parser.add_argument("--layers", type=int, default=None)
     parser.add_argument("--dt", type=float, default=None)
@@ -367,6 +370,11 @@ def main() -> int:
         ('do_co2_condensation','do_atmos_co2_loss','do_co2_condensation_cycle')}
     if not reference and not all(co2_controls.values()):
         parser.error('CO2 process switches require --config reference')
+    surface_controls={name:getattr(args,name) for name in ('do_mars_surface','do_vert_diff','do_ames_pbl')}
+    if not reference and not all(surface_controls.values()):
+        parser.error('surface process switches require --config reference')
+    if not args.do_mars_surface and args.reference_radiation=='spectral':
+        parser.error('the no-surface runner requires simple, fixed or height forcing without transported surface dust/water')
     thermal=args.reference_radiation in ('fixed','height')
     if thermal!=(args.equilibrium_profile is not None):
         parser.error('fixed and height relaxation require --equilibrium-profile; other modes do not use it')
@@ -419,6 +427,9 @@ def main() -> int:
     if reference:
         body,base,radiation,reference_options,input_hashes=reference_configuration(grid,args.surface_properties,args.dt)
         reference_options.update(co2_controls)
+        reference_options.update(surface_controls)
+        if not args.do_mars_surface:
+            reference_options.update(moment_water=False,dust_background_options=None,moment_cloud_options=None)
         input_hashes['mola']=hashlib.sha256(args.mola_path.read_bytes()).hexdigest()
         if args.reference_radiation!='spectral':
             radiation,overrides,alternate_radiation_metadata=alternate_reference_radiation(
@@ -507,6 +518,8 @@ def main() -> int:
                 sigma_boundaries=sigma.tolist())
             config.update(alternate_radiation_metadata)
             if not all(co2_controls.values()): config['co2_process_switches']=co2_controls
+            if not all(surface_controls.values()): config['surface_process_switches']=surface_controls
+            if not args.do_mars_surface: config['reference_protocol']='released-no-surface-v3.2'
         if restart_path.exists():
             if not args.resume:
                 raise ValueError(f"{restart_path} exists; use --resume or a new output directory")
@@ -552,10 +565,12 @@ def main() -> int:
                     soil_volumetric_heat_capacity=reference_options['soil_volumetric_heat_capacity']))
                 pressure=np.exp(np.asarray(grid.to_nodal(checkpoint_state.dynamics.log_surface_pressure)))[0]*float(
                     specs.dimensionalize(1.,scales.units.pascal).magnitude)
-                dust=sum(np.asarray(grid.to_nodal(checkpoint_state.dynamics.tracers[key]))
-                    for key in ('dust_mass','water_core_mass'))
+                dust=sum((np.asarray(grid.to_nodal(checkpoint_state.dynamics.tracers[key]))
+                    for key in ('dust_mass','water_core_mass') if key in checkpoint_state.dynamics.tracers),
+                    np.zeros((args.layers,*grid.nodal_shape)))
                 dust=np.sum(dust*np.diff(coords.vertical.boundaries)[:,None,None]*pressure[None]/body.gravity_m_s2,axis=0)
-                dust=dust+np.asarray(checkpoint_state.auxiliary_fields['dust_surface_kg_m2'])[0]
+                if checkpoint_state.auxiliary_fields is not None and 'dust_surface_kg_m2' in checkpoint_state.auxiliary_fields:
+                    dust=dust+np.asarray(checkpoint_state.auxiliary_fields['dust_surface_kg_m2'])[0]
                 weights=np.asarray(grid.quadrature_weights)
                 record['total_dust_mass_kg']=float(np.sum(dust*weights)/np.sum(weights)*body.surface_area_m2)
             if args.ames_dust_reference is not None:
@@ -591,8 +606,10 @@ def main() -> int:
                 from src.framework.physics.dinosaur_physics import initial_state as reference_initial_state
                 initial_options={key:value for key,value in reference_options.items() if key.startswith('initial_')}
                 state=reference_initial_state(initial_dynamics,coords,specs,temperature_k=170.,
-                    moment_water=True,radiation_update_seconds=8*args.dt,**initial_options)
-                surface=reference_surface_temperature_k(jnp.asarray(grid.latitudes))[None,None,:]
+                    moment_water=reference_options.get('moment_water',False),
+                    radiation_update_seconds=reference_options.get('radiation_update_seconds'),**initial_options)
+                surface=(reference_surface_temperature_k(jnp.asarray(grid.latitudes))[None,None,:]
+                    if args.do_mars_surface else jnp.full((1,1,len(grid.latitudes)),170.))
                 surface=surface*float(specs.nondimensionalize(1.*scales.units.kelvin))
                 surface=jnp.broadcast_to(surface,state.surface_temperature.shape)
                 state=state._replace(surface_temperature=surface,
