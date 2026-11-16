@@ -1564,7 +1564,7 @@
   ],
   "sha256": {
     "scripts/validate_prescribed_dust.py": "0b0da886049e175f6f559cd7a226b2c2f5dd5d21696d98168f39ef7e1c00f7f3",
-    "package/src/framework/physics/prescribed_dust.py": "58e4054786a01bb6f89834c59d599c87ea3a9aeedf450e6db9944e34a8a1c4d8"
+    "package/src/framework/physics/prescribed_dust.py": "1ec309decbafffc5fdc1f0fd2c7e7acd9c9f4cae1e6289237ef9e0e5232196dc"
   },
   "limits": "Profile, fractional pulse and seasonal interpolation kernels. Storm checks compare unchanged equations with explicit supplied slope and c; the release leaves those locals undefined. Map sampling and optical properties have separate checks."
 }

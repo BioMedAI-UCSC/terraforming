@@ -273,7 +273,8 @@ def reference_configuration(grid,data_directory,dt_seconds,*,moment_water=True,d
         forcing=dataclasses.replace(forcing,dust_visible_optical_depth=0.)
         options['dust_opacity_from_aerosol']=True
         options['dust_background_options'].pop('scenario')
-        options['dust_background_options']['fixed_dust_provider']=make_fixed_dust_provider(bands=12,scenario=scenario)
+        options['dust_background_options']['fixed_dust_provider']=make_fixed_dust_provider(bands=12,scenario=scenario,
+            fixed_calendar_date=fixed_calendar_date)
     inputs=('mars_thermal_inertia8_2011.nc','mars_TES_albedo8_new.nc','mars_sfc_emissivity8.nc',
         'GRS_interp16.nc','npcflag8.nc','DustScenario_MY30.nc')
     hashes={name:hashlib.sha256((data_directory/name).read_bytes()).hexdigest() for name in inputs}

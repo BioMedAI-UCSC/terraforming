@@ -79,3 +79,79 @@ def test_missing_tracer_height_inputs_are_rejected_and_empty_source_height_stays
         layer_opacities(half,full,.3,cycle_scheme=1)
     invalid=layer_opacities(half,full,.3,cycle_scheme=1,aerosol_ratio=jnp.zeros(8))
     assert np.isnan(invalid).all()
+
+
+@pytest.mark.parametrize('bands',[12,15])
+def test_user_fixed_optics_keep_source_coefficients_and_reverse_derivatives(bands):
+    nir=5 if bands==12 else 8
+    half=jnp.array([0.,100.,300.,610.]);full=.5*(half[:-1]+half[1:])
+    p=jnp.zeros(9).at[2::2].set(half).at[3::2].set(full)
+    tau=jnp.array([.01,.02,.03])
+    visible=jnp.stack([jnp.linspace(1.,3.,7),jnp.linspace(.2,3.,7),jnp.linspace(-.2,.8,7)])
+    infrared=jnp.stack([jnp.linspace(.1,2.,nir),jnp.linspace(.01,2.,nir),jnp.linspace(-.1,.7,nir)])
+    result=jax.jit(lambda x:fixed_optics(tau,p,bands=bands,optical_properties=x))((visible,infrared))
+    np.testing.assert_allclose(jnp.sum(result.visible[0][:,5]),jnp.sum(tau),rtol=2e-15)
+    np.testing.assert_array_equal(result.diagnostics['size_distribution'],0.)
+    np.testing.assert_array_equal(result.visible[0][:,-1],result.visible[1][:,-1])
+    np.testing.assert_allclose(result.visible[2],result.visible[1]*visible[2],rtol=2e-15)
+    for values in (*result.visible,*result.infrared): np.testing.assert_array_equal(values[:2],0.)
+    def objective(scale):
+        properties=(visible.at[0,5].multiply(scale),infrared.at[1].multiply(scale**2))
+        optics=fixed_optics(tau*scale,p,bands=bands,optical_properties=properties)
+        return jnp.sum(optics.infrared[1])+jnp.sum(optics.visible[0])
+    derivative=jax.jit(jax.grad(objective))(1.);epsilon=1e-5
+    assert np.isfinite(derivative) and abs(derivative)>1e-4
+    np.testing.assert_allclose(derivative,(objective(1.+epsilon)-objective(1.-epsilon))/(2.*epsilon),rtol=2e-9)
+    for invalid in ((visible,), (visible[:2],infrared), (visible,infrared[:,:-1])):
+        with pytest.raises(ValueError,match='fixed dust'):
+            fixed_optics(tau,p,bands=bands,optical_properties=invalid)
+
+
+def test_fixed_dust_provider_passes_user_coefficients_to_optics(monkeypatch):
+    from types import SimpleNamespace
+    from src.framework.physics import prescribed_dust
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.framework.gcm.specs import physics_specs
+    from src.celestials.planets.mars.reference_constants import AMES_BODY_3D,reference_radiative_forcing
+    coords=coordinate_system('T21',4)
+    p=jnp.array([0.,0.,0.,50.,100.,200.,300.,455.,610.])
+    properties=(jnp.ones((3,7)),jnp.ones((3,5)))
+    seen={}
+    def optics(*args,**kwargs):
+        seen.update(kwargs)
+        return SimpleNamespace(visible=1,infrared=2)
+    monkeypatch.setattr(prescribed_dust,'fixed_optics',optics)
+    provider=make_fixed_dust_provider(optical_properties=properties)
+    assert provider(None,coords,physics_specs(AMES_BODY_3D),AMES_BODY_3D,
+        reference_radiative_forcing(),SimpleNamespace(pressure=jnp.broadcast_to(p[:,None,None],(9,*coords.horizontal.nodal_shape))))==(1,2)
+    assert seen['optical_properties'] is properties
+
+
+@pytest.mark.parametrize('fixed_date',[-1,100])
+def test_fixed_dust_diagnostic_uses_selected_calendar_without_mutating_state(monkeypatch,fixed_date):
+    from types import SimpleNamespace
+    from src.framework.physics import prescribed_dust,gcm
+    from src.framework.gcm._dinosaur import scales
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.framework.gcm.specs import physics_specs
+    from src.celestials.planets.mars.reference_constants import AMES_BODY_3D,reference_radiative_forcing
+    coords=coordinate_system('T21',4);specs=physics_specs(AMES_BODY_3D);forcing=reference_radiative_forcing()
+    scale=float(specs.dimensionalize(1.,scales.units.second).magnitude)
+    seen=[]
+    def orbit(time,forcing):
+        seen.append(float(time))
+        return time/forcing.rotation_period_s*.001
+    monkeypatch.setattr(gcm,'_true_anomaly',orbit)
+    monkeypatch.setattr(prescribed_dust,'seasonal_fields',lambda *args:(.2,35.))
+    monkeypatch.setattr(prescribed_dust,'fixed_optics',lambda *args,**kwargs:SimpleNamespace(visible=1,infrared=2))
+    scenario=dict(seasons=None,opacity=None,top_height_km=None)
+    provider=make_fixed_dust_provider(scenario=scenario,fixed_calendar_date=fixed_date)
+    p=jnp.array([0.,0.,0.,50.,100.,200.,300.,455.,610.])
+    grid=SimpleNamespace(pressure=jnp.broadcast_to(p[:,None,None],(9,*coords.horizontal.nodal_shape)))
+    for sol in (2.25,5.25):
+        state=SimpleNamespace(dynamics=SimpleNamespace(sim_time=sol*forcing.rotation_period_s/scale))
+        initial=state.dynamics.sim_time
+        assert provider(state,coords,specs,AMES_BODY_3D,forcing,grid)==(1,2)
+        np.testing.assert_allclose(seen[-1],(sol if fixed_date<0 else 100.25)*forcing.rotation_period_s,rtol=2e-15)
+        assert state.dynamics.sim_time==initial
+    with pytest.raises(ValueError,match='integer'): make_fixed_dust_provider(fixed_calendar_date=1.5)

@@ -131,17 +131,29 @@ def seasonal_fields(solar_longitude_deg,seasons,opacities,heights_km):
         for values in (opacities,heights_km))
 
 
-def fixed_optics(layer_opacity,pressure,*,effective_radius_m=1.5e-6,bands=12):
-    """Original ini_optdst fixed-size distribution and pressure subinterval split."""
+def fixed_optics(layer_opacity,pressure,*,effective_radius_m=1.5e-6,bands=12,optical_properties=None):
+    """Original ini_optdst fixed-size or user-specified optical properties.
+
+    Optional (visible, infrared) arrays contain extinction, scattering and
+    asymmetry rows, with 7 visible and 5/8 infrared bands. As in the source,
+    user coefficients bypass size averaging and its scattering cap.
+    """
     if bands not in (12,15): raise ValueError('fixed dust requires 12 or 15 bands')
     tau,p=map(jnp.asarray,(layer_opacity,pressure))
     n=tau.shape[0]
     if p.shape!=(2*n+3,*tau.shape[1:]):
         raise ValueError('fixed dust pressure grid must have 2*N+3 source levels')
-    data=load_tables();radius=jnp.clip(jnp.asarray(effective_radius_m),1e-7,50e-6)
-    distribution=_distribution(radius,data['moment_edges_m'],.63676)
-    visible=_average(data[f'dust_{bands}_sw'][0],distribution)
-    infrared=_average(data[f'dust_{bands}_ir'][0],distribution)
+    if optical_properties is None:
+        data=load_tables();radius=jnp.clip(jnp.asarray(effective_radius_m),1e-7,50e-6)
+        distribution=_distribution(radius,data['moment_edges_m'],.63676)
+        visible=_average(data[f'dust_{bands}_sw'][0],distribution)
+        infrared=_average(data[f'dust_{bands}_ir'][0],distribution)
+    else:
+        if len(optical_properties)!=2: raise ValueError('fixed dust requires visible and infrared optical properties')
+        visible,infrared=map(jnp.asarray,optical_properties)
+        if visible.shape!=(3,7) or infrared.shape!=(3,5 if bands==12 else 8):
+            raise ValueError('fixed dust optical properties require 3 rows and 7 visible / 5 or 8 infrared bands')
+        distribution=jnp.zeros(20,dtype=visible.dtype)
     qref=visible[...,0,5]
     per_pa=tau/jnp.diff(p[2::2],axis=0)
     amount=jnp.concatenate([jnp.zeros_like(tau[:1]),jnp.zeros_like(tau[:1]),
@@ -156,21 +168,27 @@ def fixed_optics(layer_opacity,pressure,*,effective_radius_m=1.5e-6,bands=12):
 
 
 def make_fixed_dust_provider(*,bands=12,effective_radius_m=1.5e-6,reference_pressure_pa=610.,
-                             scenario=None,aerosol_tracer=None,storm_options=None,**profile_options):
+                             scenario=None,aerosol_tracer=None,storm_options=None,optical_properties=None,
+                             fixed_calendar_date=-1,**profile_options):
     """Connect prescribed visible opacity and native size optics to radiation.
 
     The scenario contains seasons, opacity and top_height_km on the nodal grid.
     Its opacity includes the source input-file conversion and map scale.
+    Select a fixed date for diagnostic calls outside the radiation callback.
     """
     from src.framework.gcm._dinosaur import scales
     from src.framework.physics.gcm import _true_anomaly
+    from src.framework.physics.solar_geometry import radiation_clock
+    if not isinstance(fixed_calendar_date,int): raise ValueError(
+        'fixed calendar date must be an integer')
     if storm_options is not None and {'slope_deg','latitude_coefficient'}-set(storm_options):
         raise ValueError('the source storm slope and latitude coefficient are undefined; supply both explicitly')
     def provider(state,coords,specs,body,forcing,grid):
         options=dict(profile_options)
         if scenario is not None:
             time=state.dynamics.sim_time*float(specs.dimensionalize(1.,scales.units.second).magnitude)
-            ls=jnp.mod((_true_anomaly(time,forcing)+forcing.ls_perihelion_rad)*180./jnp.pi,360.)
+            calendar,_,_=radiation_clock(time,forcing.rotation_period_s,fixed_calendar_date)
+            ls=jnp.mod((_true_anomaly(calendar,forcing)+forcing.ls_perihelion_rad)*180./jnp.pi,360.)
             opacity,height=seasonal_fields(ls,scenario['seasons'],scenario['opacity'],scenario['top_height_km'])
             if storm_options is not None:
                 opacity=opacity+storm_opacity(ls,jnp.asarray(coords.horizontal.longitudes)[:,None],
@@ -181,6 +199,7 @@ def make_fixed_dust_provider(*,bands=12,effective_radius_m=1.5e-6,reference_pres
         tau=layer_opacities(grid.pressure[2::2],grid.pressure[3::2],
             forcing.dust_visible_optical_depth,reference_pressure_pa=reference_pressure_pa,
             latitude_rad=jnp.asarray(coords.horizontal.latitudes)[None,:],**options)
-        optics=fixed_optics(tau,grid.pressure,effective_radius_m=effective_radius_m,bands=bands)
+        optics=fixed_optics(tau,grid.pressure,effective_radius_m=effective_radius_m,bands=bands,
+            optical_properties=optical_properties)
         return optics.visible,optics.infrared
     return provider

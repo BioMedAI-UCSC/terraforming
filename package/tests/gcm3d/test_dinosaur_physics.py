@@ -1364,7 +1364,8 @@ def test_held_radiation_retains_multistep_reverse_derivative():
     np.testing.assert_allclose(auto,finite,rtol=4e-6,atol=1e-9)
 
 
-def test_prescribed_dust_scenario_and_size_optics_reach_multistep_reverse_gradient():
+@pytest.mark.parametrize('user_optics',[False,True])
+def test_prescribed_dust_scenario_and_size_optics_reach_multistep_reverse_gradient(user_optics):
     from src.framework.gcm.coordinates import coordinate_system
     from src.framework.physics.prescribed_dust import make_fixed_dust_provider
     from src.framework.physics.radiative_transfer import make_radiation_component
@@ -1372,7 +1373,12 @@ def test_prescribed_dust_scenario_and_size_optics_reach_multistep_reverse_gradie
     def objective(amplitude):
         scenario=dict(seasons=jnp.array([0.,90.,180.,270.,360.]),
             opacity=jnp.full(shape,.2)*amplitude,top_height_km=jnp.full(shape,35.))
-        provider=make_fixed_dust_provider(scenario=scenario,effective_radius_m=1.5e-6*amplitude)
+        properties=None
+        if user_optics:
+            properties=(jnp.stack([jnp.full(7,2.),jnp.full(7,1.8),jnp.full(7,.65)]),
+                jnp.stack([jnp.linspace(.1,1.,5)*amplitude,jnp.linspace(.01,.1,5),jnp.full(5,.2)]))
+        provider=make_fixed_dust_provider(scenario=scenario,effective_radius_m=1.5e-6*amplitude,
+            optical_properties=properties)
         state,step,_=backend_case(temperature_k=180.,surface_temperature_k=200.,
             radiation_component=make_radiation_component(provider))
         final=jax.lax.scan(lambda state,_:(step(state),None),state,None,length=3)[0]

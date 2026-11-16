@@ -219,7 +219,7 @@ def test_simple_radiation_forwards_fixed_date_and_records_restart_identity(monke
 def test_reference_configuration_keeps_dust_and_frost_independent_of_water(monkeypatch,tmp_path,water,from_aerosol,scale_surface,solar_constant,linear):
     from src.framework.gcm.coordinates import coordinate_system
     from src.celestials.planets.mars import surface,boundary_inputs,dust_scenario
-    from src.framework.physics import particle_optics,radiative_transfer
+    from src.framework.physics import particle_optics,radiative_transfer,prescribed_dust
     grid=coordinate_system('T21',4).horizontal
     frost=np.arange(np.prod(grid.nodal_shape)).reshape(grid.nodal_shape)*.01
     monkeypatch.setattr(surface,'reference_surface_fields_on_grid',lambda *args:
@@ -227,6 +227,11 @@ def test_reference_configuration_keeps_dust_and_frost_independent_of_water(monke
     monkeypatch.setattr(boundary_inputs,'polar_water_on_grid',lambda *args:frost)
     monkeypatch.setattr(dust_scenario,'load_scenario_on_grid',lambda *args,**kwargs:dict(fixture=True,**kwargs))
     monkeypatch.setattr(particle_optics,'make_particle_provider',lambda **kwargs:kwargs)
+    fixed_options={}
+    def fixed_factory(**kwargs):
+        fixed_options.update(kwargs)
+        return lambda *args:None
+    monkeypatch.setattr(prescribed_dust,'make_fixed_dust_provider',fixed_factory)
     radiation_options={}
     def radiation_factory(provider,**kwargs):
         radiation_options.update(kwargs)
@@ -248,6 +253,7 @@ def test_reference_configuration_keeps_dust_and_frost_independent_of_water(monke
     assert (provider['water_moment_tracers'] is not None)==water
     assert provider['dust_tracers']==(('dust_mass','dust_number'),)
     if from_aerosol:
+        assert fixed_options['fixed_calendar_date']==100
         assert callable(options['dust_background_options']['fixed_dust_provider'])
         assert 'scenario' not in options['dust_background_options']
         assert forcing.dust_visible_optical_depth==0. and options['dust_opacity_from_aerosol']

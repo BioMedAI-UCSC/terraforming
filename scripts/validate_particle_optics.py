@@ -131,14 +131,14 @@ enddo
 end subroutine
 end module
 """
-    adapter=adapter.replace("end module",'subroutine fixed_dust(n,nir,radius,p,tau,vin,iin,edges,ev,sv,mv,ei,si,mi) bind(C)\ninteger(c_int),value :: n,nir\nreal(c_double),value :: radius\nreal(c_double),intent(in) :: p(2*n+3),tau(n),vin(1,20,3,7),iin(1,20,3,nir),edges(21)\nreal(c_double),intent(out) :: ev(2*n+2,7),sv(2*n+2,7),mv(2*n+2,7)\nreal(c_double),intent(out) :: ei(2*n+2,nir),si(2*n+2,nir),mi(2*n+2,nir)\nreal*8 :: qxv(2*n+4,7),qsv(2*n+4,7),gv(2*n+4,7),ref(2*n+4),amount(2*n+4)\nreal*8 :: qxi(2*n+4,nir),qsi(2*n+4,nir),gi(2*n+4,nir),dummyv(7),dummyi(nir),surf(20,n)\ninteger l,k\nl_layers=n\nl_levels=2*n+3\nnloni=nir\nl_nspecti=nir\nreff_fixed=radius\nqextv_dst=real(vin(1,:,1,:),4)\nqscatv_dst=real(vin(1,:,2,:),4)\ngv_dst=real(vin(1,:,3,:),4)\nif(allocated(qexti_dst)) deallocate(qexti_dst,qscati_dst,gi_dst)\nallocate(qexti_dst(20,nir),qscati_dst(20,nir),gi_dst(20,nir))\nqexti_dst=real(iin(1,:,1,:),4)\nqscati_dst=real(iin(1,:,2,:),4)\ngi_dst=real(iin(1,:,3,:),4)\nradb_rt=edges\ndummyv=0.\ndummyi=0.\ncall ini_optdst(dummyv,dummyi,qxv,qxi,qsv,qsi,gv,gi,ref,surf,.true.)\namount=0.\ndo l=1,n\n k=2*l+2\n amount(k)=tau(l)*(p(k)-p(k-1))/(p(k+1)-p(k-1))\n amount(k+1)=tau(l)*(p(k+1)-p(k))/(p(k+1)-p(k-1))\nenddo\ndo k=2,l_levels\n ev(k-1,:)=amount(k)/ref(k)*qxv(k,:)\n sv(k-1,:)=amount(k)/ref(k)*qsv(k,:)\n mv(k-1,:)=amount(k)/ref(k)*qsv(k,:)*gv(k,:)\n ei(k-1,:)=amount(k)/ref(k)*qxi(k,:)\n si(k-1,:)=amount(k)/ref(k)*qsi(k,:)\n mi(k-1,:)=amount(k)/ref(k)*qsi(k,:)*gi(k,:)\nenddo\nend subroutine\n'+"end module")
+    adapter=adapter.replace("end module",'subroutine fixed_dust(n,nir,use_user,radius,p,tau,vin,iin,edges,user_v,user_i,ev,sv,mv,ei,si,mi) bind(C)\ninteger(c_int),value :: n,nir,use_user\nreal(c_double),value :: radius\nreal(c_double),intent(in) :: p(2*n+3),tau(n),vin(1,20,3,7),iin(1,20,3,nir),edges(21),user_v(3,7),user_i(3,nir)\nreal(c_double),intent(out) :: ev(2*n+2,7),sv(2*n+2,7),mv(2*n+2,7)\nreal(c_double),intent(out) :: ei(2*n+2,nir),si(2*n+2,nir),mi(2*n+2,nir)\nreal*8 :: qxv(2*n+4,7),qsv(2*n+4,7),gv(2*n+4,7),ref(2*n+4),amount(2*n+4)\nreal*8 :: qxi(2*n+4,nir),qsi(2*n+4,nir),gi(2*n+4,nir),dummyv(7),dummyi(nir),surf(20,n)\ninteger l,k\nl_layers=n\nl_levels=2*n+3\nnloni=nir\nl_nspecti=nir\nreff_fixed=radius\nqextv_dst=real(vin(1,:,1,:),4)\nqscatv_dst=real(vin(1,:,2,:),4)\ngv_dst=real(vin(1,:,3,:),4)\nif(allocated(qexti_dst)) deallocate(qexti_dst,qscati_dst,gi_dst)\nallocate(qexti_dst(20,nir),qscati_dst(20,nir),gi_dst(20,nir))\nqexti_dst=real(iin(1,:,1,:),4)\nqscati_dst=real(iin(1,:,2,:),4)\ngi_dst=real(iin(1,:,3,:),4)\nradb_rt=edges\ndummyv=0.\ndummyi=0.\nuser_fixed_dust_opts=use_user/=0\nqxv_read=user_v(1,:)\nqsv_read=user_v(2,:)\ngv_read=user_v(3,:)\nqxi_read(:nir)=user_i(1,:)\nqsi_read(:nir)=user_i(2,:)\ngi_read(:nir)=user_i(3,:)\ncall ini_optdst(dummyv,dummyi,qxv,qxi,qsv,qsi,gv,gi,ref,surf,.true.)\namount=0.\ndo l=1,n\n k=2*l+2\n amount(k)=tau(l)*(p(k)-p(k-1))/(p(k+1)-p(k-1))\n amount(k+1)=tau(l)*(p(k+1)-p(k))/(p(k+1)-p(k-1))\nenddo\ndo k=2,l_levels\n ev(k-1,:)=amount(k)/ref(k)*qxv(k,:)\n sv(k-1,:)=amount(k)/ref(k)*qsv(k,:)\n mv(k-1,:)=amount(k)/ref(k)*qsv(k,:)*gv(k,:)\n ei(k-1,:)=amount(k)/ref(k)*qxi(k,:)\n si(k-1,:)=amount(k)/ref(k)*qsi(k,:)\n mi(k-1,:)=amount(k)/ref(k)*qsi(k,:)*gi(k,:)\nenddo\nend subroutine\n'+"end module")
     library,provenance=compile_routines(source/'atmos_param_mars/Rad/rtmod_mgcm.F90',RADIATION_BLOB,
         ['opt_dst','opt_co2cld','opt_cld_blk','opt_cld','calc_opts','ini_optdst'],header,adapter,destination,compiler)
     native=ctypes.CDLL(str(library))
     array=np.ctypeslib.ndpointer(dtype=np.float64,flags='F_CONTIGUOUS')
     native.particles.argtypes=[ctypes.c_int]*5+[array]*16
     native.particles.restype=None
-    native.fixed_dust.argtypes=[ctypes.c_int]*2+[ctypes.c_double]+[array]*11
+    native.fixed_dust.argtypes=[ctypes.c_int]*3+[ctypes.c_double]+[array]*13
     native.fixed_dust.restype=None
     return native,provenance
 
@@ -199,13 +199,28 @@ def validate(source,compiler):
                 for radius in (1e-8,1.5e-6,100e-6):
                     actual=fixed_optics(tau,p,effective_radius_m=radius,bands=bands)
                     outputs=[f(np.zeros((2*n+2,b))) for b in (7,7,7,nir,nir,nir)]
-                    native.fixed_dust(n,nir,radius,f(p),f(tau),f(data[f'dust_{bands}_sw']),
-                        f(data[f'dust_{bands}_ir']),f(data['moment_edges_m']),*outputs)
+                    native.fixed_dust(n,nir,0,radius,f(p),f(tau),f(data[f'dust_{bands}_sw']),
+                        f(data[f'dust_{bands}_ir']),f(data['moment_edges_m']),f(np.zeros((3,7))),f(np.zeros((3,nir))),*outputs)
                     errors=[]
                     for a,b in zip((*actual.visible,*actual.infrared),outputs,strict=True):
                         np.testing.assert_allclose(a,b,rtol=2e-11,atol=2e-13)
                         errors.append(float(np.max(np.abs(np.asarray(a)-b))))
                     cases.append(dict(layers=n,bands=bands,kind='fixed-dust',radius_m=radius,max_absolute_errors=errors))
+                for loading in (0.,1.):
+                    # Deliberately exceed the averaging cap: native user inputs bypass it.
+                    visible=f([np.linspace(1.,3.,7),np.linspace(.2,3.,7),np.linspace(-.2,.8,7)])
+                    infrared=f([np.linspace(.1,2.,nir),np.linspace(.01,2.,nir),np.linspace(-.1,.7,nir)])
+                    actual=fixed_optics(loading*tau,p,bands=bands,optical_properties=(visible,infrared))
+                    outputs=[f(np.zeros((2*n+2,b))) for b in (7,7,7,nir,nir,nir)]
+                    native.fixed_dust(n,nir,1,1.5e-6,f(p),f(loading*tau),f(data[f'dust_{bands}_sw']),
+                        f(data[f'dust_{bands}_ir']),f(data['moment_edges_m']),visible,infrared,*outputs)
+                    errors=[]
+                    for a,b in zip((*actual.visible,*actual.infrared),outputs,strict=True):
+                        np.testing.assert_allclose(a,b,rtol=2e-14,atol=2e-15)
+                        errors.append(float(np.max(np.abs(np.asarray(a)-b))))
+                    np.testing.assert_array_equal(actual.diagnostics['size_distribution'],0.)
+                    cases.append(dict(layers=n,bands=bands,kind='user-fixed-dust',loading=loading,
+                        max_absolute_errors=errors))
     repo=Path(__file__).parents[1]
     paths=['scripts/validate_particle_optics.py','scripts/stage_particle_optics.py',
         'package/src/framework/physics/particle_optics.py','package/src/framework/physics/particle_optical_tables.npz',

@@ -22,7 +22,7 @@
   },
   "efficiency_reference": {
     "source_git_blob": "40d8879c3735bbec6cabc63817cad5220f281532",
-    "compiled_source_sha256": "3a958cd5c2737e8e6e28841838ab0a868485d95c6c84d685ebb15c894ffd1ccb",
+    "compiled_source_sha256": "b0e312bd2b14643b06288d34a912c384e5bc457edcbf378239fcf5dc736ea355",
     "routine_sha256": {
       "opt_dst": "9b275bfa101d66bdff12571011b3f36107a7623f6f412c2dc80328f71a505f3b",
       "opt_co2cld": "75f995b0235dce1aaca02c34edfa64036c9218f31eee63510c5a3f49f9996e21",
@@ -1471,7 +1471,7 @@
     "scripts/validate_dust_background.py": "5402e7e8956d70510ae8b38b246a54e0f767a0d8c5e94a8d3fb7015d7e067c17",
     "scripts/validate_dust_lifting.py": "10dbdfc105acd6d9661ef4032acf8b80d9da5bf6f4ce6805798a5028b5ea0877",
     "scripts/native_reference.py": "2e3b0e2f65b685f86fcfdd1b4643b54c5582b81af36a0874a43d9eedc2675d76",
-    "scripts/validate_particle_optics.py": "11dbfdf70bd83d08775dcaece9d306bcbe8d6e39670b4bd7d728296d8f7f67f6",
+    "scripts/validate_particle_optics.py": "e2dfca6d920f099fb3c9f956428235720f85ba42d659be4b660d2dc38011c68c",
     "package/src/framework/physics/dust_lifting.py": "18bf33ce5979933c1ef1a153e7683fae81e818f8e196e71a7f2923176be3d663",
     "package/src/framework/physics/particle_optics.py": "125ec57c6d71d99082eb31b98b64be357c3287c721e4b73b149311852138895f",
     "package/src/framework/physics/particle_optical_tables.npz": "ae3328d6cabec02bf75f60e749a35985a397ca537e05536573cfc781117c330f"

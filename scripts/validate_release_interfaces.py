@@ -23,6 +23,11 @@ BLOBS={
     'atmos_param_mars/dust_update.F90':'1e470cc1efb44c6627cbe3168c69c2d1f7640570',
     'atmos_param_mars/Rad/radiation_driver.F90':'91059b1b696ef35c05db016f1b890b9c7591f482',
     'atmos_param_mars/Rad/rtmod_mgcm.F90':'40d8879c3735bbec6cabc63817cad5220f281532',
+    'atmos_param_mars/coagulation.F90':'e0c1818849461fa252ff1980dd264a93c57d79ab',
+    'atmos_param_mars/blkh2omod_mgcm.F90':'92667ec8575160bc8e6a68e88cd0a93397d3d450',
+    'atmos_param_mars/co2micromod_mgcm.F90':'aa566e12d6e01afa346162385055f41d8d2bc18f',
+    'atmos_param_mars/palmer_topo_drag.F90':'e25163faee55b4c4d31d90f2d09db13148230123',
+    'atmos_param_mars/Rad/simple_rad_driver.F90':'3e17830d742bcec90d00165db8c8037876d65f5a',
 }
 
 # Each released driver control needs an explicit implementation or exclusion.
@@ -51,6 +56,38 @@ DRIVER_CONTROLS=[
      'only used in fv3_turb branches excluded by release flags'),
     ('checkcons','diagnostics adaptation',
      'kernel/global material ledgers and validation checks; native FMS debug abort behavior is not copied'),
+]
+
+
+RADIATION_MODULE_CONTROLS=[
+    ('tmom do_fv3_dust_opt fv3_gfac fv3_sscat do_dust_ir_scale fv3_ir_scale','inactive',
+     'declaration and namelist only'),
+    ('radactive_water','implemented','radiative_transfer water_vapor_tracer'),
+    ('radactive_cloud radactive_cloud_bulk radactive_co2cloud bulk_ccn bulk_co2_ccn','implemented',
+     'particle_optics.make_particle_provider selects explicit species and nuclei counts'),
+    ('do_nlte_simple','implemented','radiative_transfer nonlte_tracers and nonlte_cooling'),
+    ('rtdata_path','data adaptation','staged pinned table assets and recorded source hashes'),
+    ('ames_15band use_extended_cor_ks','implemented','radiation_mode selects 12band, 15band or extended'),
+    ('do_cia cia_co2 cia_h2','implemented','radiative_transfer cia_molar_fractions'),
+    ('radactive_dust_TOG','implemented supported modes','explicit empty, moment or prescribed particle providers; mode 2 unsupported by release'),
+    ('use_boxinterp12','implemented','radiative_transfer linear_k_interpolation'),
+    ('radactive_cloud_bin scale_cloud_bin simple_cloud_radius','excluded bin-cloud mode',
+     'optional fixed-radius bin-cloud optics set aside; public bin-cloud microphysics is a fatal placeholder'),
+    ('do_irflux_scale','implemented','radiative_transfer scale_surface_flux'),
+    ('scale_by_scon','implemented','reference_radiative_forcing solar_constant_w_m2'),
+    ('user_fixed_dust_opts qxv_read qsv_read gv_read qxi_read qsi_read gi_read','implemented',
+     'prescribed_dust fixed_optics and make_fixed_dust_provider optical_properties'),
+]
+
+SIMPLE_RADIATION_CONTROLS=[
+    ('day_zero tdamp','inactive','declaration and namelist only'),
+    ('kwave radscale rad_amp rad_vscale modulate_heating','excluded','numerical references require SPEC_CORE, absent from release flags'),
+    ('use_forget_swheat','implemented','simple_radiation forget_shortwave_heating'),
+    ('rad_calc_intv do_diurnal_avg_rad fixed_calender_date','implemented',
+     'simple_radiation radiation_interval_seconds, daily_mean and fixed_calendar_date'),
+    ('use_newton_damping','implemented','simple_radiation newton_damping retains source infrared suppression'),
+    ('optical_depth_inpt sscat_cnst gfac_cnst conrath alfir tauir do_lat_vary_dust no_atmos_dn_ir_flx reference_press',
+     'implemented','simple_radiation column_fluxes optical_depth, single_scattering_albedo, asymmetry, conrath, pressure_exponent, tau_infrared, latitude_variation, no_downward_infrared and reference_pressure'),
 ]
 
 
@@ -88,10 +125,25 @@ def validate(source,compiler):
             'microtimestep':'moment_cloud_options.microtimestep','latent_heat':'moment_cloud_options.latent_heat',
             'makeclouds':'form_moment_clouds','subeffmode':'moment_cloud_options.effective_input_mode',
             'facsubl':'inactive module-local variable','mteta_case':'moment_cloud_options.contact_case',
-            'mteta':'moment_cloud_options.contact'})):
+            'mteta':'moment_cloud_options.contact'}),
+        ('atmos_param_mars/coagulation.F90','coagulation_nml',{
+            'coal_kg':'coagulation_step.coalescence','kernel_b':'coagulation_step.brownian',
+            'kernel_g':'coagulation_step.gravitational','kernel_de':'coagulation_step.diffusion_enhancement',
+            'kernel_ti':'inactive released table path; FULLCOAG turbulent inertia uses uninitialized eps',
+            'effb':'coagulation_step.efficiency','coal_fac':'coagulation_step.factor'}),
+        ('atmos_param_mars/blkh2omod_mgcm.F90','blkh2oclouds_nml',{
+            'ccn_blkh2o':'water_cloud_options.nuclei_per_kg','prec_threshold':'water_cloud_options.precipitation_threshold'}),
+        ('atmos_param_mars/co2micromod_mgcm.F90','co2microphys_nml',{'ccn_co2':'cloud_nuclei_per_kg'}),
+        ('atmos_param_mars/palmer_topo_drag.F90','palmer_drag_nml',{
+            'KAP':'terrain_drag_options.coefficient','do_IR_damping':'terrain_drag_options.ir_damping',
+            'grid_res':'boundary_inputs.terrain_standard_deviation_on_grid grid_resolution'})):
         actual=namelist_controls((source/filename).read_text(),namelist)
         assert len(actual)==len(set(actual)) and set(actual)==set(mapping),(namelist,actual)
         module_controls.extend(dict(namelist=namelist,source_control=name,implementation=mapping[name]) for name in actual)
+    coagulation=subprocess.check_output([compiler,'-E','-cpp','-P',*definitions,
+        str(source/'atmos_param_mars/coagulation.F90')],text=True)
+    stripped='\n'.join(line.split('!',1)[0] for line in coagulation.splitlines())
+    assert len(re.findall(r'\bkernel_ti\b',stripped,re.I))==2
     micro,_=extract_routines(source/'atmos_param_mars/micromod_mgcm.F90',
         BLOBS['atmos_param_mars/micromod_mgcm.F90'],['micro_driver'])
     micro=micro[0];start=micro.index('if (makeclouds) then');end=micro.index('endif  !! makeclouds',start)
@@ -124,6 +176,28 @@ def validate(source,compiler):
         if status=='inactive': assert len(re.findall(r'\b'+name+r'\b',stripped,re.I))==2,name
     radiation_driver_controls=[dict(source_control=name,status=status,implementation=implementation)
         for name,(status,implementation) in driver_mapping.items()]
+    radiation_module_controls=[]
+    for filename,namelist,mapping in (
+        ('rtmod_mgcm.F90','ames_rtmod_nml',RADIATION_MODULE_CONTROLS),
+        ('simple_rad_driver.F90','simple_rad_driver_nml',SIMPLE_RADIATION_CONTROLS)):
+        raw=(source/'atmos_param_mars/Rad'/filename).read_text()
+        actual=namelist_controls(raw,namelist)
+        entries=[dict(namelist=namelist,source_control=name,status=status,implementation=implementation)
+            for names,status,implementation in mapping for name in names.split()]
+        names=[item['source_control'] for item in entries]
+        assert len(names)==len(set(names)) and set(names)==set(actual),(namelist,actual,names)
+        stripped='\n'.join(line.split('!',1)[0] for line in raw.splitlines())
+        for entry in entries:
+            if entry['status']=='inactive':
+                assert len(re.findall(r'\b'+entry['source_control']+r'\b',stripped,re.I))==2,entry
+        if filename=='simple_rad_driver.F90':
+            released=subprocess.check_output([compiler,'-E','-cpp','-P',*definitions,
+                str(source/'atmos_param_mars/Rad'/filename)],text=True)
+            released='\n'.join(line.split('!',1)[0] for line in released.splitlines())
+            for entry in entries:
+                if entry['status']=='excluded':
+                    assert len(re.findall(r'\b'+entry['source_control']+r'\b',released,re.I))==2,entry
+        radiation_module_controls.extend(entries)
     routines,_=extract_routines(source/'atmos_param_mars/Rad/rtmod_mgcm.F90',
         BLOBS['atmos_param_mars/Rad/rtmod_mgcm.F90'],['ames_rt_driver'])
     spectral_driver=routines[0]
@@ -257,7 +331,8 @@ end module''')
         shortwave_ramp_block_sha256=hashlib.sha256(ramp_block.encode()).hexdigest(),
         compiler=subprocess.check_output([compiler,'--version'],text=True).splitlines()[0]),
         cases=cases,driver_controls=inventory,module_controls=module_controls,aerosol_mode_cases=mode_cases,
-        radiation_driver_controls=radiation_driver_controls,shortwave_ramp_cases=ramp_cases,
+        radiation_driver_controls=radiation_driver_controls,radiation_module_controls=radiation_module_controls,
+        shortwave_ramp_cases=ramp_cases,
         unsupported_dust_radiation=dict(mode=2,source='build_run/fms_mars_clouds_v3.2',
             evidence=unsupported[0].strip(),status='not supported by the released configuration'),
         dust_lifting_guard_cases=lifting_cases,
@@ -266,9 +341,10 @@ end module''')
         sha256={name:hashlib.sha256((root/name).read_bytes()).hexdigest() for name in
             ('scripts/validate_release_interfaces.py','scripts/native_reference.py',
              'package/src/framework/physics/radiative_transfer.py','package/src/framework/physics/dinosaur_physics.py',
-             'package/src/framework/physics/gcm.py')},
-        limits='The inventory covers the main driver plus sedimentation, PBL and moment-cloud controls. The moment-cloud guard leaves tendency outputs zero and cloud history inactive when cloud formation is disabled. Numerical behavior uses the separate native reports and integration checks. '
-            'The ten radiation-driver controls are inventoried separately. Fixed-date forcing shares the source-checked radiation clock with simple radiation; disabling either native radiation channel leaves local fluxes undefined. Forty unchanged startup-ramp block cases check heating and applied surface flux. '
+             'package/src/framework/physics/gcm.py','package/src/framework/physics/prescribed_dust.py',
+             'package/src/framework/physics/simple_radiation.py')},
+        limits='The inventory covers the main driver plus sedimentation, PBL, moment/bulk/CO2-cloud, coagulation and terrain-drag controls. The moment-cloud guard leaves tendency outputs zero and cloud history inactive when cloud formation is disabled. Numerical behavior uses the separate native reports and integration checks. '
+            'The ten radiation-driver controls and the spectral/simple module controls are inventoried separately. Fixed-date forcing shares the source-checked radiation clock with simple radiation; disabling either native radiation channel leaves local fluxes undefined. Forty unchanged startup-ramp block cases check heating and applied surface flux. '
             'Bin-cloud microphysics, photochemistry and legacy binned dust-source equations are not in '
             'these released implementations. Tagging imports are excluded by RELEASE. '
             'Moment water, bulk water and moment dust have separate real modules and validations. '

@@ -13,7 +13,12 @@
       "atmos_param_mars/aerosol_util.F90": "353441748fa247b8d938e4993f06d313268580f7",
       "atmos_param_mars/dust_update.F90": "1e470cc1efb44c6627cbe3168c69c2d1f7640570",
       "atmos_param_mars/Rad/radiation_driver.F90": "91059b1b696ef35c05db016f1b890b9c7591f482",
-      "atmos_param_mars/Rad/rtmod_mgcm.F90": "40d8879c3735bbec6cabc63817cad5220f281532"
+      "atmos_param_mars/Rad/rtmod_mgcm.F90": "40d8879c3735bbec6cabc63817cad5220f281532",
+      "atmos_param_mars/coagulation.F90": "e0c1818849461fa252ff1980dd264a93c57d79ab",
+      "atmos_param_mars/blkh2omod_mgcm.F90": "92667ec8575160bc8e6a68e88cd0a93397d3d450",
+      "atmos_param_mars/co2micromod_mgcm.F90": "aa566e12d6e01afa346162385055f41d8d2bc18f",
+      "atmos_param_mars/palmer_topo_drag.F90": "e25163faee55b4c4d31d90f2d09db13148230123",
+      "atmos_param_mars/Rad/simple_rad_driver.F90": "3e17830d742bcec90d00165db8c8037876d65f5a"
     },
     "preprocessor_flags": [
       "-cpp",
@@ -374,6 +379,71 @@
       "namelist": "microphys_nml",
       "source_control": "mteta",
       "implementation": "moment_cloud_options.contact"
+    },
+    {
+      "namelist": "coagulation_nml",
+      "source_control": "coal_kg",
+      "implementation": "coagulation_step.coalescence"
+    },
+    {
+      "namelist": "coagulation_nml",
+      "source_control": "kernel_b",
+      "implementation": "coagulation_step.brownian"
+    },
+    {
+      "namelist": "coagulation_nml",
+      "source_control": "kernel_g",
+      "implementation": "coagulation_step.gravitational"
+    },
+    {
+      "namelist": "coagulation_nml",
+      "source_control": "kernel_de",
+      "implementation": "coagulation_step.diffusion_enhancement"
+    },
+    {
+      "namelist": "coagulation_nml",
+      "source_control": "kernel_ti",
+      "implementation": "inactive released table path; FULLCOAG turbulent inertia uses uninitialized eps"
+    },
+    {
+      "namelist": "coagulation_nml",
+      "source_control": "effb",
+      "implementation": "coagulation_step.efficiency"
+    },
+    {
+      "namelist": "coagulation_nml",
+      "source_control": "coal_fac",
+      "implementation": "coagulation_step.factor"
+    },
+    {
+      "namelist": "blkh2oclouds_nml",
+      "source_control": "ccn_blkh2o",
+      "implementation": "water_cloud_options.nuclei_per_kg"
+    },
+    {
+      "namelist": "blkh2oclouds_nml",
+      "source_control": "prec_threshold",
+      "implementation": "water_cloud_options.precipitation_threshold"
+    },
+    {
+      "namelist": "co2microphys_nml",
+      "source_control": "ccn_co2",
+      "implementation": "cloud_nuclei_per_kg"
+    },
+    {
+      "namelist": "palmer_drag_nml",
+      "source_control": "KAP",
+      "implementation": "terrain_drag_options.coefficient"
+    },
+    {
+      "namelist": "palmer_drag_nml",
+      "source_control": "do_IR_damping",
+      "implementation": "terrain_drag_options.ir_damping"
+    },
+    {
+      "namelist": "palmer_drag_nml",
+      "source_control": "grid_res",
+      "implementation": "boundary_inputs.terrain_standard_deviation_on_grid grid_resolution"
     }
   ],
   "aerosol_mode_cases": [
@@ -476,6 +546,332 @@
       "source_control": "use_ames_lw_rad",
       "status": "source-undefined when disabled",
       "implementation": "default true; uninitialized local fluxes when false"
+    }
+  ],
+  "radiation_module_controls": [
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "tmom",
+      "status": "inactive",
+      "implementation": "declaration and namelist only"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "do_fv3_dust_opt",
+      "status": "inactive",
+      "implementation": "declaration and namelist only"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "fv3_gfac",
+      "status": "inactive",
+      "implementation": "declaration and namelist only"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "fv3_sscat",
+      "status": "inactive",
+      "implementation": "declaration and namelist only"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "do_dust_ir_scale",
+      "status": "inactive",
+      "implementation": "declaration and namelist only"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "fv3_ir_scale",
+      "status": "inactive",
+      "implementation": "declaration and namelist only"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "radactive_water",
+      "status": "implemented",
+      "implementation": "radiative_transfer water_vapor_tracer"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "radactive_cloud",
+      "status": "implemented",
+      "implementation": "particle_optics.make_particle_provider selects explicit species and nuclei counts"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "radactive_cloud_bulk",
+      "status": "implemented",
+      "implementation": "particle_optics.make_particle_provider selects explicit species and nuclei counts"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "radactive_co2cloud",
+      "status": "implemented",
+      "implementation": "particle_optics.make_particle_provider selects explicit species and nuclei counts"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "bulk_ccn",
+      "status": "implemented",
+      "implementation": "particle_optics.make_particle_provider selects explicit species and nuclei counts"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "bulk_co2_ccn",
+      "status": "implemented",
+      "implementation": "particle_optics.make_particle_provider selects explicit species and nuclei counts"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "do_nlte_simple",
+      "status": "implemented",
+      "implementation": "radiative_transfer nonlte_tracers and nonlte_cooling"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "rtdata_path",
+      "status": "data adaptation",
+      "implementation": "staged pinned table assets and recorded source hashes"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "ames_15band",
+      "status": "implemented",
+      "implementation": "radiation_mode selects 12band, 15band or extended"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "use_extended_cor_ks",
+      "status": "implemented",
+      "implementation": "radiation_mode selects 12band, 15band or extended"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "do_cia",
+      "status": "implemented",
+      "implementation": "radiative_transfer cia_molar_fractions"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "cia_co2",
+      "status": "implemented",
+      "implementation": "radiative_transfer cia_molar_fractions"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "cia_h2",
+      "status": "implemented",
+      "implementation": "radiative_transfer cia_molar_fractions"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "radactive_dust_TOG",
+      "status": "implemented supported modes",
+      "implementation": "explicit empty, moment or prescribed particle providers; mode 2 unsupported by release"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "use_boxinterp12",
+      "status": "implemented",
+      "implementation": "radiative_transfer linear_k_interpolation"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "radactive_cloud_bin",
+      "status": "excluded bin-cloud mode",
+      "implementation": "optional fixed-radius bin-cloud optics set aside; public bin-cloud microphysics is a fatal placeholder"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "scale_cloud_bin",
+      "status": "excluded bin-cloud mode",
+      "implementation": "optional fixed-radius bin-cloud optics set aside; public bin-cloud microphysics is a fatal placeholder"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "simple_cloud_radius",
+      "status": "excluded bin-cloud mode",
+      "implementation": "optional fixed-radius bin-cloud optics set aside; public bin-cloud microphysics is a fatal placeholder"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "do_irflux_scale",
+      "status": "implemented",
+      "implementation": "radiative_transfer scale_surface_flux"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "scale_by_scon",
+      "status": "implemented",
+      "implementation": "reference_radiative_forcing solar_constant_w_m2"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "user_fixed_dust_opts",
+      "status": "implemented",
+      "implementation": "prescribed_dust fixed_optics and make_fixed_dust_provider optical_properties"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "qxv_read",
+      "status": "implemented",
+      "implementation": "prescribed_dust fixed_optics and make_fixed_dust_provider optical_properties"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "qsv_read",
+      "status": "implemented",
+      "implementation": "prescribed_dust fixed_optics and make_fixed_dust_provider optical_properties"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "gv_read",
+      "status": "implemented",
+      "implementation": "prescribed_dust fixed_optics and make_fixed_dust_provider optical_properties"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "qxi_read",
+      "status": "implemented",
+      "implementation": "prescribed_dust fixed_optics and make_fixed_dust_provider optical_properties"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "qsi_read",
+      "status": "implemented",
+      "implementation": "prescribed_dust fixed_optics and make_fixed_dust_provider optical_properties"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "gi_read",
+      "status": "implemented",
+      "implementation": "prescribed_dust fixed_optics and make_fixed_dust_provider optical_properties"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "day_zero",
+      "status": "inactive",
+      "implementation": "declaration and namelist only"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "tdamp",
+      "status": "inactive",
+      "implementation": "declaration and namelist only"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "kwave",
+      "status": "excluded",
+      "implementation": "numerical references require SPEC_CORE, absent from release flags"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "radscale",
+      "status": "excluded",
+      "implementation": "numerical references require SPEC_CORE, absent from release flags"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "rad_amp",
+      "status": "excluded",
+      "implementation": "numerical references require SPEC_CORE, absent from release flags"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "rad_vscale",
+      "status": "excluded",
+      "implementation": "numerical references require SPEC_CORE, absent from release flags"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "modulate_heating",
+      "status": "excluded",
+      "implementation": "numerical references require SPEC_CORE, absent from release flags"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "use_forget_swheat",
+      "status": "implemented",
+      "implementation": "simple_radiation forget_shortwave_heating"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "rad_calc_intv",
+      "status": "implemented",
+      "implementation": "simple_radiation radiation_interval_seconds, daily_mean and fixed_calendar_date"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "do_diurnal_avg_rad",
+      "status": "implemented",
+      "implementation": "simple_radiation radiation_interval_seconds, daily_mean and fixed_calendar_date"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "fixed_calender_date",
+      "status": "implemented",
+      "implementation": "simple_radiation radiation_interval_seconds, daily_mean and fixed_calendar_date"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "use_newton_damping",
+      "status": "implemented",
+      "implementation": "simple_radiation newton_damping retains source infrared suppression"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "optical_depth_inpt",
+      "status": "implemented",
+      "implementation": "simple_radiation column_fluxes optical_depth, single_scattering_albedo, asymmetry, conrath, pressure_exponent, tau_infrared, latitude_variation, no_downward_infrared and reference_pressure"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "sscat_cnst",
+      "status": "implemented",
+      "implementation": "simple_radiation column_fluxes optical_depth, single_scattering_albedo, asymmetry, conrath, pressure_exponent, tau_infrared, latitude_variation, no_downward_infrared and reference_pressure"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "gfac_cnst",
+      "status": "implemented",
+      "implementation": "simple_radiation column_fluxes optical_depth, single_scattering_albedo, asymmetry, conrath, pressure_exponent, tau_infrared, latitude_variation, no_downward_infrared and reference_pressure"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "conrath",
+      "status": "implemented",
+      "implementation": "simple_radiation column_fluxes optical_depth, single_scattering_albedo, asymmetry, conrath, pressure_exponent, tau_infrared, latitude_variation, no_downward_infrared and reference_pressure"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "alfir",
+      "status": "implemented",
+      "implementation": "simple_radiation column_fluxes optical_depth, single_scattering_albedo, asymmetry, conrath, pressure_exponent, tau_infrared, latitude_variation, no_downward_infrared and reference_pressure"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "tauir",
+      "status": "implemented",
+      "implementation": "simple_radiation column_fluxes optical_depth, single_scattering_albedo, asymmetry, conrath, pressure_exponent, tau_infrared, latitude_variation, no_downward_infrared and reference_pressure"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "do_lat_vary_dust",
+      "status": "implemented",
+      "implementation": "simple_radiation column_fluxes optical_depth, single_scattering_albedo, asymmetry, conrath, pressure_exponent, tau_infrared, latitude_variation, no_downward_infrared and reference_pressure"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "no_atmos_dn_ir_flx",
+      "status": "implemented",
+      "implementation": "simple_radiation column_fluxes optical_depth, single_scattering_albedo, asymmetry, conrath, pressure_exponent, tau_infrared, latitude_variation, no_downward_infrared and reference_pressure"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "reference_press",
+      "status": "implemented",
+      "implementation": "simple_radiation column_fluxes optical_depth, single_scattering_albedo, asymmetry, conrath, pressure_exponent, tau_infrared, latitude_variation, no_downward_infrared and reference_pressure"
     }
   ],
   "shortwave_ramp_cases": [
@@ -766,11 +1162,13 @@
     "alternate_preprocessed_sha256": "146631ad81c35fed0dd3b9c3b7ff82cbd7d4370858457d121eb179e7288dfbb8"
   },
   "sha256": {
-    "scripts/validate_release_interfaces.py": "34fcf54b49a0241a0d5e39e46347bc55a58eb78b505ba040f1d68d8922173ae9",
+    "scripts/validate_release_interfaces.py": "91ebf375df990d85e8fbfd130e62981387bb6e508a4c9a949aec06879081fdd0",
     "scripts/native_reference.py": "2e3b0e2f65b685f86fcfdd1b4643b54c5582b81af36a0874a43d9eedc2675d76",
     "package/src/framework/physics/radiative_transfer.py": "13110b90de754991c4a6673040ffc52b9a15409ce1d6087b67ce9be017872891",
     "package/src/framework/physics/dinosaur_physics.py": "4b8202914ac1e39cbd8b521d8acefd7f9fb574e21dd5dc5d14c4f67263164822",
-    "package/src/framework/physics/gcm.py": "8234e024f283c62b093d838f52b6e6b84783e5ce2d3b732189a58e32a582881b"
+    "package/src/framework/physics/gcm.py": "8234e024f283c62b093d838f52b6e6b84783e5ce2d3b732189a58e32a582881b",
+    "package/src/framework/physics/prescribed_dust.py": "1ec309decbafffc5fdc1f0fd2c7e7acd9c9f4cae1e6289237ef9e0e5232196dc",
+    "package/src/framework/physics/simple_radiation.py": "d34833bafeb3c2dc78772b104f95bd6ac34a011ee91856ed2f9cf142104f9532"
   },
-  "limits": "The inventory covers the main driver plus sedimentation, PBL and moment-cloud controls. The moment-cloud guard leaves tendency outputs zero and cloud history inactive when cloud formation is disabled. Numerical behavior uses the separate native reports and integration checks. The ten radiation-driver controls are inventoried separately. Fixed-date forcing shares the source-checked radiation clock with simple radiation; disabling either native radiation channel leaves local fluxes undefined. Forty unchanged startup-ramp block cases check heating and applied surface flux. Bin-cloud microphysics, photochemistry and legacy binned dust-source equations are not in these released implementations. Tagging imports are excluded by RELEASE. Moment water, bulk water and moment dust have separate real modules and validations. Alternate FV3 turbulence calls require fv3_turb, which the pinned build does not define; this exclusion does not implement or validate those alternate schemes."
+  "limits": "The inventory covers the main driver plus sedimentation, PBL, moment/bulk/CO2-cloud, coagulation and terrain-drag controls. The moment-cloud guard leaves tendency outputs zero and cloud history inactive when cloud formation is disabled. Numerical behavior uses the separate native reports and integration checks. The ten radiation-driver controls and the spectral/simple module controls are inventoried separately. Fixed-date forcing shares the source-checked radiation clock with simple radiation; disabling either native radiation channel leaves local fluxes undefined. Forty unchanged startup-ramp block cases check heating and applied surface flux. Bin-cloud microphysics, photochemistry and legacy binned dust-source equations are not in these released implementations. Tagging imports are excluded by RELEASE. Moment water, bulk water and moment dust have separate real modules and validations. Alternate FV3 turbulence calls require fv3_turb, which the pinned build does not define; this exclusion does not implement or validate those alternate schemes."
 }
