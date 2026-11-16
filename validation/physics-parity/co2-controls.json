@@ -5718,8 +5718,8 @@
   ],
   "sha256": {
     "scripts/validate_co2_controls.py": "83d230e1a1d836d6a6e19bfaf2ab4bd8805353f73ab74b5f311e046839c5010b",
-    "package/src/framework/physics/column_physics.py": "d43a6571f93a88e4b1265c2432629da941a8b55612463e0ecb6bc5b1070fb676",
-    "package/src/framework/physics/dinosaur_physics.py": "ca28de69eb3b737dbaa284694af50b07375da87ac0b49613a2bee59954f99a6a",
+    "package/src/framework/physics/column_physics.py": "d59b2a2fa28038c11bd2226f21d8031ce3df7ed2073763339391026aad9e854b",
+    "package/src/framework/physics/dinosaur_physics.py": "c5aaffc774ce52b8499ad5570b88e613988403b482f4f7b0b25a85a688bb11a8",
     "package/src/framework/physics/co2_condensation.py": "031532e9cec413118c7e413211ea42c263ebaf90da2ffe72dcbd79d6f0a2c72f"
   },
   "limits": "Seeded immediate-condensation control block, all three flags and do_qmass surface weights; unchanged initialization depth loops and strict local-domain latitude selection. Dinosaur uses one global domain and bounds the two extra exchange layers at its first layer on coarse grids. Phase kernels, suspended clouds, global projection and derivatives require separate checks."

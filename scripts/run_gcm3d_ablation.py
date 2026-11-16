@@ -334,6 +334,8 @@ def main() -> int:
         help='settle dust cores with water clouds; disable to retain cores in the atmosphere')
     parser.add_argument('--moment-clouds',dest='form_moment_clouds',action=argparse.BooleanOptionalAction,default=True,
         help='form and grow moment water clouds; surface exchange and settling remain independent')
+    parser.add_argument('--lifting-suppresses-settling',action='store_true',
+        help='retain bottom-layer lifted dust and suppress its surface deposit, as in native lifting_nosed')
     parser.add_argument('--gust-factor',type=float,default=0.,help='released dust-lifting wind correction; gust speed is 1 m/s')
     parser.add_argument('--co2-exchange-ratio-pole',type=float,default=.92)
     parser.add_argument('--co2-exchange-ratio-trop',type=float,default=.991)
@@ -378,7 +380,8 @@ def main() -> int:
     args = parser.parse_args()
     reference=args.config=='reference'
     process_defaults=dict(freeze_tracer_fields=False,no_forcing=False,gust_factor=0.,recalculate_heat_flux=False,
-        particle_scavenging=True,form_moment_clouds=True,co2_exchange_ratio_pole=.92,co2_exchange_ratio_trop=.991)
+        particle_scavenging=True,form_moment_clouds=True,lifting_suppresses_settling=False,
+        co2_exchange_ratio_pole=.92,co2_exchange_ratio_trop=.991)
     process_controls={name:getattr(args,name) for name,default in process_defaults.items() if getattr(args,name)!=default}
     for name in ('co2_exchange_ratio_pole','co2_exchange_ratio_trop'):
         value=getattr(args,name)

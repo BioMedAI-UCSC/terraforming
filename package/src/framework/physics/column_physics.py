@@ -68,7 +68,8 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
                    co2_gas_index=None,do_co2_condensation=True,do_atmos_co2_loss=True,
                    do_co2_condensation_cycle=True,do_mars_surface=True,do_vert_diff=True,do_ames_pbl=True,
                    moment_water=None,dust_surface_water_kg_m2=None,freeze_tracer_fields=False,gust_factor=0.,
-                   recalculate_heat_flux=False,particle_scavenging=True,form_moment_clouds=True):
+                   recalculate_heat_flux=False,particle_scavenging=True,form_moment_clouds=True,
+                   lifting_suppresses_settling=False):
     """Rayleigh/PBL, soil/frost, CO2 deposition or suspended clouds, convection.
 
     This is the standard present-Mars gas-column process order. Tracers here
@@ -261,12 +262,13 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
     suspended=None
     if has_co2_cloud:
         suspended=r[...,gas_count]
-    dust_diagnostics={}
+    dust_diagnostics={};lifting_mask=None
     surface_water_for_dust=(water_exchange.surface_water_kg_m2+active_moist_precip
         if dust_surface_water_kg_m2 is None and water_exchange is not None else
         0. if dust_surface_water_kg_m2 is None else dust_surface_water_kg_m2)
     if moment_particles is not None:
         moment_particles=r[...,moment_start:moment_start+particle_count]
+        before_lifting=moment_particles[-1][...,dust_mass_indices]
         if dust_lifting_options is not None:
             if dust_lifting_opacity is None or surface_dust_kg_m2 is None:
                 raise ValueError('interactive dust requires reference opacity and a surface reservoir')
@@ -308,6 +310,13 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
             moment_particles=moment_particles.at[...,dust_mass_indices if dust_modes>1 else 0].set(background.mass_ratio)
             moment_particles=moment_particles.at[...,dust_number_indices if dust_modes>1 else 1].set(background.number_ratio)
             surface_dust_kg_m2=background.surface_dust_kg_m2
+        if lifting_suppresses_settling:
+            # Native lifting_nosed tests the net bottom-layer dust source before coagulation.
+            active=moment_particles[-1][...,dust_mass_indices]>before_lifting
+            lifting_mask=jnp.zeros_like(moment_particles[-1],dtype=bool)
+            lifting_mask=lifting_mask.at[...,dust_mass_indices].set(active)
+            lifting_mask=lifting_mask.at[...,dust_number_indices].set(active)
+            dust_diagnostics['lifting_mask']=lifting_mask
         if coagulation_options is not None:
             coagulated=coagulation_step(t,pressure_full,moment_particles[...,dust_mass_indices],
                 moment_particles[...,dust_number_indices],dt_seconds,gravity=body.gravity_m_s2,
@@ -337,9 +346,15 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
                 t=t+dt_seconds*moment_result.temperature_tendency
             moments=jnp.concatenate([moments,moment_particles[...,4:]],axis=-1)
             if moment_sedimentation:
+                mask=None
+                if lifting_mask is not None:
+                    off=jnp.zeros_like(lifting_mask[...,0])
+                    mask=jnp.concatenate([jnp.stack([lifting_mask[...,0],lifting_mask[...,1],
+                        off,off,off,off],axis=-1),lifting_mask[...,4:]],axis=-1)
                 sediment=sedimentation_step(moments,pressure_half,pressure_full,t,ground[0],
                     pbl['heat_diffusivity_m2_s'],dt_seconds,
-                    gas_constant=body.gas_constant_j_kg_k,gravity=body.gravity_m_s2,scavenging=particle_scavenging)
+                    gas_constant=body.gas_constant_j_kg_k,gravity=body.gravity_m_s2,scavenging=particle_scavenging,
+                    lifting_mask=mask)
                 moments=sediment.tracers
                 water_deposit=sediment.surface_deposit[...,5]
             moment_particles=jnp.concatenate([jnp.stack([moments[...,0],moments[...,1],moments[...,3],moments[...,4]],axis=-1),
@@ -371,7 +386,8 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
         elif moment_sedimentation:
             sediment=dust_sedimentation_step(moment_particles,pressure_half,pressure_full,t,ground[0],
                 pbl['heat_diffusivity_m2_s'],dt_seconds,
-                gas_constant=body.gas_constant_j_kg_k,gravity=body.gravity_m_s2,scavenging=particle_scavenging)
+                gas_constant=body.gas_constant_j_kg_k,gravity=body.gravity_m_s2,scavenging=particle_scavenging,
+                lifting_mask=lifting_mask)
             moment_particles=sediment.tracers
             dust_deposit=sediment.surface_deposit
         if dust_lifting_options is not None:

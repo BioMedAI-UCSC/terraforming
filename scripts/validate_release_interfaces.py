@@ -8,6 +8,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+import numpy as np
 from native_reference import extract_routines
 
 BLOBS={
@@ -18,6 +19,7 @@ BLOBS={
     'atmos_param_mars/BLcode/pblmod_mgcm.F90':'38b3f41e4d07f9a2e3c9d7a689e50577cac7858c',
     'atmos_param_mars/micromod_mgcm.F90':'4897f72860b59d7effeb6650dbf3d4484b3aca71',
     'atmos_param_mars/aerosol_util.F90':'353441748fa247b8d938e4993f06d313268580f7',
+    'atmos_param_mars/dust_update.F90':'1e470cc1efb44c6627cbe3168c69c2d1f7640570',
 }
 
 # Each released driver control needs an explicit implementation or exclusion.
@@ -98,6 +100,9 @@ def validate(source,compiler):
     without_comments='\n'.join(line.split('!',1)[0] for line in raw_micro.splitlines())
     assert len(re.findall(r'\bfacsubl\b',without_comments,re.I))==2
     aerosol=(source/'atmos_param_mars/aerosol_util.F90').read_text()
+    dust=(source/'atmos_param_mars/dust_update.F90').read_text()
+    start=dust.index('    if(lifting_nosed) then')
+    lifting=dust[start:dust.index('    end if',start)+len('    end if')]
     guards='\n'.join(line for line in aerosol.splitlines() if line.startswith('if (do_moment_'))
     assert len(guards.splitlines())==3
     adapter='''module validity_mod
@@ -118,6 +123,17 @@ do_moment_dust=dust/=0;do_moment_water=water/=0;do_bulk_water=bulk/=0;invalid=.f
 '''+guards+'''
 allowed=merge(0,1,invalid)
 end subroutine
+subroutine check_lifting(n,enabled,tendency,mask) bind(C)
+integer(c_int),value :: n,enabled
+real(c_double),intent(in) :: tendency(n,1,1,2)
+integer(c_int),intent(out) :: mask(n,2)
+real(c_double) :: rdt_dst(n,1,1,2)
+logical :: lifting_nosed,lifting_dust(n,1,2)
+integer,parameter :: kd=1,ndx=1
+rdt_dst=tendency;lifting_nosed=enabled/=0;lifting_dust=.false.
+'''+lifting+'''
+mask=merge(1,0,lifting_dust(:,1,:))
+end subroutine
 end module
 '''
     mode_cases=[]
@@ -129,6 +145,20 @@ end module
         native=ctypes.CDLL(str(library))
         native.check_modes.argtypes=[ctypes.c_int]*3+[ctypes.POINTER(ctypes.c_int)]
         native.check_modes.restype=None
+        native.check_lifting.argtypes=[ctypes.c_int]*2+[
+            np.ctypeslib.ndpointer(dtype=np.float64,flags='F_CONTIGUOUS'),
+            np.ctypeslib.ndpointer(dtype=np.int32,flags='F_CONTIGUOUS')]
+        native.check_lifting.restype=None
+        tendency=np.zeros((5,1,1,2),order='F')
+        tendency[:,0,0,0]=[-1.,0.,1e-30,1.,-1e-30]
+        tendency[:,0,0,1]=[1.,1.,-1.,0.,1.]
+        lifting_cases=[]
+        for enabled in (False,True):
+            mask=np.empty((5,2),dtype=np.int32,order='F')
+            native.check_lifting(5,int(enabled),tendency,mask)
+            expected=np.broadcast_to((enabled&(tendency[:,0,0,0]>0.))[:,None],mask.shape)
+            np.testing.assert_array_equal(mask,expected)
+            lifting_cases.append(dict(enabled=enabled,mass_tendency=tendency[:,0,0,0].tolist(),mask=mask.tolist()))
         for dust in (False,True):
             for water in (False,True):
                 for bulk in (False,True):
@@ -163,8 +193,10 @@ end module
         preprocessed_sha256=hashlib.sha256(release.encode()).hexdigest(),
         moment_cloud_guard_sha256=hashlib.sha256(guard.encode()).hexdigest(),
         aerosol_mode_guard_sha256=hashlib.sha256(guards.encode()).hexdigest(),
+        dust_lifting_guard_sha256=hashlib.sha256(lifting.encode()).hexdigest(),
         compiler=subprocess.check_output([compiler,'--version'],text=True).splitlines()[0]),
         cases=cases,driver_controls=inventory,module_controls=module_controls,aerosol_mode_cases=mode_cases,
+        dust_lifting_guard_cases=lifting_cases,
         excluded_build_interfaces=dict(required_definition='fv3_turb',calls=excluded,
             alternate_preprocessed_sha256=hashlib.sha256(alternate.encode()).hexdigest()),
         sha256={name:hashlib.sha256((root/name).read_bytes()).hexdigest() for name in

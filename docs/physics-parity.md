@@ -97,6 +97,16 @@ subcycling and latent heating. Moment settling follows cloud formation;
 `moment_sedimentation=False` disables it. Dust surface mass starts at the source
 30 kg/m2 default and persists in restarts.
 
+Set `lifting_suppresses_settling=True` (CLI
+`--lifting-suppresses-settling`) for native `lifting_nosed`. A positive net
+bottom-layer dust mass source, after interactive/background lifting and before
+coagulation, marks both free-dust mass and number. Settling then retains their
+bottom-layer values and sets their routed deposits to zero. It still updates
+upper layers and settles cloud ice and cores. This reproduces the source's
+possible dust-budget imbalance; the settling ledger reports that imbalance.
+The released benchmark leaves this option off. The native guard check covers
+positive, zero and negative mass tendencies independently of number tendencies.
+
 Set `moment_cloud_options={"effective_input_mode": 1}` on initialization and
 the step builder to use saved effective inputs. The first call uses the fields
 before physics. Later calls use saved temperature after clouds and saved

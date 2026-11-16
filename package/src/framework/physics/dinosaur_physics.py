@@ -262,7 +262,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                do_co2_condensation_cycle=True,do_mars_surface=True,do_vert_diff=True,do_ames_pbl=True,
                freeze_tracer_fields=False,no_forcing=False,gust_factor=0.,
                co2_exchange_ratio_pole=.92,co2_exchange_ratio_trop=.991,recalculate_heat_flux=False,
-               particle_scavenging=True,form_moment_clouds=True):
+               particle_scavenging=True,form_moment_clouds=True,lifting_suppresses_settling=False):
     """Dinosaur dynamics followed by Ames-order reference gas-column physics.
 
     Supply a verified radiation component and mapped soil diffusivity. Keeping
@@ -604,6 +604,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                 predicted.auxiliary_fields['water_surface_kg_m2'][0]),
             moment_cloud_options=moment_cloud_options,moment_sedimentation=moment_sedimentation,
             particle_scavenging=particle_scavenging,
+            lifting_suppresses_settling=lifting_suppresses_settling,
             form_moment_clouds=form_moment_clouds,
             dust_lifting_options=dust_lifting_options,
             dust_lifting_opacity=None if dust_depth is None else dust_depth[dust_opacity_channel-1],

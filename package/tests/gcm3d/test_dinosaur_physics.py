@@ -97,7 +97,7 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
                  do_co2_condensation=True,do_atmos_co2_loss=True,do_co2_condensation_cycle=True,
                  do_mars_surface=True,do_vert_diff=True,do_ames_pbl=True,moment_dust=False,
                  freeze_tracer_fields=False,no_forcing=False,gust_factor=0.,recalculate_heat_flux=False,
-                 particle_scavenging=True,form_moment_clouds=True):
+                 particle_scavenging=True,form_moment_clouds=True,lifting_suppresses_settling=False):
     from src.framework.gcm.coordinates import coordinate_system
     from src.framework.gcm.specs import physics_specs
     from src.framework.gcm._dinosaur import primitive_equations,scales
@@ -143,6 +143,7 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
         freeze_tracer_fields=freeze_tracer_fields,no_forcing=no_forcing,gust_factor=gust_factor,
         recalculate_heat_flux=recalculate_heat_flux,
         particle_scavenging=particle_scavenging,
+        lifting_suppresses_settling=lifting_suppresses_settling,
         form_moment_clouds=form_moment_clouds,
         do_co2_condensation_cycle=do_co2_condensation_cycle,
         do_mars_surface=do_mars_surface,do_vert_diff=do_vert_diff,do_ames_pbl=do_ames_pbl,moment_dust=moment_dust)
@@ -489,7 +490,8 @@ def test_disabled_moment_clouds_keep_settling_and_water_budget_without_advancing
 
 
 @pytest.mark.parametrize('modes',[1,2])
-def test_independent_dust_lifting_coagulation_radiation_three_step_gradient(modes):
+@pytest.mark.parametrize('suppress',[False,True])
+def test_independent_dust_lifting_coagulation_radiation_three_step_gradient(modes,suppress,tmp_path):
     from src.framework.physics.particle_optics import make_particle_provider
     from src.framework.physics.radiative_transfer import make_radiation_component
     from src.framework.physics.water_moments import dust_particle_tracers
@@ -500,7 +502,14 @@ def test_independent_dust_lifting_coagulation_radiation_three_step_gradient(mode
     state,step,grid=backend_case(temperature_k=180.371,surface_temperature_k=180.371,
         moment_dust=True,dust_mode_count=modes,wind_speed=40.,radiation_component=radiation,
         coagulation_options={},dust_lifting_options=dict(dual_mode=1,threshold_stress=.001),
+        lifting_suppresses_settling=suppress,
         dust_background_options=dict(scenario=dict(seasons=[0.,360.],opacity=np.full((2,*grid.nodal_shape),.4))))
+    if suppress:
+        from src.framework.gcm.restart import save_restart,load_restart
+        tick=jax.jit(step);first=tick(state)
+        restored=load_restart(save_restart(first,tmp_path/'lifting-override.npz'))
+        for actual,expected in zip(jax.tree.leaves(tick(restored)),jax.tree.leaves(tick(first)),strict=True):
+            np.testing.assert_array_equal(actual,expected)
     def objective(amplitude):
         tracers={**state.dynamics.tracers}
         for name in names[-2:]: tracers[name]=tracers[name]*amplitude

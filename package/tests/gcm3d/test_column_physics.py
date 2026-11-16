@@ -159,6 +159,41 @@ def test_disabled_scavenging_retains_nonzero_cloud_cores_and_each_material_budge
         np.testing.assert_allclose(final_water,initial_water,rtol=2e-12,atol=1e-12)
 
 
+@pytest.mark.parametrize('water',[False,True])
+@pytest.mark.parametrize('modes',[1,2])
+def test_lifting_override_uses_net_bottom_source_and_leaves_clouds_settling(water,modes):
+    kwargs={**inputs(),'temperature':jnp.full(4,170.),'soil':jnp.full(16,170.),
+        'do_co2_condensation':False,'co2_ice_kg_m2':0.,'convection_scheme':'none','do_vert_diff':False,
+        'radiative_heating_k_s':jnp.zeros(4),'moment_water':water,'form_moment_clouds':False}
+    values=([1e-5,1e8,1e6,1e-6]+[2e-5,2e8,2e-6]*(modes-1) if water else [1e-5,1e8]*modes)
+    kwargs.update(moment_particles=jnp.broadcast_to(jnp.asarray(values),(4,len(values))),
+        surface_dust_kg_m2=jnp.full((modes,),30.) if modes>1 else jnp.asarray(30.),
+        dust_lifting_opacity=.01,dust_background_options=dict(scenario_opacity=.5,scenario_change=.1,
+            extinction_efficiency=jnp.full(modes,2.) if modes>1 else 2.,
+            opacity_fraction=jnp.full(modes,1./modes) if modes>1 else 1.,inject_through_pbl=False))
+    if water: kwargs['bulk_water']=BulkWaterColumnState(1,jnp.full(4,1e-4),10.,0.,3)
+    before=column_physics(**kwargs,moment_sedimentation=False)
+    active=column_physics(**kwargs,lifting_suppresses_settling=True)
+    baseline=column_physics(**kwargs)
+    mass_indices=np.array([0]+list(range(4,len(values),3)) if water else list(range(0,len(values),2)))
+    selected=np.sort(np.r_[mass_indices,mass_indices+1])
+    mask=np.asarray(active.diagnostics['dust']['lifting_mask'])
+    np.testing.assert_array_equal(mask[selected],True)
+    np.testing.assert_array_equal(active.moment_particles[-1,selected],before.moment_particles[-1,selected])
+    assert np.any(np.asarray(baseline.moment_particles[-1,selected])!=np.asarray(active.moment_particles[-1,selected]))
+    if not water:
+        np.testing.assert_array_equal(active.diagnostics['dust']['particle_sedimentation']['dust_deposit_kg_m2'],0.)
+    if water:
+        np.testing.assert_array_equal(mask[np.setdiff1d(np.arange(len(values)),selected)],False)
+        np.testing.assert_array_equal(active.bulk_water.ice_ratio,baseline.bulk_water.ice_ratio)
+        assert np.any(np.asarray(active.bulk_water.ice_ratio)<np.asarray(before.bulk_water.ice_ratio))
+    no_source={**kwargs,'dust_background_options':{**kwargs['dust_background_options'],'scenario_opacity':0.}}
+    held=column_physics(**no_source,lifting_suppresses_settling=True)
+    normal=column_physics(**no_source)
+    np.testing.assert_array_equal(held.diagnostics['dust']['lifting_mask'],False)
+    np.testing.assert_array_equal(held.moment_particles,normal.moment_particles)
+
+
 def test_disabled_moment_cloud_formation_keeps_surface_exchange_and_settling_independent():
     from src.framework.physics.water_moments import saturation_ratio
     kwargs={**inputs(),'temperature':jnp.full(4,170.),'soil':jnp.full(16,170.),
