@@ -526,7 +526,7 @@ limiter or establish matched transport accuracy.
 | CO2 modes | Immediate deposition and optional bulk suspended-cloud phase/settling match native routines and coupled columns. Cloud optical feedback passes a three-step gradient check. Full two-way exchange auditing and long global validation remain pending. The older conservative finite-settling scheme remains a separate model. |
 | CO2 switches | Atmospheric condensation, atmospheric loss and gas-mass feedback are independent source controls. Ninety-six unchanged native control-block cases check all combinations and initial-CO2-weighted surface exchange. Column tests retain condensation heating when precipitation loss is disabled, and retain surface snow when mass feedback is disabled. Held suspended clouds still mix as tracers when their phase driver is off. Global tests check disabled-feedback behavior, exact restart continuation and three-step reverse derivatives. |
 | Surface/diffusion controls | `do_mars_surface`, `do_vert_diff` and `do_ames_pbl` now select the released active branches. Without Mars surface physics, radiation sees 170 K, albedo 0.25 and emissivity 1; soil/CO2 surface exchange is inactive while drag and convection remain available. Twelve unchanged native `diffuse` cases prove the release fallback leaves tendencies unchanged because `fv3_turb` is excluded. Inactive PBL exchange fields are defined as zero instead of copying uninitialized source values. Surface-dependent water/dust modes are rejected without the source's surface reservoir initialization. |
-| Remaining process controls | Audit and implement `freeze_tracer_fields`, `no_forcing` and `gust_fact`. The released tracer-source/sink helper has no caller; alternate turbulence calls are excluded by build flags. These exclusions do not cover the active tracer-freeze and dust-gust branches. |
+| Process controls | `freeze_tracer_fields`, `no_forcing` and the released `gust_fact` correction are connected to Dinosaur and the runner. Native blocks check tracer freezing, no-forcing early return and gust stress; column/global checks retain surface/history changes under freezing and skip all physical updates under no forcing. The released tracer-source/sink helper has no caller. Alternate gust/turbulence drivers are excluded by build flags. |
 | Interactive dust | Lifting, advection, sedimentation, surface reservoirs, coagulation and material budgets are connected independently of moment water. Matched climate validation remains. |
 | Water | Bulk and moment phase/growth/settling paths, surface exchange, saved effective inputs, state/restarts and optical feedback are connected. Two physical dust modes pass combined global material, restart and three-step derivative checks. Long climate validation remains. Bin cloud microphysics is unavailable in the public release. |
 | Drag | Rayleigh, Palmer terrain drag and non-orographic gravity-wave drag are implemented and checked. Polar water and terrain maps pass pinned-blob and T21/T42 area checks. Long momentum/energy audits remain. Gravity-wave schemes are off in the default Ames present-Mars setup. |
@@ -557,6 +557,20 @@ stores the fixed moment-frost boundary used by dust gates. It is not another
 water inventory. NetCDF exports retain this field's map orientation and units.
 The real-input 56-level T21 dust-only smoke completed one step, then resumed to
 two steps. This checks startup and continuation, not climate stability.
+
+The process controls are available as `--freeze-tracer-fields`, `--no-forcing`
+and `--gust-factor`. Tracer freezing restores atmospheric gas, ice and particle
+fields after microphysics and settling. Heating, winds, surface reservoirs and
+saved histories still update. Gas-mass feedback and remapping still follow.
+This source option can change total material inventory; the global inventory
+repair is disabled so it cannot undo that behavior. No-forcing mode advances
+dry dynamics and conservative tracer transport, while radiation and surface
+physics stay inactive. The gust factor adds `gust_factor * gust**2` to squared
+surface wind for dust lifting. The released build initializes `gust=1` and
+does not call the alternate gust drivers. The drag coefficient stays unchanged.
+Source-invalid negative squared wind remains nonfinite.
+Non-default controls are recorded in restart identity. The 56-level T21
+freeze/gust and no-forcing smoke runs each completed and resumed to two steps.
 
 ## Reproduce the native checks
 

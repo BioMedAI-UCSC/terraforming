@@ -262,7 +262,8 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                coagulation_options=None,dust_background_options=None,nonorographic_drag_options=None,
                convection_scheme='fv3',moist_convection_options=None,dust_mode_count=1,do_qmass=False,
                thermal_relaxation_options=None,do_co2_condensation=True,do_atmos_co2_loss=True,
-               do_co2_condensation_cycle=True,do_mars_surface=True,do_vert_diff=True,do_ames_pbl=True):
+               do_co2_condensation_cycle=True,do_mars_surface=True,do_vert_diff=True,do_ames_pbl=True,
+               freeze_tracer_fields=False,no_forcing=False,gust_factor=0.):
     """Dinosaur dynamics followed by Ames-order reference gas-column physics.
 
     Supply a verified radiation component and mapped soil diffusivity. Keeping
@@ -372,7 +373,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
     ref=jnp.asarray(reference_temperature(coords,body))[:,None,None]
     base=primitive_equations(coords,body,specs=specs,orography=orography)
 
-    def no_forcing(state):
+    def zero_forcing(state):
         dyn=state.dynamics
         return ColumnPhysicsTendencies(jnp.zeros_like(dyn.vorticity),jnp.zeros_like(dyn.divergence),
             jnp.zeros_like(dyn.temperature_variation),jnp.zeros_like(dyn.log_surface_pressure),
@@ -380,8 +381,15 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             jnp.zeros_like(state.ground_temperature),{},
             None if state.surface_momentum is None else jnp.zeros_like(state.surface_momentum))
 
-    dry=stepper(column_primitive_equations(base,no_forcing),dt_seconds,specs,coords=coords,
+    dry=stepper(column_primitive_equations(base,zero_forcing),dt_seconds,specs,coords=coords,
         hyperdiffusion_tau_seconds=hyperdiffusion_tau_seconds)
+
+    mass_scale=pressure_scale/body.gravity_m_s2*body.surface_area_m2/jnp.sum(jnp.broadcast_to(
+        jnp.asarray(grid.quadrature_weights),grid.nodal_shape))
+    def physical_units(diagnostics):
+        return {name:{(key+'_kg' if 'inventory' in key else key):
+            value*mass_scale if 'inventory' in key else value for key,value in fields.items()}
+            for name,fields in diagnostics.items()}
 
     def advance_with_transport(state):
         geometry_valid=jnp.asarray(True)
@@ -441,6 +449,12 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             if state.auxiliary_fields is None or required-set(state.auxiliary_fields):
                 raise ValueError('radiation schedule requires initialized heating and stratosphere state')
         predicted=dry(state)
+        if no_forcing:
+            transported,transport_diagnostics=project_tracers(state.dynamics,predicted.dynamics,coords)
+            transported=dataclasses.replace(transported,temperature_variation=jnp.where(
+                geometry_valid,transported.temperature_variation,jnp.nan))
+            return predicted._replace(dynamics=transported),dict(
+                dynamics=physical_units(transport_diagnostics),physics_projection={}),None
         if not do_mars_surface:
             predicted=predicted._replace(surface_temperature=jnp.full_like(predicted.surface_temperature,170.))
         transported,transport_diagnostics=project_tracers(state.dynamics,predicted.dynamics,coords)
@@ -580,6 +594,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             do_co2_condensation=do_co2_condensation,do_atmos_co2_loss=do_atmos_co2_loss,
             do_co2_condensation_cycle=do_co2_condensation_cycle,
             do_mars_surface=do_mars_surface,do_vert_diff=do_vert_diff,do_ames_pbl=do_ames_pbl,
+            freeze_tracer_fields=freeze_tracer_fields,gust_factor=gust_factor,
             latitude_rad=jnp.asarray(grid.latitudes)[None,:],rayleigh_options=rayleigh_options,
             conserve_drag_energy=conserve_drag_energy,
             suspended_co2_ice_ratio=cloud_ratio if suspended_co2_clouds else None,
@@ -673,12 +688,6 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
         final=predicted._replace(dynamics=dynamics,surface_temperature=column.soil[:1],
             ground_temperature=column.soil[1:],co2_ice=(column.co2_ice_kg_m2*body.gravity_m_s2/pressure_scale)[None],
             surface_momentum=predicted.surface_momentum+impulse,auxiliary_fields=auxiliary)
-        mass_scale=pressure_scale/body.gravity_m_s2*body.surface_area_m2/jnp.sum(jnp.broadcast_to(
-            jnp.asarray(grid.quadrature_weights),grid.nodal_shape))
-        def physical_units(diagnostics):
-            return {name:{(key+'_kg' if 'inventory' in key else key):
-                value*mass_scale if 'inventory' in key else value for key,value in fields.items()}
-                for name,fields in diagnostics.items()}
         moist_diagnostics=None
         if moist_convection_options is not None:
             info=column.diagnostics['moist_convection']
@@ -692,8 +701,8 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
         return advance_with_transport(state)[0]
 
     # Disabled feedback can intentionally change total gas+ice inventory in the source.
-    project_inventory=(not do_mars_surface or (do_co2_condensation_cycle and
-        (not suspended_co2_clouds or do_atmos_co2_loss or not do_co2_condensation)))
+    project_inventory=no_forcing or (not freeze_tracer_fields and (not do_mars_surface or (do_co2_condensation_cycle and
+        (not suspended_co2_clouds or do_atmos_co2_loss or not do_co2_condensation))))
     if not return_diagnostics:
         return positivity_preserving_co2_step(advance,coords,specs,body=body,inventory_projection=project_inventory)
 

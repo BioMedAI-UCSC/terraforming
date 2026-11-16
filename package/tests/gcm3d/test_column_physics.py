@@ -121,6 +121,57 @@ def test_no_surface_rejects_reservoirs_missing_from_released_initialization():
         column_physics(**inputs(),bulk_water=water,do_mars_surface=False)
 
 
+@pytest.mark.parametrize('particles',['none','bulk','moment','dust'])
+def test_tracer_freeze_restores_air_species_and_retains_physical_heat_and_surface_changes(particles):
+    kwargs={**inputs(),'temperature':jnp.full(4,200.),'soil':jnp.full(16,240.),
+        'co2_ice_kg_m2':0.,'dt_seconds':5.,'convection_scheme':'none',
+        'suspended_co2_ice_ratio':jnp.full(4,1e-5)}
+    if particles in ('bulk','moment'):
+        kwargs['bulk_water']=BulkWaterColumnState(1,jnp.linspace(1e-6,4e-6,4),0.,1e-5,3)
+    if particles in ('moment','dust'):
+        kwargs.update(moment_particles=jnp.broadcast_to(jnp.array(
+            [1e-6,1e8,1e6,1e-8] if particles=='moment' else [1e-6,1e8]),(4,4 if particles=='moment' else 2)),
+            moment_water=particles=='moment',surface_dust_kg_m2=30.,dust_lifting_opacity=.2,
+            dust_lifting_options=dict(threshold_stress=1e-6))
+    active=column_physics(**kwargs)
+    frozen=column_physics(**kwargs,freeze_tracer_fields=True)
+    np.testing.assert_array_equal(frozen.gas_tracers,kwargs['gas_tracers'])
+    np.testing.assert_array_equal(frozen.suspended_co2_ice_ratio,kwargs['suspended_co2_ice_ratio'])
+    assert not np.array_equal(active.suspended_co2_ice_ratio,frozen.suspended_co2_ice_ratio)
+    for name in ('temperature','u','v','soil','co2_ice_kg_m2','gas_mass_loss_kg_m2'):
+        np.testing.assert_array_equal(getattr(frozen,name),getattr(active,name))
+    assert not np.array_equal(frozen.soil,kwargs['soil'])
+    if particles in ('bulk','moment'):
+        np.testing.assert_array_equal(frozen.bulk_water.ice_ratio,kwargs['bulk_water'].ice_ratio)
+        np.testing.assert_array_equal(frozen.bulk_water.surface_water_kg_m2,active.bulk_water.surface_water_kg_m2)
+    if particles in ('moment','dust'):
+        np.testing.assert_array_equal(frozen.moment_particles,kwargs['moment_particles'])
+        assert not np.array_equal(active.moment_particles,frozen.moment_particles)
+        np.testing.assert_array_equal(frozen.diagnostics['dust']['dust_surface_kg_m2'],active.diagnostics['dust']['dust_surface_kg_m2'])
+
+
+def test_dust_gust_factor_matches_fixed_released_gust_and_has_finite_derivative():
+    from src.framework.physics.dust_lifting import stress_flux
+    kwargs={**inputs(),'temperature':jnp.full(4,200.),'soil':jnp.full(16,240.),
+        'co2_ice_kg_m2':0.,'dt_seconds':5.,'convection_scheme':'none',
+        'moment_particles':jnp.broadcast_to(jnp.array([1e-6,1e8]),(4,2)),
+        'moment_water':False,'surface_dust_kg_m2':30.,'dust_lifting_opacity':.2,
+        'dust_lifting_options':dict(threshold_stress=1e-6,convective_lift=False)}
+    quiet=column_physics(**kwargs)
+    def flux(factor):
+        return column_physics(**kwargs,gust_factor=factor).diagnostics['dust']['dust_lifting']['stress_lift_kg_m2']
+    pbl=quiet.diagnostics['pbl']
+    drag=610./(BODY.gas_constant_j_kg_k*200.)*pbl['surface_momentum_coefficient']*pbl['wind_speed_ms']
+    speed=jnp.sqrt(quiet.u[-1]**2+quiet.v[-1]**2+25.)
+    expected=5.*stress_flux(drag*speed,1e-6,480./(BODY.gas_constant_j_kg_k*quiet.temperature[-1]),0.,quiet.co2_ice_kg_m2,0.,.2/480.*610.)
+    np.testing.assert_allclose(flux(25.),expected,rtol=3e-14)
+    assert flux(25.)>flux(0.)>0.
+    assert not np.isfinite(flux(-1e6))
+    automatic=jax.grad(flux)(25.);epsilon=.001
+    assert np.isfinite(automatic) and automatic>0.
+    np.testing.assert_allclose(automatic,(flux(25.+epsilon)-flux(25.-epsilon))/(2.*epsilon),rtol=1e-7)
+
+
 @pytest.mark.parametrize('modes',[1,2])
 @pytest.mark.parametrize('process',['settling','lifting','coagulation','background'])
 def test_dust_without_water_keeps_each_material_budget(modes,process):

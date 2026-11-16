@@ -67,7 +67,7 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
                    convection_scheme='fv3',moist_convection_options=None,moist_surface_water_kg_m2=None,
                    co2_gas_index=None,do_co2_condensation=True,do_atmos_co2_loss=True,
                    do_co2_condensation_cycle=True,do_mars_surface=True,do_vert_diff=True,do_ames_pbl=True,
-                   moment_water=None,dust_surface_water_kg_m2=None):
+                   moment_water=None,dust_surface_water_kg_m2=None,freeze_tracer_fields=False,gust_factor=0.):
     """Rayleigh/PBL, soil/frost, CO2 deposition or suspended clouds, convection.
 
     This is the standard present-Mars gas-column process order. Tracers here
@@ -94,6 +94,9 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
         emissivity=1.
         do_co2_condensation=False;do_co2_condensation_cycle=False
     initial_wind=(u,v)
+    initial_tracers=gas_tracers
+    initial_particles=moment_particles
+    initial_water_ice=None if bulk_water is None else bulk_water.ice_ratio
     if moment_particles is None and (dust_lifting_options is not None or coagulation_options is not None or dust_background_options is not None):
         raise ValueError('dust lifting and coagulation require physical moment particles')
     initial_moments=None
@@ -264,8 +267,10 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
                 raise ValueError('interactive dust requires reference opacity and a surface reservoir')
             rho=pressure_half[-1]/(body.gas_constant_j_kg_k*temperature[-1])
             drag=rho*pbl['surface_momentum_coefficient']*pbl['wind_speed_ms']
-            speed_squared=u[-1]**2+v[-1]**2
+            # The released driver keeps gust=1; alternate gust drivers are excluded.
+            speed_squared=u[-1]**2+v[-1]**2+gust_factor
             speed=jnp.where(speed_squared>0.,jnp.sqrt(jnp.where(speed_squared>0.,speed_squared,1.)),0.)
+            speed=jnp.where(jnp.isfinite(speed_squared)&(speed_squared>=0.),speed,jnp.nan)
             stress=drag*speed
             p_pbl=jnp.take_along_axis(pressure_full,pbl_top[None],axis=0)[0]
             lifting_options=dict(dust_lifting_options)
@@ -376,6 +381,11 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
         if surface_dust_kg_m2 is not None: dust_diagnostics['dust_surface_kg_m2']=surface_dust_kg_m2
         if bulk_water is not None: water_diagnostics.update(dust_diagnostics)
     r=r[...,:gas_count]
+    if freeze_tracer_fields:
+        r=initial_tracers
+        suspended=suspended_co2_ice_ratio
+        moment_particles=initial_particles
+        if bulk_water is not None: bulk_water=bulk_water._replace(ice_ratio=initial_water_ice)
     dp=jnp.diff(pressure_half,axis=0)
     if do_co2_condensation_cycle:
         selected=jnp.asarray(np.arange(temperature.shape[0])>=surface_exchange_start)

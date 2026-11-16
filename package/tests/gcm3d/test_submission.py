@@ -114,6 +114,7 @@ def test_alternate_reference_cli_rejects_unsupported_combinations(monkeypatch):
     driver=_script('run_gcm3d_ablation')
     for arguments in (['--reference-radiation','simple'],['--thermal-timescale','-2.'],['--no-co2-mass-feedback'],
                       ['--no-vertical-diffusion'],['--no-reference-pbl'],['--no-moment-water'],
+                      ['--freeze-tracer-fields'],['--no-forcing'],['--gust-factor','2.'],['--gust-factor','nan'],
                       ['--config','reference','--no-mars-surface'],
                       ['--config','reference','--reference-radiation','height']):
         monkeypatch.setattr(sys,'argv',['run_gcm3d_ablation.py','unused-surface',*arguments])

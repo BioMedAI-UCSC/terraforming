@@ -95,7 +95,8 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
                  convection_scheme='fv3',moist_convection_options=None,dust_mode_count=1,sigma_boundaries=None,
                  initial_co2_gas_ratio=None,do_qmass=False,thermal_relaxation_options=None,
                  do_co2_condensation=True,do_atmos_co2_loss=True,do_co2_condensation_cycle=True,
-                 do_mars_surface=True,do_vert_diff=True,do_ames_pbl=True,moment_dust=False):
+                 do_mars_surface=True,do_vert_diff=True,do_ames_pbl=True,moment_dust=False,
+                 freeze_tracer_fields=False,no_forcing=False,gust_factor=0.):
     from src.framework.gcm.coordinates import coordinate_system
     from src.framework.gcm.specs import physics_specs
     from src.framework.gcm._dinosaur import primitive_equations,scales
@@ -138,6 +139,7 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
         dust_mode_count=dust_mode_count,do_qmass=do_qmass,
         thermal_relaxation_options=thermal_relaxation_options,
         do_co2_condensation=do_co2_condensation,do_atmos_co2_loss=do_atmos_co2_loss,
+        freeze_tracer_fields=freeze_tracer_fields,no_forcing=no_forcing,gust_factor=gust_factor,
         do_co2_condensation_cycle=do_co2_condensation_cycle,
         do_mars_surface=do_mars_surface,do_vert_diff=do_vert_diff,do_ames_pbl=do_ames_pbl,moment_dust=moment_dust)
     return state,step,grid
@@ -281,6 +283,57 @@ def test_independent_dust_transport_radiation_material_and_restart(tmp_path,mode
         assert 'water_exchange_coefficient_kg_m2_s' not in second.auxiliary_fields
     else:
         np.testing.assert_array_equal(state.auxiliary_fields['dust_water_frost_kg_m2'],second.auxiliary_fields['dust_water_frost_kg_m2'])
+
+
+@pytest.mark.parametrize('water',[False,True])
+def test_no_forcing_advances_dynamics_without_radiation_or_surface_updates(tmp_path,water):
+    from src.framework.gcm.restart import save_restart,load_restart
+    def unused_radiation(*args):
+        raise AssertionError('no-forcing mode must not evaluate radiation')
+    state,step,_=backend_case(temperature_k=180.,surface_temperature_k=220.,wind_speed=40.,
+        radiation_component=unused_radiation,no_forcing=True,return_diagnostics=True,
+        bulk_water=water,moment_dust=water,initial_water_surface_kg_m2=10.)
+    tick=jax.jit(step);first,diagnostics=tick(state);second,_=tick(first)
+    assert first.dynamics.sim_time>state.dynamics.sim_time
+    assert np.all(np.isfinite(first.dynamics.temperature_variation))
+    for name in ('surface_temperature','ground_temperature','co2_ice','surface_momentum'):
+        np.testing.assert_array_equal(getattr(first,name),getattr(state,name))
+    for name,value in state.auxiliary_fields.items():
+        np.testing.assert_array_equal(first.auxiliary_fields[name],value)
+    assert diagnostics.tracer_transport['physics_projection']=={}
+    restored=load_restart(save_restart(first,tmp_path/'no-forcing.npz'))
+    resumed,_=tick(restored)
+    for actual,expected in zip(jax.tree.leaves(resumed),jax.tree.leaves(second),strict=True):
+        np.testing.assert_array_equal(actual,expected)
+    def objective(amplitude):
+        dynamics=dataclasses.replace(state.dynamics,
+            temperature_variation=state.dynamics.temperature_variation*amplitude)
+        result=state._replace(dynamics=dynamics)
+        for _ in range(3): result,_=step(result)
+        return jnp.sum(result.dynamics.temperature_variation)
+    automatic=jax.grad(objective)(1.)
+    assert np.isfinite(automatic) and abs(float(automatic))>0.
+    for epsilon in (1e-4,5e-5):
+        np.testing.assert_allclose(automatic,(objective(1.+epsilon)-objective(1.-epsilon))/(2.*epsilon),rtol=1e-7)
+
+
+def test_frozen_dust_retains_dry_transport_but_keeps_surface_sources_and_restart(tmp_path):
+    from src.framework.gcm.restart import save_restart,load_restart
+    options=dict(temperature_k=200.,surface_temperature_k=240.,wind_speed=40.,moment_dust=True,
+        freeze_tracer_fields=True,do_co2_condensation=False,do_co2_condensation_cycle=False,
+        dust_lifting_options=dict(threshold_stress=1e-6,convective_lift=False),gust_factor=25.)
+    state,step,grid=backend_case(**options)
+    _,dry,_=backend_case(**options,no_forcing=True)
+    first=jax.jit(step)(state);transported=jax.jit(dry)(state)
+    for name in ('dust_mass','dust_number'):
+        np.testing.assert_allclose(grid.to_nodal(first.dynamics.tracers[name]),
+            grid.to_nodal(transported.dynamics.tracers[name]),rtol=3e-13,atol=1e-18)
+    assert np.any(np.asarray(first.auxiliary_fields['dust_surface_kg_m2'])!=
+        np.asarray(state.auxiliary_fields['dust_surface_kg_m2']))
+    resumed=jax.jit(step)(load_restart(save_restart(first,tmp_path/'frozen.npz')))
+    whole=jax.jit(step)(first)
+    for actual,expected in zip(jax.tree.leaves(resumed),jax.tree.leaves(whole),strict=True):
+        np.testing.assert_array_equal(actual,expected)
 
 
 @pytest.mark.parametrize('modes',[1,2])

@@ -2,7 +2,7 @@
   "status": "pass",
   "reference": {
     "source_git_blob": "ca0b7c0774b1b23cafaee219062c3bffa3d0c4cc",
-    "compiled_source_sha256": "4d345da414e8db25e8224b9d2e0be4a5cb2c4e5c38374f0f4332fd1cccd4a484",
+    "compiled_source_sha256": "7c936b790a7dbb0d024834618c9a5e9dfd741f28c16f3848ea32eabb86221d81",
     "routine_sha256": {
       "diffuse": "949adf7a847464298558e0f807bbd566f7d49cad50bbe9705c90d75b9811049e"
     },
@@ -17,7 +17,12 @@
     ],
     "real_precision_bits": 64,
     "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged",
-    "fixed_boundary_block_sha256": "bc781a3990ff06d63f7596d5fc8ac6743abbcee243be1dce3cae6a3d88f8cd26"
+    "fixed_boundary_block_sha256": "bc781a3990ff06d63f7596d5fc8ac6743abbcee243be1dce3cae6a3d88f8cd26",
+    "process_block_sha256": {
+      "freeze": "6b2b33798352b101206b1b51a2e669593315f8602d296f3b965af5b2f85aee28",
+      "gust": "bb0081347dd62a4d052e0c55ba0e6f2b1cfd66a6650a12b91aff18d136e272c6",
+      "no_forcing": "239c26721cd4c2431c373269bf985e0de764b5a623081504f0c9e86e10691d85"
+    }
   },
   "fixed_boundary": {
     "temperature_k": 170.0,
@@ -74,11 +79,226 @@
       "seed": -0.1
     }
   ],
+  "process_cases": [
+    {
+      "process": "freeze",
+      "levels": 2,
+      "enabled": false
+    },
+    {
+      "process": "no_forcing",
+      "levels": 2,
+      "enabled": false,
+      "diffusion": false
+    },
+    {
+      "process": "no_forcing",
+      "levels": 2,
+      "enabled": false,
+      "diffusion": true
+    },
+    {
+      "process": "freeze",
+      "levels": 2,
+      "enabled": true
+    },
+    {
+      "process": "no_forcing",
+      "levels": 2,
+      "enabled": true,
+      "diffusion": false
+    },
+    {
+      "process": "no_forcing",
+      "levels": 2,
+      "enabled": true,
+      "diffusion": true
+    },
+    {
+      "process": "freeze",
+      "levels": 4,
+      "enabled": false
+    },
+    {
+      "process": "no_forcing",
+      "levels": 4,
+      "enabled": false,
+      "diffusion": false
+    },
+    {
+      "process": "no_forcing",
+      "levels": 4,
+      "enabled": false,
+      "diffusion": true
+    },
+    {
+      "process": "freeze",
+      "levels": 4,
+      "enabled": true
+    },
+    {
+      "process": "no_forcing",
+      "levels": 4,
+      "enabled": true,
+      "diffusion": false
+    },
+    {
+      "process": "no_forcing",
+      "levels": 4,
+      "enabled": true,
+      "diffusion": true
+    },
+    {
+      "process": "freeze",
+      "levels": 40,
+      "enabled": false
+    },
+    {
+      "process": "no_forcing",
+      "levels": 40,
+      "enabled": false,
+      "diffusion": false
+    },
+    {
+      "process": "no_forcing",
+      "levels": 40,
+      "enabled": false,
+      "diffusion": true
+    },
+    {
+      "process": "freeze",
+      "levels": 40,
+      "enabled": true
+    },
+    {
+      "process": "no_forcing",
+      "levels": 40,
+      "enabled": true,
+      "diffusion": false
+    },
+    {
+      "process": "no_forcing",
+      "levels": 40,
+      "enabled": true,
+      "diffusion": true
+    },
+    {
+      "process": "freeze",
+      "levels": 56,
+      "enabled": false
+    },
+    {
+      "process": "no_forcing",
+      "levels": 56,
+      "enabled": false,
+      "diffusion": false
+    },
+    {
+      "process": "no_forcing",
+      "levels": 56,
+      "enabled": false,
+      "diffusion": true
+    },
+    {
+      "process": "freeze",
+      "levels": 56,
+      "enabled": true
+    },
+    {
+      "process": "no_forcing",
+      "levels": 56,
+      "enabled": true,
+      "diffusion": false
+    },
+    {
+      "process": "no_forcing",
+      "levels": 56,
+      "enabled": true,
+      "diffusion": true
+    },
+    {
+      "process": "gust",
+      "levels": 4,
+      "gust_factor": 0.0
+    },
+    {
+      "process": "gust",
+      "levels": 4,
+      "gust_factor": 1.0
+    },
+    {
+      "process": "gust",
+      "levels": 4,
+      "gust_factor": 25.0
+    },
+    {
+      "process": "gust",
+      "levels": 4,
+      "gust_factor": 100.0
+    },
+    {
+      "process": "gust",
+      "levels": 4,
+      "gust_factor": -1000000.0
+    },
+    {
+      "process": "gust",
+      "levels": 40,
+      "gust_factor": 0.0
+    },
+    {
+      "process": "gust",
+      "levels": 40,
+      "gust_factor": 1.0
+    },
+    {
+      "process": "gust",
+      "levels": 40,
+      "gust_factor": 25.0
+    },
+    {
+      "process": "gust",
+      "levels": 40,
+      "gust_factor": 100.0
+    },
+    {
+      "process": "gust",
+      "levels": 40,
+      "gust_factor": -1000000.0
+    },
+    {
+      "process": "gust",
+      "levels": 56,
+      "gust_factor": 0.0
+    },
+    {
+      "process": "gust",
+      "levels": 56,
+      "gust_factor": 1.0
+    },
+    {
+      "process": "gust",
+      "levels": 56,
+      "gust_factor": 25.0
+    },
+    {
+      "process": "gust",
+      "levels": 56,
+      "gust_factor": 100.0
+    },
+    {
+      "process": "gust",
+      "levels": 56,
+      "gust_factor": -1000000.0
+    }
+  ],
   "sha256": {
-    "scripts/validate_surface_controls.py": "105200b9043335646daf1c1b2ee9751c378623f9925811047aeb9a1ab460a1ed",
+    "scripts/validate_surface_controls.py": "f366a65123348526aa681f69625e3612eb53842b960923b2ca713f9386a7ea4c",
     "package/src/framework/physics/boundary_layer.py": "ecae22187db8d06253c34e1a385982bda1e3a238c497e109d29c1daf5448bcae",
-    "package/src/framework/physics/column_physics.py": "07eadc89d1fdb96ab1376777ab8599998c395a000ea8f625822bac583c9c0808",
-    "package/src/framework/physics/dinosaur_physics.py": "65caf7d62f76ff175b4df001dea09632d29113a292dcf4ec321620a43d1a79be"
+    "package/src/framework/physics/column_physics.py": "4f921186b3102288b5a85fb29c42de4385099bb75f015b5790aeaf7f7abb7f66",
+    "package/src/framework/physics/dinosaur_physics.py": "08386034cb7cf45cae49c9a430a5bf35efcc4e87e96311310aa503c0ed8e8777",
+    "package/src/framework/physics/dust_lifting.py": "18bf33ce5979933c1ef1a153e7683fae81e818f8e196e71a7f2923176be3d663",
+    "package/src/celestials/planets/mars/reference_constants.py": "e410d605c35e9abf8b35776884a65a7f0616af582a46d007118f55b4fb9c2ac2"
   },
-  "limits": "Unchanged fixed-boundary assignments and original diffuse compiled with released flags: tendency outputs remain unchanged because fv3_turb is excluded. Inactive PBL exchange fields are undefined in source; the port defines them as zero, tested separately. Surface-dependent water/dust configurations without initialized reservoirs are rejected."
+  "limits": "Unchanged fixed-boundary, tracer-freeze, no-forcing and gust blocks; original diffuse compiled with released flags leaves tendency outputs unchanged because fv3_turb is excluded. Gust=1 is the released initialized value; alternate gust drivers are excluded. Freeze routing and the native early return are checked with seeded tendencies; coupled column/global checks cover physical reservoirs, histories, remapping and derivatives separately. Inactive PBL exchange fields are undefined in source; the port defines them as zero. Surface-dependent water/dust configurations without initialized reservoirs are rejected."
 }

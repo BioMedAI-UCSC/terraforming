@@ -326,6 +326,9 @@ def main() -> int:
     parser.add_argument('--thermal-timescale',type=float,default=-4.,help='negative values use 86400-second days; positive values use seconds; zero disables')
     parser.add_argument('--moment-water',action=argparse.BooleanOptionalAction,default=True,
         help='disable to run transported dust without water exchange or cloud microphysics')
+    parser.add_argument('--freeze-tracer-fields',action='store_true',help='discard atmospheric physics tracer changes after microphysics')
+    parser.add_argument('--no-forcing',action='store_true',help='run dynamics without atmospheric or surface physics')
+    parser.add_argument('--gust-factor',type=float,default=0.,help='released dust-lifting wind correction; gust speed is 1 m/s')
     for flag,destination in (('co2-condensation','do_co2_condensation'),('atmos-co2-loss','do_atmos_co2_loss'),
                              ('co2-mass-feedback','do_co2_condensation_cycle')):
         parser.add_argument('--'+flag,dest=destination,action=argparse.BooleanOptionalAction,default=True)
@@ -366,6 +369,9 @@ def main() -> int:
     )
     args = parser.parse_args()
     reference=args.config=='reference'
+    process_controls={name:getattr(args,name) for name in ('freeze_tracer_fields','no_forcing','gust_factor')}
+    if not np.isfinite(args.gust_factor): parser.error('--gust-factor must be finite')
+    if not reference and any(process_controls.values()): parser.error('reference process controls require --config reference')
     if not reference and not args.moment_water: parser.error('--no-moment-water requires --config reference')
     if not reference and (args.reference_radiation!='spectral' or args.equilibrium_profile is not None or args.thermal_timescale!=-4.):
         parser.error('alternate reference radiation requires --config reference')
@@ -432,6 +438,7 @@ def main() -> int:
             grid,args.surface_properties,args.dt,moment_water=args.moment_water)
         reference_options.update(co2_controls)
         reference_options.update(surface_controls)
+        reference_options.update(process_controls)
         if not args.do_mars_surface:
             reference_options.update(moment_water=False,moment_dust=False,dust_background_options=None,moment_cloud_options=None)
         input_hashes['mola']=hashlib.sha256(args.mola_path.read_bytes()).hexdigest()
@@ -523,6 +530,7 @@ def main() -> int:
             config.update(alternate_radiation_metadata)
             if not all(co2_controls.values()): config['co2_process_switches']=co2_controls
             if not all(surface_controls.values()): config['surface_process_switches']=surface_controls
+            if any(process_controls.values()): config['reference_process_controls']=process_controls
             if not args.do_mars_surface: config['reference_protocol']='released-no-surface-v3.2'
             elif not args.moment_water:
                 config.update(reference_protocol='released-dust-without-water-v3.2',moment_water=False,moment_dust=True)
