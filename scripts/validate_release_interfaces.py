@@ -20,6 +20,7 @@ BLOBS={
     'atmos_param_mars/sedim_mod.F90':'df1424b6258a68d7dfb6c7b5ebfb7180224070ad',
     'atmos_param_mars/BLcode/pblmod_mgcm.F90':'38b3f41e4d07f9a2e3c9d7a689e50577cac7858c',
     'atmos_param_mars/micromod_mgcm.F90':'4897f72860b59d7effeb6650dbf3d4484b3aca71',
+    'atmos_param_mars/aerosol.F90':'8737535bd91a1cc3f1ab92366405007dcb186bae',
     'atmos_param_mars/aerosol_util.F90':'353441748fa247b8d938e4993f06d313268580f7',
     'atmos_param_mars/dust_update.F90':'1e470cc1efb44c6627cbe3168c69c2d1f7640570',
     'atmos_param_mars/Rad/radiation_driver.F90':'91059b1b696ef35c05db016f1b890b9c7591f482',
@@ -112,10 +113,65 @@ SURFACE_CONTROLS=[
 ]
 
 
+AEROSOL_CONTROLS=[
+    ('fixed_dust special_fixed_dust_case do_assimilated_dust','inactive','declaration and namelist only'),
+    ('optical_depth_inpt conrath conrath_type do_lat_vary_dust dust_cycle_scheme optical_depth_pulse pulse_width pulse_center optical_depth_pulse_var',
+     'implemented','prescribed_dust.layer_opacities profile, absolute/fractional pulse and cycle options; composed native dispatch checked'),
+    ('do_inpt_dust_cycle','implemented','make_fixed_dust_provider scenario and seasonal_fields'),
+    ('inpt_dust_cycle_dust_index do_inpt_dust_cycle_ktop','implemented','explicit aerosol_tracer name and layer_opacities aerosol_ratio'),
+    ('do_interactive_dust_rad','excluded bin-dust radiation','only changes dustref_bin; radiation mode 2 unsupported by the released configuration'),
+    ('add_storm_opacity storm_sigx storm_sigy storm_lonc storm_latc add_storm_amp storm_areo',
+     'implemented with explicit source-undefined inputs','storm_opacity and provider storm_options; source slope and latitude coefficient uninitialized'),
+]
+
+AEROSOL_OPTICS_CONTROLS=[
+    ('dust_rad_size do_spectrum_ir','inactive','declaration and namelist only'),
+    ('do_cloud_rad','inactive exported','public declaration and namelist only; no numerical consumer'),
+    ('scale_inpt_dust_column','implemented','prescribed_dust.layer_opacities column_scale before the absolute elevated pulse'),
+    ('qext_cnst sscat_cnst gfac_cnst irad_tracer nrad_tracers reduce_low_level_dust',
+     'excluded bin-dust radiation','affect dustref_bin or discarded legacy spectral arrays; supported Ames dispatch uses native particle coefficients and dustref_fix'),
+    ('sscat_sw_ice gfac_sw_ice scale_rad_ice scale_rad_ice_np scale_rad_ice_sp rad_ice_scheme',
+     'excluded bin-cloud optics','cld_distrib_fix outputs used by the set-aside fixed-radius bin-cloud path; moment/bulk clouds use their own tracer optics'),
+]
+
+AEROSOL_UTIL_CONTROLS=[
+    ('do_moment_dust do_moment_water do_bulk_water','implemented','Dinosaur moment_dust/moment_water/bulk_water and native mode-restriction guards'),
+    ('dust_map_scale','implemented','load_scenario_on_grid map_scale and native visible/infrared conversion'),
+    ('dust_map_scale_bin','excluded bin-dust radiation','binned mode 2 unsupported by the released configuration'),
+    ('Reff_backgd Reff_stress Reff_dd','implemented','background effective_radius_m and interactive stress_radius_m/devil_radius_m'),
+    ('do_moment_sedim','implemented','Dinosaur/column moment_sedimentation'),
+    ('do_15band','implemented','explicit dust_optical_bands and matching radiation_mode'),
+    ('Reff_fixed','implemented','prescribed_dust effective_radius_m'),
+]
+
+DUST_UPDATE_CONTROLS=[
+    ('interact Background','implemented','dust_lifting_options and dust_background_options; native combined-mode restriction'),
+    ('ws_co2_ice_thresh_N ws_co2_ice_thresh_S ws_h2o_ice_thresh optd_thresh stress_scheme alfa',
+     'implemented','stress_options north_snow_threshold/south_snow_threshold/frost_threshold/opacity_threshold/scheme/efficiency'),
+    ('dd_co2_ice_thresh_N dd_co2_ice_thresh_S dd_h2o_ice_thresh conv_delt_threshold alpha_dth alpha_dda devils_fv3 DDA DTH source_ddfv3 Dlift reff_ddfv3 thres_shflx',
+     'implemented','devil_options thresholds, temperature_threshold, dth_efficiency, dda_efficiency, fv3, dda, dth, fv3_source, grain_diameter_m, fv3_radius_m and heat_flux_threshold'),
+    ('threshold_stress stress_lift convective_lift inject_pbl_dd inject_pbl_stress dust_surf_ini limited_reservoir limres_xfac limres_dec delta_thres dual_mode dual_scale',
+     'implemented','interactive_step threshold_stress, stress_lift, convective_lift, inject_pbl_devils, inject_pbl_stress, initial_surface_dust_kg_m2, limited_reservoir, reservoir_factor, threshold_decrease, devil_threshold_increase, dual_mode and dual_scale'),
+    ('assim_t_thresh no_assim_over_caps tauscale inject_pbl_bd injscale sinkscale sink_bd dtaulim ltscale bottom_sink injec_type',
+     'implemented','background_step minimum_temperature_k, exclude_caps, opacity_scale, inject_through_pbl, injection_scale, sink_scale, remove_excess, minimum_scenario_change, local_time_scale, bottom_sink and injection_type; documented conservative repairs for undefined sink cases'),
+    ('segment','implemented','dust_control.seasonal_sample segment and Dinosaur background scenario selection'),
+    ('kfix','implemented','interactive/background fixed_layers bottom offsets'),
+    ('dgdm_type','implemented','dust_opacity_channel 1/2 and input scenario conversion'),
+    ('lifting_nosed','implemented','lifting_suppresses_settling and native positive bottom-source masks'),
+    ('opac_from_aerosol','implemented','dust_opacity_from_aerosol and prescribed reference-opacity cache'),
+]
+
+
 def namelist_controls(text,name):
-    match=re.search(r'namelist\s*/'+re.escape(name)+r'/(.*?)(?=\n\n)',text,re.I|re.S)
+    match=re.search(r'namelist\s*/'+re.escape(name)+r'/',text,re.I)
     assert match is not None,name
-    return re.findall(r'[A-Za-z][A-Za-z0-9_]*',match[1].replace('&',''))
+    parts=[]
+    for line in text[match.end():].splitlines():
+        code=line.split('!',1)[0].strip()
+        if not code: continue
+        parts.append(code.replace('&',''))
+        if not code.endswith('&'): break
+    return re.findall(r'[A-Za-z][A-Za-z0-9_]*',' '.join(parts))
 
 
 def validate(source,compiler):
@@ -227,6 +283,24 @@ def validate(source,compiler):
     stripped='\n'.join(line.split('!',1)[0] for line in surface.splitlines())
     assert len(re.findall(r'\bdrag_cnst\b',stripped,re.I))==2
     assert len(re.findall(r'\bzo\b',stripped,re.I))==2
+    aerosol_controls=[]
+    for filename,namelist,mapping in (
+        ('aerosol.F90','aerosol_nml',AEROSOL_CONTROLS),
+        ('aerosol.F90','aerosol_optics_nml',AEROSOL_OPTICS_CONTROLS),
+        ('aerosol_util.F90','aerosol_util_nml',AEROSOL_UTIL_CONTROLS),
+        ('dust_update.F90','dust_update_nml',DUST_UPDATE_CONTROLS)):
+        raw=(source/'atmos_param_mars'/filename).read_text()
+        entries=[dict(namelist=namelist,source_control=name,status=status,implementation=implementation)
+            for names,status,implementation in mapping for name in names.split()]
+        names=[item['source_control'] for item in entries]
+        actual=namelist_controls(raw,namelist)
+        assert len(names)==len(set(names)) and set(names)==set(actual),(namelist,set(actual)-set(names),set(names)-set(actual))
+        stripped='\n'.join(line.split('!',1)[0] for line in raw.splitlines())
+        for entry in entries:
+            if entry['status'].startswith('inactive'):
+                count=3 if entry['status']=='inactive exported' else 2
+                assert len(re.findall(r'\b'+entry['source_control']+r'\b',stripped,re.I))==count,entry
+        aerosol_controls.extend(entries)
     routines,_=extract_routines(source/'atmos_param_mars/Rad/rtmod_mgcm.F90',
         BLOBS['atmos_param_mars/Rad/rtmod_mgcm.F90'],['ames_rt_driver'])
     spectral_driver=routines[0]
@@ -347,6 +421,10 @@ end module''')
     assert not re.search(r'^use\s+vert_(turb|diff)_driver_mod',release,re.M)
     assert not re.search(r'^\s*call\s+tracer_source_sink\b',release,re.I|re.M)
     assert not re.search(r'^\s*(?:if\s*\(.*?\)\s*)?alpha\s*=\s*dt\s*/\s*tau_diffusion',release,re.I|re.M)
+    released_dust=subprocess.check_output([compiler,*flags,str(source/'atmos_param_mars/dust_update.F90')],text=True)
+    released_dust='\n'.join(line.split('!',1)[0] for line in released_dust.splitlines())
+    assert not re.search(r'call\s+tagging_main\b',released_dust,re.I)
+    assert len(re.findall(r'\bsources_scenario\b',released_dust,re.I))==2
     names=['cloud_physics','cloud_physics_init','photochem_driver','dust_source_sink','dust_source_init']
     routines,_=extract_routines(source/'atmos_param_mars/null_physics_mod.F90',BLOBS['atmos_param_mars/null_physics_mod.F90'],names)
     cases=[]
@@ -367,7 +445,12 @@ end module''')
         compiler=subprocess.check_output([compiler,'--version'],text=True).splitlines()[0]),
         cases=cases,driver_controls=inventory,module_controls=module_controls,aerosol_mode_cases=mode_cases,
         radiation_driver_controls=radiation_driver_controls,radiation_module_controls=radiation_module_controls,
-        surface_controls=surface_controls,
+        surface_controls=surface_controls,aerosol_controls=aerosol_controls,
+        dust_optional_inputs={
+            'radius_scenario.nc':'implemented: seasonal nodal injection shares by physical mode; static removal fractions and particle radii unchanged',
+            'localtime_frac.nc':'implemented: native-hour field labels, seasonal/nodal fractions and persisted local-time history',
+            'sources.nc':'tagging-only numerical consumers excluded by RELEASE; seasonal source variable has declaration and assignment only',
+            'inidust.nc':'tagging initial-distribution field; tagging calls excluded by RELEASE'},
         shortwave_ramp_cases=ramp_cases,
         unsupported_dust_radiation=dict(mode=2,source='build_run/fms_mars_clouds_v3.2',
             evidence=unsupported[0].strip(),status='not supported by the released configuration'),
@@ -379,7 +462,8 @@ end module''')
              'package/src/framework/physics/radiative_transfer.py','package/src/framework/physics/dinosaur_physics.py',
              'package/src/framework/physics/gcm.py','package/src/framework/physics/prescribed_dust.py',
              'package/src/framework/physics/simple_radiation.py','package/src/framework/physics/soil_frost.py',
-             'package/src/celestials/planets/mars/surface.py')},
+             'package/src/celestials/planets/mars/surface.py','package/src/celestials/planets/mars/dust_scenario.py',
+             'package/src/framework/physics/dust_lifting.py','package/src/framework/physics/dust_control.py')},
         limits='The inventory covers the main driver plus sedimentation, PBL, moment/bulk/CO2-cloud, coagulation and terrain-drag controls. The moment-cloud guard leaves tendency outputs zero and cloud history inactive when cloud formation is disabled. Numerical behavior uses the separate native reports and integration checks. '
             'The ten radiation-driver controls and the spectral/simple module controls are inventoried separately. Fixed-date forcing shares the source-checked radiation clock with simple radiation; disabling either native radiation channel leaves local fluxes undefined. Forty unchanged startup-ramp block cases check heating and applied surface flux. '
             'Bin-cloud microphysics, photochemistry and legacy binned dust-source equations are not in '

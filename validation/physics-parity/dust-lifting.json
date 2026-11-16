@@ -2,7 +2,7 @@
   "status": "pass",
   "reference": {
     "source_git_blob": "1e470cc1efb44c6627cbe3168c69c2d1f7640570",
-    "compiled_source_sha256": "7f1c7439e248f0bbf4a979a8ef660a22b682e3893a71116cd7c9826731a6f0cb",
+    "compiled_source_sha256": "93bf68cdbb1967f1a5bfd424a5eaa0550af8a577f23c6dcfe38c5174553937bd",
     "routine_sha256": {
       "flux_stress": "d6d521999c51fabb7fc8d97da2ab3eb79f31c5b55915bd3167d94a50dac7056f"
     },
@@ -5773,9 +5773,9 @@
     }
   ],
   "sha256": {
-    "scripts/validate_dust_lifting.py": "10dbdfc105acd6d9661ef4032acf8b80d9da5bf6f4ce6805798a5028b5ea0877",
+    "scripts/validate_dust_lifting.py": "1c798cc50f2a1755fdd0b9f2ea40a97de27b83b8c2ed38465d6d361e5378dad6",
     "scripts/native_reference.py": "2e3b0e2f65b685f86fcfdd1b4643b54c5582b81af36a0874a43d9eedc2675d76",
-    "package/src/framework/physics/dust_lifting.py": "18bf33ce5979933c1ef1a153e7683fae81e818f8e196e71a7f2923176be3d663"
+    "package/src/framework/physics/dust_lifting.py": "c2ff6eae0cdc59fc4c698cf7d9f27c45a194d4de4cda1e464473fea095ed48ac"
   },
   "limits": "Physical interactive dust modes with shared first-reservoir gating. Background scenario control, dual modes and tags are separate. Collapsed PBL efficiency uses its finite limit; inactive stress divisions use finite surrogates."
 }

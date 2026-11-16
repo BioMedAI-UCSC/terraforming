@@ -491,7 +491,7 @@
   "physics_sha256": {
     "prescribed_dust.py": "1ec309decbafffc5fdc1f0fd2c7e7acd9c9f4cae1e6289237ef9e0e5232196dc",
     "dust_control.py": "bb0749684b3b4078548dff5def298178620f388bf303b1898b20ef95136e3815",
-    "dinosaur_physics.py": "ddffafb3cd5e50d9c5a6c2d31983a08918985bfccde27384a09e5acd57f72234",
+    "dinosaur_physics.py": "4e271ba68e2eefb93c6e4a54235d3bf0486d11e68f9d2c3b84c8446d97865f9e",
     "legacy_convection.py": "3b5502f055e45cfc2601809aeec5237142427d7b8356058bfc12ddcb89388df3",
     "correlated_k.py": "803e33cfc1d14f46fb4251f2fd49c7a64bd55529574132cc9a04c2635240d13e",
     "terrain_drag.py": "6b0a6c769d9d40abed95d2e9aaa51b14abdb0f22cb5fd73f5811bcad2c863ead",
@@ -510,7 +510,7 @@
     "vertical_solve.py": "0d01f1d42fe7f086a887a2c0c51cb3b4385d26a3c944b72f81150b8a57ddd991",
     "spectral_flux.py": "3b1d1fcbc7eb78cf435cb45e388432909d1ee15bef5ed9716429c2b97efec766",
     "optical_depth.py": "1687ece03cb05e7f68645c0763ead3f89595c4305c2a684f219d0d2767f4d435",
-    "dust_lifting.py": "18bf33ce5979933c1ef1a153e7683fae81e818f8e196e71a7f2923176be3d663",
+    "dust_lifting.py": "c2ff6eae0cdc59fc4c698cf7d9f27c45a194d4de4cda1e464473fea095ed48ac",
     "rayleigh_drag.py": "3efd1d81aadeeb3e92c8fe8e8a3affe15ac03164d9404af4e220a4f32741f145",
     "collision_absorption.py": "9917895e8a70dfea4bef2ffcbda417d20e11fbe30db85ba21ba8878de6a1a34f",
     "tracer_transport.py": "a7b3fcea5e31b37eddba3b09ceccd23c3a8e6abc7d02d054aaab323d2cdec85f",

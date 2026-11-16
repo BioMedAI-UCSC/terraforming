@@ -310,7 +310,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
     if coagulation_options is not None and not dust_active:
         raise ValueError('dust coagulation requires initialized moment tracers')
     dust_control=dust_lifting_options is not None or dust_background_options is not None
-    background_scenario=None;local_time_scenario=None;fixed_dust_provider=None
+    background_scenario=None;local_time_scenario=None;fixed_dust_provider=None;injection_fraction_scenario=None
     if dust_background_options is not None:
         if dust_lifting_options is not None and dust_lifting_options.get('dual_mode',0)<=0:
             raise ValueError('combined interactive/background dust requires a positive dual mode')
@@ -318,6 +318,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
         background_scenario=dust_background_options.pop('scenario',None)
         background_segment=dust_background_options.pop('segment',False)
         local_time_scenario=dust_background_options.pop('local_time_scenario',None)
+        injection_fraction_scenario=dust_background_options.pop('injection_fraction_scenario',None)
         fixed_dust_provider=dust_background_options.pop('fixed_dust_provider',None)
         if fixed_dust_provider is not None and not callable(fixed_dust_provider):
             raise ValueError('fixed-dust optics provider must be callable')
@@ -336,6 +337,15 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             raise ValueError('background dust requires increasing seasonal nodes ending at 360 and finite nonnegative opacity')
         if local_time_scenario is not None:
             validate_local_time_scenario(local_time_scenario,axis,grid.nodal_shape)
+        if injection_fraction_scenario is not None:
+            if {'seasons','fractions'}-set(injection_fraction_scenario):
+                raise ValueError('injected dust fractions require seasonal axes and mapped fractions')
+            axis=np.asarray(injection_fraction_scenario['seasons'])
+            values=np.asarray(injection_fraction_scenario['fractions'])
+            if (axis.ndim!=1 or len(axis)<2 or not np.isfinite(axis).all() or np.any(np.diff(axis)<=0.) or
+                axis[0]<0. or axis[-1]!=360. or values.shape!=(len(axis),*grid.nodal_shape,dust_mode_count) or
+                not np.isfinite(values).all() or np.any(values<0.)):
+                raise ValueError('injected dust fractions require increasing seasons ending at 360 and finite nonnegative nodal mode fields')
         if 'extinction_efficiency' not in dust_background_options:
             radii=np.asarray(dust_background_options.get('effective_radius_m',2e-6))
             if radii.ndim>0 and radii.shape!=(dust_mode_count,):
@@ -568,6 +578,10 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                 forcing.ls_perihelion_rad)*180./jnp.pi,360.)
             opacity,change,_,_=seasonal_sample(axis,maps,ls,segment=background_segment)
             background_options={**dust_background_options,'scenario_opacity':opacity,'scenario_change':change}
+            if injection_fraction_scenario is not None:
+                fractions=seasonal_sample(injection_fraction_scenario['seasons'],
+                    injection_fraction_scenario['fractions'],ls)[0]
+                background_options['injection_fraction']=fractions if dust_mode_count>1 else fractions[...,0]
             if local_time_scenario is not None:
                 fields=predicted.auxiliary_fields
                 history=LocalTimeState(fields['dust_local_time_opacity'][0],fields['dust_local_time_bin'][0])

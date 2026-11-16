@@ -9,6 +9,7 @@ import numpy as np
 from src.framework.gcm._dinosaur import jax
 from src.framework.physics.dust_lifting import background_step,reference_efficiencies
 from src.framework.physics.particle_optics import load_tables
+from src.framework.physics.dust_control import seasonal_sample
 from validate_dust_lifting import compile_reference
 from validate_particle_optics import compile_reference as compile_optics_reference
 
@@ -43,6 +44,33 @@ def validate(source,compiler):
                         remove_excess=remove_excess,current_opacity=current,scenario_opacity=scenario,
                         temperature_surface_k=ts,snow_kg_m2=snow,seasonal_change=change,
                         max_mass_ratio_error=float(np.max(abs(actual.mass_ratio-out[:,0])))))
+        for fraction in (0.,.2,.8,1.5):
+            native.fraction_config(1,fraction)
+            for inject_pbl,remove_excess,current,scenario in ((False,False,.1,.2),(True,False,.1,.2),(False,True,.2,.1)):
+                settings=f([300.,230.,0.,0.,200.,.5,0.,0.,current,30.])
+                native.background_config(f([scenario,1.,1.,1.,2.45,2e-6,1.,1.]),
+                    np.array([remove_excess,False,True,inject_pbl],dtype=np.int32))
+                out=f(np.empty_like(q));state=np.empty(4)
+                native.interactive(4,1,1,settings,half,full,t,q,np.zeros(8,dtype=np.int32),out,state)
+                actual=background_step(q[:,0],q[:,1],half,1,230.,0.,current,scenario,1.,30.,300.,
+                    extinction_efficiency=2.45,injection_fraction=fraction,
+                    inject_through_pbl=inject_pbl,remove_excess=remove_excess)
+                np.testing.assert_allclose(actual.mass_ratio,out[:,0],rtol=3e-12,atol=1e-20)
+                np.testing.assert_allclose(actual.number_ratio,out[:,1],rtol=3e-12,atol=1e-8)
+                np.testing.assert_allclose(actual.surface_dust_kg_m2,state[0],rtol=3e-14,atol=1e-14)
+                cases.append(dict(case='mapped-injection-fraction',injection_fraction=fraction,inject_pbl=inject_pbl,
+                    remove_excess=remove_excess,current_opacity=current,scenario_opacity=scenario,
+                    max_mass_ratio_error=float(np.max(abs(actual.mass_ratio-out[:,0])))))
+        native.fraction_config(0,1.)
+        axis=f([0.,90.,180.,270.,360.])
+        fields=f(np.linspace(.1,1.5,30).reshape(3,5,2))
+        for ls in (0.,45.,90.,179.,270.,359.999):
+            expected=f(np.empty((3,2)))
+            native.fraction_sample(3,5,2,axis,fields,ls,expected)
+            actual=seasonal_sample(axis,fields.swapaxes(0,1),ls)[0]
+            np.testing.assert_allclose(actual,expected,rtol=2e-15,atol=2e-15)
+            cases.append(dict(case='seasonal-injection-fractions',longitude_deg=ls,
+                max_fraction_error=float(np.max(abs(np.asarray(actual)-expected)))))
         directory=Path(tmp)/'optics';directory.mkdir()
         optics,optics_provenance=compile_optics_reference(source,directory,compiler)
         data=load_tables()
@@ -73,7 +101,7 @@ def validate(source,compiler):
         'package/src/framework/physics/particle_optics.py','package/src/framework/physics/particle_optical_tables.npz']
     return dict(status='pass',reference=provenance,efficiency_reference=optics_provenance,cases=cases,
         sha256={p:hashlib.sha256((root/p).read_bytes()).hexdigest() for p in paths},
-        limits='Native default injection and uniform sink with fixed-layer injection. '
+        limits='Native default/mapped-fraction injection, unchanged seasonal fraction block and uniform sink with fixed-layer injection. '
             'The latter leaves i,j defined; the original PBL-injection sink uses stale out-of-bounds indices. '
             'Bottom sinks and the negative 1e-32 sink allowance use explicit conservative repairs, '
             'checked by independent material tests. Seasonal/local-time history and global integration are separate.')

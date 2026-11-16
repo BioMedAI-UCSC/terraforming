@@ -216,7 +216,8 @@ def test_simple_radiation_forwards_fixed_date_and_records_restart_identity(monke
 @pytest.mark.parametrize('scale_surface',[False,True])
 @pytest.mark.parametrize('linear',[False,True])
 @pytest.mark.parametrize('solar_constant',[None,589.])
-def test_reference_configuration_keeps_dust_and_frost_independent_of_water(monkeypatch,tmp_path,water,from_aerosol,scale_surface,solar_constant,linear):
+@pytest.mark.parametrize('fraction_maps',[False,True])
+def test_reference_configuration_keeps_dust_and_frost_independent_of_water(monkeypatch,tmp_path,water,from_aerosol,scale_surface,solar_constant,linear,fraction_maps):
     from src.framework.gcm.coordinates import coordinate_system
     from src.celestials.planets.mars import surface,boundary_inputs,dust_scenario
     from src.framework.physics import particle_optics,radiative_transfer,prescribed_dust
@@ -229,6 +230,18 @@ def test_reference_configuration_keeps_dust_and_frost_independent_of_water(monke
     monkeypatch.setattr(surface,'reference_surface_fields_on_grid',surface_fields)
     monkeypatch.setattr(boundary_inputs,'polar_water_on_grid',lambda *args:frost)
     monkeypatch.setattr(dust_scenario,'load_scenario_on_grid',lambda *args,**kwargs:dict(fixture=True,**kwargs))
+    fractions=dict(seasons=[0.,360.],fractions=np.ones((2,*grid.nodal_shape,1)))
+    def fraction_loader(target,path,modes):
+        assert target is grid and path==tmp_path/'radius_scenario.nc' and modes==1
+        return fractions
+    monkeypatch.setattr(dust_scenario,'load_injection_fractions_on_grid',fraction_loader)
+    local_fractions=dict(seasons=[0.,360.],bins_hours=[0.,12.,24.],fractions=np.full((2,*grid.nodal_shape,2),.5))
+    def local_loader(target,path):
+        assert target is grid and path==tmp_path/'localtime_frac.nc'
+        return local_fractions
+    monkeypatch.setattr(dust_scenario,'load_local_time_fractions_on_grid',local_loader)
+
+
     monkeypatch.setattr(particle_optics,'make_particle_provider',lambda **kwargs:kwargs)
     fixed_options={}
     def fixed_factory(**kwargs):
@@ -242,6 +255,7 @@ def test_reference_configuration_keeps_dust_and_frost_independent_of_water(monke
     monkeypatch.setattr(radiative_transfer,'make_radiation_component',radiation_factory)
     inputs=('mars_thermal_inertia8_2011.nc','mars_TES_albedo8_new.nc','mars_sfc_emissivity8.nc',
         'GRS_interp16.nc','npcflag8.nc','DustScenario_MY30.nc')
+    if fraction_maps: inputs+=('radius_scenario.nc','localtime_frac.nc')
     for name in inputs: (tmp_path/name).write_bytes(name.encode())
     _,forcing,provider,options,hashes=_script('run_gcm3d_ablation').reference_configuration(
         grid,tmp_path,231.,moment_water=water,dust_opacity_from_aerosol=from_aerosol,scale_surface_flux=scale_surface,
@@ -254,6 +268,12 @@ def test_reference_configuration_keeps_dust_and_frost_independent_of_water(monke
     assert radiation_options['scale_surface_flux'] is scale_surface
     np.testing.assert_allclose(forcing.tsi_1au_w_m2,1356.1 if solar_constant is None else solar_constant*1.524**2)
     assert options['moment_water'] is water and options['moment_dust'] is not water
+    if fraction_maps:
+        assert options['dust_background_options']['injection_fraction_scenario'] is fractions
+        assert options['dust_background_options']['local_time_scenario'] is local_fractions
+    else:
+        assert 'injection_fraction_scenario' not in options['dust_background_options']
+        assert 'local_time_scenario' not in options['dust_background_options']
     assert (options['moment_cloud_options'] is not None)==water
     assert (provider['water_moment_tracers'] is not None)==water
     assert provider['dust_tracers']==(('dust_mass','dust_number'),)
@@ -386,3 +406,12 @@ def test_soil_solver_cli_rejects_invalid_configuration_before_inputs(monkeypatch
     with pytest.raises(SystemExit) as stopped: driver.main()
     assert stopped.value.code==2
     assert 'soil' in capsys.readouterr().err
+
+
+def test_release_namelist_inventory_ignores_comments_inside_continuations(monkeypatch):
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[3]/'scripts'))
+    audit=_script('validate_release_interfaces')
+    text='namelist /dust/ a, b, & ! continue\n !removed,\n &c !end\nreal :: other'
+    assert audit.namelist_controls(text,'dust')==['a','b','c']
+    assert audit.namelist_controls('namelist /dust/ a,b\nreal :: other','dust')==['a','b']
+    with pytest.raises(AssertionError): audit.namelist_controls(text,'absent')

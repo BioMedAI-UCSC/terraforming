@@ -240,7 +240,7 @@ def reference_configuration(grid,data_directory,dt_seconds,*,moment_water=True,d
     from src.celestials.planets.mars.reference_constants import AMES_BODY_3D,reference_radiative_forcing
     from src.celestials.planets.mars.surface import reference_surface_fields_on_grid
     from src.celestials.planets.mars.boundary_inputs import polar_water_on_grid
-    from src.celestials.planets.mars.dust_scenario import load_scenario_on_grid
+    from src.celestials.planets.mars.dust_scenario import load_scenario_on_grid,load_injection_fractions_on_grid,load_local_time_fractions_on_grid
     from src.framework.physics.soil_frost import subsurface_properties
     from src.framework.physics.particle_optics import make_particle_provider
     from src.framework.physics.radiative_transfer import make_radiation_component
@@ -275,8 +275,17 @@ def reference_configuration(grid,data_directory,dt_seconds,*,moment_water=True,d
         options['dust_background_options'].pop('scenario')
         options['dust_background_options']['fixed_dust_provider']=make_fixed_dust_provider(bands=12,scenario=scenario,
             fixed_calendar_date=fixed_calendar_date)
+    fraction_path=data_directory/'radius_scenario.nc'
+    if fraction_path.is_file():
+        options['dust_background_options']['injection_fraction_scenario']=load_injection_fractions_on_grid(
+            grid,fraction_path,1)
+    local_time_path=data_directory/'localtime_frac.nc'
+    if local_time_path.is_file():
+        options['dust_background_options']['local_time_scenario']=load_local_time_fractions_on_grid(grid,local_time_path)
     inputs=('mars_thermal_inertia8_2011.nc','mars_TES_albedo8_new.nc','mars_sfc_emissivity8.nc',
         'GRS_interp16.nc','npcflag8.nc','DustScenario_MY30.nc')
+    for optional in (fraction_path,local_time_path):
+        if optional.is_file(): inputs+=(optional.name,)
     hashes={name:hashlib.sha256((data_directory/name).read_bytes()).hexdigest() for name in inputs}
     return AMES_BODY_3D,forcing,radiation,options,hashes
 

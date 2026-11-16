@@ -171,7 +171,7 @@ def interactive_modes_step(mass_ratio,number_ratio,*arguments,surface_dust_kg_m2
 
 def background_step(mass_ratio,number_ratio,pressure_half,pbl_top_layer,temperature_surface,
                     snow,current_opacity,scenario_opacity,scenario_change,surface_dust_kg_m2,
-                    dt_seconds,*,extinction_efficiency,effective_radius_m=2e-6,opacity_fraction=1.,
+                    dt_seconds,*,extinction_efficiency,effective_radius_m=2e-6,opacity_fraction=1.,injection_fraction=None,
                     opacity_scale=1.,injection_scale=1.,injection_type=1,inject_through_pbl=True,
                     fixed_layers=(0,0),minimum_temperature_k=120.,exclude_caps=True,
                     minimum_scenario_change=-999.,local_time_fraction=None,local_time_scale=0.,
@@ -214,7 +214,8 @@ def background_step(mass_ratio,number_ratio,pressure_half,pbl_top_layer,temperat
     rm=effective_radius_m*jnp.exp(-2.5*.63676**2)
     rss=rm*jnp.exp(.63676**2)
     mass_particle=4./3.*jnp.pi*2500.*rm**3*jnp.exp(4.5*.63676**2)
-    injected=jnp.where(delta>0.,opacity_fraction*4./3.*scale*delta*2500.*rm**3*
+    fraction=opacity_fraction if injection_fraction is None else injection_fraction
+    injected=jnp.where(delta>0.,fraction*4./3.*scale*delta*2500.*rm**3*
         jnp.exp(4.5*.63676**2)*dt_seconds/(extinction_efficiency*rss**2*model_sol_seconds),0.)
     layer_mass=jnp.diff(p,axis=0)/gravity
     q,n=_inject(q,n,layer_mass,top,injected,mass_particle,inject_through_pbl,fixed_layers)
@@ -259,15 +260,18 @@ def background_modes_step(mass_ratio,number_ratio,*arguments,surface_dust_kg_m2,
     modal={key:jnp.asarray(options.pop(key,default)) for key,default in
         (('effective_radius_m',2e-6),('extinction_efficiency',efficiency),
          ('opacity_fraction',jnp.asarray([1.]+[0.]*(count-1))))}
+    injection_fraction=options.pop('injection_fraction',None)
+    if injection_fraction is not None: modal['injection_fraction']=jnp.asarray(injection_fraction)
     for key,value in modal.items():
-        if value.ndim>0 and value.shape!=(count,):
-            raise ValueError(f'{key} must be scalar or have one entry per physical dust mode')
+        spatial=key=='injection_fraction' and value.shape==reservoir.shape
+        if value.ndim>0 and value.shape!=(count,) and not spatial:
+            raise ValueError(f'{key} must be scalar, per physical dust mode, or a mapped injection-fraction field')
     fractions=jnp.broadcast_to(modal['opacity_fraction'],(count,))
     modal['opacity_fraction']=jnp.where(jnp.sum(fractions)==1.,fractions,
         jnp.asarray([1.]+[0.]*(count-1)))
     results=[]
     for mode in range(count):
-        selected={key:value if value.ndim==0 else value[mode] for key,value in modal.items()}
+        selected={key:value if value.ndim==0 else value[...,mode] for key,value in modal.items()}
         results.append(background_step(mass[...,mode],number[...,mode],*arguments,
             surface_dust_kg_m2=reservoir[...,mode],**selected,**options))
     return LiftingResult(*(jnp.stack([getattr(r,key) for r in results],axis=-1)

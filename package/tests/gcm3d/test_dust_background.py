@@ -78,3 +78,32 @@ def test_mode_fractions_keep_separate_reservoirs_and_particle_sizes(fractions):
         np.testing.assert_array_equal(result.mass_ratio[...,1],MASS)
     else:
         assert amount[1]>amount[0]
+
+
+def test_spatial_injection_shares_do_not_change_static_removal_fractions():
+    from src.framework.physics.dust_lifting import background_modes_step
+    mass=jnp.broadcast_to(MASS[:,None,None],(4,2,2));number=mass*1e13
+    half=jnp.broadcast_to(HALF[:,None],(5,2));reservoir=jnp.array([[30.,20.],[40.,10.]])
+    fractions=jnp.array([[.1,.9],[.8,.2]])
+    def update(fractions,current=.1,scenario=.2,remove=False):
+        return background_modes_step(mass,number,half,1,230.,0.,current,scenario,1.,
+            surface_dust_kg_m2=reservoir,dt_seconds=300.,extinction_efficiency=(2.45,2.),
+            effective_radius_m=(1e-6,3e-6),opacity_fraction=(.25,.75),
+            injection_fraction=fractions,remove_excess=remove,inject_through_pbl=False)
+    actual=update(fractions)
+    for mode in range(2):
+        expected=background_step(mass[...,mode],number[...,mode],half,1,230.,0.,.1,.2,1.,
+            reservoir[...,mode],300.,extinction_efficiency=(2.45,2.)[mode],
+            effective_radius_m=(1e-6,3e-6)[mode],opacity_fraction=(.25,.75)[mode],
+            injection_fraction=fractions[...,mode],inject_through_pbl=False)
+        np.testing.assert_allclose(actual.mass_ratio[...,mode],expected.mass_ratio,rtol=2e-15)
+        np.testing.assert_allclose(actual.number_ratio[...,mode],expected.number_ratio,rtol=2e-15)
+    mass_change=jnp.sum((actual.mass_ratio-mass)*jnp.diff(half,axis=0)[...,None]/3.72,axis=0)
+    np.testing.assert_allclose(mass_change+actual.surface_dust_kg_m2,reservoir,atol=1e-14)
+    first=update(fractions,10.,0.,True);second=update(fractions[::-1],10.,0.,True)
+    np.testing.assert_array_equal(first.mass_ratio,second.mass_ratio)
+    np.testing.assert_array_equal(first.surface_dust_kg_m2,second.surface_dust_kg_m2)
+    objective=lambda value:jnp.sum(update(fractions*value).mass_ratio)
+    derivative=jax.jit(jax.grad(objective))(1.);epsilon=1e-5
+    assert np.isfinite(derivative) and derivative>0.
+    np.testing.assert_allclose(derivative,(objective(1.+epsilon)-objective(1.-epsilon))/(2.*epsilon),rtol=2e-8)

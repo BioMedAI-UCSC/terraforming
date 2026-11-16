@@ -669,6 +669,46 @@ limitation, not a deprecation claim.
 
 
 
+
+## Seasonal injected-dust shares and optional files
+
+The optional source `radius_scenario.nc` supplies `radNN` fields for each
+physical dust population. Its active equations change the injected opacity
+share, despite the filename. Particle radii keep the tracer's prescribed
+values. Removal keeps the static `tau_frac` shares. The port now preserves
+this split with `background_step.injection_fraction`, mapped mode fields and
+Dinosaur seasonal sampling. Mapped shares are used as supplied; they do not
+pass through the static tracer-share fallback.
+
+`load_injection_fractions_on_grid` reads the file's bin order, seasonal axis
+and `radNN` names. `load_local_time_fractions_on_grid` reads `ltfracHH` fields
+using the start hour of each local-time bin. Both reuse the native-checked FMS
+bilinear map, including seam and polar behavior. The reference runner loads
+these optional files when present and saves their byte hashes with the other
+inputs. The local-time scheme retains its existing saved history and requires
+its seasonal nodes to match the opacity scenario, as assumed by the source.
+No new restart state is needed for the seasonal injection shares. A real-input
+T21/56-level run with both optional files completes and resumes to two steps.
+Changing either file rejects resume and preserves the checkpoint.
+
+The unchanged native fraction-selection block and injection/removal branches
+pass 18 added cases, including unnormalized mapped shares. The full background
+report has 150 cases. Tests check source radii, independent removal shares,
+per-mode material budgets, field orientation, bin order and input rejection.
+The 135 reader, lifting and runner checks pass. One- and two-population global cases preserve three-step reverse derivatives,
+material inventories and exact restart continuation.
+
+The prescribed-dust validation also compiles the full unchanged
+`dust_distrib_fix` dispatch and elevated-pulse routine. Another 240 composed
+cases check seasonal/tracer profiles, both Conrath forms, both pulse types,
+column scaling, two latitudes and two surface pressures. This verifies that
+column scaling precedes addition of the elevated pulse.
+
+The source's optional `sources.nc` and `inidust.nc` feed tagging calls. Release
+preprocessing removes those calls. The audit checks that the seasonal source
+field has only a declaration and assignment after preprocessing. These inputs
+supply no additional active non-tagged lifting equation in this build.
+
 ## Soil solver and surface phase controls
 
 `--soil-alpha` selects the released implicit diffusion weighting. Its default
@@ -812,7 +852,7 @@ limiter or establish matched transport accuracy.
 | CO2 switches | Atmospheric condensation, atmospheric loss and gas-mass feedback are independent source controls. Ninety-six unchanged native control-block cases check all combinations and initial-CO2-weighted surface exchange. Another 384 unchanged initialization cases check configurable exchange depths and strict pressure/latitude boundaries. Column tests retain condensation heating when precipitation loss is disabled, and retain surface snow when mass feedback is disabled. Held suspended clouds still mix as tracers when their phase driver is off. Global tests check disabled-feedback behavior, exact restart continuation and three-step reverse derivatives. |
 | Surface/diffusion controls | `do_mars_surface`, `do_vert_diff` and `do_ames_pbl` now select the released active branches. Without Mars surface physics, radiation sees 170 K, albedo 0.25 and emissivity 1; soil/CO2 surface exchange is inactive while drag and convection remain available. Twelve unchanged native `diffuse` cases prove the release fallback leaves tendencies unchanged because `fv3_turb` is excluded. Inactive PBL exchange fields are defined as zero instead of copying uninitialized source values. Surface-dependent water/dust modes are rejected without the source's surface reservoir initialization. |
 | Process controls | `freeze_tracer_fields`, `no_forcing` and the released `gust_fact` correction are connected to Dinosaur and the runner. Native blocks check tracer freezing, no-forcing early return and gust stress; column/global checks retain surface/history changes under freezing and skip all physical updates under no forcing. The released tracer-source/sink helper has no caller. Alternate gust/turbulence drivers are excluded by build flags. |
-| Module controls | Surface IR normalization is connected and checked. Solar normalization (`scale_by_scon`) reuses the existing orbit and is native-checked. The supported alternate 12-band interpolation (`use_boxinterp12=false`) is connected through `--linear-k-interpolation`, with native lookup, optical and composed-flux comparisons. It interpolates linear k across water, temperature and log pressure, retaining source extrapolation and indexing. The default keeps log-k interpolation and a selected water bin. The optional spectral startup ramp is connected and matches 40 unchanged native block cases. The ten radiation-driver, 33 spectral-module and 21 simple-driver entries are inventoried; user fixed-dust coefficients and fixed-date spectral/simple forcing are connected, and channel-off paths have undefined native outputs. PBL `htflux_recalc`, settling `scaveng` and moment-cloud `makeclouds` are connected through the column, Dinosaur and runner. Seeded-cloud tests cover retained cores, independent water settling/surface exchange, exact restarts and three-step derivatives. The audit also records the seven moment-cloud namelist entries, including its unused module-local `facsubl`. Continue the audit of the other modules. |
+| Module controls | Surface IR normalization is connected and checked. Solar normalization (`scale_by_scon`) reuses the existing orbit and is native-checked. The supported alternate 12-band interpolation (`use_boxinterp12=false`) is connected through `--linear-k-interpolation`, with native lookup, optical and composed-flux comparisons. It interpolates linear k across water, temperature and log pressure, retaining source extrapolation and indexing. The default keeps log-k interpolation and a selected water bin. The optional spectral startup ramp is connected and matches 40 unchanged native block cases. The ten radiation-driver, 33 spectral-module and 21 simple-driver entries are inventoried; user fixed-dust coefficients and fixed-date spectral/simple forcing are connected, and channel-off paths have undefined native outputs. PBL `htflux_recalc`, settling `scaveng` and moment-cloud `makeclouds` are connected through the column, Dinosaur and runner. Seeded-cloud tests cover retained cores, independent water settling/surface exchange, exact restarts and three-step derivatives. The audit also records the seven moment-cloud namelist entries, including its unused module-local `facsubl`. The aerosol/dust and surface module controls are also inventoried; continue the numerical branch and input-trigger audit. |
 | Interactive dust | Lifting, advection, sedimentation, surface reservoirs, coagulation and material budgets are connected independently of moment water. Matched climate validation remains. |
 | Water | Bulk and moment phase/growth/settling paths, surface exchange, saved effective inputs, state/restarts and optical feedback are connected. Two physical dust modes pass combined global material, restart and three-step derivative checks. Long climate validation remains. Bin cloud microphysics is unavailable in the public release. |
 | Drag | Rayleigh, Palmer terrain drag and non-orographic gravity-wave drag are implemented and checked. Polar water and terrain maps pass pinned-blob and T21/T42 area checks. Long momentum/energy audits remain. Gravity-wave schemes are off in the default Ames present-Mars setup. |
@@ -856,8 +896,11 @@ the five modulation/wavenumber controls are excluded by the release flags.
 The report also covers all 32 surface namelist entries. It records the
 explicit-map and fixed-shape restart adaptations, the extra-node source defect
 and the independent solver controls. `drag_cnst` is unused; the loaded roughness
-map reaches an unused local `zo` and diagnostic output. These inventories do
-not replace numerical comparisons.
+map reaches an unused local `zo` and diagnostic output. The audit also covers all 99 aerosol, aerosol-optics, aerosol-utility and
+dust-update entries. Its parser now skips comments inside continued namelists;
+`Qext_dt` is commented out in `dust_update_nml` and is not counted. Inactive
+entries have source occurrence checks. Binned optics remain explicitly outside
+the supported release scope. These inventories do not replace numerical comparisons.
 The ramp block has separate numerical checks. Pinned source guards show that `makeclouds=False` leaves
 microphysics tendencies at zero and does not advance cloud history.
 The module-local `microphys_nml/facsubl` appears only in its declaration and

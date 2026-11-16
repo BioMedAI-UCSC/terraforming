@@ -23,6 +23,12 @@ use iso_c_binding
 implicit none
 integer,parameter :: FATAL=1
 integer :: dust_cycle_scheme=0,conrath_type=1
+integer,parameter :: nchan_sw=1,nchan_lw=5
+integer :: dust_indx(1)=[1],inpt_dust_cycle_dust_index=1
+logical :: do_inpt_dust_cycle_ktop=.false.
+real :: optical_depth_inpt=.15,optical_depth_pulse=0.,scale_inpt_dust_column=1.
+real :: qext_cnst=2.5,sscat_cnst=.9,gfac_cnst=.65
+real :: qex_lw_dust(6)=1.,sscat_lw_dust(6)=0.,gfac_lw_dust(6)=0.
 logical :: do_inpt_dust_cycle=.false.,add_storm_opacity=.false.,do_lat_vary_dust=.false.,mcpu0
 real :: conrath=.003,optical_depth_pulse_var=0.,pulse_center=30.,pulse_width=1.
 real :: areo_cycle(5)=[0.,90.,180.,270.,360.]
@@ -58,6 +64,22 @@ else
  call dust_distrib_fixed2(1,1,ls,lon,latitude,opacity,610.d0,full,half,dp,tau)
 endif
 out=tau(1,1,:)
+end subroutine
+subroutine fixed_driver(n,ph,p,q,lat,opacity,kind,profile,fraction,absolute,scaling,season,ls,out) bind(C)
+integer(c_int),value :: n,kind,profile,season
+real(c_double),value :: lat,opacity,fraction,absolute,scaling,ls
+real(c_double),intent(in) :: ph(n+1),p(n),q(n)
+real(c_double),intent(out) :: out(n)
+real :: half(1,1,n+1),full(1,1,n),aerosol(1,1,n,1),dp(1,1,n),ref(1,1,n)
+real :: tau(1,1,n,7),scat(1,1,n,7),moment(1,1,n,7),lon(1,1),latitude(1,1),dummy(n)
+add_storm_opacity=.false.
+call dust(n,ph,p,q,lat,opacity,kind,profile,fraction,season,ls,dummy)
+optical_depth_inpt=opacity;optical_depth_pulse=absolute;scale_inpt_dust_column=scaling
+do_inpt_dust_cycle_ktop=profile>0
+half(1,1,:)=ph;full(1,1,:)=p;aerosol(1,1,:,1)=q
+dp(1,1,:)=ph(2:)-ph(:n);lon=0.;latitude=lat
+call dust_distrib_fix(1,1,ls,lon,latitude,610.d0,full,half,dp,aerosol,tau,scat,moment,ref)
+out=ref(1,1,:)
 end subroutine
 subroutine error_mesg(where,message,level)
 character(*) where,message
@@ -104,7 +126,7 @@ end function
 end module
 """
     library,provenance=compile_routines(source/'atmos_param_mars/aerosol.F90',BLOB,
-        ['dust_distrib_fixed2','dust_distrib_pulse2','season_table'],header,adapter,destination,compiler)
+        ['dust_distrib_fixed2','dust_distrib_pulse2','season_table','dust_distrib_fix','dust_distrib_pulse'],header,adapter,destination,compiler)
     provenance['storm_block_sha256']=hashlib.sha256(storm.encode()).hexdigest()
     provenance['storm_adaptation']='Unchanged numerical add_storm block; adapter explicitly supplies source-uninitialized slope and c. Raw released storm output is undefined.'
     native=ctypes.CDLL(str(library))
@@ -112,6 +134,9 @@ end module
     native.dust.argtypes=[ctypes.c_int,array,array,array,ctypes.c_double,ctypes.c_double,
         ctypes.c_int,ctypes.c_int,ctypes.c_double,ctypes.c_int,ctypes.c_double,array]
     native.dust.restype=None
+    native.fixed_driver.argtypes=[ctypes.c_int,array,array,array,ctypes.c_double,ctypes.c_double,
+        ctypes.c_int,ctypes.c_int]+[ctypes.c_double]*3+[ctypes.c_int,ctypes.c_double,array]
+    native.fixed_driver.restype=None
     native.configure_storm.argtypes=[ctypes.c_int,array];native.configure_storm.restype=None
     native.storm_field.argtypes=[ctypes.c_int]*2+[array]*2+[ctypes.c_double,array]
     native.storm_field.restype=None
@@ -120,7 +145,7 @@ end module
 
 def validate(source,compiler):
     jax.config.update('jax_enable_x64',True)
-    cases=[];storm_cases=[]
+    cases=[];storm_cases=[];driver_cases=[]
     with tempfile.TemporaryDirectory(prefix='dust-native-') as temporary:
         native,provenance=compile_reference(source,Path(temporary),compiler)
         for n in (8,12,40):
@@ -173,11 +198,33 @@ def validate(source,compiler):
                         latitude_variation=not seasonal,pulse_fraction=pulse,**options)
                     np.testing.assert_allclose(actual,expected,rtol=3e-12,atol=3e-14)
                     storm_cases.append(dict(case='composed-profile',seasonal=seasonal,conrath_type=kind,pulse_fraction=pulse))
+        for n,surface_pressure in ((8,400.),(40,900.)):
+            ph=np.geomspace(.01,surface_pressure,n+1);p=np.sqrt(ph[:-1]*ph[1:])
+            q=np.asfortranarray(np.linspace(.1,1.,n));expected=np.empty(n)
+            for kind in (0,1):
+                for profile in (0,1,2):
+                    for lat in (-1.2,.4):
+                        for season in (0,1):
+                            options={}
+                            if season:
+                                opacity,height=seasonal_fields(355.,np.array([0.,90.,180.,270.,360.]),
+                                    np.array([.1,.2,.3,.4,.1]),np.array([20.,30.,40.,50.,20.]))
+                                options=dict(scenario_opacity=opacity,top_height_km=height)
+                            for fraction,absolute,scaling in ((0.,0.,1.),(.2,0.,1.),(0.,.1,2.),(.2,.1,2.),(0.,.1,0.)):
+                                native.fixed_driver(n,ph,p,q,lat,.15,kind,profile,fraction,absolute,scaling,season,355.,expected)
+                                actual=run(ph,p,.15,latitude_rad=lat,conrath_type=kind,cycle_scheme=profile,
+                                    aerosol_ratio=q if profile else None,latitude_variation=not bool(season),
+                                    pulse_fraction=fraction,pulse_opacity=absolute,column_scale=scaling,**options)
+                                np.testing.assert_allclose(actual,expected,rtol=3e-12,atol=3e-14)
+                                driver_cases.append(dict(layers=n,surface_pressure_pa=surface_pressure,
+                                    conrath_type=kind,cycle_scheme=profile,latitude_rad=lat,seasonal=bool(season),
+                                    pulse_fraction=fraction,pulse_opacity=absolute,column_scale=scaling,
+                                    max_error=float(np.max(abs(np.asarray(actual)-expected)))))
     root=Path(__file__).parents[1]
-    return dict(status='pass',reference=provenance,cases=cases,storm_cases=storm_cases,
+    return dict(status='pass',reference=provenance,cases=cases,storm_cases=storm_cases,driver_cases=driver_cases,
         sha256={name:hashlib.sha256((root/name).read_bytes()).hexdigest() for name in
             ('scripts/validate_prescribed_dust.py','package/src/framework/physics/prescribed_dust.py')},
-        limits='Profile, fractional pulse and seasonal interpolation kernels. Storm checks compare unchanged equations with explicit supplied slope and c; the release leaves those locals undefined. Map sampling and optical properties have separate checks.')
+        limits='Profile, fractional pulse and seasonal interpolation kernels plus unchanged prescribed-dust dispatch with additive pulse and column scaling. Storm checks compare unchanged equations with explicit supplied slope and c; the release leaves those locals undefined. Map sampling and optical properties have separate checks.')
 
 
 def main():
@@ -189,7 +236,7 @@ def main():
     report=validate(args.ames_source,compiler)
     args.output.parent.mkdir(parents=True,exist_ok=True)
     args.output.write_text(json.dumps(report,indent=2,allow_nan=False)+'\n')
-    print(f"{len(report['cases'])} prescribed dust columns and {len(report['storm_cases'])} explicitly initialized storm cases passed")
+    print(f"{len(report['cases'])} profiles, {len(report['storm_cases'])} explicit storms and {len(report['driver_cases'])} composed prescribed-dust cases passed")
 
 
 if __name__=='__main__': main()

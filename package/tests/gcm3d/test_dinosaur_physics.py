@@ -1411,3 +1411,49 @@ def test_soil_weight_and_surface_phase_controls_preserve_three_step_derivative_a
     restored=load_restart(save_restart(first,tmp_path/'soil-controls.npz'))
     for a,b in zip(jax.tree_util.tree_leaves(step(step(first))),jax.tree_util.tree_leaves(step(step(restored))),strict=True):
         np.testing.assert_array_equal(a,b)
+
+
+@pytest.mark.parametrize('modes',[1,2])
+def test_seasonal_spatial_dust_shares_preserve_material_restart_and_three_step_gradient(tmp_path,modes):
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.framework.gcm.specs import physics_specs
+    from src.framework.gcm._dinosaur import scales
+    from src.framework.gcm.restart import save_restart,load_restart
+    grid=coordinate_system('T21',4).horizontal
+    seasons=jnp.array([0.,90.,180.,270.,360.])
+    scenario=dict(seasons=seasons,opacity=jnp.full((5,*grid.nodal_shape),2.))
+    spatial=.3+.1*jnp.sin(jnp.asarray(grid.longitudes))[:,None]*jnp.cos(jnp.asarray(grid.latitudes))[None,:]
+    shares=spatial[...,None] if modes==1 else jnp.stack([spatial,1.-spatial],axis=-1)
+    fractions=dict(seasons=seasons,fractions=jnp.stack([shares,shares*.8,shares*.9,shares*.7,shares]))
+    time_scale=float(physics_specs(BODY).dimensionalize(1.,scales.units.second).magnitude)
+    def setup(amplitude):
+        state,step,_=backend_case(temperature_k=180.,surface_temperature_k=200.,moment_dust=True,
+            dust_mode_count=modes,do_co2_condensation=False,dust_background_options=dict(
+                scenario=scenario,injection_fraction_scenario=fractions,injection_scale=amplitude,
+                extinction_efficiency=2.45 if modes==1 else (2.45,2.),
+                effective_radius_m=2e-6 if modes==1 else (2e-6,3e-6)))
+        state=state._replace(dynamics=dataclasses.replace(state.dynamics,sim_time=88704.*.25/time_scale))
+        return state,step
+    def objective(amplitude):
+        state,step=setup(amplitude)
+        final=jax.lax.scan(lambda state,_:(step(state),None),state,None,length=3)[0]
+        return jnp.mean(final.auxiliary_fields['dust_surface_kg_m2'])
+    derivative=jax.jit(jax.grad(objective))(1.);epsilon=1e-3
+    assert np.isfinite(derivative) and abs(derivative)>1e-10
+    np.testing.assert_allclose(derivative,(objective(1.+epsilon)-objective(1.-epsilon))/(2.*epsilon),rtol=3e-5,atol=2e-9)
+    state,step=setup(1.);first=step(state)
+    restored=load_restart(save_restart(first,tmp_path/'dust-shares.npz'))
+    final=step(step(first));continued=step(step(restored))
+    for a,b in zip(jax.tree_util.tree_leaves(final),jax.tree_util.tree_leaves(continued),strict=True):
+        np.testing.assert_array_equal(a,b)
+    from src.framework.physics.water_moments import dust_particle_tracers
+    specs=physics_specs(BODY);pressure_scale=float(specs.dimensionalize(1.,scales.units.pascal).magnitude)
+    def inventory(current):
+        pressure=jnp.exp(grid.to_nodal(current.dynamics.log_surface_pressure))[0]*pressure_scale
+        gas=pressure[None]*.25/BODY.gravity_m_s2
+        masses=jnp.stack([grid.to_nodal(current.dynamics.tracers[name]) for name in dust_particle_tracers(modes)[::2]],axis=-1)
+        air=jnp.sum(masses*gas[...,None],axis=0)
+        surface=current.auxiliary_fields['dust_surface_kg_m2'][0]
+        if modes==1: surface=surface[...,None]
+        return jnp.sum((air+surface)*jnp.asarray(grid.quadrature_weights)[...,None],axis=(0,1))
+    np.testing.assert_allclose(inventory(final),inventory(state),rtol=3e-12,atol=1e-10)

@@ -25,6 +25,8 @@ def compile_reference(source,destination,compiler,background=False,combined=Fals
     start=routine.index(opening)
     stop=routine.index(closing,start)+len(closing)
     block=routine[start:stop]
+    fraction_start=routine.index('if (changeradius) then')
+    fraction_block=routine[fraction_start:routine.index('!---------------------- Tests',fraction_start)]
     header="""#define RELEASE
 module constants_mod
 implicit none
@@ -40,6 +42,7 @@ real,parameter :: dpden_dt=2500.d0,dev_dt=.63676d0,athird=1.d0/3.d0
 real,parameter :: Reff_dd=2.d-6,Reff_stress=2.d-6
 real :: sfc_dust_mass(1,1,1)
 real :: reff_mom(6)=2.d-6,tau_frac(6)=1.,qext_dt(6,2)=2.,bg_options(8)=0.
+real :: bg_injection_fraction=1.
 logical :: changeradius=.false.,ltfrac=.false.
 integer :: id_tauadd=0,id_inject(1)=0
 """+declarations+'\ncontains\n'
@@ -54,6 +57,12 @@ subroutine dual_config(mode,scale) bind(C)
 integer(c_int),value :: mode
 real(c_double),value :: scale
 dual_mode=mode;dual_scale=scale
+end subroutine
+subroutine fraction_config(enabled,value) bind(C)
+integer(c_int),value :: enabled
+real(c_double),value :: value
+changeradius=enabled/=0
+bg_injection_fraction=value
 end subroutine
 subroutine background_config(options,flags) bind(C)
 real(c_double),intent(in) :: options(8)
@@ -101,6 +110,7 @@ masspblfix=delp(:,:,n)/grav
 tau_scenario=bg_options(1);dtau=bg_options(2);tauscale=bg_options(3);injscale=bg_options(4)
 qext_dt=bg_options(5);reff_mom=bg_options(6);injec_type=int(bg_options(7));sinkscale=bg_options(8)
 dtau_current=dual_scale*tau_scenario-tau_current
+radius_scenario=bg_injection_fraction
 """
     if background: adapter+='interact=.false.\n'
     adapter+=block+"""
@@ -134,6 +144,23 @@ end module
         extra+='state(4*nt-2)=source_dd(1,1,nt);state(4*nt-1)=source_ws(1,1,nt)\n'
         extra+='state(4*nt)=threshold(1,1)\nenddo\n'
         adapter=adapter.replace('\nend subroutine\nend module',extra+'end subroutine\nend module')
+    if background:
+        sampler="""subroutine fraction_sample(n,nt,nm,axis,fields,ls,out) bind(C)
+integer(c_int),value :: n,nt,nm
+real(c_double),value :: ls
+real(c_double),intent(in) :: axis(nt),fields(n,nt,nm)
+real(c_double),intent(out) :: out(n,nm)
+real :: areo_radius(nt),radius_scenario_ls(1,n,nt,nm),radius_scenario(1,n,nm)
+real :: areolat,delareo,fac1
+integer,parameter :: is=1,ie=1,js=1
+integer :: je,iaa,iaam
+logical,parameter :: changeradius=.true.
+areo_radius=axis;radius_scenario_ls(1,:,:,:)=fields;areolat=ls;je=n
+"""+fraction_block+"""
+out=radius_scenario(1,:,:)
+end subroutine
+"""
+        adapter=adapter.rsplit('end module',1)[0]+sampler+'end module\n'
     library,provenance=compile_routines(path,BLOB,['flux_stress'],header,adapter,destination,compiler)
     provenance.update(interactive_block_sha256=hashlib.sha256(block.encode()).hexdigest(),
         local_declarations_sha256=hashlib.sha256(local.encode()).hexdigest(),
@@ -150,6 +177,12 @@ end module
     native.background_config.restype=None
     native.dual_config.argtypes=[ctypes.c_int,ctypes.c_double]
     native.dual_config.restype=None
+    native.fraction_config.argtypes=[ctypes.c_int,ctypes.c_double]
+    native.fraction_config.restype=None
+    if background:
+        native.fraction_sample.argtypes=[ctypes.c_int]*3+[array]*2+[ctypes.c_double,array]
+        native.fraction_sample.restype=None
+        provenance['injection_fraction_block_sha256']=hashlib.sha256(fraction_block.encode()).hexdigest()
     return native,provenance
 
 

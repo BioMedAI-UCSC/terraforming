@@ -80,3 +80,47 @@ def load_scenario_on_grid(grid,path,*,map_scale=1.):
     if np.any(opacity<0.) or np.any(height<=0.):
         raise ValueError('dust scenario requires nonnegative opacity and positive top height')
     return dict(seasons=seasons,opacity=opacity,top_height_km=height,source_git_blob=blob,periodic_endpoint_appended=bool(appended))
+
+
+def _load_fraction_fields(grid,path,prefix,mode_count):
+    import xarray as xr
+    with xr.open_dataset(path,decode_times=False) as source:
+        seasons=np.asarray(source.areo,dtype=float)
+        bins=np.asarray(source.bins,dtype=float)
+        if (seasons.ndim!=1 or len(seasons)<2 or not np.isfinite(seasons).all() or
+            np.any(np.diff(seasons)<=0.) or seasons[0]<0. or seasons[-1]!=360.):
+            raise ValueError('dust fraction seasons must increase and end at 360 degrees')
+        if mode_count is None:
+            if (bins.ndim!=1 or len(bins)<2 or not np.isfinite(bins).all() or
+                np.any(np.diff(bins)<=0.) or bins[0]!=0. or bins[-1]!=24. or np.any(bins!=np.floor(bins))):
+                raise ValueError('local-time bins must increase in integer hours from 0 to 24')
+            labels=bins[:-1]
+        else:
+            if (bins.shape!=(mode_count,) or not np.isfinite(bins).all() or
+                np.any(bins!=np.floor(bins)) or np.any((bins<0.)|(bins>99.))):
+                raise ValueError('dust fraction bins must name one two-digit field per physical mode')
+            labels=bins
+        fields=[]
+        for label in labels:
+            value=source[f'{prefix}{int(label):02d}']
+            dimensions=set(value.dims)-{'lat','lon'}
+            if len(dimensions)!=1: raise ValueError('dust fraction fields require season, latitude and longitude axes')
+            axis=dimensions.pop()
+            if value.sizes[axis]!=len(seasons): raise ValueError('dust fraction fields must match seasonal nodes')
+            fields.append(bilinear_map(grid,value.transpose(axis,'lat','lon'),source.lonb,source.latb))
+    return seasons,bins,np.stack(fields,axis=-1)
+
+
+def load_injection_fractions_on_grid(grid,path,mode_count):
+    """Read source radius_scenario.nc: seasonal opacity shares, not particle radii."""
+    if not isinstance(mode_count,int) or isinstance(mode_count,bool) or mode_count<1:
+        raise ValueError('dust injection fractions require a positive mode count')
+    seasons,_,fractions=_load_fraction_fields(grid,path,'rad',mode_count)
+    if np.any(fractions<0.): raise ValueError('injected dust fractions must be nonnegative')
+    return dict(seasons=seasons,fractions=fractions)
+
+
+def load_local_time_fractions_on_grid(grid,path):
+    """Read source ltfracHH fields using bin-start hours and native bilinear maps."""
+    seasons,bins,fractions=_load_fraction_fields(grid,path,'ltfrac',None)
+    return dict(seasons=seasons,bins_hours=bins,fractions=fractions)

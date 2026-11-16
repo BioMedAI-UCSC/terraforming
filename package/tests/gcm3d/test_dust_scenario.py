@@ -39,3 +39,45 @@ def test_dust_map_rejects_nonfinite_and_misaligned_fields():
     for values in (np.zeros((2,3)),np.full((2,4),np.nan)):
         with pytest.raises(ValueError):
             bilinear_map(grid([0.],[0.]),values,[0.,90.,180.,270.,360.],[-90.,0.,90.])
+
+
+def test_injected_opacity_maps_keep_mode_order_seasons_and_polar_rows(tmp_path):
+    import xarray as xr
+    from src.celestials.planets.mars.dust_scenario import load_injection_fractions_on_grid
+    seasons=np.array([0.,120.,240.,360.])
+    values=np.arange(32,dtype=float).reshape(4,2,4)/100.
+    dataset=xr.Dataset({'areo':('time',seasons),'bins':('mode',[3,1]),
+        'rad03':(('time','lat','lon'),values),'rad01':(('time','lat','lon'),values+.5),
+        'lonb':('lonb',[0.,90.,180.,270.,360.]),'latb':('latb',[-90.,0.,90.])})
+    path=tmp_path/'radius_scenario.nc';dataset.to_netcdf(path)
+    target=grid([45.,135.,225.,315.],[-90.,-45.,45.,90.])
+    actual=load_injection_fractions_on_grid(target,path,2)
+    expected=np.stack([values[:,0],values[:,0],values[:,1],values[:,1]],axis=-1)
+    np.testing.assert_allclose(actual['fractions'][...,0],expected,rtol=2e-15,atol=1e-15)
+    np.testing.assert_allclose(actual['fractions'][...,1],expected+.5,rtol=2e-15)
+    np.testing.assert_array_equal(actual['seasons'],seasons)
+    with pytest.raises(ValueError,match='physical mode'): load_injection_fractions_on_grid(target,path,1)
+    for changed in (dataset.assign(areo=('time',[0.,120.,120.,360.])),
+                    dataset.assign(areo=('time',[0.,120.,240.,359.])),
+                    dataset.assign(rad03=dataset.rad03-1.),
+                    dataset.assign(rad03=dataset.rad03*np.nan)):
+        changed.to_netcdf(path)
+        with pytest.raises(ValueError): load_injection_fractions_on_grid(target,path,2)
+
+
+def test_local_time_file_uses_hour_labels_and_preserves_seasonal_fields(tmp_path):
+    import xarray as xr
+    from src.celestials.planets.mars.dust_scenario import load_local_time_fractions_on_grid
+    values=np.arange(16,dtype=float).reshape(2,2,4)/100.
+    dataset=xr.Dataset({'areo':('time',[0.,360.]),'bins':('bins',[0,12,24]),
+        'ltfrac00':(('time','lat','lon'),values),'ltfrac12':(('time','lat','lon'),values+.5),
+        'lonb':('lonb',[0.,90.,180.,270.,360.]),'latb':('latb',[-90.,0.,90.])})
+    path=tmp_path/'localtime_frac.nc';dataset.to_netcdf(path)
+    actual=load_local_time_fractions_on_grid(grid([45.,135.,225.,315.],[-45.,45.]),path)
+    np.testing.assert_array_equal(actual['bins_hours'],[0.,12.,24.])
+    np.testing.assert_allclose(actual['fractions'][...,0],values.transpose(0,2,1),rtol=2e-15,atol=1e-15)
+    np.testing.assert_allclose(actual['fractions'][...,1],values.transpose(0,2,1)+.5,rtol=2e-15)
+    for bins in ([0,12,23],[0,0,24],[0.,12.5,24.]):
+        dataset.assign(bins=('bins',bins)).to_netcdf(path)
+        with pytest.raises(ValueError,match='local-time bins'):
+            load_local_time_fractions_on_grid(grid([45.],[-45.]),path)

@@ -248,6 +248,6 @@
   ],
   "sha256": {
     "scripts/validate_dust_scenario.py": "d98c5bf181e526065746bc5abab4b274bf37819d7f440decaef03213873d9695",
-    "package/src/celestials/planets/mars/dust_scenario.py": "679f3b48e9e1ecae66d50f9ec3a5bb65bebabe85788759d9c6f9778233e6f9aa"
+    "package/src/celestials/planets/mars/dust_scenario.py": "668466e8fb1ba6e55f54c5a0b9a46443ac3004f68e87a087bbb4e0069b7d0b3f"
   }
 }
