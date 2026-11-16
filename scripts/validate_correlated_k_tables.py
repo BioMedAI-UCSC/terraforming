@@ -9,8 +9,8 @@ import tempfile
 
 import numpy as np
 from src.framework.gcm._dinosaur import jax
-from src.framework.physics.correlated_k import load_ames_co2_tables,_interp2_log_table
-from native_reference import compile_routines
+from src.framework.physics.correlated_k import load_ames_co2_tables,_interp2_log_table,_interp_linear_k
+from native_reference import compile_routines,extract_routines
 
 
 RADIATION_BLOB="40d8879c3735bbec6cabc63817cad5220f281532"
@@ -78,10 +78,35 @@ enddo
 end subroutine
 end module
 """
+    routines,_=extract_routines(source/'atmos_param_mars/Rad/rtmod_mgcm.F90',RADIATION_BLOB,['optcv','optci'])
+    blocks=[]
+    for routine in routines:
+        start=routine.index('kcoef(1) =')
+        blocks.append(routine[start:routine.index('            taugas',start)])
+    linear_adapter="""
+subroutine ames_linear_tables(ir,sw) bind(C)
+real(c_double),intent(out) :: ir(7,51,10,5,16),sw(7,51,10,7,16)
+use_boxinterp12=.false.
+call ames_tables(ir,sw)
+end subroutine
+subroutine ames_linear_lookup(t,p,q,ir,sw) bind(C)
+real(c_double),value :: t,p,q
+real(c_double),intent(out) :: ir(5,16),sw(7,16)
+integer :: k,nw,ng,mt(1),mp(1),nh2o(1)
+real*8 :: tref(7),lcoef(4),lkcoef(1,4),wratio(1),kcoef(4),ans
+tref=[50.d0,100.d0,150.d0,200.d0,250.d0,300.d0,350.d0]
+k=1
+call tpindex(p,t,q,pfgasref,tref,lcoef,mt(k),mp(k),nh2o(k),wratio(k))
+lkcoef(k,:)=lcoef
+"""
+    for kind,bands,block in zip(('sw','ir'),(7,5),blocks,strict=True):
+        linear_adapter+=f'\ndo ng=1,16\ndo nw=1,{bands}\n'+block+f'\n{kind}(nw,ng)=ans\nenddo\nenddo\n'
+    linear_adapter+='end subroutine\nend module\n'
+    adapter=adapter.replace('end module',linear_adapter)
     jax.config.update("jax_enable_x64",True)
     with tempfile.TemporaryDirectory(prefix="ames-radiation-") as temporary:
         library,provenance=compile_routines(source/"atmos_param_mars/Rad/rtmod_mgcm.F90",
-            RADIATION_BLOB,["laginterp","lagrange","tpindex15","boxinterp","setspi"],
+            RADIATION_BLOB,["laginterp","lagrange","tpindex","tpindex15","boxinterp","setspi"],
             header,adapter,Path(temporary),compiler)
         native=ctypes.CDLL(str(library))
         array=np.ctypeslib.ndpointer(dtype=np.float64,flags="F_CONTIGUOUS")
@@ -110,8 +135,31 @@ end module
                     data['temperature_k'],data['pressure_mbar_ames'],temperature,pressure))
                 np.testing.assert_allclose(actual,reference,rtol=2e-12,atol=2e-12)
                 max_lookup_errors[kind]=max(max_lookup_errors[kind],float(np.max(np.abs(actual-reference))))
+        provenance['linear_interpolation_block_sha256']={kind:hashlib.sha256(block.encode()).hexdigest()
+            for kind,block in zip(('sw','ir'),blocks,strict=True)}
+        native.ames_linear_tables.argtypes=[array]*2;native.ames_linear_tables.restype=None
+        native.ames_linear_lookup.argtypes=[ctypes.c_double]*3+[array]*2
+        native.ames_linear_lookup.restype=None
+        native.ames_linear_tables(ir,sw)
+        for kind,reference in (('ir',ir),('sw',sw)):
+            np.testing.assert_allclose(10.**data[f'log10_k_{kind}_mixtures_ames'],reference,
+                rtol=3e-13,atol=1e-300,equal_nan=False)
+        linear_errors=dict(ir=0.,sw=0.);linear_cases=0
+        for temperature in (40.,50.,200.,203.03,350.,380.):
+            for pressure in (1e-9,1e-6,.3,3.,613.,1e4,2e4):
+                for water in (0.,1e-7,1e-5,.003,.25):
+                    native.ames_linear_lookup(temperature,pressure,water,ir_out,sw_out)
+                    for kind,reference in (('ir',ir_out),('sw',sw_out)):
+                        actual=np.asarray(_interp_linear_k(data[f'log10_k_{kind}_mixtures_ames'],
+                            data['temperature_k'],data['pressure_mbar_ames'],temperature,pressure,
+                            data['water_mass_fractions'],water))
+                        np.testing.assert_allclose(actual,reference,rtol=3e-12,atol=1e-300,equal_nan=False,
+                            err_msg=f'{kind} T={temperature} p={pressure} q={water}')
+                        linear_errors[kind]=max(linear_errors[kind],float(np.max(np.abs(actual-reference))))
+                    linear_cases+=1
     return dict(status="pass",reference=provenance,max_log10_table_errors=table_errors,
         max_log10_lookup_errors=max_lookup_errors,lookup_cases=100,
+        linear_lookup_cases=linear_cases,max_linear_k_errors=linear_errors,
         max_planck_intensity_error=planck_error,
         source_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         stage_sha256=hashlib.sha256(Path(__file__).with_name('stage_co2_radiation_tables.py').read_bytes()).hexdigest(),
@@ -120,7 +168,7 @@ end module
         asset_sha256=hashlib.sha256(Path(__file__).parents[1].joinpath(
             'package/src/framework/physics/co2_12band_tables.npz').read_bytes()).hexdigest(),
         jax_version=jax.__version__,devices=[str(x) for x in jax.devices()],
-        limits="12-band gas tables, dry lookup and Planck nodes only; continuous Planck interpolation is a differentiability adaptation; coupled radiation and cloud feedback need separate validation")
+        limits="Both 12-band interpolation paths, including unchanged linear-k blocks, T/log-pressure extrapolation and mixed water below the source's out-of-bounds last-bin read. Planck interpolation is continuous for derivatives; coupled radiation and cloud feedback need separate validation")
 
 
 def main():

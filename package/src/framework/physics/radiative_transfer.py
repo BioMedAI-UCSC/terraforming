@@ -25,7 +25,8 @@ def rayleigh_per_pa(gravity_m_s2):
 def column_fluxes(temperature,surface_temperature,pressure_half,pressure_full,
                   mu0,solar_intensity,albedo,emissivity,gravity_m_s2,*,particle_optics=None,
                   daylight_fraction=1.,radiation_mode='12band',water_mass_fraction=None,
-                  cia_molar_fractions=None,stratosphere_temperature=None,scale_surface_flux=False):
+                  cia_molar_fractions=None,stratosphere_temperature=None,scale_surface_flux=False,
+                  linear_k_interpolation=False):
     """Ames fillpt -> optical depths -> spectral fluxes -> layer heat flux.
 
     Inputs use kelvin, Pa and W/m2. solar_intensity has seven bands and includes
@@ -39,7 +40,8 @@ def column_fluxes(temperature,surface_temperature,pressure_half,pressure_full,
         water=jnp.broadcast_to(water_mass_fraction,jnp.shape(temperature))
         water=jnp.concatenate([jnp.zeros_like(water[:1]),jnp.zeros_like(water[:1]),
             jnp.repeat(water,2,axis=0)],axis=0)
-    gases=gas_subgrid(grid,mode=radiation_mode,water_mass_fraction=water)
+    gases=gas_subgrid(grid,mode=radiation_mode,water_mass_fraction=water,
+        linear_k_interpolation=linear_k_interpolation)
     if particle_optics is None:
         particle_optics=tuple((jnp.zeros(gas.shape[:2]+gas.shape[3:]),)*3 for gas in gases)
     if len(particle_optics)!=2:
@@ -74,7 +76,8 @@ def column_fluxes(temperature,surface_temperature,pressure_half,pressure_full,
 
 def make_radiation_component(particle_provider,*,radiation_interval_seconds=1848.,
                              radiation_mode='12band',water_vapor_tracer=None,cia_molar_fractions=None,
-                             solar_nonlte=True,nonlte_tracers=None,scale_surface_flux=False):
+                             solar_nonlte=True,nonlte_tracers=None,scale_surface_flux=False,
+                             linear_k_interpolation=False):
     """Build the Ames backend callback with an explicit particle-input provider.
 
     The provider receives (state, coords, specs, body, forcing, radiation_grid)
@@ -88,6 +91,8 @@ def make_radiation_component(particle_provider,*,radiation_interval_seconds=1848
         raise ValueError('radiation averaging interval must be finite and positive')
     if nonlte_tracers is not None and len(nonlte_tracers)!=2:
         raise ValueError('non-LTE cooling requires explicit CO2 and atomic oxygen tracer names')
+    if linear_k_interpolation and radiation_mode!='12band':
+        raise ValueError('linear k interpolation requires 12-band radiation')
     radiation_tables_jax(radiation_mode)
     def component(state,coords,specs,body,forcing):
         grid=coords.horizontal
@@ -120,7 +125,7 @@ def make_radiation_component(particle_provider,*,radiation_interval_seconds=1848
             forcing.albedo,forcing.emissivity,body.gravity_m_s2,particle_optics=particles,
             daylight_fraction=daylight,radiation_mode=radiation_mode,water_mass_fraction=water,
             cia_molar_fractions=cia_molar_fractions,stratosphere_temperature=strat,
-            scale_surface_flux=scale_surface_flux)
+            scale_surface_flux=scale_surface_flux,linear_k_interpolation=linear_k_interpolation)
         correction=jnp.zeros_like(temperature)
         capacity=body.cp_j_kg_k*jnp.diff(half,axis=0)/body.gravity_m_s2
         if solar_nonlte:

@@ -48,12 +48,13 @@ def test_decoded_coefficient_anchors_match_ames_records():
     assert data["clear_fraction_sw"][-1] == pytest.approx(0.94)
 
 
-def test_correlated_k_optical_depth_is_finite_positive_and_differentiable():
+@pytest.mark.parametrize('linear',[False,True])
+def test_correlated_k_optical_depth_is_finite_positive_and_differentiable(linear):
     temperature = jnp.full((3, 2, 2), 200.0)
     pressure = jnp.array([0.5, 2.0, 5.0])[:, None, None] * 100.0
     delta_pressure = jnp.full((3, 2, 2), 200.0)
     sw, ir = correlated_k.correlated_k_optical_depths(
-        temperature, pressure, delta_pressure
+        temperature, pressure, delta_pressure,linear_k_interpolation=linear
     )
     assert sw.shape == (7, 17, 3, 2, 2)
     assert ir.shape == (5, 17, 3, 2, 2)
@@ -65,13 +66,49 @@ def test_correlated_k_optical_depth_is_finite_positive_and_differentiable():
 
     def loss(offset):
         _, optical_depth = correlated_k.correlated_k_optical_depths(
-            temperature + offset, pressure, delta_pressure
+            temperature + offset, pressure, delta_pressure,linear_k_interpolation=linear
         )
         return jnp.mean(optical_depth)
 
     gradient = float(jax.grad(loss)(0.0))
     assert math.isfinite(gradient)
     assert abs(gradient) > 0.0
+
+
+def test_linear_k_mixed_water_reverse_derivative_and_empty_zero_top():
+    def objective(scale):
+        sw,ir=correlated_k.correlated_k_optical_depths(jnp.array([170.03,203.03])*scale,
+            jnp.array([0.,243.])*scale,jnp.array([0.,113.])*scale,
+            water_mass_fraction=.003*scale,linear_k_interpolation=True)
+        return jnp.sum(sw)+jnp.sum(ir)
+    automatic=jax.jit(jax.grad(objective))(1.)
+    assert np.isfinite(automatic) and automatic!=0.
+    for epsilon in (1e-5,1e-6):
+        np.testing.assert_allclose(automatic,(objective(1.+epsilon)-objective(1.-epsilon))/(2.*epsilon),rtol=2e-7)
+    sw,ir=correlated_k.correlated_k_optical_depths(jnp.array([170.03,203.03]),
+        jnp.array([0.,243.]),jnp.array([0.,113.]),linear_k_interpolation=True)
+    for value in (sw,ir):
+        assert np.isfinite(value).all()
+        np.testing.assert_array_equal(value[:,:,0],0.)
+
+
+def test_linear_k_last_water_bin_avoids_zero_weight_out_of_bounds_read():
+    def lookup(water):
+        return correlated_k.correlated_k_optical_depths(203.03,243.,113.,
+            water_mass_fraction=water,linear_k_interpolation=True)
+    for limit,outside in ((1e-7,0.),(.4,.5)):
+        for actual,expected in zip(lookup(outside),lookup(limit),strict=True):
+            assert np.isfinite(actual).all()
+            np.testing.assert_array_equal(actual,expected)
+
+
+@pytest.mark.parametrize('mode',['15band','extended'])
+def test_linear_k_rejects_incompatible_bands(mode):
+    from src.framework.physics.radiative_transfer import make_radiation_component
+    with pytest.raises(ValueError,match='12-band'):
+        correlated_k.correlated_k_optical_depths(200.,300.,100.,mode=mode,linear_k_interpolation=True)
+    with pytest.raises(ValueError,match='12-band'):
+        make_radiation_component(lambda *args:None,radiation_mode=mode,linear_k_interpolation=True)
 
 
 def test_channel_weights_preserve_each_spectral_band():

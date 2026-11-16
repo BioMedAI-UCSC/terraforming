@@ -87,14 +87,24 @@ def _interp2_log_table(table, temperature_axis, pressure_axis, temperature_k,
 
 
 def correlated_k_optical_depths(temperature_k, pressure_mid_pa, delta_pressure_pa,*,
-                               mode='12band',water_mass_fraction=None):
+                               mode='12band',water_mass_fraction=None,linear_k_interpolation=False):
     """Return SW/LW gas optical depths as ``(band, g, layer, lon, lat)``."""
     data = radiation_tables_jax(mode)
-    pressure_mbar = pressure_mid_pa / 100.0
-    delta_mbar = delta_pressure_pa / 100.0
+    pressure_mbar = jnp.asarray(pressure_mid_pa) / 100.0
+    delta_mbar = jnp.asarray(delta_pressure_pa) / 100.0
+    if linear_k_interpolation:
+        # Dinosaur's zero top needs a finite lookup; FV3 supplies positive pressure.
+        pressure_mbar=jnp.where(pressure_mbar==0.,
+            data['pressure_mbar_ames'][0],pressure_mbar)
     common = (data["temperature_k"], data["pressure_mbar_ames"], temperature_k,
               pressure_mbar)
-    if mode!='12band':
+    if linear_k_interpolation:
+        if mode!='12band': raise ValueError('linear k interpolation requires 12-band radiation')
+        tables=load_radiation_tables(mode)
+        water=0. if water_mass_fraction is None else water_mass_fraction
+        coefficients=[_interp_linear_k(tables[f'log10_k_{kind}_mixtures_ames'],
+            *common,data['water_mass_fractions'],water) for kind in ('sw','ir')]
+    elif mode!='12band':
         tables=load_radiation_tables(mode)
         water=0. if water_mass_fraction is None else water_mass_fraction
         mixture=jnp.clip(jnp.searchsorted(data['water_mass_fractions'],jnp.asarray(water),side='right')-1,0,9)
@@ -111,14 +121,37 @@ def correlated_k_optical_depths(temperature_k, pressure_mid_pa, delta_pressure_p
         log_sw=_interp2_log_table(tables['log10_k_sw_mixtures_ames'],*common,mixture_index=mixture)
         log_ir=_interp2_log_table(tables['log10_k_ir_mixtures_ames'],*common,mixture_index=mixture)
     scale = CO2_COLUMN_FACTOR_PER_MBAR * delta_mbar[..., None, None]
-    tau_sw = scale * 10.0 ** log_sw
-    tau_ir = scale * 10.0 ** log_ir
+    tau_sw,tau_ir=(tuple(scale*value for value in coefficients) if linear_k_interpolation else
+        (scale*10.0**log_sw,scale*10.0**log_ir))
     # The last channel is the Ames clear fraction and has zero gas opacity.
     tau_sw = jnp.concatenate([tau_sw, jnp.zeros_like(tau_sw[..., :1])], axis=-1)
     tau_ir = jnp.concatenate([tau_ir, jnp.zeros_like(tau_ir[..., :1])], axis=-1)
     return jnp.moveaxis(tau_sw, (-2, -1), (0, 1)), jnp.moveaxis(
         tau_ir, (-2, -1), (0, 1)
     )
+
+
+def _interp_linear_k(table,taxis,paxis,temperature,pressure,water_axis,water):
+    """Original tpindex/optcv interpolation, including T/log-pressure extrapolation."""
+    temperature,pressure,water=map(jnp.asarray,(temperature,pressure,water))
+    logp=jnp.log10(pressure);logaxis=jnp.log10(paxis)
+    it=jnp.clip(jnp.searchsorted(taxis,temperature,side='left')-1,0,len(taxis)-2)
+    # tpindex stops at n=l_pint-1, so its highest lower index is l_pint-2.
+    ip=jnp.clip(jnp.searchsorted(logaxis,logp,side='left')-1,0,len(logaxis)-3)
+    iw=jnp.clip(jnp.searchsorted(water_axis,water,side='right')-1,0,len(water_axis)-1)
+    jw=jnp.minimum(iw+1,len(water_axis)-1)
+    between=(water>water_axis[0])&(water<water_axis[-1])
+    fw=jnp.where(between,(water-water_axis[iw])/jnp.where(between,water_axis[jw]-water_axis[iw],1.),0.)
+    ft=(temperature-taxis[it])/(taxis[it+1]-taxis[it])
+    fp=(logp-logaxis[ip])/(logaxis[ip+1]-logaxis[ip])
+    values=10.**jnp.asarray(table)
+    def lookup(ti,pi):
+        lower=values[ti,pi,iw]
+        # Avoid the source's zero-weight out-of-bounds read at the last water bin.
+        return lower+fw[...,None,None]*(values[ti,pi,jw]-lower)
+    a,b,c,d=lookup(it,ip),lookup(it,ip+1),lookup(it+1,ip+1),lookup(it+1,ip)
+    weights=((1.-fp)*(1.-ft),fp*(1.-ft),fp*ft,(1.-fp)*ft)
+    return sum(weight[...,None,None]*value for weight,value in zip(weights,(a,b,c,d)))
 
 
 def _box_lookup(table,taxis,paxis,temperature,pressure,mixture):

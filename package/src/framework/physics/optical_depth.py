@@ -16,11 +16,11 @@ class OpticalColumn(NamedTuple):
     gas_column: object
 
 
-def gas_subgrid(grid,*,mode='12band',water_mass_fraction=None):
+def gas_subgrid(grid,*,mode='12band',water_mass_fraction=None,linear_k_interpolation=False):
     """Dry-CO2 optical depths at every original fillpt subinterval, in Pa."""
     sw,ir=correlated_k_optical_depths(grid.lookup_temperature[1:],
         grid.lookup_pressure[1:],jnp.diff(grid.pressure,axis=0),mode=mode,
-        water_mass_fraction=water_mass_fraction)
+        water_mass_fraction=water_mass_fraction,linear_k_interpolation=linear_k_interpolation)
     return tuple(jnp.moveaxis(x,(0,1),(1,2)) for x in (sw,ir))
 
 

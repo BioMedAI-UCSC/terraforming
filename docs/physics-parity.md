@@ -24,12 +24,12 @@ No complete-model equivalence or speed claim has passed yet.
 | PBL turbulent mixing | `boundary_layer.eddy_coefficients` | Compiled original `eddycoef`, 4/12/40 layers | Used by the new column driver |
 | PBL gas-column driver | `boundary_layer.column_step` | Compiled original `pbl_driver`, `newpbl`, matrix, scaling and solve routines; 18 column cases with both heat-flux choices, both heat derivatives and exchange coefficients; temperature errors below 1e-13 K | Connected to soil/frost and Dinosaur; optional solved-temperature heat flux, restart and three-step gradient checks pass. Gas species mix separately from cloud and moment particle tracers |
 | Radiation pressure-table staging | `stage_co2_radiation_tables.ames_pressure_interpolation` | Original `laginterp` and `lagrange`; all ten gas mixtures match exactly in the recorded run | Enabled in the existing correlated-k kernel |
-| Radiation dry-table lookup | `correlated_k._interp2_log_table` on the refined pressure grid | Original `tpindex15` and `boxinterp`; 100 temperature/pressure points, including values outside the tables | Enabled in the existing correlated-k kernel |
+| Radiation table lookup | `correlated_k._interp2_log_table` and `_interp_linear_k` | Original `tpindex15`/`boxinterp` at 100 points; original `tpindex` and unchanged linear-k blocks at 210 mixed-water/extrapolation points | Default log-k lookup and optional `--linear-k-interpolation` |
 | Two-stream flux kernels | `scattering_transfer.visible_fluxes` and `infrared_fluxes` | Original `gfluxv`, `gfluxi`, `dsolver`, `dtridgl`; 1/4/12/40-layer thin/moderate/thick columns | Visible keeps the original solve. IR solves the same hemispheric equations with stable layer adding; the composed check uses unchanged Fortran routines at binary128 without relaxing flux tolerances |
 | Radiation pressure/temperature grid | `radiation_grid.radiation_grid` | Original `fillpt`; all output arrays agree exactly in the recorded 1/4/12/40-layer cases, with positive and zero top pressure | Supports Dinosaur's zero top without adding ghost mass or a pressure floor |
 | Spectral flux integration | `spectral_flux.visible_spectrum` and `infrared_spectrum` | Original `sfluxv`, `sfluxi`, `getdetau` and flux solvers; 27 cases with weak/mixed/strong gas opacity and both surface-emission scaling settings | Connected to optical aggregation; the special bottom IR sample uses its full, possibly floored, depth |
 | Optical-depth aggregation | `optical_depth.gas_subgrid` and `aggregate_optics` | Original `optcv15`, `optci15`, `tpindex15`, `boxinterp`; 16 clear/dust cases at 1/4/12/40 layers, positive and zero top pressure | Gas absorption, supplied particle scattering/moments and Rayleigh scattering are connected |
-| Composed radiation | `radiative_transfer.column_fluxes` and `make_radiation_component` | Composed original grid, optics and spectral solvers; 32 day/night and clear/dust cases at 4/12 layers, with 170/200 K stratospheres; unchanged interface-flux gates | Connected to Dinosaur; a three-step reverse derivative passes with full radiation |
+| Composed radiation | `radiative_transfer.column_fluxes` and `make_radiation_component` | Composed original grid, optics and spectral solvers; 192 day/night and clear/dust cases at 4/12/56 layers, both interpolation and surface-normalization choices, with 170/200 K stratospheres; unchanged interface-flux gates | Connected to Dinosaur; a three-step reverse derivative passes with full radiation |
 | Absolute Planck means | `correlated_k.planck_band_intensities` | Original `setspi`; 50--900 K at 0.1 K nodes | Continuous interpolation preserves temperature derivatives; original integer indexing does not |
 | Soil/surface frost column | `soil_frost.surface_step` and `subsurface_diffusivity` | Original `progts`, `trdslv`, `albedo_calc`; uniform soil plus case-7 subsurface ice at five northern/southern/equatorial latitudes | Connected to PBL; native TES inertia and GRS ice-boundary maps can supply the interfaces |
 | Surface maps | `surface.reference_surface_fields_on_grid` | Four input files match pinned Git blobs; T21/T42 conservative area integrals pass; orientation, longitude seam and northern inertia-cap tests pass | Uses Gaussian cell areas and retains the native cap north of 65 degrees |
@@ -592,6 +592,41 @@ smoke with both normalization options enabled completed and resumed to two
 steps. Removing or changing the solar constant rejects resume and preserves
 the checkpoint.
 
+## Alternate 12-band interpolation
+
+`--config reference --linear-k-interpolation` selects the supported
+`use_boxinterp12=false` equations. It uses linear absorption coefficients,
+interpolates water content, and extrapolates in temperature and log pressure.
+The native upper pressure-index rule is retained. This option requires
+12-band spectral radiation and is saved in restart identity. It remains off
+in the frozen matched benchmark.
+
+The comparison compiles unchanged `optcv`, `optci` and `tpindex` routines.
+Another 210 direct coefficient cases use the unchanged source interpolation
+blocks and include both sides of the temperature/pressure bounds. Ninety-six
+optical cases cover both interpolation settings, three water contents,
+1/4/12/40 layers, particles and both top-pressure choices. Native unused optical
+channels have undefined values; only dispatched channels are compared for those
+fields. Cumulative optical depths and gas columns are checked in full.
+The 192 composed-flux cases check both paths with unchanged interface gates.
+
+Two explicit adaptations are required. Dinosaur supplies zero pressure at its
+top, where native linear extrapolation has no finite value. Only exactly zero
+lookup pressures use the first table pressure; physical pressure intervals and
+gas mass stay unchanged. Positive-pressure extrapolation matches the native
+source. At the last water bin, the source reads past the table with zero weight.
+JAX uses the last valid entry for that zero-weight term. Native comparisons
+stay below that invalid read; unit checks cover the defined endpoint behavior.
+
+Energy-balance and reverse derivative checks pass for both interpolation
+settings. The coupled surface-normalization test retains three time steps and
+exact restart continuation under each setting. Bulk and moment-water global
+checks close raw water budgets and preserve exact restart continuation with
+linear-k optics. A moist three-step reverse derivative also passes. A real-input
+T21/56-level run with all three radiation controls enabled completed and resumed
+to two steps. Removing linear interpolation rejects resume and preserves the
+checkpoint.
+
 ## Required remaining work
 
 The released cloud benchmark uses visible dust (`dgdm_type=1`) with
@@ -629,7 +664,7 @@ limiter or establish matched transport accuracy.
 | CO2 switches | Atmospheric condensation, atmospheric loss and gas-mass feedback are independent source controls. Ninety-six unchanged native control-block cases check all combinations and initial-CO2-weighted surface exchange. Another 384 unchanged initialization cases check configurable exchange depths and strict pressure/latitude boundaries. Column tests retain condensation heating when precipitation loss is disabled, and retain surface snow when mass feedback is disabled. Held suspended clouds still mix as tracers when their phase driver is off. Global tests check disabled-feedback behavior, exact restart continuation and three-step reverse derivatives. |
 | Surface/diffusion controls | `do_mars_surface`, `do_vert_diff` and `do_ames_pbl` now select the released active branches. Without Mars surface physics, radiation sees 170 K, albedo 0.25 and emissivity 1; soil/CO2 surface exchange is inactive while drag and convection remain available. Twelve unchanged native `diffuse` cases prove the release fallback leaves tendencies unchanged because `fv3_turb` is excluded. Inactive PBL exchange fields are defined as zero instead of copying uninitialized source values. Surface-dependent water/dust modes are rejected without the source's surface reservoir initialization. |
 | Process controls | `freeze_tracer_fields`, `no_forcing` and the released `gust_fact` correction are connected to Dinosaur and the runner. Native blocks check tracer freezing, no-forcing early return and gust stress; column/global checks retain surface/history changes under freezing and skip all physical updates under no forcing. The released tracer-source/sink helper has no caller. Alternate gust/turbulence drivers are excluded by build flags. |
-| Module controls | Surface IR normalization is connected and checked. Solar normalization (`scale_by_scon`) reuses the existing orbit and is native-checked. The supported alternate 12-band interpolation (`use_boxinterp12=false`) still needs implementation and native validation. Its `optcv`/`optci` path interpolates linear k values across water, temperature and log pressure, and extrapolates at table boundaries; the current default interpolates log k and selects a water bin. PBL `htflux_recalc`, settling `scaveng` and moment-cloud `makeclouds` are connected through the column, Dinosaur and runner. Seeded-cloud tests cover retained cores, independent water settling/surface exchange, exact restarts and three-step derivatives. The audit also records the seven moment-cloud namelist entries, including its unused module-local `facsubl`. Continue the audit of the other modules. |
+| Module controls | Surface IR normalization is connected and checked. Solar normalization (`scale_by_scon`) reuses the existing orbit and is native-checked. The supported alternate 12-band interpolation (`use_boxinterp12=false`) is connected through `--linear-k-interpolation`, with native lookup, optical and composed-flux comparisons. It interpolates linear k across water, temperature and log pressure, retaining source extrapolation and indexing. The default keeps log-k interpolation and a selected water bin. PBL `htflux_recalc`, settling `scaveng` and moment-cloud `makeclouds` are connected through the column, Dinosaur and runner. Seeded-cloud tests cover retained cores, independent water settling/surface exchange, exact restarts and three-step derivatives. The audit also records the seven moment-cloud namelist entries, including its unused module-local `facsubl`. Continue the audit of the other modules. |
 | Interactive dust | Lifting, advection, sedimentation, surface reservoirs, coagulation and material budgets are connected independently of moment water. Matched climate validation remains. |
 | Water | Bulk and moment phase/growth/settling paths, surface exchange, saved effective inputs, state/restarts and optical feedback are connected. Two physical dust modes pass combined global material, restart and three-step derivative checks. Long climate validation remains. Bin cloud microphysics is unavailable in the public release. |
 | Drag | Rayleigh, Palmer terrain drag and non-orographic gravity-wave drag are implemented and checked. Polar water and terrain maps pass pinned-blob and T21/T42 area checks. Long momentum/energy audits remain. Gravity-wave schemes are off in the default Ames present-Mars setup. |

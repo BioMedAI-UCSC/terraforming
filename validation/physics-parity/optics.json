@@ -1,30 +1,63 @@
 {
   "status": "pass",
-  "reference": {
-    "source_git_blob": "40d8879c3735bbec6cabc63817cad5220f281532",
-    "compiled_source_sha256": "d991cfa0c2ea0d8c7fc86515ca19b0a90f9ab3d1d32160ae7d1477fb05c1ce9c",
-    "routine_sha256": {
-      "optcv15": "6ea07e5df780a2146b41404bc80c246ad90601a823e93abe44ca7a9bd8d02917",
-      "optci15": "f025b920a4f972de80853e40f4e9be13d668838625c441d4b51eff67d42f3df6",
-      "tpindex15": "5c28d9fa469aed1d3246ece4f83656623faceb9812b8ae4156a04e48c785fb2b",
-      "boxinterp": "c730f46a9887ddd91eb676a99384eb9e12abaef9d026f3de53e2326f50ab65a3",
-      "kinter": "6c30b1f4e075ded23c51ce6f07a595a8806eab074c0194875fe2d08b1a6b3e7f"
+  "reference": [
+    {
+      "source_git_blob": "40d8879c3735bbec6cabc63817cad5220f281532",
+      "compiled_source_sha256": "a2b1d5a9cc63c6a99d5c304c51fb8369f31a76d325e308e93726c248ba515dcf",
+      "routine_sha256": {
+        "optcv15": "6ea07e5df780a2146b41404bc80c246ad90601a823e93abe44ca7a9bd8d02917",
+        "optci15": "f025b920a4f972de80853e40f4e9be13d668838625c441d4b51eff67d42f3df6",
+        "optcv": "7672153e08dbfe2ff409136eced37a17acefb9d3189bb547331a4c38daaab9dc",
+        "optci": "d079b4a149ef1c4c6eb8143b62f18b50c722695ce938280705a2ac7b8dfd3b09",
+        "tpindex": "51ee2c6070c5c6a71d0a50ee971d4b77a0efcdd8be96ef47cba3501e7c3d2800",
+        "tpindex15": "5c28d9fa469aed1d3246ece4f83656623faceb9812b8ae4156a04e48c785fb2b",
+        "boxinterp": "c730f46a9887ddd91eb676a99384eb9e12abaef9d026f3de53e2326f50ab65a3",
+        "kinter": "6c30b1f4e075ded23c51ce6f07a595a8806eab074c0194875fe2d08b1a6b3e7f"
+      },
+      "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+      "compiler_flags": [
+        "-O3",
+        "-cpp",
+        "-fdefault-real-8",
+        "-fdefault-double-8",
+        "-fPIC",
+        "-shared"
+      ],
+      "real_precision_bits": 64,
+      "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged"
     },
-    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
-    "compiler_flags": [
-      "-O3",
-      "-cpp",
-      "-fdefault-real-8",
-      "-fdefault-double-8",
-      "-fPIC",
-      "-shared"
-    ],
-    "real_precision_bits": 64,
-    "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged"
-  },
+    {
+      "source_git_blob": "40d8879c3735bbec6cabc63817cad5220f281532",
+      "compiled_source_sha256": "d96fd407f44b96594e550500e591b91c55e7b206b82e4cdc5dba1fec2442a4d9",
+      "routine_sha256": {
+        "optcv15": "6ea07e5df780a2146b41404bc80c246ad90601a823e93abe44ca7a9bd8d02917",
+        "optci15": "f025b920a4f972de80853e40f4e9be13d668838625c441d4b51eff67d42f3df6",
+        "optcv": "7672153e08dbfe2ff409136eced37a17acefb9d3189bb547331a4c38daaab9dc",
+        "optci": "d079b4a149ef1c4c6eb8143b62f18b50c722695ce938280705a2ac7b8dfd3b09",
+        "tpindex": "51ee2c6070c5c6a71d0a50ee971d4b77a0efcdd8be96ef47cba3501e7c3d2800",
+        "tpindex15": "5c28d9fa469aed1d3246ece4f83656623faceb9812b8ae4156a04e48c785fb2b",
+        "boxinterp": "c730f46a9887ddd91eb676a99384eb9e12abaef9d026f3de53e2326f50ab65a3",
+        "kinter": "6c30b1f4e075ded23c51ce6f07a595a8806eab074c0194875fe2d08b1a6b3e7f"
+      },
+      "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+      "compiler_flags": [
+        "-O3",
+        "-cpp",
+        "-fdefault-real-8",
+        "-fdefault-double-8",
+        "-fPIC",
+        "-shared"
+      ],
+      "real_precision_bits": 64,
+      "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged",
+      "zero_pressure_adaptation": "Zero lookup pressures use the first table pressure; pressure intervals and gas mass are unchanged. This finite extension is required by Dinosaur zero top. FV3 supplies positive top pressure; original routine bodies unchanged."
+    }
+  ],
   "cases": [
     {
       "layers": 1,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.0,
       "zero_top": false,
       "dust_loading": 0.0,
       "max_errors": [
@@ -46,6 +79,8 @@
     },
     {
       "layers": 1,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.0,
       "zero_top": false,
       "dust_loading": 0.1,
       "max_errors": [
@@ -67,6 +102,8 @@
     },
     {
       "layers": 1,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.0,
       "zero_top": true,
       "dust_loading": 0.0,
       "max_errors": [
@@ -88,6 +125,8 @@
     },
     {
       "layers": 1,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.0,
       "zero_top": true,
       "dust_loading": 0.1,
       "max_errors": [
@@ -109,6 +148,8 @@
     },
     {
       "layers": 4,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.0,
       "zero_top": false,
       "dust_loading": 0.0,
       "max_errors": [
@@ -130,6 +171,8 @@
     },
     {
       "layers": 4,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.0,
       "zero_top": false,
       "dust_loading": 0.1,
       "max_errors": [
@@ -151,6 +194,8 @@
     },
     {
       "layers": 4,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.0,
       "zero_top": true,
       "dust_loading": 0.0,
       "max_errors": [
@@ -172,6 +217,8 @@
     },
     {
       "layers": 4,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.0,
       "zero_top": true,
       "dust_loading": 0.1,
       "max_errors": [
@@ -193,6 +240,8 @@
     },
     {
       "layers": 12,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.0,
       "zero_top": false,
       "dust_loading": 0.0,
       "max_errors": [
@@ -214,6 +263,8 @@
     },
     {
       "layers": 12,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.0,
       "zero_top": false,
       "dust_loading": 0.1,
       "max_errors": [
@@ -235,6 +286,8 @@
     },
     {
       "layers": 12,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.0,
       "zero_top": true,
       "dust_loading": 0.0,
       "max_errors": [
@@ -256,6 +309,8 @@
     },
     {
       "layers": 12,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.0,
       "zero_top": true,
       "dust_loading": 0.1,
       "max_errors": [
@@ -277,6 +332,8 @@
     },
     {
       "layers": 40,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.0,
       "zero_top": false,
       "dust_loading": 0.0,
       "max_errors": [
@@ -298,6 +355,8 @@
     },
     {
       "layers": 40,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.0,
       "zero_top": false,
       "dust_loading": 0.1,
       "max_errors": [
@@ -319,6 +378,8 @@
     },
     {
       "layers": 40,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.0,
       "zero_top": true,
       "dust_loading": 0.0,
       "max_errors": [
@@ -340,6 +401,8 @@
     },
     {
       "layers": 40,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.0,
       "zero_top": true,
       "dust_loading": 0.1,
       "max_errors": [
@@ -358,14 +421,1854 @@
           1.3969838619232178e-08
         ]
       ]
+    },
+    {
+      "layers": 1,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.003,
+      "zero_top": false,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          3.001332515850663e-11,
+          1.9984014443252818e-15,
+          0.0,
+          3.001332515850663e-11,
+          1.862645149230957e-09
+        ],
+        [
+          4.656612873077393e-10,
+          0.0,
+          0.0,
+          1.546140993013978e-11,
+          1.546140993013978e-11
+        ]
+      ]
+    },
+    {
+      "layers": 1,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.003,
+      "zero_top": false,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          2.955857780762017e-11,
+          1.5543122344752192e-15,
+          1.1102230246251565e-16,
+          5.820766091346741e-11,
+          1.862645149230957e-09
+        ],
+        [
+          9.313225746154785e-10,
+          1.0547118733938987e-15,
+          1.1102230246251565e-16,
+          9.313225746154785e-10,
+          1.546140993013978e-11
+        ]
+      ]
+    },
+    {
+      "layers": 1,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.003,
+      "zero_top": true,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          1.862645149230957e-09,
+          1.6653345369377348e-15,
+          0.0,
+          3.725290298461914e-09,
+          3.001332515850663e-11
+        ],
+        [
+          1.5916157281026244e-11,
+          0.0,
+          0.0,
+          1.6370904631912708e-11,
+          1.6370904631912708e-11
+        ]
+      ]
+    },
+    {
+      "layers": 1,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.003,
+      "zero_top": true,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          1.862645149230957e-09,
+          1.5543122344752192e-15,
+          1.1102230246251565e-16,
+          9.313225746154785e-10,
+          3.001332515850663e-11
+        ],
+        [
+          1.5688783605583012e-11,
+          8.881784197001252e-16,
+          0.0,
+          1.5916157281026244e-11,
+          1.6370904631912708e-11
+        ]
+      ]
+    },
+    {
+      "layers": 4,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.003,
+      "zero_top": false,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          7.636845111846924e-08,
+          3.164135620181696e-15,
+          0.0,
+          7.636845111846924e-08,
+          7.450580596923828e-08
+        ],
+        [
+          4.656612873077393e-10,
+          0.0,
+          0.0,
+          4.656612873077393e-10,
+          1.0186340659856796e-10
+        ]
+      ]
+    },
+    {
+      "layers": 4,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.003,
+      "zero_top": false,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          7.636845111846924e-08,
+          1.6653345369377348e-15,
+          1.1102230246251565e-16,
+          7.636845111846924e-08,
+          7.450580596923828e-08
+        ],
+        [
+          9.313225746154785e-10,
+          1.3877787807814457e-15,
+          1.1102230246251565e-16,
+          9.313225746154785e-10,
+          1.0186340659856796e-10
+        ]
+      ]
+    },
+    {
+      "layers": 4,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.003,
+      "zero_top": true,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          7.636845111846924e-08,
+          2.0539125955565396e-15,
+          0.0,
+          7.636845111846924e-08,
+          7.450580596923828e-08
+        ],
+        [
+          4.656612873077393e-10,
+          0.0,
+          0.0,
+          9.313225746154785e-10,
+          9.313225746154785e-10
+        ]
+      ]
+    },
+    {
+      "layers": 4,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.003,
+      "zero_top": true,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          7.636845111846924e-08,
+          1.609823385706477e-15,
+          1.1102230246251565e-16,
+          7.636845111846924e-08,
+          7.450580596923828e-08
+        ],
+        [
+          4.656612873077393e-10,
+          9.992007221626409e-16,
+          0.0,
+          9.822542779147625e-11,
+          9.313225746154785e-10
+        ]
+      ]
+    },
+    {
+      "layers": 12,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.003,
+      "zero_top": false,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          3.213062882423401e-08,
+          3.9968028886505635e-15,
+          0.0,
+          2.60770320892334e-08,
+          2.9802322387695312e-08
+        ],
+        [
+          2.0372681319713593e-09,
+          0.0,
+          0.0,
+          1.862645149230957e-09,
+          1.862645149230957e-09
+        ]
+      ]
+    },
+    {
+      "layers": 12,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.003,
+      "zero_top": false,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          3.166496753692627e-08,
+          3.497202527569243e-15,
+          1.6653345369377348e-16,
+          2.60770320892334e-08,
+          2.9802322387695312e-08
+        ],
+        [
+          2.0372681319713593e-09,
+          1.6653345369377348e-15,
+          1.1102230246251565e-16,
+          1.6298145055770874e-09,
+          1.862645149230957e-09
+        ]
+      ]
+    },
+    {
+      "layers": 12,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.003,
+      "zero_top": true,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          3.213062882423401e-08,
+          3.9968028886505635e-15,
+          0.0,
+          2.7939677238464355e-08,
+          2.60770320892334e-08
+        ],
+        [
+          2.0372681319713593e-09,
+          0.0,
+          0.0,
+          1.862645149230957e-09,
+          1.862645149230957e-09
+        ]
+      ]
+    },
+    {
+      "layers": 12,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.003,
+      "zero_top": true,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          3.166496753692627e-08,
+          3.2751579226442118e-15,
+          2.220446049250313e-16,
+          2.60770320892334e-08,
+          2.60770320892334e-08
+        ],
+        [
+          2.0372681319713593e-09,
+          1.7763568394002505e-15,
+          1.1102230246251565e-16,
+          1.862645149230957e-09,
+          1.862645149230957e-09
+        ]
+      ]
+    },
+    {
+      "layers": 40,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.003,
+      "zero_top": false,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          2.9802322387695312e-08,
+          4.163336342344337e-15,
+          0.0,
+          1.862645149230957e-08,
+          1.4901161193847656e-08
+        ],
+        [
+          6.984919309616089e-09,
+          0.0,
+          0.0,
+          1.30385160446167e-08,
+          1.30385160446167e-08
+        ]
+      ]
+    },
+    {
+      "layers": 40,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.003,
+      "zero_top": false,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          2.9802322387695312e-08,
+          2.7755575615628914e-15,
+          3.3306690738754696e-16,
+          1.6763806343078613e-08,
+          1.4901161193847656e-08
+        ],
+        [
+          6.868503987789154e-09,
+          2.6645352591003757e-15,
+          2.220446049250313e-16,
+          1.30385160446167e-08,
+          1.30385160446167e-08
+        ]
+      ]
+    },
+    {
+      "layers": 40,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.003,
+      "zero_top": true,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          2.9802322387695312e-08,
+          4.163336342344337e-15,
+          0.0,
+          2.0489096641540527e-08,
+          1.862645149230957e-08
+        ],
+        [
+          6.984919309616089e-09,
+          0.0,
+          0.0,
+          1.30385160446167e-08,
+          1.30385160446167e-08
+        ]
+      ]
+    },
+    {
+      "layers": 40,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.003,
+      "zero_top": true,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          3.026798367500305e-08,
+          2.831068712794149e-15,
+          2.220446049250313e-16,
+          2.0489096641540527e-08,
+          1.862645149230957e-08
+        ],
+        [
+          6.868503987789154e-09,
+          1.915134717478395e-15,
+          2.220446049250313e-16,
+          1.3969838619232178e-08,
+          1.30385160446167e-08
+        ]
+      ]
+    },
+    {
+      "layers": 1,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.25,
+      "zero_top": false,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          1.979060471057892e-09,
+          1.9984014443252818e-15,
+          0.0,
+          1.862645149230957e-09,
+          1.979060471057892e-09
+        ],
+        [
+          4.656612873077393e-10,
+          0.0,
+          0.0,
+          4.656612873077393e-10,
+          9.313225746154785e-10
+        ]
+      ]
+    },
+    {
+      "layers": 1,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.25,
+      "zero_top": false,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          3.725290298461914e-09,
+          1.3877787807814457e-15,
+          5.551115123125783e-17,
+          3.725290298461914e-09,
+          1.979060471057892e-09
+        ],
+        [
+          9.313225746154785e-10,
+          7.771561172376096e-16,
+          0.0,
+          9.313225746154785e-10,
+          9.313225746154785e-10
+        ]
+      ]
+    },
+    {
+      "layers": 1,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.25,
+      "zero_top": true,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          1.949956640601158e-09,
+          1.9984014443252818e-15,
+          0.0,
+          1.862645149230957e-09,
+          1.862645149230957e-09
+        ],
+        [
+          1.1350493878126144e-09,
+          0.0,
+          0.0,
+          1.1350493878126144e-09,
+          9.313225746154785e-10
+        ]
+      ]
+    },
+    {
+      "layers": 1,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.25,
+      "zero_top": true,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          1.949956640601158e-09,
+          9.992007221626409e-16,
+          2.7755575615628914e-17,
+          1.979060471057892e-09,
+          1.862645149230957e-09
+        ],
+        [
+          1.1641532182693481e-09,
+          1.7763568394002505e-15,
+          0.0,
+          1.3969838619232178e-09,
+          9.313225746154785e-10
+        ]
+      ]
+    },
+    {
+      "layers": 4,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.25,
+      "zero_top": false,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          5.704350769519806e-09,
+          2.1094237467877974e-15,
+          0.0,
+          7.450580596923828e-09,
+          9.313225746154785e-09
+        ],
+        [
+          2.0023435354232788e-08,
+          0.0,
+          0.0,
+          2.0489096641540527e-08,
+          2.0489096641540527e-08
+        ]
+      ]
+    },
+    {
+      "layers": 4,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.25,
+      "zero_top": false,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          5.704350769519806e-09,
+          1.5543122344752192e-15,
+          1.1102230246251565e-16,
+          1.1175870895385742e-08,
+          9.313225746154785e-09
+        ],
+        [
+          2.0954757928848267e-08,
+          1.6653345369377348e-15,
+          1.1102230246251565e-16,
+          2.1420419216156006e-08,
+          2.0489096641540527e-08
+        ]
+      ]
+    },
+    {
+      "layers": 4,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.25,
+      "zero_top": true,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          5.704350769519806e-09,
+          2.1094237467877974e-15,
+          0.0,
+          9.313225746154785e-09,
+          9.313225746154785e-09
+        ],
+        [
+          2.0023435354232788e-08,
+          0.0,
+          0.0,
+          2.0489096641540527e-08,
+          2.0489096641540527e-08
+        ]
+      ]
+    },
+    {
+      "layers": 4,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.25,
+      "zero_top": true,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          5.587935447692871e-09,
+          1.7763568394002505e-15,
+          1.1102230246251565e-16,
+          7.450580596923828e-09,
+          9.313225746154785e-09
+        ],
+        [
+          2.0489096641540527e-08,
+          2.831068712794149e-15,
+          5.551115123125783e-17,
+          2.0954757928848267e-08,
+          2.0489096641540527e-08
+        ]
+      ]
+    },
+    {
+      "layers": 12,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.25,
+      "zero_top": false,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          5.4016709327697754e-08,
+          3.552713678800501e-15,
+          0.0,
+          5.4016709327697754e-08,
+          5.587935447692871e-08
+        ],
+        [
+          1.0710209608078003e-08,
+          0.0,
+          0.0,
+          1.3969838619232178e-08,
+          1.30385160446167e-08
+        ]
+      ]
+    },
+    {
+      "layers": 12,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.25,
+      "zero_top": false,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          5.3085386753082275e-08,
+          2.1649348980190553e-15,
+          1.1102230246251565e-16,
+          5.4016709327697754e-08,
+          5.587935447692871e-08
+        ],
+        [
+          1.0710209608078003e-08,
+          1.8318679906315083e-15,
+          1.1102230246251565e-16,
+          1.3504177331924438e-08,
+          1.30385160446167e-08
+        ]
+      ]
+    },
+    {
+      "layers": 12,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.25,
+      "zero_top": true,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          5.4016709327697754e-08,
+          3.552713678800501e-15,
+          0.0,
+          5.587935447692871e-08,
+          5.587935447692871e-08
+        ],
+        [
+          1.0710209608078003e-08,
+          0.0,
+          0.0,
+          1.30385160446167e-08,
+          1.30385160446167e-08
+        ]
+      ]
+    },
+    {
+      "layers": 12,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.25,
+      "zero_top": true,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          5.21540641784668e-08,
+          2.1649348980190553e-15,
+          1.1102230246251565e-16,
+          5.4016709327697754e-08,
+          5.587935447692871e-08
+        ],
+        [
+          1.0477378964424133e-08,
+          1.7763568394002505e-15,
+          5.551115123125783e-17,
+          1.30385160446167e-08,
+          1.30385160446167e-08
+        ]
+      ]
+    },
+    {
+      "layers": 40,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.25,
+      "zero_top": false,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          1.0186340659856796e-09,
+          4.107825191113079e-15,
+          0.0,
+          2.7939677238464355e-09,
+          1.862645149230957e-09
+        ],
+        [
+          1.1175870895385742e-08,
+          0.0,
+          0.0,
+          1.862645149230957e-08,
+          1.862645149230957e-08
+        ]
+      ]
+    },
+    {
+      "layers": 40,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.25,
+      "zero_top": false,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          1.0186340659856796e-09,
+          1.9984014443252818e-15,
+          3.3306690738754696e-16,
+          3.725290298461914e-09,
+          1.862645149230957e-09
+        ],
+        [
+          1.1175870895385742e-08,
+          3.2751579226442118e-15,
+          2.220446049250313e-16,
+          2.0489096641540527e-08,
+          1.862645149230957e-08
+        ]
+      ]
+    },
+    {
+      "layers": 40,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.25,
+      "zero_top": true,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          1.0186340659856796e-09,
+          4.107825191113079e-15,
+          0.0,
+          3.725290298461914e-09,
+          1.862645149230957e-09
+        ],
+        [
+          1.1175870895385742e-08,
+          0.0,
+          0.0,
+          1.862645149230957e-08,
+          1.862645149230957e-08
+        ]
+      ]
+    },
+    {
+      "layers": 40,
+      "linear_k_interpolation": false,
+      "water_mass_fraction": 0.25,
+      "zero_top": true,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          1.0186340659856796e-09,
+          2.886579864025407e-15,
+          2.220446049250313e-16,
+          1.862645149230957e-09,
+          1.862645149230957e-09
+        ],
+        [
+          1.1175870895385742e-08,
+          2.6645352591003757e-15,
+          1.1102230246251565e-16,
+          1.862645149230957e-08,
+          1.862645149230957e-08
+        ]
+      ]
+    },
+    {
+      "layers": 1,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.0,
+      "zero_top": false,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          1.862645149230957e-09,
+          1.1102230246251565e-16,
+          0.0,
+          1.862645149230957e-09,
+          1.862645149230957e-09
+        ],
+        [
+          4.656612873077393e-10,
+          0.0,
+          0.0,
+          9.313225746154785e-10,
+          9.313225746154785e-10
+        ]
+      ]
+    },
+    {
+      "layers": 1,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.0,
+      "zero_top": false,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          1.862645149230957e-09,
+          2.7755575615628914e-17,
+          1.1102230246251565e-16,
+          1.862645149230957e-09,
+          1.862645149230957e-09
+        ],
+        [
+          4.656612873077393e-10,
+          5.551115123125783e-17,
+          0.0,
+          4.656612873077393e-10,
+          9.313225746154785e-10
+        ]
+      ]
+    },
+    {
+      "layers": 1,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.0,
+      "zero_top": true,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          7.275957614183426e-12,
+          1.1102230246251565e-16,
+          0.0,
+          7.275957614183426e-12,
+          5.820766091346741e-11
+        ],
+        [
+          1.1368683772161603e-13,
+          0.0,
+          0.0,
+          1.1368683772161603e-13,
+          4.656612873077393e-10
+        ]
+      ]
+    },
+    {
+      "layers": 1,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.0,
+      "zero_top": true,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          7.275957614183426e-12,
+          5.551115123125783e-17,
+          0.0,
+          7.275957614183426e-12,
+          5.820766091346741e-11
+        ],
+        [
+          2.2737367544323206e-13,
+          5.551115123125783e-17,
+          0.0,
+          2.2737367544323206e-13,
+          4.656612873077393e-10
+        ]
+      ]
+    },
+    {
+      "layers": 4,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.0,
+      "zero_top": false,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          1.862645149230957e-09,
+          3.3306690738754696e-16,
+          0.0,
+          3.725290298461914e-09,
+          1.1641532182693481e-10
+        ],
+        [
+          4.656612873077393e-10,
+          0.0,
+          0.0,
+          4.656612873077393e-10,
+          3.637978807091713e-12
+        ]
+      ]
+    },
+    {
+      "layers": 4,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.0,
+      "zero_top": false,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          1.862645149230957e-09,
+          2.220446049250313e-16,
+          1.1102230246251565e-16,
+          2.3283064365386963e-10,
+          1.1641532182693481e-10
+        ],
+        [
+          4.656612873077393e-10,
+          1.1102230246251565e-16,
+          1.3877787807814457e-17,
+          5.820766091346741e-11,
+          3.637978807091713e-12
+        ]
+      ]
+    },
+    {
+      "layers": 4,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.0,
+      "zero_top": true,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          1.862645149230957e-09,
+          2.220446049250313e-16,
+          0.0,
+          1.862645149230957e-09,
+          3.725290298461914e-09
+        ],
+        [
+          4.656612873077393e-10,
+          0.0,
+          0.0,
+          1.862645149230957e-09,
+          9.313225746154785e-10
+        ]
+      ]
+    },
+    {
+      "layers": 4,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.0,
+      "zero_top": true,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          1.862645149230957e-09,
+          1.1102230246251565e-16,
+          1.1102230246251565e-16,
+          3.725290298461914e-09,
+          3.725290298461914e-09
+        ],
+        [
+          4.656612873077393e-10,
+          1.1102230246251565e-16,
+          1.1102230246251565e-16,
+          1.1641532182693481e-10,
+          9.313225746154785e-10
+        ]
+      ]
+    },
+    {
+      "layers": 12,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.0,
+      "zero_top": false,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          9.313225746154785e-10,
+          3.3306690738754696e-16,
+          0.0,
+          3.725290298461914e-09,
+          1.1641532182693481e-10
+        ],
+        [
+          4.656612873077393e-10,
+          0.0,
+          0.0,
+          9.313225746154785e-10,
+          1.8189894035458565e-12
+        ]
+      ]
+    },
+    {
+      "layers": 12,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.0,
+      "zero_top": false,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          9.313225746154785e-10,
+          2.220446049250313e-16,
+          1.1102230246251565e-16,
+          9.313225746154785e-10,
+          1.1641532182693481e-10
+        ],
+        [
+          2.3283064365386963e-10,
+          2.220446049250313e-16,
+          1.1102230246251565e-16,
+          9.313225746154785e-10,
+          1.8189894035458565e-12
+        ]
+      ]
+    },
+    {
+      "layers": 12,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.0,
+      "zero_top": true,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          9.313225746154785e-10,
+          3.3306690738754696e-16,
+          0.0,
+          1.862645149230957e-09,
+          3.725290298461914e-09
+        ],
+        [
+          4.656612873077393e-10,
+          0.0,
+          0.0,
+          4.656612873077393e-10,
+          3.637978807091713e-12
+        ]
+      ]
+    },
+    {
+      "layers": 12,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.0,
+      "zero_top": true,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          9.313225746154785e-10,
+          3.3306690738754696e-16,
+          1.1102230246251565e-16,
+          4.656612873077393e-10,
+          3.725290298461914e-09
+        ],
+        [
+          4.656612873077393e-10,
+          3.3306690738754696e-16,
+          1.1102230246251565e-16,
+          4.656612873077393e-10,
+          3.637978807091713e-12
+        ]
+      ]
+    },
+    {
+      "layers": 40,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.0,
+      "zero_top": false,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          9.313225746154785e-10,
+          4.440892098500626e-16,
+          0.0,
+          3.725290298461914e-09,
+          1.4551915228366852e-11
+        ],
+        [
+          4.656612873077393e-10,
+          0.0,
+          0.0,
+          9.313225746154785e-10,
+          9.313225746154785e-10
+        ]
+      ]
+    },
+    {
+      "layers": 40,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.0,
+      "zero_top": false,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          1.3969838619232178e-09,
+          2.220446049250313e-16,
+          2.220446049250313e-16,
+          3.725290298461914e-09,
+          1.4551915228366852e-11
+        ],
+        [
+          4.656612873077393e-10,
+          2.220446049250313e-16,
+          1.1102230246251565e-16,
+          9.313225746154785e-10,
+          9.313225746154785e-10
+        ]
+      ]
+    },
+    {
+      "layers": 40,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.0,
+      "zero_top": true,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          9.313225746154785e-10,
+          4.440892098500626e-16,
+          0.0,
+          1.862645149230957e-09,
+          3.725290298461914e-09
+        ],
+        [
+          4.656612873077393e-10,
+          0.0,
+          0.0,
+          1.862645149230957e-09,
+          9.313225746154785e-10
+        ]
+      ]
+    },
+    {
+      "layers": 40,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.0,
+      "zero_top": true,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          1.3969838619232178e-09,
+          2.220446049250313e-16,
+          2.220446049250313e-16,
+          1.862645149230957e-09,
+          3.725290298461914e-09
+        ],
+        [
+          3.4924596548080444e-10,
+          2.220446049250313e-16,
+          1.1102230246251565e-16,
+          9.313225746154785e-10,
+          9.313225746154785e-10
+        ]
+      ]
+    },
+    {
+      "layers": 1,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.003,
+      "zero_top": false,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          1.862645149230957e-09,
+          1.1102230246251565e-16,
+          0.0,
+          1.862645149230957e-09,
+          3.725290298461914e-09
+        ],
+        [
+          4.656612873077393e-10,
+          0.0,
+          0.0,
+          4.656612873077393e-10,
+          4.656612873077393e-10
+        ]
+      ]
+    },
+    {
+      "layers": 1,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.003,
+      "zero_top": false,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          3.725290298461914e-09,
+          1.1102230246251565e-16,
+          2.220446049250313e-16,
+          3.725290298461914e-09,
+          3.725290298461914e-09
+        ],
+        [
+          4.656612873077393e-10,
+          1.1102230246251565e-16,
+          0.0,
+          4.656612873077393e-10,
+          4.656612873077393e-10
+        ]
+      ]
+    },
+    {
+      "layers": 1,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.003,
+      "zero_top": true,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          4.547473508864641e-13,
+          1.1102230246251565e-16,
+          0.0,
+          4.547473508864641e-13,
+          7.275957614183426e-12
+        ],
+        [
+          3.552713678800501e-15,
+          0.0,
+          0.0,
+          3.552713678800501e-15,
+          5.684341886080802e-14
+        ]
+      ]
+    },
+    {
+      "layers": 1,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.003,
+      "zero_top": true,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          7.275957614183426e-12,
+          5.551115123125783e-17,
+          0.0,
+          7.275957614183426e-12,
+          7.275957614183426e-12
+        ],
+        [
+          2.3283064365386963e-10,
+          5.551115123125783e-17,
+          0.0,
+          4.656612873077393e-10,
+          5.684341886080802e-14
+        ]
+      ]
+    },
+    {
+      "layers": 4,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.003,
+      "zero_top": false,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          1.862645149230957e-09,
+          2.220446049250313e-16,
+          0.0,
+          3.725290298461914e-09,
+          3.725290298461914e-09
+        ],
+        [
+          1.3969838619232178e-09,
+          0.0,
+          0.0,
+          1.3969838619232178e-09,
+          9.313225746154785e-10
+        ]
+      ]
+    },
+    {
+      "layers": 4,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.003,
+      "zero_top": false,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          1.862645149230957e-09,
+          2.220446049250313e-16,
+          5.551115123125783e-17,
+          1.1641532182693481e-10,
+          3.725290298461914e-09
+        ],
+        [
+          1.3969838619232178e-09,
+          2.220446049250313e-16,
+          1.1102230246251565e-16,
+          1.862645149230957e-09,
+          9.313225746154785e-10
+        ]
+      ]
+    },
+    {
+      "layers": 4,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.003,
+      "zero_top": true,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          1.862645149230957e-09,
+          2.220446049250313e-16,
+          0.0,
+          1.862645149230957e-09,
+          3.725290298461914e-09
+        ],
+        [
+          1.3969838619232178e-09,
+          0.0,
+          0.0,
+          1.3969838619232178e-09,
+          9.313225746154785e-10
+        ]
+      ]
+    },
+    {
+      "layers": 4,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.003,
+      "zero_top": true,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          1.862645149230957e-09,
+          2.220446049250313e-16,
+          1.1102230246251565e-16,
+          1.862645149230957e-09,
+          3.725290298461914e-09
+        ],
+        [
+          1.3969838619232178e-09,
+          2.220446049250313e-16,
+          0.0,
+          1.862645149230957e-09,
+          9.313225746154785e-10
+        ]
+      ]
+    },
+    {
+      "layers": 12,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.003,
+      "zero_top": false,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          9.313225746154785e-10,
+          2.220446049250313e-16,
+          0.0,
+          9.313225746154785e-10,
+          1.4551915228366852e-11
+        ],
+        [
+          4.656612873077393e-10,
+          0.0,
+          0.0,
+          9.313225746154785e-10,
+          9.313225746154785e-10
+        ]
+      ]
+    },
+    {
+      "layers": 12,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.003,
+      "zero_top": false,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          9.313225746154785e-10,
+          1.1102230246251565e-16,
+          2.220446049250313e-16,
+          3.725290298461914e-09,
+          1.4551915228366852e-11
+        ],
+        [
+          4.656612873077393e-10,
+          2.220446049250313e-16,
+          1.1102230246251565e-16,
+          9.313225746154785e-10,
+          9.313225746154785e-10
+        ]
+      ]
+    },
+    {
+      "layers": 12,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.003,
+      "zero_top": true,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          9.313225746154785e-10,
+          2.220446049250313e-16,
+          0.0,
+          2.3283064365386963e-10,
+          3.725290298461914e-09
+        ],
+        [
+          4.656612873077393e-10,
+          0.0,
+          0.0,
+          1.3969838619232178e-09,
+          9.313225746154785e-10
+        ]
+      ]
+    },
+    {
+      "layers": 12,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.003,
+      "zero_top": true,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          9.313225746154785e-10,
+          2.220446049250313e-16,
+          1.1102230246251565e-16,
+          1.862645149230957e-09,
+          3.725290298461914e-09
+        ],
+        [
+          1.1641532182693481e-10,
+          1.1102230246251565e-16,
+          1.1102230246251565e-16,
+          4.656612873077393e-10,
+          9.313225746154785e-10
+        ]
+      ]
+    },
+    {
+      "layers": 40,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.003,
+      "zero_top": false,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          1.3969838619232178e-09,
+          3.3306690738754696e-16,
+          0.0,
+          1.862645149230957e-09,
+          5.820766091346741e-11
+        ],
+        [
+          4.656612873077393e-10,
+          0.0,
+          0.0,
+          4.656612873077393e-10,
+          2.9103830456733704e-11
+        ]
+      ]
+    },
+    {
+      "layers": 40,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.003,
+      "zero_top": false,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          1.3969838619232178e-09,
+          2.220446049250313e-16,
+          2.220446049250313e-16,
+          3.725290298461914e-09,
+          5.820766091346741e-11
+        ],
+        [
+          4.656612873077393e-10,
+          2.220446049250313e-16,
+          1.1102230246251565e-16,
+          9.313225746154785e-10,
+          2.9103830456733704e-11
+        ]
+      ]
+    },
+    {
+      "layers": 40,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.003,
+      "zero_top": true,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          1.3969838619232178e-09,
+          3.3306690738754696e-16,
+          0.0,
+          1.862645149230957e-09,
+          3.725290298461914e-09
+        ],
+        [
+          4.656612873077393e-10,
+          0.0,
+          0.0,
+          9.313225746154785e-10,
+          9.313225746154785e-10
+        ]
+      ]
+    },
+    {
+      "layers": 40,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.003,
+      "zero_top": true,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          1.3969838619232178e-09,
+          2.220446049250313e-16,
+          2.220446049250313e-16,
+          3.725290298461914e-09,
+          3.725290298461914e-09
+        ],
+        [
+          3.4924596548080444e-10,
+          2.220446049250313e-16,
+          1.1102230246251565e-16,
+          1.862645149230957e-09,
+          9.313225746154785e-10
+        ]
+      ]
+    },
+    {
+      "layers": 1,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.25,
+      "zero_top": false,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          9.313225746154785e-10,
+          1.1102230246251565e-16,
+          0.0,
+          1.862645149230957e-09,
+          7.275957614183426e-12
+        ],
+        [
+          9.313225746154785e-10,
+          0.0,
+          0.0,
+          4.656612873077393e-10,
+          9.313225746154785e-10
+        ]
+      ]
+    },
+    {
+      "layers": 1,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.25,
+      "zero_top": false,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          8.731149137020111e-11,
+          1.1102230246251565e-16,
+          1.3877787807814457e-17,
+          1.1641532182693481e-10,
+          7.275957614183426e-12
+        ],
+        [
+          9.313225746154785e-10,
+          1.1102230246251565e-16,
+          0.0,
+          1.862645149230957e-09,
+          9.313225746154785e-10
+        ]
+      ]
+    },
+    {
+      "layers": 1,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.25,
+      "zero_top": true,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          5.820766091346741e-11,
+          1.1102230246251565e-16,
+          0.0,
+          1.1641532182693481e-10,
+          1.1641532182693481e-10
+        ],
+        [
+          2.3283064365386963e-10,
+          0.0,
+          0.0,
+          9.313225746154785e-10,
+          9.313225746154785e-10
+        ]
+      ]
+    },
+    {
+      "layers": 1,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.25,
+      "zero_top": true,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          5.820766091346741e-11,
+          2.220446049250313e-16,
+          2.7755575615628914e-17,
+          1.1641532182693481e-10,
+          1.1641532182693481e-10
+        ],
+        [
+          4.656612873077393e-10,
+          5.551115123125783e-17,
+          0.0,
+          9.313225746154785e-10,
+          9.313225746154785e-10
+        ]
+      ]
+    },
+    {
+      "layers": 4,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.25,
+      "zero_top": false,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          9.313225746154785e-10,
+          3.3306690738754696e-16,
+          0.0,
+          1.862645149230957e-09,
+          1.862645149230957e-09
+        ],
+        [
+          1.862645149230957e-09,
+          0.0,
+          0.0,
+          3.725290298461914e-09,
+          2.7939677238464355e-09
+        ]
+      ]
+    },
+    {
+      "layers": 4,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.25,
+      "zero_top": false,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          1.862645149230957e-09,
+          1.1102230246251565e-16,
+          1.1102230246251565e-16,
+          2.3283064365386963e-10,
+          1.862645149230957e-09
+        ],
+        [
+          1.862645149230957e-09,
+          1.1102230246251565e-16,
+          2.7755575615628914e-17,
+          1.862645149230957e-09,
+          2.7939677238464355e-09
+        ]
+      ]
+    },
+    {
+      "layers": 4,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.25,
+      "zero_top": true,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          9.313225746154785e-10,
+          2.220446049250313e-16,
+          0.0,
+          1.862645149230957e-09,
+          1.862645149230957e-09
+        ],
+        [
+          1.862645149230957e-09,
+          0.0,
+          0.0,
+          1.862645149230957e-09,
+          1.862645149230957e-09
+        ]
+      ]
+    },
+    {
+      "layers": 4,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.25,
+      "zero_top": true,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          1.862645149230957e-09,
+          1.1102230246251565e-16,
+          1.1102230246251565e-16,
+          9.313225746154785e-10,
+          1.862645149230957e-09
+        ],
+        [
+          1.862645149230957e-09,
+          1.1102230246251565e-16,
+          1.3877787807814457e-17,
+          1.862645149230957e-09,
+          1.862645149230957e-09
+        ]
+      ]
+    },
+    {
+      "layers": 12,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.25,
+      "zero_top": false,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          9.313225746154785e-10,
+          4.440892098500626e-16,
+          0.0,
+          1.862645149230957e-09,
+          1.862645149230957e-09
+        ],
+        [
+          9.313225746154785e-10,
+          0.0,
+          0.0,
+          1.862645149230957e-09,
+          1.862645149230957e-09
+        ]
+      ]
+    },
+    {
+      "layers": 12,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.25,
+      "zero_top": false,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          9.313225746154785e-10,
+          1.1102230246251565e-16,
+          2.220446049250313e-16,
+          1.862645149230957e-09,
+          1.862645149230957e-09
+        ],
+        [
+          9.313225746154785e-10,
+          2.220446049250313e-16,
+          1.1102230246251565e-16,
+          3.725290298461914e-09,
+          1.862645149230957e-09
+        ]
+      ]
+    },
+    {
+      "layers": 12,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.25,
+      "zero_top": true,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          9.313225746154785e-10,
+          4.440892098500626e-16,
+          0.0,
+          9.313225746154785e-10,
+          3.725290298461914e-09
+        ],
+        [
+          9.313225746154785e-10,
+          0.0,
+          0.0,
+          1.862645149230957e-09,
+          4.656612873077393e-10
+        ]
+      ]
+    },
+    {
+      "layers": 12,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.25,
+      "zero_top": true,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          1.862645149230957e-09,
+          2.220446049250313e-16,
+          1.1102230246251565e-16,
+          3.725290298461914e-09,
+          3.725290298461914e-09
+        ],
+        [
+          9.313225746154785e-10,
+          2.220446049250313e-16,
+          1.1102230246251565e-16,
+          1.862645149230957e-09,
+          4.656612873077393e-10
+        ]
+      ]
+    },
+    {
+      "layers": 40,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.25,
+      "zero_top": false,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          9.313225746154785e-10,
+          3.3306690738754696e-16,
+          0.0,
+          1.862645149230957e-09,
+          1.862645149230957e-09
+        ],
+        [
+          6.984919309616089e-10,
+          0.0,
+          0.0,
+          1.862645149230957e-09,
+          1.862645149230957e-09
+        ]
+      ]
+    },
+    {
+      "layers": 40,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.25,
+      "zero_top": false,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          9.313225746154785e-10,
+          3.3306690738754696e-16,
+          3.3306690738754696e-16,
+          1.862645149230957e-09,
+          1.862645149230957e-09
+        ],
+        [
+          6.984919309616089e-10,
+          2.220446049250313e-16,
+          2.220446049250313e-16,
+          3.725290298461914e-09,
+          1.862645149230957e-09
+        ]
+      ]
+    },
+    {
+      "layers": 40,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.25,
+      "zero_top": true,
+      "dust_loading": 0.0,
+      "max_errors": [
+        [
+          9.313225746154785e-10,
+          3.3306690738754696e-16,
+          0.0,
+          2.7939677238464355e-09,
+          1.862645149230957e-09
+        ],
+        [
+          6.984919309616089e-10,
+          0.0,
+          0.0,
+          3.725290298461914e-09,
+          3.725290298461914e-09
+        ]
+      ]
+    },
+    {
+      "layers": 40,
+      "linear_k_interpolation": true,
+      "water_mass_fraction": 0.25,
+      "zero_top": true,
+      "dust_loading": 0.1,
+      "max_errors": [
+        [
+          1.3969838619232178e-09,
+          2.220446049250313e-16,
+          3.3306690738754696e-16,
+          3.725290298461914e-09,
+          1.862645149230957e-09
+        ],
+        [
+          6.984919309616089e-10,
+          2.220446049250313e-16,
+          1.1102230246251565e-16,
+          3.725290298461914e-09,
+          3.725290298461914e-09
+        ]
+      ]
     }
   ],
   "sha256": {
-    "scripts/validate_optical_depth.py": "d607f6381d6f7a6b136cc58da7650a8a838aaed13b7c910a407ca88bdf20e57b",
-    "package/src/framework/physics/optical_depth.py": "aa759a6216cf53187ebc5730f87a9cd6d65f9f30c7e6dd93f6c7ad14ae6d9db0",
-    "package/src/framework/physics/correlated_k.py": "fde79069ec8e8742e6deafcf6077e0c376d48840b1b2bcbf9f6086cc6484629e",
+    "scripts/validate_optical_depth.py": "1b0b8bb2fc932d086320b36d5aead59db7a1b29e9cb6efb8039ddb73a6ddb7d5",
+    "package/src/framework/physics/optical_depth.py": "1687ece03cb05e7f68645c0763ead3f89595c4305c2a684f219d0d2767f4d435",
+    "package/src/framework/physics/correlated_k.py": "803e33cfc1d14f46fb4251f2fd49c7a64bd55529574132cc9a04c2635240d13e",
     "package/src/framework/physics/radiation_grid.py": "7c0cd095eb863e6ec612a79f90f9ad7c2d17a00584eb4d3d46f7aba0a56d424f",
     "package/src/framework/physics/co2_12band_tables.npz": "0c48a86efd4618d3fdc0e52cd2bc5ca063fc7ac006ebfee09a46bee01d159d6c"
   },
-  "limits": "dry default-12-band optical aggregation with prescribed particle cross sections; CIA disabled as in the default reference"
+  "limits": "Both 12-band interpolation paths with prescribed particle cross sections and water below the last source bin. Unused native linear-k optical channels are undefined and excluded from field comparisons; composed flux checks cover dispatch. CIA disabled as in the default reference"
 }

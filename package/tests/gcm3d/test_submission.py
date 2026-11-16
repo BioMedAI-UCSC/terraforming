@@ -112,7 +112,9 @@ def test_alternate_reference_radiation_records_profile_and_timescale_for_restart
 def test_alternate_reference_cli_rejects_unsupported_combinations(monkeypatch):
     import sys
     driver=_script('run_gcm3d_ablation')
-    for arguments in (['--scale-surface-ir-flux'],
+    for arguments in (['--linear-k-interpolation'],
+                      ['--config','reference','--reference-radiation','simple','--linear-k-interpolation'],
+                      ['--scale-surface-ir-flux'],
                       ['--solar-constant','589'],
                       ['--config','reference','--solar-constant','nan'],
                       ['--config','reference','--solar-constant','0'],
@@ -147,8 +149,9 @@ def test_disabled_reference_process_switch_rejects_nonreference_config(monkeypat
 @pytest.mark.parametrize('water',[False,True])
 @pytest.mark.parametrize('from_aerosol',[False,True])
 @pytest.mark.parametrize('scale_surface',[False,True])
+@pytest.mark.parametrize('linear',[False,True])
 @pytest.mark.parametrize('solar_constant',[None,589.])
-def test_reference_configuration_keeps_dust_and_frost_independent_of_water(monkeypatch,tmp_path,water,from_aerosol,scale_surface,solar_constant):
+def test_reference_configuration_keeps_dust_and_frost_independent_of_water(monkeypatch,tmp_path,water,from_aerosol,scale_surface,solar_constant,linear):
     from src.framework.gcm.coordinates import coordinate_system
     from src.celestials.planets.mars import surface,boundary_inputs,dust_scenario
     from src.framework.physics import particle_optics,radiative_transfer
@@ -169,7 +172,8 @@ def test_reference_configuration_keeps_dust_and_frost_independent_of_water(monke
     for name in inputs: (tmp_path/name).write_bytes(name.encode())
     _,forcing,provider,options,hashes=_script('run_gcm3d_ablation').reference_configuration(
         grid,tmp_path,231.,moment_water=water,dust_opacity_from_aerosol=from_aerosol,scale_surface_flux=scale_surface,
-        solar_constant_w_m2=solar_constant)
+        solar_constant_w_m2=solar_constant,linear_k_interpolation=linear)
+    assert radiation_options['linear_k_interpolation'] is linear
     assert radiation_options['scale_surface_flux'] is scale_surface
     np.testing.assert_allclose(forcing.tsi_1au_w_m2,1356.1 if solar_constant is None else solar_constant*1.524**2)
     assert options['moment_water'] is water and options['moment_dust'] is not water

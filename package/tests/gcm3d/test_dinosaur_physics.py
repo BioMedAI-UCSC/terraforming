@@ -372,15 +372,16 @@ def test_frozen_dust_retains_dry_transport_but_keeps_surface_sources_and_restart
         np.testing.assert_array_equal(actual,expected)
 
 
-def test_scaled_surface_ir_preserves_restart_and_three_step_gradient(tmp_path):
+@pytest.mark.parametrize('linear',[False,True])
+def test_scaled_surface_ir_preserves_restart_and_three_step_gradient(tmp_path,linear):
     from src.framework.physics.radiative_transfer import make_radiation_component
     from src.framework.gcm.restart import save_restart,load_restart
     options=dict(temperature_k=200.037,surface_temperature_k=240.037,
         do_co2_condensation=False,do_co2_condensation_cycle=False)
     state,step,grid=backend_case(**options,
-        radiation_component=make_radiation_component(lambda *args:None,scale_surface_flux=True))
+        radiation_component=make_radiation_component(lambda *args:None,scale_surface_flux=True,linear_k_interpolation=linear))
     _,unscaled,_=backend_case(**options,
-        radiation_component=make_radiation_component(lambda *args:None))
+        radiation_component=make_radiation_component(lambda *args:None,linear_k_interpolation=linear))
     tick=jax.jit(step);first=tick(state)
     baseline=jax.jit(unscaled)(state)
     assert np.any(np.asarray(first.surface_temperature)!=np.asarray(baseline.surface_temperature))
@@ -759,14 +760,16 @@ def test_convection_source_switch_runs_globally_and_restarts(tmp_path,scheme):
             np.testing.assert_allclose(auto,fd,rtol=3e-5,atol=1e-7)
 
 
-def moist_backend_case(moment_water=False):
+def moist_backend_case(moment_water=False,linear=False):
     from src.framework.physics.water_bulk import WATER_CLOUD_TRACER,WATER_VAPOR_TRACER
     from src.framework.physics.particle_optics import make_particle_provider
     from src.framework.physics.radiative_transfer import make_radiation_component
-    provider=(make_particle_provider(bands=15,dust_tracers=(('dust_mass','dust_number'),),
+    bands=12 if linear else 15
+    provider=(make_particle_provider(bands=bands,dust_tracers=(('dust_mass','dust_number'),),
         water_moment_tracers=(WATER_CLOUD_TRACER,'water_core_mass','water_ice_number'))
-        if moment_water else make_particle_provider(bands=15,water_bulk_tracer=WATER_CLOUD_TRACER))
-    radiation=make_radiation_component(provider,radiation_mode='15band',water_vapor_tracer=WATER_VAPOR_TRACER)
+        if moment_water else make_particle_provider(bands=bands,water_bulk_tracer=WATER_CLOUD_TRACER))
+    radiation=make_radiation_component(provider,radiation_mode=f'{bands}band',water_vapor_tracer=WATER_VAPOR_TRACER,
+        linear_k_interpolation=linear)
     # Keep the initial emitting surface inside a 0.1 K Planck interpolation cell.
     state,step,grid=backend_case(temperature_k=250.3,surface_temperature_k=250.037,wind_speed=20.,
         bulk_water=not moment_water,moment_water=moment_water,initial_water_surface_kg_m2=100.,
@@ -781,10 +784,11 @@ def moist_backend_case(moment_water=False):
     return state._replace(dynamics=dyn),step,grid
 
 
+@pytest.mark.parametrize('linear',[False,True])
 @pytest.mark.parametrize('moment_water',[False,True])
-def test_moist_adjustment_global_water_budget_and_restart(tmp_path,moment_water):
+def test_moist_adjustment_global_water_budget_and_restart(tmp_path,moment_water,linear):
     from src.framework.gcm.restart import save_restart,load_restart
-    state,step,_=moist_backend_case(moment_water)
+    state,step,_=moist_backend_case(moment_water,linear=linear)
     first,diagnostics=jax.jit(step)(state)
     assert all(np.isfinite(x).all() for x in jax.tree.leaves(first))
     assert np.all(diagnostics.moist_convection['valid'])
@@ -808,8 +812,9 @@ def test_moist_adjustment_global_water_budget_and_restart(tmp_path,moment_water)
         np.testing.assert_array_equal(a,b)
 
 
-def test_moist_adjustment_global_reverse_derivative():
-    state,step,_=moist_backend_case()
+@pytest.mark.parametrize('linear',[False,True])
+def test_moist_adjustment_global_reverse_derivative(linear):
+    state,step,_=moist_backend_case(linear=linear)
     def objective(offset):
         initial=state._replace(surface_temperature=state.surface_temperature+offset)
         final,_=jax.lax.scan(lambda s,_:(step(s)[0],None),initial,None,length=3)
