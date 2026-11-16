@@ -4,9 +4,34 @@ import pytest
 pytest.importorskip('dinosaur')
 import jax
 import jax.numpy as jnp
-from src.framework.physics.prescribed_dust import layer_opacities,fixed_optics,seasonal_fields
+from src.framework.physics.prescribed_dust import (layer_opacities,fixed_optics,seasonal_fields,
+    storm_opacity,make_fixed_dust_provider)
 
 jax.config.update('jax_enable_x64',True)
+
+
+def test_storm_retains_native_two_images_temporal_ramp_and_explicit_shape_inputs():
+    center=np.deg2rad(10.);latitude=np.deg2rad(15.)
+    value=storm_opacity(180.,center,latitude,slope_deg=0.,latitude_coefficient=5.,amplitude=.4)
+    expected=.2*(1.+np.exp(-.5*(2.*np.pi/np.deg2rad(60.))**2))
+    np.testing.assert_allclose(value,expected,rtol=2e-15)
+    assert storm_opacity(170.,center,latitude,slope_deg=0.,latitude_coefficient=5.,amplitude=.4)<value
+    assert storm_opacity(190.,center,latitude,slope_deg=0.,latitude_coefficient=5.,amplitude=.4)>value
+    with pytest.raises(ValueError,match='undefined'):
+        make_fixed_dust_provider(storm_options=dict(amplitude=.4))
+    for options in (dict(longitude_width_deg=0.),dict(latitude_width_deg=-1.),dict(latitude_coefficient=np.inf)):
+        configuration=dict(slope_deg=0.,latitude_coefficient=5.);configuration.update(options)
+        assert np.isnan(storm_opacity(180.,center,latitude,**configuration))
+
+
+def test_storm_reverse_derivative_includes_shape_amplitude_and_onset():
+    lon=jnp.linspace(0.,2.*jnp.pi,9)[:,None];lat=jnp.linspace(-1.,1.,7)[None,:]
+    def objective(scale):
+        return jnp.sum(storm_opacity(180.+.2*scale,lon,lat,slope_deg=12.*scale,
+            latitude_coefficient=5.*scale,amplitude=.4*scale))
+    automatic=jax.jit(jax.grad(objective))(1.);epsilon=1e-5
+    assert np.isfinite(automatic) and automatic!=0.
+    np.testing.assert_allclose(automatic,(objective(1.+epsilon)-objective(1.-epsilon))/(2.*epsilon),rtol=2e-9)
 
 
 @pytest.mark.parametrize('pulse',[0.,.2])

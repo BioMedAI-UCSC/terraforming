@@ -7,6 +7,35 @@ from src.framework.gcm._dinosaur import jax,jnp
 from src.framework.physics.particle_optics import (load_tables,_distribution,_average,ParticleOptics)
 
 
+def storm_opacity(solar_longitude_deg,longitude_rad,latitude_rad,*,slope_deg,latitude_coefficient,
+                  amplitude=0.,longitude_width_deg=60.,latitude_width_deg=20.,
+                  center_longitude_deg=10.,center_latitude_deg=15.,onset_deg=180.):
+    """Released add_storm equations with its two undefined locals supplied.
+
+    The source never initializes slope or c. Both are required here; c is the
+    latitude quadratic coefficient in inverse radians squared. The two source
+    longitude images and its asymmetric cross coefficient are retained.
+    """
+    lon,lat=jnp.asarray(longitude_rad),jnp.asarray(latitude_rad)
+    theta=jnp.deg2rad(jnp.asarray(slope_deg))
+    sx,sy=jnp.deg2rad(jnp.asarray(longitude_width_deg)),jnp.deg2rad(jnp.asarray(latitude_width_deg))
+    valid=jnp.isfinite(sx)&(sx>0.)&jnp.isfinite(sy)&(sy>0.)
+    for value in (slope_deg,latitude_coefficient,amplitude,center_longitude_deg,center_latitude_deg,onset_deg):
+        valid=valid&jnp.isfinite(jnp.asarray(value))
+    sx=jnp.where(valid,sx,1.);sy=jnp.where(valid,sy,1.)
+    center=jnp.deg2rad(jnp.asarray(center_longitude_deg))
+    alternate=center+jnp.where(jnp.asarray(center_longitude_deg)<180.,2.*jnp.pi,-2.*jnp.pi)
+    dy=lat-jnp.deg2rad(jnp.asarray(center_latitude_deg))
+    a=(jnp.cos(theta)/(jnp.sqrt(2.)*sx))**2+(jnp.sin(theta)/(jnp.sqrt(2.)*sy))**2
+    b=-jnp.sin(theta)/(2.*sx)**2+jnp.sin(2.*theta)/(2.*sy)**2
+    def image(origin):
+        dx=lon-origin
+        return jnp.exp(-(a*dx**2+2.*b*dx*dy+jnp.asarray(latitude_coefficient)*dy**2))
+    opacity=jnp.asarray(amplitude)*(image(center)+image(alternate))*.5*(
+        1.+jnp.tanh(jnp.asarray(solar_longitude_deg)-jnp.asarray(onset_deg)))
+    return jnp.where(valid,opacity,jnp.nan)
+
+
 def pulse_layers(pressure_half,pressure_full,*,center_pa=30.,width=1.):
     """Original dust_distrib_pulse2; the profile integrates to one.
 
@@ -127,7 +156,7 @@ def fixed_optics(layer_opacity,pressure,*,effective_radius_m=1.5e-6,bands=12):
 
 
 def make_fixed_dust_provider(*,bands=12,effective_radius_m=1.5e-6,reference_pressure_pa=610.,
-                             scenario=None,aerosol_tracer=None,**profile_options):
+                             scenario=None,aerosol_tracer=None,storm_options=None,**profile_options):
     """Connect prescribed visible opacity and native size optics to radiation.
 
     The scenario contains seasons, opacity and top_height_km on the nodal grid.
@@ -135,12 +164,17 @@ def make_fixed_dust_provider(*,bands=12,effective_radius_m=1.5e-6,reference_pres
     """
     from src.framework.gcm._dinosaur import scales
     from src.framework.physics.gcm import _true_anomaly
+    if storm_options is not None and {'slope_deg','latitude_coefficient'}-set(storm_options):
+        raise ValueError('the source storm slope and latitude coefficient are undefined; supply both explicitly')
     def provider(state,coords,specs,body,forcing,grid):
         options=dict(profile_options)
         if scenario is not None:
             time=state.dynamics.sim_time*float(specs.dimensionalize(1.,scales.units.second).magnitude)
             ls=jnp.mod((_true_anomaly(time,forcing)+forcing.ls_perihelion_rad)*180./jnp.pi,360.)
             opacity,height=seasonal_fields(ls,scenario['seasons'],scenario['opacity'],scenario['top_height_km'])
+            if storm_options is not None:
+                opacity=opacity+storm_opacity(ls,jnp.asarray(coords.horizontal.longitudes)[:,None],
+                    jnp.asarray(coords.horizontal.latitudes)[None,:],**storm_options)
             options.update(scenario_opacity=opacity,top_height_km=height)
         if aerosol_tracer is not None:
             options['aerosol_ratio']=coords.horizontal.to_nodal(state.dynamics.tracers[aerosol_tracer])

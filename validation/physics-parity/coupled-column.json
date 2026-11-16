@@ -489,7 +489,7 @@
     "solar_day_s": 88704.0
   },
   "physics_sha256": {
-    "prescribed_dust.py": "5679b18bb1acb891a0fca1fa45a685839bf84e44b29866c90941ba1e07912e64",
+    "prescribed_dust.py": "58e4054786a01bb6f89834c59d599c87ea3a9aeedf450e6db9944e34a8a1c4d8",
     "dust_control.py": "bb0749684b3b4078548dff5def298178620f388bf303b1898b20ef95136e3815",
     "dinosaur_physics.py": "88251e34c6d7174d20bd089f1ba6c237fd819bb9e899b9d67bfae5489f8bdfef",
     "legacy_convection.py": "3b5502f055e45cfc2601809aeec5237142427d7b8356058bfc12ddcb89388df3",

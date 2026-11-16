@@ -516,7 +516,8 @@ def test_aerosol_opacity_control_holds_native_channels_and_preserves_restart_gra
     grid=coordinate_system('T21',4).horizontal
     scenario=dict(seasons=[0.,180.,360.],opacity=np.broadcast_to(np.array([.4,.7,.4])[:,None,None],(3,*grid.nodal_shape)),
         top_height_km=np.full((3,*grid.nodal_shape),35.))
-    background=dict(fixed_dust_provider=make_fixed_dust_provider(bands=bands,scenario=scenario))
+    storm=(dict(slope_deg=0.,latitude_coefficient=5.,amplitude=.4,onset_deg=0.) if water else None)
+    background=dict(fixed_dust_provider=make_fixed_dust_provider(bands=bands,scenario=scenario,storm_options=storm))
     if local_time:
         background['local_time_scenario']=dict(seasons=[0.,180.,360.],bins_hours=[0.,12.,24.],
             fractions=np.full((3,*grid.nodal_shape,2),.5))
@@ -535,6 +536,8 @@ def test_aerosol_opacity_control_holds_native_channels_and_preserves_restart_gra
     tick=jax.jit(step);first=tick(state);second=tick(first);third=tick(second)
     for current in (first,second,third):
         assert np.all(np.asarray(current.auxiliary_fields['dust_fixed_reference_opacity'])>0.)
+    if storm is not None:
+        assert np.ptp(np.asarray(first.auxiliary_fields['dust_fixed_reference_opacity'][0]))>1e-4
     assert np.any(np.asarray(first.auxiliary_fields['dust_fixed_reference_opacity'])!=
         np.asarray(second.auxiliary_fields['dust_fixed_reference_opacity']))
     np.testing.assert_array_equal(third.auxiliary_fields['dust_fixed_reference_opacity'],

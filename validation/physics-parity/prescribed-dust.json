@@ -2,7 +2,7 @@
   "status": "pass",
   "reference": {
     "source_git_blob": "8737535bd91a1cc3f1ab92366405007dcb186bae",
-    "compiled_source_sha256": "8d9d3e9ed9786e63dcd834f2a13b81ae21b44fad7b8b027b29fe4292cc106039",
+    "compiled_source_sha256": "73b2ef47d4a7576358c1698bee6ff80e7d82731f3d77945d33d1c013b5efd88a",
     "routine_sha256": {
       "dust_distrib_fixed2": "ba6dbe59b3ff108ffd77d2447f815c1e145f3fca2005bea9844472f958ea7164",
       "dust_distrib_pulse2": "6cb35c21ee76a7ab837b1760cfc34e886223a6e74c0b7d121f092ee3d3cefe75",
@@ -18,7 +18,9 @@
       "-shared"
     ],
     "real_precision_bits": 64,
-    "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged"
+    "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged",
+    "storm_block_sha256": "51036e5804c9fd197b3e4dce6a85112067951aa3fab695f198783a861f4ecb68",
+    "storm_adaptation": "Unchanged numerical add_storm block; adapter explicitly supplies source-uninitialized slope and c. Raw released storm output is undefined."
   },
   "cases": [
     {
@@ -1318,9 +1320,251 @@
       "max_error": 2.7755575615628914e-17
     }
   ],
+  "storm_cases": [
+    {
+      "solar_longitude_deg": 179.0,
+      "slope_deg": 0.0,
+      "latitude_coefficient": 5.0,
+      "amplitude": 0.0,
+      "center_longitude_deg": 10.0,
+      "max_error": 0.0
+    },
+    {
+      "solar_longitude_deg": 179.0,
+      "slope_deg": 0.0,
+      "latitude_coefficient": 5.0,
+      "amplitude": 0.4,
+      "center_longitude_deg": 10.0,
+      "max_error": 6.938893903907228e-18
+    },
+    {
+      "solar_longitude_deg": 179.0,
+      "slope_deg": 12.0,
+      "latitude_coefficient": 5.0,
+      "amplitude": 0.0,
+      "center_longitude_deg": 10.0,
+      "max_error": 0.0
+    },
+    {
+      "solar_longitude_deg": 179.0,
+      "slope_deg": 12.0,
+      "latitude_coefficient": 5.0,
+      "amplitude": 0.4,
+      "center_longitude_deg": 10.0,
+      "max_error": 3.469446951953614e-18
+    },
+    {
+      "solar_longitude_deg": 179.0,
+      "slope_deg": 0.0,
+      "latitude_coefficient": 5.0,
+      "amplitude": 0.0,
+      "center_longitude_deg": 200.0,
+      "max_error": 0.0
+    },
+    {
+      "solar_longitude_deg": 179.0,
+      "slope_deg": 0.0,
+      "latitude_coefficient": 5.0,
+      "amplitude": 0.4,
+      "center_longitude_deg": 200.0,
+      "max_error": 2.6020852139652106e-18
+    },
+    {
+      "solar_longitude_deg": 179.0,
+      "slope_deg": 12.0,
+      "latitude_coefficient": 5.0,
+      "amplitude": 0.0,
+      "center_longitude_deg": 200.0,
+      "max_error": 0.0
+    },
+    {
+      "solar_longitude_deg": 179.0,
+      "slope_deg": 12.0,
+      "latitude_coefficient": 5.0,
+      "amplitude": 0.4,
+      "center_longitude_deg": 200.0,
+      "max_error": 1.1926223897340549e-18
+    },
+    {
+      "solar_longitude_deg": 180.0,
+      "slope_deg": 0.0,
+      "latitude_coefficient": 5.0,
+      "amplitude": 0.0,
+      "center_longitude_deg": 10.0,
+      "max_error": 0.0
+    },
+    {
+      "solar_longitude_deg": 180.0,
+      "slope_deg": 0.0,
+      "latitude_coefficient": 5.0,
+      "amplitude": 0.4,
+      "center_longitude_deg": 10.0,
+      "max_error": 2.7755575615628914e-17
+    },
+    {
+      "solar_longitude_deg": 180.0,
+      "slope_deg": 12.0,
+      "latitude_coefficient": 5.0,
+      "amplitude": 0.0,
+      "center_longitude_deg": 10.0,
+      "max_error": 0.0
+    },
+    {
+      "solar_longitude_deg": 180.0,
+      "slope_deg": 12.0,
+      "latitude_coefficient": 5.0,
+      "amplitude": 0.4,
+      "center_longitude_deg": 10.0,
+      "max_error": 1.3877787807814457e-17
+    },
+    {
+      "solar_longitude_deg": 180.0,
+      "slope_deg": 0.0,
+      "latitude_coefficient": 5.0,
+      "amplitude": 0.0,
+      "center_longitude_deg": 200.0,
+      "max_error": 0.0
+    },
+    {
+      "solar_longitude_deg": 180.0,
+      "slope_deg": 0.0,
+      "latitude_coefficient": 5.0,
+      "amplitude": 0.4,
+      "center_longitude_deg": 200.0,
+      "max_error": 1.0408340855860843e-17
+    },
+    {
+      "solar_longitude_deg": 180.0,
+      "slope_deg": 12.0,
+      "latitude_coefficient": 5.0,
+      "amplitude": 0.0,
+      "center_longitude_deg": 200.0,
+      "max_error": 0.0
+    },
+    {
+      "solar_longitude_deg": 180.0,
+      "slope_deg": 12.0,
+      "latitude_coefficient": 5.0,
+      "amplitude": 0.4,
+      "center_longitude_deg": 200.0,
+      "max_error": 4.7704895589362195e-18
+    },
+    {
+      "solar_longitude_deg": 181.0,
+      "slope_deg": 0.0,
+      "latitude_coefficient": 5.0,
+      "amplitude": 0.0,
+      "center_longitude_deg": 10.0,
+      "max_error": 0.0
+    },
+    {
+      "solar_longitude_deg": 181.0,
+      "slope_deg": 0.0,
+      "latitude_coefficient": 5.0,
+      "amplitude": 0.4,
+      "center_longitude_deg": 10.0,
+      "max_error": 5.551115123125783e-17
+    },
+    {
+      "solar_longitude_deg": 181.0,
+      "slope_deg": 12.0,
+      "latitude_coefficient": 5.0,
+      "amplitude": 0.0,
+      "center_longitude_deg": 10.0,
+      "max_error": 0.0
+    },
+    {
+      "solar_longitude_deg": 181.0,
+      "slope_deg": 12.0,
+      "latitude_coefficient": 5.0,
+      "amplitude": 0.4,
+      "center_longitude_deg": 10.0,
+      "max_error": 2.7755575615628914e-17
+    },
+    {
+      "solar_longitude_deg": 181.0,
+      "slope_deg": 0.0,
+      "latitude_coefficient": 5.0,
+      "amplitude": 0.0,
+      "center_longitude_deg": 200.0,
+      "max_error": 0.0
+    },
+    {
+      "solar_longitude_deg": 181.0,
+      "slope_deg": 0.0,
+      "latitude_coefficient": 5.0,
+      "amplitude": 0.4,
+      "center_longitude_deg": 200.0,
+      "max_error": 2.0816681711721685e-17
+    },
+    {
+      "solar_longitude_deg": 181.0,
+      "slope_deg": 12.0,
+      "latitude_coefficient": 5.0,
+      "amplitude": 0.0,
+      "center_longitude_deg": 200.0,
+      "max_error": 0.0
+    },
+    {
+      "solar_longitude_deg": 181.0,
+      "slope_deg": 12.0,
+      "latitude_coefficient": 5.0,
+      "amplitude": 0.4,
+      "center_longitude_deg": 200.0,
+      "max_error": 8.673617379884035e-18
+    },
+    {
+      "case": "composed-profile",
+      "seasonal": false,
+      "conrath_type": 0,
+      "pulse_fraction": 0.0
+    },
+    {
+      "case": "composed-profile",
+      "seasonal": false,
+      "conrath_type": 0,
+      "pulse_fraction": 0.2
+    },
+    {
+      "case": "composed-profile",
+      "seasonal": false,
+      "conrath_type": 1,
+      "pulse_fraction": 0.0
+    },
+    {
+      "case": "composed-profile",
+      "seasonal": false,
+      "conrath_type": 1,
+      "pulse_fraction": 0.2
+    },
+    {
+      "case": "composed-profile",
+      "seasonal": true,
+      "conrath_type": 0,
+      "pulse_fraction": 0.0
+    },
+    {
+      "case": "composed-profile",
+      "seasonal": true,
+      "conrath_type": 0,
+      "pulse_fraction": 0.2
+    },
+    {
+      "case": "composed-profile",
+      "seasonal": true,
+      "conrath_type": 1,
+      "pulse_fraction": 0.0
+    },
+    {
+      "case": "composed-profile",
+      "seasonal": true,
+      "conrath_type": 1,
+      "pulse_fraction": 0.2
+    }
+  ],
   "sha256": {
-    "scripts/validate_prescribed_dust.py": "1f291fe8d82546f647d5830de2520c3d7e835a5b2acfbc272680eda117c8c0ee",
-    "package/src/framework/physics/prescribed_dust.py": "5679b18bb1acb891a0fca1fa45a685839bf84e44b29866c90941ba1e07912e64"
+    "scripts/validate_prescribed_dust.py": "0b0da886049e175f6f559cd7a226b2c2f5dd5d21696d98168f39ef7e1c00f7f3",
+    "package/src/framework/physics/prescribed_dust.py": "58e4054786a01bb6f89834c59d599c87ea3a9aeedf450e6db9944e34a8a1c4d8"
   },
-  "limits": "profile, fractional pulse and seasonal interpolation kernels; map sampling, optical properties and storm switches have separate checks"
+  "limits": "Profile, fractional pulse and seasonal interpolation kernels. Storm checks compare unchanged equations with explicit supplied slope and c; the release leaves those locals undefined. Map sampling and optical properties have separate checks."
 }

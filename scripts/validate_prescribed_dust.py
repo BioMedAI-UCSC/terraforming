@@ -8,13 +8,16 @@ import shutil
 import tempfile
 import numpy as np
 from src.framework.gcm._dinosaur import jax
-from src.framework.physics.prescribed_dust import layer_opacities,seasonal_fields
-from native_reference import compile_routines
+from src.framework.physics.prescribed_dust import layer_opacities,seasonal_fields,storm_opacity
+from native_reference import compile_routines,extract_routines
 
 BLOB='8737535bd91a1cc3f1ab92366405007dcb186bae'
 
 
 def compile_reference(source,destination,compiler):
+    routines,_=extract_routines(source/'atmos_param_mars/aerosol.F90',BLOB,['add_storm'])
+    routine=routines[0];start=routine.index('jd= size(lon,2)')
+    storm=routine[start:routine.index('\nreturn',start)]
     header="""module reference_mod
 use iso_c_binding
 implicit none
@@ -24,6 +27,9 @@ logical :: do_inpt_dust_cycle=.false.,add_storm_opacity=.false.,do_lat_vary_dust
 real :: conrath=.003,optical_depth_pulse_var=0.,pulse_center=30.,pulse_width=1.
 real :: areo_cycle(5)=[0.,90.,180.,270.,360.]
 real :: zmax_cycle(1,1,5),taufill_cycle(1,1,5)
+real,parameter :: pi=acos(-1.d0)
+real :: storm_sigx=60.,storm_sigy=20.,storm_lonc=10.,storm_latc=15.,add_storm_amp=0.,storm_areo=180.
+real :: supplied_slope,supplied_c
 contains
 """
     adapter="""
@@ -58,9 +64,36 @@ character(*) where,message
 integer level
 stop 1
 end subroutine
-subroutine add_storm(ls,lon,lat,out)
-real :: ls,lon(:,:),lat(:,:),out(:,:)
-out=0.
+subroutine configure_storm(enabled,parameters) bind(C)
+integer(c_int),value :: enabled
+real(c_double),intent(in) :: parameters(8)
+add_storm_opacity=enabled/=0
+add_storm_amp=parameters(1);storm_sigx=parameters(2);storm_sigy=parameters(3)
+storm_lonc=parameters(4);storm_latc=parameters(5);storm_areo=parameters(6)
+supplied_slope=parameters(7);supplied_c=parameters(8)
+end subroutine
+subroutine storm_field(nx,ny,longitude,latitude,ls,out) bind(C)
+integer(c_int),value :: nx,ny
+real(c_double),value :: ls
+real(c_double),intent(in) :: longitude(nx),latitude(ny)
+real(c_double),intent(out) :: out(nx,ny)
+real :: lon(nx,ny),lat(nx,ny)
+integer :: i,j
+do j=1,ny
+ lon(:,j)=longitude
+enddo
+do i=1,nx
+ lat(i,:)=latitude
+enddo
+call add_storm(ls,lon,lat,out)
+end subroutine
+subroutine add_storm(areolat,lon,lat,optical_depth)
+real :: areolat,lon(:,:),lat(:,:),optical_depth(:,:)
+integer :: id,jd
+real :: anom(size(lat,1),size(lat,2)),aa(size(lat,1),size(lat,2)),aa2(size(lat,1),size(lat,2))
+real :: slope,tpi,rt2,sigma_x,sigma_y,theta,a,b,c,lonc,lonc2,latc
+slope=supplied_slope;c=supplied_c
+"""+storm+"""
 end subroutine
 integer function mpp_pe()
 mpp_pe=0
@@ -72,17 +105,22 @@ end module
 """
     library,provenance=compile_routines(source/'atmos_param_mars/aerosol.F90',BLOB,
         ['dust_distrib_fixed2','dust_distrib_pulse2','season_table'],header,adapter,destination,compiler)
+    provenance['storm_block_sha256']=hashlib.sha256(storm.encode()).hexdigest()
+    provenance['storm_adaptation']='Unchanged numerical add_storm block; adapter explicitly supplies source-uninitialized slope and c. Raw released storm output is undefined.'
     native=ctypes.CDLL(str(library))
     array=np.ctypeslib.ndpointer(dtype=np.float64,flags='F_CONTIGUOUS')
     native.dust.argtypes=[ctypes.c_int,array,array,array,ctypes.c_double,ctypes.c_double,
         ctypes.c_int,ctypes.c_int,ctypes.c_double,ctypes.c_int,ctypes.c_double,array]
     native.dust.restype=None
+    native.configure_storm.argtypes=[ctypes.c_int,array];native.configure_storm.restype=None
+    native.storm_field.argtypes=[ctypes.c_int]*2+[array]*2+[ctypes.c_double,array]
+    native.storm_field.restype=None
     return native,provenance
 
 
 def validate(source,compiler):
     jax.config.update('jax_enable_x64',True)
-    cases=[]
+    cases=[];storm_cases=[]
     with tempfile.TemporaryDirectory(prefix='dust-native-') as temporary:
         native,provenance=compile_reference(source,Path(temporary),compiler)
         for n in (8,12,40):
@@ -107,11 +145,39 @@ def validate(source,compiler):
                                 np.testing.assert_allclose(actual,expected,rtol=3e-12,atol=3e-14)
                                 cases.append(dict(layers=n,conrath_type=kind,cycle_scheme=profile,latitude_rad=lat,
                                     pulse_fraction=pulse,seasonal=bool(season),max_error=float(np.max(np.abs(actual-expected)))))
+        longitude=np.array([-.1,0.,.2,np.pi,2.*np.pi-.1,2.*np.pi,2.*np.pi+.1])
+        latitude=np.array([-np.pi/2.,-.4,0.,.4,np.pi/2.])
+        for ls in (179.,180.,181.):
+            for center in (10.,200.):
+                for slope in (0.,12.):
+                    for amplitude in (0.,.4):
+                        options=dict(slope_deg=slope,latitude_coefficient=5.,amplitude=amplitude,
+                            center_longitude_deg=center)
+                        native.configure_storm(1,np.array([amplitude,60.,20.,center,15.,180.,slope,5.]))
+                        expected=np.empty((len(longitude),len(latitude)),order='F')
+                        native.storm_field(len(longitude),len(latitude),longitude,latitude,ls,expected)
+                        actual=storm_opacity(ls,longitude[:,None],latitude[None,:],**options)
+                        np.testing.assert_allclose(actual,expected,rtol=3e-13,atol=3e-15)
+                        storm_cases.append(dict(solar_longitude_deg=ls,**options,
+                            max_error=float(np.max(abs(actual-expected)))))
+        ph=np.geomspace(.01,610.,9);p=np.sqrt(ph[:-1]*ph[1:]);q=np.ones(8);expected=np.empty(8)
+        for seasonal in (False,True):
+            for kind in (0,1):
+                for pulse in (0.,.2):
+                    native.dust(8,ph,p,q,.4,.15,kind,0,pulse,int(seasonal),180.,expected)
+                    options={}
+                    if seasonal:
+                        options=dict(scenario_opacity=.3+storm_opacity(180.,0.,.4,
+                            slope_deg=12.,latitude_coefficient=5.,amplitude=.4,center_longitude_deg=200.),top_height_km=40.)
+                    actual=layer_opacities(ph,p,.15,latitude_rad=.4,conrath_type=kind,
+                        latitude_variation=not seasonal,pulse_fraction=pulse,**options)
+                    np.testing.assert_allclose(actual,expected,rtol=3e-12,atol=3e-14)
+                    storm_cases.append(dict(case='composed-profile',seasonal=seasonal,conrath_type=kind,pulse_fraction=pulse))
     root=Path(__file__).parents[1]
-    return dict(status='pass',reference=provenance,cases=cases,
+    return dict(status='pass',reference=provenance,cases=cases,storm_cases=storm_cases,
         sha256={name:hashlib.sha256((root/name).read_bytes()).hexdigest() for name in
             ('scripts/validate_prescribed_dust.py','package/src/framework/physics/prescribed_dust.py')},
-        limits='profile, fractional pulse and seasonal interpolation kernels; map sampling, optical properties and storm switches have separate checks')
+        limits='Profile, fractional pulse and seasonal interpolation kernels. Storm checks compare unchanged equations with explicit supplied slope and c; the release leaves those locals undefined. Map sampling and optical properties have separate checks.')
 
 
 def main():
@@ -123,7 +189,7 @@ def main():
     report=validate(args.ames_source,compiler)
     args.output.parent.mkdir(parents=True,exist_ok=True)
     args.output.write_text(json.dumps(report,indent=2,allow_nan=False)+'\n')
-    print(f"{len(report['cases'])} prescribed dust columns passed")
+    print(f"{len(report['cases'])} prescribed dust columns and {len(report['storm_cases'])} explicitly initialized storm cases passed")
 
 
 if __name__=='__main__': main()
