@@ -263,7 +263,8 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                convection_scheme='fv3',moist_convection_options=None,dust_mode_count=1,do_qmass=False,
                thermal_relaxation_options=None,do_co2_condensation=True,do_atmos_co2_loss=True,
                do_co2_condensation_cycle=True,do_mars_surface=True,do_vert_diff=True,do_ames_pbl=True,
-               freeze_tracer_fields=False,no_forcing=False,gust_factor=0.):
+               freeze_tracer_fields=False,no_forcing=False,gust_factor=0.,
+               co2_exchange_ratio_pole=.92,co2_exchange_ratio_trop=.991):
     """Dinosaur dynamics followed by Ames-order reference gas-column physics.
 
     Supply a verified radiation component and mapped soil diffusivity. Keeping
@@ -355,10 +356,9 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             jnp.asarray(grid.latitudes)[None,:],**source_options)
         nonorographic_drag_options.setdefault('source_index',source_index)
         nonorographic_drag_options.setdefault('source_amplitude',amplitude)
-    # Source selects one depth for the entire local domain using ANY latitude.
-    exchange_ratio=.92 if do_qmass and np.any(abs(np.asarray(grid.latitudes))>np.pi/4.) else .991
-    below=np.flatnonzero(sigma/sigma[-1]<exchange_ratio)
-    exchange_start=max(0,int(below[-1])-2) if len(below) else 0
+    from src.framework.physics.co2_condensation import surface_exchange_start
+    exchange_start=surface_exchange_start(sigma*body.reference_surface_pressure_pa,grid.latitudes,
+        do_qmass=do_qmass,polar_ratio=co2_exchange_ratio_pole,tropical_ratio=co2_exchange_ratio_trop)
     dz=soil_layer_thickness(soil_layers)
     pressure_scale=float(specs.dimensionalize(1.,scales.units.pascal).magnitude)
     velocity_scale=float(specs.dimensionalize(1.,scales.units.meter/scales.units.second).magnitude)

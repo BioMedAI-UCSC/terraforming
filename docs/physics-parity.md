@@ -524,7 +524,7 @@ limiter or establish matched transport accuracy.
 | Dust and cloud opacity | Size-dependent dust and all three cloud optical kernels are implemented. CO2 optical feedback is connected; prescribed dust, moment clouds, interactive lifting and seasonal control pass three-step global gradient checks. Multiple physical populations now connect lifting, coagulation, clouds, settling, opacity diagnostics, surface reservoirs and saved effective inputs. Matched climatology remains. |
 | Soil and frost | Mapped TES/GRS inputs and default case-7 profiles are implemented and checked. Compare diurnal/seasonal response in global runs; modern and legacy material profiles now pass native checks. |
 | CO2 modes | Immediate deposition and optional bulk suspended-cloud phase/settling match native routines and coupled columns. Cloud optical feedback passes a three-step gradient check. Full two-way exchange auditing and long global validation remain pending. The older conservative finite-settling scheme remains a separate model. |
-| CO2 switches | Atmospheric condensation, atmospheric loss and gas-mass feedback are independent source controls. Ninety-six unchanged native control-block cases check all combinations and initial-CO2-weighted surface exchange. Column tests retain condensation heating when precipitation loss is disabled, and retain surface snow when mass feedback is disabled. Held suspended clouds still mix as tracers when their phase driver is off. Global tests check disabled-feedback behavior, exact restart continuation and three-step reverse derivatives. |
+| CO2 switches | Atmospheric condensation, atmospheric loss and gas-mass feedback are independent source controls. Ninety-six unchanged native control-block cases check all combinations and initial-CO2-weighted surface exchange. Another 384 unchanged initialization cases check configurable exchange depths and strict pressure/latitude boundaries. Column tests retain condensation heating when precipitation loss is disabled, and retain surface snow when mass feedback is disabled. Held suspended clouds still mix as tracers when their phase driver is off. Global tests check disabled-feedback behavior, exact restart continuation and three-step reverse derivatives. |
 | Surface/diffusion controls | `do_mars_surface`, `do_vert_diff` and `do_ames_pbl` now select the released active branches. Without Mars surface physics, radiation sees 170 K, albedo 0.25 and emissivity 1; soil/CO2 surface exchange is inactive while drag and convection remain available. Twelve unchanged native `diffuse` cases prove the release fallback leaves tendencies unchanged because `fv3_turb` is excluded. Inactive PBL exchange fields are defined as zero instead of copying uninitialized source values. Surface-dependent water/dust modes are rejected without the source's surface reservoir initialization. |
 | Process controls | `freeze_tracer_fields`, `no_forcing` and the released `gust_fact` correction are connected to Dinosaur and the runner. Native blocks check tracer freezing, no-forcing early return and gust stress; column/global checks retain surface/history changes under freezing and skip all physical updates under no forcing. The released tracer-source/sink helper has no caller. Alternate gust/turbulence drivers are excluded by build flags. |
 | Interactive dust | Lifting, advection, sedimentation, surface reservoirs, coagulation and material budgets are connected independently of moment water. Matched climate validation remains. |
@@ -545,6 +545,15 @@ the five audited placeholder routines calls only `error_mesg(..., FATAL)`.
 This result does not supply bin-cloud or chemistry equations. The public
 release's real moment/bulk modules are checked separately. Alternate diffusion/radiation
 branches also need explicit coverage before claiming every source switch.
+
+The release-interface report also lists all 54 entries in `mars_physics_nml`.
+Each has an implementation path or an explicit inactive, excluded or diagnostic
+status. The inventory rejects missing and duplicate entries. The unused passive
+tracer source/sink helper has no caller. The release preprocessor removes the
+alternate diffusion smoothing branch. `checkcons` is represented by material
+ledgers and validation checks; native FMS debug-abort behavior is not copied.
+This driver inventory does not establish coverage of every branch in the
+separate radiation, dust and cloud modules.
 
 Use `--config reference --no-moment-water` for independent moment dust in the
 production runner. It keeps the released polar frost map as a fixed boundary
@@ -571,6 +580,18 @@ does not call the alternate gust drivers. The drag coefficient stays unchanged.
 Source-invalid negative squared wind remains nonfinite.
 Non-default controls are recorded in restart identity. The 56-level T21
 freeze/gust and no-forcing smoke runs each completed and resumed to two steps.
+
+CO2 surface exchange accepts `co2_exchange_ratio_pole` and
+`co2_exchange_ratio_trop` in backend options. Defaults are 0.92 and 0.991.
+The runner exposes `--co2-exchange-ratio-pole` and `--co2-exchange-ratio-trop`.
+The source uses the polar ratio when gas-mass feedback is explicit and any
+latitude in its local domain is strictly beyond 45 degrees. Otherwise it uses
+the tropical ratio. Dinosaur applies this rule to its single global domain.
+The pressure comparison is also strict. Two additional exchange layers are
+retained, bounded by the first model layer on coarse Dinosaur grids.
+The selected depth is an initialization choice. Custom ratios are saved in
+restart identity. A 56-level run with custom ratios completed and resumed to
+two steps; changing a ratio correctly rejected the saved restart.
 
 ## Reproduce the native checks
 

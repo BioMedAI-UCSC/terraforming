@@ -3,7 +3,8 @@
   "reference": {
     "source_git_blob": "ca0b7c0774b1b23cafaee219062c3bffa3d0c4cc",
     "block_sha256": "0819c4dcb3b4ca9a800855f8a46ff7e7e831428ec0be51888137c0c1bb8208b2",
-    "compiled_source_sha256": "64c00668ac061a3ad63c5322f1b6552abb9d4e9a4f473683a3fcbbc7c1618d7c",
+    "exchange_depth_block_sha256": "0ac42f7b874accdd2a3d0a9ec997c2fc11010261e28d4297ce60cc2ff152f792",
+    "compiled_source_sha256": "eb3820beff4abd0c6c62bd2c56c35607fee43b2a5c1c65b42bf016aecc953dbf",
     "compiler_flags": [
       "-O3",
       "-fdefault-real-8",
@@ -977,10 +978,4749 @@
       ]
     }
   ],
+  "depth_cases": [
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 1,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.33442622950819667,
+      "tropical_ratio": 0.3344262295081968,
+      "start_layer": 0,
+      "coarse_grid_bounded": true
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 1,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.33442622950819667,
+      "tropical_ratio": 0.3344262295081968,
+      "start_layer": 0,
+      "coarse_grid_bounded": true
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 1,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.33442622950819667,
+      "tropical_ratio": 0.3344262295081968,
+      "start_layer": 0,
+      "coarse_grid_bounded": true
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 1,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.33442622950819667,
+      "tropical_ratio": 0.3344262295081968,
+      "start_layer": 0,
+      "coarse_grid_bounded": true
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 1,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.33442622950819667,
+      "tropical_ratio": 0.3344262295081968,
+      "start_layer": 0,
+      "coarse_grid_bounded": true
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 1,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.33442622950819667,
+      "tropical_ratio": 0.3344262295081968,
+      "start_layer": 0,
+      "coarse_grid_bounded": true
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 1,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.33442622950819667,
+      "tropical_ratio": 0.3344262295081968,
+      "start_layer": 0,
+      "coarse_grid_bounded": true
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.33442622950819667,
+      "tropical_ratio": 0.3344262295081968,
+      "start_layer": 0,
+      "coarse_grid_bounded": true
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 1,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.33442622950819667,
+      "tropical_ratio": 0.3344262295081968,
+      "start_layer": 0,
+      "coarse_grid_bounded": true
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.33442622950819667,
+      "tropical_ratio": 0.3344262295081968,
+      "start_layer": 0,
+      "coarse_grid_bounded": true
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 1,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.33442622950819667,
+      "tropical_ratio": 0.3344262295081968,
+      "start_layer": 0,
+      "coarse_grid_bounded": true
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.33442622950819667,
+      "tropical_ratio": 0.3344262295081968,
+      "start_layer": 0,
+      "coarse_grid_bounded": true
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 1,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.0006453274070659299,
+      "tropical_ratio": 0.0006453274070659301,
+      "start_layer": 0,
+      "coarse_grid_bounded": true
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 1,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.0006453274070659299,
+      "tropical_ratio": 0.0006453274070659301,
+      "start_layer": 0,
+      "coarse_grid_bounded": true
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 1,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.0006453274070659299,
+      "tropical_ratio": 0.0006453274070659301,
+      "start_layer": 0,
+      "coarse_grid_bounded": true
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 1,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.0006453274070659299,
+      "tropical_ratio": 0.0006453274070659301,
+      "start_layer": 0,
+      "coarse_grid_bounded": true
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 1,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.0006453274070659299,
+      "tropical_ratio": 0.0006453274070659301,
+      "start_layer": 0,
+      "coarse_grid_bounded": true
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 1,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.0006453274070659299,
+      "tropical_ratio": 0.0006453274070659301,
+      "start_layer": 0,
+      "coarse_grid_bounded": true
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 1,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.0006453274070659299,
+      "tropical_ratio": 0.0006453274070659301,
+      "start_layer": 0,
+      "coarse_grid_bounded": true
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.0006453274070659299,
+      "tropical_ratio": 0.0006453274070659301,
+      "start_layer": 0,
+      "coarse_grid_bounded": true
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 1,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.0006453274070659299,
+      "tropical_ratio": 0.0006453274070659301,
+      "start_layer": 0,
+      "coarse_grid_bounded": true
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.0006453274070659299,
+      "tropical_ratio": 0.0006453274070659301,
+      "start_layer": 0,
+      "coarse_grid_bounded": true
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 1,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.0006453274070659299,
+      "tropical_ratio": 0.0006453274070659301,
+      "start_layer": 0,
+      "coarse_grid_bounded": true
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 0,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 4,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.0006453274070659299,
+      "tropical_ratio": 0.0006453274070659301,
+      "start_layer": 0,
+      "coarse_grid_bounded": true
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 9,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.8184798807749627,
+      "tropical_ratio": 0.8184798807749629,
+      "start_layer": 7,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 9,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.8184798807749627,
+      "tropical_ratio": 0.8184798807749629,
+      "start_layer": 7,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 9,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.8184798807749627,
+      "tropical_ratio": 0.8184798807749629,
+      "start_layer": 7,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 9,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.8184798807749627,
+      "tropical_ratio": 0.8184798807749629,
+      "start_layer": 7,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 9,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.8184798807749627,
+      "tropical_ratio": 0.8184798807749629,
+      "start_layer": 7,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 9,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.8184798807749627,
+      "tropical_ratio": 0.8184798807749629,
+      "start_layer": 7,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 9,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.8184798807749627,
+      "tropical_ratio": 0.8184798807749629,
+      "start_layer": 7,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 5,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.8184798807749627,
+      "tropical_ratio": 0.8184798807749629,
+      "start_layer": 6,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 9,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.8184798807749627,
+      "tropical_ratio": 0.8184798807749629,
+      "start_layer": 7,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 5,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.8184798807749627,
+      "tropical_ratio": 0.8184798807749629,
+      "start_layer": 6,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 9,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.8184798807749627,
+      "tropical_ratio": 0.8184798807749629,
+      "start_layer": 7,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 5,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.8184798807749627,
+      "tropical_ratio": 0.8184798807749629,
+      "start_layer": 6,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 9,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.1348776622519413,
+      "tropical_ratio": 0.13487766225194137,
+      "start_layer": 7,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 9,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.1348776622519413,
+      "tropical_ratio": 0.13487766225194137,
+      "start_layer": 7,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 9,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.1348776622519413,
+      "tropical_ratio": 0.13487766225194137,
+      "start_layer": 7,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 9,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.1348776622519413,
+      "tropical_ratio": 0.13487766225194137,
+      "start_layer": 7,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 9,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.1348776622519413,
+      "tropical_ratio": 0.13487766225194137,
+      "start_layer": 7,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 9,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.1348776622519413,
+      "tropical_ratio": 0.13487766225194137,
+      "start_layer": 7,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 9,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.1348776622519413,
+      "tropical_ratio": 0.13487766225194137,
+      "start_layer": 7,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.1348776622519413,
+      "tropical_ratio": 0.13487766225194137,
+      "start_layer": 6,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 9,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.1348776622519413,
+      "tropical_ratio": 0.13487766225194137,
+      "start_layer": 7,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.1348776622519413,
+      "tropical_ratio": 0.13487766225194137,
+      "start_layer": 6,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 9,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.1348776622519413,
+      "tropical_ratio": 0.13487766225194137,
+      "start_layer": 7,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 8,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 12,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.1348776622519413,
+      "tropical_ratio": 0.13487766225194137,
+      "start_layer": 6,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 37,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.9488020176544765,
+      "tropical_ratio": 0.9488020176544767,
+      "start_layer": 35,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 37,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.9488020176544765,
+      "tropical_ratio": 0.9488020176544767,
+      "start_layer": 35,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 37,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.9488020176544765,
+      "tropical_ratio": 0.9488020176544767,
+      "start_layer": 35,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 37,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.9488020176544765,
+      "tropical_ratio": 0.9488020176544767,
+      "start_layer": 35,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 37,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.9488020176544765,
+      "tropical_ratio": 0.9488020176544767,
+      "start_layer": 35,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 37,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.9488020176544765,
+      "tropical_ratio": 0.9488020176544767,
+      "start_layer": 35,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 37,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.9488020176544765,
+      "tropical_ratio": 0.9488020176544767,
+      "start_layer": 35,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 33,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 25,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.9488020176544765,
+      "tropical_ratio": 0.9488020176544767,
+      "start_layer": 34,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 37,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.9488020176544765,
+      "tropical_ratio": 0.9488020176544767,
+      "start_layer": 35,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 33,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 25,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.9488020176544765,
+      "tropical_ratio": 0.9488020176544767,
+      "start_layer": 34,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 37,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.9488020176544765,
+      "tropical_ratio": 0.9488020176544767,
+      "start_layer": 35,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 33,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 25,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.9488020176544765,
+      "tropical_ratio": 0.9488020176544767,
+      "start_layer": 34,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 37,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.5683272369426987,
+      "tropical_ratio": 0.5683272369426989,
+      "start_layer": 35,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 37,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.5683272369426987,
+      "tropical_ratio": 0.5683272369426989,
+      "start_layer": 35,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 37,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.5683272369426987,
+      "tropical_ratio": 0.5683272369426989,
+      "start_layer": 35,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 37,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.5683272369426987,
+      "tropical_ratio": 0.5683272369426989,
+      "start_layer": 35,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 37,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.5683272369426987,
+      "tropical_ratio": 0.5683272369426989,
+      "start_layer": 35,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 37,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.5683272369426987,
+      "tropical_ratio": 0.5683272369426989,
+      "start_layer": 35,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 37,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.5683272369426987,
+      "tropical_ratio": 0.5683272369426989,
+      "start_layer": 35,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 35,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.5683272369426987,
+      "tropical_ratio": 0.5683272369426989,
+      "start_layer": 34,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 37,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.5683272369426987,
+      "tropical_ratio": 0.5683272369426989,
+      "start_layer": 35,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 35,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.5683272369426987,
+      "tropical_ratio": 0.5683272369426989,
+      "start_layer": 34,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 37,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.5683272369426987,
+      "tropical_ratio": 0.5683272369426989,
+      "start_layer": 35,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 35,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 40,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.5683272369426987,
+      "tropical_ratio": 0.5683272369426989,
+      "start_layer": 34,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 53,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.9636959761549925,
+      "tropical_ratio": 0.9636959761549927,
+      "start_layer": 51,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 53,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.9636959761549925,
+      "tropical_ratio": 0.9636959761549927,
+      "start_layer": 51,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 53,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.9636959761549925,
+      "tropical_ratio": 0.9636959761549927,
+      "start_layer": 51,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 53,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.9636959761549925,
+      "tropical_ratio": 0.9636959761549927,
+      "start_layer": 51,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 53,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.9636959761549925,
+      "tropical_ratio": 0.9636959761549927,
+      "start_layer": 51,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 53,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.9636959761549925,
+      "tropical_ratio": 0.9636959761549927,
+      "start_layer": 51,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 53,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.9636959761549925,
+      "tropical_ratio": 0.9636959761549927,
+      "start_layer": 51,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 48,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.9636959761549925,
+      "tropical_ratio": 0.9636959761549927,
+      "start_layer": 50,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 53,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.9636959761549925,
+      "tropical_ratio": 0.9636959761549927,
+      "start_layer": 51,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 48,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.9636959761549925,
+      "tropical_ratio": 0.9636959761549927,
+      "start_layer": 50,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 53,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.9636959761549925,
+      "tropical_ratio": 0.9636959761549927,
+      "start_layer": 51,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 48,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 36,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "uniform",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.9636959761549925,
+      "tropical_ratio": 0.9636959761549927,
+      "start_layer": 50,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 53,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.669866109330394,
+      "tropical_ratio": 0.6698661093303943,
+      "start_layer": 51,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 53,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        0.5
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.669866109330394,
+      "tropical_ratio": 0.6698661093303943,
+      "start_layer": 51,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 53,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.669866109330394,
+      "tropical_ratio": 0.6698661093303943,
+      "start_layer": 51,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 53,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.669866109330394,
+      "tropical_ratio": 0.6698661093303943,
+      "start_layer": 51,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 53,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.669866109330394,
+      "tropical_ratio": 0.6698661093303943,
+      "start_layer": 51,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 53,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974483
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.669866109330394,
+      "tropical_ratio": 0.6698661093303943,
+      "start_layer": 51,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 53,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.669866109330394,
+      "tropical_ratio": 0.6698661093303943,
+      "start_layer": 51,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 51,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.669866109330394,
+      "tropical_ratio": 0.6698661093303943,
+      "start_layer": 50,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 53,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.669866109330394,
+      "tropical_ratio": 0.6698661093303943,
+      "start_layer": 51,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 51,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        -0.7853981633974484
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.669866109330394,
+      "tropical_ratio": 0.6698661093303943,
+      "start_layer": 50,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": false,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 53,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": false,
+      "polar_ratio": 0.669866109330394,
+      "tropical_ratio": 0.6698661093303943,
+      "start_layer": 51,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.92,
+      "tropical_ratio": 0.991,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.7,
+      "tropical_ratio": 0.99,
+      "start_layer": 51,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": true,
+      "polar_ratio": 1.0,
+      "tropical_ratio": 1.01,
+      "start_layer": 52,
+      "coarse_grid_bounded": false
+    },
+    {
+      "levels": 56,
+      "geometry": "geometric",
+      "latitudes_rad": [
+        0.0,
+        1.0
+      ],
+      "do_qmass": true,
+      "polar_ratio": 0.669866109330394,
+      "tropical_ratio": 0.6698661093303943,
+      "start_layer": 50,
+      "coarse_grid_bounded": false
+    }
+  ],
   "sha256": {
-    "scripts/validate_co2_controls.py": "501393523194f23f2901640ae5f4e01c93f43e2ba587f7d798a6df58fa1e085e",
+    "scripts/validate_co2_controls.py": "83d230e1a1d836d6a6e19bfaf2ab4bd8805353f73ab74b5f311e046839c5010b",
     "package/src/framework/physics/column_physics.py": "4f921186b3102288b5a85fb29c42de4385099bb75f015b5790aeaf7f7abb7f66",
-    "package/src/framework/physics/dinosaur_physics.py": "08386034cb7cf45cae49c9a430a5bf35efcc4e87e96311310aa503c0ed8e8777"
+    "package/src/framework/physics/dinosaur_physics.py": "374c76cdec8e89563f1b8cc516ae83f6096db363c40662e72c1ef55e94f1c5be",
+    "package/src/framework/physics/co2_condensation.py": "031532e9cec413118c7e413211ea42c263ebaf90da2ffe72dcbd79d6f0a2c72f"
   },
-  "limits": "Seeded immediate-condensation control block, all three flags and do_qmass surface weights. Phase kernels, suspended clouds, global projection and derivatives require their separate checks."
+  "limits": "Seeded immediate-condensation control block, all three flags and do_qmass surface weights; unchanged initialization depth loops and strict local-domain latitude selection. Dinosaur uses one global domain and bounds the two extra exchange layers at its first layer on coarse grids. Phase kernels, suspended clouds, global projection and derivatives require separate checks."
 }

@@ -329,6 +329,8 @@ def main() -> int:
     parser.add_argument('--freeze-tracer-fields',action='store_true',help='discard atmospheric physics tracer changes after microphysics')
     parser.add_argument('--no-forcing',action='store_true',help='run dynamics without atmospheric or surface physics')
     parser.add_argument('--gust-factor',type=float,default=0.,help='released dust-lifting wind correction; gust speed is 1 m/s')
+    parser.add_argument('--co2-exchange-ratio-pole',type=float,default=.92)
+    parser.add_argument('--co2-exchange-ratio-trop',type=float,default=.991)
     for flag,destination in (('co2-condensation','do_co2_condensation'),('atmos-co2-loss','do_atmos_co2_loss'),
                              ('co2-mass-feedback','do_co2_condensation_cycle')):
         parser.add_argument('--'+flag,dest=destination,action=argparse.BooleanOptionalAction,default=True)
@@ -370,6 +372,10 @@ def main() -> int:
     args = parser.parse_args()
     reference=args.config=='reference'
     process_controls={name:getattr(args,name) for name in ('freeze_tracer_fields','no_forcing','gust_factor')}
+    for name,default in (('co2_exchange_ratio_pole',.92),('co2_exchange_ratio_trop',.991)):
+        value=getattr(args,name)
+        if not np.isfinite(value) or value<=0.: parser.error('CO2 exchange ratios must be finite and positive')
+        if value!=default: process_controls[name]=value
     if not np.isfinite(args.gust_factor): parser.error('--gust-factor must be finite')
     if not reference and any(process_controls.values()): parser.error('reference process controls require --config reference')
     if not reference and not args.moment_water: parser.error('--no-moment-water requires --config reference')

@@ -15,6 +15,7 @@ import numpy as np
 from src.framework.gcm._dinosaur import jax,jnp
 from src.celestials.planets.mars.reference_constants import AMES_BODY_3D as BODY
 from src.framework.physics.column_physics import column_physics
+from src.framework.physics.co2_condensation import surface_exchange_start
 from src.framework.physics.soil_frost import soil_layer_thickness
 
 PHYSICS_BLOB='ca0b7c0774b1b23cafaee219062c3bffa3d0c4cc'
@@ -26,6 +27,8 @@ def compile_reference(source,directory,compiler):
     if blob!=PHYSICS_BLOB: raise ValueError('reference physics differs from pinned source')
     text=raw.decode();start=text.index('    if (do_co2_condensation) then')
     block=text[start:text.index('!***************** IF DO_SURFACE_MARS = FALSE',start)]
+    start=text.rfind('do k = kd,1,-1',0,text.index('klevs_trop = kd-k+1'))
+    selection=text[start:text.index('! *********************************************************',start)]
     header='''module reference_mod
 use iso_c_binding
 implicit none
@@ -98,6 +101,26 @@ real :: value(*)
 send_data=.false.
 end function
 '''
+    depth='''
+subroutine exchange_depth(n,ncol,qmass,polar,tropical,pstd,lat,start_layer) bind(C)
+integer(c_int),value :: n,ncol,qmass
+real(c_double),value :: polar,tropical
+real(c_double),intent(in) :: pstd(n),lat(ncol,1)
+integer(c_int),intent(out) :: start_layer
+integer :: kd,k,klevs_trop,klevs_pole,klevs_co2
+integer,parameter :: is=1,js=1,je=1
+integer :: ie
+real,parameter :: PI=acos(-1.d0)
+real :: klevs_ratio_pole,klevs_ratio_trop
+logical :: do_qmass,mcpu0
+kd=n;ie=ncol;do_qmass=qmass/=0;mcpu0=.false.
+klevs_ratio_pole=polar;klevs_ratio_trop=tropical
+klevs_trop=-999;klevs_pole=-999
+'''+selection+'''
+start_layer=n-klevs_co2-2
+end subroutine
+'''
+    tail=tail.replace('\nend module\n','\n'+depth+'end module\n',1)
     code=header+block+tail
     path=directory/'reference.f90';path.write_text(code)
     flags=['-O3','-fdefault-real-8','-fdefault-double-8','-ffree-line-length-none','-fPIC','-shared']
@@ -107,7 +130,10 @@ end function
     integers=np.ctypeslib.ndpointer(dtype=np.int32,flags='F_CONTIGUOUS')
     native.controls.argtypes=[ctypes.c_int,integers,ctypes.c_int]+[array]*10
     native.controls.restype=None
+    native.exchange_depth.argtypes=[ctypes.c_int]*3+[ctypes.c_double]*2+[array]*2+[ctypes.POINTER(ctypes.c_int)]
+    native.exchange_depth.restype=None
     provenance=dict(source_git_blob=blob,block_sha256=hashlib.sha256(block.encode()).hexdigest(),
+        exchange_depth_block_sha256=hashlib.sha256(selection.encode()).hexdigest(),
         compiled_source_sha256=hashlib.sha256(code.encode()).hexdigest(),compiler_flags=flags,
         compiler=subprocess.check_output([compiler,'--version'],text=True).splitlines()[0],
         adaptation='Unchanged control block; phase output seeds and disabled diagnostic adapters. Suspended-cloud phase kernels are validated separately.')
@@ -118,9 +144,28 @@ def validate(source,compiler):
     jax.config.update('jax_enable_x64',True)
     f=lambda value:np.asfortranarray(value,dtype=np.float64)
     layout=lambda value:f(np.asarray(value)[None,None,:])
-    cases=[]
+    cases=[];depth_cases=[]
     with tempfile.TemporaryDirectory(prefix='co2-controls-native-') as temporary:
         native,provenance=compile_reference(source,Path(temporary),compiler)
+        for n in (4,12,40,56):
+            for geometry in ('uniform','geometric'):
+                pressure=np.linspace(1.,610.,n) if geometry=='uniform' else np.geomspace(.01,610.,n)
+                boundary=pressure[-3]/pressure[-1]
+                ratios=[(.92,.991),(.7,.99),(1.,1.01),
+                    (np.nextafter(boundary,0.),np.nextafter(boundary,np.inf))]
+                for latitude in ([0.,.5],[np.pi/4.],[-np.pi/4.],
+                    [np.nextafter(np.pi/4.,np.inf)],[-np.nextafter(np.pi/4.,np.inf)],[0.,1.]):
+                    for qmass in (False,True):
+                        for polar,tropical in ratios:
+                            expected=ctypes.c_int(-1)
+                            native.exchange_depth(n,len(latitude),int(qmass),polar,tropical,
+                                f(pressure),f(np.asarray(latitude)[:,None]),ctypes.byref(expected))
+                            actual=surface_exchange_start(pressure,latitude,do_qmass=qmass,
+                                polar_ratio=polar,tropical_ratio=tropical)
+                            np.testing.assert_equal(actual,max(0,expected.value))
+                            depth_cases.append(dict(levels=n,geometry=geometry,latitudes_rad=list(latitude),
+                                do_qmass=qmass,polar_ratio=polar,tropical_ratio=tropical,
+                                start_layer=actual,coarse_grid_bounded=expected.value<0))
         for levels in (4,40,56):
             half=jnp.linspace(0.,610.,levels+1);full=.5*(half[1:]+half[:-1])
             co2=jnp.linspace(.9,.7,levels)
@@ -156,10 +201,10 @@ def validate(source,compiler):
                                 cases.append(dict(levels=levels,start_layer=start,flags=flags.tolist()))
     root=Path(__file__).parents[1]
     paths=['scripts/validate_co2_controls.py','package/src/framework/physics/column_physics.py',
-        'package/src/framework/physics/dinosaur_physics.py']
-    return dict(status='pass',reference=provenance,cases=cases,
+        'package/src/framework/physics/dinosaur_physics.py','package/src/framework/physics/co2_condensation.py']
+    return dict(status='pass',reference=provenance,cases=cases,depth_cases=depth_cases,
         sha256={p:hashlib.sha256((root/p).read_bytes()).hexdigest() for p in paths},
-        limits='Seeded immediate-condensation control block, all three flags and do_qmass surface weights. Phase kernels, suspended clouds, global projection and derivatives require their separate checks.')
+        limits='Seeded immediate-condensation control block, all three flags and do_qmass surface weights; unchanged initialization depth loops and strict local-domain latitude selection. Dinosaur uses one global domain and bounds the two extra exchange layers at its first layer on coarse grids. Phase kernels, suspended clouds, global projection and derivatives require separate checks.')
 
 
 if __name__=='__main__':
@@ -171,4 +216,4 @@ if __name__=='__main__':
     report=validate(args.ames_source,compiler)
     args.output.parent.mkdir(parents=True,exist_ok=True)
     args.output.write_text(json.dumps(report,indent=2,allow_nan=False)+'\n')
-    print(json.dumps(dict(status=report['status'],cases=len(report['cases']))))
+    print(json.dumps(dict(status=report['status'],cases=len(report['cases']),depth_cases=len(report['depth_cases']))))

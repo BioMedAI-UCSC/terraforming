@@ -45,6 +45,278 @@
       "routine_sha256": "a50637817553165f521d6c24c2d89444446eab4fbe1b5abc32b68ed9da7e8bb6"
     }
   ],
+  "driver_controls": [
+    {
+      "source_control": "no_forcing",
+      "status": "implemented",
+      "implementation": "dinosaur_physics.build_step and column_physics; surface-controls report"
+    },
+    {
+      "source_control": "freeze_tracer_fields",
+      "status": "implemented",
+      "implementation": "dinosaur_physics.build_step and column_physics; surface-controls report"
+    },
+    {
+      "source_control": "gust_fact",
+      "status": "implemented",
+      "implementation": "dinosaur_physics.build_step and column_physics; surface-controls report"
+    },
+    {
+      "source_control": "t_zero",
+      "status": "implemented",
+      "implementation": "thermal_relaxation, radiative_transfer and simple_radiation; analytic kernel is not called by native dispatch"
+    },
+    {
+      "source_control": "t_strat",
+      "status": "implemented",
+      "implementation": "thermal_relaxation, radiative_transfer and simple_radiation; analytic kernel is not called by native dispatch"
+    },
+    {
+      "source_control": "delh",
+      "status": "implemented",
+      "implementation": "thermal_relaxation, radiative_transfer and simple_radiation; analytic kernel is not called by native dispatch"
+    },
+    {
+      "source_control": "delv",
+      "status": "implemented",
+      "implementation": "thermal_relaxation, radiative_transfer and simple_radiation; analytic kernel is not called by native dispatch"
+    },
+    {
+      "source_control": "eps",
+      "status": "implemented",
+      "implementation": "thermal_relaxation, radiative_transfer and simple_radiation; analytic kernel is not called by native dispatch"
+    },
+    {
+      "source_control": "sigma_b",
+      "status": "implemented",
+      "implementation": "thermal_relaxation, radiative_transfer and simple_radiation; analytic kernel is not called by native dispatch"
+    },
+    {
+      "source_control": "ka",
+      "status": "implemented",
+      "implementation": "thermal_relaxation, radiative_transfer and simple_radiation; analytic kernel is not called by native dispatch"
+    },
+    {
+      "source_control": "ks",
+      "status": "implemented",
+      "implementation": "thermal_relaxation, radiative_transfer and simple_radiation; analytic kernel is not called by native dispatch"
+    },
+    {
+      "source_control": "do_teq_z",
+      "status": "implemented",
+      "implementation": "thermal_relaxation, radiative_transfer and simple_radiation; analytic kernel is not called by native dispatch"
+    },
+    {
+      "source_control": "do_mars_radiation",
+      "status": "implemented",
+      "implementation": "thermal_relaxation, radiative_transfer and simple_radiation; analytic kernel is not called by native dispatch"
+    },
+    {
+      "source_control": "do_simple_radiation",
+      "status": "implemented",
+      "implementation": "thermal_relaxation, radiative_transfer and simple_radiation; analytic kernel is not called by native dispatch"
+    },
+    {
+      "source_control": "kf",
+      "status": "implemented",
+      "implementation": "rayleigh_drag.rayleigh_tendencies and column_physics dissipative heating"
+    },
+    {
+      "source_control": "do_conserve_energy",
+      "status": "implemented",
+      "implementation": "rayleigh_drag.rayleigh_tendencies and column_physics dissipative heating"
+    },
+    {
+      "source_control": "rayleighModelTop_flag",
+      "status": "implemented",
+      "implementation": "rayleigh_drag.rayleigh_tendencies and column_physics dissipative heating"
+    },
+    {
+      "source_control": "rayleighModelTop_pres_cutoff",
+      "status": "implemented",
+      "implementation": "rayleigh_drag.rayleigh_tendencies and column_physics dissipative heating"
+    },
+    {
+      "source_control": "rayleighModelTop_tau_days",
+      "status": "implemented",
+      "implementation": "rayleigh_drag.rayleigh_tendencies and column_physics dissipative heating"
+    },
+    {
+      "source_control": "rayleighModelTop_pres_inflex",
+      "status": "implemented",
+      "implementation": "rayleigh_drag.rayleigh_tendencies and column_physics dissipative heating"
+    },
+    {
+      "source_control": "rayleighTropical_flag",
+      "status": "implemented",
+      "implementation": "rayleigh_drag.rayleigh_tendencies and column_physics dissipative heating"
+    },
+    {
+      "source_control": "rayleighTropical_pres_cutoff",
+      "status": "implemented",
+      "implementation": "rayleigh_drag.rayleigh_tendencies and column_physics dissipative heating"
+    },
+    {
+      "source_control": "rayleighTropical_tau_days",
+      "status": "implemented",
+      "implementation": "rayleigh_drag.rayleigh_tendencies and column_physics dissipative heating"
+    },
+    {
+      "source_control": "rayleighTropical_pres_inflex",
+      "status": "implemented",
+      "implementation": "rayleigh_drag.rayleigh_tendencies and column_physics dissipative heating"
+    },
+    {
+      "source_control": "rayleighTropical_lat_width",
+      "status": "implemented",
+      "implementation": "rayleigh_drag.rayleigh_tendencies and column_physics dissipative heating"
+    },
+    {
+      "source_control": "do_mars_surface",
+      "status": "implemented",
+      "implementation": "column_physics surface/PBL controls; release diffuse fallback checked natively"
+    },
+    {
+      "source_control": "do_vert_diff",
+      "status": "implemented",
+      "implementation": "column_physics surface/PBL controls; release diffuse fallback checked natively"
+    },
+    {
+      "source_control": "do_ames_pbl",
+      "status": "implemented",
+      "implementation": "column_physics surface/PBL controls; release diffuse fallback checked natively"
+    },
+    {
+      "source_control": "do_convective_adjust",
+      "status": "implemented",
+      "implementation": "column_physics convection_scheme and moist_convection_options"
+    },
+    {
+      "source_control": "do_fv3_convect",
+      "status": "implemented",
+      "implementation": "column_physics convection_scheme and moist_convection_options"
+    },
+    {
+      "source_control": "do_moist_convective_adjust",
+      "status": "implemented",
+      "implementation": "column_physics convection_scheme and moist_convection_options"
+    },
+    {
+      "source_control": "do_co2_condensation_cycle",
+      "status": "implemented",
+      "implementation": "column_physics, co2_microphysics and co2_condensation.surface_exchange_start; co2-controls report"
+    },
+    {
+      "source_control": "do_co2_condensation",
+      "status": "implemented",
+      "implementation": "column_physics, co2_microphysics and co2_condensation.surface_exchange_start; co2-controls report"
+    },
+    {
+      "source_control": "form_co2_clouds",
+      "status": "implemented",
+      "implementation": "column_physics, co2_microphysics and co2_condensation.surface_exchange_start; co2-controls report"
+    },
+    {
+      "source_control": "do_atmos_co2_loss",
+      "status": "implemented",
+      "implementation": "column_physics, co2_microphysics and co2_condensation.surface_exchange_start; co2-controls report"
+    },
+    {
+      "source_control": "do_qmass",
+      "status": "implemented",
+      "implementation": "column_physics, co2_microphysics and co2_condensation.surface_exchange_start; co2-controls report"
+    },
+    {
+      "source_control": "klevs_ratio_pole",
+      "status": "implemented",
+      "implementation": "column_physics, co2_microphysics and co2_condensation.surface_exchange_start; co2-controls report"
+    },
+    {
+      "source_control": "klevs_ratio_trop",
+      "status": "implemented",
+      "implementation": "column_physics, co2_microphysics and co2_condensation.surface_exchange_start; co2-controls report"
+    },
+    {
+      "source_control": "do_coagul_dst",
+      "status": "implemented",
+      "implementation": "dust_coagulation, water_surface options and column_physics form_bulk_clouds"
+    },
+    {
+      "source_control": "inj_vap_pbl",
+      "status": "implemented",
+      "implementation": "dust_coagulation, water_surface options and column_physics form_bulk_clouds"
+    },
+    {
+      "source_control": "facsubl",
+      "status": "implemented",
+      "implementation": "dust_coagulation, water_surface options and column_physics form_bulk_clouds"
+    },
+    {
+      "source_control": "liquid_vap_pres",
+      "status": "implemented",
+      "implementation": "dust_coagulation, water_surface options and column_physics form_bulk_clouds"
+    },
+    {
+      "source_control": "blk_latent_heat",
+      "status": "implemented",
+      "implementation": "dust_coagulation, water_surface options and column_physics form_bulk_clouds"
+    },
+    {
+      "source_control": "form_bulk_clouds",
+      "status": "implemented",
+      "implementation": "dust_coagulation, water_surface options and column_physics form_bulk_clouds"
+    },
+    {
+      "source_control": "GW_drag_TOG",
+      "status": "implemented",
+      "implementation": "terrain_drag_options and nonorographic_drag_options; terrain factor scales final tendencies"
+    },
+    {
+      "source_control": "topo_drag_fac",
+      "status": "implemented",
+      "implementation": "terrain_drag_options and nonorographic_drag_options; terrain factor scales final tendencies"
+    },
+    {
+      "source_control": "do_dust_source_sink",
+      "status": "unavailable",
+      "implementation": "released fatal placeholder interfaces checked below"
+    },
+    {
+      "source_control": "do_bin_water_cycle",
+      "status": "unavailable",
+      "implementation": "released fatal placeholder interfaces checked below"
+    },
+    {
+      "source_control": "do_pchem",
+      "status": "unavailable",
+      "implementation": "released fatal placeholder interfaces checked below"
+    },
+    {
+      "source_control": "trflux",
+      "status": "inactive",
+      "implementation": "tracer_source_sink has no caller in released mars_physics"
+    },
+    {
+      "source_control": "trsink",
+      "status": "inactive",
+      "implementation": "tracer_source_sink has no caller in released mars_physics"
+    },
+    {
+      "source_control": "tau_diffusion",
+      "status": "excluded",
+      "implementation": "only used in fv3_turb branches excluded by release flags"
+    },
+    {
+      "source_control": "diffusion_smooth",
+      "status": "excluded",
+      "implementation": "only used in fv3_turb branches excluded by release flags"
+    },
+    {
+      "source_control": "checkcons",
+      "status": "diagnostics adaptation",
+      "implementation": "kernel/global material ledgers and validation checks; native FMS debug abort behavior is not copied"
+    }
+  ],
   "excluded_build_interfaces": {
     "required_definition": "fv3_turb",
     "calls": [
@@ -59,8 +331,8 @@
     "alternate_preprocessed_sha256": "146631ad81c35fed0dd3b9c3b7ff82cbd7d4370858457d121eb179e7288dfbb8"
   },
   "sha256": {
-    "scripts/validate_release_interfaces.py": "c4cf3d6e2b61894b25bcff5ea92b77f090eda414ee80f836d383b104cdfff277",
+    "scripts/validate_release_interfaces.py": "2590246bc7141f4142c56f4fbfbd9b29ae37c1b06ff09719fc46939bd63310e5",
     "scripts/native_reference.py": "2e3b0e2f65b685f86fcfdd1b4643b54c5582b81af36a0874a43d9eedc2675d76"
   },
-  "limits": "This verifies unavailable release interfaces, not functioning physics. Bin-cloud microphysics, photochemistry and legacy binned dust-source equations are not in these released implementations. Tagging imports are excluded by RELEASE. Moment water, bulk water and moment dust have separate real modules and validations. Alternate FV3 turbulence calls require fv3_turb, which the pinned build does not define; this exclusion does not implement or validate those alternate schemes."
+  "limits": "Driver-control inventory is a coverage ledger, not a numerical parity proof or a Fortran namelist parser. Numerical behavior uses the separate native reports and integration checks. This verifies unavailable release interfaces, not functioning physics. Bin-cloud microphysics, photochemistry and legacy binned dust-source equations are not in these released implementations. Tagging imports are excluded by RELEASE. Moment water, bulk water and moment dust have separate real modules and validations. Alternate FV3 turbulence calls require fv3_turb, which the pinned build does not define; this exclusion does not implement or validate those alternate schemes."
 }
