@@ -527,7 +527,7 @@ limiter or establish matched transport accuracy.
 | CO2 switches | Atmospheric condensation, atmospheric loss and gas-mass feedback are independent source controls. Ninety-six unchanged native control-block cases check all combinations and initial-CO2-weighted surface exchange. Another 384 unchanged initialization cases check configurable exchange depths and strict pressure/latitude boundaries. Column tests retain condensation heating when precipitation loss is disabled, and retain surface snow when mass feedback is disabled. Held suspended clouds still mix as tracers when their phase driver is off. Global tests check disabled-feedback behavior, exact restart continuation and three-step reverse derivatives. |
 | Surface/diffusion controls | `do_mars_surface`, `do_vert_diff` and `do_ames_pbl` now select the released active branches. Without Mars surface physics, radiation sees 170 K, albedo 0.25 and emissivity 1; soil/CO2 surface exchange is inactive while drag and convection remain available. Twelve unchanged native `diffuse` cases prove the release fallback leaves tendencies unchanged because `fv3_turb` is excluded. Inactive PBL exchange fields are defined as zero instead of copying uninitialized source values. Surface-dependent water/dust modes are rejected without the source's surface reservoir initialization. |
 | Process controls | `freeze_tracer_fields`, `no_forcing` and the released `gust_fact` correction are connected to Dinosaur and the runner. Native blocks check tracer freezing, no-forcing early return and gust stress; column/global checks retain surface/history changes under freezing and skip all physical updates under no forcing. The released tracer-source/sink helper has no caller. Alternate gust/turbulence drivers are excluded by build flags. |
-| Module controls | Continue the module-level audit beyond the main driver inventory. The PBL `htflux_recalc` option is now connected and checked. The settling `scaveng` switch is checked in the standalone kernel but still needs a coupled-model option. |
+| Module controls | PBL `htflux_recalc`, settling `scaveng` and moment-cloud `makeclouds` are connected through the column, Dinosaur and runner. Seeded-cloud tests cover retained cores, independent water settling/surface exchange, exact restarts and three-step derivatives. The audit also records the seven moment-cloud namelist entries, including its unused module-local `facsubl`. Continue the audit of the other modules. |
 | Interactive dust | Lifting, advection, sedimentation, surface reservoirs, coagulation and material budgets are connected independently of moment water. Matched climate validation remains. |
 | Water | Bulk and moment phase/growth/settling paths, surface exchange, saved effective inputs, state/restarts and optical feedback are connected. Two physical dust modes pass combined global material, restart and three-step derivative checks. Long climate validation remains. Bin cloud microphysics is unavailable in the public release. |
 | Drag | Rayleigh, Palmer terrain drag and non-orographic gravity-wave drag are implemented and checked. Polar water and terrain maps pass pinned-blob and T21/T42 area checks. Long momentum/energy audits remain. Gravity-wave schemes are off in the default Ames present-Mars setup. |
@@ -555,6 +555,12 @@ alternate diffusion smoothing branch. `checkcons` is represented by material
 ledgers and validation checks; native FMS debug-abort behavior is not copied.
 This driver inventory does not establish coverage of every branch in the
 separate radiation, dust and cloud modules.
+The report also inventories nine controls in the sedimentation, PBL and
+moment-cloud modules. Pinned source guards show that `makeclouds=False` leaves
+microphysics tendencies at zero and does not advance cloud history.
+The module-local `microphys_nml/facsubl` appears only in its declaration and
+namelist. It has no numerical effect. The separate
+`mars_physics_nml/facsubl` still controls surface water exchange.
 
 Use `--config reference --no-moment-water` for independent moment dust in the
 production runner. It keeps the released polar frost map as a fixed boundary
@@ -603,6 +609,18 @@ air-temperature heat-flux derivative, whose pressure factor is the surface
 Exner factor (one), not the bottom full-level factor. Earlier validation checked
 surface flux and its surface derivative but missed this air derivative; the
 native comparison now checks both derivatives and all exposed coefficients.
+
+Use `particle_scavenging=False` or `--no-particle-scavenging` to retain dust
+cores in the atmosphere during settling. Free dust and water ice still settle.
+Use `form_moment_clouds=False` or `--no-moment-clouds` to disable moment-cloud
+nucleation and growth. Water surface exchange, existing cloud settling and
+radiation remain active. Cloud effective-input history stays unchanged.
+The shared column selects the moment surface-water routine whenever moment
+water is active, so standalone calls use the same path as Dinosaur calls.
+Non-default options are recorded even when their value is false. Changing
+either option rejects an incompatible restart. A 56-level run with both
+options disabled completed and resumed to two steps. These controls use the
+existing native-checked kernels; long climate validation remains separate.
 
 ## Reproduce the native checks
 

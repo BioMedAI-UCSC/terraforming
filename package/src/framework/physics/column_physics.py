@@ -68,7 +68,7 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
                    co2_gas_index=None,do_co2_condensation=True,do_atmos_co2_loss=True,
                    do_co2_condensation_cycle=True,do_mars_surface=True,do_vert_diff=True,do_ames_pbl=True,
                    moment_water=None,dust_surface_water_kg_m2=None,freeze_tracer_fields=False,gust_factor=0.,
-                   recalculate_heat_flux=False):
+                   recalculate_heat_flux=False,particle_scavenging=True,form_moment_clouds=True):
     """Rayleigh/PBL, soil/frost, CO2 deposition or suspended clouds, convection.
 
     This is the standard present-Mars gas-column process order. Tracers here
@@ -102,6 +102,8 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
         raise ValueError('dust lifting and coagulation require physical moment particles')
     initial_moments=None
     if moment_water is None: moment_water=moment_particles is not None and bulk_water is not None
+    if moment_water:
+        water_surface_options=dict({} if water_surface_options is None else water_surface_options,scheme='moment')
     if moment_particles is not None:
         if moment_water and bulk_water is None:
             raise ValueError('moment particles require the water reservoir and vapor state')
@@ -310,31 +312,32 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
                 gas_constant=body.gas_constant_j_kg_k,**coagulation_options)
             moment_particles=moment_particles.at[...,dust_mass_indices].add(dt_seconds*coagulated.mass_tendency)
             moment_particles=moment_particles.at[...,dust_number_indices].add(dt_seconds*coagulated.number_tendency)
-    water_diagnostics={};water_result=None
+    water_diagnostics={};water_result=None;moment_result=None
     if bulk_water is not None:
         ice=r[...,gas_count+int(has_co2_cloud)]
         water_deposit=0.
         if moment_water:
             moments=jnp.stack([moment_particles[...,0],moment_particles[...,1],ice,
                 moment_particles[...,2],moment_particles[...,3],r[...,bulk_water.vapor_index]],axis=-1)
-            moment_result=subcycled_cloud_step(temperature,t,pressure_full,initial_moments,moments,
-                dt_seconds,cp=body.cp_j_kg_k,previous_state=moment_history,
-                initial_dust_mass=initial_dust_mass,initial_dust_number=initial_dust_number,
-                dust_mass=moment_particles[...,dust_mass_indices],dust_number=moment_particles[...,dust_number_indices],
-                **({} if moment_cloud_options is None else moment_cloud_options))
-            if moment_cloud_options is not None and moment_cloud_options.get('effective_input_mode',0)==1:
-                # Source saves post-cloud T but pre-cloud Q; its dust history is never filled.
-                moment_history=EffectiveState(t+dt_seconds*moment_result.temperature_tendency,
-                    moments,moment_particles[...,dust_mass_indices],moment_particles[...,dust_number_indices])
-            moment_particles=moment_particles.at[...,dust_mass_indices].add(dt_seconds*moment_result.dust_mass_tendency)
-            moment_particles=moment_particles.at[...,dust_number_indices].add(dt_seconds*moment_result.dust_number_tendency)
-            moments=moments+dt_seconds*moment_result.tracer_tendency
-            t=t+dt_seconds*moment_result.temperature_tendency
+            if form_moment_clouds:
+                moment_result=subcycled_cloud_step(temperature,t,pressure_full,initial_moments,moments,
+                    dt_seconds,cp=body.cp_j_kg_k,previous_state=moment_history,
+                    initial_dust_mass=initial_dust_mass,initial_dust_number=initial_dust_number,
+                    dust_mass=moment_particles[...,dust_mass_indices],dust_number=moment_particles[...,dust_number_indices],
+                    **({} if moment_cloud_options is None else moment_cloud_options))
+                if moment_cloud_options is not None and moment_cloud_options.get('effective_input_mode',0)==1:
+                    # Source saves post-cloud T but pre-cloud Q; its dust history is never filled.
+                    moment_history=EffectiveState(t+dt_seconds*moment_result.temperature_tendency,
+                        moments,moment_particles[...,dust_mass_indices],moment_particles[...,dust_number_indices])
+                moment_particles=moment_particles.at[...,dust_mass_indices].add(dt_seconds*moment_result.dust_mass_tendency)
+                moment_particles=moment_particles.at[...,dust_number_indices].add(dt_seconds*moment_result.dust_number_tendency)
+                moments=moments+dt_seconds*moment_result.tracer_tendency
+                t=t+dt_seconds*moment_result.temperature_tendency
             moments=jnp.concatenate([moments,moment_particles[...,4:]],axis=-1)
             if moment_sedimentation:
                 sediment=sedimentation_step(moments,pressure_half,pressure_full,t,ground[0],
                     pbl['heat_diffusivity_m2_s'],dt_seconds,
-                    gas_constant=body.gas_constant_j_kg_k,gravity=body.gravity_m_s2)
+                    gas_constant=body.gas_constant_j_kg_k,gravity=body.gravity_m_s2,scavenging=particle_scavenging)
                 moments=sediment.tracers
                 water_deposit=sediment.surface_deposit[...,5]
             moment_particles=jnp.concatenate([jnp.stack([moments[...,0],moments[...,1],moments[...,3],moments[...,4]],axis=-1),
@@ -360,13 +363,13 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
             upward_surface_flux_kg_m2_s=water_exchange.upward_flux_kg_m2_s)
     if moment_particles is not None:
         if moment_water:
-            water_diagnostics['moment_cloud']=dict(moment_result._asdict())
+            water_diagnostics['moment_cloud']={} if moment_result is None else dict(moment_result._asdict())
             if moment_sedimentation:
                 dust_deposit=sediment.surface_deposit[...,jnp.asarray([0]+list(range(6,moments.shape[-1],3)))]
         elif moment_sedimentation:
             sediment=dust_sedimentation_step(moment_particles,pressure_half,pressure_full,t,ground[0],
                 pbl['heat_diffusivity_m2_s'],dt_seconds,
-                gas_constant=body.gas_constant_j_kg_k,gravity=body.gravity_m_s2)
+                gas_constant=body.gas_constant_j_kg_k,gravity=body.gravity_m_s2,scavenging=particle_scavenging)
             moment_particles=sediment.tracers
             dust_deposit=sediment.surface_deposit
         if dust_lifting_options is not None:

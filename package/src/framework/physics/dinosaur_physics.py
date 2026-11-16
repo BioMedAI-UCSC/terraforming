@@ -264,7 +264,8 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                thermal_relaxation_options=None,do_co2_condensation=True,do_atmos_co2_loss=True,
                do_co2_condensation_cycle=True,do_mars_surface=True,do_vert_diff=True,do_ames_pbl=True,
                freeze_tracer_fields=False,no_forcing=False,gust_factor=0.,
-               co2_exchange_ratio_pole=.92,co2_exchange_ratio_trop=.991,recalculate_heat_flux=False):
+               co2_exchange_ratio_pole=.92,co2_exchange_ratio_trop=.991,recalculate_heat_flux=False,
+               particle_scavenging=True,form_moment_clouds=True):
     """Dinosaur dynamics followed by Ames-order reference gas-column physics.
 
     Supply a verified radiation component and mapped soil diffusivity. Keeping
@@ -339,9 +340,6 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             raise ValueError('interactive dust requires initialized moment tracers')
         if dust_optical_bands not in (12,15) or dust_opacity_channel not in (1,2):
             raise ValueError('dust optics require 12/15 bands and visible/infrared channel 1/2')
-    if moment_water:
-        water_surface_options=dict({} if water_surface_options is None else water_surface_options,
-            scheme='moment')
     sigma=np.asarray(coords.vertical.centers,dtype=float)
     dsigma=np.diff(np.asarray(coords.vertical.boundaries,dtype=float))
     if nonorographic_drag_options is not None:
@@ -608,6 +606,8 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             moment_water=moment_water,dust_surface_water_kg_m2=(None if moment_water or not dust_active else
                 predicted.auxiliary_fields.get('dust_water_frost_kg_m2',predicted.auxiliary_fields['water_surface_kg_m2'])[0]),
             moment_cloud_options=moment_cloud_options,moment_sedimentation=moment_sedimentation,
+            particle_scavenging=particle_scavenging,
+            form_moment_clouds=form_moment_clouds,
             dust_lifting_options=dust_lifting_options,
             dust_lifting_opacity=None if dust_depth is None else dust_depth[dust_opacity_channel-1],
             surface_dust_kg_m2=None if not dust_active else predicted.auxiliary_fields['dust_surface_kg_m2'][0],
@@ -657,7 +657,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
         auxiliary=predicted.auxiliary_fields
         if local_time_fields is not None:
             auxiliary={**auxiliary,**local_time_fields}
-        if previous_effective:
+        if previous_effective and form_moment_clouds:
             auxiliary={**auxiliary,'moment_previous_temperature_k':column.moment_history.temperature,
                 'moment_previous_tracers':column.moment_history.tracers,'moment_previous_initialized':jnp.asarray(1.)}
             if dust_mode_count>1:

@@ -12,6 +12,9 @@ BLOBS={
     'atmos_param_mars/mars_physics.F90':'ca0b7c0774b1b23cafaee219062c3bffa3d0c4cc',
     'atmos_param_mars/null_physics_mod.F90':'4ca7a58d46e31dd8fb281469bbbcd8d50071bba2',
     'build_run/compile.bash':'3a43a2fdb4e26dc0980e3e5bfaa5efbe0861a597',
+    'atmos_param_mars/sedim_mod.F90':'df1424b6258a68d7dfb6c7b5ebfb7180224070ad',
+    'atmos_param_mars/BLcode/pblmod_mgcm.F90':'38b3f41e4d07f9a2e3c9d7a689e50577cac7858c',
+    'atmos_param_mars/micromod_mgcm.F90':'4897f72860b59d7effeb6650dbf3d4484b3aca71',
 }
 
 # Each released driver control needs an explicit implementation or exclusion.
@@ -43,6 +46,12 @@ DRIVER_CONTROLS=[
 ]
 
 
+def namelist_controls(text,name):
+    match=re.search(r'namelist\s*/'+re.escape(name)+r'/(.*?)(?=\n\n)',text,re.I|re.S)
+    assert match is not None,name
+    return re.findall(r'[A-Za-z][A-Za-z0-9_]*',match[1].replace('&',''))
+
+
 def validate(source,compiler):
     for name,expected in BLOBS.items():
         raw=(source/name).read_bytes()
@@ -54,14 +63,37 @@ def validate(source,compiler):
     assert definitions==['-DMARS_GCM','-DMARS_SURFACE','-DRELEASE']
     path=source/'atmos_param_mars/mars_physics.F90'
     text=path.read_text()
-    namelist=re.search(r'namelist\s*/mars_physics_nml/(.*?)(?=\n\n)',text,re.I|re.S)
-    assert namelist is not None
-    controls=re.findall(r'[A-Za-z][A-Za-z0-9_]*',namelist[1].replace('&',''))
+    controls=namelist_controls(text,'mars_physics_nml')
     inventory=[dict(source_control=name,status=status,implementation=implementation)
         for names,status,implementation in DRIVER_CONTROLS for name in names.split()]
     covered=[item['source_control'] for item in inventory]
     assert len(covered)==len(set(covered))
     assert set(controls)==set(covered),(set(controls)-set(covered),set(covered)-set(controls))
+    module_controls=[]
+    for filename,namelist,mapping in (
+        ('atmos_param_mars/sedim_mod.F90','sedim_nml',{'scaveng':'particle_scavenging'}),
+        ('atmos_param_mars/BLcode/pblmod_mgcm.F90','ames_pblmod_nml',{'htflux_recalc':'recalculate_heat_flux'}),
+        ('atmos_param_mars/micromod_mgcm.F90','microphys_nml',{
+            'microtimestep':'moment_cloud_options.microtimestep','latent_heat':'moment_cloud_options.latent_heat',
+            'makeclouds':'form_moment_clouds','subeffmode':'moment_cloud_options.effective_input_mode',
+            'facsubl':'inactive module-local variable','mteta_case':'moment_cloud_options.contact_case',
+            'mteta':'moment_cloud_options.contact'})):
+        actual=namelist_controls((source/filename).read_text(),namelist)
+        assert len(actual)==len(set(actual)) and set(actual)==set(mapping),(namelist,actual)
+        module_controls.extend(dict(namelist=namelist,source_control=name,implementation=mapping[name]) for name in actual)
+    micro,_=extract_routines(source/'atmos_param_mars/micromod_mgcm.F90',
+        BLOBS['atmos_param_mars/micromod_mgcm.F90'],['micro_driver'])
+    micro=micro[0];start=micro.index('if (makeclouds) then');end=micro.index('endif  !! makeclouds',start)
+    guard=micro[start:end]
+    assert re.search(r'call\s+nucleacond\b',guard,re.I)
+    for match in re.finditer(r'^\s*(tdt_micro|rdt_micro)\([^\n]*?\)\s*=([^\n]*)',micro,re.M):
+        if not start<=match.start()<end: assert match[2].strip()=='0.0',match[0]
+    for name in ('tlprev','qpiprev','firstcall_micro'):
+        for match in re.finditer(r'^\s*'+name+r'(?:\([^\n]*?\))?\s*=',micro,re.M):
+            assert start<=match.start()<end,(name,match[0])
+    raw_micro=(source/'atmos_param_mars/micromod_mgcm.F90').read_text()
+    without_comments='\n'.join(line.split('!',1)[0] for line in raw_micro.splitlines())
+    assert len(re.findall(r'\bfacsubl\b',without_comments,re.I))==2
     flags=['-cpp','-E','-P',*definitions]
     release=subprocess.check_output([compiler,*flags,str(path)],text=True)
     assert 'use null_physics_mod, only: cloud_physics' in release
@@ -87,12 +119,14 @@ def validate(source,compiler):
     return dict(status='pass',reference=dict(commit='ba47cada5f9eb89c75c4f10d06dbae6e7f9ecb26',
         source_git_blobs=BLOBS,preprocessor_flags=flags,
         preprocessed_sha256=hashlib.sha256(release.encode()).hexdigest(),
+        moment_cloud_guard_sha256=hashlib.sha256(guard.encode()).hexdigest(),
         compiler=subprocess.check_output([compiler,'--version'],text=True).splitlines()[0]),
-        cases=cases,driver_controls=inventory,excluded_build_interfaces=dict(required_definition='fv3_turb',calls=excluded,
+        cases=cases,driver_controls=inventory,module_controls=module_controls,
+        excluded_build_interfaces=dict(required_definition='fv3_turb',calls=excluded,
             alternate_preprocessed_sha256=hashlib.sha256(alternate.encode()).hexdigest()),
         sha256={name:hashlib.sha256((root/name).read_bytes()).hexdigest() for name in
             ('scripts/validate_release_interfaces.py','scripts/native_reference.py')},
-        limits='Driver-control inventory is a coverage ledger, not a numerical parity proof or a Fortran namelist parser. Numerical behavior uses the separate native reports and integration checks. This verifies unavailable release interfaces, not functioning physics. '
+        limits='The inventory covers the main driver plus sedimentation, PBL and moment-cloud controls. The moment-cloud guard leaves tendency outputs zero and cloud history inactive when cloud formation is disabled. Numerical behavior uses the separate native reports and integration checks. '
             'Bin-cloud microphysics, photochemistry and legacy binned dust-source equations are not in '
             'these released implementations. Tagging imports are excluded by RELEASE. '
             'Moment water, bulk water and moment dust have separate real modules and validations. '

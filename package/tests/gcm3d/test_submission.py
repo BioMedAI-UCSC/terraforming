@@ -126,6 +126,16 @@ def test_alternate_reference_cli_rejects_unsupported_combinations(monkeypatch):
         assert stopped.value.code==2
 
 
+@pytest.mark.parametrize('flag',['--no-particle-scavenging','--no-moment-clouds'])
+def test_disabled_reference_process_switch_rejects_nonreference_config(monkeypatch,capsys,flag):
+    import sys
+    driver=_script('run_gcm3d_ablation')
+    monkeypatch.setattr(sys,'argv',['run_gcm3d_ablation.py','unused-surface',flag])
+    with pytest.raises(SystemExit) as stopped: driver.main()
+    assert stopped.value.code==2
+    assert 'reference process controls require --config reference' in capsys.readouterr().err
+
+
 @pytest.mark.parametrize('water',[False,True])
 def test_reference_configuration_keeps_dust_and_frost_independent_of_water(monkeypatch,tmp_path,water):
     from src.framework.gcm.coordinates import coordinate_system

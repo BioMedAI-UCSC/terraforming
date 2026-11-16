@@ -5,7 +5,10 @@
     "source_git_blobs": {
       "atmos_param_mars/mars_physics.F90": "ca0b7c0774b1b23cafaee219062c3bffa3d0c4cc",
       "atmos_param_mars/null_physics_mod.F90": "4ca7a58d46e31dd8fb281469bbbcd8d50071bba2",
-      "build_run/compile.bash": "3a43a2fdb4e26dc0980e3e5bfaa5efbe0861a597"
+      "build_run/compile.bash": "3a43a2fdb4e26dc0980e3e5bfaa5efbe0861a597",
+      "atmos_param_mars/sedim_mod.F90": "df1424b6258a68d7dfb6c7b5ebfb7180224070ad",
+      "atmos_param_mars/BLcode/pblmod_mgcm.F90": "38b3f41e4d07f9a2e3c9d7a689e50577cac7858c",
+      "atmos_param_mars/micromod_mgcm.F90": "4897f72860b59d7effeb6650dbf3d4484b3aca71"
     },
     "preprocessor_flags": [
       "-cpp",
@@ -16,6 +19,7 @@
       "-DRELEASE"
     ],
     "preprocessed_sha256": "4bafca1acd02f2e53ec6830bcf94a9d43e34d97dc4be09346dafd35089bd2c56",
+    "moment_cloud_guard_sha256": "da60a441db330ce2399dc8f71fc2d57381cd1ca3c51ee0fb7db33914e33c745d",
     "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0"
   },
   "cases": [
@@ -317,6 +321,53 @@
       "implementation": "kernel/global material ledgers and validation checks; native FMS debug abort behavior is not copied"
     }
   ],
+  "module_controls": [
+    {
+      "namelist": "sedim_nml",
+      "source_control": "scaveng",
+      "implementation": "particle_scavenging"
+    },
+    {
+      "namelist": "ames_pblmod_nml",
+      "source_control": "htflux_recalc",
+      "implementation": "recalculate_heat_flux"
+    },
+    {
+      "namelist": "microphys_nml",
+      "source_control": "microtimestep",
+      "implementation": "moment_cloud_options.microtimestep"
+    },
+    {
+      "namelist": "microphys_nml",
+      "source_control": "latent_heat",
+      "implementation": "moment_cloud_options.latent_heat"
+    },
+    {
+      "namelist": "microphys_nml",
+      "source_control": "makeclouds",
+      "implementation": "form_moment_clouds"
+    },
+    {
+      "namelist": "microphys_nml",
+      "source_control": "subeffmode",
+      "implementation": "moment_cloud_options.effective_input_mode"
+    },
+    {
+      "namelist": "microphys_nml",
+      "source_control": "facsubl",
+      "implementation": "inactive module-local variable"
+    },
+    {
+      "namelist": "microphys_nml",
+      "source_control": "mteta_case",
+      "implementation": "moment_cloud_options.contact_case"
+    },
+    {
+      "namelist": "microphys_nml",
+      "source_control": "mteta",
+      "implementation": "moment_cloud_options.contact"
+    }
+  ],
   "excluded_build_interfaces": {
     "required_definition": "fv3_turb",
     "calls": [
@@ -331,8 +382,8 @@
     "alternate_preprocessed_sha256": "146631ad81c35fed0dd3b9c3b7ff82cbd7d4370858457d121eb179e7288dfbb8"
   },
   "sha256": {
-    "scripts/validate_release_interfaces.py": "2590246bc7141f4142c56f4fbfbd9b29ae37c1b06ff09719fc46939bd63310e5",
+    "scripts/validate_release_interfaces.py": "68bfe871c72d56e148673353ffa2966dee286496c0870e164ae9931f101b8c44",
     "scripts/native_reference.py": "2e3b0e2f65b685f86fcfdd1b4643b54c5582b81af36a0874a43d9eedc2675d76"
   },
-  "limits": "Driver-control inventory is a coverage ledger, not a numerical parity proof or a Fortran namelist parser. Numerical behavior uses the separate native reports and integration checks. This verifies unavailable release interfaces, not functioning physics. Bin-cloud microphysics, photochemistry and legacy binned dust-source equations are not in these released implementations. Tagging imports are excluded by RELEASE. Moment water, bulk water and moment dust have separate real modules and validations. Alternate FV3 turbulence calls require fv3_turb, which the pinned build does not define; this exclusion does not implement or validate those alternate schemes."
+  "limits": "The inventory covers the main driver plus sedimentation, PBL and moment-cloud controls. The moment-cloud guard leaves tendency outputs zero and cloud history inactive when cloud formation is disabled. Numerical behavior uses the separate native reports and integration checks. Bin-cloud microphysics, photochemistry and legacy binned dust-source equations are not in these released implementations. Tagging imports are excluded by RELEASE. Moment water, bulk water and moment dust have separate real modules and validations. Alternate FV3 turbulence calls require fv3_turb, which the pinned build does not define; this exclusion does not implement or validate those alternate schemes."
 }

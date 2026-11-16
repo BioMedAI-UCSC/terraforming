@@ -329,6 +329,10 @@ def main() -> int:
     parser.add_argument('--freeze-tracer-fields',action='store_true',help='discard atmospheric physics tracer changes after microphysics')
     parser.add_argument('--no-forcing',action='store_true',help='run dynamics without atmospheric or surface physics')
     parser.add_argument('--recalculate-heat-flux',action='store_true',help='use solved PBL temperature for the surface sensible heat flux')
+    parser.add_argument('--particle-scavenging',action=argparse.BooleanOptionalAction,default=True,
+        help='settle dust cores with water clouds; disable to retain cores in the atmosphere')
+    parser.add_argument('--moment-clouds',dest='form_moment_clouds',action=argparse.BooleanOptionalAction,default=True,
+        help='form and grow moment water clouds; surface exchange and settling remain independent')
     parser.add_argument('--gust-factor',type=float,default=0.,help='released dust-lifting wind correction; gust speed is 1 m/s')
     parser.add_argument('--co2-exchange-ratio-pole',type=float,default=.92)
     parser.add_argument('--co2-exchange-ratio-trop',type=float,default=.991)
@@ -372,13 +376,14 @@ def main() -> int:
     )
     args = parser.parse_args()
     reference=args.config=='reference'
-    process_controls={name:getattr(args,name) for name in ('freeze_tracer_fields','no_forcing','gust_factor','recalculate_heat_flux')}
-    for name,default in (('co2_exchange_ratio_pole',.92),('co2_exchange_ratio_trop',.991)):
+    process_defaults=dict(freeze_tracer_fields=False,no_forcing=False,gust_factor=0.,recalculate_heat_flux=False,
+        particle_scavenging=True,form_moment_clouds=True,co2_exchange_ratio_pole=.92,co2_exchange_ratio_trop=.991)
+    process_controls={name:getattr(args,name) for name,default in process_defaults.items() if getattr(args,name)!=default}
+    for name in ('co2_exchange_ratio_pole','co2_exchange_ratio_trop'):
         value=getattr(args,name)
         if not np.isfinite(value) or value<=0.: parser.error('CO2 exchange ratios must be finite and positive')
-        if value!=default: process_controls[name]=value
     if not np.isfinite(args.gust_factor): parser.error('--gust-factor must be finite')
-    if not reference and any(process_controls.values()): parser.error('reference process controls require --config reference')
+    if not reference and process_controls: parser.error('reference process controls require --config reference')
     if not reference and not args.moment_water: parser.error('--no-moment-water requires --config reference')
     if not reference and (args.reference_radiation!='spectral' or args.equilibrium_profile is not None or args.thermal_timescale!=-4.):
         parser.error('alternate reference radiation requires --config reference')
@@ -537,7 +542,7 @@ def main() -> int:
             config.update(alternate_radiation_metadata)
             if not all(co2_controls.values()): config['co2_process_switches']=co2_controls
             if not all(surface_controls.values()): config['surface_process_switches']=surface_controls
-            if any(process_controls.values()): config['reference_process_controls']=process_controls
+            if process_controls: config['reference_process_controls']=process_controls
             if not args.do_mars_surface: config['reference_protocol']='released-no-surface-v3.2'
             elif not args.moment_water:
                 config.update(reference_protocol='released-dust-without-water-v3.2',moment_water=False,moment_dust=True)

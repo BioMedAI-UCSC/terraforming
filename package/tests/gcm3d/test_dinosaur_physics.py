@@ -96,7 +96,8 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
                  initial_co2_gas_ratio=None,do_qmass=False,thermal_relaxation_options=None,
                  do_co2_condensation=True,do_atmos_co2_loss=True,do_co2_condensation_cycle=True,
                  do_mars_surface=True,do_vert_diff=True,do_ames_pbl=True,moment_dust=False,
-                 freeze_tracer_fields=False,no_forcing=False,gust_factor=0.,recalculate_heat_flux=False):
+                 freeze_tracer_fields=False,no_forcing=False,gust_factor=0.,recalculate_heat_flux=False,
+                 particle_scavenging=True,form_moment_clouds=True):
     from src.framework.gcm.coordinates import coordinate_system
     from src.framework.gcm.specs import physics_specs
     from src.framework.gcm._dinosaur import primitive_equations,scales
@@ -141,6 +142,8 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
         do_co2_condensation=do_co2_condensation,do_atmos_co2_loss=do_atmos_co2_loss,
         freeze_tracer_fields=freeze_tracer_fields,no_forcing=no_forcing,gust_factor=gust_factor,
         recalculate_heat_flux=recalculate_heat_flux,
+        particle_scavenging=particle_scavenging,
+        form_moment_clouds=form_moment_clouds,
         do_co2_condensation_cycle=do_co2_condensation_cycle,
         do_mars_surface=do_mars_surface,do_vert_diff=do_vert_diff,do_ames_pbl=do_ames_pbl,moment_dust=moment_dust)
     return state,step,grid
@@ -360,6 +363,111 @@ def test_recalculated_pbl_heat_flux_changes_soil_and_preserves_restart_and_three
     automatic=jax.grad(objective)(0.)
     assert np.isfinite(automatic) and automatic>0.
     for epsilon in (.001,.0005):
+        np.testing.assert_allclose(automatic,(objective(epsilon)-objective(-epsilon))/(2.*epsilon),rtol=2e-5,atol=1e-7)
+
+
+@pytest.mark.parametrize('modes',[1,2])
+def test_disabled_particle_scavenging_keeps_cloud_cores_material_restart_and_gradient(tmp_path,modes):
+    from src.framework.physics.particle_optics import make_particle_provider
+    from src.framework.physics.radiative_transfer import make_radiation_component
+    from src.framework.physics.water_moments import moment_particle_tracers
+    from src.framework.physics.water_bulk import WATER_CLOUD_TRACER
+    from src.framework.gcm.restart import save_restart,load_restart
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.framework.gcm.specs import physics_specs
+    from src.framework.gcm._dinosaur import scales
+    names=moment_particle_tracers(modes)
+    pairs=(('dust_mass','dust_number'),)+tuple(zip(names[4::3],names[5::3]))
+    radiation=make_radiation_component(make_particle_provider(bands=12,dust_tracers=pairs,
+        water_moment_tracers=(WATER_CLOUD_TRACER,'water_core_mass','water_ice_number')))
+    options=dict(temperature_k=170.037,surface_temperature_k=170.037,wind_speed=20.,
+        moment_water=True,dust_mode_count=modes,radiation_component=radiation,
+        initial_water_surface_kg_m2=10.,do_co2_condensation=False,do_co2_condensation_cycle=False)
+    state,step,grid=backend_case(**options,particle_scavenging=False)
+    _,active,_=backend_case(**options,particle_scavenging=True)
+    tracers=dict(state.dynamics.tracers)
+    core_names=('water_core_mass',)+names[6::3]
+    for name,value in ((WATER_CLOUD_TRACER,1e-4),('water_ice_number',1e6),
+        *[(name,1e-6*(i+1)) for i,name in enumerate(core_names)]):
+        tracers[name]=grid.to_modal(jnp.full((4,)+grid.nodal_shape,value))
+    state=state._replace(dynamics=dataclasses.replace(state.dynamics,tracers=tracers))
+    tick=jax.jit(step);first=tick(state);scavenged=jax.jit(active)(state)
+    assert all(np.isfinite(value).all() for value in jax.tree.leaves(first))
+    for name in core_names:
+        retained=grid.to_nodal(first.dynamics.tracers[name])
+        removed=grid.to_nodal(scavenged.dynamics.tracers[name])
+        assert float(jnp.max(retained))>0.
+        assert np.any(np.asarray(retained)>np.asarray(removed))
+    coords=coordinate_system('T21',4);specs=physics_specs(BODY)
+    pressure_scale=float(specs.dimensionalize(1.,scales.units.pascal).magnitude)
+    weights=jnp.asarray(grid.quadrature_weights)
+    def inventory(current):
+        ps=jnp.exp(grid.to_nodal(current.dynamics.log_surface_pressure))[0]*pressure_scale
+        gas=ps[None]*jnp.diff(coords.vertical.boundaries)[:,None,None]/BODY.gravity_m_s2
+        ratio=sum(grid.to_nodal(current.dynamics.tracers[name]) for name in
+            ('dust_mass',)+names[4::3]+core_names)
+        surface=current.auxiliary_fields['dust_surface_kg_m2'][0]
+        if modes>1: surface=jnp.sum(surface,axis=-1)
+        return jnp.sum((jnp.sum(gas*ratio,axis=0)+surface)*weights)
+    for current in (first,scavenged):
+        np.testing.assert_allclose(inventory(current),inventory(state),rtol=3e-12)
+    restored=load_restart(save_restart(first,tmp_path/'no-scavenging.npz'))
+    for actual,expected in zip(jax.tree.leaves(tick(restored)),jax.tree.leaves(tick(first)),strict=True):
+        np.testing.assert_array_equal(actual,expected)
+    def objective(delta):
+        offset=grid.to_modal(jnp.full((4,)+grid.nodal_shape,delta))
+        current=state._replace(dynamics=dataclasses.replace(state.dynamics,
+            temperature_variation=state.dynamics.temperature_variation+offset))
+        for _ in range(3): current=step(current)
+        return jnp.mean(grid.to_nodal(current.dynamics.temperature_variation))
+    automatic=jax.grad(objective)(0.)
+    assert np.isfinite(automatic) and automatic>0.
+    for epsilon in (.0001,.00005):
+        np.testing.assert_allclose(automatic,(objective(epsilon)-objective(-epsilon))/(2.*epsilon),rtol=2e-5,atol=1e-7)
+
+
+def test_disabled_moment_clouds_keep_settling_and_water_budget_without_advancing_cloud_history(tmp_path):
+    from src.framework.physics.particle_optics import make_particle_provider
+    from src.framework.physics.radiative_transfer import make_radiation_component
+    from src.framework.physics.water_bulk import WATER_CLOUD_TRACER
+    from src.framework.physics.dinosaur_physics import water_inventory
+    from src.framework.gcm.restart import save_restart,load_restart
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.framework.gcm.specs import physics_specs
+    radiation=make_radiation_component(make_particle_provider(bands=12,
+        dust_tracers=(('dust_mass','dust_number'),),
+        water_moment_tracers=(WATER_CLOUD_TRACER,'water_core_mass','water_ice_number')))
+    state,step,grid=backend_case(temperature_k=170.037,surface_temperature_k=170.037,wind_speed=20.,
+        moment_water=True,radiation_component=radiation,initial_water_surface_kg_m2=10.,
+        effective_input_mode=1,form_moment_clouds=False,particle_scavenging=False,
+        do_co2_condensation=False,do_co2_condensation_cycle=False)
+    tracers=dict(state.dynamics.tracers)
+    for name,value in ((WATER_CLOUD_TRACER,1e-4),('water_ice_number',1e6),('water_core_mass',1e-6)):
+        tracers[name]=grid.to_modal(jnp.full((4,)+grid.nodal_shape,value))
+    state=state._replace(dynamics=dataclasses.replace(state.dynamics,tracers=tracers))
+    tick=jax.jit(step);first=tick(state);second=tick(first)
+    assert all(np.isfinite(value).all() for value in jax.tree.leaves(second))
+    assert jnp.mean(grid.to_nodal(first.dynamics.tracers[WATER_CLOUD_TRACER]))<1e-4
+    assert jnp.mean(first.auxiliary_fields['water_surface_kg_m2'])>10.
+    for name,value in state.auxiliary_fields.items():
+        if name.startswith('moment_previous_'):
+            np.testing.assert_array_equal(first.auxiliary_fields[name],value)
+            np.testing.assert_array_equal(second.auxiliary_fields[name],value)
+    coords=coordinate_system('T21',4);specs=physics_specs(BODY)
+    np.testing.assert_allclose(water_inventory(second,coords,specs,BODY),
+        water_inventory(state,coords,specs,BODY),rtol=3e-12)
+    restored=load_restart(save_restart(first,tmp_path/'no-cloud-formation.npz'))
+    for actual,expected in zip(jax.tree.leaves(tick(restored)),jax.tree.leaves(second),strict=True):
+        np.testing.assert_array_equal(actual,expected)
+    def objective(delta):
+        offset=grid.to_modal(jnp.full((4,)+grid.nodal_shape,delta))
+        current=state._replace(dynamics=dataclasses.replace(state.dynamics,
+            temperature_variation=state.dynamics.temperature_variation+offset))
+        for _ in range(3): current=step(current)
+        return jnp.mean(grid.to_nodal(current.dynamics.temperature_variation))
+    automatic=jax.grad(objective)(0.)
+    assert np.isfinite(automatic) and automatic>0.
+    for epsilon in (.0001,.00005):
         np.testing.assert_allclose(automatic,(objective(epsilon)-objective(-epsilon))/(2.*epsilon),rtol=2e-5,atol=1e-7)
 
 

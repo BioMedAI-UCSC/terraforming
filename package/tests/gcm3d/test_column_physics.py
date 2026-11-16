@@ -121,6 +121,68 @@ def test_no_surface_rejects_reservoirs_missing_from_released_initialization():
         column_physics(**inputs(),bulk_water=water,do_mars_surface=False)
 
 
+@pytest.mark.parametrize('modes',[1,2])
+def test_disabled_scavenging_retains_nonzero_cloud_cores_and_each_material_budget(modes):
+    from src.framework.physics.water_moments import saturation_ratio
+    kwargs={**inputs(),'temperature':jnp.full(4,170.),'soil':jnp.full(16,170.),
+        'do_co2_condensation':False,'co2_ice_kg_m2':0.,'convection_scheme':'none','do_vert_diff':False,
+        'radiative_heating_k_s':jnp.zeros(4)}
+    vapor=saturation_ratio(kwargs['temperature'],kwargs['pressure_full'])
+    kwargs['gas_tracers']=jnp.stack([jnp.ones(4)*.95,vapor],axis=-1)
+    kwargs['bulk_water']=BulkWaterColumnState(1,jnp.full(4,1e-4),10.,0.,3)
+    values=[1e-5,1e8,1e6,1e-6]+[2e-5,2e8,2e-6]*(modes-1)
+    kwargs.update(moment_particles=jnp.broadcast_to(jnp.asarray(values),(4,len(values))),
+        surface_dust_kg_m2=jnp.full((modes,),30.) if modes>1 else jnp.asarray(30.))
+    before_settling=column_physics(**kwargs,moment_sedimentation=False)
+    retained=column_physics(**kwargs,particle_scavenging=False)
+    scavenged=column_physics(**kwargs,particle_scavenging=True)
+    core_indices=jnp.asarray([3]+list(range(6,len(values),3)))
+    mass_indices=jnp.asarray([0]+list(range(4,len(values),3)))
+    assert np.all(np.asarray(before_settling.moment_particles[...,core_indices])>0.)
+    np.testing.assert_array_equal(retained.moment_particles[...,core_indices],before_settling.moment_particles[...,core_indices])
+    assert np.any(np.asarray(scavenged.moment_particles[...,core_indices])<np.asarray(retained.moment_particles[...,core_indices]))
+    np.testing.assert_array_equal(retained.bulk_water.ice_ratio,scavenged.bulk_water.ice_ratio)
+    gas=jnp.diff(kwargs['pressure_half'])/BODY.gravity_m_s2
+    initial_dust=jnp.sum(gas[:,None]*(kwargs['moment_particles'][...,mass_indices]+kwargs['moment_particles'][...,core_indices]),axis=0)+kwargs['surface_dust_kg_m2']
+    initial_water=jnp.sum(gas*(vapor+kwargs['bulk_water'].ice_ratio))+kwargs['bulk_water'].surface_water_kg_m2
+    for result in (retained,scavenged):
+        final_dust=jnp.sum(gas[:,None]*(result.moment_particles[...,mass_indices]+result.moment_particles[...,core_indices]),axis=0)+result.diagnostics['dust']['dust_surface_kg_m2']
+        final_water=jnp.sum(gas*(result.gas_tracers[...,1]+result.bulk_water.ice_ratio))+result.bulk_water.surface_water_kg_m2
+        np.testing.assert_allclose(final_dust,initial_dust,rtol=2e-12,atol=1e-12)
+        np.testing.assert_allclose(final_water,initial_water,rtol=2e-12,atol=1e-12)
+
+
+def test_disabled_moment_cloud_formation_keeps_surface_exchange_and_settling_independent():
+    from src.framework.physics.water_moments import saturation_ratio
+    kwargs={**inputs(),'temperature':jnp.full(4,170.),'soil':jnp.full(16,170.),
+        'do_co2_condensation':False,'co2_ice_kg_m2':0.,'convection_scheme':'none','do_vert_diff':False,
+        'radiative_heating_k_s':jnp.zeros(4)}
+    vapor=2.*saturation_ratio(kwargs['temperature'],kwargs['pressure_full'])
+    kwargs['gas_tracers']=jnp.stack([jnp.ones(4)*.95,vapor],axis=-1)
+    kwargs.update(bulk_water=BulkWaterColumnState(1,jnp.full(4,1e-4),10.,0.,3),
+        moment_particles=jnp.broadcast_to(jnp.array([1e-5,1e8,1e6,1e-6]),(4,4)),surface_dust_kg_m2=30.)
+    held=column_physics(**kwargs,form_moment_clouds=False,moment_sedimentation=False)
+    formed=column_physics(**kwargs,form_moment_clouds=True,moment_sedimentation=False)
+    settled=column_physics(**kwargs,form_moment_clouds=False)
+    np.testing.assert_array_equal(held.gas_tracers,kwargs['gas_tracers'])
+    np.testing.assert_array_equal(held.moment_particles,kwargs['moment_particles'])
+    np.testing.assert_array_equal(held.bulk_water.ice_ratio,kwargs['bulk_water'].ice_ratio)
+    assert held.diagnostics['bulk_water']['moment_cloud']=={}
+    assert np.any(np.asarray(formed.gas_tracers[...,1])!=np.asarray(vapor))
+    assert np.any(np.asarray(settled.bulk_water.ice_ratio)<np.asarray(held.bulk_water.ice_ratio))
+    assert settled.bulk_water.surface_water_kg_m2>held.bulk_water.surface_water_kg_m2
+    exchanged=column_physics(**{**kwargs,'bulk_water':kwargs['bulk_water']._replace(
+        surface_water_kg_m2=0.,previous_exchange_coefficient=.001)},
+        form_moment_clouds=False,moment_sedimentation=False,water_surface_options=dict(sublimation_factor=.5))
+    assert np.any(np.asarray(exchanged.gas_tracers[...,1])!=np.asarray(vapor))
+    assert exchanged.bulk_water.surface_water_kg_m2>0.
+    from src.framework.physics.water_surface import surface_exchange
+    expected=surface_exchange(vapor,kwargs['pressure_half'],170.,0.,.001,3,kwargs['dt_seconds'],
+        gravity=BODY.gravity_m_s2,scheme='moment',sublimation_factor=.5)
+    np.testing.assert_array_equal(exchanged.gas_tracers[...,1],expected.vapor_ratio)
+    np.testing.assert_array_equal(exchanged.bulk_water.surface_water_kg_m2,expected.surface_water_kg_m2)
+
+
 @pytest.mark.parametrize('particles',['none','bulk','moment','dust'])
 def test_tracer_freeze_restores_air_species_and_retains_physical_heat_and_surface_changes(particles):
     kwargs={**inputs(),'temperature':jnp.full(4,200.),'soil':jnp.full(16,240.),
