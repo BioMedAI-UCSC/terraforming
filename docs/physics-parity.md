@@ -571,6 +571,27 @@ three-step derivative and exact restart check also pass. A real-input T21/56-lev
 smoke completed and resumed to two steps. Disabling the switch rejects resume
 and preserves the checkpoint.
 
+## Solar-constant normalization
+
+`--config reference --solar-constant 589` enables the supported
+`scale_by_scon` behavior. NASA defines this solar constant in W/m2 at mean
+orbital distance, rather than at 1 AU. The runner converts it to the existing
+1-AU forcing field by multiplying by `1.524**2`. The existing Kepler orbit
+then gives `solar_constant/rorbit**2`, as in `radiation_driver.F90`.
+The native interface uses `rsdist=1356.1/rsolar`; its spectral input is
+`SOL/rsdist`. The conversion preserves both equations without a second orbit
+implementation. Omitting the option retains the unscaled 1356.1-W/m2 spectrum.
+
+The unchanged native interface block passes 148 normalization cases across
+37 orbital times, with scaling disabled or constants 400, 589 and 800 W/m2.
+The source blob is verified against the pinned NASA revision. Reverse
+derivatives through orbital time and invalid-value checks pass. The CLI
+rejects nonpositive or nonfinite constants and incompatible radiation modes.
+Explicit constants are included in restart identity. A real-input T21/56-level
+smoke with both normalization options enabled completed and resumed to two
+steps. Removing or changing the solar constant rejects resume and preserves
+the checkpoint.
+
 ## Required remaining work
 
 The released cloud benchmark uses visible dust (`dgdm_type=1`) with
@@ -608,7 +629,7 @@ limiter or establish matched transport accuracy.
 | CO2 switches | Atmospheric condensation, atmospheric loss and gas-mass feedback are independent source controls. Ninety-six unchanged native control-block cases check all combinations and initial-CO2-weighted surface exchange. Another 384 unchanged initialization cases check configurable exchange depths and strict pressure/latitude boundaries. Column tests retain condensation heating when precipitation loss is disabled, and retain surface snow when mass feedback is disabled. Held suspended clouds still mix as tracers when their phase driver is off. Global tests check disabled-feedback behavior, exact restart continuation and three-step reverse derivatives. |
 | Surface/diffusion controls | `do_mars_surface`, `do_vert_diff` and `do_ames_pbl` now select the released active branches. Without Mars surface physics, radiation sees 170 K, albedo 0.25 and emissivity 1; soil/CO2 surface exchange is inactive while drag and convection remain available. Twelve unchanged native `diffuse` cases prove the release fallback leaves tendencies unchanged because `fv3_turb` is excluded. Inactive PBL exchange fields are defined as zero instead of copying uninitialized source values. Surface-dependent water/dust modes are rejected without the source's surface reservoir initialization. |
 | Process controls | `freeze_tracer_fields`, `no_forcing` and the released `gust_fact` correction are connected to Dinosaur and the runner. Native blocks check tracer freezing, no-forcing early return and gust stress; column/global checks retain surface/history changes under freezing and skip all physical updates under no forcing. The released tracer-source/sink helper has no caller. Alternate gust/turbulence drivers are excluded by build flags. |
-| Module controls | Surface IR normalization is connected and checked. The supported alternate 12-band interpolation (`use_boxinterp12=false`) and solar normalization (`scale_by_scon`) still need a source-to-backend audit. PBL `htflux_recalc`, settling `scaveng` and moment-cloud `makeclouds` are connected through the column, Dinosaur and runner. Seeded-cloud tests cover retained cores, independent water settling/surface exchange, exact restarts and three-step derivatives. The audit also records the seven moment-cloud namelist entries, including its unused module-local `facsubl`. Continue the audit of the other modules. |
+| Module controls | Surface IR normalization is connected and checked. Solar normalization (`scale_by_scon`) reuses the existing orbit and is native-checked. The supported alternate 12-band interpolation (`use_boxinterp12=false`) still needs implementation and native validation. Its `optcv`/`optci` path interpolates linear k values across water, temperature and log pressure, and extrapolates at table boundaries; the current default interpolates log k and selects a water bin. PBL `htflux_recalc`, settling `scaveng` and moment-cloud `makeclouds` are connected through the column, Dinosaur and runner. Seeded-cloud tests cover retained cores, independent water settling/surface exchange, exact restarts and three-step derivatives. The audit also records the seven moment-cloud namelist entries, including its unused module-local `facsubl`. Continue the audit of the other modules. |
 | Interactive dust | Lifting, advection, sedimentation, surface reservoirs, coagulation and material budgets are connected independently of moment water. Matched climate validation remains. |
 | Water | Bulk and moment phase/growth/settling paths, surface exchange, saved effective inputs, state/restarts and optical feedback are connected. Two physical dust modes pass combined global material, restart and three-step derivative checks. Long climate validation remains. Bin cloud microphysics is unavailable in the public release. |
 | Drag | Rayleigh, Palmer terrain drag and non-orographic gravity-wave drag are implemented and checked. Polar water and terrain maps pass pinned-blob and T21/T42 area checks. Long momentum/energy audits remain. Gravity-wave schemes are off in the default Ames present-Mars setup. |

@@ -234,7 +234,7 @@ def _ames_dust_climatology(path: Path, grid):
 
 
 def reference_configuration(grid,data_directory,dt_seconds,*,moment_water=True,dust_opacity_from_aerosol=False,
-                            scale_surface_flux=False):
+                            scale_surface_flux=False,solar_constant_w_m2=None):
     """Released present-Mars cloud switches from build_run/fms_mars_clouds_v3.2."""
     from src.celestials.planets.mars.reference_constants import AMES_BODY_3D,reference_radiative_forcing
     from src.celestials.planets.mars.surface import reference_surface_fields_on_grid
@@ -249,7 +249,7 @@ def reference_configuration(grid,data_directory,dt_seconds,*,moment_water=True,d
     diffusivity,capacity=subsurface_properties(jnp.asarray(grid.latitudes)[None,:],
         fields['thermal_inertia'],fields['grs_ice_latitude_deg'])
     scenario=load_scenario_on_grid(grid,data_directory/'DustScenario_MY30.nc',map_scale=3.67)
-    forcing=dataclasses.replace(reference_radiative_forcing(),albedo=jnp.asarray(fields['albedo']),
+    forcing=dataclasses.replace(reference_radiative_forcing(solar_constant_w_m2=solar_constant_w_m2),albedo=jnp.asarray(fields['albedo']),
         emissivity=jnp.asarray(fields['emissivity']),co2_frost_radiative_properties=True,
         water_frost_radiative_properties=True,diurnal=True)
     radiation_interval=8*dt_seconds
@@ -332,6 +332,8 @@ def main() -> int:
     parser.add_argument('--reference-radiation',choices=('spectral','simple','fixed','height'),default='spectral')
     parser.add_argument('--scale-surface-ir-flux',action='store_true',
         help='use native do_irflux_scale to normalize surface infrared emission to sigma*T^4')
+    parser.add_argument('--solar-constant',type=float,default=None,
+        help='enable native scale_by_scon using W/m2 at mean orbital distance (NASA default 589)')
     parser.add_argument('--equilibrium-profile',type=Path,help='released teq/zzf NetCDF input for fixed or height relaxation')
     parser.add_argument('--thermal-timescale',type=float,default=-4.,help='negative values use 86400-second days; positive values use seconds; zero disables')
     parser.add_argument('--moment-water',action=argparse.BooleanOptionalAction,default=True,
@@ -392,6 +394,11 @@ def main() -> int:
     reference=args.config=='reference'
     if args.scale_surface_ir_flux and (not reference or args.reference_radiation!='spectral'):
         parser.error('surface infrared scaling requires --config reference and spectral radiation')
+    if args.solar_constant is not None:
+        if not reference or args.reference_radiation!='spectral':
+            parser.error('solar constant scaling requires --config reference and spectral radiation')
+        if not np.isfinite(args.solar_constant) or args.solar_constant<=0.:
+            parser.error('solar constant must be finite and positive')
     process_defaults=dict(freeze_tracer_fields=False,no_forcing=False,gust_factor=0.,recalculate_heat_flux=False,
         particle_scavenging=True,form_moment_clouds=True,lifting_suppresses_settling=False,dust_opacity_from_aerosol=False,
         co2_exchange_ratio_pole=.92,co2_exchange_ratio_trop=.991)
@@ -465,7 +472,8 @@ def main() -> int:
     if reference:
         body,base,radiation,reference_options,input_hashes=reference_configuration(
             grid,args.surface_properties,args.dt,moment_water=args.moment_water,
-            dust_opacity_from_aerosol=args.dust_opacity_from_aerosol,scale_surface_flux=args.scale_surface_ir_flux)
+            dust_opacity_from_aerosol=args.dust_opacity_from_aerosol,scale_surface_flux=args.scale_surface_ir_flux,
+            solar_constant_w_m2=args.solar_constant)
         reference_options.update(co2_controls)
         reference_options.update(surface_controls)
         reference_options.update(process_controls)
@@ -559,6 +567,8 @@ def main() -> int:
                 sigma_boundaries=sigma.tolist())
             config.update(alternate_radiation_metadata)
             if args.scale_surface_ir_flux: config['reference_radiation_controls']=dict(scale_surface_flux=True)
+            if args.solar_constant is not None:
+                config.setdefault('reference_radiation_controls',{})['solar_constant_w_m2']=args.solar_constant
             if not all(co2_controls.values()): config['co2_process_switches']=co2_controls
             if not all(surface_controls.values()): config['surface_process_switches']=surface_controls
             if process_controls: config['reference_process_controls']=process_controls

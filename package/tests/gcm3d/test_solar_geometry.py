@@ -37,3 +37,25 @@ def test_solar_geometry_reverse_derivative_matches_finite_difference():
     for eps in (1e-5,1e-6):
         finite=(objective(1.+eps)-objective(1.-eps))/(2.*eps)
         np.testing.assert_allclose(auto,finite,rtol=1e-7,atol=1e-8)
+
+
+@pytest.mark.parametrize('constant',[589.,400.,800.])
+def test_solar_constant_uses_mean_orbital_distance_and_retains_derivatives(constant):
+    from src.celestials.planets.mars.reference_constants import reference_radiative_forcing
+    from src.framework.physics.gcm import orbital_distance,solar_flux
+    forcing=reference_radiative_forcing(solar_constant_w_m2=constant)
+    time=123.*88704.
+    np.testing.assert_allclose(solar_flux(time,forcing),
+        constant*(forcing.semi_major_axis_m/orbital_distance(time,forcing))**2,rtol=2e-15)
+    objective=lambda scale:solar_flux(time*scale,forcing)
+    automatic=jax.grad(objective)(1.)
+    assert np.isfinite(automatic) and automatic!=0.
+    for epsilon in (1e-5,1e-6):
+        np.testing.assert_allclose(automatic,(objective(1.+epsilon)-objective(1.-epsilon))/(2.*epsilon),rtol=2e-7)
+
+
+@pytest.mark.parametrize('constant',[0.,-1.,np.nan,np.inf])
+def test_solar_constant_rejects_invalid_values(constant):
+    from src.celestials.planets.mars.reference_constants import reference_radiative_forcing
+    with pytest.raises(ValueError,match='finite and positive'):
+        reference_radiative_forcing(solar_constant_w_m2=constant)

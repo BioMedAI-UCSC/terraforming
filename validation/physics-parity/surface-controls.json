@@ -298,7 +298,7 @@
     "package/src/framework/physics/column_physics.py": "b31eae00e2fb16bc3921893d60dcc8b9f5d9747f8c6e8ff41b418c4af5ccebe1",
     "package/src/framework/physics/dinosaur_physics.py": "88251e34c6d7174d20bd089f1ba6c237fd819bb9e899b9d67bfae5489f8bdfef",
     "package/src/framework/physics/dust_lifting.py": "18bf33ce5979933c1ef1a153e7683fae81e818f8e196e71a7f2923176be3d663",
-    "package/src/celestials/planets/mars/reference_constants.py": "e410d605c35e9abf8b35776884a65a7f0616af582a46d007118f55b4fb9c2ac2"
+    "package/src/celestials/planets/mars/reference_constants.py": "3823b68ef06e3b7abcba4db1ed9a73b209cce87bedbd125dc64fd765a314d710"
   },
   "limits": "Unchanged fixed-boundary, tracer-freeze, no-forcing and gust blocks; original diffuse compiled with released flags leaves tendency outputs unchanged because fv3_turb is excluded. Gust=1 is the released initialized value; alternate gust drivers are excluded. Freeze routing and the native early return are checked with seeded tendencies; coupled column/global checks cover physical reservoirs, histories, remapping and derivatives separately. Inactive PBL exchange fields are undefined in source; the port defines them as zero. Surface-dependent water/dust configurations without initialized reservoirs are rejected."
 }

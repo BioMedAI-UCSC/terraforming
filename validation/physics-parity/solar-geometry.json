@@ -23,6 +23,27 @@
     "source_patch_sha256": "15267ed7a494065b5ad7fe2583be95ab8c920b68f5292cdfb3adc3dd98e6bc43"
   },
   "orbit_cases": 37,
+  "normalization_reference": {
+    "source_git_blob": "59c28889a64683ef02b21ba951206482ee6ad457",
+    "compiled_source_sha256": "93e6173f1b38a597657ca51d21ec457528ee7bb5c994581dc6fe4302261176fc",
+    "routine_sha256": {
+      "normalization": "93e6173f1b38a597657ca51d21ec457528ee7bb5c994581dc6fe4302261176fc"
+    },
+    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+    "compiler_flags": [
+      "-O3",
+      "-cpp",
+      "-fdefault-real-8",
+      "-fdefault-double-8",
+      "-fPIC",
+      "-shared"
+    ],
+    "real_precision_bits": 64,
+    "adaptation": "Unchanged scale_by_scon numerical block; C argument declarations only",
+    "block_sha256": "81b3e5fc81eb841d26d6ac5312f9f7c8beeacc9f2146eca1b1b8ad05c4c42c6a"
+  },
+  "normalization_cases": 148,
+  "max_normalization_error_w_m2": 5.684341886080801e-13,
   "max_orbit_error": 7.840215437089414e-15,
   "geometry_cases": [
     {
@@ -351,10 +372,10 @@
     }
   ],
   "sha256": {
-    "scripts/validate_solar_geometry.py": "ed8af1c73823a470c9e485c2c97ce7f5ba4ecf8169474ecec000c12641cdc608",
+    "scripts/validate_solar_geometry.py": "34a881a2239312abfe6c7ab87b9f6fd7964f55f7d351cc497a245039442c64f8",
     "package/src/framework/physics/solar_geometry.py": "47b862ec8f9a74f0bba3b183457d09d23823bd60025cac9e0cd21c0e46157f53",
-    "package/src/celestials/planets/mars/reference_constants.py": "e410d605c35e9abf8b35776884a65a7f0616af582a46d007118f55b4fb9c2ac2",
+    "package/src/celestials/planets/mars/reference_constants.py": "3823b68ef06e3b7abcba4db1ed9a73b209cce87bedbd125dc64fd765a314d710",
     "package/src/framework/physics/gcm.py": "e3e0f2a929927d55a9d1e088277b76a275a2f4a924e59fd4e0766af58c981bea"
   },
-  "limits": "periodic orbital phase and sol88/zenith; reference longwave update scheduling and spin-up are separate"
+  "limits": "periodic orbit, sol88/zenith and unchanged scale_by_scon block; reference longwave update scheduling and spin-up are separate"
 }
