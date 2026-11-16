@@ -41,13 +41,17 @@ def comparison_manifests(args):
             expression=pod['affinity']['nodeAffinity']['requiredDuringSchedulingIgnoredDuringExecution']['nodeSelectorTerms'][0]['matchExpressions']
             expression.extend([{'key':'nvidia.com/gpu.memory','operator':'Gt','values':['79000']},
                                {'key':'nvidia.com/cuda.driver.major','operator':'Gt','values':['524']}])
+        elif not prepare:
+            pod['containers'][0].setdefault('env',[]).extend([
+                {'name':'OMPI_MCA_btl_vader_single_copy_mechanism','value':'none'},
+                {'name':'OMPI_MCA_rmaps_base_oversubscribe','value':'1'}])
         items.append(job)
     return {'apiVersion':'v1','kind':'List','items':items}
 
 
 def require_prepared(args,body):
     for job in body['items']:
-        prepare_name=job['metadata']['name'].replace('-100sol','-prepare')
+        prepare_name=job['metadata']['name'].removesuffix('-100sol')+'-prepare'
         saved=json.loads(subprocess.check_output(['kubectl','--context',args.context,'-n',args.namespace,
             'get','job',prepare_name,'-o','json'],text=True))
         if saved.get('status',{}).get('succeeded',0)<1:

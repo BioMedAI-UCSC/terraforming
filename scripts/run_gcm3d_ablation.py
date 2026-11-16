@@ -291,6 +291,29 @@ def reference_surface_temperature_k(latitude_rad):
         167.+52.*jnp.cos((latitude+.261799)*90./105.))
 
 
+def alternate_reference_radiation(coords,mode,profile=None,timescale=-4.):
+    """Select a released alternate branch and return its restart identity."""
+    if mode=='simple':
+        if profile is not None: raise ValueError('simple radiation does not read an equilibrium profile')
+        from src.framework.physics.simple_radiation import make_radiation_component
+        return make_radiation_component(),dict(radiation_update_seconds=None),dict(
+            radiation_mode='simple',radiation_update_seconds=None,simple_geometry_interval_seconds=1800.)
+    if mode not in ('fixed','height') or profile is None:
+        raise ValueError('fixed or height relaxation requires an equilibrium profile')
+    if not np.isfinite(timescale): raise ValueError('thermal timescale must be finite')
+    from src.framework.physics.thermal_relaxation import load_equilibrium
+    from src.framework.physics.vertical_grid import pressure_interfaces
+    half=np.asarray(pressure_interfaces(coords.vertical.layers,705.,705.))
+    values=load_equilibrium(coords.horizontal,profile,half,height=mode=='height')
+    thermal=dict(equilibrium=values[0] if mode=='height' else values,timescale=timescale)
+    metadata=dict(radiation_mode='thermal-'+mode,radiation_update_seconds=None,
+        thermal_timescale=timescale,equilibrium_profile_sha256=hashlib.sha256(Path(profile).read_bytes()).hexdigest())
+    if mode=='height':
+        thermal.update(source_height=values[1],top_pressure_pa=float(half[0]))
+        metadata['diagnostic_top_pressure_pa']=float(half[0])
+    return None,dict(radiation_update_seconds=None,thermal_relaxation_options=thermal),metadata
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("surface_properties", type=Path,
@@ -298,6 +321,9 @@ def main() -> int:
     parser.add_argument("--output-dir", type=Path, default=Path("outputs/gcm3d_ablation"))
     parser.add_argument("--config", choices=["all", "reference", *ABLATIONS], default="all")
     parser.add_argument("--mola-path",type=Path,help="explicit staged MOLA raster; required for reference runs")
+    parser.add_argument('--reference-radiation',choices=('spectral','simple','fixed','height'),default='spectral')
+    parser.add_argument('--equilibrium-profile',type=Path,help='released teq/zzf NetCDF input for fixed or height relaxation')
+    parser.add_argument('--thermal-timescale',type=float,default=-4.,help='negative values use 86400-second days; positive values use seconds; zero disables')
     parser.add_argument("--truncation", default="T21")
     parser.add_argument("--layers", type=int, default=None)
     parser.add_argument("--dt", type=float, default=None)
@@ -332,6 +358,15 @@ def main() -> int:
     )
     args = parser.parse_args()
     reference=args.config=='reference'
+    if not reference and (args.reference_radiation!='spectral' or args.equilibrium_profile is not None or args.thermal_timescale!=-4.):
+        parser.error('alternate reference radiation requires --config reference')
+    thermal=args.reference_radiation in ('fixed','height')
+    if thermal!=(args.equilibrium_profile is not None):
+        parser.error('fixed and height relaxation require --equilibrium-profile; other modes do not use it')
+    if args.equilibrium_profile is not None and not args.equilibrium_profile.is_file():
+        parser.error('equilibrium profile must be an existing NetCDF file')
+    if not np.isfinite(args.thermal_timescale) or (not thermal and args.thermal_timescale!=-4.):
+        parser.error('--thermal-timescale must be finite and requires fixed or height relaxation')
     if args.dt is None: args.dt=231. if reference else 300.
     if args.layers is None: args.layers=56 if reference else 12
     if reference and (args.mola_path is None or not args.mola_path.is_file()):
@@ -373,10 +408,15 @@ def main() -> int:
         sigma=reference_sigma_boundaries(args.layers)
     coords = coordinate_system(args.truncation, args.layers,sigma_boundaries=sigma)
     grid = coords.horizontal
-    body=MARS_BODY_3D;radiation=None;reference_options=None;input_hashes={}
+    body=MARS_BODY_3D;radiation=None;reference_options=None;input_hashes={};alternate_radiation_metadata={}
     if reference:
         body,base,radiation,reference_options,input_hashes=reference_configuration(grid,args.surface_properties,args.dt)
         input_hashes['mola']=hashlib.sha256(args.mola_path.read_bytes()).hexdigest()
+        if args.reference_radiation!='spectral':
+            radiation,overrides,alternate_radiation_metadata=alternate_reference_radiation(
+                coords,args.reference_radiation,args.equilibrium_profile,args.thermal_timescale)
+            reference_options.update(overrides)
+            if thermal: input_hashes['equilibrium_profile']=alternate_radiation_metadata['equilibrium_profile_sha256']
     else:
         base = radiative_forcing(
             diurnal=args.diurnal, co2_radiation_enabled=True,
@@ -457,6 +497,7 @@ def main() -> int:
                 reference_build_blob='83b611e6527cf26bef3ec0064c05aebe0bb0d080',
                 initial_air_temperature_k=170.,initial_surface_profile='released-equilibrated-latitude',
                 sigma_boundaries=sigma.tolist())
+            config.update(alternate_radiation_metadata)
         if restart_path.exists():
             if not args.resume:
                 raise ValueError(f"{restart_path} exists; use --resume or a new output directory")

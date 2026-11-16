@@ -516,7 +516,8 @@ limiter or establish matched transport accuracy.
 
 | Area | Remaining implementation and acceptance check |
 | --- | --- |
-| Thermal relaxation | Fixed-profile, evolving-height and analytic Held--Suarez kernels match 36 unchanged native cases, including the original FMS interpolation. Fixed and height forcing connect to the Dinosaur step through `thermal_relaxation_options` and replace radiation on every step. NetCDF readers preserve the source equal-level-count bypass and reuse the native-checked bilinear map. Analytic forcing remains an explicit kernel because the released dispatch does not call it. Command-line selection and whole-model profile comparisons remain. |
+| Thermal relaxation | Fixed-profile, evolving-height and analytic Held--Suarez kernels match 36 unchanged native cases, including the original FMS interpolation. Fixed and height forcing connect to the Dinosaur step and command-line runner, replace radiation on every step, and retain profile hashes/timescales in restart identity. NetCDF readers preserve the source equal-level-count bypass and reuse the native-checked bilinear map. Analytic forcing remains an explicit kernel because the released dispatch does not call it. Native reader/composed-profile and long climate comparisons remain. |
+| Simple radiation | `simple_radiation` implements the released fixed-dust profile, `ecoeffs`/`scatter_calc`, `swheat`, `lwheat` and five-sol SW ramp. Twenty-four native columns and 24 independent scattering cases pass. The callback, map/restart path and three-step reverse derivative are connected. CLI selection is `--config reference --reference-radiation simple`. The source's unused emissivity argument and surface-only IR suppression are preserved; SPEC_CORE-only modulation is excluded by the release flags. |
 | Global budgets | Momentum exchange and repair-stage ledgers are connected. Extend the energy audit across dissipation, fixed-deep-soil exchange, phase approximations and long global runs; select gas and particle tracers explicitly. |
 | Radiation schedule | Optional integer-second source schedule now holds heating in K/s and surface fluxes, carries the 170 K initial stratosphere and its source update, and persists caches in restarts. Match the configured interval and callback averaging window in whole-model comparisons. |
 | Dust and cloud opacity | Size-dependent dust and all three cloud optical kernels are implemented. CO2 optical feedback is connected; prescribed dust, moment clouds, interactive lifting and seasonal control pass three-step global gradient checks. Multiple physical populations now connect lifting, coagulation, clouds, settling, opacity diagnostics, surface reservoirs and saved effective inputs. Matched climatology remains. |
@@ -559,7 +560,24 @@ zero-pressure upper boundary, as in the existing terrain-height adaptation.
 env PYTHONPATH=package:. python scripts/validate_thermal_relaxation.py \
   --ames-source /path/to/AmesGCM --fms-source /path/to/FMS \
   --output outputs/physics-parity/thermal-relaxation.json
+env PYTHONPATH=package:. python scripts/validate_simple_radiation.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/simple-radiation.json
 ```
+
+The production runner accepts `--reference-radiation fixed` or `height` with
+`--equilibrium-profile /path/to/profile.nc`. `--thermal-timescale -4` means four
+86400-second days, as in the source. A positive value is in seconds; zero
+disables relaxation. These choices and the profile content hash are checked
+when a run resumes. The spectral default keeps its existing restart metadata.
+
+Simple scattering divides the layer equations by the growing exponential.
+This preserves the finite source equations and keeps thick-layer evaluation
+finite after the original algebra overflows. The source singularities at
+exact conservative scattering or `lambda*zenith=1` are not hidden by clipping.
+The optional near-infrared CO2 term is exactly zero at night; its inactive
+square root uses a finite reverse-mode branch. The surface-only infrared
+suppression does not recompute atmospheric heating, matching the source's
+non-conservative diagnostic behavior for that optional switch.
 
 ```sh
 env PYTHONPATH=package:. python scripts/validate_dry_convection.py \

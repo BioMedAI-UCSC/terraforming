@@ -71,6 +71,9 @@ class ComparisonTests(unittest.TestCase):
         self.assertEqual(len(running['items']),2)
         cpu,gpu=[job['spec']['template']['spec'] for job in running['items']]
         self.assertNotIn('nvidia.com/a100',cpu['containers'][0]['resources']['requests'])
+        native_env={item['name']:item['value'] for item in cpu['containers'][0]['env']}
+        self.assertEqual(native_env['OMPI_MCA_btl_vader_single_copy_mechanism'],'none')
+        self.assertEqual(native_env['OMPI_MCA_rmaps_base_oversubscribe'],'1')
         self.assertEqual(gpu['containers'][0]['resources']['requests']['nvidia.com/a100'],'1')
         self.assertEqual(gpu['priorityClassName'],'opportunistic')
         for job in running['items']:
@@ -86,13 +89,15 @@ class ComparisonTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'immutable'): deploy.comparison_manifests(args)
 
     def test_compute_submission_requires_successful_preparation_with_matching_identity(self):
-        args=SimpleNamespace(name='matched-v1',ref='a'*40,phase='run',namespace='razvanlab',
+        args=SimpleNamespace(name='mars-reference-100sol-v3',ref='a'*40,phase='run',namespace='razvanlab',
             input_node='input-node',input_pvc='input-data',context='nautilus')
         body=deploy.comparison_manifests(args);saved=copy.deepcopy(body['items'])
         for job in saved: job['status']={'succeeded':1}
         def check():
-            with patch.object(deploy.subprocess,'check_output',side_effect=[json.dumps(job) for job in saved]):
+            with patch.object(deploy.subprocess,'check_output',side_effect=[json.dumps(job) for job in saved]) as query:
                 deploy.require_prepared(args,body)
+                self.assertEqual([call.args[0][-3] for call in query.call_args_list],
+                    ['mars-reference-100sol-v3-native-prepare','mars-reference-100sol-v3-dinosaur-prepare'])
         check();saved[0]['status']['succeeded']=0
         with self.assertRaisesRegex(RuntimeError,'has not succeeded'): check()
         saved[0]['status']['succeeded']=1;saved[0]['metadata']['annotations']['terraforming/source-revision']='b'*40

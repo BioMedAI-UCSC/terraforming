@@ -78,6 +78,47 @@ def test_reference_cold_surface_profile_retains_source_transition_and_polar_valu
     assert values[0]<values[3] and values[-1]<values[3]
 
 
+def test_alternate_reference_radiation_records_profile_and_timescale_for_restarts(tmp_path):
+    from src.framework.gcm.coordinates import coordinate_system
+    import hashlib
+    driver=_script('run_gcm3d_ablation');coords=coordinate_system('T21',40)
+    profile=tmp_path/'equilibrium.nc'
+    values=np.broadcast_to(np.linspace(170.,210.,40)[:,None,None],(40,2,4))
+    heights=np.broadcast_to(np.linspace(1e6,-1000.,40)[:,None,None],values.shape)
+    xr.Dataset({'teq':(('level','lat','lon'),values),'zzf':(('level','lat','lon'),heights),
+        'pfull':('level',np.geomspace(.000001,7.05,40)),
+        'lonb':('lonb',np.linspace(0.,360.,5)),'latb':('latb',[-90.,0.,90.])},
+        coords={'lat':[-45.,45.],'lon':[45.,135.,225.,315.]}).to_netcdf(profile)
+    expected=hashlib.sha256(profile.read_bytes()).hexdigest()
+    for mode in ('fixed','height'):
+        component,options,metadata=driver.alternate_reference_radiation(coords,mode,profile,timescale=-2.)
+        assert component is None and options['radiation_update_seconds'] is None
+        assert options['thermal_relaxation_options']['timescale']==-2.
+        assert metadata['equilibrium_profile_sha256']==expected
+        assert metadata['radiation_mode']=='thermal-'+mode
+        assert options['thermal_relaxation_options']['equilibrium'].shape==(40,*coords.horizontal.nodal_shape)
+        if mode=='height': assert metadata['diagnostic_top_pressure_pa']>0.
+    _,_,changed=driver.alternate_reference_radiation(coords,'fixed',profile,timescale=-3.)
+    assert changed['thermal_timescale']==-3.
+    component,options,metadata=driver.alternate_reference_radiation(coords,'simple')
+    assert callable(component) and options['radiation_update_seconds'] is None
+    assert metadata['simple_geometry_interval_seconds']==1800.
+    with pytest.raises(ValueError,match='does not read'):
+        driver.alternate_reference_radiation(coords,'simple',profile)
+    with pytest.raises(ValueError,match='requires an equilibrium'):
+        driver.alternate_reference_radiation(coords,'fixed')
+
+
+def test_alternate_reference_cli_rejects_unsupported_combinations(monkeypatch):
+    import sys
+    driver=_script('run_gcm3d_ablation')
+    for arguments in (['--reference-radiation','simple'],['--thermal-timescale','-2.'],
+                      ['--config','reference','--reference-radiation','height']):
+        monkeypatch.setattr(sys,'argv',['run_gcm3d_ablation.py','unused-surface',*arguments])
+        with pytest.raises(SystemExit) as stopped: driver.main()
+        assert stopped.value.code==2
+
+
 def test_staged_arco_time_is_martian_sol_not_cf_datetime(tmp_path):
     stage = _script("stage_arco_macda")
     time = xr.DataArray([0.5], dims="time")

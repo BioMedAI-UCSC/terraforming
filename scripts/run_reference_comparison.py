@@ -206,7 +206,8 @@ def main(framework,resolution):
         for name in INPUTS:
             if digest(nasa/'data'/name)!=INPUTS[name]: raise ValueError(f'{name}: native release input differs')
         ranks=native_inputs(nasa,output,resolution,args.sols)
-        invocation=['mpirun','--bind-to','none','-np',str(ranks),details['executable']]
+        invocation=['mpirun','--host',f'localhost:{ranks}','--bind-to','none',
+            '--mca','btl_vader_single_copy_mechanism','none','-np',str(ranks),details['executable']]
     else:
         if os.environ.get('EXPERIMENT_GPU')!='1': raise RuntimeError('Dinosaur climate comparison requires a GPU job')
         env.update(JAX_PLATFORMS='cuda',XLA_PYTHON_CLIENT_MEM_FRACTION='.45')

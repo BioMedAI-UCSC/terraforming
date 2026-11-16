@@ -157,6 +157,19 @@ def test_thermal_relaxation_reaches_global_rollout_and_reverse_derivative(height
     np.testing.assert_allclose(automatic,finite,rtol=2e-5,atol=1e-7)
 
 
+def test_simple_radiation_reaches_global_rollout_and_reverse_derivative():
+    from src.framework.physics.simple_radiation import make_radiation_component
+    def objective(infrared_depth):
+        component=make_radiation_component(tau_infrared=infrared_depth,forget_shortwave_heating=True)
+        state,step,grid=backend_case(temperature_k=180.,surface_temperature_k=180.,radiation_component=component)
+        for _ in range(3): state=step(state)
+        return jnp.mean(grid.to_nodal(state.dynamics.temperature_variation))
+    automatic=jax.grad(objective)(1.)
+    finite=(objective(1.0001)-objective(.9999))/.0002
+    assert np.isfinite(automatic) and automatic!=0.
+    np.testing.assert_allclose(automatic,finite,rtol=2e-5,atol=1e-7)
+
+
 def test_explicit_gas_global_species_budget_restart_and_reverse_derivative(tmp_path):
     from src.framework.physics.dinosaur_physics import CO2_GAS_TRACER,ARGON_GAS_TRACER
     from src.framework.gcm.specs import physics_specs
