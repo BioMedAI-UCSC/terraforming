@@ -67,7 +67,8 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
                    convection_scheme='fv3',moist_convection_options=None,moist_surface_water_kg_m2=None,
                    co2_gas_index=None,do_co2_condensation=True,do_atmos_co2_loss=True,
                    do_co2_condensation_cycle=True,do_mars_surface=True,do_vert_diff=True,do_ames_pbl=True,
-                   moment_water=None,dust_surface_water_kg_m2=None,freeze_tracer_fields=False,gust_factor=0.):
+                   moment_water=None,dust_surface_water_kg_m2=None,freeze_tracer_fields=False,gust_factor=0.,
+                   recalculate_heat_flux=False):
     """Rayleigh/PBL, soil/frost, CO2 deposition or suspended clouds, convection.
 
     This is the standard present-Mars gas-column process order. Tracers here
@@ -143,7 +144,7 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
             dt_seconds,body.gas_constant_j_kg_k,body.cp_j_kg_k,body.gravity_m_s2,
             surface_co2_ice=co2_ice_kg_m2,
             surface_water_ice=(0. if dust_surface_water_kg_m2 is None else dust_surface_water_kg_m2)
-                if bulk_water is None else bulk_water.surface_water_kg_m2)
+                if bulk_water is None else bulk_water.surface_water_kg_m2,recalculate_heat_flux=recalculate_heat_flux)
     else:
         t,u,v,r=predicted,u+du*dt_seconds,v+dv*dt_seconds,gas_tracers
         pbl=inactive_diagnostics(t,u,v)

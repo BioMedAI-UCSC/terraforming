@@ -328,6 +328,7 @@ def main() -> int:
         help='disable to run transported dust without water exchange or cloud microphysics')
     parser.add_argument('--freeze-tracer-fields',action='store_true',help='discard atmospheric physics tracer changes after microphysics')
     parser.add_argument('--no-forcing',action='store_true',help='run dynamics without atmospheric or surface physics')
+    parser.add_argument('--recalculate-heat-flux',action='store_true',help='use solved PBL temperature for the surface sensible heat flux')
     parser.add_argument('--gust-factor',type=float,default=0.,help='released dust-lifting wind correction; gust speed is 1 m/s')
     parser.add_argument('--co2-exchange-ratio-pole',type=float,default=.92)
     parser.add_argument('--co2-exchange-ratio-trop',type=float,default=.991)
@@ -371,7 +372,7 @@ def main() -> int:
     )
     args = parser.parse_args()
     reference=args.config=='reference'
-    process_controls={name:getattr(args,name) for name in ('freeze_tracer_fields','no_forcing','gust_factor')}
+    process_controls={name:getattr(args,name) for name in ('freeze_tracer_fields','no_forcing','gust_factor','recalculate_heat_flux')}
     for name,default in (('co2_exchange_ratio_pole',.92),('co2_exchange_ratio_trop',.991)):
         value=getattr(args,name)
         if not np.isfinite(value) or value<=0.: parser.error('CO2 exchange ratios must be finite and positive')

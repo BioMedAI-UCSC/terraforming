@@ -105,14 +105,14 @@ def inactive_diagnostics(temperature,u,v):
 
 
 def column_step(temperature,u,v,tracers,pressure_half,pressure_full,surface_temperature,
-                dt_seconds,gas_constant,cp,gravity,*,surface_co2_ice=0.,surface_water_ice=0.):
+                dt_seconds,gas_constant,cp,gravity,*,surface_co2_ice=0.,surface_water_ice=0.,recalculate_heat_flux=False):
     """Ames boundary_layer/pbl_driver/newpbl for predicted gas fields.
 
     Levels come first and tracer species last. As in ames_pbl_interface,
     radiation is already included in the prediction, shear history resets,
     and the hard-coded internal water-sublimation switch is off. Only gas
     tracers belong here; ice/aerosol selection is the caller's responsibility.
-    Return updated T/u/v/tracers plus old-state surface heat/stress diagnostics.
+    Heat flux uses the old state unless the released recalculation is enabled.
     """
     from src.framework.physics.vertical_solve import solve_tridiagonal
     temperature,u,v,tracers,pressure_half,pressure_full=map(jnp.asarray,
@@ -159,12 +159,14 @@ def column_step(temperature,u,v,tracers,pressure_half,pressure_full,surface_temp
     result=solve_tridiagonal(lower,diagonal,upper,rhs)
     rho_surface=ps/(gas_constant*.5*(surface_temperature+temperature[-1]))
     heat_flux=-rho_surface*cp*ustar*thstar
+    if recalculate_heat_flux:
+        heat_flux=-rho_surface*cp*ustar*cdh*(result[-1,...,2]*exner[-1]-surface_temperature)
     stress_factor=rho_surface*ustar**2/jnp.where(speed>0.,speed,1.)
     stress_x=stress_factor*u[-1]
     stress_y=stress_factor*v[-1]
     diagnostics=dict(heat_flux_w_m2=heat_flux,stress_x_pa=stress_x,stress_y_pa=stress_y,
         heat_flux_surface_derivative_w_m2_k=rho_surface*cp*cdh*ustar,
-        heat_flux_atmosphere_derivative_w_m2_k=-rho_surface*cp*cdh*ustar/exner[-1],
+        heat_flux_atmosphere_derivative_w_m2_k=-rho_surface*cp*cdh*ustar,
         heat_diffusivity_m2_s=kh,momentum_diffusivity_m2_s=km,
         surface_heat_coefficient=cdh,surface_momentum_coefficient=cdm,
         friction_velocity_ms=ustar,temperature_scale_k=thstar,

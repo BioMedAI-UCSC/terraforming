@@ -25,6 +25,7 @@ real*8, parameter :: KAPA=.25684d0
 logical, parameter :: latent_heat=.false.,do_sublimation=.false.,do_injection=.false.
 logical :: htflux_recalc=.false.,mcpu0
 real*8 :: z0_pbl,epsl0_pbl,vk_pbl,alphl0_pbl,ric_pbl,dtmu_pbl,rmu1mu_pbl,rmu
+real*8 :: last_dsensa
 contains
 """
     adapter="""
@@ -110,6 +111,15 @@ uout=u+ut*dt
 vout=v+vt*dt
 rout=r+qt*dt
 fluxes=[heat,strx,stry,rhouch,ustar,thstar,cdm,cdh,dsenss]
+last_dsensa=dsensa
+end subroutine
+subroutine heat_flux_control(enabled) bind(C)
+integer(c_int),value :: enabled
+htflux_recalc=enabled/=0
+end subroutine
+subroutine atmosphere_derivative(value) bind(C)
+real(c_double),intent(out) :: value(1)
+value(1)=last_dsensa
 end subroutine
 integer function mpp_pe()
 mpp_pe=0
@@ -131,6 +141,8 @@ end module
     lib.ames_boundary.restype=None
     lib.column_physics.argtypes=[ctypes.c_int]*2+[ctypes.c_double]*4+[array]*6+[ctypes.c_double]*3+[array]*7
     lib.column_physics.restype=None
+    lib.heat_flux_control.argtypes=[ctypes.c_int];lib.heat_flux_control.restype=None
+    lib.atmosphere_derivative.argtypes=[array];lib.atmosphere_derivative.restype=None
     return lib,provenance
 
 
@@ -178,23 +190,32 @@ def validate(source,compiler):
                 fullkm,fullkh=(np.zeros(2*n+1) for _ in range(2))
                 fluxes=np.zeros(9)
                 co2ice=1. if stability=="unstable" else 0.
-                native.column_physics(n,2,3.72,189.02,735.94,300.,t,u,v,r,ph,pf,tg,co2ice,0.,
-                    tnew,unew,vnew,rnew,fullkm,fullkh,fluxes)
-                full=column_step(t,u,v,r,ph,pf,tg,300.,189.02,735.94,3.72,surface_co2_ice=co2ice)
-                full_errors=[]
-                for a,b in zip(full[:4],(tnew,unew,vnew,rnew),strict=True):
-                    np.testing.assert_allclose(a,b,rtol=2e-12,atol=2e-12)
-                    full_errors.append(float(np.max(np.abs(np.asarray(a)-b))))
-                diagnostics=full[4]
-                for key,reference in (("momentum_diffusivity_m2_s",fullkm[2:-1:2]),
-                        ("heat_diffusivity_m2_s",fullkh[2:-1:2])):
-                    np.testing.assert_allclose(diagnostics[key],reference,rtol=2e-12,atol=2e-12)
-                actual_fluxes=[diagnostics[x] for x in ("heat_flux_w_m2","stress_x_pa","stress_y_pa")]
-                np.testing.assert_allclose(actual_fluxes,fluxes[:3],rtol=2e-12,atol=2e-12)
-                cases.append(dict(layers=n,case=stability,
-                    max_absolute_eddy_errors=dict(zip(("km","kh","richardson","shear_squared"),errors,strict=True)),
-                    max_absolute_surface_error=float(np.max(np.abs(boundary-surface))),
-                    max_absolute_column_errors=dict(zip(("temperature_k","u_ms","v_ms","tracer_ratio"),full_errors,strict=True))))
+                for recalculate in (False,True):
+                    native.heat_flux_control(int(recalculate))
+                    native.column_physics(n,2,3.72,189.02,735.94,300.,t,u,v,r,ph,pf,tg,co2ice,0.,
+                        tnew,unew,vnew,rnew,fullkm,fullkh,fluxes)
+                    full=column_step(t,u,v,r,ph,pf,tg,300.,189.02,735.94,3.72,surface_co2_ice=co2ice,
+                        recalculate_heat_flux=recalculate)
+                    full_errors=[]
+                    for a,b in zip(full[:4],(tnew,unew,vnew,rnew),strict=True):
+                        np.testing.assert_allclose(a,b,rtol=2e-12,atol=2e-12)
+                        full_errors.append(float(np.max(np.abs(np.asarray(a)-b))))
+                    diagnostics=full[4]
+                    for key,reference in (("momentum_diffusivity_m2_s",fullkm[2:-1:2]),
+                            ("heat_diffusivity_m2_s",fullkh[2:-1:2])):
+                        np.testing.assert_allclose(diagnostics[key],reference,rtol=2e-12,atol=2e-12)
+                    actual_fluxes=[diagnostics[x] for x in ("heat_flux_w_m2","stress_x_pa","stress_y_pa")]
+                    np.testing.assert_allclose(actual_fluxes,fluxes[:3],rtol=2e-12,atol=2e-12)
+                    derivative=np.zeros(1);native.atmosphere_derivative(derivative)
+                    np.testing.assert_allclose(diagnostics["heat_flux_atmosphere_derivative_w_m2_k"],derivative[0],rtol=2e-12,atol=2e-12)
+                    for key,index in (("friction_velocity_ms",4),("temperature_scale_k",5),
+                            ("surface_momentum_coefficient",6),("surface_heat_coefficient",7),
+                            ("heat_flux_surface_derivative_w_m2_k",8)):
+                        np.testing.assert_allclose(diagnostics[key],fluxes[index],rtol=2e-12,atol=2e-12)
+                    cases.append(dict(layers=n,case=stability,recalculate_heat_flux=recalculate,
+                        max_absolute_eddy_errors=dict(zip(("km","kh","richardson","shear_squared"),errors,strict=True)),
+                        max_absolute_surface_error=float(np.max(np.abs(boundary-surface))),
+                        max_absolute_column_errors=dict(zip(("temperature_k","u_ms","v_ms","tracer_ratio"),full_errors,strict=True))))
     return dict(status="pass",reference=provenance,cases=cases,
         source_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         kernel_sha256=hashlib.sha256(Path(__file__).parents[1].joinpath(
@@ -202,7 +223,7 @@ def validate(source,compiler):
         vertical_solver_sha256=hashlib.sha256(Path(__file__).parents[1].joinpath(
             "package/src/framework/physics/vertical_solve.py").read_bytes()).hexdigest(),
         jax_version=jax.__version__,devices=[str(x) for x in jax.devices()],
-        limits="gas PBL driver with default switches only; global surface energy coupling and model validation remain pending")
+        limits="Gas PBL driver with both heat-flux choices, both heat derivatives and source coefficients. Global surface energy and climate validation remain separate checks.")
 
 
 def main():

@@ -10,6 +10,29 @@ from src.framework.physics.boundary_layer import layer_heights,surface_exchange,
 jax.config.update("jax_enable_x64",True)
 
 
+@pytest.mark.parametrize('surface_k',[180.,230.])
+def test_recalculated_heat_flux_uses_solved_temperature_and_source_derivatives(surface_k):
+    half=jnp.array([0.,50.,150.,350.,610.]);full=.5*(half[1:]+half[:-1])
+    temperature=jnp.array([160.,180.,200.,210.]);wind=jnp.array([30.,20.,10.,5.])
+    def solve(surface,recalculate):
+        return column_step(temperature,wind,-wind,jnp.ones((4,1))*1e-5,half,full,surface,
+            300.,189.02,735.94,3.72,recalculate_heat_flux=recalculate)
+    old=solve(surface_k,False);updated=solve(surface_k,True)
+    for actual,expected in zip(updated[:4],old[:4],strict=True): np.testing.assert_array_equal(actual,expected)
+    for result in (old,updated):
+        diagnostics=result[4]
+        np.testing.assert_array_equal(diagnostics['heat_flux_atmosphere_derivative_w_m2_k'],
+            -diagnostics['heat_flux_surface_derivative_w_m2_k'])
+    coefficient=updated[4]['heat_flux_surface_derivative_w_m2_k']
+    np.testing.assert_allclose(updated[4]['heat_flux_w_m2'],-coefficient*(updated[0][-1]-surface_k),rtol=2e-14)
+    assert updated[4]['heat_flux_w_m2']!=old[4]['heat_flux_w_m2']
+    objective=lambda surface:solve(surface,True)[4]['heat_flux_w_m2']
+    automatic=jax.grad(objective)(surface_k)
+    assert np.isfinite(automatic) and abs(float(automatic))>0.
+    for epsilon in (.001,.0005):
+        np.testing.assert_allclose(automatic,(objective(surface_k+epsilon)-objective(surface_k-epsilon))/(2.*epsilon),rtol=2e-7)
+
+
 def test_isothermal_geometry_and_temperature_response():
     half=jnp.array([0.,50.,150.,350.,610.])[:,None]
     full=(half[1:]+half[:-1])*.5

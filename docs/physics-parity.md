@@ -22,7 +22,7 @@ No complete-model equivalence or speed claim has passed yet.
 | Moist convective adjustment | `moist_convection.adjust` | Unchanged GFDL `moist_conv`, `CONV_DETR` and FMS saturation kernels; 80 column cases | Connected after dry convection and before lifting/cloud microphysics. Five kernel checks, independent latent/material budgets, bulk/moment global water inventories, exact restarts and a three-step reverse derivative pass |
 | PBL surface exchange | `boundary_layer.surface_exchange` | Compiled original `bndcond`, stable/unstable/zero-wind cases | Used by the new column driver |
 | PBL turbulent mixing | `boundary_layer.eddy_coefficients` | Compiled original `eddycoef`, 4/12/40 layers | Used by the new column driver |
-| PBL gas-column driver | `boundary_layer.column_step` | Compiled original `pbl_driver`, `newpbl`, matrix, scaling and solve routines; temperature errors below 1e-13 K | Connected to soil/frost and Dinosaur; gas species mix separately from cloud and moment particle tracers |
+| PBL gas-column driver | `boundary_layer.column_step` | Compiled original `pbl_driver`, `newpbl`, matrix, scaling and solve routines; 18 column cases with both heat-flux choices, both heat derivatives and exchange coefficients; temperature errors below 1e-13 K | Connected to soil/frost and Dinosaur; optional solved-temperature heat flux, restart and three-step gradient checks pass. Gas species mix separately from cloud and moment particle tracers |
 | Radiation pressure-table staging | `stage_co2_radiation_tables.ames_pressure_interpolation` | Original `laginterp` and `lagrange`; all ten gas mixtures match exactly in the recorded run | Enabled in the existing correlated-k kernel |
 | Radiation dry-table lookup | `correlated_k._interp2_log_table` on the refined pressure grid | Original `tpindex15` and `boxinterp`; 100 temperature/pressure points, including values outside the tables | Enabled in the existing correlated-k kernel |
 | Two-stream flux kernels | `scattering_transfer.visible_fluxes` and `infrared_fluxes` | Original `gfluxv`, `gfluxi`, `dsolver`, `dtridgl`; 1/4/12/40-layer thin/moderate/thick columns | Visible keeps the original solve. IR solves the same hemispheric equations with stable layer adding; the composed check uses unchanged Fortran routines at binary128 without relaxing flux tolerances |
@@ -527,6 +527,7 @@ limiter or establish matched transport accuracy.
 | CO2 switches | Atmospheric condensation, atmospheric loss and gas-mass feedback are independent source controls. Ninety-six unchanged native control-block cases check all combinations and initial-CO2-weighted surface exchange. Another 384 unchanged initialization cases check configurable exchange depths and strict pressure/latitude boundaries. Column tests retain condensation heating when precipitation loss is disabled, and retain surface snow when mass feedback is disabled. Held suspended clouds still mix as tracers when their phase driver is off. Global tests check disabled-feedback behavior, exact restart continuation and three-step reverse derivatives. |
 | Surface/diffusion controls | `do_mars_surface`, `do_vert_diff` and `do_ames_pbl` now select the released active branches. Without Mars surface physics, radiation sees 170 K, albedo 0.25 and emissivity 1; soil/CO2 surface exchange is inactive while drag and convection remain available. Twelve unchanged native `diffuse` cases prove the release fallback leaves tendencies unchanged because `fv3_turb` is excluded. Inactive PBL exchange fields are defined as zero instead of copying uninitialized source values. Surface-dependent water/dust modes are rejected without the source's surface reservoir initialization. |
 | Process controls | `freeze_tracer_fields`, `no_forcing` and the released `gust_fact` correction are connected to Dinosaur and the runner. Native blocks check tracer freezing, no-forcing early return and gust stress; column/global checks retain surface/history changes under freezing and skip all physical updates under no forcing. The released tracer-source/sink helper has no caller. Alternate gust/turbulence drivers are excluded by build flags. |
+| Module controls | Continue the module-level audit beyond the main driver inventory. The PBL `htflux_recalc` option is now connected and checked. The settling `scaveng` switch is checked in the standalone kernel but still needs a coupled-model option. |
 | Interactive dust | Lifting, advection, sedimentation, surface reservoirs, coagulation and material budgets are connected independently of moment water. Matched climate validation remains. |
 | Water | Bulk and moment phase/growth/settling paths, surface exchange, saved effective inputs, state/restarts and optical feedback are connected. Two physical dust modes pass combined global material, restart and three-step derivative checks. Long climate validation remains. Bin cloud microphysics is unavailable in the public release. |
 | Drag | Rayleigh, Palmer terrain drag and non-orographic gravity-wave drag are implemented and checked. Polar water and terrain maps pass pinned-blob and T21/T42 area checks. Long momentum/energy audits remain. Gravity-wave schemes are off in the default Ames present-Mars setup. |
@@ -592,6 +593,16 @@ retained, bounded by the first model layer on coarse Dinosaur grids.
 The selected depth is an initialization choice. Custom ratios are saved in
 restart identity. A 56-level run with custom ratios completed and resumed to
 two steps; changing a ratio correctly rejected the saved restart.
+
+The PBL option `recalculate_heat_flux=True` selects the released `htflux_recalc`
+branch. The runner uses `--recalculate-heat-flux`. It computes sensible heat
+flux from the solved bottom-air temperature and leaves the already solved PBL
+temperature, wind and tracer fields unchanged. Soil sees the revised flux.
+The default keeps the original old-state flux. Both choices use the native
+air-temperature heat-flux derivative, whose pressure factor is the surface
+Exner factor (one), not the bottom full-level factor. Earlier validation checked
+surface flux and its surface derivative but missed this air derivative; the
+native comparison now checks both derivatives and all exposed coefficients.
 
 ## Reproduce the native checks
 

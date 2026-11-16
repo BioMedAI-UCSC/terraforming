@@ -2,7 +2,7 @@
   "status": "pass",
   "reference": {
     "source_git_blob": "38b3f41e4d07f9a2e3c9d7a689e50577cac7858c",
-    "compiled_source_sha256": "488f4d8f33a6f15a88c7aa46743fbfb8e5dc8418a9dc61530fbb37bae681e7a2",
+    "compiled_source_sha256": "c3e75c6fd976e883475b78f8d272607c8856552de32dd1d48c71bb58298eb86f",
     "routine_sha256": {
       "initpbl": "31e60ac5530e6d4e38a83f6fc68b63c14a88cb0da765a121f292303c66197488",
       "pbl_driver": "faef75218c885ce40c983744b7d6ace60b8cc70930533ff1f04b7f75e181e51f",
@@ -36,6 +36,25 @@
     {
       "layers": 4,
       "case": "stable",
+      "recalculate_heat_flux": false,
+      "max_absolute_eddy_errors": {
+        "km": 5.684341886080802e-14,
+        "kh": 0.0,
+        "richardson": 0.0,
+        "shear_squared": 0.0
+      },
+      "max_absolute_surface_error": 0.0,
+      "max_absolute_column_errors": {
+        "temperature_k": 2.842170943040401e-14,
+        "u_ms": 3.552713678800501e-15,
+        "v_ms": 3.552713678800501e-15,
+        "tracer_ratio": 1.3552527156068805e-20
+      }
+    },
+    {
+      "layers": 4,
+      "case": "stable",
+      "recalculate_heat_flux": true,
       "max_absolute_eddy_errors": {
         "km": 5.684341886080802e-14,
         "kh": 0.0,
@@ -53,6 +72,25 @@
     {
       "layers": 4,
       "case": "unstable",
+      "recalculate_heat_flux": false,
+      "max_absolute_eddy_errors": {
+        "km": 4.547473508864641e-13,
+        "kh": 9.094947017729282e-13,
+        "richardson": 2.7755575615628914e-17,
+        "shear_squared": 0.0
+      },
+      "max_absolute_surface_error": 0.0,
+      "max_absolute_column_errors": {
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 3.552713678800501e-15,
+        "v_ms": 3.552713678800501e-15,
+        "tracer_ratio": 1.3552527156068805e-20
+      }
+    },
+    {
+      "layers": 4,
+      "case": "unstable",
+      "recalculate_heat_flux": true,
       "max_absolute_eddy_errors": {
         "km": 4.547473508864641e-13,
         "kh": 9.094947017729282e-13,
@@ -70,6 +108,25 @@
     {
       "layers": 4,
       "case": "zero-wind",
+      "recalculate_heat_flux": false,
+      "max_absolute_eddy_errors": {
+        "km": 0.0,
+        "kh": 0.0,
+        "richardson": 2.220446049250313e-16,
+        "shear_squared": 0.0
+      },
+      "max_absolute_surface_error": 0.0,
+      "max_absolute_column_errors": {
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 0.0,
+        "v_ms": 0.0,
+        "tracer_ratio": 6.776263578034403e-21
+      }
+    },
+    {
+      "layers": 4,
+      "case": "zero-wind",
+      "recalculate_heat_flux": true,
       "max_absolute_eddy_errors": {
         "km": 0.0,
         "kh": 0.0,
@@ -87,6 +144,25 @@
     {
       "layers": 12,
       "case": "stable",
+      "recalculate_heat_flux": false,
+      "max_absolute_eddy_errors": {
+        "km": 6.821210263296962e-13,
+        "kh": 6.821210263296962e-13,
+        "richardson": 1.3877787807814457e-17,
+        "shear_squared": 6.938893903907228e-18
+      },
+      "max_absolute_surface_error": 2.220446049250313e-16,
+      "max_absolute_column_errors": {
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 1.7763568394002505e-15,
+        "v_ms": 3.552713678800501e-15,
+        "tracer_ratio": 1.3552527156068805e-20
+      }
+    },
+    {
+      "layers": 12,
+      "case": "stable",
+      "recalculate_heat_flux": true,
       "max_absolute_eddy_errors": {
         "km": 6.821210263296962e-13,
         "kh": 6.821210263296962e-13,
@@ -104,6 +180,25 @@
     {
       "layers": 12,
       "case": "unstable",
+      "recalculate_heat_flux": false,
+      "max_absolute_eddy_errors": {
+        "km": 1.3642420526593924e-12,
+        "kh": 1.8189894035458565e-12,
+        "richardson": 1.3877787807814457e-17,
+        "shear_squared": 1.3877787807814457e-17
+      },
+      "max_absolute_surface_error": 2.220446049250313e-16,
+      "max_absolute_column_errors": {
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 7.105427357601002e-15,
+        "v_ms": 1.4210854715202004e-14,
+        "tracer_ratio": 1.3552527156068805e-20
+      }
+    },
+    {
+      "layers": 12,
+      "case": "unstable",
+      "recalculate_heat_flux": true,
       "max_absolute_eddy_errors": {
         "km": 1.3642420526593924e-12,
         "kh": 1.8189894035458565e-12,
@@ -121,6 +216,25 @@
     {
       "layers": 12,
       "case": "zero-wind",
+      "recalculate_heat_flux": false,
+      "max_absolute_eddy_errors": {
+        "km": 3.410605131648481e-13,
+        "kh": 4.547473508864641e-13,
+        "richardson": 1.1102230246251565e-16,
+        "shear_squared": 0.0
+      },
+      "max_absolute_surface_error": 4.547473508864641e-13,
+      "max_absolute_column_errors": {
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 0.0,
+        "v_ms": 0.0,
+        "tracer_ratio": 2.710505431213761e-20
+      }
+    },
+    {
+      "layers": 12,
+      "case": "zero-wind",
+      "recalculate_heat_flux": true,
       "max_absolute_eddy_errors": {
         "km": 3.410605131648481e-13,
         "kh": 4.547473508864641e-13,
@@ -138,6 +252,25 @@
     {
       "layers": 40,
       "case": "stable",
+      "recalculate_heat_flux": false,
+      "max_absolute_eddy_errors": {
+        "km": 6.821210263296962e-13,
+        "kh": 9.094947017729282e-13,
+        "richardson": 2.7755575615628914e-17,
+        "shear_squared": 1.734723475976807e-18
+      },
+      "max_absolute_surface_error": 3.469446951953614e-18,
+      "max_absolute_column_errors": {
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 1.0658141036401503e-14,
+        "v_ms": 7.105427357601002e-15,
+        "tracer_ratio": 2.710505431213761e-20
+      }
+    },
+    {
+      "layers": 40,
+      "case": "stable",
+      "recalculate_heat_flux": true,
       "max_absolute_eddy_errors": {
         "km": 6.821210263296962e-13,
         "kh": 9.094947017729282e-13,
@@ -155,6 +288,25 @@
     {
       "layers": 40,
       "case": "unstable",
+      "recalculate_heat_flux": false,
+      "max_absolute_eddy_errors": {
+        "km": 1.3642420526593924e-12,
+        "kh": 2.7284841053187847e-12,
+        "richardson": 2.7755575615628914e-17,
+        "shear_squared": 6.938893903907228e-18
+      },
+      "max_absolute_surface_error": 2.220446049250313e-16,
+      "max_absolute_column_errors": {
+        "temperature_k": 8.526512829121202e-14,
+        "u_ms": 1.4210854715202004e-14,
+        "v_ms": 7.105427357601002e-15,
+        "tracer_ratio": 2.710505431213761e-20
+      }
+    },
+    {
+      "layers": 40,
+      "case": "unstable",
+      "recalculate_heat_flux": true,
       "max_absolute_eddy_errors": {
         "km": 1.3642420526593924e-12,
         "kh": 2.7284841053187847e-12,
@@ -172,6 +324,25 @@
     {
       "layers": 40,
       "case": "zero-wind",
+      "recalculate_heat_flux": false,
+      "max_absolute_eddy_errors": {
+        "km": 4.547473508864641e-13,
+        "kh": 4.547473508864641e-13,
+        "richardson": 1.6653345369377348e-16,
+        "shear_squared": 0.0
+      },
+      "max_absolute_surface_error": 0.0,
+      "max_absolute_column_errors": {
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 0.0,
+        "v_ms": 0.0,
+        "tracer_ratio": 1.3552527156068805e-20
+      }
+    },
+    {
+      "layers": 40,
+      "case": "zero-wind",
+      "recalculate_heat_flux": true,
       "max_absolute_eddy_errors": {
         "km": 4.547473508864641e-13,
         "kh": 4.547473508864641e-13,
@@ -187,12 +358,12 @@
       }
     }
   ],
-  "source_sha256": "ae2da33c4f8fc7dea28267705475b12364317c3806d46bc5669a683f08c90ef0",
-  "kernel_sha256": "ecae22187db8d06253c34e1a385982bda1e3a238c497e109d29c1daf5448bcae",
+  "source_sha256": "c89fe46afd50376633dbe5d3f5eadf3d3a568547ca7c0804a6fc547d01f3cd8b",
+  "kernel_sha256": "b5643a7db16a8c7e38107c977bf32f565ae54051b96da4189b97000584095e1e",
   "vertical_solver_sha256": "0d01f1d42fe7f086a887a2c0c51cb3b4385d26a3c944b72f81150b8a57ddd991",
   "jax_version": "0.11.0",
   "devices": [
     "cpu:0"
   ],
-  "limits": "gas PBL driver with default switches only; global surface energy coupling and model validation remain pending"
+  "limits": "Gas PBL driver with both heat-flux choices, both heat derivatives and source coefficients. Global surface energy and climate validation remain separate checks."
 }

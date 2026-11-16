@@ -96,7 +96,7 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
                  initial_co2_gas_ratio=None,do_qmass=False,thermal_relaxation_options=None,
                  do_co2_condensation=True,do_atmos_co2_loss=True,do_co2_condensation_cycle=True,
                  do_mars_surface=True,do_vert_diff=True,do_ames_pbl=True,moment_dust=False,
-                 freeze_tracer_fields=False,no_forcing=False,gust_factor=0.):
+                 freeze_tracer_fields=False,no_forcing=False,gust_factor=0.,recalculate_heat_flux=False):
     from src.framework.gcm.coordinates import coordinate_system
     from src.framework.gcm.specs import physics_specs
     from src.framework.gcm._dinosaur import primitive_equations,scales
@@ -140,6 +140,7 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
         thermal_relaxation_options=thermal_relaxation_options,
         do_co2_condensation=do_co2_condensation,do_atmos_co2_loss=do_atmos_co2_loss,
         freeze_tracer_fields=freeze_tracer_fields,no_forcing=no_forcing,gust_factor=gust_factor,
+        recalculate_heat_flux=recalculate_heat_flux,
         do_co2_condensation_cycle=do_co2_condensation_cycle,
         do_mars_surface=do_mars_surface,do_vert_diff=do_vert_diff,do_ames_pbl=do_ames_pbl,moment_dust=moment_dust)
     return state,step,grid
@@ -334,6 +335,32 @@ def test_frozen_dust_retains_dry_transport_but_keeps_surface_sources_and_restart
     whole=jax.jit(step)(first)
     for actual,expected in zip(jax.tree.leaves(resumed),jax.tree.leaves(whole),strict=True):
         np.testing.assert_array_equal(actual,expected)
+
+
+def test_recalculated_pbl_heat_flux_changes_soil_and_preserves_restart_and_three_step_gradient(tmp_path):
+    from src.framework.gcm.restart import save_restart,load_restart
+    options=dict(temperature_k=200.037,surface_temperature_k=240.037,wind_speed=40.,
+        do_co2_condensation=False,do_co2_condensation_cycle=False)
+    state,step,grid=backend_case(**options,recalculate_heat_flux=True)
+    _,old,_=backend_case(**options)
+    tick=jax.jit(step);first=tick(state);baseline=jax.jit(old)(state)
+    assert np.any(np.asarray(first.surface_temperature)!=np.asarray(baseline.surface_temperature))
+    np.testing.assert_allclose(first.dynamics.temperature_variation,baseline.dynamics.temperature_variation,
+        rtol=2e-13,atol=2e-13)
+    resumed=tick(load_restart(save_restart(first,tmp_path/'heat-flux.npz')))
+    for actual,expected in zip(jax.tree.leaves(resumed),jax.tree.leaves(tick(first)),strict=True):
+        np.testing.assert_array_equal(actual,expected)
+    def objective(temperature_change):
+        offset=grid.to_modal(jnp.full((4,)+grid.nodal_shape,temperature_change))
+        dynamics=dataclasses.replace(state.dynamics,
+            temperature_variation=state.dynamics.temperature_variation+offset)
+        current=state._replace(dynamics=dynamics)
+        for _ in range(3): current=step(current)
+        return jnp.mean(current.surface_temperature)+jnp.mean(grid.to_nodal(current.dynamics.temperature_variation))
+    automatic=jax.grad(objective)(0.)
+    assert np.isfinite(automatic) and automatic>0.
+    for epsilon in (.001,.0005):
+        np.testing.assert_allclose(automatic,(objective(epsilon)-objective(-epsilon))/(2.*epsilon),rtol=2e-5,atol=1e-7)
 
 
 @pytest.mark.parametrize('modes',[1,2])
