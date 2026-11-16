@@ -95,6 +95,9 @@ def prepare_native(cache):
     for before,after in (('*cmip*','cmip'),('*fv_cmp*','fv_cmp'),('*/docs/*','/docs/'),
                          ('*/monin_obukhov/monin_obukhov*','/monin_obukhov/monin_obukhov')):
         script=script.replace(before,after)
+    # list_paths deduplicates basenames before filtering; docs contain another fv_eta.F90.
+    script=script.replace('"$execdir/atmos_cubed/pathnames_atmos_cubed" "$src_fv3"',
+        '"$execdir/atmos_cubed/pathnames_atmos_cubed" "$src_fv3/model" "$src_fv3/tools" "$src_fv3/GFDL_tools"')
     script=script.replace('make "${executable##*/}"','make -j4 "${executable##*/}"')
     (execution/'compile-local.bash').write_text(script)
     execute(['/bin/bash',execution/'compile-local.bash'],cwd=execution)
