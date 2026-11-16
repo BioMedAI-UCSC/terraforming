@@ -668,6 +668,31 @@ limitation, not a deprecation claim.
 
 
 
+
+## Soil solver and surface phase controls
+
+`--soil-alpha` selects the released implicit diffusion weighting. Its default
+is 0.5. It is passed through Dinosaur and the shared column to `surface_step`.
+`--no-surface-condensation` disables the separate surface CO2 phase adjustment.
+It is independent of the atmospheric `--no-co2-condensation` switch. Both soil
+controls are saved in restart identity, including the false-valued switch.
+Nonfinite alpha values and controls outside reference mode are rejected.
+
+Thirty-six additional cases compile unchanged `progts` and `trdslv` with both
+surface-condensation settings, alpha 0/0.5/1, bare and frosted soil, uniform and
+varying soil profiles, and 4/16 solver entries. Every defined native soil,
+frost and phase output is compared. The native disabled-condensation branch
+has a singular zero matrix row when frost is already present. That is not a
+finite native physical solution. The port marks `valid_condensation_state`
+false and returns a nonfinite soil profile for that state. It does not remove
+the frost or replace the native equations to force a finite answer.
+
+The controls pass 143 column/runner checks and two three-step Dinosaur reverse
+derivative and exact-restart cases. A real-input T21/56-level run with both
+surface and atmospheric condensation disabled and alpha 0.75 completes two
+steps with restart continuation. The false-valued switch and alpha are saved
+in configuration; changing either rejects resume without changing its checkpoint.
+
 ## Surface-map and initial-temperature controls
 
 The released regional thermal-inertia controls are connected through
@@ -828,7 +853,11 @@ namelist membership: `tmom`, `do_fv3_dust_opt`, `fv3_gfac`, `fv3_sscat`,
 `do_dust_ir_scale` and `fv3_ir_scale`. Source occurrence checks prove they have
 no numerical effect. Simple-driver `day_zero` and `tdamp` are similarly unused;
 the five modulation/wavenumber controls are excluded by the release flags.
-These inventories do not replace numerical comparisons.
+The report also covers all 32 surface namelist entries. It records the
+explicit-map and fixed-shape restart adaptations, the extra-node source defect
+and the independent solver controls. `drag_cnst` is unused; the loaded roughness
+map reaches an unused local `zo` and diagnostic output. These inventories do
+not replace numerical comparisons.
 The ramp block has separate numerical checks. Pinned source guards show that `makeclouds=False` leaves
 microphysics tendencies at zero and does not advance cloud history.
 The module-local `microphys_nml/facsubl` appears only in its declaration and

@@ -2,7 +2,7 @@
   "status": "pass",
   "reference": {
     "source_git_blob": "aca56974025103ab408ecf866cc78b25779fc469",
-    "compiled_source_sha256": "aae4956d2fc1027434337b46ce5433906415e0431d6ede736475d8c96494ede3",
+    "compiled_source_sha256": "0ced47592a059167b5cd18984616c29d109f238628f45b126233ceb4f3149304",
     "routine_sha256": {
       "progts": "7e601fd57399c056f315d17e18a856a7030a0c25e4cb67e8342851a985817510",
       "trdslv": "d07cc6aa1fa368a7f5592c75df9f3ba2a102ab0b1066d0efbe1d4e833b5130a0",
@@ -1162,15 +1162,375 @@
       "ice_case": 7,
       "latitude_rad": 1.3,
       "max_soil_error_k": 2.842170943040401e-14
+    },
+    {
+      "case": "soil-controls",
+      "layers": 4,
+      "condensation": false,
+      "alpha": 0.0,
+      "snow_kg_m2": 0.0,
+      "gradient": false,
+      "native_finite": true,
+      "max_soil_error_k": 0.0
+    },
+    {
+      "case": "soil-controls",
+      "layers": 4,
+      "condensation": false,
+      "alpha": 0.0,
+      "snow_kg_m2": 0.0,
+      "gradient": true,
+      "native_finite": true,
+      "max_soil_error_k": 0.0
+    },
+    {
+      "case": "soil-controls",
+      "layers": 4,
+      "condensation": false,
+      "alpha": 0.0,
+      "snow_kg_m2": 100.0,
+      "gradient": true,
+      "native_finite": false,
+      "status": "singular native frost state rejected"
+    },
+    {
+      "case": "soil-controls",
+      "layers": 4,
+      "condensation": false,
+      "alpha": 0.5,
+      "snow_kg_m2": 0.0,
+      "gradient": false,
+      "native_finite": true,
+      "max_soil_error_k": 2.842170943040401e-14
+    },
+    {
+      "case": "soil-controls",
+      "layers": 4,
+      "condensation": false,
+      "alpha": 0.5,
+      "snow_kg_m2": 0.0,
+      "gradient": true,
+      "native_finite": true,
+      "max_soil_error_k": 5.684341886080802e-14
+    },
+    {
+      "case": "soil-controls",
+      "layers": 4,
+      "condensation": false,
+      "alpha": 0.5,
+      "snow_kg_m2": 100.0,
+      "gradient": true,
+      "native_finite": false,
+      "status": "singular native frost state rejected"
+    },
+    {
+      "case": "soil-controls",
+      "layers": 4,
+      "condensation": false,
+      "alpha": 1.0,
+      "snow_kg_m2": 0.0,
+      "gradient": false,
+      "native_finite": true,
+      "max_soil_error_k": 2.842170943040401e-14
+    },
+    {
+      "case": "soil-controls",
+      "layers": 4,
+      "condensation": false,
+      "alpha": 1.0,
+      "snow_kg_m2": 0.0,
+      "gradient": true,
+      "native_finite": true,
+      "max_soil_error_k": 2.842170943040401e-14
+    },
+    {
+      "case": "soil-controls",
+      "layers": 4,
+      "condensation": false,
+      "alpha": 1.0,
+      "snow_kg_m2": 100.0,
+      "gradient": true,
+      "native_finite": false,
+      "status": "singular native frost state rejected"
+    },
+    {
+      "case": "soil-controls",
+      "layers": 4,
+      "condensation": true,
+      "alpha": 0.0,
+      "snow_kg_m2": 0.0,
+      "gradient": false,
+      "native_finite": true,
+      "max_soil_error_k": 0.0
+    },
+    {
+      "case": "soil-controls",
+      "layers": 4,
+      "condensation": true,
+      "alpha": 0.0,
+      "snow_kg_m2": 0.0,
+      "gradient": true,
+      "native_finite": true,
+      "max_soil_error_k": 0.0
+    },
+    {
+      "case": "soil-controls",
+      "layers": 4,
+      "condensation": true,
+      "alpha": 0.0,
+      "snow_kg_m2": 100.0,
+      "gradient": true,
+      "native_finite": true,
+      "max_soil_error_k": 0.0
+    },
+    {
+      "case": "soil-controls",
+      "layers": 4,
+      "condensation": true,
+      "alpha": 0.5,
+      "snow_kg_m2": 0.0,
+      "gradient": false,
+      "native_finite": true,
+      "max_soil_error_k": 2.842170943040401e-14
+    },
+    {
+      "case": "soil-controls",
+      "layers": 4,
+      "condensation": true,
+      "alpha": 0.5,
+      "snow_kg_m2": 0.0,
+      "gradient": true,
+      "native_finite": true,
+      "max_soil_error_k": 5.684341886080802e-14
+    },
+    {
+      "case": "soil-controls",
+      "layers": 4,
+      "condensation": true,
+      "alpha": 0.5,
+      "snow_kg_m2": 100.0,
+      "gradient": true,
+      "native_finite": true,
+      "max_soil_error_k": 2.842170943040401e-14
+    },
+    {
+      "case": "soil-controls",
+      "layers": 4,
+      "condensation": true,
+      "alpha": 1.0,
+      "snow_kg_m2": 0.0,
+      "gradient": false,
+      "native_finite": true,
+      "max_soil_error_k": 2.842170943040401e-14
+    },
+    {
+      "case": "soil-controls",
+      "layers": 4,
+      "condensation": true,
+      "alpha": 1.0,
+      "snow_kg_m2": 0.0,
+      "gradient": true,
+      "native_finite": true,
+      "max_soil_error_k": 2.842170943040401e-14
+    },
+    {
+      "case": "soil-controls",
+      "layers": 4,
+      "condensation": true,
+      "alpha": 1.0,
+      "snow_kg_m2": 100.0,
+      "gradient": true,
+      "native_finite": true,
+      "max_soil_error_k": 2.842170943040401e-14
+    },
+    {
+      "case": "soil-controls",
+      "layers": 16,
+      "condensation": false,
+      "alpha": 0.0,
+      "snow_kg_m2": 0.0,
+      "gradient": false,
+      "native_finite": true,
+      "max_soil_error_k": 0.0
+    },
+    {
+      "case": "soil-controls",
+      "layers": 16,
+      "condensation": false,
+      "alpha": 0.0,
+      "snow_kg_m2": 0.0,
+      "gradient": true,
+      "native_finite": true,
+      "max_soil_error_k": 2.842170943040401e-14
+    },
+    {
+      "case": "soil-controls",
+      "layers": 16,
+      "condensation": false,
+      "alpha": 0.0,
+      "snow_kg_m2": 100.0,
+      "gradient": true,
+      "native_finite": false,
+      "status": "singular native frost state rejected"
+    },
+    {
+      "case": "soil-controls",
+      "layers": 16,
+      "condensation": false,
+      "alpha": 0.5,
+      "snow_kg_m2": 0.0,
+      "gradient": false,
+      "native_finite": true,
+      "max_soil_error_k": 2.842170943040401e-14
+    },
+    {
+      "case": "soil-controls",
+      "layers": 16,
+      "condensation": false,
+      "alpha": 0.5,
+      "snow_kg_m2": 0.0,
+      "gradient": true,
+      "native_finite": true,
+      "max_soil_error_k": 5.684341886080802e-14
+    },
+    {
+      "case": "soil-controls",
+      "layers": 16,
+      "condensation": false,
+      "alpha": 0.5,
+      "snow_kg_m2": 100.0,
+      "gradient": true,
+      "native_finite": false,
+      "status": "singular native frost state rejected"
+    },
+    {
+      "case": "soil-controls",
+      "layers": 16,
+      "condensation": false,
+      "alpha": 1.0,
+      "snow_kg_m2": 0.0,
+      "gradient": false,
+      "native_finite": true,
+      "max_soil_error_k": 5.684341886080802e-14
+    },
+    {
+      "case": "soil-controls",
+      "layers": 16,
+      "condensation": false,
+      "alpha": 1.0,
+      "snow_kg_m2": 0.0,
+      "gradient": true,
+      "native_finite": true,
+      "max_soil_error_k": 2.842170943040401e-14
+    },
+    {
+      "case": "soil-controls",
+      "layers": 16,
+      "condensation": false,
+      "alpha": 1.0,
+      "snow_kg_m2": 100.0,
+      "gradient": true,
+      "native_finite": false,
+      "status": "singular native frost state rejected"
+    },
+    {
+      "case": "soil-controls",
+      "layers": 16,
+      "condensation": true,
+      "alpha": 0.0,
+      "snow_kg_m2": 0.0,
+      "gradient": false,
+      "native_finite": true,
+      "max_soil_error_k": 0.0
+    },
+    {
+      "case": "soil-controls",
+      "layers": 16,
+      "condensation": true,
+      "alpha": 0.0,
+      "snow_kg_m2": 0.0,
+      "gradient": true,
+      "native_finite": true,
+      "max_soil_error_k": 2.842170943040401e-14
+    },
+    {
+      "case": "soil-controls",
+      "layers": 16,
+      "condensation": true,
+      "alpha": 0.0,
+      "snow_kg_m2": 100.0,
+      "gradient": true,
+      "native_finite": true,
+      "max_soil_error_k": 0.0
+    },
+    {
+      "case": "soil-controls",
+      "layers": 16,
+      "condensation": true,
+      "alpha": 0.5,
+      "snow_kg_m2": 0.0,
+      "gradient": false,
+      "native_finite": true,
+      "max_soil_error_k": 2.842170943040401e-14
+    },
+    {
+      "case": "soil-controls",
+      "layers": 16,
+      "condensation": true,
+      "alpha": 0.5,
+      "snow_kg_m2": 0.0,
+      "gradient": true,
+      "native_finite": true,
+      "max_soil_error_k": 5.684341886080802e-14
+    },
+    {
+      "case": "soil-controls",
+      "layers": 16,
+      "condensation": true,
+      "alpha": 0.5,
+      "snow_kg_m2": 100.0,
+      "gradient": true,
+      "native_finite": true,
+      "max_soil_error_k": 5.684341886080802e-14
+    },
+    {
+      "case": "soil-controls",
+      "layers": 16,
+      "condensation": true,
+      "alpha": 1.0,
+      "snow_kg_m2": 0.0,
+      "gradient": false,
+      "native_finite": true,
+      "max_soil_error_k": 5.684341886080802e-14
+    },
+    {
+      "case": "soil-controls",
+      "layers": 16,
+      "condensation": true,
+      "alpha": 1.0,
+      "snow_kg_m2": 0.0,
+      "gradient": true,
+      "native_finite": true,
+      "max_soil_error_k": 2.842170943040401e-14
+    },
+    {
+      "case": "soil-controls",
+      "layers": 16,
+      "condensation": true,
+      "alpha": 1.0,
+      "snow_kg_m2": 100.0,
+      "gradient": true,
+      "native_finite": true,
+      "max_soil_error_k": 2.842170943040401e-14
     }
   ],
-  "source_sha256": "834dd6eb08fafd463f0fbdf59358415fd2b2069e0dcc0b857e4096b490174365",
-  "kernel_sha256": "4a13944a2874b71af0efa8b8ad33befd1987380fa9290c2576812bdb7bd1dba2",
+  "source_sha256": "1c9052183ba8318dc57ffb8ca5e012b111ac0e07974634c44ec073b3bf333733",
+  "kernel_sha256": "7f1f5f102997896d01746c13984a2718aff47d7b6ed101d7ac688a2be8580371",
   "water_surface_sha256": "a9b6006b64953372871ee6f627fb8589eea6aaac19542b59a55266719a89e2c4",
   "vertical_solver_sha256": "0d01f1d42fe7f086a887a2c0c51cb3b4385d26a3c944b72f81150b8a57ddd991",
   "jax_version": "0.11.0",
   "devices": [
     "cpu:0"
   ],
-  "limits": "uniform and case-7 subsurface-ice soil/frost columns; global climate validation remains pending"
+  "limits": "uniform and case-7 subsurface-ice soil/frost columns, alpha and independent surface condensation; native disabled condensation with existing frost has a singular zero row and is rejected with nonfinite soil outputs; global climate validation remains pending"
 }

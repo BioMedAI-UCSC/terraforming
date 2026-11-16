@@ -43,6 +43,17 @@ end interface
 contains
 """
     adapter="""
+subroutine soil_controls(n,dt,ti,pressure,snow,dn,sh,ds,emiss,latitude,condense,weight,soil,dz,out,ice,phase) bind(C)
+integer(c_int),value :: n,condense
+real(c_double),value :: dt,ti,pressure,snow,dn,sh,ds,emiss,latitude,weight
+real(c_double),intent(in) :: soil(n),dz(n+1)
+real(c_double),intent(out) :: out(n),ice(1),phase(1)
+do_co2_condensation=condense/=0
+alpha=weight
+call soil_frost(n,dt,ti,pressure,snow,dn,sh,ds,emiss,latitude,soil,dz,out,ice,phase)
+do_co2_condensation=.true.
+alpha=.5
+end subroutine
 subroutine soil_legacy(n,dt,ti,pressure,snow,dn,sh,ds,emiss,latitude,legacy,icecase,soil,dz,out,ice,phase) bind(C)
 integer(c_int), value :: n,legacy,icecase
 real(c_double), value :: dt,ti,pressure,snow,dn,sh,ds,emiss,latitude
@@ -142,6 +153,8 @@ end module
     array=np.ctypeslib.ndpointer(dtype=np.float64,flags="F_CONTIGUOUS")
     native.soil_frost.argtypes=[ctypes.c_int]+[ctypes.c_double]*9+[array]*5
     native.soil_frost.restype=None
+    native.soil_controls.argtypes=[ctypes.c_int]+[ctypes.c_double]*9+[ctypes.c_int,ctypes.c_double]+[array]*5
+    native.soil_controls.restype=None
     native.soil_frost_profile.argtypes=native.soil_frost.argtypes
     native.soil_frost_profile.restype=None
     native.soil_legacy.argtypes=[ctypes.c_int]+[ctypes.c_double]*9+[ctypes.c_int]*2+[array]*5
@@ -223,6 +236,31 @@ def validate(source,compiler):
                     np.testing.assert_allclose(actual[1],ice[0],rtol=2e-12,atol=2e-12)
                     cases.append(dict(case='soil-materials',legacy=legacy,ice_case=icecase,latitude_rad=latitude,
                         max_soil_error_k=float(np.max(np.abs(np.asarray(actual[0])-result)))))
+        for n in (4,16):
+            dz=np.asfortranarray(soil_layer_thickness(n))
+            for condense in (False,True):
+                for weight in (0.,.5,1.):
+                    for snow,gradient in ((0.,False),(0.,True),(100.,True)):
+                        soil=np.asfortranarray(np.linspace(148.,180. if gradient else 148.,n))
+                        result=np.empty(n);ice=np.empty(1);phase=np.empty(1)
+                        native.soil_controls(n,300.,250.,610.,snow,100.,-2.,.5,.95,1.,int(condense),weight,
+                            soil,dz,result,ice,phase)
+                        actual=surface_step(soil,dz,(250./(1500.*627.9))**2,1500.*627.9,
+                            610.,snow,100.,-2.,.5,.81 if snow>2. else .95,300.,condensation=condense,alpha=weight)
+                        valid=condense or snow==0.
+                        assert bool(actual[2]['valid_condensation_state'])==valid
+                        case=dict(case='soil-controls',layers=n,condensation=condense,alpha=weight,
+                            snow_kg_m2=snow,gradient=gradient,native_finite=bool(np.isfinite(result).all()))
+                        if valid:
+                            np.testing.assert_allclose(actual[0],result,rtol=2e-12,atol=2e-12)
+                            np.testing.assert_allclose(actual[1],ice[0],rtol=2e-12,atol=2e-12)
+                            np.testing.assert_allclose(actual[2]['co2_phase_change_kg_m2'],phase[0],rtol=2e-12,atol=2e-12)
+                            case['max_soil_error_k']=float(np.max(abs(np.asarray(actual[0])-result)))
+                        else:
+                            assert not np.isfinite(result).all()
+                            assert np.isnan(actual[0]).all()
+                            case['status']='singular native frost state rejected'
+                        cases.append(case)
     return dict(status="pass",reference=provenance,cases=cases,
         source_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         kernel_sha256=hashlib.sha256(Path(__file__).parents[1].joinpath(
@@ -232,7 +270,7 @@ def validate(source,compiler):
         vertical_solver_sha256=hashlib.sha256(Path(__file__).parents[1].joinpath(
             "package/src/framework/physics/vertical_solve.py").read_bytes()).hexdigest(),
         jax_version=jax.__version__,devices=[str(x) for x in jax.devices()],
-        limits="uniform and case-7 subsurface-ice soil/frost columns; global climate validation remains pending")
+        limits="uniform and case-7 subsurface-ice soil/frost columns, alpha and independent surface condensation; native disabled condensation with existing frost has a singular zero row and is rejected with nonfinite soil outputs; global climate validation remains pending")
 
 
 def main():

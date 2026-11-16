@@ -3,6 +3,7 @@
   "reference": {
     "commit": "ba47cada5f9eb89c75c4f10d06dbae6e7f9ecb26",
     "source_git_blobs": {
+      "atmos_param_mars/mars_surface.F90": "aca56974025103ab408ecf866cc78b25779fc469",
       "atmos_param_mars/mars_physics.F90": "ca0b7c0774b1b23cafaee219062c3bffa3d0c4cc",
       "atmos_param_mars/null_physics_mod.F90": "4ca7a58d46e31dd8fb281469bbbcd8d50071bba2",
       "build_run/compile.bash": "3a43a2fdb4e26dc0980e3e5bfaa5efbe0861a597",
@@ -874,6 +875,168 @@
       "implementation": "simple_radiation column_fluxes optical_depth, single_scattering_albedo, asymmetry, conrath, pressure_exponent, tau_infrared, latitude_variation, no_downward_infrared and reference_pressure"
     }
   ],
+  "surface_controls": [
+    {
+      "source_control": "drag_cnst",
+      "status": "inactive",
+      "implementation": "declaration and namelist only"
+    },
+    {
+      "source_control": "zoland",
+      "status": "diagnostic only",
+      "implementation": "stored roughness map and unused local zo; main-driver numerical uses are excluded by release preprocessing; PBL has its own roughness equations"
+    },
+    {
+      "source_control": "soil_ti",
+      "status": "explicit input adaptation",
+      "implementation": "reference loader requires supplied maps; uniform arrays can be supplied directly to the existing forcing and soil kernels"
+    },
+    {
+      "source_control": "soil_alb",
+      "status": "explicit input adaptation",
+      "implementation": "reference loader requires supplied maps; uniform arrays can be supplied directly to the existing forcing and soil kernels"
+    },
+    {
+      "source_control": "soil_temp",
+      "status": "implemented",
+      "implementation": "runner reference_surface_temperature_k and uniform-soil CLI/restart identity"
+    },
+    {
+      "source_control": "use_equilibrated_ts",
+      "status": "implemented",
+      "implementation": "runner reference_surface_temperature_k and uniform-soil CLI/restart identity"
+    },
+    {
+      "source_control": "do_co2_condensation",
+      "status": "implemented",
+      "implementation": "column and Dinosaur surface_condensation and soil_alpha; singular native frost/off state rejected"
+    },
+    {
+      "source_control": "alpha",
+      "status": "implemented",
+      "implementation": "column and Dinosaur surface_condensation and soil_alpha; singular native frost/off state rejected"
+    },
+    {
+      "source_control": "do_subsfc_ice",
+      "status": "implemented",
+      "implementation": "subsurface_properties subsurface_ice, ice_case, legacy, soil_layers, southern_minimum_layers, north_ice_inertia and south_ice_inertia; explicit properties supplied to Dinosaur"
+    },
+    {
+      "source_control": "subsfc_ice_case",
+      "status": "implemented",
+      "implementation": "subsurface_properties subsurface_ice, ice_case, legacy, soil_layers, southern_minimum_layers, north_ice_inertia and south_ice_inertia; explicit properties supplied to Dinosaur"
+    },
+    {
+      "source_control": "use_legacy_soil",
+      "status": "implemented",
+      "implementation": "subsurface_properties subsurface_ice, ice_case, legacy, soil_layers, southern_minimum_layers, north_ice_inertia and south_ice_inertia; explicit properties supplied to Dinosaur"
+    },
+    {
+      "source_control": "nlayers",
+      "status": "implemented",
+      "implementation": "subsurface_properties subsurface_ice, ice_case, legacy, soil_layers, southern_minimum_layers, north_ice_inertia and south_ice_inertia; explicit properties supplied to Dinosaur"
+    },
+    {
+      "source_control": "d2is",
+      "status": "implemented",
+      "implementation": "subsurface_properties subsurface_ice, ice_case, legacy, soil_layers, southern_minimum_layers, north_ice_inertia and south_ice_inertia; explicit properties supplied to Dinosaur"
+    },
+    {
+      "source_control": "gk1",
+      "status": "implemented",
+      "implementation": "subsurface_properties subsurface_ice, ice_case, legacy, soil_layers, southern_minimum_layers, north_ice_inertia and south_ice_inertia; explicit properties supplied to Dinosaur"
+    },
+    {
+      "source_control": "gk2",
+      "status": "implemented",
+      "implementation": "subsurface_properties subsurface_ice, ice_case, legacy, soil_layers, southern_minimum_layers, north_ice_inertia and south_ice_inertia; explicit properties supplied to Dinosaur"
+    },
+    {
+      "source_control": "albedo_ice_np",
+      "status": "implemented",
+      "implementation": "RadiativeForcing co2_frost_albedo_north/south and co2_frost_emissivity_north/south"
+    },
+    {
+      "source_control": "albedo_ice_sp",
+      "status": "implemented",
+      "implementation": "RadiativeForcing co2_frost_albedo_north/south and co2_frost_emissivity_north/south"
+    },
+    {
+      "source_control": "emiss_ice_np",
+      "status": "implemented",
+      "implementation": "RadiativeForcing co2_frost_albedo_north/south and co2_frost_emissivity_north/south"
+    },
+    {
+      "source_control": "emiss_ice_sp",
+      "status": "implemented",
+      "implementation": "RadiativeForcing co2_frost_albedo_north/south and co2_frost_emissivity_north/south"
+    },
+    {
+      "source_control": "np_cap_ti",
+      "status": "implemented",
+      "implementation": "surface_thermal_inertia north_inertia, north_latitude_deg, north_maximum and regional_scale; runner CLI/restart identity"
+    },
+    {
+      "source_control": "np_cap_lat",
+      "status": "implemented",
+      "implementation": "surface_thermal_inertia north_inertia, north_latitude_deg, north_maximum and regional_scale; runner CLI/restart identity"
+    },
+    {
+      "source_control": "np_cap_ti_max",
+      "status": "implemented",
+      "implementation": "surface_thermal_inertia north_inertia, north_latitude_deg, north_maximum and regional_scale; runner CLI/restart identity"
+    },
+    {
+      "source_control": "rescale_sh_ti",
+      "status": "implemented",
+      "implementation": "surface_thermal_inertia north_inertia, north_latitude_deg, north_maximum and regional_scale; runner CLI/restart identity"
+    },
+    {
+      "source_control": "frost_threshold",
+      "status": "implemented",
+      "implementation": "RadiativeForcing water_frost_threshold_m, water_frost_radiative_properties, water_ice_albedo, water_emissivity, water_liquid_albedo and liquid_water_albedo"
+    },
+    {
+      "source_control": "do_waterice_albedo",
+      "status": "implemented",
+      "implementation": "RadiativeForcing water_frost_threshold_m, water_frost_radiative_properties, water_ice_albedo, water_emissivity, water_liquid_albedo and liquid_water_albedo"
+    },
+    {
+      "source_control": "albedo_h2o",
+      "status": "implemented",
+      "implementation": "RadiativeForcing water_frost_threshold_m, water_frost_radiative_properties, water_ice_albedo, water_emissivity, water_liquid_albedo and liquid_water_albedo"
+    },
+    {
+      "source_control": "emiss_h2o",
+      "status": "implemented",
+      "implementation": "RadiativeForcing water_frost_threshold_m, water_frost_radiative_properties, water_ice_albedo, water_emissivity, water_liquid_albedo and liquid_water_albedo"
+    },
+    {
+      "source_control": "albedo_h2o_liquid",
+      "status": "implemented",
+      "implementation": "RadiativeForcing water_frost_threshold_m, water_frost_radiative_properties, water_ice_albedo, water_emissivity, water_liquid_albedo and liquid_water_albedo"
+    },
+    {
+      "source_control": "do_liquidwater_albedo",
+      "status": "implemented",
+      "implementation": "RadiativeForcing water_frost_threshold_m, water_frost_radiative_properties, water_ice_albedo, water_emissivity, water_liquid_albedo and liquid_water_albedo"
+    },
+    {
+      "source_control": "edit_subsfc_temp",
+      "status": "source extra-node defect",
+      "implementation": "initial-conditions report: writes initialized entry 17 outside 16-entry progts; caller extra tendency unwritten"
+    },
+    {
+      "source_control": "nlay_rst",
+      "status": "restart adaptation",
+      "implementation": "NPZ persists complete state and requires the same soil shape; native restart layer-count conversion is not copied"
+    },
+    {
+      "source_control": "init_sfc_frost",
+      "status": "implemented",
+      "implementation": "boundary_inputs.polar_water_on_grid initial_frost_kg_m2"
+    }
+  ],
   "shortwave_ramp_cases": [
     {
       "duration_sols": -1.0,
@@ -1162,13 +1325,15 @@
     "alternate_preprocessed_sha256": "146631ad81c35fed0dd3b9c3b7ff82cbd7d4370858457d121eb179e7288dfbb8"
   },
   "sha256": {
-    "scripts/validate_release_interfaces.py": "91ebf375df990d85e8fbfd130e62981387bb6e508a4c9a949aec06879081fdd0",
+    "scripts/validate_release_interfaces.py": "ec907c20420ef9e97bd57eae0c821974706aaca684dd7efe5de0801486a4b84c",
     "scripts/native_reference.py": "2e3b0e2f65b685f86fcfdd1b4643b54c5582b81af36a0874a43d9eedc2675d76",
     "package/src/framework/physics/radiative_transfer.py": "13110b90de754991c4a6673040ffc52b9a15409ce1d6087b67ce9be017872891",
-    "package/src/framework/physics/dinosaur_physics.py": "4b8202914ac1e39cbd8b521d8acefd7f9fb574e21dd5dc5d14c4f67263164822",
+    "package/src/framework/physics/dinosaur_physics.py": "ddffafb3cd5e50d9c5a6c2d31983a08918985bfccde27384a09e5acd57f72234",
     "package/src/framework/physics/gcm.py": "8234e024f283c62b093d838f52b6e6b84783e5ce2d3b732189a58e32a582881b",
     "package/src/framework/physics/prescribed_dust.py": "1ec309decbafffc5fdc1f0fd2c7e7acd9c9f4cae1e6289237ef9e0e5232196dc",
-    "package/src/framework/physics/simple_radiation.py": "d34833bafeb3c2dc78772b104f95bd6ac34a011ee91856ed2f9cf142104f9532"
+    "package/src/framework/physics/simple_radiation.py": "d34833bafeb3c2dc78772b104f95bd6ac34a011ee91856ed2f9cf142104f9532",
+    "package/src/framework/physics/soil_frost.py": "7f1f5f102997896d01746c13984a2718aff47d7b6ed101d7ac688a2be8580371",
+    "package/src/celestials/planets/mars/surface.py": "c53ba6bf10d7c0b79654b4b41399ff5076098126765dea1e9f4f19f9a98c4810"
   },
   "limits": "The inventory covers the main driver plus sedimentation, PBL, moment/bulk/CO2-cloud, coagulation and terrain-drag controls. The moment-cloud guard leaves tendency outputs zero and cloud history inactive when cloud formation is disabled. Numerical behavior uses the separate native reports and integration checks. The ten radiation-driver controls and the spectral/simple module controls are inventoried separately. Fixed-date forcing shares the source-checked radiation clock with simple radiation; disabling either native radiation channel leaves local fluxes undefined. Forty unchanged startup-ramp block cases check heating and applied surface flux. Bin-cloud microphysics, photochemistry and legacy binned dust-source equations are not in these released implementations. Tagging imports are excluded by RELEASE. Moment water, bulk water and moment dust have separate real modules and validations. Alternate FV3 turbulence calls require fv3_turb, which the pinned build does not define; this exclusion does not implement or validate those alternate schemes."
 }

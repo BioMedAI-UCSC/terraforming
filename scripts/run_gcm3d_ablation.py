@@ -373,6 +373,9 @@ def main() -> int:
     for flag,destination in (('mars-surface','do_mars_surface'),('vertical-diffusion','do_vert_diff'),
                              ('reference-pbl','do_ames_pbl')):
         parser.add_argument('--'+flag,dest=destination,action=argparse.BooleanOptionalAction,default=True)
+    parser.add_argument('--surface-condensation',action=argparse.BooleanOptionalAction,default=True,
+        help='enable surface CO2 phase adjustment; disabling requires bare soil in the native solver')
+    parser.add_argument('--soil-alpha',type=float,default=.5,help='implicit soil-diffusion weighting (native default 0.5)')
     parser.add_argument('--equilibrated-surface',action=argparse.BooleanOptionalAction,default=True,
         help='use the released latitude profile; disable for uniform initial soil temperature')
     parser.add_argument('--soil-temperature',type=float,default=170.,help='uniform initial soil temperature in K')
@@ -431,6 +434,11 @@ def main() -> int:
     solar_constant=589. if args.reference_radiation=='simple' and args.solar_constant is None else args.solar_constant
     if not np.isfinite(args.soil_temperature) or args.soil_temperature<=0.:
         parser.error('initial soil temperature must be finite and positive')
+    if not np.isfinite(args.soil_alpha): parser.error('soil alpha must be finite')
+    soil_controls={}
+    if not args.surface_condensation: soil_controls['surface_condensation']=False
+    if args.soil_alpha!=.5: soil_controls['soil_alpha']=args.soil_alpha
+    if soil_controls and not reference: parser.error('soil solver controls require --config reference')
     initial_surface_controls={}
     if not args.equilibrated_surface: initial_surface_controls['equilibrated']=False
     if args.soil_temperature!=170.: initial_surface_controls['soil_temperature_k']=args.soil_temperature
@@ -523,6 +531,7 @@ def main() -> int:
             surface_map_options=surface_map_controls)
         reference_options.update(co2_controls)
         reference_options.update(surface_controls)
+        reference_options.update(soil_controls)
         reference_options.update(process_controls)
         if not args.do_mars_surface:
             reference_options.update(moment_water=False,moment_dust=False,dust_background_options=None,moment_cloud_options=None)
@@ -623,6 +632,7 @@ def main() -> int:
                 config.setdefault('reference_radiation_controls',{})['shortwave_ramp_sols']=args.shortwave_ramp_sols
             if args.fixed_radiation_date>=0:
                 config.setdefault('reference_radiation_controls',{})['fixed_calendar_date']=args.fixed_radiation_date
+            if soil_controls: config['reference_soil_controls']=soil_controls
             if surface_map_controls: config['reference_surface_map_controls']=surface_map_controls
             if initial_surface_controls: config['reference_initial_surface_controls']=initial_surface_controls
             if not args.equilibrated_surface:

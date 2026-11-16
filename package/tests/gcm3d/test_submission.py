@@ -374,3 +374,15 @@ def test_uniform_soil_cli_rejects_invalid_controls_before_input_loading(monkeypa
     with pytest.raises(SystemExit) as stopped: driver.main()
     assert stopped.value.code==2
     assert 'soil' in capsys.readouterr().err
+
+
+@pytest.mark.parametrize('arguments',[
+    ['--no-surface-condensation'],['--soil-alpha','.75'],
+    ['--config','reference','--soil-alpha','nan'],['--config','reference','--soil-alpha','inf']])
+def test_soil_solver_cli_rejects_invalid_configuration_before_inputs(monkeypatch,capsys,arguments):
+    import sys
+    driver=_script('run_gcm3d_ablation')
+    monkeypatch.setattr(sys,'argv',['run_gcm3d_ablation.py','unused-surface',*arguments])
+    with pytest.raises(SystemExit) as stopped: driver.main()
+    assert stopped.value.code==2
+    assert 'soil' in capsys.readouterr().err

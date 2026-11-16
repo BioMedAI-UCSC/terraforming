@@ -295,8 +295,8 @@
   "sha256": {
     "scripts/validate_surface_controls.py": "f366a65123348526aa681f69625e3612eb53842b960923b2ca713f9386a7ea4c",
     "package/src/framework/physics/boundary_layer.py": "b5643a7db16a8c7e38107c977bf32f565ae54051b96da4189b97000584095e1e",
-    "package/src/framework/physics/column_physics.py": "b31eae00e2fb16bc3921893d60dcc8b9f5d9747f8c6e8ff41b418c4af5ccebe1",
-    "package/src/framework/physics/dinosaur_physics.py": "4b8202914ac1e39cbd8b521d8acefd7f9fb574e21dd5dc5d14c4f67263164822",
+    "package/src/framework/physics/column_physics.py": "7d40bac67003cb22d1a9215e37aa50f4e1f80d9b309d8242c7cd680192d8378c",
+    "package/src/framework/physics/dinosaur_physics.py": "ddffafb3cd5e50d9c5a6c2d31983a08918985bfccde27384a09e5acd57f72234",
     "package/src/framework/physics/dust_lifting.py": "18bf33ce5979933c1ef1a153e7683fae81e818f8e196e71a7f2923176be3d663",
     "package/src/celestials/planets/mars/reference_constants.py": "3823b68ef06e3b7abcba4db1ed9a73b209cce87bedbd125dc64fd765a314d710"
   },

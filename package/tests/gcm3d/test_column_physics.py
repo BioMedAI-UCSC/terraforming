@@ -530,3 +530,29 @@ def test_terrain_drag_is_applied_before_convection_and_keeps_its_source_residual
     assert np.isfinite(result.temperature).all()
     assert np.max(np.abs(result.u-plain.u))>1e-8
     assert result.diagnostics['terrain_drag']['surface_stress_pa']>0.
+
+
+@pytest.mark.parametrize('condense',[False,True])
+@pytest.mark.parametrize('alpha',[.25,.75])
+def test_independent_surface_condensation_and_soil_weight_reach_shared_solver(condense,alpha):
+    from src.framework.physics.soil_frost import surface_step
+    kwargs={**inputs(),'soil':jnp.linspace(140.,180.,16),'co2_ice_kg_m2':0.,
+        'do_vert_diff':False,'do_co2_condensation':False,'convection_scheme':'none'}
+    result=column_physics(**kwargs,surface_condensation=condense,soil_alpha=alpha)
+    expected=surface_step(kwargs['soil'],kwargs['soil_thickness'],kwargs['soil_diffusivity'],
+        kwargs['soil_volumetric_heat_capacity'],610.,0.,0.,0.,0.,kwargs['emissivity'],300.,
+        condensation=condense,alpha=alpha)
+    np.testing.assert_allclose(result.soil,expected[0],rtol=2e-14,atol=2e-14)
+    np.testing.assert_allclose(result.co2_ice_kg_m2,expected[1],rtol=2e-14)
+    if not condense: assert result.co2_ice_kg_m2==0.
+    def objective(weight): return jnp.sum(column_physics(**kwargs,
+        surface_condensation=condense,soil_alpha=weight).soil)
+    derivative=jax.jit(jax.grad(objective))(alpha);epsilon=1e-5
+    assert np.isfinite(derivative) and abs(derivative)>1e-6
+    np.testing.assert_allclose(derivative,(objective(alpha+epsilon)-objective(alpha-epsilon))/(2.*epsilon),rtol=2e-6)
+
+
+def test_disabled_surface_phase_change_rejects_singular_native_frost_state():
+    result=column_physics(**inputs(),surface_condensation=False)
+    assert not result.diagnostics['surface']['valid_condensation_state']
+    assert np.isnan(result.soil).all()

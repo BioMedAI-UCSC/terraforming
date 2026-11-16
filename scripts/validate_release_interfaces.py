@@ -12,6 +12,7 @@ import numpy as np
 from native_reference import extract_routines
 
 BLOBS={
+    'atmos_param_mars/mars_surface.F90':'aca56974025103ab408ecf866cc78b25779fc469',
     'atmos_param_mars/mars_physics.F90':'ca0b7c0774b1b23cafaee219062c3bffa3d0c4cc',
     'atmos_param_mars/null_physics_mod.F90':'4ca7a58d46e31dd8fb281469bbbcd8d50071bba2',
     'build_run/compile.bash':'3a43a2fdb4e26dc0980e3e5bfaa5efbe0861a597',
@@ -88,6 +89,26 @@ SIMPLE_RADIATION_CONTROLS=[
     ('use_newton_damping','implemented','simple_radiation newton_damping retains source infrared suppression'),
     ('optical_depth_inpt sscat_cnst gfac_cnst conrath alfir tauir do_lat_vary_dust no_atmos_dn_ir_flx reference_press',
      'implemented','simple_radiation column_fluxes optical_depth, single_scattering_albedo, asymmetry, conrath, pressure_exponent, tau_infrared, latitude_variation, no_downward_infrared and reference_pressure'),
+]
+
+
+SURFACE_CONTROLS=[
+    ('drag_cnst','inactive','declaration and namelist only'),
+    ('zoland','diagnostic only','stored roughness map and unused local zo; main-driver numerical uses are excluded by release preprocessing; PBL has its own roughness equations'),
+    ('soil_ti soil_alb','explicit input adaptation','reference loader requires supplied maps; uniform arrays can be supplied directly to the existing forcing and soil kernels'),
+    ('soil_temp use_equilibrated_ts','implemented','runner reference_surface_temperature_k and uniform-soil CLI/restart identity'),
+    ('do_co2_condensation alpha','implemented','column and Dinosaur surface_condensation and soil_alpha; singular native frost/off state rejected'),
+    ('do_subsfc_ice subsfc_ice_case use_legacy_soil nlayers d2is gk1 gk2','implemented',
+     'subsurface_properties subsurface_ice, ice_case, legacy, soil_layers, southern_minimum_layers, north_ice_inertia and south_ice_inertia; explicit properties supplied to Dinosaur'),
+    ('albedo_ice_np albedo_ice_sp emiss_ice_np emiss_ice_sp','implemented',
+     'RadiativeForcing co2_frost_albedo_north/south and co2_frost_emissivity_north/south'),
+    ('np_cap_ti np_cap_lat np_cap_ti_max rescale_sh_ti','implemented',
+     'surface_thermal_inertia north_inertia, north_latitude_deg, north_maximum and regional_scale; runner CLI/restart identity'),
+    ('frost_threshold do_waterice_albedo albedo_h2o emiss_h2o albedo_h2o_liquid do_liquidwater_albedo','implemented',
+     'RadiativeForcing water_frost_threshold_m, water_frost_radiative_properties, water_ice_albedo, water_emissivity, water_liquid_albedo and liquid_water_albedo'),
+    ('edit_subsfc_temp','source extra-node defect','initial-conditions report: writes initialized entry 17 outside 16-entry progts; caller extra tendency unwritten'),
+    ('nlay_rst','restart adaptation','NPZ persists complete state and requires the same soil shape; native restart layer-count conversion is not copied'),
+    ('init_sfc_frost','implemented','boundary_inputs.polar_water_on_grid initial_frost_kg_m2'),
 ]
 
 
@@ -198,6 +219,14 @@ def validate(source,compiler):
                 if entry['status']=='excluded':
                     assert len(re.findall(r'\b'+entry['source_control']+r'\b',released,re.I))==2,entry
         radiation_module_controls.extend(entries)
+    surface=(source/'atmos_param_mars/mars_surface.F90').read_text()
+    surface_controls=[dict(source_control=name,status=status,implementation=implementation)
+        for names,status,implementation in SURFACE_CONTROLS for name in names.split()]
+    names=[item['source_control'] for item in surface_controls]
+    assert len(names)==len(set(names)) and set(names)==set(namelist_controls(surface,'surface_data_nml'))
+    stripped='\n'.join(line.split('!',1)[0] for line in surface.splitlines())
+    assert len(re.findall(r'\bdrag_cnst\b',stripped,re.I))==2
+    assert len(re.findall(r'\bzo\b',stripped,re.I))==2
     routines,_=extract_routines(source/'atmos_param_mars/Rad/rtmod_mgcm.F90',
         BLOBS['atmos_param_mars/Rad/rtmod_mgcm.F90'],['ames_rt_driver'])
     spectral_driver=routines[0]
@@ -210,9 +239,9 @@ def validate(source,compiler):
     ramp_start=driver.index('    if ( rampup_rad > 0.0 ) then')
     ramp_block=driver[ramp_start:driver.index('    endif',ramp_start)+len('    endif')]
     aerosol=(source/'atmos_param_mars/aerosol_util.F90').read_text()
-    dust=(source/'atmos_param_mars/dust_update.F90').read_text()
-    start=dust.index('    if(lifting_nosed) then')
-    lifting=dust[start:dust.index('    end if',start)+len('    end if')]
+    dust_source=(source/'atmos_param_mars/dust_update.F90').read_text()
+    start=dust_source.index('    if(lifting_nosed) then')
+    lifting=dust_source[start:dust_source.index('    end if',start)+len('    end if')]
     guards='\n'.join(line for line in aerosol.splitlines() if line.startswith('if (do_moment_'))
     assert len(guards.splitlines())==3
     adapter='''module validity_mod
@@ -307,6 +336,12 @@ end module''')
     assert not re.search(r'^use\s+(cloud_physics_mod|photochem_mod|dust_source_mod|tagging_method_mod)',release,re.M)
     alternate=subprocess.check_output([compiler,*flags,'-Dfv3_turb',str(path)],text=True)
     calls=lambda text:set(re.findall(r'^\s*call\s+(\w+)',text,re.I|re.M))
+    main=re.search(r'\bsubroutine\s+mars_physics\s*\(.*?end\s+subroutine\s+mars_physics\b',release,re.I|re.S)
+    assert main is not None
+    main='\n'.join(line.split('!',1)[0] for line in main[0].splitlines())
+    assert len(re.findall(r'\bzo\b',main,re.I))==2
+    dust_without_comments='\n'.join(line.split('!',1)[0] for line in dust_source.splitlines())
+    assert len(re.findall(r'\bsfc_roughness\b',dust_without_comments,re.I))==1
     excluded=sorted(calls(alternate)-calls(release))
     assert {'surface_flux_2d','vert_turb_driver'}<=set(excluded)
     assert not re.search(r'^use\s+vert_(turb|diff)_driver_mod',release,re.M)
@@ -332,6 +367,7 @@ end module''')
         compiler=subprocess.check_output([compiler,'--version'],text=True).splitlines()[0]),
         cases=cases,driver_controls=inventory,module_controls=module_controls,aerosol_mode_cases=mode_cases,
         radiation_driver_controls=radiation_driver_controls,radiation_module_controls=radiation_module_controls,
+        surface_controls=surface_controls,
         shortwave_ramp_cases=ramp_cases,
         unsupported_dust_radiation=dict(mode=2,source='build_run/fms_mars_clouds_v3.2',
             evidence=unsupported[0].strip(),status='not supported by the released configuration'),
@@ -342,7 +378,8 @@ end module''')
             ('scripts/validate_release_interfaces.py','scripts/native_reference.py',
              'package/src/framework/physics/radiative_transfer.py','package/src/framework/physics/dinosaur_physics.py',
              'package/src/framework/physics/gcm.py','package/src/framework/physics/prescribed_dust.py',
-             'package/src/framework/physics/simple_radiation.py')},
+             'package/src/framework/physics/simple_radiation.py','package/src/framework/physics/soil_frost.py',
+             'package/src/celestials/planets/mars/surface.py')},
         limits='The inventory covers the main driver plus sedimentation, PBL, moment/bulk/CO2-cloud, coagulation and terrain-drag controls. The moment-cloud guard leaves tendency outputs zero and cloud history inactive when cloud formation is disabled. Numerical behavior uses the separate native reports and integration checks. '
             'The ten radiation-driver controls and the spectral/simple module controls are inventoried separately. Fixed-date forcing shares the source-checked radiation clock with simple radiation; disabling either native radiation channel leaves local fluxes undefined. Forty unchanged startup-ramp block cases check heating and applied surface flux. '
             'Bin-cloud microphysics, photochemistry and legacy binned dust-source equations are not in '

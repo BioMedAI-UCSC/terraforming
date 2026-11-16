@@ -70,7 +70,8 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
                    do_co2_condensation_cycle=True,do_mars_surface=True,do_vert_diff=True,do_ames_pbl=True,
                    moment_water=None,dust_surface_water_kg_m2=None,freeze_tracer_fields=False,gust_factor=0.,
                    recalculate_heat_flux=False,particle_scavenging=True,form_moment_clouds=True,
-                   lifting_suppresses_settling=False,dust_opacity_from_aerosol=False):
+                   lifting_suppresses_settling=False,dust_opacity_from_aerosol=False,
+                   surface_condensation=True,soil_alpha=.5):
     """Rayleigh/PBL, soil/frost, CO2 deposition or suspended clouds, convection.
 
     This is the standard present-Mars gas-column process order. Tracers here
@@ -166,6 +167,7 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
             soil_volumetric_heat_capacity,pressure_half[-1],co2_ice_kg_m2,
             downward_surface_flux_w_m2,pbl['heat_flux_w_m2'],
             pbl['heat_flux_surface_derivative_w_m2_k'],emissivity,dt_seconds,latent_heat=latent_heat,
+            condensation=surface_condensation,alpha=soil_alpha,
             bulk_latent_flux=0. if water_exchange is None else water_exchange.latent_flux_w_m2,
             bulk_latent_derivative=0. if water_exchange is None else water_exchange.latent_derivative_w_m2_k)
     else:

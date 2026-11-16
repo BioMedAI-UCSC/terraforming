@@ -167,5 +167,8 @@ def surface_step(soil,thickness,diffusivity,volumetric_heat_capacity,pressure_pa
     second,second_phase,_=solve(jnp.where(retry,1.e-10,0.))
     result=jnp.where(retry[None],second,first)
     phase=jnp.where(retry,second_phase,phase)
-    return result,snow+phase,dict(co2_phase_change_kg_m2=phase,
+    valid=jnp.ones_like(snow,dtype=bool) if condensation else snow==0.
+    # Native disabled condensation has a singular soil row when frost is present.
+    result=jnp.where(valid[None],result,jnp.nan)
+    return result,snow+phase,dict(valid_condensation_state=valid,co2_phase_change_kg_m2=phase,
         frost_temperature_k=frost,frost_retry=retry)

@@ -108,7 +108,7 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
                  freeze_tracer_fields=False,no_forcing=False,gust_factor=0.,recalculate_heat_flux=False,
                  particle_scavenging=True,form_moment_clouds=True,lifting_suppresses_settling=False,
                  dust_opacity_from_aerosol=False,radiation_update_seconds=None,dust_optical_bands=15,
-                 dust_opacity_channel=1):
+                 dust_opacity_channel=1,surface_condensation=True,soil_alpha=.5):
     from src.framework.gcm.coordinates import coordinate_system
     from src.framework.gcm.specs import physics_specs
     from src.framework.gcm._dinosaur import primitive_equations,scales
@@ -160,6 +160,7 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
         dust_opacity_channel=dust_opacity_channel,
         form_moment_clouds=form_moment_clouds,
         do_co2_condensation_cycle=do_co2_condensation_cycle,
+        surface_condensation=surface_condensation,soil_alpha=soil_alpha,
         do_mars_surface=do_mars_surface,do_vert_diff=do_vert_diff,do_ames_pbl=do_ames_pbl,moment_dust=moment_dust)
     return state,step,grid
 
@@ -1388,3 +1389,25 @@ def test_prescribed_dust_scenario_and_size_optics_reach_multistep_reverse_gradie
     eps=1e-4
     finite=(objective(1.+eps)-objective(1.-eps))/(2.*eps)
     np.testing.assert_allclose(auto,finite,rtol=2e-5,atol=1e-7)
+
+
+@pytest.mark.parametrize('condense',[False,True])
+def test_soil_weight_and_surface_phase_controls_preserve_three_step_derivative_and_restart(tmp_path,condense):
+    from src.framework.gcm.restart import save_restart,load_restart
+    def setup(weight):
+        state,step,_=backend_case(temperature_k=180.,surface_temperature_k=180.,
+            do_co2_condensation=False,surface_condensation=condense,soil_alpha=weight)
+        state=state._replace(ground_temperature=state.ground_temperature+
+            jnp.linspace(1.,20.,state.ground_temperature.shape[0])[:,None,None])
+        return state,step
+    def objective(weight):
+        state,step=setup(weight)
+        final=jax.lax.scan(lambda state,_:(step(state),None),state,None,length=3)[0]
+        return jnp.mean(final.surface_temperature)+.01*jnp.mean(final.ground_temperature)
+    derivative=jax.jit(jax.grad(objective))(.5);epsilon=1e-4
+    assert np.isfinite(derivative) and abs(derivative)>1e-6
+    np.testing.assert_allclose(derivative,(objective(.5+epsilon)-objective(.5-epsilon))/(2.*epsilon),rtol=3e-5,atol=1e-8)
+    state,step=setup(.5);first=step(state)
+    restored=load_restart(save_restart(first,tmp_path/'soil-controls.npz'))
+    for a,b in zip(jax.tree_util.tree_leaves(step(step(first))),jax.tree_util.tree_leaves(step(step(restored))),strict=True):
+        np.testing.assert_array_equal(a,b)
