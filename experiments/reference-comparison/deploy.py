@@ -18,7 +18,8 @@ def comparison_manifests(args):
         prepare=args.phase=='prepare'
         name=f'{args.name}-{framework}-'+('prepare' if prepare else '100sol')
         options=['--name',name,'--namespace',args.namespace,'--ref',args.ref,
-            '--pvc',f'{args.name}-{framework}','--storage','100Gi','--run-id','matched-100sol',
+            '--pvc',f'{getattr(args,"pvc_prefix",None) or args.name}-{framework}',
+            '--storage','100Gi','--run-id','matched-100sol',
             '--cpu','4' if prepare else '18' if framework=='native' else '8',
             '--memory','16Gi' if prepare else '64Gi' if framework=='native' else '96Gi',
             '--parallel','2']
@@ -62,6 +63,7 @@ def main():
     parser.add_argument('--ref',required=True)
     parser.add_argument('--phase',choices=('prepare','run'),required=True)
     parser.add_argument('--input-pvc',default='mars-reference-physics-data')
+    parser.add_argument('--pvc-prefix',help='Reuse the persistent framework volumes from an earlier preparation')
     parser.add_argument('--input-node',default='rci-tide-gpu-04.sdsu.edu')
     parser.add_argument('--context',default='nautilus')
     parser.add_argument('--namespace',default='razvanlab')

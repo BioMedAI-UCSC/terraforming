@@ -20,6 +20,8 @@ model and install the locked Python/CUDA environment on persistent volumes.
 Four uppercase preprocessor directives are lowercased for GNU; compiler paths,
 source-list regular expressions and one missing input namelist terminator are
 adapted. Fortran physics statements are unchanged. No setup runs on a GPU.
+On GNU/Linux, `HAVE_GETTID` selects the system thread-ID function supported by
+the image's glibc, as FMS's source interface requires.
 
 First render and submit preparation using the immutable implementation commit:
 
@@ -32,6 +34,9 @@ The input PVC must contain `inputs/reference` with the seven frozen NetCDF
 files listed in `scripts/run_reference_comparison.py`. Set `--input-node` to
 the node holding that RWO input volume. Each framework gets a separate 100 GiB
 work volume. The preparation jobs share only the read-only input volume.
+Use `--pvc-prefix PREVIOUS_NAME` to reuse existing framework volumes for a
+new preparation revision. Source-specific caches and previous outputs remain
+separate on those volumes.
 
 After both CPU jobs succeed, submit the two compute jobs:
 

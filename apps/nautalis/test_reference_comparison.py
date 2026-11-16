@@ -43,6 +43,10 @@ class ComparisonTests(unittest.TestCase):
             self.assertNotIn('activeDeadlineSeconds',job['spec']['template']['spec'])
             self.assertNotIn('ttlSecondsAfterFinished',job['spec'])
             self.assertEqual(job['spec']['template']['spec']['containers'][0]['args'][-2:],['--sols','100'])
+        args.phase='prepare';args.pvc_prefix='previous-volumes'
+        reused=deploy.comparison_manifests(args)
+        self.assertEqual([item['metadata']['name'] for item in reused['items'] if item['kind']=='PersistentVolumeClaim'],
+                         ['previous-volumes-native','previous-volumes-dinosaur'])
         args.ref='main'
         with self.assertRaisesRegex(ValueError,'immutable'): deploy.comparison_manifests(args)
 

@@ -86,7 +86,8 @@ def prepare_native(cache):
     template=template.replace('LDFLAGS = -L$(NETCDF)/lib -L$(MPI_LIB) -lnetcdff -lnetcdf -fopenmp -lmpi',
         'LDFLAGS = '+query('nf-config','--flibs')+' '+query('nc-config','--libs')+' -fopenmp')
     template=template.replace('CFLAGS = -D__GFORTRAN $(CPPFLAGS) $(MARS_CPP) $(FFLAGS)',
-        'CFLAGS = -D__GFORTRAN $(CPPFLAGS) $(MARS_CPP) -O2')
+        'CFLAGS = -D__GFORTRAN $(CPPFLAGS) $(MARS_CPP) -O2'+
+        (' -DHAVE_GETTID' if sys.platform=='linux' else ''))
     (execution/'mkmf.template.gnu').write_text(template)
     script=(nasa/'build_run/compile.bash').read_text().replace('platform="intel"','platform="gnu"')
     script=script.replace('source "$cwd/loadmods.bash"','')
