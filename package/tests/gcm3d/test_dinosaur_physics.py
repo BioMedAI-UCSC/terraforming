@@ -373,15 +373,23 @@ def test_frozen_dust_retains_dry_transport_but_keeps_surface_sources_and_restart
 
 
 @pytest.mark.parametrize('linear',[False,True])
-def test_scaled_surface_ir_preserves_restart_and_three_step_gradient(tmp_path,linear):
+@pytest.mark.parametrize('ramp_sols',[-1.,2.])
+def test_scaled_surface_ir_preserves_restart_and_three_step_gradient(tmp_path,linear,ramp_sols):
     from src.framework.physics.radiative_transfer import make_radiation_component
     from src.framework.gcm.restart import save_restart,load_restart
     options=dict(temperature_k=200.037,surface_temperature_k=240.037,
         do_co2_condensation=False,do_co2_condensation_cycle=False)
     state,step,grid=backend_case(**options,
-        radiation_component=make_radiation_component(lambda *args:None,scale_surface_flux=True,linear_k_interpolation=linear))
+        radiation_component=make_radiation_component(lambda *args:None,scale_surface_flux=True,
+            linear_k_interpolation=linear,shortwave_ramp_sols=ramp_sols))
     _,unscaled,_=backend_case(**options,
-        radiation_component=make_radiation_component(lambda *args:None,linear_k_interpolation=linear))
+        radiation_component=make_radiation_component(lambda *args:None,linear_k_interpolation=linear,
+            shortwave_ramp_sols=ramp_sols))
+    if ramp_sols>0.:
+        from src.framework.gcm.specs import physics_specs
+        from src.framework.gcm._dinosaur import scales
+        time=physics_specs(BODY).nondimensionalize(.371*88704.*scales.units.second)
+        state=state._replace(dynamics=dataclasses.replace(state.dynamics,sim_time=time))
     tick=jax.jit(step);first=tick(state)
     baseline=jax.jit(unscaled)(state)
     assert np.any(np.asarray(first.surface_temperature)!=np.asarray(baseline.surface_temperature))
@@ -396,6 +404,60 @@ def test_scaled_surface_ir_preserves_restart_and_three_step_gradient(tmp_path,li
     assert np.isfinite(automatic) and automatic>0.
     for epsilon in (.001,.0005):
         np.testing.assert_allclose(automatic,(forward(epsilon)-forward(-epsilon))/(2.*epsilon),rtol=2e-5,atol=1e-7)
+
+
+@pytest.mark.parametrize('solar_nonlte',[False,True])
+def test_spectral_ramp_keeps_interface_fluxes_and_stratosphere_unscaled(solar_nonlte):
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.framework.gcm.specs import physics_specs
+    from src.framework.gcm._dinosaur import scales
+    from src.celestials.planets.mars.reference_constants import reference_radiative_forcing
+    from src.framework.physics.radiative_transfer import make_radiation_component
+    coords=coordinate_system('T21',4);specs=physics_specs(BODY);forcing=reference_radiative_forcing()
+    state,_,grid=backend_case(temperature_k=200.037,surface_temperature_k=240.037,
+        radiation_component=lambda *args:None)
+    base=make_radiation_component(lambda *args:None,solar_nonlte=solar_nonlte)
+    ramped=make_radiation_component(lambda *args:None,solar_nonlte=solar_nonlte,shortwave_ramp_sols=2.)
+    pressure_scale=float(specs.dimensionalize(1.,scales.units.pascal).magnitude)
+    pressure=jnp.exp(grid.to_nodal(state.dynamics.log_surface_pressure))[0]*pressure_scale
+    half=jnp.asarray(coords.vertical.boundaries)[:,None,None]*pressure
+    capacity=BODY.cp_j_kg_k*jnp.diff(half,axis=0)/BODY.gravity_m_s2
+    for sols in (0.,.73,2.,3.):
+        current=state._replace(dynamics=dataclasses.replace(state.dynamics,
+            sim_time=specs.nondimensionalize(sols*forcing.rotation_period_s*scales.units.second)))
+        raw=base(current,coords,specs,BODY,forcing);actual=ramped(current,coords,specs,BODY,forcing)
+        factor=.5*(1.-np.cos(sols*np.pi/2.)) if sols<2. else 1.
+        np.testing.assert_allclose(actual.shortwave_scale,factor,rtol=2e-15,atol=2e-15)
+        for value,expected in zip(actual[:7],raw[:7],strict=True):
+            np.testing.assert_array_equal(value,expected)
+        np.testing.assert_array_equal(actual.stratosphere_flux_convergence_w_m2,raw.stratosphere_flux_convergence_w_m2)
+        sw=jnp.diff(raw.shortwave_up_w_m2-raw.shortwave_down_w_m2,axis=0)/capacity
+        lw=jnp.diff(raw.longwave_up_w_m2-raw.longwave_down_w_m2,axis=0)/capacity
+        np.testing.assert_allclose(actual.atmospheric_convergence_w_m2/capacity+actual.nonlte_heating_k_s,
+            lw+factor*(sw+raw.nonlte_heating_k_s),rtol=2e-12,atol=2e-14)
+
+
+def test_zero_startup_ramp_updates_air_and_soil_like_zero_solar_forcing():
+    from src.framework.physics.gcm import RadiativeFluxDiagnostics
+    def prescribed(scale,solar):
+        def component(state,*args):
+            shape=(state.dynamics.temperature_variation.shape[0]+1,*state.surface_temperature.shape[1:])
+            swdown=jnp.full(shape,200. if solar else 0.)
+            swup=jnp.full(shape,50. if solar else 0.)
+            up=jnp.full(shape,80.);down=jnp.full(shape,30.)
+            net=swup-swdown+up-down
+            return RadiativeFluxDiagnostics(swdown,swup,up,down,jnp.diff(net,axis=0),
+                -net[-1],-net[0],shortwave_scale=scale)
+        return component
+    options=dict(temperature_k=200.037,surface_temperature_k=240.037,
+        do_co2_condensation=False,do_co2_condensation_cycle=False)
+    state,step,_=backend_case(**options,radiation_component=prescribed(0.,True))
+    _,reference,_=backend_case(**options,radiation_component=prescribed(1.,False))
+    _,unramped,_=backend_case(**options,radiation_component=prescribed(1.,True))
+    actual=jax.jit(step)(state);expected=jax.jit(reference)(state)
+    for value,target in zip(jax.tree.leaves(actual),jax.tree.leaves(expected),strict=True):
+        np.testing.assert_array_equal(value,target)
+    assert np.any(np.asarray(jax.jit(unramped)(state).surface_temperature)!=np.asarray(actual.surface_temperature))
 
 
 def test_recalculated_pbl_heat_flux_changes_soil_and_preserves_restart_and_three_step_gradient(tmp_path):

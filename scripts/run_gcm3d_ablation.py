@@ -234,7 +234,8 @@ def _ames_dust_climatology(path: Path, grid):
 
 
 def reference_configuration(grid,data_directory,dt_seconds,*,moment_water=True,dust_opacity_from_aerosol=False,
-                            scale_surface_flux=False,solar_constant_w_m2=None,linear_k_interpolation=False):
+                            scale_surface_flux=False,solar_constant_w_m2=None,linear_k_interpolation=False,
+                            shortwave_ramp_sols=-1.):
     """Released present-Mars cloud switches from build_run/fms_mars_clouds_v3.2."""
     from src.celestials.planets.mars.reference_constants import AMES_BODY_3D,reference_radiative_forcing
     from src.celestials.planets.mars.surface import reference_surface_fields_on_grid
@@ -257,7 +258,7 @@ def reference_configuration(grid,data_directory,dt_seconds,*,moment_water=True,d
         dust_tracers=(('dust_mass','dust_number'),),
         water_moment_tracers=(WATER_CLOUD_TRACER,'water_core_mass','water_ice_number') if moment_water else None),
         radiation_interval_seconds=radiation_interval,radiation_mode='12band',scale_surface_flux=scale_surface_flux,
-        linear_k_interpolation=linear_k_interpolation)
+        linear_k_interpolation=linear_k_interpolation,shortwave_ramp_sols=shortwave_ramp_sols)
     options=dict(soil_diffusivity=diffusivity,soil_volumetric_heat_capacity=capacity,
         radiation_update_seconds=radiation_interval,moment_water=moment_water,moment_dust=not moment_water,
         dust_opacity_channel=1,dust_optical_bands=12,
@@ -337,6 +338,8 @@ def main() -> int:
         help='enable native scale_by_scon using W/m2 at mean orbital distance (NASA default 589)')
     parser.add_argument('--linear-k-interpolation',action='store_true',
         help='select native use_boxinterp12=false: linear k and water interpolation with T/log-pressure extrapolation')
+    parser.add_argument('--shortwave-ramp-sols',type=float,default=-1.,
+        help='native rampup_rad duration in model sols; nonpositive values disable the ramp')
     parser.add_argument('--equilibrium-profile',type=Path,help='released teq/zzf NetCDF input for fixed or height relaxation')
     parser.add_argument('--thermal-timescale',type=float,default=-4.,help='negative values use 86400-second days; positive values use seconds; zero disables')
     parser.add_argument('--moment-water',action=argparse.BooleanOptionalAction,default=True,
@@ -399,6 +402,9 @@ def main() -> int:
         parser.error('surface infrared scaling requires --config reference and spectral radiation')
     if args.linear_k_interpolation and (not reference or args.reference_radiation!='spectral'):
         parser.error('linear k interpolation requires --config reference and spectral radiation')
+    if not np.isfinite(args.shortwave_ramp_sols): parser.error('shortwave ramp duration must be finite')
+    if args.shortwave_ramp_sols!=-1. and (not reference or args.reference_radiation!='spectral'):
+        parser.error('shortwave ramp requires --config reference and spectral radiation')
     if args.solar_constant is not None:
         if not reference or args.reference_radiation!='spectral':
             parser.error('solar constant scaling requires --config reference and spectral radiation')
@@ -478,7 +484,8 @@ def main() -> int:
         body,base,radiation,reference_options,input_hashes=reference_configuration(
             grid,args.surface_properties,args.dt,moment_water=args.moment_water,
             dust_opacity_from_aerosol=args.dust_opacity_from_aerosol,scale_surface_flux=args.scale_surface_ir_flux,
-            solar_constant_w_m2=args.solar_constant,linear_k_interpolation=args.linear_k_interpolation)
+            solar_constant_w_m2=args.solar_constant,linear_k_interpolation=args.linear_k_interpolation,
+            shortwave_ramp_sols=args.shortwave_ramp_sols)
         reference_options.update(co2_controls)
         reference_options.update(surface_controls)
         reference_options.update(process_controls)
@@ -576,6 +583,8 @@ def main() -> int:
                 config.setdefault('reference_radiation_controls',{})['solar_constant_w_m2']=args.solar_constant
             if args.linear_k_interpolation:
                 config.setdefault('reference_radiation_controls',{})['linear_k_interpolation']=True
+            if args.shortwave_ramp_sols>0.:
+                config.setdefault('reference_radiation_controls',{})['shortwave_ramp_sols']=args.shortwave_ramp_sols
             if not all(co2_controls.values()): config['co2_process_switches']=co2_controls
             if not all(surface_controls.values()): config['surface_process_switches']=surface_controls
             if process_controls: config['reference_process_controls']=process_controls

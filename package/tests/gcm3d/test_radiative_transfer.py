@@ -4,7 +4,7 @@ import pytest
 pytest.importorskip('dinosaur')
 import jax
 import jax.numpy as jnp
-from src.framework.physics.radiative_transfer import column_fluxes
+from src.framework.physics.radiative_transfer import column_fluxes,shortwave_ramp,make_radiation_component
 
 jax.config.update('jax_enable_x64',True)
 
@@ -44,3 +44,19 @@ def test_full_radiation_reverse_derivative_reaches_temperature_and_pressure(scal
     for eps in (1e-6,1e-7):
         finite=(objective(1.+eps)-objective(1.-eps))/(2.*eps)
         np.testing.assert_allclose(auto,finite,rtol=2e-4,atol=1e-4)
+
+
+def test_shortwave_ramp_reverse_derivative_reaches_time_and_duration():
+    objective=lambda scale:shortwave_ramp(.73*scale,2.3/scale)
+    automatic=jax.jit(jax.grad(objective))(1.)
+    assert np.isfinite(automatic) and automatic>0.
+    for epsilon in (1e-5,1e-6):
+        np.testing.assert_allclose(automatic,(objective(1.+epsilon)-objective(1.-epsilon))/(2.*epsilon),rtol=2e-8)
+    for duration in (-1.,0.):
+        np.testing.assert_array_equal(shortwave_ramp(jnp.array([0.,1.,10.]),duration),1.)
+
+
+@pytest.mark.parametrize('duration',[np.nan,np.inf,-np.inf])
+def test_radiation_factory_rejects_nonfinite_ramp_duration(duration):
+    with pytest.raises(ValueError,match='ramp duration must be finite'):
+        make_radiation_component(lambda *args:None,shortwave_ramp_sols=duration)

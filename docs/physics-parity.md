@@ -627,6 +627,41 @@ T21/56-level run with all three radiation controls enabled completed and resumed
 to two steps. Removing linear interpolation rejects resume and preserves the
 checkpoint.
 
+## Spectral shortwave startup ramp
+
+`--config reference --shortwave-ramp-sols 5` selects the released
+`radiation_driver_nml/rampup_rad` cosine ramp. The default is disabled.
+Nonpositive durations disable it. Positive durations and their input identity
+are saved with restarts. Nonfinite durations and incompatible radiation modes
+are rejected before input loading.
+
+The source scales atmospheric shortwave heating and the shortwave flux passed
+to the soil. It keeps the interface flux diagnostics and stratospheric heating
+unscaled. The callback retains that split. `nonlte_heating_k_s` carries the
+additive atmospheric driver correction; `shortwave_scale` tells Dinosaur how
+to scale the applied surface shortwave flux. Longwave forcing stays unchanged.
+Energy audits must use the applied forcing, including this factor.
+
+Forty cases compare the unchanged native ramp block at disabled, intermediate
+and completed durations. Callback checks cover solar non-LTE corrections on
+and off, unchanged interface/stratosphere diagnostics, and start/end times.
+A prescribed-flux backend check proves that a zero ramp gives exactly the same
+air and soil update as zero solar input. Four coupled cases retain three-step
+reverse derivatives and exact restarts across both interpolation modes and
+ramp enabled/disabled. All existing numerical gates are retained. A real-input T21/56-level smoke
+completed and resumed to two steps. Disabling or changing the duration rejects
+resume and preserves the checkpoint.
+
+The pinned radiation driver has ten namelist controls. Four have no numerical
+references (`use_forget_swheat`, `use_dust_lwheat`, `use_newton_damping`,
+`nchan_swx`). Radiation holding, daily averaging and the startup ramp are
+connected. Fixed-date spectral forcing still needs implementation. Disabling
+`use_ames_sw_rad` or `use_ames_lw_rad` leaves local flux arrays uninitialized in
+`ames_rt_driver`, before unconditional stratospheric calculations and returned
+fluxes. These off paths have no deterministic native target. The audit records
+this source defect; the port keeps both channels enabled. This is a source
+limitation, not a deprecation claim.
+
 ## Required remaining work
 
 The released cloud benchmark uses visible dust (`dgdm_type=1`) with
@@ -664,7 +699,7 @@ limiter or establish matched transport accuracy.
 | CO2 switches | Atmospheric condensation, atmospheric loss and gas-mass feedback are independent source controls. Ninety-six unchanged native control-block cases check all combinations and initial-CO2-weighted surface exchange. Another 384 unchanged initialization cases check configurable exchange depths and strict pressure/latitude boundaries. Column tests retain condensation heating when precipitation loss is disabled, and retain surface snow when mass feedback is disabled. Held suspended clouds still mix as tracers when their phase driver is off. Global tests check disabled-feedback behavior, exact restart continuation and three-step reverse derivatives. |
 | Surface/diffusion controls | `do_mars_surface`, `do_vert_diff` and `do_ames_pbl` now select the released active branches. Without Mars surface physics, radiation sees 170 K, albedo 0.25 and emissivity 1; soil/CO2 surface exchange is inactive while drag and convection remain available. Twelve unchanged native `diffuse` cases prove the release fallback leaves tendencies unchanged because `fv3_turb` is excluded. Inactive PBL exchange fields are defined as zero instead of copying uninitialized source values. Surface-dependent water/dust modes are rejected without the source's surface reservoir initialization. |
 | Process controls | `freeze_tracer_fields`, `no_forcing` and the released `gust_fact` correction are connected to Dinosaur and the runner. Native blocks check tracer freezing, no-forcing early return and gust stress; column/global checks retain surface/history changes under freezing and skip all physical updates under no forcing. The released tracer-source/sink helper has no caller. Alternate gust/turbulence drivers are excluded by build flags. |
-| Module controls | Surface IR normalization is connected and checked. Solar normalization (`scale_by_scon`) reuses the existing orbit and is native-checked. The supported alternate 12-band interpolation (`use_boxinterp12=false`) is connected through `--linear-k-interpolation`, with native lookup, optical and composed-flux comparisons. It interpolates linear k across water, temperature and log pressure, retaining source extrapolation and indexing. The default keeps log-k interpolation and a selected water bin. PBL `htflux_recalc`, settling `scaveng` and moment-cloud `makeclouds` are connected through the column, Dinosaur and runner. Seeded-cloud tests cover retained cores, independent water settling/surface exchange, exact restarts and three-step derivatives. The audit also records the seven moment-cloud namelist entries, including its unused module-local `facsubl`. Continue the audit of the other modules. |
+| Module controls | Surface IR normalization is connected and checked. Solar normalization (`scale_by_scon`) reuses the existing orbit and is native-checked. The supported alternate 12-band interpolation (`use_boxinterp12=false`) is connected through `--linear-k-interpolation`, with native lookup, optical and composed-flux comparisons. It interpolates linear k across water, temperature and log pressure, retaining source extrapolation and indexing. The default keeps log-k interpolation and a selected water bin. The optional spectral startup ramp is connected and matches 40 unchanged native block cases. The ten radiation-driver entries are inventoried; fixed-date spectral forcing remains pending, and channel-off paths have undefined native outputs. PBL `htflux_recalc`, settling `scaveng` and moment-cloud `makeclouds` are connected through the column, Dinosaur and runner. Seeded-cloud tests cover retained cores, independent water settling/surface exchange, exact restarts and three-step derivatives. The audit also records the seven moment-cloud namelist entries, including its unused module-local `facsubl`. Continue the audit of the other modules. |
 | Interactive dust | Lifting, advection, sedimentation, surface reservoirs, coagulation and material budgets are connected independently of moment water. Matched climate validation remains. |
 | Water | Bulk and moment phase/growth/settling paths, surface exchange, saved effective inputs, state/restarts and optical feedback are connected. Two physical dust modes pass combined global material, restart and three-step derivative checks. Long climate validation remains. Bin cloud microphysics is unavailable in the public release. |
 | Drag | Rayleigh, Palmer terrain drag and non-orographic gravity-wave drag are implemented and checked. Polar water and terrain maps pass pinned-blob and T21/T42 area checks. Long momentum/energy audits remain. Gravity-wave schemes are off in the default Ames present-Mars setup. |
@@ -693,7 +728,9 @@ ledgers and validation checks; native FMS debug-abort behavior is not copied.
 This driver inventory does not establish coverage of every branch in the
 separate radiation, dust and cloud modules.
 The report also inventories nine controls in the sedimentation, PBL and
-moment-cloud modules. Pinned source guards show that `makeclouds=False` leaves
+moment-cloud modules. Another ten controls are inventoried in the spectral
+radiation driver, with explicit inactive, pending and source-undefined statuses.
+The ramp block has separate numerical checks. Pinned source guards show that `makeclouds=False` leaves
 microphysics tendencies at zero and does not advance cloud history.
 The module-local `microphys_nml/facsubl` appears only in its declaration and
 namelist. It has no numerical effect. The separate

@@ -406,7 +406,12 @@ class SurfaceEnergyDiagnostics(NamedTuple):
 
 
 class RadiativeFluxDiagnostics(NamedTuple):
-    """Interface fluxes, ordered from TOA (0) to the surface (L)."""
+    """Interface fluxes, ordered from TOA (0) to the surface (L).
+
+    nonlte_heating_k_s carries additive atmospheric driver corrections.
+    shortwave_scale applies the native startup ramp to the surface forcing;
+    the reported interface fluxes retain their original unscaled values.
+    """
 
     shortwave_down_w_m2: object
     shortwave_up_w_m2: object
@@ -417,6 +422,7 @@ class RadiativeFluxDiagnostics(NamedTuple):
     toa_net_down_w_m2: object
     nonlte_heating_k_s: object = 0.
     stratosphere_flux_convergence_w_m2: object = 0.
+    shortwave_scale: object = 1.
 
 
 def _validate_radiative_bands(f: RadiativeForcing) -> None:

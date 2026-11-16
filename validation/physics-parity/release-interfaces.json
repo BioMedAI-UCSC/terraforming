@@ -11,7 +11,9 @@
       "atmos_param_mars/BLcode/pblmod_mgcm.F90": "38b3f41e4d07f9a2e3c9d7a689e50577cac7858c",
       "atmos_param_mars/micromod_mgcm.F90": "4897f72860b59d7effeb6650dbf3d4484b3aca71",
       "atmos_param_mars/aerosol_util.F90": "353441748fa247b8d938e4993f06d313268580f7",
-      "atmos_param_mars/dust_update.F90": "1e470cc1efb44c6627cbe3168c69c2d1f7640570"
+      "atmos_param_mars/dust_update.F90": "1e470cc1efb44c6627cbe3168c69c2d1f7640570",
+      "atmos_param_mars/Rad/radiation_driver.F90": "91059b1b696ef35c05db016f1b890b9c7591f482",
+      "atmos_param_mars/Rad/rtmod_mgcm.F90": "40d8879c3735bbec6cabc63817cad5220f281532"
     },
     "preprocessor_flags": [
       "-cpp",
@@ -25,6 +27,7 @@
     "moment_cloud_guard_sha256": "da60a441db330ce2399dc8f71fc2d57381cd1ca3c51ee0fb7db33914e33c745d",
     "aerosol_mode_guard_sha256": "3fbb0171ae057f5d64576ed6a330a9abae137e57a01c8bb6c33c8df7c5ce74ed",
     "dust_lifting_guard_sha256": "82ba3d433748fa636d4e2f5aae6800d824ec6521d433169444d3efa56d007660",
+    "shortwave_ramp_block_sha256": "387dbc34d7638caaa138a2443283f992f005ac0e8e6faf1ce29d07396df91e66",
     "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0"
   },
   "cases": [
@@ -423,6 +426,260 @@
       "allowed": false
     }
   ],
+  "radiation_driver_controls": [
+    {
+      "source_control": "use_forget_swheat",
+      "status": "inactive",
+      "implementation": "declaration and namelist only"
+    },
+    {
+      "source_control": "use_dust_lwheat",
+      "status": "inactive",
+      "implementation": "declaration and namelist only"
+    },
+    {
+      "source_control": "use_newton_damping",
+      "status": "inactive",
+      "implementation": "declaration and namelist only"
+    },
+    {
+      "source_control": "nchan_swx",
+      "status": "inactive",
+      "implementation": "declaration and namelist only"
+    },
+    {
+      "source_control": "rad_calc_intv",
+      "status": "implemented",
+      "implementation": "radiation_update_seconds and radiation_interval_seconds"
+    },
+    {
+      "source_control": "do_diurnal_avg_rad",
+      "status": "implemented",
+      "implementation": "forcing.diurnal=False and daylight_geometry"
+    },
+    {
+      "source_control": "rampup_rad",
+      "status": "implemented",
+      "implementation": "shortwave_ramp_sols, atmospheric correction and surface shortwave_scale"
+    },
+    {
+      "source_control": "fixed_calender_date",
+      "status": "pending",
+      "implementation": "spectral callback fixed-date clock; simple radiation already supports it"
+    },
+    {
+      "source_control": "use_ames_sw_rad",
+      "status": "source-undefined when disabled",
+      "implementation": "default true; uninitialized local fluxes when false"
+    },
+    {
+      "source_control": "use_ames_lw_rad",
+      "status": "source-undefined when disabled",
+      "implementation": "default true; uninitialized local fluxes when false"
+    }
+  ],
+  "shortwave_ramp_cases": [
+    {
+      "duration_sols": -1.0,
+      "sols": 0.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": -1.0,
+      "sols": 0.25,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": -1.0,
+      "sols": 1.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": -1.0,
+      "sols": 2.5,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": -1.0,
+      "sols": 5.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": -1.0,
+      "sols": 7.5,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": -1.0,
+      "sols": 10.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": -1.0,
+      "sols": 15.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 0.0,
+      "sols": 0.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 0.0,
+      "sols": 0.25,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 0.0,
+      "sols": 1.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 0.0,
+      "sols": 2.5,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 0.0,
+      "sols": 5.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 0.0,
+      "sols": 7.5,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 0.0,
+      "sols": 10.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 0.0,
+      "sols": 15.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 1.0,
+      "sols": 0.0,
+      "factor": 0.0
+    },
+    {
+      "duration_sols": 1.0,
+      "sols": 0.25,
+      "factor": 0.1464466094067262
+    },
+    {
+      "duration_sols": 1.0,
+      "sols": 1.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 1.0,
+      "sols": 2.5,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 1.0,
+      "sols": 5.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 1.0,
+      "sols": 7.5,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 1.0,
+      "sols": 10.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 1.0,
+      "sols": 15.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 5.0,
+      "sols": 0.0,
+      "factor": 0.0
+    },
+    {
+      "duration_sols": 5.0,
+      "sols": 0.25,
+      "factor": 0.006155829702431115
+    },
+    {
+      "duration_sols": 5.0,
+      "sols": 1.0,
+      "factor": 0.09549150281252627
+    },
+    {
+      "duration_sols": 5.0,
+      "sols": 2.5,
+      "factor": 0.49999999999999994
+    },
+    {
+      "duration_sols": 5.0,
+      "sols": 5.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 5.0,
+      "sols": 7.5,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 5.0,
+      "sols": 10.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 5.0,
+      "sols": 15.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 10.0,
+      "sols": 0.0,
+      "factor": 0.0
+    },
+    {
+      "duration_sols": 10.0,
+      "sols": 0.25,
+      "factor": 0.001541333133436018
+    },
+    {
+      "duration_sols": 10.0,
+      "sols": 1.0,
+      "factor": 0.024471741852423234
+    },
+    {
+      "duration_sols": 10.0,
+      "sols": 2.5,
+      "factor": 0.1464466094067262
+    },
+    {
+      "duration_sols": 10.0,
+      "sols": 5.0,
+      "factor": 0.49999999999999994
+    },
+    {
+      "duration_sols": 10.0,
+      "sols": 7.5,
+      "factor": 0.8535533905932737
+    },
+    {
+      "duration_sols": 10.0,
+      "sols": 10.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 10.0,
+      "sols": 15.0,
+      "factor": 1.0
+    }
+  ],
   "unsupported_dust_radiation": {
     "mode": 2,
     "source": "build_run/fms_mars_clouds_v3.2",
@@ -509,8 +766,11 @@
     "alternate_preprocessed_sha256": "146631ad81c35fed0dd3b9c3b7ff82cbd7d4370858457d121eb179e7288dfbb8"
   },
   "sha256": {
-    "scripts/validate_release_interfaces.py": "4cf66acf069a6c6ab856f101e78843212bd1d5f21f9350915233a8532b895d8b",
-    "scripts/native_reference.py": "2e3b0e2f65b685f86fcfdd1b4643b54c5582b81af36a0874a43d9eedc2675d76"
+    "scripts/validate_release_interfaces.py": "b7c16cb0081810957f11e39553339ce38722f9384f78216f8b62aaed1fc3ae70",
+    "scripts/native_reference.py": "2e3b0e2f65b685f86fcfdd1b4643b54c5582b81af36a0874a43d9eedc2675d76",
+    "package/src/framework/physics/radiative_transfer.py": "f3f48a8c92bd847b7c17d3322a8a90cb53cbda53ece5213d50411f592a495d4d",
+    "package/src/framework/physics/dinosaur_physics.py": "4b8202914ac1e39cbd8b521d8acefd7f9fb574e21dd5dc5d14c4f67263164822",
+    "package/src/framework/physics/gcm.py": "8234e024f283c62b093d838f52b6e6b84783e5ce2d3b732189a58e32a582881b"
   },
-  "limits": "The inventory covers the main driver plus sedimentation, PBL and moment-cloud controls. The moment-cloud guard leaves tendency outputs zero and cloud history inactive when cloud formation is disabled. Numerical behavior uses the separate native reports and integration checks. Bin-cloud microphysics, photochemistry and legacy binned dust-source equations are not in these released implementations. Tagging imports are excluded by RELEASE. Moment water, bulk water and moment dust have separate real modules and validations. Alternate FV3 turbulence calls require fv3_turb, which the pinned build does not define; this exclusion does not implement or validate those alternate schemes."
+  "limits": "The inventory covers the main driver plus sedimentation, PBL and moment-cloud controls. The moment-cloud guard leaves tendency outputs zero and cloud history inactive when cloud formation is disabled. Numerical behavior uses the separate native reports and integration checks. The ten radiation-driver controls are inventoried separately: fixed-date spectral forcing is pending; disabling either native radiation channel leaves local fluxes undefined. Forty unchanged startup-ramp block cases check heating and applied surface flux. Bin-cloud microphysics, photochemistry and legacy binned dust-source equations are not in these released implementations. Tagging imports are excluded by RELEASE. Moment water, bulk water and moment dust have separate real modules and validations. Alternate FV3 turbulence calls require fv3_turb, which the pinned build does not define; this exclusion does not implement or validate those alternate schemes."
 }

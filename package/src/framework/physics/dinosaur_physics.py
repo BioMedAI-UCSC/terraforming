@@ -512,7 +512,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             heating=radiation.atmospheric_convergence_w_m2/layer_capacity
             if radiation.nonlte_heating_k_s is not None:
                 heating=heating+radiation.nonlte_heating_k_s
-            down=(radiation.shortwave_down_w_m2[-1]-radiation.shortwave_up_w_m2[-1]+
+            down=((radiation.shortwave_down_w_m2[-1]-radiation.shortwave_up_w_m2[-1])*radiation.shortwave_scale+
                 radiation.longwave_down_w_m2[-1])
             strat_rate=body.gravity_m_s2/body.cp_j_kg_k/100.*radiation.stratosphere_flux_convergence_w_m2
             return heating,down,jnp.broadcast_to(strat_rate,pressure.shape)

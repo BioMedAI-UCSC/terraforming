@@ -491,7 +491,7 @@
   "physics_sha256": {
     "prescribed_dust.py": "58e4054786a01bb6f89834c59d599c87ea3a9aeedf450e6db9944e34a8a1c4d8",
     "dust_control.py": "bb0749684b3b4078548dff5def298178620f388bf303b1898b20ef95136e3815",
-    "dinosaur_physics.py": "88251e34c6d7174d20bd089f1ba6c237fd819bb9e899b9d67bfae5489f8bdfef",
+    "dinosaur_physics.py": "4b8202914ac1e39cbd8b521d8acefd7f9fb574e21dd5dc5d14c4f67263164822",
     "legacy_convection.py": "3b5502f055e45cfc2601809aeec5237142427d7b8356058bfc12ddcb89388df3",
     "correlated_k.py": "803e33cfc1d14f46fb4251f2fd49c7a64bd55529574132cc9a04c2635240d13e",
     "terrain_drag.py": "6b0a6c769d9d40abed95d2e9aaa51b14abdb0f22cb5fd73f5811bcad2c863ead",
@@ -503,7 +503,7 @@
     "__init__.py": "62b61692fed54cebab4ecc448648f24af87fd16b2eed5934a478fcbd7b1c2476",
     "nonorographic_drag.py": "feccbe04e6da28b596d7f08847ed2ee222c86fd02b10038299e3ea43429c9733",
     "water_bulk.py": "563b225222538936e923bbdb4f8e3de82c9f20434870545a53dc0f6fc71b8f61",
-    "radiative_transfer.py": "a6d49f74a67dca054a69efbb1ccca4e67597566af535b92b9ccce0aa48dec507",
+    "radiative_transfer.py": "f3f48a8c92bd847b7c17d3322a8a90cb53cbda53ece5213d50411f592a495d4d",
     "co2_clouds.py": "1dde7b8e4bfd83db36dcee4318511c9e00869139ad35dfad880deb49d13c1107",
     "moist_convection.py": "22da425411b1c276e3ad630b4c3547876bf0441f3db3b4f052e6905d9e4597e0",
     "twostream.py": "173ec4fbfb69f004a441f69c3dd7d344e5726d7b8a01af86d65e3857eca69185",
@@ -526,7 +526,7 @@
     "dust_coagulation.py": "54a4a2e20ff8f6ffaa68dea3b73a0571dd824049d259e0e14ac910b4002387fa",
     "water_moments.py": "b8bc858d72db9195666280db011a5e87687eb490cbfc1df99bb5323a9fb7e1b4",
     "particle_optics.py": "125ec57c6d71d99082eb31b98b64be357c3287c721e4b73b149311852138895f",
-    "gcm.py": "e3e0f2a929927d55a9d1e088277b76a275a2f4a924e59fd4e0766af58c981bea",
+    "gcm.py": "8234e024f283c62b093d838f52b6e6b84783e5ce2d3b732189a58e32a582881b",
     "particle_sedimentation.py": "10f4ef6afe83f77f2b00292fe7b3010bf2ef542632bca6b7d7725bc527f6f290",
     "dry_convection.py": "11d8f2284b7e95cbb38064400c6e284913599f9a7cc9d3a349f7093f60ecf162"
   },

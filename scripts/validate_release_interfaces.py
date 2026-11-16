@@ -21,6 +21,8 @@ BLOBS={
     'atmos_param_mars/micromod_mgcm.F90':'4897f72860b59d7effeb6650dbf3d4484b3aca71',
     'atmos_param_mars/aerosol_util.F90':'353441748fa247b8d938e4993f06d313268580f7',
     'atmos_param_mars/dust_update.F90':'1e470cc1efb44c6627cbe3168c69c2d1f7640570',
+    'atmos_param_mars/Rad/radiation_driver.F90':'91059b1b696ef35c05db016f1b890b9c7591f482',
+    'atmos_param_mars/Rad/rtmod_mgcm.F90':'40d8879c3735bbec6cabc63817cad5220f281532',
 }
 
 # Each released driver control needs an explicit implementation or exclusion.
@@ -103,6 +105,36 @@ def validate(source,compiler):
     raw_micro=(source/'atmos_param_mars/micromod_mgcm.F90').read_text()
     without_comments='\n'.join(line.split('!',1)[0] for line in raw_micro.splitlines())
     assert len(re.findall(r'\bfacsubl\b',without_comments,re.I))==2
+    driver=(source/'atmos_param_mars/Rad/radiation_driver.F90').read_text()
+    driver_mapping={
+        'use_forget_swheat':('inactive','declaration and namelist only'),
+        'use_dust_lwheat':('inactive','declaration and namelist only'),
+        'use_newton_damping':('inactive','declaration and namelist only'),
+        'nchan_swx':('inactive','declaration and namelist only'),
+        'rad_calc_intv':('implemented','radiation_update_seconds and radiation_interval_seconds'),
+        'do_diurnal_avg_rad':('implemented','forcing.diurnal=False and daylight_geometry'),
+        'rampup_rad':('implemented','shortwave_ramp_sols, atmospheric correction and surface shortwave_scale'),
+        'fixed_calender_date':('pending','spectral callback fixed-date clock; simple radiation already supports it'),
+        'use_ames_sw_rad':('source-undefined when disabled','default true; uninitialized local fluxes when false'),
+        'use_ames_lw_rad':('source-undefined when disabled','default true; uninitialized local fluxes when false'),
+    }
+    assert set(namelist_controls(driver,'radiation_driver_nml'))==set(driver_mapping)
+    stripped='\n'.join(line.split('!',1)[0] for line in driver.splitlines())
+    for name,(status,_) in driver_mapping.items():
+        if status=='inactive': assert len(re.findall(r'\b'+name+r'\b',stripped,re.I))==2,name
+    radiation_driver_controls=[dict(source_control=name,status=status,implementation=implementation)
+        for name,(status,implementation) in driver_mapping.items()]
+    routines,_=extract_routines(source/'atmos_param_mars/Rad/rtmod_mgcm.F90',
+        BLOBS['atmos_param_mars/Rad/rtmod_mgcm.F90'],['ames_rt_driver'])
+    spectral_driver=routines[0]
+    prefix=spectral_driver[:spectral_driver.index('if (dosw) then')]
+    suffix=spectral_driver[spectral_driver.index('endif !end lw check'):]
+    for name in ('fluxupv','fluxdnv','fmnetv','nfluxtopv','fluxupi','fluxdni','fmneti','nfluxtopi'):
+        assert not re.search(r'^\s*'+name+r'(?:\([^\n]*?\))?\s*=',prefix+suffix,re.I|re.M),name
+    assert 'irtot0 = gcp*(FMNETI(1) - NFLUXTOPI)' in suffix
+    assert 'swtot0 = gcp*(FMNETV(1) - NFLUXTOPV)' in suffix
+    ramp_start=driver.index('    if ( rampup_rad > 0.0 ) then')
+    ramp_block=driver[ramp_start:driver.index('    endif',ramp_start)+len('    endif')]
     aerosol=(source/'atmos_param_mars/aerosol_util.F90').read_text()
     dust=(source/'atmos_param_mars/dust_update.F90').read_text()
     start=dust.index('    if(lifting_nosed) then')
@@ -140,6 +172,15 @@ mask=merge(1,0,lifting_dust(:,1,:))
 end subroutine
 end module
 '''
+    adapter=adapter.replace('end module','''subroutine check_shortwave_ramp(n,sols,rampup_rad,hsw,trans) bind(C)
+integer(c_int),value :: n
+real(c_double),value :: sols,rampup_rad
+real(c_double),intent(inout) :: hsw(n),trans(n)
+real(c_double),parameter :: pi=acos(-1.d0)
+real(c_double) :: ramp
+'''+ramp_block+'''
+end subroutine
+end module''')
     mode_cases=[]
     with tempfile.TemporaryDirectory(prefix='aerosol-validity-native-') as temporary:
         code=Path(temporary)/'modes.f90';code.write_text(adapter)
@@ -147,6 +188,21 @@ end module
         subprocess.run([compiler,'-O3','-ffree-line-length-none','-fPIC','-shared',str(code),'-o',str(library)],
             cwd=temporary,check=True)
         native=ctypes.CDLL(str(library))
+        native.check_shortwave_ramp.argtypes=[ctypes.c_int,ctypes.c_double,ctypes.c_double]+[
+            np.ctypeslib.ndpointer(dtype=np.float64,flags='F_CONTIGUOUS')]*2
+        native.check_shortwave_ramp.restype=None
+        from src.framework.gcm._dinosaur import jax
+        from src.framework.physics.radiative_transfer import shortwave_ramp
+        jax.config.update('jax_enable_x64',True)
+        ramp_cases=[]
+        for duration in (-1.,0.,1.,5.,10.):
+            for sols in (0.,.25,1.,2.5,5.,7.5,10.,15.):
+                heating=np.array([1.,-2.,3.]);surface=np.array([100.,50.,0.])
+                native.check_shortwave_ramp(3,sols,duration,heating,surface)
+                factor=float(shortwave_ramp(sols,duration))
+                np.testing.assert_allclose(heating,np.array([1.,-2.,3.])*factor,rtol=2e-15,atol=2e-15)
+                np.testing.assert_allclose(surface,np.array([100.,50.,0.])*factor,rtol=2e-15,atol=2e-15)
+                ramp_cases.append(dict(duration_sols=duration,sols=sols,factor=factor))
         native.check_modes.argtypes=[ctypes.c_int]*3+[ctypes.POINTER(ctypes.c_int)]
         native.check_modes.restype=None
         native.check_lifting.argtypes=[ctypes.c_int]*2+[
@@ -198,16 +254,21 @@ end module
         moment_cloud_guard_sha256=hashlib.sha256(guard.encode()).hexdigest(),
         aerosol_mode_guard_sha256=hashlib.sha256(guards.encode()).hexdigest(),
         dust_lifting_guard_sha256=hashlib.sha256(lifting.encode()).hexdigest(),
+        shortwave_ramp_block_sha256=hashlib.sha256(ramp_block.encode()).hexdigest(),
         compiler=subprocess.check_output([compiler,'--version'],text=True).splitlines()[0]),
         cases=cases,driver_controls=inventory,module_controls=module_controls,aerosol_mode_cases=mode_cases,
+        radiation_driver_controls=radiation_driver_controls,shortwave_ramp_cases=ramp_cases,
         unsupported_dust_radiation=dict(mode=2,source='build_run/fms_mars_clouds_v3.2',
             evidence=unsupported[0].strip(),status='not supported by the released configuration'),
         dust_lifting_guard_cases=lifting_cases,
         excluded_build_interfaces=dict(required_definition='fv3_turb',calls=excluded,
             alternate_preprocessed_sha256=hashlib.sha256(alternate.encode()).hexdigest()),
         sha256={name:hashlib.sha256((root/name).read_bytes()).hexdigest() for name in
-            ('scripts/validate_release_interfaces.py','scripts/native_reference.py')},
+            ('scripts/validate_release_interfaces.py','scripts/native_reference.py',
+             'package/src/framework/physics/radiative_transfer.py','package/src/framework/physics/dinosaur_physics.py',
+             'package/src/framework/physics/gcm.py')},
         limits='The inventory covers the main driver plus sedimentation, PBL and moment-cloud controls. The moment-cloud guard leaves tendency outputs zero and cloud history inactive when cloud formation is disabled. Numerical behavior uses the separate native reports and integration checks. '
+            'The ten radiation-driver controls are inventoried separately: fixed-date spectral forcing is pending; disabling either native radiation channel leaves local fluxes undefined. Forty unchanged startup-ramp block cases check heating and applied surface flux. '
             'Bin-cloud microphysics, photochemistry and legacy binned dust-source equations are not in '
             'these released implementations. Tagging imports are excluded by RELEASE. '
             'Moment water, bulk water and moment dust have separate real modules and validations. '

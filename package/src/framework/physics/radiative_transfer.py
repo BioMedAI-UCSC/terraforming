@@ -22,6 +22,13 @@ def rayleigh_per_pa(gravity_m_s2):
     return (8.7/gravity_m_s2)*1.527*(1.+.013/wavelength**2)/wavelength**4/9.423e6
 
 
+def shortwave_ramp(sols,duration_sols):
+    """Released radiation-driver cosine ramp; nonpositive duration disables it."""
+    duration=jnp.asarray(duration_sols)
+    safe=jnp.where(duration>0.,duration,1.)
+    return jnp.where((duration>0.)&(sols<duration),.5*(1.-jnp.cos(sols*jnp.pi/safe)),1.)
+
+
 def column_fluxes(temperature,surface_temperature,pressure_half,pressure_full,
                   mu0,solar_intensity,albedo,emissivity,gravity_m_s2,*,particle_optics=None,
                   daylight_fraction=1.,radiation_mode='12band',water_mass_fraction=None,
@@ -77,7 +84,7 @@ def column_fluxes(temperature,surface_temperature,pressure_half,pressure_full,
 def make_radiation_component(particle_provider,*,radiation_interval_seconds=1848.,
                              radiation_mode='12band',water_vapor_tracer=None,cia_molar_fractions=None,
                              solar_nonlte=True,nonlte_tracers=None,scale_surface_flux=False,
-                             linear_k_interpolation=False):
+                             linear_k_interpolation=False,shortwave_ramp_sols=-1.):
     """Build the Ames backend callback with an explicit particle-input provider.
 
     The provider receives (state, coords, specs, body, forcing, radiation_grid)
@@ -89,6 +96,8 @@ def make_radiation_component(particle_provider,*,radiation_interval_seconds=1848
     import math
     if not math.isfinite(radiation_interval_seconds) or radiation_interval_seconds<=0.:
         raise ValueError('radiation averaging interval must be finite and positive')
+    if not math.isfinite(shortwave_ramp_sols):
+        raise ValueError('shortwave ramp duration must be finite')
     if nonlte_tracers is not None and len(nonlte_tracers)!=2:
         raise ValueError('non-LTE cooling requires explicit CO2 and atomic oxygen tracer names')
     if linear_k_interpolation and radiation_mode!='12band':
@@ -128,13 +137,18 @@ def make_radiation_component(particle_provider,*,radiation_interval_seconds=1848
             scale_surface_flux=scale_surface_flux,linear_k_interpolation=linear_k_interpolation)
         correction=jnp.zeros_like(temperature)
         capacity=body.cp_j_kg_k*jnp.diff(half,axis=0)/body.gravity_m_s2
-        if solar_nonlte:
+        if solar_nonlte or shortwave_ramp_sols>0.:
             sw_heating=jnp.diff(flux.shortwave_up_w_m2-flux.shortwave_down_w_m2,axis=0)/capacity
+        if solar_nonlte:
             correction=correction+(solar_heating_factor(full)-1.)*sw_heating
+        ramp=1.
+        if shortwave_ramp_sols>0.:
+            ramp=shortwave_ramp(time/forcing.rotation_period_s,shortwave_ramp_sols)
+            correction=ramp*correction+(ramp-1.)*sw_heating
         if nonlte_tracers is not None:
             co2,oxygen=(grid.to_nodal(state.dynamics.tracers[name]) for name in nonlte_tracers)
             nonlte=cooling(temperature,full,co2,oxygen,radiation_pressure_pa=rad_grid.pressure)
             lw=jnp.diff(flux.longwave_up_w_m2-flux.longwave_down_w_m2,axis=0)/capacity
             correction=correction+infrared_blend(lw,nonlte,half[:-1])-lw
-        return flux._replace(nonlte_heating_k_s=correction)
+        return flux._replace(nonlte_heating_k_s=correction,shortwave_scale=ramp)
     return component
