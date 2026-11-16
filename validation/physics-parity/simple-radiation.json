@@ -630,7 +630,7 @@
   "scattering_cases": 24,
   "sha256": {
     "scripts/validate_simple_radiation.py": "39198bc56c306a0eba49438c17a5ebc8ef2d7dcd571b0b1db3af405089ee6a90",
-    "package/src/framework/physics/simple_radiation.py": "2a8ea0d1372de034c0392b69d7c98bd39f1f33e90e76ee1de00f20ad6bf55319"
+    "package/src/framework/physics/simple_radiation.py": "d34833bafeb3c2dc78772b104f95bd6ac34a011ee91856ed2f9cf142104f9532"
   },
   "limits": "Unchanged dust profile, ecoeffs/scatter_calc, swheat and lwheat; source CUBE_CORE ramp/composition. Astronomy is checked separately. SPEC_CORE-only heating modulation is excluded by the released compile flags."
 }

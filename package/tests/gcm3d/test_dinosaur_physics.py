@@ -406,6 +406,75 @@ def test_scaled_surface_ir_preserves_restart_and_three_step_gradient(tmp_path,li
         np.testing.assert_allclose(automatic,(forward(epsilon)-forward(-epsilon))/(2.*epsilon),rtol=2e-5,atol=1e-7)
 
 
+@pytest.mark.parametrize('date',[100,667])
+def test_fixed_spectral_date_routes_geometry_and_optical_clock_but_not_startup_ramp(monkeypatch,date):
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.framework.gcm.specs import physics_specs
+    from src.framework.gcm._dinosaur import scales
+    from src.celestials.planets.mars.reference_constants import reference_radiative_forcing
+    from src.framework.physics import radiative_transfer
+    from src.framework.physics.gcm import RadiativeFluxDiagnostics,_declination,solar_flux
+    from src.framework.physics.solar_geometry import averaged_zenith
+    coords=coordinate_system('T21',4);specs=physics_specs(BODY)
+    forcing=dataclasses.replace(reference_radiative_forcing(),diurnal=True)
+    state,_,grid=backend_case(temperature_k=200.037,surface_temperature_k=240.037,
+        radiation_component=lambda *args:None)
+    sample={}
+    def particles(optical_state,*args):
+        sample['optical_time']=float(optical_state.dynamics.sim_time)
+        assert optical_state.dynamics.tracers is current.dynamics.tracers
+        assert optical_state.dynamics.temperature_variation is current.dynamics.temperature_variation
+        assert optical_state.auxiliary_fields is current.auxiliary_fields
+        return None
+    def column(temperature,surface,half,full,mu,solar,*args,**kwargs):
+        sample.update(mu=mu,solar=solar,daylight=kwargs['daylight_fraction'])
+        zero=jnp.zeros_like(half)
+        return RadiativeFluxDiagnostics(zero,zero,zero,zero,jnp.zeros_like(temperature),zero[-1],zero[0])
+    monkeypatch.setattr(radiative_transfer,'column_fluxes',column)
+    component=radiative_transfer.make_radiation_component(particles,fixed_calendar_date=date,
+        shortwave_ramp_sols=2.,solar_nonlte=False)
+    calendar=(date+.371)*forcing.rotation_period_s
+    expected_mu,expected_daylight=averaged_zenith(.371,_declination(calendar,forcing),
+        jnp.asarray(grid.longitudes)[:,None],jnp.asarray(grid.latitudes)[None,:],
+        .5*jnp.pi*1848./forcing.rotation_period_s)
+    for elapsed_sols in (.371,3.371):
+        time=specs.nondimensionalize(elapsed_sols*forcing.rotation_period_s*scales.units.second)
+        current=state._replace(dynamics=dataclasses.replace(state.dynamics,sim_time=time))
+        actual=component(current,coords,specs,BODY,forcing)
+        np.testing.assert_allclose(sample['optical_time'],specs.nondimensionalize(calendar*scales.units.second),rtol=2e-15)
+        np.testing.assert_allclose(sample['mu'],expected_mu,rtol=2e-12,atol=2e-12)
+        np.testing.assert_allclose(sample['daylight'],expected_daylight,rtol=2e-12,atol=2e-12)
+        np.testing.assert_allclose(sample['solar'],radiative_transfer.radiation_tables_jax()['solar_weights']*
+            solar_flux(calendar,forcing),rtol=2e-12,atol=2e-12)
+        np.testing.assert_allclose(actual.shortwave_scale,radiative_transfer.shortwave_ramp(elapsed_sols,2.),rtol=2e-15)
+        assert float(current.dynamics.sim_time)==float(time)
+
+
+def test_fixed_spectral_calendar_preserves_restart_and_three_step_clock_derivative(tmp_path):
+    from src.framework.physics.radiative_transfer import make_radiation_component
+    from src.framework.gcm.specs import physics_specs
+    from src.framework.gcm._dinosaur import scales
+    from src.framework.gcm.restart import save_restart,load_restart
+    radiation=make_radiation_component(lambda *args:None,fixed_calendar_date=100,
+        shortwave_ramp_sols=2.,linear_k_interpolation=True)
+    state,step,grid=backend_case(temperature_k=200.037,surface_temperature_k=240.037,
+        radiation_component=radiation,do_co2_condensation=False,do_co2_condensation_cycle=False)
+    time=physics_specs(BODY).nondimensionalize(.371*88704.*scales.units.second)
+    state=state._replace(dynamics=dataclasses.replace(state.dynamics,sim_time=time))
+    tick=jax.jit(step);first=tick(state)
+    assert all(np.isfinite(value).all() for value in jax.tree.leaves(first))
+    restored=load_restart(save_restart(first,tmp_path/'fixed-calendar.npz'))
+    for actual,expected in zip(jax.tree.leaves(tick(restored)),jax.tree.leaves(tick(first)),strict=True):
+        np.testing.assert_array_equal(actual,expected)
+    def objective(clock_scale):
+        current=state._replace(dynamics=dataclasses.replace(state.dynamics,sim_time=state.dynamics.sim_time*clock_scale))
+        for _ in range(3): current=step(current)
+        return jnp.mean(current.surface_temperature)+jnp.mean(grid.to_nodal(current.dynamics.temperature_variation))
+    automatic=jax.jit(jax.grad(objective))(1.);forward=jax.jit(objective)
+    assert np.isfinite(automatic) and abs(float(automatic))>1e-8
+    for epsilon in (1e-5,5e-6):
+        np.testing.assert_allclose(automatic,(forward(1.+epsilon)-forward(1.-epsilon))/(2.*epsilon),rtol=3e-5,atol=1e-7)
+
 @pytest.mark.parametrize('solar_nonlte',[False,True])
 def test_spectral_ramp_keeps_interface_fluxes_and_stratosphere_unscaled(solar_nonlte):
     from src.framework.gcm.coordinates import coordinate_system

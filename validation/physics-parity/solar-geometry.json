@@ -2,7 +2,7 @@
   "status": "pass",
   "reference": {
     "source_git_blob": "9f7b1123dee77e14ac740234eddd02d646218ba7",
-    "compiled_source_sha256": "52302ea04a6093690871c47997b1c47b195711ab8eab37f72390e6382e9e994d",
+    "compiled_source_sha256": "991a9439b6eeb452f97a9a00ba3a32ae00c33a9b442626d4c8c98f08995f603d",
     "routine_sha256": {
       "mars_calender": "469bcec017a52f3ff00598f8798b5559682a73da8cebe3d5a9cc424b89bc16df",
       "sol88": "ae6897ebc5680bafa7ec8fc697c1e55af36af3b4c185e36b49e25b7c66b4546b",
@@ -20,7 +20,9 @@
     "real_precision_bits": 64,
     "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged",
     "source_patch_git_blob": "6deea614300cc5340dfd5bd02fc2d5ddc1bdebee",
-    "source_patch_sha256": "15267ed7a494065b5ad7fe2583be95ab8c920b68f5292cdfb3adc3dd98e6bc43"
+    "source_patch_sha256": "15267ed7a494065b5ad7fe2583be95ab8c920b68f5292cdfb3adc3dd98e6bc43",
+    "calendar_driver_git_blob": "91059b1b696ef35c05db016f1b890b9c7591f482",
+    "calendar_block_sha256": "24bc27916ce50792c1abdfca95255d5b89899129ebb639c643f5207c64c05942"
   },
   "orbit_cases": 37,
   "normalization_reference": {
@@ -371,11 +373,265 @@
       ]
     }
   ],
+  "calendar_cases": [
+    {
+      "elapsed_sols": 0.0,
+      "fixed_date": -1,
+      "max_clock_orbit_error": 2.4492935982947064e-16,
+      "solar_error_w_m2": 1.1368683772161603e-13
+    },
+    {
+      "elapsed_sols": 0.0,
+      "fixed_date": 0,
+      "max_clock_orbit_error": 2.4492935982947064e-16,
+      "solar_error_w_m2": 1.1368683772161603e-13
+    },
+    {
+      "elapsed_sols": 0.0,
+      "fixed_date": 100,
+      "max_clock_orbit_error": 2.4492935982947064e-16,
+      "solar_error_w_m2": 0.0
+    },
+    {
+      "elapsed_sols": 0.0,
+      "fixed_date": 488,
+      "max_clock_orbit_error": 2.4492935982947064e-16,
+      "solar_error_w_m2": 0.0
+    },
+    {
+      "elapsed_sols": 0.0,
+      "fixed_date": 667,
+      "max_clock_orbit_error": 1.133107779529596e-15,
+      "solar_error_w_m2": 2.2737367544323206e-13
+    },
+    {
+      "elapsed_sols": 0.0,
+      "fixed_date": 999,
+      "max_clock_orbit_error": 2.9094646189298464e-15,
+      "solar_error_w_m2": 2.2737367544323206e-13
+    },
+    {
+      "elapsed_sols": 0.371,
+      "fixed_date": -1,
+      "max_clock_orbit_error": 6.432490598706546e-16,
+      "solar_error_w_m2": 1.1368683772161603e-13
+    },
+    {
+      "elapsed_sols": 0.371,
+      "fixed_date": 0,
+      "max_clock_orbit_error": 6.432490598706546e-16,
+      "solar_error_w_m2": 1.1368683772161603e-13
+    },
+    {
+      "elapsed_sols": 0.371,
+      "fixed_date": 100,
+      "max_clock_orbit_error": 1.133107779529596e-15,
+      "solar_error_w_m2": 0.0
+    },
+    {
+      "elapsed_sols": 0.371,
+      "fixed_date": 488,
+      "max_clock_orbit_error": 2.4492935982947064e-16,
+      "solar_error_w_m2": 1.1368683772161603e-13
+    },
+    {
+      "elapsed_sols": 0.371,
+      "fixed_date": 667,
+      "max_clock_orbit_error": 2.8362728832220796e-16,
+      "solar_error_w_m2": 2.2737367544323206e-13
+    },
+    {
+      "elapsed_sols": 0.371,
+      "fixed_date": 999,
+      "max_clock_orbit_error": 2.4492935982947064e-16,
+      "solar_error_w_m2": 0.0
+    },
+    {
+      "elapsed_sols": 0.999,
+      "fixed_date": -1,
+      "max_clock_orbit_error": 2.4492935982947064e-16,
+      "solar_error_w_m2": 0.0
+    },
+    {
+      "elapsed_sols": 0.999,
+      "fixed_date": 0,
+      "max_clock_orbit_error": 2.4492935982947064e-16,
+      "solar_error_w_m2": 0.0
+    },
+    {
+      "elapsed_sols": 0.999,
+      "fixed_date": 100,
+      "max_clock_orbit_error": 2.4492935982947064e-16,
+      "solar_error_w_m2": 5.684341886080802e-14
+    },
+    {
+      "elapsed_sols": 0.999,
+      "fixed_date": 488,
+      "max_clock_orbit_error": 1.133107779529596e-15,
+      "solar_error_w_m2": 2.2737367544323206e-13
+    },
+    {
+      "elapsed_sols": 0.999,
+      "fixed_date": 667,
+      "max_clock_orbit_error": 2.4492935982947064e-16,
+      "solar_error_w_m2": 1.1368683772161603e-13
+    },
+    {
+      "elapsed_sols": 0.999,
+      "fixed_date": 999,
+      "max_clock_orbit_error": 1.133107779529596e-15,
+      "solar_error_w_m2": 1.1368683772161603e-13
+    },
+    {
+      "elapsed_sols": 1.0,
+      "fixed_date": -1,
+      "max_clock_orbit_error": 2.4492935982947064e-16,
+      "solar_error_w_m2": 1.1368683772161603e-13
+    },
+    {
+      "elapsed_sols": 1.0,
+      "fixed_date": 0,
+      "max_clock_orbit_error": 2.4492935982947064e-16,
+      "solar_error_w_m2": 1.1368683772161603e-13
+    },
+    {
+      "elapsed_sols": 1.0,
+      "fixed_date": 100,
+      "max_clock_orbit_error": 2.4492935982947064e-16,
+      "solar_error_w_m2": 0.0
+    },
+    {
+      "elapsed_sols": 1.0,
+      "fixed_date": 488,
+      "max_clock_orbit_error": 2.4492935982947064e-16,
+      "solar_error_w_m2": 0.0
+    },
+    {
+      "elapsed_sols": 1.0,
+      "fixed_date": 667,
+      "max_clock_orbit_error": 1.133107779529596e-15,
+      "solar_error_w_m2": 2.2737367544323206e-13
+    },
+    {
+      "elapsed_sols": 1.0,
+      "fixed_date": 999,
+      "max_clock_orbit_error": 2.9094646189298464e-15,
+      "solar_error_w_m2": 2.2737367544323206e-13
+    },
+    {
+      "elapsed_sols": 3.371,
+      "fixed_date": -1,
+      "max_clock_orbit_error": 2.4492935982947064e-16,
+      "solar_error_w_m2": 0.0
+    },
+    {
+      "elapsed_sols": 3.371,
+      "fixed_date": 0,
+      "max_clock_orbit_error": 6.432490598706546e-16,
+      "solar_error_w_m2": 1.1368683772161603e-13
+    },
+    {
+      "elapsed_sols": 3.371,
+      "fixed_date": 100,
+      "max_clock_orbit_error": 1.133107779529596e-15,
+      "solar_error_w_m2": 0.0
+    },
+    {
+      "elapsed_sols": 3.371,
+      "fixed_date": 488,
+      "max_clock_orbit_error": 2.4492935982947064e-16,
+      "solar_error_w_m2": 1.1368683772161603e-13
+    },
+    {
+      "elapsed_sols": 3.371,
+      "fixed_date": 667,
+      "max_clock_orbit_error": 2.8362728832220796e-16,
+      "solar_error_w_m2": 2.2737367544323206e-13
+    },
+    {
+      "elapsed_sols": 3.371,
+      "fixed_date": 999,
+      "max_clock_orbit_error": 2.4492935982947064e-16,
+      "solar_error_w_m2": 0.0
+    },
+    {
+      "elapsed_sols": 668.731,
+      "fixed_date": -1,
+      "max_clock_orbit_error": 1.133107779529596e-15,
+      "solar_error_w_m2": 1.1368683772161603e-13
+    },
+    {
+      "elapsed_sols": 668.731,
+      "fixed_date": 0,
+      "max_clock_orbit_error": 2.4492935982947064e-16,
+      "solar_error_w_m2": 1.1368683772161603e-13
+    },
+    {
+      "elapsed_sols": 668.731,
+      "fixed_date": 100,
+      "max_clock_orbit_error": 1.133107779529596e-15,
+      "solar_error_w_m2": 3.979039320256561e-13
+    },
+    {
+      "elapsed_sols": 668.731,
+      "fixed_date": 488,
+      "max_clock_orbit_error": 2.4492935982947064e-16,
+      "solar_error_w_m2": 2.2737367544323206e-13
+    },
+    {
+      "elapsed_sols": 668.731,
+      "fixed_date": 667,
+      "max_clock_orbit_error": 1.133107779529596e-15,
+      "solar_error_w_m2": 3.410605131648481e-13
+    },
+    {
+      "elapsed_sols": 668.731,
+      "fixed_date": 999,
+      "max_clock_orbit_error": 1.5314274795707798e-15,
+      "solar_error_w_m2": 2.2737367544323206e-13
+    },
+    {
+      "elapsed_sols": 1336.5,
+      "fixed_date": -1,
+      "max_clock_orbit_error": 7.347880794884119e-16,
+      "solar_error_w_m2": 1.1368683772161603e-13
+    },
+    {
+      "elapsed_sols": 1336.5,
+      "fixed_date": 0,
+      "max_clock_orbit_error": 2.4492935982947064e-16,
+      "solar_error_w_m2": 1.1368683772161603e-13
+    },
+    {
+      "elapsed_sols": 1336.5,
+      "fixed_date": 100,
+      "max_clock_orbit_error": 1.133107779529596e-15,
+      "solar_error_w_m2": 1.1368683772161603e-13
+    },
+    {
+      "elapsed_sols": 1336.5,
+      "fixed_date": 488,
+      "max_clock_orbit_error": 1.133107779529596e-15,
+      "solar_error_w_m2": 2.2737367544323206e-13
+    },
+    {
+      "elapsed_sols": 1336.5,
+      "fixed_date": 667,
+      "max_clock_orbit_error": 1.133107779529596e-15,
+      "solar_error_w_m2": 0.0
+    },
+    {
+      "elapsed_sols": 1336.5,
+      "fixed_date": 999,
+      "max_clock_orbit_error": 4.996003610813204e-16,
+      "solar_error_w_m2": 2.2737367544323206e-13
+    }
+  ],
   "sha256": {
-    "scripts/validate_solar_geometry.py": "34a881a2239312abfe6c7ab87b9f6fd7964f55f7d351cc497a245039442c64f8",
-    "package/src/framework/physics/solar_geometry.py": "47b862ec8f9a74f0bba3b183457d09d23823bd60025cac9e0cd21c0e46157f53",
+    "scripts/validate_solar_geometry.py": "bac9f4749f4da5229b2539e71122de10853f140f4afbc47a4276515beb1fd875",
+    "package/src/framework/physics/solar_geometry.py": "40ba8eb1d68b516ad435672e1654a410cb408329932b53feccbb4fa93140c029",
     "package/src/celestials/planets/mars/reference_constants.py": "3823b68ef06e3b7abcba4db1ed9a73b209cce87bedbd125dc64fd765a314d710",
     "package/src/framework/physics/gcm.py": "8234e024f283c62b093d838f52b6e6b84783e5ce2d3b732189a58e32a582881b"
   },
-  "limits": "periodic orbit, sol88/zenith and unchanged scale_by_scon block; reference longwave update scheduling and spin-up are separate"
+  "limits": "Periodic orbit, fixed/evolving driver calendar, sol88/zenith and unchanged scale_by_scon block. Calendar uses source reference orbital constants; held radiation and long climate validation are separate."
 }

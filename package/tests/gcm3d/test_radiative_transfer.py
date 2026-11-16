@@ -60,3 +60,9 @@ def test_shortwave_ramp_reverse_derivative_reaches_time_and_duration():
 def test_radiation_factory_rejects_nonfinite_ramp_duration(duration):
     with pytest.raises(ValueError,match='ramp duration must be finite'):
         make_radiation_component(lambda *args:None,shortwave_ramp_sols=duration)
+
+
+@pytest.mark.parametrize('date',[1.5,np.nan,'100'])
+def test_radiation_factory_requires_integer_fixed_date(date):
+    with pytest.raises(ValueError,match='calendar date must be an integer'):
+        make_radiation_component(lambda *args:None,fixed_calendar_date=date)

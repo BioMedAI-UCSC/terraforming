@@ -8,7 +8,7 @@ import numpy as np
 from src.framework.gcm._dinosaur import jax,jnp,scales
 from src.framework.gcm.dynamics import reference_temperature
 from src.framework.physics.gcm import RadiativeFluxDiagnostics,_declination,solar_flux
-from src.framework.physics.solar_geometry import daylight_geometry,averaged_zenith
+from src.framework.physics.solar_geometry import daylight_geometry,averaged_zenith,radiation_clock
 
 
 class ScatteringResult(NamedTuple):
@@ -167,14 +167,13 @@ def make_radiation_component(*,radiation_interval_seconds=1800.,fixed_calendar_d
         half=jnp.asarray(coords.vertical.boundaries)[:,None,None]*pressure
         full=jnp.asarray(coords.vertical.centers)[:,None,None]*pressure
         seconds=state.dynamics.sim_time*time_scale
-        sols=seconds/forcing.rotation_period_s
-        calendar_seconds=(fixed_calendar_date+jnp.mod(sols,1.))*forcing.rotation_period_s if fixed_calendar_date>=0 else seconds
+        calendar_seconds,sols,day_fraction=radiation_clock(seconds,forcing.rotation_period_s,fixed_calendar_date)
         declination=_declination(calendar_seconds,forcing)
         latitude=jnp.asarray(grid.latitudes)[None,:]
         if daily_mean:
             _,cosine,fraction=daylight_geometry(declination,latitude)
         else:
-            cosine,fraction=averaged_zenith(jnp.mod(sols,1.),declination,
+            cosine,fraction=averaged_zenith(day_fraction,declination,
                 jnp.asarray(grid.longitudes)[:,None],latitude,
                 .5*jnp.pi*radiation_interval_seconds/forcing.rotation_period_s)
         return column_fluxes(temperature,state.surface_temperature[0],half,full,cosine,

@@ -114,7 +114,7 @@ def validate(source,compiler):
         'rad_calc_intv':('implemented','radiation_update_seconds and radiation_interval_seconds'),
         'do_diurnal_avg_rad':('implemented','forcing.diurnal=False and daylight_geometry'),
         'rampup_rad':('implemented','shortwave_ramp_sols, atmospheric correction and surface shortwave_scale'),
-        'fixed_calender_date':('pending','spectral callback fixed-date clock; simple radiation already supports it'),
+        'fixed_calender_date':('implemented','radiation_clock and spectral fixed_calendar_date; optical-provider radiative clock; shared with simple radiation'),
         'use_ames_sw_rad':('source-undefined when disabled','default true; uninitialized local fluxes when false'),
         'use_ames_lw_rad':('source-undefined when disabled','default true; uninitialized local fluxes when false'),
     }
@@ -268,7 +268,7 @@ end module''')
              'package/src/framework/physics/radiative_transfer.py','package/src/framework/physics/dinosaur_physics.py',
              'package/src/framework/physics/gcm.py')},
         limits='The inventory covers the main driver plus sedimentation, PBL and moment-cloud controls. The moment-cloud guard leaves tendency outputs zero and cloud history inactive when cloud formation is disabled. Numerical behavior uses the separate native reports and integration checks. '
-            'The ten radiation-driver controls are inventoried separately: fixed-date spectral forcing is pending; disabling either native radiation channel leaves local fluxes undefined. Forty unchanged startup-ramp block cases check heating and applied surface flux. '
+            'The ten radiation-driver controls are inventoried separately. Fixed-date forcing shares the source-checked radiation clock with simple radiation; disabling either native radiation channel leaves local fluxes undefined. Forty unchanged startup-ramp block cases check heating and applied surface flux. '
             'Bin-cloud microphysics, photochemistry and legacy binned dust-source equations are not in '
             'these released implementations. Tagging imports are excluded by RELEASE. '
             'Moment water, bulk water and moment dust have separate real modules and validations. '

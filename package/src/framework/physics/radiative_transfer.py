@@ -10,7 +10,7 @@ from src.framework.physics.optical_depth import gas_subgrid,aggregate_optics
 from src.framework.physics.spectral_flux import visible_spectrum,infrared_spectrum
 from src.framework.physics.gcm import RadiativeFluxDiagnostics,_declination,solar_flux
 from src.framework.physics.correlated_k import radiation_tables_jax
-from src.framework.physics.solar_geometry import daylight_geometry,averaged_zenith
+from src.framework.physics.solar_geometry import daylight_geometry,averaged_zenith,radiation_clock
 from src.framework.physics.collision_absorption import collision_induced_depths
 from src.framework.physics.nonlte_cooling import cooling,solar_heating_factor,infrared_blend
 
@@ -84,7 +84,7 @@ def column_fluxes(temperature,surface_temperature,pressure_half,pressure_full,
 def make_radiation_component(particle_provider,*,radiation_interval_seconds=1848.,
                              radiation_mode='12band',water_vapor_tracer=None,cia_molar_fractions=None,
                              solar_nonlte=True,nonlte_tracers=None,scale_surface_flux=False,
-                             linear_k_interpolation=False,shortwave_ramp_sols=-1.):
+                             linear_k_interpolation=False,shortwave_ramp_sols=-1.,fixed_calendar_date=-1):
     """Build the Ames backend callback with an explicit particle-input provider.
 
     The provider receives (state, coords, specs, body, forcing, radiation_grid)
@@ -92,12 +92,17 @@ def make_radiation_component(particle_provider,*,radiation_interval_seconds=1848
     experiment. Geometry follows the source's partial-day averaging and its
     optional daylight-mean cosine/fraction mode. Radiation is evaluated each
     Dinosaur step; the averaging interval remains an explicit reference input.
+    A fixed date changes the provider's clock, not its physical tracer fields.
+    The startup ramp always uses elapsed model time.
     """
     import math
+    import dataclasses
     if not math.isfinite(radiation_interval_seconds) or radiation_interval_seconds<=0.:
         raise ValueError('radiation averaging interval must be finite and positive')
     if not math.isfinite(shortwave_ramp_sols):
         raise ValueError('shortwave ramp duration must be finite')
+    if not isinstance(fixed_calendar_date,int):
+        raise ValueError('fixed calendar date must be an integer')
     if nonlte_tracers is not None and len(nonlte_tracers)!=2:
         raise ValueError('non-LTE cooling requires explicit CO2 and atomic oxygen tracer names')
     if linear_k_interpolation and radiation_mode!='12band':
@@ -117,18 +122,21 @@ def make_radiation_component(particle_provider,*,radiation_interval_seconds=1848
         strat=(fields['radiation_stratosphere_k'][0] if fields is not None and
             'radiation_stratosphere_k' in fields else jnp.full_like(surface,170.))
         rad_grid=radiation_grid(half,full,temperature,surface,strat)
-        particles=particle_provider(state,coords,specs,body,forcing,rad_grid)
         time=state.dynamics.sim_time*time_scale
-        declination=_declination(time,forcing)
+        calendar,sols,fraction=radiation_clock(time,forcing.rotation_period_s,fixed_calendar_date)
+        radiation_state=state
+        if fixed_calendar_date>=0:
+            radiation_state=state._replace(dynamics=dataclasses.replace(state.dynamics,sim_time=calendar/time_scale))
+        particles=particle_provider(radiation_state,coords,specs,body,forcing,rad_grid)
+        declination=_declination(calendar,forcing)
         latitude=jnp.asarray(grid.latitudes)[None,:]
         if forcing.diurnal:
-            fraction=jnp.mod(time/forcing.rotation_period_s,1.)
             half_angle=.5*jnp.pi*radiation_interval_seconds/forcing.rotation_period_s
             mu,daylight=averaged_zenith(fraction,declination,
                 jnp.asarray(grid.longitudes)[:,None],latitude,half_angle)
         else:
             _,mu,daylight=daylight_geometry(declination,latitude)
-        solar=radiation_tables_jax(radiation_mode)['solar_weights']*solar_flux(time,forcing)
+        solar=radiation_tables_jax(radiation_mode)['solar_weights']*solar_flux(calendar,forcing)
         water=(None if water_vapor_tracer is None else grid.to_nodal(state.dynamics.tracers[water_vapor_tracer]))
         flux=column_fluxes(temperature,surface,half,full,mu,solar,
             forcing.albedo,forcing.emissivity,body.gravity_m_s2,particle_optics=particles,
@@ -143,7 +151,7 @@ def make_radiation_component(particle_provider,*,radiation_interval_seconds=1848
             correction=correction+(solar_heating_factor(full)-1.)*sw_heating
         ramp=1.
         if shortwave_ramp_sols>0.:
-            ramp=shortwave_ramp(time/forcing.rotation_period_s,shortwave_ramp_sols)
+            ramp=shortwave_ramp(sols,shortwave_ramp_sols)
             correction=ramp*correction+(ramp-1.)*sw_heating
         if nonlte_tracers is not None:
             co2,oxygen=(grid.to_nodal(state.dynamics.tracers[name]) for name in nonlte_tracers)

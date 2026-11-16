@@ -4,9 +4,23 @@ import pytest
 pytest.importorskip('dinosaur')
 import jax
 import jax.numpy as jnp
-from src.framework.physics.solar_geometry import averaged_zenith,daylight_geometry
+from src.framework.physics.solar_geometry import averaged_zenith,daylight_geometry,radiation_clock
 
 jax.config.update('jax_enable_x64',True)
+
+
+def test_fixed_calendar_preserves_elapsed_clock_and_day_fraction():
+    elapsed=jnp.array([.371,3.371,668.371])*88704.
+    calendar,sols,fraction=jax.jit(lambda value:radiation_clock(value,88704.,100))(elapsed)
+    np.testing.assert_allclose(calendar,(100.+.371)*88704.,rtol=0.,atol=1e-8)
+    np.testing.assert_allclose(sols,[.371,3.371,668.371],rtol=2e-15)
+    np.testing.assert_allclose(fraction,.371,rtol=0.,atol=1e-13)
+    np.testing.assert_array_equal(radiation_clock(elapsed,88704.)[0],elapsed)
+    objective=lambda value:radiation_clock(value,88704.,100)[0]+3.*88704.*radiation_clock(value,88704.,100)[1]
+    automatic=jax.grad(objective)(.371*88704.)
+    np.testing.assert_allclose(automatic,4.,rtol=2e-15)
+    for epsilon in (1.,.5):
+        np.testing.assert_allclose(automatic,(objective(.371*88704.+epsilon)-objective(.371*88704.-epsilon))/(2.*epsilon),rtol=1e-8)
 
 
 @pytest.mark.parametrize('fraction,half_angle',[(.25,.3),(.5,.03),(0.,.3),(.5,2.)])

@@ -120,7 +120,7 @@ def test_alternate_reference_cli_rejects_unsupported_combinations(monkeypatch):
                       ['--config','reference','--solar-constant','0'],
                       ['--config','reference','--solar-constant','-1'],
                       ['--config','reference','--solar-constant','inf'],
-                      ['--config','reference','--reference-radiation','simple','--solar-constant','589'],
+                      ['--config','reference','--reference-radiation','height','--solar-constant','589'],
                       ['--config','reference','--reference-radiation','simple','--scale-surface-ir-flux'],
                       ['--reference-radiation','simple'],['--thermal-timescale','-2.'],['--no-co2-mass-feedback'],
                       ['--no-vertical-diffusion'],['--no-reference-pbl'],['--no-moment-water'],
@@ -161,6 +161,56 @@ def test_shortwave_ramp_cli_rejects_invalid_configuration(monkeypatch,capsys,arg
     assert message in capsys.readouterr().err
 
 
+@pytest.mark.parametrize('arguments,message',[
+    (['--fixed-radiation-date','100'],'fixed radiation date requires --config reference'),
+    (['--config','reference','--reference-radiation','height','--fixed-radiation-date','100'],
+        'fixed radiation date requires --config reference and spectral or simple radiation'),
+    (['--config','reference','--fixed-radiation-date','1.5'],"invalid int value: '1.5'")])
+def test_fixed_radiation_date_cli_rejects_invalid_configuration(monkeypatch,capsys,arguments,message):
+    import sys
+    driver=_script('run_gcm3d_ablation')
+    monkeypatch.setattr(sys,'argv',['run_gcm3d_ablation.py','unused-surface',*arguments])
+    with pytest.raises(SystemExit) as stopped: driver.main()
+    assert stopped.value.code==2
+    assert message in capsys.readouterr().err
+
+
+@pytest.mark.parametrize('mode,explicit,expected',[
+    ('simple',None,589.),('simple',600.,600.),
+    ('spectral',None,None),('spectral',589.,589.)])
+def test_reference_cli_passes_mode_specific_solar_constant(monkeypatch,tmp_path,mode,explicit,expected):
+    import sys
+    driver=_script('run_gcm3d_ablation')
+    class ConfigurationReached(Exception): pass
+    def capture(*args,**kwargs):
+        assert kwargs['solar_constant_w_m2']==expected
+        raise ConfigurationReached
+    monkeypatch.setattr(driver,'reference_configuration',capture)
+    mola=tmp_path/'mola';mola.touch()
+    arguments=['run_gcm3d_ablation.py',str(tmp_path),'--config','reference',
+        '--reference-radiation',mode,'--mola-path',str(mola),'--truncation','T21','--layers','24']
+    if explicit is not None: arguments+=['--solar-constant',str(explicit)]
+    monkeypatch.setattr(sys,'argv',arguments)
+    with pytest.raises(ConfigurationReached): driver.main()
+
+
+def test_simple_radiation_forwards_fixed_date_and_records_restart_identity(monkeypatch):
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.framework.physics import simple_radiation
+    seen={}
+    def factory(**kwargs):
+        seen.update(kwargs)
+        return lambda *args:None
+    monkeypatch.setattr(simple_radiation,'make_radiation_component',factory)
+    driver=_script('run_gcm3d_ablation')
+    coords=coordinate_system('T21',4)
+    _,_,metadata=driver.alternate_reference_radiation(coords,'simple',fixed_calendar_date=100)
+    assert seen['fixed_calendar_date']==100
+    assert metadata['reference_radiation_controls']=={'fixed_calendar_date':100}
+    with pytest.raises(ValueError,match='spectral or simple'):
+        driver.alternate_reference_radiation(coords,'height',fixed_calendar_date=100)
+
+
 @pytest.mark.parametrize('water',[False,True])
 @pytest.mark.parametrize('from_aerosol',[False,True])
 @pytest.mark.parametrize('scale_surface',[False,True])
@@ -187,9 +237,10 @@ def test_reference_configuration_keeps_dust_and_frost_independent_of_water(monke
     for name in inputs: (tmp_path/name).write_bytes(name.encode())
     _,forcing,provider,options,hashes=_script('run_gcm3d_ablation').reference_configuration(
         grid,tmp_path,231.,moment_water=water,dust_opacity_from_aerosol=from_aerosol,scale_surface_flux=scale_surface,
-        solar_constant_w_m2=solar_constant,linear_k_interpolation=linear,shortwave_ramp_sols=5.)
+        solar_constant_w_m2=solar_constant,linear_k_interpolation=linear,shortwave_ramp_sols=5.,fixed_calendar_date=100)
     assert radiation_options['linear_k_interpolation'] is linear
     assert radiation_options['shortwave_ramp_sols']==5.
+    assert radiation_options['fixed_calendar_date']==100
     assert radiation_options['scale_surface_flux'] is scale_surface
     np.testing.assert_allclose(forcing.tsi_1au_w_m2,1356.1 if solar_constant is None else solar_constant*1.524**2)
     assert options['moment_water'] is water and options['moment_dust'] is not water

@@ -1,9 +1,18 @@
-"""Differentiable sol88/zenith geometry from the reference astronomy patch.
+"""Differentiable radiation clocks and reference sol88/zenith geometry.
 
 Copyright 2023 United States Government as represented by NASA.
+Radiation-driver clock: NASA Open Source Agreement 1.3.
 NASA Ames GCM patches: Apache License 2.0, https://www.apache.org/licenses/LICENSE-2.0
 """
 from src.framework.gcm._dinosaur import jnp
+
+
+def radiation_clock(elapsed_seconds,day_seconds,fixed_date=-1):
+    """Driver radiative date, elapsed sols and actual within-day fraction."""
+    sols=jnp.asarray(elapsed_seconds)/day_seconds
+    fraction=sols-jnp.trunc(sols)
+    calendar=((fixed_date+fraction)*day_seconds if fixed_date>=0 else elapsed_seconds)
+    return calendar,sols,fraction
 
 
 def daylight_geometry(declination,latitude):

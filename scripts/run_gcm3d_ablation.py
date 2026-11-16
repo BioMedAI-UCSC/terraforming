@@ -235,7 +235,7 @@ def _ames_dust_climatology(path: Path, grid):
 
 def reference_configuration(grid,data_directory,dt_seconds,*,moment_water=True,dust_opacity_from_aerosol=False,
                             scale_surface_flux=False,solar_constant_w_m2=None,linear_k_interpolation=False,
-                            shortwave_ramp_sols=-1.):
+                            shortwave_ramp_sols=-1.,fixed_calendar_date=-1):
     """Released present-Mars cloud switches from build_run/fms_mars_clouds_v3.2."""
     from src.celestials.planets.mars.reference_constants import AMES_BODY_3D,reference_radiative_forcing
     from src.celestials.planets.mars.surface import reference_surface_fields_on_grid
@@ -258,7 +258,8 @@ def reference_configuration(grid,data_directory,dt_seconds,*,moment_water=True,d
         dust_tracers=(('dust_mass','dust_number'),),
         water_moment_tracers=(WATER_CLOUD_TRACER,'water_core_mass','water_ice_number') if moment_water else None),
         radiation_interval_seconds=radiation_interval,radiation_mode='12band',scale_surface_flux=scale_surface_flux,
-        linear_k_interpolation=linear_k_interpolation,shortwave_ramp_sols=shortwave_ramp_sols)
+        linear_k_interpolation=linear_k_interpolation,shortwave_ramp_sols=shortwave_ramp_sols,
+        fixed_calendar_date=fixed_calendar_date)
     options=dict(soil_diffusivity=diffusivity,soil_volumetric_heat_capacity=capacity,
         radiation_update_seconds=radiation_interval,moment_water=moment_water,moment_dust=not moment_water,
         dust_opacity_channel=1,dust_optical_bands=12,
@@ -301,13 +302,17 @@ def reference_surface_temperature_k(latitude_rad):
         167.+52.*jnp.cos((latitude+.261799)*90./105.))
 
 
-def alternate_reference_radiation(coords,mode,profile=None,timescale=-4.):
+def alternate_reference_radiation(coords,mode,profile=None,timescale=-4.,fixed_calendar_date=-1):
     """Select a released alternate branch and return its restart identity."""
     if mode=='simple':
         if profile is not None: raise ValueError('simple radiation does not read an equilibrium profile')
         from src.framework.physics.simple_radiation import make_radiation_component
-        return make_radiation_component(),dict(radiation_update_seconds=None),dict(
+        metadata=dict(
             radiation_mode='simple',radiation_update_seconds=None,simple_geometry_interval_seconds=1800.)
+        if fixed_calendar_date>=0:
+            metadata['reference_radiation_controls']=dict(fixed_calendar_date=fixed_calendar_date)
+        return make_radiation_component(fixed_calendar_date=fixed_calendar_date),dict(radiation_update_seconds=None),metadata
+    if fixed_calendar_date>=0: raise ValueError('fixed radiation date requires spectral or simple radiation')
     if mode not in ('fixed','height') or profile is None:
         raise ValueError('fixed or height relaxation requires an equilibrium profile')
     if not np.isfinite(timescale): raise ValueError('thermal timescale must be finite')
@@ -335,11 +340,13 @@ def main() -> int:
     parser.add_argument('--scale-surface-ir-flux',action='store_true',
         help='use native do_irflux_scale to normalize surface infrared emission to sigma*T^4')
     parser.add_argument('--solar-constant',type=float,default=None,
-        help='enable native scale_by_scon using W/m2 at mean orbital distance (NASA default 589)')
+        help='solar flux in W/m2 at mean orbital distance; enables spectral scaling; simple default 589')
     parser.add_argument('--linear-k-interpolation',action='store_true',
         help='select native use_boxinterp12=false: linear k and water interpolation with T/log-pressure extrapolation')
     parser.add_argument('--shortwave-ramp-sols',type=float,default=-1.,
         help='native rampup_rad duration in model sols; nonpositive values disable the ramp')
+    parser.add_argument('--fixed-radiation-date',type=int,default=-1,
+        help='native fixed_calender_date in model days; negative values keep the evolving calendar')
     parser.add_argument('--equilibrium-profile',type=Path,help='released teq/zzf NetCDF input for fixed or height relaxation')
     parser.add_argument('--thermal-timescale',type=float,default=-4.,help='negative values use 86400-second days; positive values use seconds; zero disables')
     parser.add_argument('--moment-water',action=argparse.BooleanOptionalAction,default=True,
@@ -405,11 +412,14 @@ def main() -> int:
     if not np.isfinite(args.shortwave_ramp_sols): parser.error('shortwave ramp duration must be finite')
     if args.shortwave_ramp_sols!=-1. and (not reference or args.reference_radiation!='spectral'):
         parser.error('shortwave ramp requires --config reference and spectral radiation')
+    if args.fixed_radiation_date!=-1 and (not reference or args.reference_radiation not in ('spectral','simple')):
+        parser.error('fixed radiation date requires --config reference and spectral or simple radiation')
     if args.solar_constant is not None:
-        if not reference or args.reference_radiation!='spectral':
-            parser.error('solar constant scaling requires --config reference and spectral radiation')
+        if not reference or args.reference_radiation not in ('spectral','simple'):
+            parser.error('solar constant scaling requires --config reference and spectral or simple radiation')
         if not np.isfinite(args.solar_constant) or args.solar_constant<=0.:
             parser.error('solar constant must be finite and positive')
+    solar_constant=589. if args.reference_radiation=='simple' and args.solar_constant is None else args.solar_constant
     process_defaults=dict(freeze_tracer_fields=False,no_forcing=False,gust_factor=0.,recalculate_heat_flux=False,
         particle_scavenging=True,form_moment_clouds=True,lifting_suppresses_settling=False,dust_opacity_from_aerosol=False,
         co2_exchange_ratio_pole=.92,co2_exchange_ratio_trop=.991)
@@ -484,8 +494,8 @@ def main() -> int:
         body,base,radiation,reference_options,input_hashes=reference_configuration(
             grid,args.surface_properties,args.dt,moment_water=args.moment_water,
             dust_opacity_from_aerosol=args.dust_opacity_from_aerosol,scale_surface_flux=args.scale_surface_ir_flux,
-            solar_constant_w_m2=args.solar_constant,linear_k_interpolation=args.linear_k_interpolation,
-            shortwave_ramp_sols=args.shortwave_ramp_sols)
+            solar_constant_w_m2=solar_constant,linear_k_interpolation=args.linear_k_interpolation,
+            shortwave_ramp_sols=args.shortwave_ramp_sols,fixed_calendar_date=args.fixed_radiation_date)
         reference_options.update(co2_controls)
         reference_options.update(surface_controls)
         reference_options.update(process_controls)
@@ -494,7 +504,8 @@ def main() -> int:
         input_hashes['mola']=hashlib.sha256(args.mola_path.read_bytes()).hexdigest()
         if args.reference_radiation!='spectral':
             radiation,overrides,alternate_radiation_metadata=alternate_reference_radiation(
-                coords,args.reference_radiation,args.equilibrium_profile,args.thermal_timescale)
+                coords,args.reference_radiation,args.equilibrium_profile,args.thermal_timescale,
+                fixed_calendar_date=args.fixed_radiation_date)
             reference_options.update(overrides)
             if thermal: input_hashes['equilibrium_profile']=alternate_radiation_metadata['equilibrium_profile_sha256']
     else:
@@ -579,12 +590,14 @@ def main() -> int:
                 sigma_boundaries=sigma.tolist())
             config.update(alternate_radiation_metadata)
             if args.scale_surface_ir_flux: config['reference_radiation_controls']=dict(scale_surface_flux=True)
-            if args.solar_constant is not None:
-                config.setdefault('reference_radiation_controls',{})['solar_constant_w_m2']=args.solar_constant
+            if solar_constant is not None:
+                config.setdefault('reference_radiation_controls',{})['solar_constant_w_m2']=solar_constant
             if args.linear_k_interpolation:
                 config.setdefault('reference_radiation_controls',{})['linear_k_interpolation']=True
             if args.shortwave_ramp_sols>0.:
                 config.setdefault('reference_radiation_controls',{})['shortwave_ramp_sols']=args.shortwave_ramp_sols
+            if args.fixed_radiation_date>=0:
+                config.setdefault('reference_radiation_controls',{})['fixed_calendar_date']=args.fixed_radiation_date
             if not all(co2_controls.values()): config['co2_process_switches']=co2_controls
             if not all(surface_controls.values()): config['surface_process_switches']=surface_controls
             if process_controls: config['reference_process_controls']=process_controls

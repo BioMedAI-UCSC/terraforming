@@ -10,11 +10,12 @@ import numpy as np
 from src.framework.gcm._dinosaur import jax
 from src.celestials.planets.mars.reference_constants import reference_radiative_forcing
 from src.framework.physics.gcm import orbital_distance,_true_anomaly,_declination,solar_flux
-from src.framework.physics.solar_geometry import daylight_geometry,averaged_zenith
+from src.framework.physics.solar_geometry import daylight_geometry,averaged_zenith,radiation_clock
 from native_reference import compile_routines
 
 PATCH_BLOB='6deea614300cc5340dfd5bd02fc2d5ddc1bdebee'
 INTERFACE_BLOB='59c28889a64683ef02b21ba951206482ee6ad457'
+DRIVER_BLOB='91059b1b696ef35c05db016f1b890b9c7591f482'
 
 
 def blob(raw):
@@ -34,6 +35,7 @@ implicit none
 real, parameter :: pi=acos(-1.d0),radian=180.d0/pi
 real :: obliquity=25.19d0,eccentricity=.093d0,equinox_fraction=.269461d0
 real :: days_in_year=668.d0,zero_date=488.d0
+real,parameter :: seconds_per_day=88704.d0,solar_constant=589.d0
 contains
 """
     adapter="""
@@ -56,6 +58,23 @@ call zenith(fjd,decl,0.d0,lon,lat,hang,arg,cosz,daylight)
 end subroutine
 end module
 """
+    driver=(source/'atmos_param_mars/Rad/radiation_driver.F90').read_bytes()
+    if blob(driver)!=DRIVER_BLOB:
+        raise ValueError('radiation driver differs from pinned v3.2.1')
+    driver_text=driver.decode();start=driver_text.index('sols = secs / seconds_per_day')
+    end=driver_text.index('rsolar= solar_constant / r_orbit**2',start)+len('rsolar= solar_constant / r_orbit**2')
+    calendar_block=driver_text[start:end]
+    calendar_adapter='''subroutine calendar(secs,fixed_calender_date,out) bind(C)
+real(c_double),value :: secs
+integer(c_int),value :: fixed_calender_date
+real(c_double),intent(out) :: out(6)
+integer :: days
+real :: sols,fjd,r_orbit,declin,areoout,rsolar
+'''+calendar_block+'''
+out=[sols,fjd,r_orbit,declin,areoout,rsolar]
+end subroutine
+end module'''
+    adapter=adapter.replace('end module',calendar_adapter)
     interface=(source/'atmos_param_mars/Rad/ames_rt_interface.F90').read_bytes()
     if blob(interface)!=INTERFACE_BLOB:
         raise ValueError('radiation interface differs from pinned v3.2.1')
@@ -66,7 +85,7 @@ end module
         'real(c_double),value :: rsolar,semi_major_axis,rorbit\n'
         'real(c_double),intent(out) :: rsdist\nlogical :: scale_by_scon\n'
         'scale_by_scon=flag/=0\n'+scaling+'\nend subroutine normalization\n')
-    orbit_errors=[];geometry_errors=[];normalization_errors=[]
+    orbit_errors=[];geometry_errors=[];normalization_errors=[];calendar_cases=[]
     with tempfile.TemporaryDirectory(prefix='solar-geometry-') as temporary:
         root=Path(temporary)
         path=root/'added.F90';path.write_bytes(added)
@@ -74,11 +93,14 @@ end module
             header,adapter,root,compiler)
         provenance['source_patch_git_blob']=PATCH_BLOB
         provenance['source_patch_sha256']=hashlib.sha256(raw).hexdigest()
+        provenance['calendar_driver_git_blob']=DRIVER_BLOB
+        provenance['calendar_block_sha256']=hashlib.sha256(calendar_block.encode()).hexdigest()
         native=ctypes.CDLL(str(lib))
         array=np.ctypeslib.ndpointer(dtype=np.float64,flags='F_CONTIGUOUS')
         native.orbit.argtypes=[ctypes.c_double,array];native.orbit.restype=None
         native.geometry.argtypes=[ctypes.c_int]+[ctypes.c_double]*3+[array]*7
         native.geometry.restype=None
+        native.calendar.argtypes=[ctypes.c_double,ctypes.c_int,array];native.calendar.restype=None
         scaling_path=root/'normalization.F90';scaling_path.write_text(scaling_source)
         scaling_dir=root/'normalization';scaling_dir.mkdir()
         scaling_lib,scaling_provenance=compile_routines(scaling_path,blob(scaling_path.read_bytes()),
@@ -90,6 +112,21 @@ end module
         normalization.argtypes=[ctypes.c_int]+[ctypes.c_double]*3+[array]
         normalization.restype=None
         forcing=reference_radiative_forcing()
+        scaled=reference_radiative_forcing(solar_constant_w_m2=589.)
+        for elapsed_sols in (0.,.371,.999,1.,3.371,668.731,1336.5):
+            for date in (-1,0,100,488,667,999):
+                expected=np.empty(6)
+                native.calendar(elapsed_sols*88704.,date,expected)
+                calendar,sols,fraction=radiation_clock(elapsed_sols*88704.,88704.,date)
+                actual=np.array([sols,fraction,orbital_distance(calendar,forcing)/forcing.semi_major_axis_m,
+                    _declination(calendar,forcing),_true_anomaly(calendar,forcing)+forcing.ls_perihelion_rad,
+                    solar_flux(calendar,scaled)])
+                error=actual-expected
+                error[4]=np.arctan2(np.sin(error[4]),np.cos(error[4]))
+                np.testing.assert_allclose(error[:5],0.,atol=3e-12,rtol=0.)
+                np.testing.assert_allclose(actual[5],expected[5],atol=2e-9,rtol=3e-12)
+                calendar_cases.append(dict(elapsed_sols=elapsed_sols,fixed_date=date,
+                    max_clock_orbit_error=float(np.max(np.abs(error[:5]))),solar_error_w_m2=float(abs(error[5]))))
         for day in np.linspace(0.,3.*668.,37):
             expected=np.empty(3)
             native.orbit(day,expected)
@@ -129,9 +166,9 @@ end module
     return dict(status='pass',reference=provenance,orbit_cases=len(orbit_errors),
         normalization_reference=scaling_provenance,normalization_cases=len(normalization_errors),
         max_normalization_error_w_m2=max(normalization_errors),
-        max_orbit_error=max(orbit_errors),geometry_cases=geometry_errors,
+        max_orbit_error=max(orbit_errors),geometry_cases=geometry_errors,calendar_cases=calendar_cases,
         sha256={p:hashlib.sha256((repo/p).read_bytes()).hexdigest() for p in paths},
-        limits='periodic orbit, sol88/zenith and unchanged scale_by_scon block; reference longwave update scheduling and spin-up are separate')
+        limits='Periodic orbit, fixed/evolving driver calendar, sol88/zenith and unchanged scale_by_scon block. Calendar uses source reference orbital constants; held radiation and long climate validation are separate.')
 
 
 if __name__=='__main__':
@@ -145,4 +182,5 @@ if __name__=='__main__':
     args.output.parent.mkdir(parents=True,exist_ok=True)
     args.output.write_text(json.dumps(report,indent=2,allow_nan=False)+'\n')
     print(json.dumps(dict(status=report['status'],orbit_cases=report['orbit_cases'],
-        normalization_cases=report['normalization_cases'],geometry_cases=len(report['geometry_cases']))))
+        normalization_cases=report['normalization_cases'],calendar_cases=len(report['calendar_cases']),
+        geometry_cases=len(report['geometry_cases']))))
