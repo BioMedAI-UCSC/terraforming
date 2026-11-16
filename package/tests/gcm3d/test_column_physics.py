@@ -121,6 +121,32 @@ def test_no_surface_rejects_reservoirs_missing_from_released_initialization():
         column_physics(**inputs(),bulk_water=water,do_mars_surface=False)
 
 
+@pytest.mark.parametrize('modes',[1,2])
+@pytest.mark.parametrize('process',['settling','lifting','coagulation','background'])
+def test_dust_without_water_keeps_each_material_budget(modes,process):
+    kwargs={**inputs(),'temperature':jnp.full(4,200.),'soil':jnp.full(16,200.),
+        'co2_ice_kg_m2':0.,'dt_seconds':5.,'convection_scheme':'none'}
+    particles=jnp.broadcast_to(jnp.array([1e-6,1e9]*modes),(4,2*modes))
+    bank=jnp.full((modes,),30.) if modes>1 else jnp.asarray(30.)
+    options=dict(moment_particles=particles,moment_water=False,surface_dust_kg_m2=bank,dust_lifting_opacity=.2)
+    if process=='lifting':
+        kwargs['soil']=jnp.full(16,240.)
+        options['dust_lifting_options']=dict(threshold_stress=1e-6)
+    if process=='coagulation': options['coagulation_options']={}
+    if process=='background': options['dust_background_options']=dict(scenario_opacity=.4,scenario_change=0.,extinction_efficiency=2.5)
+    result=column_physics(**kwargs,**options)
+    gas=jnp.diff(kwargs['pressure_half'])/BODY.gravity_m_s2
+    before=jnp.sum(gas[:,None]*particles[...,::2],axis=0)+bank
+    after=jnp.sum(gas[:,None]*result.moment_particles[...,::2],axis=0)+result.diagnostics['dust']['dust_surface_kg_m2']
+    np.testing.assert_allclose(after,before,rtol=2e-12,atol=1e-12)
+    assert result.bulk_water is None and result.diagnostics['bulk_water']=={}
+    assert result.moment_particles.shape==(4,2*modes)
+    if process=='lifting':
+        assert np.all(np.asarray(result.diagnostics['dust']['dust_lifting']['stress_lift_kg_m2'])>0.)
+    if process=='background':
+        assert np.any(np.asarray(result.diagnostics['dust']['dust_surface_kg_m2'])<np.asarray(bank))
+
+
 def test_surface_mass_exchange_uses_initial_co2_mass_in_each_selected_layer():
     co2=jnp.array([.9,.8,.7,.6])
     kwargs={**inputs(),'temperature':jnp.full(4,210.),'dt_seconds':5.,

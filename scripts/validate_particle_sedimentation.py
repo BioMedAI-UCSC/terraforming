@@ -8,7 +8,7 @@ import shutil
 import tempfile
 import numpy as np
 from src.framework.gcm._dinosaur import jax
-from src.framework.physics.particle_sedimentation import sedimentation_step
+from src.framework.physics.particle_sedimentation import sedimentation_step,dust_sedimentation_step
 from src.framework.physics.water_moments import size_grid
 from native_reference import compile_routines,extract_routines
 
@@ -95,7 +95,7 @@ end module
     return native,provenance
 
 
-def validate(source,compiler,dust_modes=1):
+def validate(source,compiler,dust_modes=1,dust_only=False):
     jax.config.update('jax_enable_x64',True);cases=[]
     f=lambda x:np.asfortranarray(x,dtype=np.float64)
     with tempfile.TemporaryDirectory(prefix='particle-sedimentation-native-') as tmp:
@@ -103,6 +103,10 @@ def validate(source,compiler,dust_modes=1):
         count=6+3*(dust_modes-1)
         mass_indices=[0,2,4,5]+[i for start in range(6,count,3) for i in (start,start+2)]
         particle_indices=[0,1,2,3,4]+list(range(6,count))
+        dust_indices=[0,1]+[i for start in range(6,count,3) for i in (start,start+1)]
+        compared_indices=dust_indices if dust_only else list(range(count))
+        deposit_indices=dust_indices[::2] if dust_only else list(range(count))
+        property_indices=dust_indices if dust_only else particle_indices
         for n in (2,4,12,40):
             for ps in (610.,5e4):
                 half=np.r_[0.,np.geomspace(.1,ps,n)];full=.5*(half[:-1]+half[1:])
@@ -110,6 +114,7 @@ def validate(source,compiler,dust_modes=1):
                 base=np.array([1e-5,1e8,1e-6,1e6,1e-8,1e-6])
                 base=np.r_[base,*[np.array([1e-5,1e8,1e-8])*np.array([m,.25*m,.5*m])
                     for m in range(2,dust_modes+1)]]
+                if dust_only: base[[i for i in range(count) if i not in dust_indices]]=0.
                 for mode in ('clear','uniform','gradient'):
                     q=np.zeros((n,count)) if mode=='clear' else np.broadcast_to(base,(n,count)).copy()
                     if mode=='gradient': q*=np.geomspace(.01,10.,n)[:,None]
@@ -121,17 +126,25 @@ def validate(source,compiler,dust_modes=1):
                                 den=f(np.empty_like(q));rad=f(np.empty_like(q))
                                 native.settle(n,dt,230.,f(half),f(full),f(t),f(q),f(kh),f(size_grid()[0]),
                                     int(scavenging),out,deposit,den,rad)
-                                actual=sedimentation_step(q,half,full,t,230.,kh,dt,scavenging=scavenging)
+                                actual=(dust_sedimentation_step(q[:,dust_indices],half,full,t,230.,kh,dt,
+                                    scavenging=scavenging) if dust_only else
+                                    sedimentation_step(q,half,full,t,230.,kh,dt,scavenging=scavenging))
                                 assert np.all(np.isfinite(actual.tracers)) and np.all(np.isfinite(out))
-                                for index in range(count):
-                                    np.testing.assert_allclose(actual.tracers[...,index],out[...,index],
-                                        rtol=3e-10,atol=1e-20 if index in mass_indices else 1e-8)
-                                np.testing.assert_allclose(actual.surface_deposit,deposit,rtol=3e-10,atol=1e-18)
-                                np.testing.assert_allclose(actual.particle_density,den[...,particle_indices],rtol=3e-14)
-                                np.testing.assert_allclose(actual.radius_m,rad[...,particle_indices],rtol=3e-14,atol=1e-20)
+                                for index,native_index in enumerate(compared_indices):
+                                    np.testing.assert_allclose(actual.tracers[...,index],out[...,native_index],
+                                        rtol=3e-10,atol=1e-20 if native_index in mass_indices else 1e-8)
+                                np.testing.assert_allclose(actual.surface_deposit,deposit[deposit_indices],rtol=3e-10,atol=1e-18)
+                                np.testing.assert_allclose(actual.particle_density,den[...,property_indices],rtol=3e-14)
+                                np.testing.assert_allclose(actual.radius_m,rad[...,property_indices],rtol=3e-14,atol=1e-20)
+                                if dust_only:
+                                    inactive=[i for i in range(count) if i not in dust_indices]
+                                    np.testing.assert_array_equal(out[:,inactive],0.)
+                                    np.testing.assert_array_equal(deposit[inactive],0.)
                                 cases.append(dict(layers=n,pressure_pa=ps,mode=mode,dt_seconds=dt,
-                                    mixing_m2_s=mixing,scavenging=scavenging,dust_modes=dust_modes,
-                                    max_mass_ratio_error=float(np.max(abs(actual.tracers[:,mass_indices]-out[:,mass_indices]))),
+                                    mixing_m2_s=mixing,scavenging=scavenging,dust_modes=dust_modes,dust_only=dust_only,
+                                    max_mass_ratio_error=float(np.max(abs(
+                                        actual.tracers[:,::2]-out[:,dust_indices[::2]]))) if dust_only else
+                                        float(np.max(abs(actual.tracers[:,mass_indices]-out[:,mass_indices]))),
                                     implicit_species=int(np.sum(actual.diagnostics['transport']['implicit']))))
     root=Path(__file__).parents[1]
     paths=['scripts/validate_particle_sedimentation.py','scripts/native_reference.py',
@@ -148,9 +161,10 @@ if __name__=='__main__':
     parser.add_argument('--ames-source',type=Path,required=True)
     parser.add_argument('--output',type=Path,required=True)
     parser.add_argument('--dust-modes',type=int,choices=(1,2,3),default=1)
+    parser.add_argument('--dust-only',action='store_true',help='validate independent dust with inactive native water slots')
     args=parser.parse_args();compiler=shutil.which('gfortran')
     if compiler is None: parser.error('gfortran is required')
-    report=validate(args.ames_source,compiler,args.dust_modes)
+    report=validate(args.ames_source,compiler,args.dust_modes,args.dust_only)
     args.output.parent.mkdir(parents=True,exist_ok=True)
     args.output.write_text(json.dumps(report,indent=2,allow_nan=False)+'\n')
     print(f"{len(report['cases'])} native particle-sedimentation cases passed")

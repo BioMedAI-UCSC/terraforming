@@ -13,7 +13,7 @@ from src.framework.physics.soil_frost import soil_layer_thickness
 from src.framework.physics.co2_clouds import _remap_extensive,CO2_CLOUD_TRACER
 from src.framework.physics.co2_microphysics import LATENT_HEAT as CLOUD_LATENT_HEAT
 from src.framework.physics.water_bulk import WATER_VAPOR_TRACER,WATER_CLOUD_TRACER
-from src.framework.physics.water_moments import moment_particle_tracers,EffectiveState
+from src.framework.physics.water_moments import moment_particle_tracers,dust_particle_tracers,EffectiveState
 from src.framework.physics.particle_optics import dust_optics
 from src.framework.physics.radiation_grid import radiation_grid
 from src.framework.physics.terrain_drag import hydrostatic_heights
@@ -75,12 +75,13 @@ def initial_state(dynamics,coords,specs,temperature_k=170.,soil_layers=16,*,bulk
                   initial_dust_surface_kg_m2=30.,nonorographic_drag_options=None,dust_background_options=None,
                   moment_cloud_options=None,moist_convection_options=None,
                   initial_moist_bulk_surface_water_kg_m2=0.,dust_mode_count=1,
-                  initial_co2_gas_ratio=None):
+                  initial_co2_gas_ratio=None,moment_dust=False):
     """Initialize the existing column state with the reference soil node count."""
     if soil_layers<3:
         raise ValueError("Ames soil requires two evolving nodes and a fixed deep node")
-    moment_names=moment_particle_tracers(dust_mode_count)
-    if dust_mode_count>1 and not moment_water:
+    dust_active=moment_water or moment_dust
+    moment_names=(moment_particle_tracers if moment_water else dust_particle_tracers)(dust_mode_count)
+    if dust_mode_count>1 and not dust_active:
         raise ValueError('multiple dust populations require initialized moment tracers')
     if bulk_water and moment_water:
         raise ValueError('bulk water and moment water cannot be enabled together')
@@ -120,34 +121,46 @@ def initial_state(dynamics,coords,specs,temperature_k=170.,soil_layers=16,*,bulk
         for name,value in ((CO2_GAS_TRACER,ratio),(ARGON_GAS_TRACER,1.-ratio)):
             tracers[name]=coords.horizontal.to_modal(jnp.broadcast_to(value,profile))
         state=state._replace(dynamics=dataclasses.replace(state.dynamics,tracers=tracers))
-    if not (bulk_water or moment_water): return state._replace(ground_temperature=ground)
-    tracers={WATER_VAPOR_TRACER:coords.horizontal.to_modal(jnp.broadcast_to(
-        jnp.asarray(initial_water_vapor_ratio),(len(coords.vertical.centers),)+coords.horizontal.nodal_shape)),
-        WATER_CLOUD_TRACER:jnp.zeros_like(dynamics.temperature_variation),**state.dynamics.tracers}
-    if moment_water:
+    water_cycle=bulk_water or moment_water
+    if not (water_cycle or dust_active): return state._replace(ground_temperature=ground)
+    tracers=dict(state.dynamics.tracers)
+    if water_cycle:
+        tracers={WATER_VAPOR_TRACER:coords.horizontal.to_modal(jnp.broadcast_to(
+            jnp.asarray(initial_water_vapor_ratio),(len(coords.vertical.centers),)+coords.horizontal.nodal_shape)),
+            WATER_CLOUD_TRACER:jnp.zeros_like(dynamics.temperature_variation),**tracers}
+    if dust_active:
         profile=(len(coords.vertical.centers),)+coords.horizontal.nodal_shape
         mass=jnp.broadcast_to(jnp.asarray(initial_dust_mass_ratio),(*profile,dust_mode_count)) if dust_mode_count>1 else jnp.broadcast_to(jnp.asarray(initial_dust_mass_ratio),profile)[...,None]
         number=(jnp.broadcast_to(jnp.asarray(initial_dust_number_per_kg),mass.shape) if dust_mode_count>1 else
             jnp.broadcast_to(jnp.asarray(initial_dust_number_per_kg),profile)[...,None])
-        values=[mass[...,0],number[...,0],0.,0.]+[value for mode in range(1,dust_mode_count)
-            for value in (mass[...,mode],number[...,mode],0.)]
+        values=([mass[...,0],number[...,0],0.,0.]+[value for mode in range(1,dust_mode_count)
+            for value in (mass[...,mode],number[...,mode],0.)] if moment_water else
+            [value for mode in range(dust_mode_count) for value in (mass[...,mode],number[...,mode])])
         for name,value in zip(moment_names,values,strict=True):
             if name not in tracers:
                 tracers[name]=coords.horizontal.to_modal(jnp.broadcast_to(jnp.asarray(value),
                     (len(coords.vertical.centers),)+coords.horizontal.nodal_shape))
     shape=state.surface_temperature.shape
-    fields=dict({} if state.auxiliary_fields is None else state.auxiliary_fields,water_surface_kg_m2=jnp.broadcast_to(jnp.asarray(initial_water_surface_kg_m2),shape),
-        water_exchange_coefficient_kg_m2_s=jnp.zeros(shape),
-        water_pbl_top_layer=jnp.full(shape,len(coords.vertical.centers)-1,dtype=state.surface_temperature.dtype))
-    if moment_water:
+    fields=dict({} if state.auxiliary_fields is None else state.auxiliary_fields,
+        water_surface_kg_m2=jnp.broadcast_to(jnp.asarray(initial_water_surface_kg_m2),shape))
+    if water_cycle:
+        fields.update(water_exchange_coefficient_kg_m2_s=jnp.zeros(shape),
+            water_pbl_top_layer=jnp.full(shape,len(coords.vertical.centers)-1,dtype=state.surface_temperature.dtype))
+    else:
+        frost=fields['water_surface_kg_m2']
+        fields['water_surface_kg_m2']=jnp.where(jnp.isfinite(frost)&(frost>=0.),frost,jnp.nan)
+    if dust_active:
+        if bulk_water and not moment_water:
+            frost=jnp.broadcast_to(jnp.asarray(initial_water_surface_kg_m2),shape)
+            fields['dust_water_frost_kg_m2']=jnp.where(jnp.isfinite(frost)&(frost>=0.),frost,jnp.nan)
         fields['dust_surface_kg_m2']=jnp.broadcast_to(jnp.asarray(initial_dust_surface_kg_m2),
             (*shape,dust_mode_count) if dust_mode_count>1 else shape)
         fields['dust_reference_opacity']=jnp.zeros((2,*shape[1:]))
         fields['dust_coagulation_mass_change_kg_m2']=jnp.zeros(shape)
-        if moist_convection_options is not None:
+        if moist_convection_options is not None and moment_water:
             fields['moist_bulk_surface_water_kg_m2']=jnp.broadcast_to(
                 jnp.asarray(initial_moist_bulk_surface_water_kg_m2),shape)
-        if moment_cloud_options is not None and moment_cloud_options.get('effective_input_mode',0)==1:
+        if moment_water and moment_cloud_options is not None and moment_cloud_options.get('effective_input_mode',0)==1:
             profile=(len(coords.vertical.centers),*coords.horizontal.nodal_shape)
             fields.update(moment_previous_temperature_k=jnp.zeros(profile),
                 moment_previous_tracers=jnp.zeros((*profile,6)),moment_previous_initialized=jnp.asarray(0.))
@@ -244,7 +257,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                suspended_co2_clouds=False,cloud_nuclei_per_kg=1.e5,
                bulk_water=False,water_surface_options=None,water_cloud_options=None,form_bulk_clouds=True,
                terrain_drag_options=None,radiation_update_seconds=None,
-               moment_water=False,moment_cloud_options=None,moment_sedimentation=True,
+               moment_water=False,moment_cloud_options=None,moment_sedimentation=True,moment_dust=False,
                dust_lifting_options=None,dust_optical_bands=12,dust_opacity_channel=1,
                coagulation_options=None,dust_background_options=None,nonorographic_drag_options=None,
                convection_scheme='fv3',moist_convection_options=None,dust_mode_count=1,do_qmass=False,
@@ -261,7 +274,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
     """
     grid=coords.horizontal
     if not do_mars_surface:
-        if bulk_water or moment_water:
+        if bulk_water or moment_water or moment_dust:
             raise ValueError('the released no-surface branch requires water/dust surface reservoirs to be disabled')
         forcing=dataclasses.replace(forcing,albedo=.25,emissivity=1.,
             co2_frost_radiative_properties=False,water_frost_radiative_properties=False)
@@ -275,10 +288,11 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             raise ValueError('height relaxation requires an explicit diagnostic top pressure')
     custom_vertical=not np.array_equal(np.asarray(coords.vertical.boundaries),
         np.linspace(0.,1.,len(coords.vertical.centers)+1,dtype=np.float32))
-    moment_names=moment_particle_tracers(dust_mode_count)
-    dust_mass_names=(moment_names[0],)+moment_names[4::3]
-    dust_number_names=(moment_names[1],)+moment_names[5::3]
-    if dust_mode_count>1 and not moment_water:
+    dust_active=moment_water or moment_dust
+    moment_names=(moment_particle_tracers if moment_water else dust_particle_tracers)(dust_mode_count)
+    dust_mass_names=((moment_names[0],)+moment_names[4::3] if moment_water else moment_names[::2])
+    dust_number_names=((moment_names[1],)+moment_names[5::3] if moment_water else moment_names[1::2])
+    if dust_mode_count>1 and not dust_active:
         raise ValueError('multiple dust populations require initialized moment tracers')
     if bulk_water and moment_water:
         raise ValueError('bulk water and moment water cannot be enabled together')
@@ -290,7 +304,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
     previous_effective=(moment_cloud_options or {}).get('effective_input_mode',0)==1
     if previous_effective and not moment_water:
         raise ValueError('previous effective cloud state requires moment-water tracers')
-    if coagulation_options is not None and not moment_water:
+    if coagulation_options is not None and not dust_active:
         raise ValueError('dust coagulation requires initialized moment tracers')
     dust_control=dust_lifting_options is not None or dust_background_options is not None
     background_scenario=None;local_time_scenario=None
@@ -319,7 +333,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                 for radius in radii.reshape(-1)]
             dust_background_options['extinction_efficiency']=efficiencies[0] if radii.ndim==0 else np.asarray(efficiencies)
     if dust_control:
-        if not moment_water:
+        if not dust_active:
             raise ValueError('interactive dust requires initialized moment tracers')
         if dust_optical_bands not in (12,15) or dust_opacity_channel not in (1,2):
             raise ValueError('dust optics require 12/15 bands and visible/infrared channel 1/2')
@@ -385,11 +399,18 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                 raise ValueError('bulk water requires initialized water reservoirs and exchange history')
             if {WATER_VAPOR_TRACER,WATER_CLOUD_TRACER}-set(state.dynamics.tracers):
                 raise ValueError('bulk water requires vapor and cloud tracers in the initial state')
-        if moment_water and set(moment_names)-set(state.dynamics.tracers):
+        if dust_active and set(moment_names)-set(state.dynamics.tracers):
             raise ValueError('moment water requires dust mass/number and cloud number/core tracers')
-        if moment_water and 'dust_surface_kg_m2' not in state.auxiliary_fields:
+        if dust_active and not moment_water:
+            inactive=set(moment_particle_tracers(dust_mode_count))-set(moment_names)
+            if inactive&set(state.dynamics.tracers):
+                raise ValueError('dust-only state must not contain moment-water cloud/core tracers')
+            required={'water_surface_kg_m2'}|({'dust_water_frost_kg_m2'} if bulk_water else set())
+            if required-set(state.auxiliary_fields or {}):
+                raise ValueError('dust-only state requires the saved fixed surface-water boundary')
+        if dust_active and 'dust_surface_kg_m2' not in state.auxiliary_fields:
             raise ValueError('moment water requires the initialized dust surface reservoir')
-        if moment_water:
+        if dust_active:
             expected=(*state.surface_temperature.shape,dust_mode_count) if dust_mode_count>1 else state.surface_temperature.shape
             if state.auxiliary_fields['dust_surface_kg_m2'].shape!=expected:
                 raise ValueError('surface dust reservoirs must match the configured physical mode count')
@@ -438,7 +459,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
         names=tuple(dyn.tracers)
         if suspended_co2_clouds and CO2_CLOUD_TRACER not in names:
             raise ValueError('suspended CO2 mode requires the cloud tracer in the initial state')
-        particles=(CO2_CLOUD_TRACER,WATER_CLOUD_TRACER)+ (moment_names if moment_water else ())
+        particles=(CO2_CLOUD_TRACER,WATER_CLOUD_TRACER)+ (moment_names if dust_active else ())
         gas_names=tuple(name for name in names if name not in particles)
         if do_qmass and (CO2_GAS_TRACER not in gas_names or ARGON_GAS_TRACER not in gas_names):
             raise ValueError('gas-mass feedback requires initialized CO2 and argon gas tracers')
@@ -567,11 +588,13 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             form_bulk_clouds=form_bulk_clouds,water_radiative_options=water_optics,
             terrain_drag_options=terrain_drag_options,
             moment_particles=(jnp.stack([grid.to_nodal(dyn.tracers[name]) for name in
-                moment_names],axis=-1) if moment_water else None),
+                moment_names],axis=-1) if dust_active else None),
+            moment_water=moment_water,dust_surface_water_kg_m2=(None if moment_water or not dust_active else
+                predicted.auxiliary_fields.get('dust_water_frost_kg_m2',predicted.auxiliary_fields['water_surface_kg_m2'])[0]),
             moment_cloud_options=moment_cloud_options,moment_sedimentation=moment_sedimentation,
             dust_lifting_options=dust_lifting_options,
             dust_lifting_opacity=None if dust_depth is None else dust_depth[dust_opacity_channel-1],
-            surface_dust_kg_m2=None if not moment_water else predicted.auxiliary_fields['dust_surface_kg_m2'][0],
+            surface_dust_kg_m2=None if not dust_active else predicted.auxiliary_fields['dust_surface_kg_m2'][0],
             coagulation_options=coagulation_options,dust_background_options=background_options,
             nonorographic_drag_options=nonorographic_drag_options,nonorographic_state=gravity_wave_state,
             moment_history=moment_history,convection_scheme=convection_scheme,
@@ -585,7 +608,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
         if WATER_CLOUD_TRACER in names:
             columns[WATER_CLOUD_TRACER]=(column.bulk_water.ice_ratio if water_cycle else
                 grid.to_nodal(dyn.tracers[WATER_CLOUD_TRACER]))
-        if moment_water:
+        if dust_active:
             columns.update({name:column.moment_particles[...,index]
                 for index,name in enumerate(moment_names)})
         material=(jnp.stack([columns[name] for name in names],axis=-1)
@@ -632,12 +655,12 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                 'water_pbl_top_layer':column.bulk_water.previous_pbl_top_layer[None]}
         if moist_convection_options is not None and moment_water:
             auxiliary={**auxiliary,'moist_bulk_surface_water_kg_m2':column.moist_surface_water_kg_m2[None]}
-        if moment_water:
-            auxiliary={**auxiliary,'dust_surface_kg_m2':column.diagnostics['bulk_water']['dust_surface_kg_m2'][None]}
+        if dust_active:
+            auxiliary={**auxiliary,'dust_surface_kg_m2':column.diagnostics['dust']['dust_surface_kg_m2'][None]}
             if dust_depth is not None:
                 auxiliary={**auxiliary,'dust_reference_opacity':dust_depth}
             if coagulation_options is not None:
-                mass_change=column.diagnostics['bulk_water']['dust_coagulation']['dust_mass_change_kg_kg']
+                mass_change=column.diagnostics['dust']['dust_coagulation']['dust_mass_change_kg_kg']
                 column_change=jnp.sum(mass_change*jnp.diff(half,axis=0)/body.gravity_m_s2,axis=0)
                 auxiliary={**auxiliary,'dust_coagulation_mass_change_kg_m2':
                     auxiliary['dust_coagulation_mass_change_kg_m2']+column_change[None]}

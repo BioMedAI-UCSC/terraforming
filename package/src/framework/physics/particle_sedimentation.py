@@ -16,6 +16,38 @@ class SedimentationResult(NamedTuple):
     diagnostics: object
 
 
+def dust_sedimentation_step(tracers,pressure_half,pressure_full,temperature,temperature_surface,
+                            heat_diffusivity,dt_seconds,**options):
+    """Use the native fixed-slot kernel with zero inactive cloud/core moments.
+
+    State contains only mass/number pairs. Padding is local to the kernel call;
+    no vapor, cloud, or water reservoir is introduced into the model state.
+    """
+    q=jnp.asarray(tracers)
+    if q.shape[-1]<2 or q.shape[-1]%2:
+        raise ValueError('dust sedimentation requires mass/number pairs')
+    zero=jnp.zeros_like(q[...,0])
+    fields=[q[...,0],q[...,1],zero,zero,zero,zero]
+    for start in range(2,q.shape[-1],2): fields.extend([q[...,start],q[...,start+1],zero])
+    packed=jnp.stack(fields,axis=-1)
+    if options.get('lifting_mask') is not None:
+        mask=jnp.asarray(options['lifting_mask'],dtype=bool)
+        if mask.shape!=q.shape[1:]: raise ValueError('dust lifting mask must match surface mass/number pairs')
+        off=jnp.zeros_like(mask[...,0]);fields=[mask[...,0],mask[...,1],off,off,off,off]
+        for start in range(2,q.shape[-1],2): fields.extend([mask[...,start],mask[...,start+1],off])
+        options['lifting_mask']=jnp.stack(fields,axis=-1)
+    result=sedimentation_step(packed,pressure_half,pressure_full,temperature,temperature_surface,
+        heat_diffusivity,dt_seconds,**options)
+    indices=jnp.asarray([0,1]+[index for start in range(6,packed.shape[-1],3) for index in (start,start+1)])
+    deposits=jnp.asarray([0]+list(range(6,packed.shape[-1],3)))
+    particle_indices=jnp.asarray([0,1]+[index for start in range(5,result.radius_m.shape[-1],3) for index in (start,start+1)])
+    diagnostics=dict(result.diagnostics)
+    diagnostics['atmospheric_change']=result.diagnostics['atmospheric_change'][...,indices]
+    diagnostics['per_species_deposit']=result.diagnostics['per_species_deposit'][...,particle_indices]
+    return SedimentationResult(result.tracers[...,indices],result.surface_deposit[...,deposits],
+        result.particle_density[...,particle_indices],result.radius_m[...,particle_indices],diagnostics)
+
+
 def particle_properties(tracers):
     """Original init_sedim: six cloud moments, then extra dust mass/number/core."""
     q=jnp.maximum(jnp.asarray(tracers),1e-31)

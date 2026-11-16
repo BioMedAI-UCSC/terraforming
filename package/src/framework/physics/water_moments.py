@@ -24,6 +24,12 @@ def moment_particle_tracers(dust_mode_count=1):
         for mode in range(2,dust_mode_count+1) for kind in ('mass','number','core_mass'))
 
 
+def dust_particle_tracers(dust_mode_count=1):
+    """Dust mass/number pairs without the inactive water-cloud/core entries."""
+    names=moment_particle_tracers(dust_mode_count)
+    return names[:2]+tuple(name for start in range(4,len(names),3) for name in names[start:start+2])
+
+
 def size_grid():
     """Original initmicro four-bin radii and volume-derived boundaries."""
     ratio=np.exp(np.log(1.e-5/1.e-7)/3.*3.)

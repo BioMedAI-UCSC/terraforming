@@ -3,9 +3,39 @@ import numpy as np
 import pytest
 pytest.importorskip('dinosaur')
 from src.framework.gcm._dinosaur import jax,jnp
-from src.framework.physics.particle_sedimentation import sedimentation_step
+from src.framework.physics.particle_sedimentation import sedimentation_step,dust_sedimentation_step
 
 jax.config.update('jax_enable_x64',True)
+
+
+@pytest.mark.parametrize('modes',[1,2,3])
+@pytest.mark.parametrize('dt',[5.,30000.])
+def test_dust_only_settling_closes_each_population_without_water_slots(modes,dt):
+    half=jnp.array([0.,50.,200.,400.,610.]);full=.5*(half[1:]+half[:-1])
+    pairs=jnp.array([1e-5,1e8]*modes)[None]*jnp.array([.5,1.,2.,5.])[:,None]
+    result=dust_sedimentation_step(pairs,half,full,jnp.array([150.,180.,200.,220.]),230.,
+        jnp.array([.001,1.,10.]),dt)
+    gas=jnp.diff(half)/3.72
+    change=jnp.sum(gas[:,None]*(result.tracers-pairs),axis=0)
+    np.testing.assert_allclose(change[::2]+result.surface_deposit,0.,atol=2e-18)
+    np.testing.assert_allclose(change[1::2]+result.diagnostics['per_species_deposit'][1::2],0.,atol=1e-5)
+    assert result.tracers.shape==pairs.shape and result.surface_deposit.shape==(modes,)
+    assert result.radius_m.shape==pairs.shape
+    assert result.diagnostics['water_budget_residual']==0.
+
+
+def test_dust_only_settling_lifting_mask_and_reverse_derivative():
+    half=jnp.array([0.,50.,200.,400.,610.]);full=.5*(half[1:]+half[:-1]);q=jnp.full((4,2),1e-5).at[:,1].set(1e8)
+    def settle(amplitude,mask=None):
+        return dust_sedimentation_step(q*amplitude,half,full,jnp.array([150.,180.,200.,220.]),
+            230.,jnp.array([.001,1.,10.]),300.,lifting_mask=mask)
+    held=settle(1.,jnp.array([True,False]))
+    assert held.surface_deposit[0]==0.
+    np.testing.assert_array_equal(held.tracers[-1,0],q[-1,0])
+    objective=lambda a:settle(a).surface_deposit[0]
+    auto=jax.grad(objective)(1.);eps=1e-5
+    assert np.isfinite(auto) and auto>0.
+    np.testing.assert_allclose(auto,(objective(1.+eps)-objective(1.-eps))/(2.*eps),rtol=3e-7,atol=1e-15)
 
 
 def column(dt,scavenging=True,lifting_mask=None,amplitude=1.):

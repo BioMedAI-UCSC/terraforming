@@ -95,7 +95,7 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
                  convection_scheme='fv3',moist_convection_options=None,dust_mode_count=1,sigma_boundaries=None,
                  initial_co2_gas_ratio=None,do_qmass=False,thermal_relaxation_options=None,
                  do_co2_condensation=True,do_atmos_co2_loss=True,do_co2_condensation_cycle=True,
-                 do_mars_surface=True,do_vert_diff=True,do_ames_pbl=True):
+                 do_mars_surface=True,do_vert_diff=True,do_ames_pbl=True,moment_dust=False):
     from src.framework.gcm.coordinates import coordinate_system
     from src.framework.gcm.specs import physics_specs
     from src.framework.gcm._dinosaur import primitive_equations,scales
@@ -123,7 +123,7 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
         nonorographic_drag_options=nonorographic_drag_options,dust_background_options=dust_background_options,
         moment_cloud_options=dict(effective_input_mode=effective_input_mode),
         moist_convection_options=moist_convection_options,dust_mode_count=dust_mode_count,
-        initial_co2_gas_ratio=initial_co2_gas_ratio)
+        initial_co2_gas_ratio=initial_co2_gas_ratio,moment_dust=moment_dust)
     forcing=(radiative_forcing(co2_radiation_enabled=True) if radiation_component is None else
         reference_radiative_forcing())
     radiation=two_stream_radiative_fluxes if radiation_component is None else radiation_component
@@ -139,7 +139,7 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
         thermal_relaxation_options=thermal_relaxation_options,
         do_co2_condensation=do_co2_condensation,do_atmos_co2_loss=do_atmos_co2_loss,
         do_co2_condensation_cycle=do_co2_condensation_cycle,
-        do_mars_surface=do_mars_surface,do_vert_diff=do_vert_diff,do_ames_pbl=do_ames_pbl)
+        do_mars_surface=do_mars_surface,do_vert_diff=do_vert_diff,do_ames_pbl=do_ames_pbl,moment_dust=moment_dust)
     return state,step,grid
 
 
@@ -238,6 +238,76 @@ def test_surface_controls_keep_global_reverse_derivatives(control):
     finite=(objective(.001)-objective(-.001))/.002
     assert np.isfinite(automatic) and automatic>0.
     np.testing.assert_allclose(automatic,finite,rtol=2e-5,atol=1e-7)
+
+
+@pytest.mark.parametrize('modes',[1,2])
+@pytest.mark.parametrize('bulk',[False,True])
+def test_independent_dust_transport_radiation_material_and_restart(tmp_path,modes,bulk):
+    from src.framework.physics.particle_optics import make_particle_provider
+    from src.framework.physics.radiative_transfer import make_radiation_component
+    from src.framework.physics.water_moments import dust_particle_tracers
+    from src.framework.physics.water_bulk import WATER_CLOUD_TRACER,WATER_VAPOR_TRACER
+    from src.framework.gcm.restart import save_restart,load_restart
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.framework.gcm.specs import physics_specs
+    from src.framework.gcm._dinosaur import scales
+    coords=coordinate_system('T21',4);specs=physics_specs(BODY)
+    names=dust_particle_tracers(modes);pairs=tuple(zip(names[::2],names[1::2]))
+    radiation=make_radiation_component(make_particle_provider(bands=12,dust_tracers=pairs))
+    state,step,grid=backend_case(temperature_k=180.,surface_temperature_k=180.,moment_dust=True,
+        dust_mode_count=modes,bulk_water=bulk,initial_water_surface_kg_m2=100.,
+        radiation_component=radiation,coagulation_options={},dust_background_options=dict(
+            scenario=dict(seasons=[0.,360.],opacity=np.full((2,*coords.horizontal.nodal_shape),.4))))
+    assert (WATER_VAPOR_TRACER in state.dynamics.tracers)==bulk
+    assert (WATER_CLOUD_TRACER in state.dynamics.tracers)==bulk
+    assert 'water_core_mass' not in state.dynamics.tracers and 'water_ice_number' not in state.dynamics.tracers
+    pressure_scale=float(specs.dimensionalize(1.,scales.units.pascal).magnitude)
+    def inventory(current):
+        ps=jnp.exp(grid.to_nodal(current.dynamics.log_surface_pressure))[0]*pressure_scale
+        gas=ps[None]*jnp.diff(coords.vertical.boundaries)[:,None,None]/BODY.gravity_m_s2
+        dust=jnp.stack([jnp.sum(gas*grid.to_nodal(current.dynamics.tracers[name]),axis=0) for name in names[::2]],axis=-1)
+        bank=current.auxiliary_fields['dust_surface_kg_m2'][0]
+        if modes==1: bank=bank[...,None]
+        area=jnp.asarray(grid.quadrature_weights)
+        return jnp.sum((dust+bank)*area[...,None],axis=(0,1))/jnp.sum(area)
+    tick=jax.jit(step);first=tick(state);second=tick(first)
+    assert all(np.isfinite(value).all() for value in jax.tree.leaves(second))
+    np.testing.assert_allclose(inventory(second),inventory(state),rtol=2e-12,atol=1e-12)
+    restored=load_restart(save_restart(first,tmp_path/'dust-only.npz'))
+    for actual,expected in zip(jax.tree.leaves(tick(restored)),jax.tree.leaves(second),strict=True):
+        np.testing.assert_array_equal(actual,expected)
+    if not bulk:
+        np.testing.assert_array_equal(state.auxiliary_fields['water_surface_kg_m2'],second.auxiliary_fields['water_surface_kg_m2'])
+        assert 'water_exchange_coefficient_kg_m2_s' not in second.auxiliary_fields
+    else:
+        np.testing.assert_array_equal(state.auxiliary_fields['dust_water_frost_kg_m2'],second.auxiliary_fields['dust_water_frost_kg_m2'])
+
+
+@pytest.mark.parametrize('modes',[1,2])
+def test_independent_dust_lifting_coagulation_radiation_three_step_gradient(modes):
+    from src.framework.physics.particle_optics import make_particle_provider
+    from src.framework.physics.radiative_transfer import make_radiation_component
+    from src.framework.physics.water_moments import dust_particle_tracers
+    from src.framework.gcm.coordinates import coordinate_system
+    names=dust_particle_tracers(modes);grid=coordinate_system('T21',4).horizontal
+    radiation=make_radiation_component(make_particle_provider(bands=12,
+        dust_tracers=tuple(zip(names[::2],names[1::2]))))
+    state,step,grid=backend_case(temperature_k=180.371,surface_temperature_k=180.371,
+        moment_dust=True,dust_mode_count=modes,wind_speed=40.,radiation_component=radiation,
+        coagulation_options={},dust_lifting_options=dict(dual_mode=1,threshold_stress=.001),
+        dust_background_options=dict(scenario=dict(seasons=[0.,360.],opacity=np.full((2,*grid.nodal_shape),.4))))
+    def objective(amplitude):
+        tracers={**state.dynamics.tracers}
+        for name in names[-2:]: tracers[name]=tracers[name]*amplitude
+        current=state._replace(dynamics=dataclasses.replace(state.dynamics,tracers=tracers))
+        for _ in range(3): current=step(current)
+        return jnp.mean(current.surface_temperature)+1e6*jnp.mean(grid.to_nodal(current.dynamics.tracers[names[-2]]))
+    reverse=jax.jit(jax.grad(objective));forward=jax.jit(objective)
+    automatic=reverse(1.)
+    assert np.isfinite(automatic) and automatic!=0.
+    for epsilon in (.001,.0005):
+        finite=(forward(1.+epsilon)-forward(1.-epsilon))/(2.*epsilon)
+        np.testing.assert_allclose(automatic,finite,rtol=3e-5,atol=1e-7)
 
 
 def test_explicit_gas_global_species_budget_restart_and_reverse_derivative(tmp_path):

@@ -77,8 +77,8 @@
   "sha256": {
     "scripts/validate_surface_controls.py": "105200b9043335646daf1c1b2ee9751c378623f9925811047aeb9a1ab460a1ed",
     "package/src/framework/physics/boundary_layer.py": "ecae22187db8d06253c34e1a385982bda1e3a238c497e109d29c1daf5448bcae",
-    "package/src/framework/physics/column_physics.py": "aee7e6364e9796646a4e4c7cea4691396a433577eae842c8dd4a6222720894b5",
-    "package/src/framework/physics/dinosaur_physics.py": "d4e610e520158c63efab2253cc5f6839b66c19bfd45b2a28bcaeeec8c0594c3e"
+    "package/src/framework/physics/column_physics.py": "07eadc89d1fdb96ab1376777ab8599998c395a000ea8f625822bac583c9c0808",
+    "package/src/framework/physics/dinosaur_physics.py": "65caf7d62f76ff175b4df001dea09632d29113a292dcf4ec321620a43d1a79be"
   },
   "limits": "Unchanged fixed-boundary assignments and original diffuse compiled with released flags: tendency outputs remain unchanged because fv3_turb is excluded. Inactive PBL exchange fields are undefined in source; the port defines them as zero, tested separately. Surface-dependent water/dust configurations without initialized reservoirs are rejected."
 }

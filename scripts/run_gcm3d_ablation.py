@@ -233,7 +233,7 @@ def _ames_dust_climatology(path: Path, grid):
     )
 
 
-def reference_configuration(grid,data_directory,dt_seconds):
+def reference_configuration(grid,data_directory,dt_seconds,*,moment_water=True):
     """Released present-Mars cloud switches from build_run/fms_mars_clouds_v3.2."""
     from src.celestials.planets.mars.reference_constants import AMES_BODY_3D,reference_radiative_forcing
     from src.celestials.planets.mars.surface import reference_surface_fields_on_grid
@@ -254,15 +254,15 @@ def reference_configuration(grid,data_directory,dt_seconds):
     radiation_interval=8*dt_seconds
     radiation=make_radiation_component(make_particle_provider(bands=12,
         dust_tracers=(('dust_mass','dust_number'),),
-        water_moment_tracers=(WATER_CLOUD_TRACER,'water_core_mass','water_ice_number')),
+        water_moment_tracers=(WATER_CLOUD_TRACER,'water_core_mass','water_ice_number') if moment_water else None),
         radiation_interval_seconds=radiation_interval,radiation_mode='12band')
     options=dict(soil_diffusivity=diffusivity,soil_volumetric_heat_capacity=capacity,
-        radiation_update_seconds=radiation_interval,moment_water=True,
+        radiation_update_seconds=radiation_interval,moment_water=moment_water,moment_dust=not moment_water,
         initial_water_surface_kg_m2=polar_water_on_grid(grid,data_directory),
         initial_water_vapor_ratio=0.,initial_dust_mass_ratio=0.,initial_dust_number_per_kg=0.,
         rayleigh_options=dict(model_top=True),
         dust_background_options=dict(scenario=scenario,effective_radius_m=2e-6),
-        moment_cloud_options=dict(microtimestep=30.,contact=.95,latent_heat=False))
+        moment_cloud_options=dict(microtimestep=30.,contact=.95,latent_heat=False) if moment_water else None)
     inputs=('mars_thermal_inertia8_2011.nc','mars_TES_albedo8_new.nc','mars_sfc_emissivity8.nc',
         'GRS_interp16.nc','npcflag8.nc','DustScenario_MY30.nc')
     hashes={name:hashlib.sha256((data_directory/name).read_bytes()).hexdigest() for name in inputs}
@@ -324,6 +324,8 @@ def main() -> int:
     parser.add_argument('--reference-radiation',choices=('spectral','simple','fixed','height'),default='spectral')
     parser.add_argument('--equilibrium-profile',type=Path,help='released teq/zzf NetCDF input for fixed or height relaxation')
     parser.add_argument('--thermal-timescale',type=float,default=-4.,help='negative values use 86400-second days; positive values use seconds; zero disables')
+    parser.add_argument('--moment-water',action=argparse.BooleanOptionalAction,default=True,
+        help='disable to run transported dust without water exchange or cloud microphysics')
     for flag,destination in (('co2-condensation','do_co2_condensation'),('atmos-co2-loss','do_atmos_co2_loss'),
                              ('co2-mass-feedback','do_co2_condensation_cycle')):
         parser.add_argument('--'+flag,dest=destination,action=argparse.BooleanOptionalAction,default=True)
@@ -364,6 +366,7 @@ def main() -> int:
     )
     args = parser.parse_args()
     reference=args.config=='reference'
+    if not reference and not args.moment_water: parser.error('--no-moment-water requires --config reference')
     if not reference and (args.reference_radiation!='spectral' or args.equilibrium_profile is not None or args.thermal_timescale!=-4.):
         parser.error('alternate reference radiation requires --config reference')
     co2_controls={name:getattr(args,name) for name in
@@ -425,11 +428,12 @@ def main() -> int:
     grid = coords.horizontal
     body=MARS_BODY_3D;radiation=None;reference_options=None;input_hashes={};alternate_radiation_metadata={}
     if reference:
-        body,base,radiation,reference_options,input_hashes=reference_configuration(grid,args.surface_properties,args.dt)
+        body,base,radiation,reference_options,input_hashes=reference_configuration(
+            grid,args.surface_properties,args.dt,moment_water=args.moment_water)
         reference_options.update(co2_controls)
         reference_options.update(surface_controls)
         if not args.do_mars_surface:
-            reference_options.update(moment_water=False,dust_background_options=None,moment_cloud_options=None)
+            reference_options.update(moment_water=False,moment_dust=False,dust_background_options=None,moment_cloud_options=None)
         input_hashes['mola']=hashlib.sha256(args.mola_path.read_bytes()).hexdigest()
         if args.reference_radiation!='spectral':
             radiation,overrides,alternate_radiation_metadata=alternate_reference_radiation(
@@ -520,6 +524,8 @@ def main() -> int:
             if not all(co2_controls.values()): config['co2_process_switches']=co2_controls
             if not all(surface_controls.values()): config['surface_process_switches']=surface_controls
             if not args.do_mars_surface: config['reference_protocol']='released-no-surface-v3.2'
+            elif not args.moment_water:
+                config.update(reference_protocol='released-dust-without-water-v3.2',moment_water=False,moment_dust=True)
         if restart_path.exists():
             if not args.resume:
                 raise ValueError(f"{restart_path} exists; use --resume or a new output directory")
@@ -607,6 +613,7 @@ def main() -> int:
                 initial_options={key:value for key,value in reference_options.items() if key.startswith('initial_')}
                 state=reference_initial_state(initial_dynamics,coords,specs,temperature_k=170.,
                     moment_water=reference_options.get('moment_water',False),
+                    moment_dust=reference_options.get('moment_dust',False),
                     radiation_update_seconds=reference_options.get('radiation_update_seconds'),**initial_options)
                 surface=(reference_surface_temperature_k(jnp.asarray(grid.latitudes))[None,None,:]
                     if args.do_mars_surface else jnp.full((1,1,len(grid.latitudes)),170.))

@@ -113,12 +113,38 @@ def test_alternate_reference_cli_rejects_unsupported_combinations(monkeypatch):
     import sys
     driver=_script('run_gcm3d_ablation')
     for arguments in (['--reference-radiation','simple'],['--thermal-timescale','-2.'],['--no-co2-mass-feedback'],
-                      ['--no-vertical-diffusion'],['--no-reference-pbl'],
+                      ['--no-vertical-diffusion'],['--no-reference-pbl'],['--no-moment-water'],
                       ['--config','reference','--no-mars-surface'],
                       ['--config','reference','--reference-radiation','height']):
         monkeypatch.setattr(sys,'argv',['run_gcm3d_ablation.py','unused-surface',*arguments])
         with pytest.raises(SystemExit) as stopped: driver.main()
         assert stopped.value.code==2
+
+
+@pytest.mark.parametrize('water',[False,True])
+def test_reference_configuration_keeps_dust_and_frost_independent_of_water(monkeypatch,tmp_path,water):
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.celestials.planets.mars import surface,boundary_inputs,dust_scenario
+    from src.framework.physics import particle_optics,radiative_transfer
+    grid=coordinate_system('T21',4).horizontal
+    frost=np.arange(np.prod(grid.nodal_shape)).reshape(grid.nodal_shape)*.01
+    monkeypatch.setattr(surface,'reference_surface_fields_on_grid',lambda *args:
+        dict(albedo=.25,emissivity=.95,thermal_inertia=250.,grs_ice_latitude_deg=60.))
+    monkeypatch.setattr(boundary_inputs,'polar_water_on_grid',lambda *args:frost)
+    monkeypatch.setattr(dust_scenario,'load_scenario_on_grid',lambda *args:dict(fixture=True))
+    monkeypatch.setattr(particle_optics,'make_particle_provider',lambda **kwargs:kwargs)
+    monkeypatch.setattr(radiative_transfer,'make_radiation_component',lambda provider,**kwargs:provider)
+    inputs=('mars_thermal_inertia8_2011.nc','mars_TES_albedo8_new.nc','mars_sfc_emissivity8.nc',
+        'GRS_interp16.nc','npcflag8.nc','DustScenario_MY30.nc')
+    for name in inputs: (tmp_path/name).write_bytes(name.encode())
+    _,_,provider,options,hashes=_script('run_gcm3d_ablation').reference_configuration(
+        grid,tmp_path,231.,moment_water=water)
+    assert options['moment_water'] is water and options['moment_dust'] is not water
+    assert (options['moment_cloud_options'] is not None)==water
+    assert (provider['water_moment_tracers'] is not None)==water
+    assert provider['dust_tracers']==(('dust_mass','dust_number'),)
+    np.testing.assert_array_equal(options['initial_water_surface_kg_m2'],frost)
+    assert set(hashes)==set(inputs)
 
 
 def test_staged_arco_time_is_martian_sol_not_cf_datetime(tmp_path):

@@ -1623,7 +1623,7 @@
   ],
   "sha256": {
     "scripts/validate_water_moments.py": "332f9121b5ff5e84837cea054fc3c320f7317288c40ffc164c7078e239e6c863",
-    "package/src/framework/physics/water_moments.py": "207a4976b8770dd5f3a39c6c81ff8f05b235dc4df9c867c426d9eed40a41a778",
+    "package/src/framework/physics/water_moments.py": "b8bc858d72db9195666280db011a5e87687eb490cbfc1df99bb5323a9fb7e1b4",
     "package/src/framework/physics/water_bulk.py": "563b225222538936e923bbdb4f8e3de82c9f20434870545a53dc0f6fc71b8f61"
   },
   "limits": "Native nucleacond and kinetic primitives; source subeffmode=0 ramp composed with native calls. Original FP64 geometry cancellation and contact-case-1 subsaturated NaNs are recorded. Binary128 only resolves the geometric cancellation; it does not change the source equations. Empty bins use zero weight; dry vapor uses saturation pressure directly. The shared implicit root removes the native 1e-8 stopping noise. Previous effective input uses seeded history with native substeps; the released driver never fills its dust-history arrays. The port saves pre-cloud dust alongside source pre-cloud Q and post-cloud T. Outer sedimentation and long climate validation remain separate."

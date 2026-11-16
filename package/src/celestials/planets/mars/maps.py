@@ -383,6 +383,7 @@ def run_maps(
                 radiation_update_seconds=options.get('radiation_update_seconds'),
                 initial_water_surface_kg_m2=initial_water,initial_water_vapor_ratio=initial_vapor,
                 moment_water=options.get('moment_water',False),
+                moment_dust=options.get('moment_dust',False),
                 dust_mode_count=options.get('dust_mode_count',1),
                 nonorographic_drag_options=options.get('nonorographic_drag_options'),
                 dust_background_options=options.get('dust_background_options'),
@@ -694,7 +695,7 @@ def state_to_comparison_dataset(state, coords, specs, body, forcing):
             level_field(np.asarray(grid.to_nodal(value))),attributes)
     reservoirs={};extra_coordinates={}
     auxiliary={} if state.auxiliary_fields is None else state.auxiliary_fields
-    for name in ('water_surface_kg_m2','dust_surface_kg_m2','moist_bulk_surface_water_kg_m2'):
+    for name in ('water_surface_kg_m2','dust_surface_kg_m2','moist_bulk_surface_water_kg_m2','dust_water_frost_kg_m2'):
         if name not in auxiliary: continue
         value=np.asarray(auxiliary[name])
         if name=='dust_surface_kg_m2' and value.ndim==4:
@@ -702,7 +703,10 @@ def state_to_comparison_dataset(state, coords, specs, body, forcing):
             extra_coordinates['dust_mode']=np.arange(1,value.shape[1]+1)
         else:
             dimensions=('time','lat','lon');value=surface_field(value[0])
-        reservoirs[name]=(dimensions,value,{'units':'kg m-2'})
+        attributes={'units':'kg m-2'}
+        if name=='dust_water_frost_kg_m2':
+            attributes['long_name']='Fixed moment frost for dust source gates; not an additional water inventory'
+        reservoirs[name]=(dimensions,value,attributes)
     return xr.Dataset(
         data_vars={
             **tracer_variables,**reservoirs,
