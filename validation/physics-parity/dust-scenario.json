@@ -2,7 +2,7 @@
   "status": "pass",
   "reference": {
     "source_git_blob": "89f1a0b2efb58e77bf47cbc121ae2d382ba32e13",
-    "compiled_source_sha256": "ef2978d32203f06cefb6e9bf5cd875277de2bddab9f401ff0187f9d836ee9d39",
+    "compiled_source_sha256": "ba147a8906c4069d0d58208cd5c2173b5205d0ffe3c4f978b5afc18fc6414df7",
     "routine_sha256": {
       "HORIZ_INTERP_BILINEAR_NEW_1D_": "5bbfef7530c80018ff467801829e20a8e0f57e9e3cb64757d59bb55a95168a54"
     },
@@ -16,7 +16,9 @@
       "-shared"
     ],
     "real_precision_bits": 64,
-    "adaptation": "unchanged routine body, intended precision macros, module/type declarations and C adapter; monotone nearest_index uses minloc; unused diagnostics stubbed"
+    "adaptation": "unchanged routine body, intended precision macros, module/type declarations and C adapter; monotone nearest_index uses minloc; unused diagnostics stubbed",
+    "dust_update_git_blob": "1e470cc1efb44c6627cbe3168c69c2d1f7640570",
+    "scenario_scaling_block_sha256": "458b7bab8a83fdeb65268f54c29a8f939e5747cd9c01d634e08a6543084d3d2a"
   },
   "input_blobs": {
     "DustScenario_Background.nc": "ad086574f8def0d45247409811b02bf76afacbbf",
@@ -122,8 +124,130 @@
       "max_error": 0.0
     }
   ],
+  "scaling_cases": [
+    {
+      "grid": "T21",
+      "channel": 1,
+      "map_scale": 0.0,
+      "max_error": 0.0
+    },
+    {
+      "grid": "T21",
+      "channel": 1,
+      "map_scale": 1.0,
+      "max_error": 5.551115123125783e-17
+    },
+    {
+      "grid": "T21",
+      "channel": 1,
+      "map_scale": 3.67,
+      "max_error": 2.220446049250313e-16
+    },
+    {
+      "grid": "T21",
+      "channel": 2,
+      "map_scale": 3.67,
+      "max_error": 5.551115123125783e-17
+    },
+    {
+      "grid": "T42",
+      "channel": 1,
+      "map_scale": 0.0,
+      "max_error": 0.0
+    },
+    {
+      "grid": "T42",
+      "channel": 1,
+      "map_scale": 1.0,
+      "max_error": 8.326672684688674e-17
+    },
+    {
+      "grid": "T42",
+      "channel": 1,
+      "map_scale": 3.67,
+      "max_error": 3.3306690738754696e-16
+    },
+    {
+      "grid": "T42",
+      "channel": 2,
+      "map_scale": 3.67,
+      "max_error": 8.326672684688674e-17
+    },
+    {
+      "grid": "T85",
+      "channel": 1,
+      "map_scale": 0.0,
+      "max_error": 0.0
+    },
+    {
+      "grid": "T85",
+      "channel": 1,
+      "map_scale": 1.0,
+      "max_error": 5.551115123125783e-17
+    },
+    {
+      "grid": "T85",
+      "channel": 1,
+      "map_scale": 3.67,
+      "max_error": 2.220446049250313e-16
+    },
+    {
+      "grid": "T85",
+      "channel": 2,
+      "map_scale": 3.67,
+      "max_error": 5.551115123125783e-17
+    },
+    {
+      "grid": "T170",
+      "channel": 1,
+      "map_scale": 0.0,
+      "max_error": 0.0
+    },
+    {
+      "grid": "T170",
+      "channel": 1,
+      "map_scale": 1.0,
+      "max_error": 8.326672684688674e-17
+    },
+    {
+      "grid": "T170",
+      "channel": 1,
+      "map_scale": 3.67,
+      "max_error": 3.3306690738754696e-16
+    },
+    {
+      "grid": "T170",
+      "channel": 2,
+      "map_scale": 3.67,
+      "max_error": 8.326672684688674e-17
+    },
+    {
+      "grid": "seam-poles",
+      "channel": 1,
+      "map_scale": 0.0,
+      "max_error": 0.0
+    },
+    {
+      "grid": "seam-poles",
+      "channel": 1,
+      "map_scale": 1.0,
+      "max_error": 0.0
+    },
+    {
+      "grid": "seam-poles",
+      "channel": 1,
+      "map_scale": 3.67,
+      "max_error": 0.0
+    },
+    {
+      "grid": "seam-poles",
+      "channel": 2,
+      "map_scale": 3.67,
+      "max_error": 0.0
+    }
+  ],
   "sha256": {
-    "scripts/validate_dust_scenario.py": "b24d929ad9726478c814c11cca06d793e0ef57a60c455f898aaa086d656dfe2d",
+    "scripts/validate_dust_scenario.py": "d98c5bf181e526065746bc5abab4b274bf37819d7f440decaef03213873d9695",
     "package/src/celestials/planets/mars/dust_scenario.py": "679f3b48e9e1ecae66d50f9ec3a5bb65bebabe85788759d9c6f9778233e6f9aa"
   }
 }

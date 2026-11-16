@@ -14,7 +14,10 @@ def comparison_manifests(args):
     if not re.fullmatch('[0-9a-f]{40}',args.ref):
         raise ValueError('comparison source must be an immutable 40-character commit')
     items=[]
+    selected=getattr(args,'framework','all')
+    if selected not in ('all','native','dinosaur'): raise ValueError('unknown comparison framework')
     for framework,resolutions in (('native',('c24','c48')),('dinosaur',('t21','t42'))):
+        if selected not in ('all',framework): continue
         prepare=args.phase=='prepare'
         name=f'{args.name}-{framework}-'+('prepare' if prepare else '100sol')
         options=['--name',name,'--namespace',args.namespace,'--ref',args.ref,
@@ -66,6 +69,7 @@ def main():
     parser.add_argument('--name',required=True)
     parser.add_argument('--ref',required=True)
     parser.add_argument('--phase',choices=('prepare','run'),required=True)
+    parser.add_argument('--framework',choices=('all','native','dinosaur'),default='all')
     parser.add_argument('--input-pvc',default='mars-reference-physics-data')
     parser.add_argument('--pvc-prefix',help='Reuse the persistent framework volumes from an earlier preparation')
     parser.add_argument('--input-node',default='rci-tide-gpu-04.sdsu.edu')

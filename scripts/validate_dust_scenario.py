@@ -12,12 +12,13 @@ import xarray as xr
 from src.framework.gcm.coordinates import coordinate_system
 from src.celestials.planets.mars.dust_scenario import (_bilinear_weights,bilinear_map,
     load_scenario_on_grid,INPUT_BLOBS)
-from native_reference import compile_routines
+from native_reference import compile_routines,extract_routines
 
 FMS_BLOB='89f1a0b2efb58e77bf47cbc121ae2d382ba32e13'
+DUST_BLOB='1e470cc1efb44c6627cbe3168c69c2d1f7640570'
 
 
-def compile_reference(source,destination,compiler):
+def compile_reference(source,destination,compiler,*,dust_source=None):
     header="""#define FMS_HI_KIND_ 8
 #define HI_KIND_TYPE_ data
 module reference_mod
@@ -63,6 +64,20 @@ stdout=6
 end function
 end module
 """
+    scaling=None
+    if dust_source is not None:
+        routines,_=extract_routines(dust_source,DUST_BLOB,['dust_update_init'])
+        text=routines[0];start=text.index('            if (dgdm_type.eq.2) then')
+        scaling=text[start:text.index('            endif',start)+len('            endif')]
+        routine='''
+subroutine scale_scenario(n,dgdm_type,dust_map_scale,tau_scenario_ls) bind(C)
+integer(c_int),value :: n,dgdm_type
+real(c_double),value :: dust_map_scale
+real(c_double),intent(inout) :: tau_scenario_ls(n)
+'''+scaling+'''
+end subroutine
+'''
+        adapter=adapter.removesuffix('end module\n')+routine+'end module\n'
     library,provenance=compile_routines(source,FMS_BLOB,['HORIZ_INTERP_BILINEAR_NEW_1D_'],
         header,adapter,destination,compiler)
     native=ctypes.CDLL(str(library))
@@ -70,14 +85,20 @@ end module
     indices=np.ctypeslib.ndpointer(dtype=np.int32,flags='F_CONTIGUOUS')
     native.weights.argtypes=[ctypes.c_int]*4+[array]*4+[indices,array]
     native.weights.restype=None
+    if scaling is not None:
+        native.scale_scenario.argtypes=[ctypes.c_int]*2+[ctypes.c_double,array]
+        native.scale_scenario.restype=None
+        provenance['dust_update_git_blob']=DUST_BLOB
+        provenance['scenario_scaling_block_sha256']=hashlib.sha256(scaling.encode()).hexdigest()
     provenance['adaptation']='unchanged routine body, intended precision macros, module/type declarations and C adapter; monotone nearest_index uses minloc; unused diagnostics stubbed'
     return native,provenance
 
 
 def validate(source,fms,compiler):
-    cases=[];path=source/'data/DustScenario_Background.nc'
+    cases=[];scaling_cases=[];path=source/'data/DustScenario_Background.nc'
     with xr.open_dataset(path,decode_times=False) as ds, tempfile.TemporaryDirectory(prefix='dust-map-native-') as tmp:
-        native,provenance=compile_reference(fms,Path(tmp),compiler)
+        native,provenance=compile_reference(fms,Path(tmp),compiler,
+            dust_source=source/'atmos_param_mars/dust_update.F90')
         xb=np.asarray(ds.lonb,dtype=float);yb=np.asarray(ds.latb,dtype=float)
         x=np.deg2rad(.5*(xb[:-1]+xb[1:]));y=np.deg2rad(.5*(yb[:-1]+yb[1:]))
         grids=[(t,coordinate_system(t,4).horizontal) for t in ('T21','T42','T85','T170')]
@@ -99,11 +120,24 @@ def validate(source,fms,compiler):
                 actual=bilinear_map(grid,values,xb,yb)
                 np.testing.assert_allclose(actual,expected,rtol=3e-13,atol=3e-13)
                 cases.append(dict(grid=name,field=variable,max_error=float(np.max(np.abs(actual-expected)))))
+                if variable=='taufill':
+                    for channel,map_scale in ((1,0.),(1,1.),(1,3.67),(2,3.67)):
+                        scaled=expected.flatten(order='F')
+                        native.scale_scenario(scaled.size,channel,map_scale,scaled)
+                        scaled=scaled.reshape(expected.shape,order='F')
+                        effective_scale=map_scale if channel==1 else 1.
+                        actual=bilinear_map(grid,values,xb,yb)*effective_scale/2.75
+                        np.testing.assert_allclose(actual,scaled,rtol=3e-13,atol=3e-13)
+                        scaling_cases.append(dict(grid=name,channel=channel,map_scale=map_scale,
+                            max_error=float(np.max(abs(actual-scaled)))))
             if name!='seam-poles':
                 staged=load_scenario_on_grid(grid,path)
                 np.testing.assert_allclose(staged['opacity'][[0,123,667]],
                     bilinear_map(grid,np.asarray(ds.taufill.isel(time=[0,123,667])),xb,yb)/2.75,rtol=3e-15)
                 assert np.isfinite(staged['opacity']).all() and np.isfinite(staged['top_height_km']).all()
+                if name=='T21':
+                    visible=load_scenario_on_grid(grid,path,map_scale=3.67)
+                    np.testing.assert_allclose(visible['opacity'],staged['opacity']*3.67,rtol=3e-15)
     verified_inputs={}
     grid=coordinate_system('T21',4).horizontal
     for filename in INPUT_BLOBS:
@@ -116,7 +150,8 @@ def validate(source,fms,compiler):
             seasonal_samples=len(staged['seasons']),periodic_endpoint_appended=staged['periodic_endpoint_appended'],min_opacity=float(staged['opacity'].min()),
             min_top_height_km=float(staged['top_height_km'].min()))
     root=Path(__file__).parents[1]
-    return dict(status='pass',reference=provenance,input_blobs=INPUT_BLOBS,verified_inputs=verified_inputs,cases=cases,
+    return dict(status='pass',reference=provenance,input_blobs=INPUT_BLOBS,verified_inputs=verified_inputs,
+        cases=cases,scaling_cases=scaling_cases,
         sha256={name:hashlib.sha256((root/name).read_bytes()).hexdigest() for name in
             ('scripts/validate_dust_scenario.py','package/src/celestials/planets/mars/dust_scenario.py')})
 
@@ -131,7 +166,7 @@ def main():
     report=validate(args.ames_source,args.fms_bilinear_source,compiler)
     args.output.parent.mkdir(parents=True,exist_ok=True)
     args.output.write_text(json.dumps(report,indent=2,allow_nan=False)+'\n')
-    print(f"{len(report['cases'])} dust-map comparisons passed")
+    print(f"{len(report['cases'])} dust-map and {len(report['scaling_cases'])} native opacity-scaling comparisons passed")
 
 
 if __name__=='__main__': main()

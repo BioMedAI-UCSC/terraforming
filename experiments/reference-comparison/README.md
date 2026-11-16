@@ -14,6 +14,13 @@ Dinosaur retains its sigma grid, arithmetic centers, spectral filtering and
 zero-pressure top. Native FV3 retains hybrid interfaces and a finite top.
 These numerical differences must appear in the comparison report.
 
+The released visible-dust scenario uses `dgdm_type=1` and
+`dust_map_scale=3.67`: the mapped input optical depth is multiplied by
+`3.67/2.75`. The reference runner uses this conversion and visible channel 1.
+The generic scenario loader keeps its infrared conversion default of `1/2.75`.
+Earlier Dinosaur benchmark revisions through `a9a10cf` omitted the visible
+scale. Their climate outputs cannot support a matched-forcing comparison.
+
 The generic slim image supplies GNU Fortran, MPI and netCDF. Two CPU preparation
 jobs fetch exact source commits, apply the released patches, compile the native
 model and install the locked Python/CUDA environment on persistent volumes.
@@ -46,6 +53,9 @@ python experiments/reference-comparison/deploy.py --name reference-100sol-v1 \
 ```
 
 Submission checks that preparation succeeded for the same source and image.
+Use `--framework dinosaur` in both phases to prepare and run only the two
+Dinosaur resolutions when the native experiments are already running. Use a
+new name and volume for a corrected revision so previous attempts stay intact.
 Compute jobs recheck input hashes, native sources/executable or installed
 framework source before running. Each resolution writes separate logs, source
 identity, runtime records and outputs. Failed attempts remain available.

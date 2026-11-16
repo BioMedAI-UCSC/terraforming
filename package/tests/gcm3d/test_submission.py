@@ -146,7 +146,7 @@ def test_reference_configuration_keeps_dust_and_frost_independent_of_water(monke
     monkeypatch.setattr(surface,'reference_surface_fields_on_grid',lambda *args:
         dict(albedo=.25,emissivity=.95,thermal_inertia=250.,grs_ice_latitude_deg=60.))
     monkeypatch.setattr(boundary_inputs,'polar_water_on_grid',lambda *args:frost)
-    monkeypatch.setattr(dust_scenario,'load_scenario_on_grid',lambda *args:dict(fixture=True))
+    monkeypatch.setattr(dust_scenario,'load_scenario_on_grid',lambda *args,**kwargs:dict(fixture=True,**kwargs))
     monkeypatch.setattr(particle_optics,'make_particle_provider',lambda **kwargs:kwargs)
     monkeypatch.setattr(radiative_transfer,'make_radiation_component',lambda provider,**kwargs:provider)
     inputs=('mars_thermal_inertia8_2011.nc','mars_TES_albedo8_new.nc','mars_sfc_emissivity8.nc',
@@ -158,6 +158,8 @@ def test_reference_configuration_keeps_dust_and_frost_independent_of_water(monke
     assert (options['moment_cloud_options'] is not None)==water
     assert (provider['water_moment_tracers'] is not None)==water
     assert provider['dust_tracers']==(('dust_mass','dust_number'),)
+    assert options['dust_background_options']['scenario']['map_scale']==3.67
+    assert options['dust_opacity_channel']==1 and options['dust_optical_bands']==12
     np.testing.assert_array_equal(options['initial_water_surface_kg_m2'],frost)
     assert set(hashes)==set(inputs)
 

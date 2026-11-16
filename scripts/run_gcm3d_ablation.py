@@ -247,7 +247,7 @@ def reference_configuration(grid,data_directory,dt_seconds,*,moment_water=True):
     fields=reference_surface_fields_on_grid(grid,data_directory)
     diffusivity,capacity=subsurface_properties(jnp.asarray(grid.latitudes)[None,:],
         fields['thermal_inertia'],fields['grs_ice_latitude_deg'])
-    scenario=load_scenario_on_grid(grid,data_directory/'DustScenario_MY30.nc')
+    scenario=load_scenario_on_grid(grid,data_directory/'DustScenario_MY30.nc',map_scale=3.67)
     forcing=dataclasses.replace(reference_radiative_forcing(),albedo=jnp.asarray(fields['albedo']),
         emissivity=jnp.asarray(fields['emissivity']),co2_frost_radiative_properties=True,
         water_frost_radiative_properties=True,diurnal=True)
@@ -258,6 +258,7 @@ def reference_configuration(grid,data_directory,dt_seconds,*,moment_water=True):
         radiation_interval_seconds=radiation_interval,radiation_mode='12band')
     options=dict(soil_diffusivity=diffusivity,soil_volumetric_heat_capacity=capacity,
         radiation_update_seconds=radiation_interval,moment_water=moment_water,moment_dust=not moment_water,
+        dust_opacity_channel=1,dust_optical_bands=12,
         initial_water_surface_kg_m2=polar_water_on_grid(grid,data_directory),
         initial_water_vapor_ratio=0.,initial_dust_mass_ratio=0.,initial_dust_number_per_kg=0.,
         rayleigh_options=dict(model_top=True),

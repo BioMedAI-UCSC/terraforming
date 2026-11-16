@@ -19,6 +19,22 @@ deploy=importlib.util.module_from_spec(spec);spec.loader.exec_module(deploy)
 
 
 class ComparisonTests(unittest.TestCase):
+    def test_selected_framework_keeps_parallel_resolutions_without_relaunching_other_model(self):
+        for framework in ('native','dinosaur'):
+            args=SimpleNamespace(name='matched-corrected',ref='a'*40,phase='prepare',namespace='razvanlab',
+                input_node='input-node',input_pvc='input-data',context='nautilus',framework=framework)
+            for phase in ('prepare','run'):
+                args.phase=phase
+                body=deploy.comparison_manifests(args)
+                jobs=[item for item in body['items'] if item['kind']=='Job']
+                self.assertEqual(len(jobs),1)
+                job=jobs[0]
+                self.assertIn('-'+framework+'-',job['metadata']['name'])
+                arguments=job['spec']['template']['spec']['containers'][0]['args']
+                self.assertEqual(arguments[arguments.index('--parallel')+1],'2')
+                self.assertEqual(sum(arg.startswith('experiments/reference-comparison/') for arg in arguments),2)
+                self.assertNotIn('activeDeadlineSeconds',job['spec'])
+
     def test_native_build_search_excludes_documentation_before_basename_deduplication(self):
         with tempfile.TemporaryDirectory() as temporary:
             root=Path(temporary);nasa=root/'src/AmesGCM';(nasa/'build_run/bin').mkdir(parents=True)

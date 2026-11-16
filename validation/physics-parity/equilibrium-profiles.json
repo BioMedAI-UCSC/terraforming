@@ -396,7 +396,7 @@
   ],
   "sha256": {
     "scripts/validate_equilibrium_profiles.py": "e4840995754c7eaf9bc2237d6f3bf93816356185b5fc69a3a530fac3ed1ef142",
-    "scripts/validate_dust_scenario.py": "b24d929ad9726478c814c11cca06d793e0ef57a60c455f898aaa086d656dfe2d",
+    "scripts/validate_dust_scenario.py": "d98c5bf181e526065746bc5abab4b274bf37819d7f440decaef03213873d9695",
     "scripts/validate_thermal_relaxation.py": "0ca1df6b943180e497b9f28e0b7a31f217980ae07604289c7d0a5aa9f187edd2",
     "scripts/native_reference.py": "2e3b0e2f65b685f86fcfdd1b4643b54c5582b81af36a0874a43d9eedc2675d76",
     "package/src/framework/physics/thermal_relaxation.py": "ead31b1babaf3e79d850ee9394eba32d343af55b0143ca87c51dbd3c919ec49c",

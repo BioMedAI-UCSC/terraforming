@@ -502,6 +502,16 @@ env PYTHONPATH=package:. python scripts/validate_vertical_grid.py \
 
 ## Required remaining work
 
+The released cloud benchmark uses visible dust (`dgdm_type=1`) with
+`dust_map_scale=3.67`. The reference runner now maps the scenario with the
+native conversion `3.67/2.75`, visible channel 1 and 12 optical bands. The
+generic infrared scenario loader retains its default scale of 1. Ten native
+map cases and 20 unchanged native scaling-block cases check both channels,
+zero/unit/released scales, all four supported grids, the seam and poles.
+Earlier Dinosaur benchmark revisions through `a9a10cf` used a dust target
+3.67 times too low for this visible setup. Those runs do not establish matched
+forcing; corrected runs need a new immutable revision and output directory.
+
 The reference backend projects transported species after dynamics and after
 column physics. The dynamics projection restores each previous global species
 inventory. The physics projection keeps each current inventory, so injection,
