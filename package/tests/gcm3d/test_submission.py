@@ -115,7 +115,7 @@ def test_alternate_reference_cli_rejects_unsupported_combinations(monkeypatch):
     for arguments in (['--reference-radiation','simple'],['--thermal-timescale','-2.'],['--no-co2-mass-feedback'],
                       ['--no-vertical-diffusion'],['--no-reference-pbl'],['--no-moment-water'],
                       ['--freeze-tracer-fields'],['--no-forcing'],['--gust-factor','2.'],['--gust-factor','nan'],
-                      ['--recalculate-heat-flux'],['--lifting-suppresses-settling'],
+                      ['--recalculate-heat-flux'],['--lifting-suppresses-settling'],['--dust-opacity-from-aerosol'],
                       ['--co2-exchange-ratio-pole','.8'],['--co2-exchange-ratio-trop','.9'],
                       ['--config','reference','--co2-exchange-ratio-trop','nan'],
                       ['--config','reference','--co2-exchange-ratio-pole','0'],
@@ -137,7 +137,8 @@ def test_disabled_reference_process_switch_rejects_nonreference_config(monkeypat
 
 
 @pytest.mark.parametrize('water',[False,True])
-def test_reference_configuration_keeps_dust_and_frost_independent_of_water(monkeypatch,tmp_path,water):
+@pytest.mark.parametrize('from_aerosol',[False,True])
+def test_reference_configuration_keeps_dust_and_frost_independent_of_water(monkeypatch,tmp_path,water,from_aerosol):
     from src.framework.gcm.coordinates import coordinate_system
     from src.celestials.planets.mars import surface,boundary_inputs,dust_scenario
     from src.framework.physics import particle_optics,radiative_transfer
@@ -152,13 +153,18 @@ def test_reference_configuration_keeps_dust_and_frost_independent_of_water(monke
     inputs=('mars_thermal_inertia8_2011.nc','mars_TES_albedo8_new.nc','mars_sfc_emissivity8.nc',
         'GRS_interp16.nc','npcflag8.nc','DustScenario_MY30.nc')
     for name in inputs: (tmp_path/name).write_bytes(name.encode())
-    _,_,provider,options,hashes=_script('run_gcm3d_ablation').reference_configuration(
-        grid,tmp_path,231.,moment_water=water)
+    _,forcing,provider,options,hashes=_script('run_gcm3d_ablation').reference_configuration(
+        grid,tmp_path,231.,moment_water=water,dust_opacity_from_aerosol=from_aerosol)
     assert options['moment_water'] is water and options['moment_dust'] is not water
     assert (options['moment_cloud_options'] is not None)==water
     assert (provider['water_moment_tracers'] is not None)==water
     assert provider['dust_tracers']==(('dust_mass','dust_number'),)
-    assert options['dust_background_options']['scenario']['map_scale']==3.67
+    if from_aerosol:
+        assert callable(options['dust_background_options']['fixed_dust_provider'])
+        assert 'scenario' not in options['dust_background_options']
+        assert forcing.dust_visible_optical_depth==0. and options['dust_opacity_from_aerosol']
+    else:
+        assert options['dust_background_options']['scenario']['map_scale']==3.67
     assert options['dust_opacity_channel']==1 and options['dust_optical_bands']==12
     np.testing.assert_array_equal(options['initial_water_surface_kg_m2'],frost)
     assert set(hashes)==set(inputs)

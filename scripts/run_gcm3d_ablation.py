@@ -233,7 +233,7 @@ def _ames_dust_climatology(path: Path, grid):
     )
 
 
-def reference_configuration(grid,data_directory,dt_seconds,*,moment_water=True):
+def reference_configuration(grid,data_directory,dt_seconds,*,moment_water=True,dust_opacity_from_aerosol=False):
     """Released present-Mars cloud switches from build_run/fms_mars_clouds_v3.2."""
     from src.celestials.planets.mars.reference_constants import AMES_BODY_3D,reference_radiative_forcing
     from src.celestials.planets.mars.surface import reference_surface_fields_on_grid
@@ -264,6 +264,12 @@ def reference_configuration(grid,data_directory,dt_seconds,*,moment_water=True):
         rayleigh_options=dict(model_top=True),
         dust_background_options=dict(scenario=scenario,effective_radius_m=2e-6),
         moment_cloud_options=dict(microtimestep=30.,contact=.95,latent_heat=False) if moment_water else None)
+    if dust_opacity_from_aerosol:
+        from src.framework.physics.prescribed_dust import make_fixed_dust_provider
+        forcing=dataclasses.replace(forcing,dust_visible_optical_depth=0.)
+        options['dust_opacity_from_aerosol']=True
+        options['dust_background_options'].pop('scenario')
+        options['dust_background_options']['fixed_dust_provider']=make_fixed_dust_provider(bands=12,scenario=scenario)
     inputs=('mars_thermal_inertia8_2011.nc','mars_TES_albedo8_new.nc','mars_sfc_emissivity8.nc',
         'GRS_interp16.nc','npcflag8.nc','DustScenario_MY30.nc')
     hashes={name:hashlib.sha256((data_directory/name).read_bytes()).hexdigest() for name in inputs}
@@ -336,6 +342,8 @@ def main() -> int:
         help='form and grow moment water clouds; surface exchange and settling remain independent')
     parser.add_argument('--lifting-suppresses-settling',action='store_true',
         help='retain bottom-layer lifted dust and suppress its surface deposit, as in native lifting_nosed')
+    parser.add_argument('--dust-opacity-from-aerosol',action='store_true',
+        help='use prescribed aerosol optics as the lifting target without current-opacity pressure scaling')
     parser.add_argument('--gust-factor',type=float,default=0.,help='released dust-lifting wind correction; gust speed is 1 m/s')
     parser.add_argument('--co2-exchange-ratio-pole',type=float,default=.92)
     parser.add_argument('--co2-exchange-ratio-trop',type=float,default=.991)
@@ -380,7 +388,7 @@ def main() -> int:
     args = parser.parse_args()
     reference=args.config=='reference'
     process_defaults=dict(freeze_tracer_fields=False,no_forcing=False,gust_factor=0.,recalculate_heat_flux=False,
-        particle_scavenging=True,form_moment_clouds=True,lifting_suppresses_settling=False,
+        particle_scavenging=True,form_moment_clouds=True,lifting_suppresses_settling=False,dust_opacity_from_aerosol=False,
         co2_exchange_ratio_pole=.92,co2_exchange_ratio_trop=.991)
     process_controls={name:getattr(args,name) for name,default in process_defaults.items() if getattr(args,name)!=default}
     for name in ('co2_exchange_ratio_pole','co2_exchange_ratio_trop'):
@@ -451,7 +459,8 @@ def main() -> int:
     body=MARS_BODY_3D;radiation=None;reference_options=None;input_hashes={};alternate_radiation_metadata={}
     if reference:
         body,base,radiation,reference_options,input_hashes=reference_configuration(
-            grid,args.surface_properties,args.dt,moment_water=args.moment_water)
+            grid,args.surface_properties,args.dt,moment_water=args.moment_water,
+            dust_opacity_from_aerosol=args.dust_opacity_from_aerosol)
         reference_options.update(co2_controls)
         reference_options.update(surface_controls)
         reference_options.update(process_controls)
@@ -638,6 +647,7 @@ def main() -> int:
                 state=reference_initial_state(initial_dynamics,coords,specs,temperature_k=170.,
                     moment_water=reference_options.get('moment_water',False),
                     moment_dust=reference_options.get('moment_dust',False),
+                    dust_background_options=reference_options.get('dust_background_options'),
                     radiation_update_seconds=reference_options.get('radiation_update_seconds'),**initial_options)
                 surface=(reference_surface_temperature_k(jnp.asarray(grid.latitudes))[None,None,:]
                     if args.do_mars_surface else jnp.full((1,1,len(grid.latitudes)),170.))

@@ -16,6 +16,7 @@ from src.framework.physics.co2_microphysics import cloud_step,phase_change,trans
 from src.framework.physics.water_bulk import cloud_step as water_cloud_step
 from src.framework.physics.water_moments import subcycled_cloud_step,EffectiveState
 from src.framework.physics.particle_sedimentation import sedimentation_step,dust_sedimentation_step
+from src.framework.physics.dust_control import reference_opacity
 from src.framework.physics.dust_lifting import (interactive_step as dust_lifting_step,background_step,
     interactive_modes_step,background_modes_step)
 from src.framework.physics.dust_coagulation import coagulation_step
@@ -69,7 +70,7 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
                    do_co2_condensation_cycle=True,do_mars_surface=True,do_vert_diff=True,do_ames_pbl=True,
                    moment_water=None,dust_surface_water_kg_m2=None,freeze_tracer_fields=False,gust_factor=0.,
                    recalculate_heat_flux=False,particle_scavenging=True,form_moment_clouds=True,
-                   lifting_suppresses_settling=False):
+                   lifting_suppresses_settling=False,dust_opacity_from_aerosol=False):
     """Rayleigh/PBL, soil/frost, CO2 deposition or suspended clouds, convection.
 
     This is the standard present-Mars gas-column process order. Tracers here
@@ -291,7 +292,7 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
                 moment_particles[...,dust_number_indices] if dust_modes>1 else moment_particles[...,1],t,
                 pressure_half,pressure_full,ground[0],stress,pbl['heat_flux_w_m2'],pbl_top,p_pbl,
                 latitude_rad,snow,surface_water_for_dust,
-                jnp.maximum(dust_lifting_opacity/pressure_full[-1]*610.,1e-10),
+                reference_opacity(dust_lifting_opacity,pressure_full[-1],from_aerosol=dust_opacity_from_aerosol),
                 surface_dust_kg_m2=surface_dust_kg_m2,dt_seconds=dt_seconds,gravity=body.gravity_m_s2,
                 gas_constant=body.gas_constant_j_kg_k,cp=body.cp_j_kg_k,**lifting_options)
             moment_particles=moment_particles.at[...,dust_mass_indices if dust_modes>1 else 0].set(lifted.mass_ratio)
@@ -303,7 +304,8 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
             background_lift=background_modes_step if dust_modes>1 else background_step
             background=background_lift(moment_particles[...,dust_mass_indices] if dust_modes>1 else moment_particles[...,0],
                 moment_particles[...,dust_number_indices] if dust_modes>1 else moment_particles[...,1],pressure_half,
-                pbl_top,ground[0],snow,jnp.maximum(dust_lifting_opacity/pressure_full[-1]*610.,1e-10),
+                pbl_top,ground[0],snow,reference_opacity(dust_lifting_opacity,pressure_full[-1],
+                    from_aerosol=dust_opacity_from_aerosol),
                 surface_dust_kg_m2=surface_dust_kg_m2,dt_seconds=dt_seconds,
                 gravity=body.gravity_m_s2,**{key:value for key,value in dust_background_options.items()
                     if key!='dual_scenario_opacity'})

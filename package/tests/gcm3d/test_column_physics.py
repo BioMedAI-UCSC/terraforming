@@ -194,6 +194,20 @@ def test_lifting_override_uses_net_bottom_source_and_leaves_clouds_settling(wate
     np.testing.assert_array_equal(held.moment_particles,normal.moment_particles)
 
 
+@pytest.mark.parametrize('from_aerosol',[False,True])
+def test_dust_background_uses_native_current_opacity_pressure_branch(from_aerosol):
+    kwargs={**inputs(),'temperature':jnp.full(4,170.),'soil':jnp.full(16,170.),
+        'do_co2_condensation':False,'co2_ice_kg_m2':0.,'convection_scheme':'none','do_vert_diff':False,
+        'radiative_heating_k_s':jnp.zeros(4),'moment_water':False,'moment_sedimentation':False,
+        'moment_particles':jnp.broadcast_to(jnp.array([1e-5,1e8]),(4,2)),
+        'surface_dust_kg_m2':30.,'dust_lifting_opacity':.1,
+        'dust_background_options':dict(scenario_opacity=.5,scenario_change=0.,extinction_efficiency=2.)}
+    result=column_physics(**kwargs,dust_opacity_from_aerosol=from_aerosol)
+    current=.1 if from_aerosol else .1/kwargs['pressure_full'][-1]*610.
+    np.testing.assert_allclose(result.diagnostics['dust']['dust_background']['opacity_delta'],.5-current,rtol=2e-15)
+    assert result.diagnostics['dust']['dust_background']['injected_kg_m2']>0.
+
+
 def test_disabled_moment_cloud_formation_keeps_surface_exchange_and_settling_independent():
     from src.framework.physics.water_moments import saturation_ratio
     kwargs={**inputs(),'temperature':jnp.full(4,170.),'soil':jnp.full(16,170.),

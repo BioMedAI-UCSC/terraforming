@@ -97,7 +97,9 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
                  do_co2_condensation=True,do_atmos_co2_loss=True,do_co2_condensation_cycle=True,
                  do_mars_surface=True,do_vert_diff=True,do_ames_pbl=True,moment_dust=False,
                  freeze_tracer_fields=False,no_forcing=False,gust_factor=0.,recalculate_heat_flux=False,
-                 particle_scavenging=True,form_moment_clouds=True,lifting_suppresses_settling=False):
+                 particle_scavenging=True,form_moment_clouds=True,lifting_suppresses_settling=False,
+                 dust_opacity_from_aerosol=False,radiation_update_seconds=None,dust_optical_bands=15,
+                 dust_opacity_channel=1):
     from src.framework.gcm.coordinates import coordinate_system
     from src.framework.gcm.specs import physics_specs
     from src.framework.gcm._dinosaur import primitive_equations,scales
@@ -124,6 +126,7 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
         moment_water=moment_water,initial_dust_mass_ratio=1e-5,initial_dust_number_per_kg=1e8,
         nonorographic_drag_options=nonorographic_drag_options,dust_background_options=dust_background_options,
         moment_cloud_options=dict(effective_input_mode=effective_input_mode),
+        radiation_update_seconds=radiation_update_seconds,
         moist_convection_options=moist_convection_options,dust_mode_count=dust_mode_count,
         initial_co2_gas_ratio=initial_co2_gas_ratio,moment_dust=moment_dust)
     forcing=(radiative_forcing(co2_radiation_enabled=True) if radiation_component is None else
@@ -134,7 +137,7 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
         soil_diffusivity=(250./(1500.*627.9))**2,return_diagnostics=return_diagnostics,
         suspended_co2_clouds=suspended_co2_clouds,bulk_water=bulk_water,moment_water=moment_water,
         moment_cloud_options=dict(latent_heat=True,microtimestep=1.,effective_input_mode=effective_input_mode),
-        dust_lifting_options=dust_lifting_options,dust_optical_bands=15,coagulation_options=coagulation_options,
+        dust_lifting_options=dust_lifting_options,dust_optical_bands=dust_optical_bands,coagulation_options=coagulation_options,
         dust_background_options=dust_background_options,nonorographic_drag_options=nonorographic_drag_options,
         convection_scheme=convection_scheme,moist_convection_options=moist_convection_options,
         dust_mode_count=dust_mode_count,do_qmass=do_qmass,
@@ -144,6 +147,8 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
         recalculate_heat_flux=recalculate_heat_flux,
         particle_scavenging=particle_scavenging,
         lifting_suppresses_settling=lifting_suppresses_settling,
+        dust_opacity_from_aerosol=dust_opacity_from_aerosol,radiation_update_seconds=radiation_update_seconds,
+        dust_opacity_channel=dust_opacity_channel,
         form_moment_clouds=form_moment_clouds,
         do_co2_condensation_cycle=do_co2_condensation_cycle,
         do_mars_surface=do_mars_surface,do_vert_diff=do_vert_diff,do_ames_pbl=do_ames_pbl,moment_dust=moment_dust)
@@ -487,6 +492,65 @@ def test_disabled_moment_clouds_keep_settling_and_water_budget_without_advancing
     assert np.isfinite(automatic) and automatic>0.
     for epsilon in (.0001,.00005):
         np.testing.assert_allclose(automatic,(objective(epsilon)-objective(-epsilon))/(2.*epsilon),rtol=2e-5,atol=1e-7)
+
+
+def test_aerosol_control_requires_matching_provider_switch_and_cache():
+    from src.framework.gcm.coordinates import coordinate_system
+    grid=coordinate_system('T21',4).horizontal
+    scenario=dict(seasons=[0.,360.],opacity=np.full((2,*grid.nodal_shape),.4))
+    for options,enabled,match in ((dict(scenario=scenario),True,'provider'),
+            (dict(scenario=scenario,fixed_dust_provider=3),False,'callable'),
+            (dict(fixed_dust_provider=lambda *args:None),False,'switch')):
+        with pytest.raises(ValueError,match=match):
+            backend_case(moment_dust=True,dust_background_options=options,dust_opacity_from_aerosol=enabled)
+
+
+@pytest.mark.parametrize('water,local_time,channel,bands',[(False,False,1,12),(True,True,2,15)])
+def test_aerosol_opacity_control_holds_native_channels_and_preserves_restart_gradient(tmp_path,water,local_time,channel,bands):
+    from src.framework.physics.prescribed_dust import make_fixed_dust_provider
+    from src.framework.physics.particle_optics import make_particle_provider
+    from src.framework.physics.radiative_transfer import make_radiation_component
+    from src.framework.physics.water_bulk import WATER_CLOUD_TRACER
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.framework.gcm.restart import save_restart,load_restart
+    grid=coordinate_system('T21',4).horizontal
+    scenario=dict(seasons=[0.,180.,360.],opacity=np.broadcast_to(np.array([.4,.7,.4])[:,None,None],(3,*grid.nodal_shape)),
+        top_height_km=np.full((3,*grid.nodal_shape),35.))
+    background=dict(fixed_dust_provider=make_fixed_dust_provider(bands=bands,scenario=scenario))
+    if local_time:
+        background['local_time_scenario']=dict(seasons=[0.,180.,360.],bins_hours=[0.,12.,24.],
+            fractions=np.full((3,*grid.nodal_shape,2),.5))
+    radiation=make_radiation_component(make_particle_provider(bands=bands,
+        dust_tracers=(('dust_mass','dust_number'),),
+        water_moment_tracers=(WATER_CLOUD_TRACER,'water_core_mass','water_ice_number') if water else None),
+        radiation_interval_seconds=10.,radiation_mode=f'{bands}band')
+    state,step,grid=backend_case(temperature_k=180.371,surface_temperature_k=180.371,
+        moment_dust=not water,moment_water=water,initial_water_surface_kg_m2=10.,wind_speed=20.,
+        radiation_component=radiation,radiation_update_seconds=10.,dust_optical_bands=bands,
+        dust_opacity_channel=channel,
+        dust_background_options=background,dust_opacity_from_aerosol=True)
+    missing=state._replace(auxiliary_fields={key:value for key,value in state.auxiliary_fields.items()
+        if key!='dust_fixed_reference_opacity'})
+    with pytest.raises(ValueError,match='fixed-opacity history'): step(missing)
+    tick=jax.jit(step);first=tick(state);second=tick(first);third=tick(second)
+    for current in (first,second,third):
+        assert np.all(np.asarray(current.auxiliary_fields['dust_fixed_reference_opacity'])>0.)
+    assert np.any(np.asarray(first.auxiliary_fields['dust_fixed_reference_opacity'])!=
+        np.asarray(second.auxiliary_fields['dust_fixed_reference_opacity']))
+    np.testing.assert_array_equal(third.auxiliary_fields['dust_fixed_reference_opacity'],
+        second.auxiliary_fields['dust_fixed_reference_opacity'])
+    restored=load_restart(save_restart(second,tmp_path/'aerosol-control.npz'))
+    for actual,expected in zip(jax.tree.leaves(tick(restored)),jax.tree.leaves(third),strict=True):
+        np.testing.assert_array_equal(actual,expected)
+    def objective(amplitude):
+        tracers={**state.dynamics.tracers,'dust_mass':state.dynamics.tracers['dust_mass']*amplitude}
+        current=state._replace(dynamics=dataclasses.replace(state.dynamics,tracers=tracers))
+        for _ in range(3): current=step(current)
+        return jnp.mean(current.surface_temperature)+1e6*jnp.mean(grid.to_nodal(current.dynamics.tracers['dust_mass']))
+    automatic=jax.jit(jax.grad(objective))(1.);forward=jax.jit(objective)
+    assert np.isfinite(automatic) and automatic!=0.
+    for epsilon in (.001,.0005):
+        np.testing.assert_allclose(automatic,(forward(1.+epsilon)-forward(1.-epsilon))/(2.*epsilon),rtol=3e-5,atol=1e-7)
 
 
 @pytest.mark.parametrize('modes',[1,2])

@@ -153,6 +153,8 @@ def initial_state(dynamics,coords,specs,temperature_k=170.,soil_layers=16,*,bulk
         fields['dust_surface_kg_m2']=jnp.broadcast_to(jnp.asarray(initial_dust_surface_kg_m2),
             (*shape,dust_mode_count) if dust_mode_count>1 else shape)
         fields['dust_reference_opacity']=jnp.zeros((2,*shape[1:]))
+        if dust_background_options is not None and dust_background_options.get('fixed_dust_provider') is not None:
+            fields['dust_fixed_reference_opacity']=jnp.zeros((2,*shape[1:]))
         fields['dust_coagulation_mass_change_kg_m2']=jnp.zeros(shape)
         if moist_convection_options is not None and moment_water:
             fields['moist_bulk_surface_water_kg_m2']=jnp.broadcast_to(
@@ -262,7 +264,8 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                do_co2_condensation_cycle=True,do_mars_surface=True,do_vert_diff=True,do_ames_pbl=True,
                freeze_tracer_fields=False,no_forcing=False,gust_factor=0.,
                co2_exchange_ratio_pole=.92,co2_exchange_ratio_trop=.991,recalculate_heat_flux=False,
-               particle_scavenging=True,form_moment_clouds=True,lifting_suppresses_settling=False):
+               particle_scavenging=True,form_moment_clouds=True,lifting_suppresses_settling=False,
+               dust_opacity_from_aerosol=False):
     """Dinosaur dynamics followed by Ames-order reference gas-column physics.
 
     Supply a verified radiation component and mapped soil diffusivity. Keeping
@@ -307,7 +310,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
     if coagulation_options is not None and not dust_active:
         raise ValueError('dust coagulation requires initialized moment tracers')
     dust_control=dust_lifting_options is not None or dust_background_options is not None
-    background_scenario=None;local_time_scenario=None
+    background_scenario=None;local_time_scenario=None;fixed_dust_provider=None
     if dust_background_options is not None:
         if dust_lifting_options is not None and dust_lifting_options.get('dual_mode',0)<=0:
             raise ValueError('combined interactive/background dust requires a positive dual mode')
@@ -315,6 +318,14 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
         background_scenario=dust_background_options.pop('scenario',None)
         background_segment=dust_background_options.pop('segment',False)
         local_time_scenario=dust_background_options.pop('local_time_scenario',None)
+        fixed_dust_provider=dust_background_options.pop('fixed_dust_provider',None)
+        if fixed_dust_provider is not None and not callable(fixed_dust_provider):
+            raise ValueError('fixed-dust optics provider must be callable')
+        if dust_opacity_from_aerosol!=callable(fixed_dust_provider):
+            raise ValueError('aerosol dust control requires a fixed-dust optics provider and its opacity switch')
+        if dust_opacity_from_aerosol and background_scenario is None:
+            axis=(local_time_scenario['seasons'] if local_time_scenario is not None else [0.,360.])
+            background_scenario=dict(seasons=axis,opacity=np.zeros((len(axis),*grid.nodal_shape)))
         if background_scenario is None or {'seasons','opacity'}-set(background_scenario):
             raise ValueError('background dust requires mapped seasonal opacity and solar-longitude axes')
         shape=np.shape(background_scenario['seasons'])
@@ -419,6 +430,8 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                 raise ValueError('surface dust reservoirs must match the configured physical mode count')
         if dust_control and 'dust_reference_opacity' not in state.auxiliary_fields:
             raise ValueError('interactive dust requires initialized reference-opacity history')
+        if fixed_dust_provider is not None and 'dust_fixed_reference_opacity' not in state.auxiliary_fields:
+            raise ValueError('aerosol dust control requires initialized fixed-opacity history')
         if coagulation_options is not None and 'dust_coagulation_mass_change_kg_m2' not in state.auxiliary_fields:
             raise ValueError('dust coagulation requires the initialized mass-change ledger')
         if nonorographic_drag_options is not None:
@@ -523,7 +536,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             radiation_fields=dict(radiation_heating_k_s=heating,
                 radiation_surface_down_w_m2=down[None],radiation_initialized=jnp.ones_like(down[None]),
                 radiation_stratosphere_k=strat[None])
-        dust_depth=None
+        dust_depth=None;fixed_dust_depth=None
         if dust_control:
             def dust_diagnostic(_):
                 radgrid=radiation_grid(half,full,temperature,predicted.surface_temperature[0])
@@ -535,10 +548,22 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                     jnp.sum((optics.infrared[0]-optics.infrared[1])[:,ir_index],axis=0)])
             dust_depth=(dust_diagnostic(None) if radiation_update_seconds is None else
                 jax.lax.cond(refresh,dust_diagnostic,lambda _:predicted.auxiliary_fields['dust_reference_opacity'],None))
+            if fixed_dust_provider is not None:
+                def fixed_diagnostic(_):
+                    radgrid=radiation_grid(half,full,temperature,predicted.surface_temperature[0])
+                    visible,infrared=fixed_dust_provider(predicted,coords,specs,body,local_forcing,radgrid)
+                    index=3 if dust_optical_bands==12 else 6
+                    return jnp.stack([jnp.sum(visible[0][:,5],axis=0),
+                        jnp.sum((infrared[0]-infrared[1])[:,index],axis=0)])
+                fixed_dust_depth=(fixed_diagnostic(None) if radiation_update_seconds is None else
+                    jax.lax.cond(refresh,fixed_diagnostic,
+                        lambda _:predicted.auxiliary_fields['dust_fixed_reference_opacity'],None))
         background_options=None;local_time_fields=None
         if background_scenario is not None:
             axis=jnp.asarray(background_scenario['seasons'])
             maps=jnp.asarray(background_scenario['opacity'])
+            if fixed_dust_depth is not None:
+                maps=jnp.broadcast_to(fixed_dust_depth[dust_opacity_channel-1],maps.shape)
             ls=jnp.mod((_true_anomaly(predicted.dynamics.sim_time*time_scale,forcing)+
                 forcing.ls_perihelion_rad)*180./jnp.pi,360.)
             opacity,change,_,_=seasonal_sample(axis,maps,ls,segment=background_segment)
@@ -605,6 +630,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             moment_cloud_options=moment_cloud_options,moment_sedimentation=moment_sedimentation,
             particle_scavenging=particle_scavenging,
             lifting_suppresses_settling=lifting_suppresses_settling,
+            dust_opacity_from_aerosol=dust_opacity_from_aerosol,
             form_moment_clouds=form_moment_clouds,
             dust_lifting_options=dust_lifting_options,
             dust_lifting_opacity=None if dust_depth is None else dust_depth[dust_opacity_channel-1],
@@ -673,6 +699,8 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             auxiliary={**auxiliary,'dust_surface_kg_m2':column.diagnostics['dust']['dust_surface_kg_m2'][None]}
             if dust_depth is not None:
                 auxiliary={**auxiliary,'dust_reference_opacity':dust_depth}
+            if fixed_dust_depth is not None:
+                auxiliary={**auxiliary,'dust_fixed_reference_opacity':fixed_dust_depth}
             if coagulation_options is not None:
                 mass_change=column.diagnostics['dust']['dust_coagulation']['dust_mass_change_kg_kg']
                 column_change=jnp.sum(mass_change*jnp.diff(half,axis=0)/body.gravity_m_s2,axis=0)

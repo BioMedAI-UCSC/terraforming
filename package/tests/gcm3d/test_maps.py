@@ -382,7 +382,7 @@ def test_comparison_export_preserves_geography_units_season_and_cloud_inventory(
 @pytest.mark.parametrize('dust_mode_count,boundaries,thermal',[(1,None,False),(2,None,False),
     (2,[0.,.01,.1,.5,1.],False),(1,None,True),(1,None,'simple'),(1,None,'height'),
     (1,None,'feedback-off'),(1,None,'no-surface'),(1,None,'no-diffusion'),(1,None,'no-pbl'),
-    (1,None,'dust-only'),(2,None,'dust-only')])
+    (1,None,'dust-only'),(2,None,'dust-only'),(1,None,'aerosol-control')])
 def test_reference_maps_backend_runs_water_and_preserves_restart_state(monkeypatch,dust_mode_count,boundaries,thermal):
     from src.celestials.planets.mars.reference_constants import AMES_BODY_3D,reference_radiative_forcing
     from src.framework.physics.radiative_transfer import make_radiation_component
@@ -412,6 +412,14 @@ def test_reference_maps_backend_runs_water_and_preserves_restart_state(monkeypat
     elif thermal=='dust-only':
         options.update(bulk_water=False,moment_dust=True,
             dust_mode_count=dust_mode_count)
+    elif thermal=='aerosol-control':
+        from src.framework.physics.prescribed_dust import make_fixed_dust_provider
+        grid=coordinate_system('T21',4).horizontal
+        scenario=dict(seasons=[0.,360.],opacity=np.full((2,*grid.nodal_shape),.4),
+            top_height_km=np.full((2,*grid.nodal_shape),35.))
+        options.update(bulk_water=False,moment_water=True,dust_opacity_from_aerosol=True,
+            radiation_update_seconds=10.,initial_dust_mass_ratio=1e-5,initial_dust_number_per_kg=1e8,
+            dust_background_options=dict(fixed_dust_provider=make_fixed_dust_provider(scenario=scenario)))
     elif thermal:
         radiation=None
         options['thermal_relaxation_options']=dict(equilibrium=185.,timescale=100.)
@@ -450,6 +458,9 @@ def test_reference_maps_backend_runs_water_and_preserves_restart_state(monkeypat
         assert 'water_core_mass' not in first.dynamics.tracers
         frost='water_surface_kg_m2'
         np.testing.assert_array_equal(first.auxiliary_fields[frost],second.auxiliary_fields[frost])
+    if thermal=='aerosol-control':
+        assert first.auxiliary_fields['dust_fixed_reference_opacity'].shape[0]==2
+        assert np.all(np.asarray(first.auxiliary_fields['dust_fixed_reference_opacity'])>0.)
     for actual,expected in zip(jax.tree_util.tree_leaves(second),jax.tree_util.tree_leaves(whole),strict=True):
         if boundaries is not None and actual.shape[-2:]==first.dynamics.temperature_variation.shape[-2:]:
             # Different scan lengths can round tiny spectral coefficients differently.

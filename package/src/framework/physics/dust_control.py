@@ -13,6 +13,13 @@ class LocalTimeState(NamedTuple):
     bin_index: object
 
 
+def reference_opacity(opacity,pressure_bottom,*,from_aerosol=False):
+    """Native current-opacity floor and optional 610 Pa normalization."""
+    current=jnp.asarray(opacity)
+    if not from_aerosol: current=current/jnp.asarray(pressure_bottom)*610.
+    return jnp.maximum(current,1e-10)
+
+
 def validate_local_time_scenario(scenario,seasons,nodal_shape):
     """Check mapped fractions before tracing; source bins must span a full day."""
     if {'seasons','bins_hours','fractions'}-set(scenario):

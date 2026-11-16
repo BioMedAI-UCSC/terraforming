@@ -22,7 +22,7 @@
   },
   "local_time_reference": {
     "source_git_blob": "1e470cc1efb44c6627cbe3168c69c2d1f7640570",
-    "compiled_source_sha256": "860e365134cb619a1e6b0446cca299b7e7af66dcfd9fcc97d55338f78e91492e",
+    "compiled_source_sha256": "0aa31fcea9b246c316c60d9a220a7bfd9efe6d31a6a989cf8837ac54f3a183f3",
     "routine_sha256": {},
     "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
     "compiler_flags": [
@@ -35,7 +35,8 @@
     ],
     "real_precision_bits": 64,
     "adaptation": "Unchanged local-time history block; single-column array adapter; diagnostic I/O stubbed",
-    "local_time_block_sha256": "e265e2f162e6e2810eadd8858b97a3f85ac30330213c3639d0b4c0e0bfbb9bcb"
+    "local_time_block_sha256": "e265e2f162e6e2810eadd8858b97a3f85ac30330213c3639d0b4c0e0bfbb9bcb",
+    "current_opacity_block_sha256": "f4e450cbdd496a32fe02ac8906caea7533bb96bf0fb6eeb2e5778acb2b4684e7"
   },
   "cases": [
     {
@@ -615,1272 +616,2960 @@
       "max_mass_ratio_error": 0.0
     },
     {
+      "case": "current-opacity",
+      "from_aerosol": false
+    },
+    {
+      "case": "current-opacity",
+      "from_aerosol": true
+    },
+    {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": -3.141592653589793,
       "sol": 0.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": -3.141592653589793,
       "sol": 0.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": -3.141592653589793,
       "sol": 0.25
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": -3.141592653589793,
       "sol": 0.5
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": -3.141592653589793,
       "sol": 0.75
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": -3.141592653589793,
       "sol": 1.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": -3.141592653589793,
       "sol": 1.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 0.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 0.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 0.25
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 0.5
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 0.75
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 1.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 1.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": 0.0,
       "sol": 0.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": 0.0,
       "sol": 0.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": 0.0,
       "sol": 0.25
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": 0.0,
       "sol": 0.5
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": 0.0,
       "sol": 0.75
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": 0.0,
       "sol": 1.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": 0.0,
       "sol": 1.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 0.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 0.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 0.25
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 0.5
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 0.75
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 1.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 1.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": 6.283185307179586,
       "sol": 0.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": 6.283185307179586,
       "sol": 0.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": 6.283185307179586,
       "sol": 0.25
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": 6.283185307179586,
       "sol": 0.5
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": 6.283185307179586,
       "sol": 0.75
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": 6.283185307179586,
       "sol": 1.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 0.0,
       "longitude_rad": 6.283185307179586,
       "sol": 1.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": -3.141592653589793,
       "sol": 0.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": -3.141592653589793,
       "sol": 0.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": -3.141592653589793,
       "sol": 0.25
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": -3.141592653589793,
       "sol": 0.5
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": -3.141592653589793,
       "sol": 0.75
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": -3.141592653589793,
       "sol": 1.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": -3.141592653589793,
       "sol": 1.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 0.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 0.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 0.25
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 0.5
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 0.75
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 1.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 1.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": 0.0,
       "sol": 0.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": 0.0,
       "sol": 0.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": 0.0,
       "sol": 0.25
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": 0.0,
       "sol": 0.5
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": 0.0,
       "sol": 0.75
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": 0.0,
       "sol": 1.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": 0.0,
       "sol": 1.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 0.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 0.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 0.25
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 0.5
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 0.75
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 1.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 1.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": 6.283185307179586,
       "sol": 0.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": 6.283185307179586,
       "sol": 0.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": 6.283185307179586,
       "sol": 0.25
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": 6.283185307179586,
       "sol": 0.5
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": 6.283185307179586,
       "sol": 0.75
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": 6.283185307179586,
       "sol": 1.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 45.0,
       "longitude_rad": 6.283185307179586,
       "sol": 1.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": -3.141592653589793,
       "sol": 0.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": -3.141592653589793,
       "sol": 0.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": -3.141592653589793,
       "sol": 0.25
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": -3.141592653589793,
       "sol": 0.5
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": -3.141592653589793,
       "sol": 0.75
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": -3.141592653589793,
       "sol": 1.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": -3.141592653589793,
       "sol": 1.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 0.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 0.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 0.25
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 0.5
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 0.75
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 1.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 1.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": 0.0,
       "sol": 0.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": 0.0,
       "sol": 0.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": 0.0,
       "sol": 0.25
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": 0.0,
       "sol": 0.5
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": 0.0,
       "sol": 0.75
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": 0.0,
       "sol": 1.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": 0.0,
       "sol": 1.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 0.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 0.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 0.25
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 0.5
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 0.75
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 1.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 1.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": 6.283185307179586,
       "sol": 0.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": 6.283185307179586,
       "sol": 0.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": 6.283185307179586,
       "sol": 0.25
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": 6.283185307179586,
       "sol": 0.5
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": 6.283185307179586,
       "sol": 0.75
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": 6.283185307179586,
       "sol": 1.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 90.0,
       "longitude_rad": 6.283185307179586,
       "sol": 1.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": -3.141592653589793,
       "sol": 0.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": -3.141592653589793,
       "sol": 0.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": -3.141592653589793,
       "sol": 0.25
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": -3.141592653589793,
       "sol": 0.5
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": -3.141592653589793,
       "sol": 0.75
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": -3.141592653589793,
       "sol": 1.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": -3.141592653589793,
       "sol": 1.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 0.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 0.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 0.25
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 0.5
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 0.75
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 1.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 1.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": 0.0,
       "sol": 0.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": 0.0,
       "sol": 0.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": 0.0,
       "sol": 0.25
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": 0.0,
       "sol": 0.5
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": 0.0,
       "sol": 0.75
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": 0.0,
       "sol": 1.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": 0.0,
       "sol": 1.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 0.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 0.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 0.25
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 0.5
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 0.75
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 1.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 1.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": 6.283185307179586,
       "sol": 0.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": 6.283185307179586,
       "sol": 0.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": 6.283185307179586,
       "sol": 0.25
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": 6.283185307179586,
       "sol": 0.5
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": 6.283185307179586,
       "sol": 0.75
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": 6.283185307179586,
       "sol": 1.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 220.0,
       "longitude_rad": 6.283185307179586,
       "sol": 1.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": -3.141592653589793,
       "sol": 0.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": -3.141592653589793,
       "sol": 0.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": -3.141592653589793,
       "sol": 0.25
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": -3.141592653589793,
       "sol": 0.5
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": -3.141592653589793,
       "sol": 0.75
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": -3.141592653589793,
       "sol": 1.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": -3.141592653589793,
       "sol": 1.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 0.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 0.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 0.25
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 0.5
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 0.75
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 1.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": -1.5707963267948966,
       "sol": 1.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": 0.0,
       "sol": 0.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": 0.0,
       "sol": 0.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": 0.0,
       "sol": 0.25
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": 0.0,
       "sol": 0.5
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": 0.0,
       "sol": 0.75
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": 0.0,
       "sol": 1.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": 0.0,
       "sol": 1.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 0.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 0.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 0.25
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 0.5
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 0.75
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 1.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": 1.5707963267948966,
       "sol": 1.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": 6.283185307179586,
       "sol": 0.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": 6.283185307179586,
       "sol": 0.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": 6.283185307179586,
       "sol": 0.25
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": 6.283185307179586,
       "sol": 0.5
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": 6.283185307179586,
       "sol": 0.75
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": 6.283185307179586,
       "sol": 1.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 310.0,
       "longitude_rad": 6.283185307179586,
       "sol": 1.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": -3.141592653589793,
       "sol": 0.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": -3.141592653589793,
       "sol": 0.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": -3.141592653589793,
       "sol": 0.25
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": -3.141592653589793,
       "sol": 0.5
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": -3.141592653589793,
       "sol": 0.75
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": -3.141592653589793,
       "sol": 1.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": -3.141592653589793,
       "sol": 1.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": -1.5707963267948966,
       "sol": 0.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": -1.5707963267948966,
       "sol": 0.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": -1.5707963267948966,
       "sol": 0.25
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": -1.5707963267948966,
       "sol": 0.5
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": -1.5707963267948966,
       "sol": 0.75
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": -1.5707963267948966,
       "sol": 1.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": -1.5707963267948966,
       "sol": 1.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": 0.0,
       "sol": 0.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": 0.0,
       "sol": 0.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": 0.0,
       "sol": 0.25
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": 0.0,
       "sol": 0.5
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": 0.0,
       "sol": 0.75
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": 0.0,
       "sol": 1.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": 0.0,
       "sol": 1.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": 1.5707963267948966,
       "sol": 0.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": 1.5707963267948966,
       "sol": 0.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": 1.5707963267948966,
       "sol": 0.25
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": 1.5707963267948966,
       "sol": 0.5
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": 1.5707963267948966,
       "sol": 0.75
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": 1.5707963267948966,
       "sol": 1.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": 1.5707963267948966,
       "sol": 1.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": 6.283185307179586,
       "sol": 0.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": 6.283185307179586,
       "sol": 0.125
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": 6.283185307179586,
       "sol": 0.25
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": 6.283185307179586,
       "sol": 0.5
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": 6.283185307179586,
       "sol": 0.75
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
       "solar_longitude_deg": 359.99,
       "longitude_rad": 6.283185307179586,
       "sol": 1.0
     },
     {
       "case": "local-time-history",
+      "from_aerosol": false,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": 6.283185307179586,
+      "sol": 1.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 0.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 0.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 0.25
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 0.5
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 0.75
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 1.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 1.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 0.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 0.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 0.25
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 0.5
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 0.75
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 1.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 1.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": 0.0,
+      "sol": 0.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": 0.0,
+      "sol": 0.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": 0.0,
+      "sol": 0.25
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": 0.0,
+      "sol": 0.5
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": 0.0,
+      "sol": 0.75
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": 0.0,
+      "sol": 1.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": 0.0,
+      "sol": 1.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 0.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 0.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 0.25
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 0.5
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 0.75
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 1.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 1.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 0.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 0.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 0.25
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 0.5
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 0.75
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 1.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 0.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 1.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 0.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 0.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 0.25
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 0.5
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 0.75
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 1.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 1.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 0.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 0.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 0.25
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 0.5
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 0.75
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 1.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 1.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": 0.0,
+      "sol": 0.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": 0.0,
+      "sol": 0.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": 0.0,
+      "sol": 0.25
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": 0.0,
+      "sol": 0.5
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": 0.0,
+      "sol": 0.75
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": 0.0,
+      "sol": 1.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": 0.0,
+      "sol": 1.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 0.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 0.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 0.25
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 0.5
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 0.75
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 1.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 1.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 0.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 0.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 0.25
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 0.5
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 0.75
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 1.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 45.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 1.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 0.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 0.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 0.25
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 0.5
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 0.75
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 1.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 1.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 0.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 0.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 0.25
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 0.5
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 0.75
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 1.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 1.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": 0.0,
+      "sol": 0.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": 0.0,
+      "sol": 0.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": 0.0,
+      "sol": 0.25
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": 0.0,
+      "sol": 0.5
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": 0.0,
+      "sol": 0.75
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": 0.0,
+      "sol": 1.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": 0.0,
+      "sol": 1.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 0.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 0.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 0.25
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 0.5
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 0.75
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 1.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 1.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 0.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 0.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 0.25
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 0.5
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 0.75
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 1.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 90.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 1.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 0.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 0.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 0.25
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 0.5
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 0.75
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 1.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 1.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 0.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 0.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 0.25
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 0.5
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 0.75
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 1.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 1.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": 0.0,
+      "sol": 0.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": 0.0,
+      "sol": 0.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": 0.0,
+      "sol": 0.25
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": 0.0,
+      "sol": 0.5
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": 0.0,
+      "sol": 0.75
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": 0.0,
+      "sol": 1.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": 0.0,
+      "sol": 1.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 0.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 0.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 0.25
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 0.5
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 0.75
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 1.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 1.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 0.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 0.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 0.25
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 0.5
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 0.75
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 1.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 220.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 1.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 0.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 0.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 0.25
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 0.5
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 0.75
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 1.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": -3.141592653589793,
+      "sol": 1.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 0.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 0.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 0.25
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 0.5
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 0.75
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 1.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 1.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": 0.0,
+      "sol": 0.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": 0.0,
+      "sol": 0.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": 0.0,
+      "sol": 0.25
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": 0.0,
+      "sol": 0.5
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": 0.0,
+      "sol": 0.75
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": 0.0,
+      "sol": 1.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": 0.0,
+      "sol": 1.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 0.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 0.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 0.25
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 0.5
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 0.75
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 1.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 1.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 0.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 0.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 0.25
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 0.5
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 0.75
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 1.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 310.0,
+      "longitude_rad": 6.283185307179586,
+      "sol": 1.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": -3.141592653589793,
+      "sol": 0.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": -3.141592653589793,
+      "sol": 0.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": -3.141592653589793,
+      "sol": 0.25
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": -3.141592653589793,
+      "sol": 0.5
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": -3.141592653589793,
+      "sol": 0.75
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": -3.141592653589793,
+      "sol": 1.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": -3.141592653589793,
+      "sol": 1.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 0.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 0.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 0.25
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 0.5
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 0.75
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 1.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": -1.5707963267948966,
+      "sol": 1.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": 0.0,
+      "sol": 0.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": 0.0,
+      "sol": 0.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": 0.0,
+      "sol": 0.25
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": 0.0,
+      "sol": 0.5
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": 0.0,
+      "sol": 0.75
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": 0.0,
+      "sol": 1.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": 0.0,
+      "sol": 1.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 0.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 0.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 0.25
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 0.5
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 0.75
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 1.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": 1.5707963267948966,
+      "sol": 1.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": 6.283185307179586,
+      "sol": 0.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": 6.283185307179586,
+      "sol": 0.125
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": 6.283185307179586,
+      "sol": 0.25
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": 6.283185307179586,
+      "sol": 0.5
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": 6.283185307179586,
+      "sol": 0.75
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
+      "solar_longitude_deg": 359.99,
+      "longitude_rad": 6.283185307179586,
+      "sol": 1.0
+    },
+    {
+      "case": "local-time-history",
+      "from_aerosol": true,
       "solar_longitude_deg": 359.99,
       "longitude_rad": 6.283185307179586,
       "sol": 1.125
     }
   ],
   "sha256": {
-    "scripts/validate_dust_control.py": "69617b5026068b9a9832c62124c2731ede3a9ff2ea2e9678155eef145ccff0a0",
+    "scripts/validate_dust_control.py": "138c8663942e71de5222800f621c21cb80a18ec2067c55dd99d8cfd8fec46635",
     "scripts/validate_dust_lifting.py": "10dbdfc105acd6d9661ef4032acf8b80d9da5bf6f4ce6805798a5028b5ea0877",
     "scripts/native_reference.py": "2e3b0e2f65b685f86fcfdd1b4643b54c5582b81af36a0874a43d9eedc2675d76",
     "package/src/framework/physics/dust_lifting.py": "18bf33ce5979933c1ef1a153e7683fae81e818f8e196e71a7f2923176be3d663",
-    "package/src/framework/physics/dust_control.py": "ac2f4138261f849eebcf4a62b649dacd2fb26d7991e8f08f9106e117ba8ee97d"
+    "package/src/framework/physics/dust_control.py": "bb0749684b3b4078548dff5def298178620f388bf303b1898b20ef95136e3815"
   },
-  "limits": "One physical dust mode with interactive lifting then background injection, old-opacity gating, and no removal. Sink repairs have independent conservation checks. Local-time history uses supplied mapped fractions and matching seasonal axes. Global multimode driver state remains a separate check."
+  "limits": "One physical dust mode with interactive lifting then background injection, old-opacity gating, and no removal. Sink repairs have independent conservation checks. Current-opacity normalization/floor and both aerosol/map local-time branches are unchanged source blocks. Local-time history uses supplied mapped fractions and matching seasonal axes; the aerosol branch has zero seasonal difference. Global multimode driver state remains a separate check."
 }

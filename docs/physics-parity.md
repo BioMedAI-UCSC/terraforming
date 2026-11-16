@@ -107,6 +107,23 @@ possible dust-budget imbalance; the settling ledger reports that imbalance.
 The released benchmark leaves this option off. The native guard check covers
 positive, zero and negative mass tendencies independently of number tendencies.
 
+Set `dust_opacity_from_aerosol=True` for native `opac_from_aerosol`. Interactive
+lifting then uses the current physical optical depth without the 610 Pa
+pressure normalization. Background lifting also needs
+`dust_background_options['fixed_dust_provider']`, built with
+`prescribed_dust.make_fixed_dust_provider`. It takes its target from the
+provider's visible extinction or infrared absorption at the source reference
+band. Both target channels are held on the radiation schedule and saved in
+restarts. The target's seasonal difference is zero in this source branch;
+local-time fractions still update their history and injection scaling.
+
+The CLI option `--dust-opacity-from-aerosol` uses the released MY30 map,
+1.5 micrometer fixed particles and zero additive background opacity. The
+released default leaves this switch off. Native dust-control checks cover
+the current-opacity normalization and both local-time branches. Coupled tests
+cover the fixed-target cache, missing configuration, map continuation and
+reverse derivatives with visible/infrared control and 12/15 optical bands.
+
 Set `moment_cloud_options={"effective_input_mode": 1}` on initialization and
 the step builder to use saved effective inputs. The first call uses the fields
 before physics. Later calls use saved temperature after clouds and saved
