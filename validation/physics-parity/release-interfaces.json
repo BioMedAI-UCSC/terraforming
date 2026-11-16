@@ -11,6 +11,8 @@
       "-cpp",
       "-E",
       "-P",
+      "-DMARS_GCM",
+      "-DMARS_SURFACE",
       "-DRELEASE"
     ],
     "preprocessed_sha256": "4bafca1acd02f2e53ec6830bcf94a9d43e34d97dc4be09346dafd35089bd2c56",
@@ -43,9 +45,22 @@
       "routine_sha256": "a50637817553165f521d6c24c2d89444446eab4fbe1b5abc32b68ed9da7e8bb6"
     }
   ],
+  "excluded_build_interfaces": {
+    "required_definition": "fv3_turb",
+    "calls": [
+      "surface_flux_2d",
+      "vert_diff_driver",
+      "vert_diff_driver_end",
+      "vert_diff_driver_init",
+      "vert_turb_driver",
+      "vert_turb_driver_end",
+      "vert_turb_driver_init"
+    ],
+    "alternate_preprocessed_sha256": "146631ad81c35fed0dd3b9c3b7ff82cbd7d4370858457d121eb179e7288dfbb8"
+  },
   "sha256": {
-    "scripts/validate_release_interfaces.py": "c4bfe754b6c82560fabadeb56c58111c2eccb8bcb99d581beb8f07884410f768",
+    "scripts/validate_release_interfaces.py": "c4cf3d6e2b61894b25bcff5ea92b77f090eda414ee80f836d383b104cdfff277",
     "scripts/native_reference.py": "2e3b0e2f65b685f86fcfdd1b4643b54c5582b81af36a0874a43d9eedc2675d76"
   },
-  "limits": "This verifies unavailable release interfaces, not functioning physics. Bin-cloud microphysics, photochemistry and legacy binned dust-source equations are not in these released implementations. Tagging imports are excluded by RELEASE. Moment water, bulk water and moment dust have separate real modules and validations."
+  "limits": "This verifies unavailable release interfaces, not functioning physics. Bin-cloud microphysics, photochemistry and legacy binned dust-source equations are not in these released implementations. Tagging imports are excluded by RELEASE. Moment water, bulk water and moment dust have separate real modules and validations. Alternate FV3 turbulence calls require fv3_turb, which the pinned build does not define; this exclusion does not implement or validate those alternate schemes."
 }

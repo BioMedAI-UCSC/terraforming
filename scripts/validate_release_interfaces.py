@@ -20,13 +20,21 @@ def validate(source,compiler):
         raw=(source/name).read_bytes()
         assert hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()==expected,name
     build=(source/'build_run/compile.bash').read_text()
-    assert re.search(r'^cppDefs="[^"]*-DRELEASE',build,re.M)
+    definitions=re.search(r'^cppDefs="([^"]+)"',build,re.M)
+    assert definitions is not None
+    definitions=definitions[1].split()
+    assert definitions==['-DMARS_GCM','-DMARS_SURFACE','-DRELEASE']
     path=source/'atmos_param_mars/mars_physics.F90'
-    flags=['-cpp','-E','-P','-DRELEASE']
+    flags=['-cpp','-E','-P',*definitions]
     release=subprocess.check_output([compiler,*flags,str(path)],text=True)
     assert 'use null_physics_mod, only: cloud_physics' in release
     assert 'photochem_driver' in release
     assert not re.search(r'^use\s+(cloud_physics_mod|photochem_mod|dust_source_mod|tagging_method_mod)',release,re.M)
+    alternate=subprocess.check_output([compiler,*flags,'-Dfv3_turb',str(path)],text=True)
+    calls=lambda text:set(re.findall(r'^\s*call\s+(\w+)',text,re.I|re.M))
+    excluded=sorted(calls(alternate)-calls(release))
+    assert {'surface_flux_2d','vert_turb_driver'}<=set(excluded)
+    assert not re.search(r'^use\s+vert_(turb|diff)_driver_mod',release,re.M)
     names=['cloud_physics','cloud_physics_init','photochem_driver','dust_source_sink','dust_source_init']
     routines,_=extract_routines(source/'atmos_param_mars/null_physics_mod.F90',BLOBS['atmos_param_mars/null_physics_mod.F90'],names)
     cases=[]
@@ -41,12 +49,16 @@ def validate(source,compiler):
         source_git_blobs=BLOBS,preprocessor_flags=flags,
         preprocessed_sha256=hashlib.sha256(release.encode()).hexdigest(),
         compiler=subprocess.check_output([compiler,'--version'],text=True).splitlines()[0]),
-        cases=cases,sha256={name:hashlib.sha256((root/name).read_bytes()).hexdigest() for name in
+        cases=cases,excluded_build_interfaces=dict(required_definition='fv3_turb',calls=excluded,
+            alternate_preprocessed_sha256=hashlib.sha256(alternate.encode()).hexdigest()),
+        sha256={name:hashlib.sha256((root/name).read_bytes()).hexdigest() for name in
             ('scripts/validate_release_interfaces.py','scripts/native_reference.py')},
         limits='This verifies unavailable release interfaces, not functioning physics. '
             'Bin-cloud microphysics, photochemistry and legacy binned dust-source equations are not in '
             'these released implementations. Tagging imports are excluded by RELEASE. '
-            'Moment water, bulk water and moment dust have separate real modules and validations.')
+            'Moment water, bulk water and moment dust have separate real modules and validations. '
+            'Alternate FV3 turbulence calls require fv3_turb, which the pinned build does not define; '
+            'this exclusion does not implement or validate those alternate schemes.')
 
 
 if __name__=='__main__':

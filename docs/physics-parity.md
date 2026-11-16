@@ -507,7 +507,11 @@ limiter or establish matched transport accuracy.
 | Performance | Matched physical workloads and precision; record hardware, threads, compilation, transfers, steady-state timings and derivatives separately. |
 
 The release interface audit checks pinned `compile.bash`, `mars_physics.F90`
-and `null_physics_mod.F90`, then runs the actual release preprocessor. Each of
+and `null_physics_mod.F90`, then runs the actual release preprocessor. It extracts
+all three build definitions from `compile.bash`. A second preprocessing pass
+with `fv3_turb` proves that seven alternate surface-flux and turbulence driver
+calls are excluded from the pinned build. Those alternate schemes are not
+implemented or validated here. Each of
 the five audited placeholder routines calls only `error_mesg(..., FATAL)`.
 This result does not supply bin-cloud or chemistry equations. The public
 release's real moment/bulk modules are checked separately. Alternate diffusion/radiation
