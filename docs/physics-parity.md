@@ -540,6 +540,19 @@ env PYTHONPATH=package:. python scripts/validate_vertical_grid.py \
   --ames-source /path/to/AmesGCM --output outputs/physics-parity/vertical-grid.json
 ```
 
+## Supported release scope
+
+The port targets supported configurations in the released v3.2.1 model.
+The NASA user guide (Table B.2, PDF page 189) and the pinned cloud runscript
+explicitly mark bin-dust radiation mode 2 as "not supported". Its retained
+compatibility paths are excluded from the required port. The source's bin-cloud
+and binned-dust microphysics drivers are fatal placeholders and remain excluded.
+Moment dust (mode 1), prescribed dust (mode 3), moment water clouds and the
+documented early-Mars bulk-cloud scheme remain in scope. The older fixed-radius
+bin-cloud optical routine is retained in the source, but has no verified
+deprecation notice and is unused by the matched cloud setup. It is optional
+compatibility work, not an acceptance gate for that benchmark.
+
 ## Required remaining work
 
 The released cloud benchmark uses visible dust (`dgdm_type=1`) with

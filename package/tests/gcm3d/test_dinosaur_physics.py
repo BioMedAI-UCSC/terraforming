@@ -1,4 +1,5 @@
 import dataclasses
+import gc
 import numpy as np
 import pytest
 
@@ -11,6 +12,14 @@ from src.framework.physics.dinosaur_physics import (
     remap_gas,initial_state,build_step,axial_angular_momentum,exchange_energy)
 
 jax.config.update('jax_enable_x64',True)
+
+
+@pytest.fixture(autouse=True)
+def release_compiled_models():
+    # Global model executables otherwise accumulate across a CI shard.
+    jax.clear_caches();gc.collect()
+    yield
+    jax.clear_caches();gc.collect()
 
 
 def test_sigma_remap_conserves_energy_momentum_and_passive_material():

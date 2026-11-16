@@ -15,6 +15,7 @@ BLOBS={
     'atmos_param_mars/mars_physics.F90':'ca0b7c0774b1b23cafaee219062c3bffa3d0c4cc',
     'atmos_param_mars/null_physics_mod.F90':'4ca7a58d46e31dd8fb281469bbbcd8d50071bba2',
     'build_run/compile.bash':'3a43a2fdb4e26dc0980e3e5bfaa5efbe0861a597',
+    'build_run/fms_mars_clouds_v3.2':'83b611e6527cf26bef3ec0064c05aebe0bb0d080',
     'atmos_param_mars/sedim_mod.F90':'df1424b6258a68d7dfb6c7b5ebfb7180224070ad',
     'atmos_param_mars/BLcode/pblmod_mgcm.F90':'38b3f41e4d07f9a2e3c9d7a689e50577cac7858c',
     'atmos_param_mars/micromod_mgcm.F90':'4897f72860b59d7effeb6650dbf3d4484b3aca71',
@@ -66,6 +67,9 @@ def validate(source,compiler):
     assert definitions is not None
     definitions=definitions[1].split()
     assert definitions==['-DMARS_GCM','-DMARS_SURFACE','-DRELEASE']
+    profile=(source/'build_run/fms_mars_clouds_v3.2').read_text()
+    unsupported=re.search(r'^\s*!\s*=\s*2\s+not supported\s*$',profile,re.M|re.I)
+    assert unsupported is not None
     path=source/'atmos_param_mars/mars_physics.F90'
     text=path.read_text()
     controls=namelist_controls(text,'mars_physics_nml')
@@ -196,6 +200,8 @@ end module
         dust_lifting_guard_sha256=hashlib.sha256(lifting.encode()).hexdigest(),
         compiler=subprocess.check_output([compiler,'--version'],text=True).splitlines()[0]),
         cases=cases,driver_controls=inventory,module_controls=module_controls,aerosol_mode_cases=mode_cases,
+        unsupported_dust_radiation=dict(mode=2,source='build_run/fms_mars_clouds_v3.2',
+            evidence=unsupported[0].strip(),status='not supported by the released configuration'),
         dust_lifting_guard_cases=lifting_cases,
         excluded_build_interfaces=dict(required_definition='fv3_turb',calls=excluded,
             alternate_preprocessed_sha256=hashlib.sha256(alternate.encode()).hexdigest()),
