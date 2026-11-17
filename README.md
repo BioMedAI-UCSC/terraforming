@@ -256,6 +256,10 @@ uv run mkdocs serve
 uv run pyright
 ```
 
+[CI test modules](docs/ci.md) lists the module jobs, change-based selection and
+commands to run one suite. Each test has one owner. Manual workflow runs can
+include slow tests.
+
 JAX compilation can be expensive on laptops. Prefer the supplied low-resolution
 or `--laptop` configurations for smoke tests and use restart checkpoints for
 seasonal integrations.

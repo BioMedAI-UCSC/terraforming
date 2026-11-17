@@ -50,6 +50,7 @@ venv.bak/
 # Testing / Type Checking
 .mypy_cache/
 .pytest_cache/
+test-results/
 .coverage
 htmlcov/
 .tox/
