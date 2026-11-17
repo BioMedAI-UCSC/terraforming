@@ -108,7 +108,7 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
                  freeze_tracer_fields=False,no_forcing=False,gust_factor=0.,recalculate_heat_flux=False,
                  particle_scavenging=True,form_moment_clouds=True,lifting_suppresses_settling=False,
                  dust_opacity_from_aerosol=False,radiation_update_seconds=None,dust_optical_bands=15,
-                 dust_opacity_channel=1,surface_condensation=True,soil_alpha=.5):
+                 dust_opacity_channel=1,surface_condensation=True,soil_alpha=.5,reference_pressure_pa=None):
     from src.framework.gcm.coordinates import coordinate_system
     from src.framework.gcm.specs import physics_specs
     from src.framework.gcm._dinosaur import primitive_equations,scales
@@ -160,7 +160,7 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
         dust_opacity_channel=dust_opacity_channel,
         form_moment_clouds=form_moment_clouds,
         do_co2_condensation_cycle=do_co2_condensation_cycle,
-        surface_condensation=surface_condensation,soil_alpha=soil_alpha,
+        surface_condensation=surface_condensation,soil_alpha=soil_alpha,reference_pressure_pa=reference_pressure_pa,
         do_mars_surface=do_mars_surface,do_vert_diff=do_vert_diff,do_ames_pbl=do_ames_pbl,moment_dust=moment_dust)
     return state,step,grid
 
@@ -796,9 +796,9 @@ def test_explicit_gas_global_species_budget_restart_and_reverse_derivative(tmp_p
 
 def test_nonorographic_drag_global_timer_and_restart(tmp_path):
     from src.framework.gcm.restart import save_restart,load_restart
-    options=dict(top_pressure_pa=.03,update_seconds=15,offset_seconds=5,conserve_energy=True)
+    options=dict(top_pressure_pa=.03,update_seconds=15,offset_seconds=5,conserve_energy=True,source_pressure_pa=36.)
     state,step,_=backend_case(temperature_k=200.,surface_temperature_k=200.,wind_speed=40.,
-        nonorographic_drag_options=options)
+        nonorographic_drag_options=options,reference_pressure_pa=800.,sigma_boundaries=[0.,.05,.25,.6,1.])
     tick=jax.jit(step);first=tick(state)
     assert all(np.isfinite(x).all() for x in jax.tree.leaves(first))
     saved=first.auxiliary_fields['nonorographic_u_tendency_m_s2']
@@ -816,7 +816,8 @@ def test_nonorographic_drag_global_timer_and_restart(tmp_path):
 def test_nonorographic_drag_global_multistep_reverse_derivative():
     state,step,_=backend_case(temperature_k=200.,surface_temperature_k=200.,wind_speed=40.,
         nonorographic_drag_options=dict(top_pressure_pa=.03,update_seconds=15,offset_seconds=5,
-            conserve_energy=True))
+            conserve_energy=True,source_pressure_pa=36.),reference_pressure_pa=800.,
+        sigma_boundaries=[0.,.05,.25,.6,1.])
     def objective(offset):
         initial=state._replace(surface_temperature=state.surface_temperature+offset)
         final,_=jax.lax.scan(lambda s,_:(step(s),None),initial,None,length=3)

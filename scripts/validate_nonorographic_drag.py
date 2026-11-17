@@ -11,7 +11,8 @@ import tempfile
 import numpy as np
 from src.framework.gcm._dinosaur import jax
 from src.framework.physics.nonorographic_drag import (tendencies,wave_forcing,spectrum,
-    initial_drag_state,driver_step)
+    initial_drag_state,driver_step,source_parameters)
+from src.framework.physics.vertical_grid import supported_layers,sigma_boundaries,initialization_reference_interfaces
 from native_reference import extract_routines
 
 BLOB='fa555275885d8038641f3b99c7f284f84ff64516'
@@ -29,6 +30,18 @@ def compile_reference(source,mars_source,destination,compiler):
     patch=(mars_source/'patches/srcatmos_phys.patch').read_bytes()
     assert hashlib.sha1(b'blob '+str(len(patch)).encode()+b'\0'+patch).hexdigest()==PATCH_BLOB
     raw=source.read_text()
+    patched=Path(destination)/'atmos_param/cg_drag/cg_drag.F90'
+    patched.parent.mkdir(parents=True)
+    patched.write_text(raw)
+    section=patch.decode().split('diff --git a/atmos_param/cg_drag/cg_drag.F90',1)[1].split('\ndiff --git ',1)[0]
+    subprocess.run(['patch','--batch','-p1'],input='diff --git a/atmos_param/cg_drag/cg_drag.F90'+section,
+        cwd=destination,text=True,capture_output=True,check=True)
+    patched_routines,_=extract_routines(patched,'c8d71f86aba6dbe0b008825cfc5109e112c4349a',names[:-1])
+    assert patched_routines==routines[:-1], 'NASA patch changed a validated forcing routine'
+    patched_text=patched.read_text()
+    start=patched_text.index('      do k=1,kmax')
+    stop=patched_text.index('      source_level = MIN (source_level, kmax-1)',start)
+    selection=patched_text[start:stop]+patched_text[stop:].splitlines()[0]+'\n'
     start=raw.index('      nc = 2.0*cmax/dc + 1')
     stop=raw.index('!    initialize netcdf diagnostic fields.',start)
     initialization=raw[start:raw.rfind('!--------------------------------------------------------------------',start,stop)]
@@ -68,6 +81,21 @@ send_data=.false.
 end function
 """
     adapter="""
+subroutine select_source(n,nlat,pref,latb,parameters,levels,amplitudes) bind(C)
+integer(c_int),value :: n,nlat
+real(c_double),intent(in) :: pref(n),latb(1,nlat+1),parameters(4)
+integer(c_int),intent(out) :: levels(nlat)
+real(c_double),intent(out) :: amplitudes(nlat)
+integer :: kmax,idf,jdf,k,i,j,klevel_of_source
+real :: source_level_pressure,Bt_0,Bt_eq,Bt_eq_width,lat(1,nlat)
+kmax=n-1;idf=1;jdf=nlat
+source_level_pressure=parameters(1);Bt_0=parameters(2);Bt_eq=parameters(3);Bt_eq_width=parameters(4)
+if (allocated(source_level)) deallocate(source_level,source_amp,gwd_u,gwd_v,c0,kwv,k2)
+allocate(source_level(1,nlat),source_amp(1,nlat),gwd_u(1,nlat,kmax),gwd_v(1,nlat,kmax))
+allocate(c0(0),kwv(0),k2(0))
+"""+selection+"""
+levels=source_level(1,:);amplitudes=source_amp(1,:)
+end subroutine
 subroutine configure(n_levels,src,amplitude,parameters,options)
 integer :: n_levels,src,options(4)
 real :: amplitude,parameters(5)
@@ -142,16 +170,18 @@ end module
     native.column.argtypes=[ctypes.c_int]*2+[ctypes.c_double]*2+[array]*6+[ints]+[array]*3
     native.waves.argtypes=[ctypes.c_int]*2+[ctypes.c_double]+[array]*5+[ints]+[array]*2
     native.phases.argtypes=[ctypes.c_int,array]
+    native.select_source.argtypes=[ctypes.c_int]*2+[array]*3+[ints,array]
     native.timed_column.argtypes=[ctypes.c_int]*2+[ctypes.c_double]*2+[ctypes.c_int]*2+[array]*6+[ints]+[array]*3+[ctypes.POINTER(ctypes.c_int)]
-    for name in ('column','waves','phases','timed_column'): getattr(native,name).restype=None
+    for name in ('column','waves','phases','timed_column','select_source'): getattr(native,name).restype=None
     return native,dict(source_git_blob=blob,mars_patch_git_blob=PATCH_BLOB,
         compiler_flags=flags,real_precision_bits=64,
         compiler=subprocess.check_output([compiler,'--version'],text=True).splitlines()[0],
         routine_sha256={name:hashlib.sha256(body.encode()).hexdigest()
             for name,body in zip(names,routines,strict=True)},
         spectrum_initialization_sha256=hashlib.sha256(initialization.encode()).hexdigest(),
+        source_selection_sha256=hashlib.sha256(selection.encode()).hexdigest(),
         adapter_sha256=hashlib.sha256(adapter.encode()).hexdigest(),
-        adaptation='unchanged GFDL gwfc/cg_drag_calc and spectrum initialization; NASA-patched parameters; '
+        adaptation='unchanged GFDL gwfc/cg_drag_calc and spectrum initialization; unchanged NASA-patched source selection; '
             'no FP contraction, so the zero phase speed remains exactly zero; diagnostic I/O stubbed')
 
 
@@ -160,6 +190,25 @@ def validate(source,mars_source,compiler):
     f=lambda x:np.asfortranarray(x,dtype=np.float64)
     with tempfile.TemporaryDirectory(prefix='nonorographic-native-') as tmp:
         native,provenance=compile_reference(source,mars_source,Path(tmp),compiler)
+        latb=f(np.linspace(-np.pi/2.,np.pi/2.,10)[None,:]);lat=.5*(latb[0,1:]+latb[0,:-1])
+        for n in supported_layers():
+            for reference in (610.,705.,50000.):
+                pressure=initialization_reference_interfaces(sigma_boundaries(n),reference)
+                boundary=pressure[len(pressure)//2]
+                for source_pressure in (150.,np.nextafter(boundary,0.),boundary,np.nextafter(boundary,np.inf),
+                                        np.nextafter(pressure[-2],0.)):
+                    if not np.any(pressure[:-1]>source_pressure): continue
+                    for base,equatorial,width in ((0.,.08,45.),(.003,.04,.5)):
+                        levels=np.empty(len(lat),dtype=np.int32);amplitudes=f(np.zeros(len(lat)))
+                        native.select_source(n+1,len(lat),f(pressure),latb,
+                            f([source_pressure,base,equatorial,width]),levels,amplitudes)
+                        actual_level,actual_amp=source_parameters(pressure,lat,source_pressure_pa=source_pressure,
+                            base_amplitude=base,equatorial_amplitude=equatorial,equatorial_width=width)
+                        np.testing.assert_array_equal(np.full(len(lat),actual_level),levels)
+                        np.testing.assert_allclose(actual_amp,amplitudes,rtol=2e-14,atol=1e-17)
+                        cases.append(dict(case='source-selection',layers=n,reference_pressure_pa=reference,
+                            source_pressure_pa=source_pressure,source_index=actual_level,
+                            base_amplitude=base,equatorial_amplitude=equatorial,equatorial_width=width))
         for n in (4,12,40):
             p=np.geomspace(.03,610.,n);z=9000.*np.log(610./p);t=np.linspace(150.,220.,n)
             for src in (2,n-1):
@@ -219,12 +268,13 @@ def validate(source,mars_source,compiler):
                     offset_seconds=offset,dt_seconds=dt,step=step,alarm_seconds=alarm))
     root=Path(__file__).parents[1]
     paths=['scripts/validate_nonorographic_drag.py','scripts/native_reference.py',
-        'package/src/framework/physics/nonorographic_drag.py']
+        'package/src/framework/physics/nonorographic_drag.py','package/src/framework/physics/vertical_grid.py',
+        'package/src/framework/physics/vertical_grid_coefficients.npz']
     return dict(status='pass',reference=provenance,cases=cases,
         sha256={p:hashlib.sha256((root/p).read_bytes()).hexdigest() for p in paths},
-        limits='Native kernel/driver with explicit valid source indices and no radiation/dynamics coupling. '
+        limits='Native kernel/driver plus patched source selection on released reference interfaces; no radiation/dynamics coupling. '
             'Source index 1 requires a finite auxiliary-wind extension; '
-            'the application source-level/array-size interface are separate checks.')
+            'the coupled application interface requires separate checks.')
 
 
 if __name__=='__main__':

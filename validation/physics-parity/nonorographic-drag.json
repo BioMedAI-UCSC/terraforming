@@ -21,10 +21,4211 @@
       "cg_drag_endts": "33464f5e18d0210af2ad237e37c57d24b54a8b17687361eb45edd5e653664c5c"
     },
     "spectrum_initialization_sha256": "ac5a9e5adbd8a341c47d9eff59eed1d7f23e84fc56b6707d2417d89dd65c43e7",
-    "adapter_sha256": "1935317d98135c82e29979b82e9e0a455a496627bf8e99d50db93ba14c24c7fd",
-    "adaptation": "unchanged GFDL gwfc/cg_drag_calc and spectrum initialization; NASA-patched parameters; no FP contraction, so the zero phase speed remains exactly zero; diagnostic I/O stubbed"
+    "source_selection_sha256": "a83be18c38e3022a50bd2755ddf544a516ea26d9bf233420417672c02e064307",
+    "adapter_sha256": "8d03c685e9840d22d94b593441aba643d085103bd91ed9f13b3f8b0348b6eaa8",
+    "adaptation": "unchanged GFDL gwfc/cg_drag_calc and spectrum initialization; unchanged NASA-patched source selection; no FP contraction, so the zero phase speed remains exactly zero; diagnostic I/O stubbed"
   },
   "cases": [
+    {
+      "case": "source-selection",
+      "layers": 24,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 15,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 24,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 15,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 24,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 65.41993799999999,
+      "source_index": 13,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 24,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 65.41993799999999,
+      "source_index": 13,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 24,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 65.419938,
+      "source_index": 14,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 24,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 65.419938,
+      "source_index": 14,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 24,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 65.41993800000002,
+      "source_index": 14,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 24,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 65.41993800000002,
+      "source_index": 14,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 24,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 609.3899999999999,
+      "source_index": 23,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 24,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 609.3899999999999,
+      "source_index": 23,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 24,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 15,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 24,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 15,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 24,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 75.60828899999998,
+      "source_index": 13,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 24,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 75.60828899999998,
+      "source_index": 13,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 24,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 75.608289,
+      "source_index": 14,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 24,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 75.608289,
+      "source_index": 14,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 24,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 75.60828900000001,
+      "source_index": 14,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 24,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 75.60828900000001,
+      "source_index": 14,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 24,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 704.2949999999998,
+      "source_index": 23,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 24,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 704.2949999999998,
+      "source_index": 23,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 24,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 7,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 24,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 7,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 24,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 5362.289999999999,
+      "source_index": 13,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 24,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 5362.289999999999,
+      "source_index": 13,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 24,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 5362.29,
+      "source_index": 14,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 24,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 5362.29,
+      "source_index": 14,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 24,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 5362.290000000001,
+      "source_index": 14,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 24,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 5362.290000000001,
+      "source_index": 14,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 24,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 49949.99999999999,
+      "source_index": 23,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 24,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 49949.99999999999,
+      "source_index": 23,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 28,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 15,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 28,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 15,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 28,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 174.32190470827584,
+      "source_index": 15,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 28,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 174.32190470827584,
+      "source_index": 15,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 28,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 174.32190470827587,
+      "source_index": 16,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 28,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 174.32190470827587,
+      "source_index": 16,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 28,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 174.3219047082759,
+      "source_index": 16,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 28,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 174.3219047082759,
+      "source_index": 16,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 28,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 605.8960228586207,
+      "source_index": 27,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 28,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 605.8960228586207,
+      "source_index": 27,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 28,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 14,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 28,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 14,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 28,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 201.47039806448274,
+      "source_index": 15,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 28,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 201.47039806448274,
+      "source_index": 15,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 28,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 201.47039806448277,
+      "source_index": 16,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 28,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 201.47039806448277,
+      "source_index": 16,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 28,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 201.4703980644828,
+      "source_index": 16,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 28,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 201.4703980644828,
+      "source_index": 16,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 28,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 700.256878877586,
+      "source_index": 27,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 28,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 700.256878877586,
+      "source_index": 27,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 28,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 6,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 28,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 6,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 28,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 14288.680713793101,
+      "source_index": 15,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 28,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 14288.680713793101,
+      "source_index": 15,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 28,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 14288.680713793103,
+      "source_index": 16,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 28,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 14288.680713793103,
+      "source_index": 16,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 28,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 14288.680713793105,
+      "source_index": 16,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 28,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 14288.680713793105,
+      "source_index": 16,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 28,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 49663.60843103448,
+      "source_index": 27,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 28,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 49663.60843103448,
+      "source_index": 27,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 30,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 15,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 30,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 15,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 30,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 224.80404933241377,
+      "source_index": 16,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 30,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 224.80404933241377,
+      "source_index": 16,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 30,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 224.8040493324138,
+      "source_index": 17,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 30,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 224.8040493324138,
+      "source_index": 17,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 30,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 224.80404933241383,
+      "source_index": 17,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 30,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 224.80404933241383,
+      "source_index": 17,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 30,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 609.3900016827585,
+      "source_index": 29,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 30,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 609.3900016827585,
+      "source_index": 29,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 30,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 14,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 30,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 14,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 30,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 259.8145160317241,
+      "source_index": 16,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 30,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 259.8145160317241,
+      "source_index": 16,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 30,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 259.81451603172417,
+      "source_index": 17,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 30,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 259.81451603172417,
+      "source_index": 17,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 30,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 259.8145160317242,
+      "source_index": 17,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 30,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 259.8145160317242,
+      "source_index": 17,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 30,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 704.2950019448274,
+      "source_index": 29,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 30,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 704.2950019448274,
+      "source_index": 29,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 30,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 6,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 30,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 6,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 30,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 18426.561420689653,
+      "source_index": 16,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 30,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 18426.561420689653,
+      "source_index": 16,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 30,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 18426.561420689657,
+      "source_index": 17,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 30,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 18426.561420689657,
+      "source_index": 17,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 30,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 18426.56142068966,
+      "source_index": 17,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 30,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 18426.56142068966,
+      "source_index": 17,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 30,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 49950.00013793103,
+      "source_index": 29,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 30,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 49950.00013793103,
+      "source_index": 29,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 36,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 23,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 36,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 23,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 36,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 47.92472440500241,
+      "source_index": 19,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 36,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 47.92472440500241,
+      "source_index": 19,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 36,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 47.924724405002415,
+      "source_index": 20,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 36,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 47.924724405002415,
+      "source_index": 20,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 36,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 47.92472440500242,
+      "source_index": 20,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 36,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 47.92472440500242,
+      "source_index": 20,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 36,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 605.8943423630999,
+      "source_index": 35,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 36,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 605.8943423630999,
+      "source_index": 35,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 36,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 22,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 36,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 22,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 36,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 55.388410992666714,
+      "source_index": 19,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 36,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 55.388410992666714,
+      "source_index": 19,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 36,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 55.38841099266672,
+      "source_index": 20,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 36,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 55.38841099266672,
+      "source_index": 20,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 36,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 55.38841099266673,
+      "source_index": 20,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 36,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 55.38841099266673,
+      "source_index": 20,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 36,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 700.2549366655498,
+      "source_index": 35,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 36,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 700.2549366655498,
+      "source_index": 35,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 36,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 12,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 36,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 12,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 36,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 3928.256098770689,
+      "source_index": 19,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 36,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 3928.256098770689,
+      "source_index": 19,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 36,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 3928.2560987706893,
+      "source_index": 20,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 36,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 3928.2560987706893,
+      "source_index": 20,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 36,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 3928.2560987706897,
+      "source_index": 20,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 36,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 3928.2560987706897,
+      "source_index": 20,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 36,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 49663.47068549999,
+      "source_index": 35,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 36,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 49663.47068549999,
+      "source_index": 35,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 37,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 22,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 37,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 22,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 37,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 95.13299111544207,
+      "source_index": 20,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 37,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 95.13299111544207,
+      "source_index": 20,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 37,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 95.13299111544208,
+      "source_index": 21,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 37,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 95.13299111544208,
+      "source_index": 21,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 37,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 95.1329911154421,
+      "source_index": 21,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 37,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 95.1329911154421,
+      "source_index": 21,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 37,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 609.3899999999999,
+      "source_index": 36,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 37,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 609.3899999999999,
+      "source_index": 36,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 37,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 21,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 37,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 21,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 37,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 109.9487848137486,
+      "source_index": 20,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 37,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 109.9487848137486,
+      "source_index": 20,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 37,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 109.94878481374862,
+      "source_index": 21,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 37,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 109.94878481374862,
+      "source_index": 21,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 37,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 109.94878481374863,
+      "source_index": 21,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 37,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 109.94878481374863,
+      "source_index": 21,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 37,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 704.2949999999998,
+      "source_index": 36,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 37,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 704.2949999999998,
+      "source_index": 36,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 37,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 11,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 37,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 11,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 37,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 7797.786157003447,
+      "source_index": 20,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 37,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 7797.786157003447,
+      "source_index": 20,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 37,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 7797.786157003448,
+      "source_index": 21,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 37,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 7797.786157003448,
+      "source_index": 21,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 37,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 7797.786157003449,
+      "source_index": 21,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 37,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 7797.786157003449,
+      "source_index": 21,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 37,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 49949.99999999999,
+      "source_index": 36,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 37,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 49949.99999999999,
+      "source_index": 36,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 38,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 25,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 38,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 25,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 38,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 32.970957319776545,
+      "source_index": 20,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 38,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 32.970957319776545,
+      "source_index": 20,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 38,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 32.97095731977655,
+      "source_index": 21,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 38,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 32.97095731977655,
+      "source_index": 21,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 38,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 32.97095731977656,
+      "source_index": 21,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 38,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 32.97095731977656,
+      "source_index": 21,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 38,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 605.8943423630999,
+      "source_index": 37,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 38,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 605.8943423630999,
+      "source_index": 37,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 38,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 24,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 38,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 24,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 38,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 38.10577854170896,
+      "source_index": 20,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 38,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 38.10577854170896,
+      "source_index": 20,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 38,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 38.105778541708965,
+      "source_index": 21,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 38,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 38.105778541708965,
+      "source_index": 21,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 38,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 38.10577854170897,
+      "source_index": 21,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 38,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 38.10577854170897,
+      "source_index": 21,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 38,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 700.2549366655498,
+      "source_index": 37,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 38,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 700.2549366655498,
+      "source_index": 37,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 38,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 14,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 38,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 14,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 38,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 2702.537485227586,
+      "source_index": 20,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 38,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 2702.537485227586,
+      "source_index": 20,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 38,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 2702.5374852275863,
+      "source_index": 21,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 38,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 2702.5374852275863,
+      "source_index": 21,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 38,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 2702.537485227587,
+      "source_index": 21,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 38,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 2702.537485227587,
+      "source_index": 21,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 38,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 49663.47068549999,
+      "source_index": 37,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 38,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 49663.47068549999,
+      "source_index": 37,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 40,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 27,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 40,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 27,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 40,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 22.193675165641032,
+      "source_index": 21,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 40,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 22.193675165641032,
+      "source_index": 21,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 40,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 22.193675165641036,
+      "source_index": 22,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 40,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 22.193675165641036,
+      "source_index": 22,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 40,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 22.19367516564104,
+      "source_index": 22,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 40,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 22.19367516564104,
+      "source_index": 22,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 40,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 605.8943423630999,
+      "source_index": 39,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 40,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 605.8943423630999,
+      "source_index": 39,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 40,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 26,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 40,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 26,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 40,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 25.650067199634307,
+      "source_index": 21,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 40,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 25.650067199634307,
+      "source_index": 21,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 40,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 25.65006719963431,
+      "source_index": 22,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 40,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 25.65006719963431,
+      "source_index": 22,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 40,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 25.650067199634314,
+      "source_index": 22,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 40,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 25.650067199634314,
+      "source_index": 22,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 40,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 700.2549366655498,
+      "source_index": 39,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 40,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 700.2549366655498,
+      "source_index": 39,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 40,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 16,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 40,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 16,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 40,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 1819.1537021017239,
+      "source_index": 21,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 40,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 1819.1537021017239,
+      "source_index": 21,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 40,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 1819.153702101724,
+      "source_index": 22,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 40,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 1819.153702101724,
+      "source_index": 22,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 40,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 1819.1537021017243,
+      "source_index": 22,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 40,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 1819.1537021017243,
+      "source_index": 22,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 40,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 49663.47068549999,
+      "source_index": 39,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 40,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 49663.47068549999,
+      "source_index": 39,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 42,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 29,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 42,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 29,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 42,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 14.59734392807724,
+      "source_index": 22,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 42,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 14.59734392807724,
+      "source_index": 22,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 42,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 14.597343928077242,
+      "source_index": 23,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 42,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 14.597343928077242,
+      "source_index": 23,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 42,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 14.597343928077244,
+      "source_index": 23,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 42,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 14.597343928077244,
+      "source_index": 23,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 42,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 605.8943423630999,
+      "source_index": 41,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 42,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 605.8943423630999,
+      "source_index": 41,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 42,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 28,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 42,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 28,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 42,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 16.87070076933517,
+      "source_index": 22,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 42,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 16.87070076933517,
+      "source_index": 22,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 42,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 16.870700769335173,
+      "source_index": 23,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 42,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 16.870700769335173,
+      "source_index": 23,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 42,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 16.870700769335176,
+      "source_index": 23,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 42,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 16.870700769335176,
+      "source_index": 23,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 42,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 700.2549366655498,
+      "source_index": 41,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 42,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 700.2549366655498,
+      "source_index": 41,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 42,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 18,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 42,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 18,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 42,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 1196.5036006620687,
+      "source_index": 22,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 42,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 1196.5036006620687,
+      "source_index": 22,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 42,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 1196.503600662069,
+      "source_index": 23,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 42,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 1196.503600662069,
+      "source_index": 23,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 42,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 1196.5036006620692,
+      "source_index": 23,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 42,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 1196.5036006620692,
+      "source_index": 23,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 42,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 49663.47068549999,
+      "source_index": 41,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 42,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 49663.47068549999,
+      "source_index": 41,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 46,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 23,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 46,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 23,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 46,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 183.09469303372546,
+      "source_index": 24,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 46,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 183.09469303372546,
+      "source_index": 24,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 46,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 183.0946930337255,
+      "source_index": 25,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 46,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 183.0946930337255,
+      "source_index": 25,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 46,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 183.09469303372552,
+      "source_index": 25,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 46,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 183.09469303372552,
+      "source_index": 25,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 46,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 607.9458537553999,
+      "source_index": 45,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 46,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 607.9458537553999,
+      "source_index": 45,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 46,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 22,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 46,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 22,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 46,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 211.60944030946962,
+      "source_index": 24,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 46,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 211.60944030946962,
+      "source_index": 24,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 46,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 211.60944030946965,
+      "source_index": 25,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 46,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 211.60944030946965,
+      "source_index": 25,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 46,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 211.60944030946968,
+      "source_index": 25,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 46,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 211.60944030946968,
+      "source_index": 25,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 46,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 702.6259457337,
+      "source_index": 45,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 46,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 702.6259457337,
+      "source_index": 45,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 46,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 8,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 46,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 8,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 46,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 15007.76172407586,
+      "source_index": 24,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 46,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 15007.76172407586,
+      "source_index": 24,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 46,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 15007.761724075861,
+      "source_index": 25,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 46,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 15007.761724075861,
+      "source_index": 25,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 46,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 15007.761724075863,
+      "source_index": 25,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 46,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 15007.761724075863,
+      "source_index": 25,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 46,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 49831.627357,
+      "source_index": 45,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 46,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 49831.627357,
+      "source_index": 45,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 56,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 30,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 56,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 30,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 56,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 149.58375383901654,
+      "source_index": 29,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 56,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 149.58375383901654,
+      "source_index": 29,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 56,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 149.58375383901657,
+      "source_index": 30,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 56,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 149.58375383901657,
+      "source_index": 30,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 56,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 149.5837538390166,
+      "source_index": 30,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 56,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 149.5837538390166,
+      "source_index": 30,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 56,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 609.7382461118145,
+      "source_index": 55,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 56,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 609.7382461118145,
+      "source_index": 55,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 56,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 29,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 56,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 29,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 56,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 172.87958435492894,
+      "source_index": 29,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 56,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 172.87958435492894,
+      "source_index": 29,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 56,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 172.87958435492897,
+      "source_index": 30,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 56,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 172.87958435492897,
+      "source_index": 30,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 56,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 172.879584354929,
+      "source_index": 30,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 56,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 172.879584354929,
+      "source_index": 30,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 56,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 704.6974811620152,
+      "source_index": 55,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 56,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 704.6974811620152,
+      "source_index": 55,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 56,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 12,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 56,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 12,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 56,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 12260.963429427586,
+      "source_index": 29,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 56,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 12260.963429427586,
+      "source_index": 29,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 56,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 12260.963429427587,
+      "source_index": 30,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 56,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 12260.963429427587,
+      "source_index": 30,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 56,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 12260.96342942759,
+      "source_index": 30,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 56,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 12260.96342942759,
+      "source_index": 30,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 56,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 49978.54476326349,
+      "source_index": 55,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 56,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 49978.54476326349,
+      "source_index": 55,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 65,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 39,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 65,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 39,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 65,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 78.80469967796897,
+      "source_index": 34,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 65,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 78.80469967796897,
+      "source_index": 34,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 65,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 78.80469967796898,
+      "source_index": 35,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 65,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 78.80469967796898,
+      "source_index": 35,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 65,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 78.804699677969,
+      "source_index": 35,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 65,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 78.804699677969,
+      "source_index": 35,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 65,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 609.7382461118145,
+      "source_index": 64,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 65,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 609.7382461118145,
+      "source_index": 64,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 65,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 38,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 65,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 38,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 65,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 91.07756274257069,
+      "source_index": 34,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 65,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 91.07756274257069,
+      "source_index": 34,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 65,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 91.0775627425707,
+      "source_index": 35,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 65,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 91.0775627425707,
+      "source_index": 35,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 65,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 91.07756274257072,
+      "source_index": 35,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 65,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 91.07756274257072,
+      "source_index": 35,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 65,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 704.6974811620152,
+      "source_index": 64,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 65,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 704.6974811620152,
+      "source_index": 64,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 65,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 21,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 65,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 21,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 65,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 6459.401612948275,
+      "source_index": 34,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 65,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 6459.401612948275,
+      "source_index": 34,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 65,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 6459.401612948276,
+      "source_index": 35,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 65,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 6459.401612948276,
+      "source_index": 35,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 65,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 6459.401612948277,
+      "source_index": 35,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 65,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 6459.401612948277,
+      "source_index": 35,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 65,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 49978.54476326349,
+      "source_index": 64,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 65,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 49978.54476326349,
+      "source_index": 64,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 71,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 45,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 71,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 45,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 71,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 43.08432213330309,
+      "source_index": 37,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 71,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 43.08432213330309,
+      "source_index": 37,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 71,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 43.0843221333031,
+      "source_index": 38,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 71,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 43.0843221333031,
+      "source_index": 38,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 71,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 43.084322133303104,
+      "source_index": 38,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 71,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 43.084322133303104,
+      "source_index": 38,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 71,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 609.7382461118145,
+      "source_index": 70,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 71,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 609.7382461118145,
+      "source_index": 70,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 71,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 44,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 71,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 44,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 71,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 49.79417558029293,
+      "source_index": 37,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 71,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 49.79417558029293,
+      "source_index": 37,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 71,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 49.794175580292936,
+      "source_index": 38,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 71,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 49.794175580292936,
+      "source_index": 38,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 71,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 49.79417558029294,
+      "source_index": 38,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 71,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 49.79417558029294,
+      "source_index": 38,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 71,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 704.6974811620152,
+      "source_index": 70,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 71,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 704.6974811620152,
+      "source_index": 70,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 71,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 27,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 71,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 27,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 71,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 3531.5018142051717,
+      "source_index": 37,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 71,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 3531.5018142051717,
+      "source_index": 37,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 71,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 3531.501814205172,
+      "source_index": 38,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 71,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 3531.501814205172,
+      "source_index": 38,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 71,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 3531.5018142051726,
+      "source_index": 38,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 71,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 3531.5018142051726,
+      "source_index": 38,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 71,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 49978.54476326349,
+      "source_index": 70,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 71,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 49978.54476326349,
+      "source_index": 70,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 76,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 48,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 76,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 48,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 76,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 49.07422561190344,
+      "source_index": 39,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 76,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 49.07422561190344,
+      "source_index": 39,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 76,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 49.074225611903444,
+      "source_index": 40,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 76,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 49.074225611903444,
+      "source_index": 40,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 76,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 49.07422561190345,
+      "source_index": 40,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 76,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 49.07422561190345,
+      "source_index": 40,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 76,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 608.7097789549182,
+      "source_index": 75,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 76,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 608.7097789549182,
+      "source_index": 75,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 76,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 46,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 76,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 46,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 76,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 56.716932879331026,
+      "source_index": 39,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 76,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 56.716932879331026,
+      "source_index": 39,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 76,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 56.71693287933103,
+      "source_index": 40,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 76,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 56.71693287933103,
+      "source_index": 40,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 76,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 56.71693287933104,
+      "source_index": 40,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 76,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 56.71693287933104,
+      "source_index": 40,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 76,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 703.5088428905201,
+      "source_index": 75,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 76,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 703.5088428905201,
+      "source_index": 75,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 76,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 24,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 76,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 24,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 76,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 4022.477509172413,
+      "source_index": 39,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 76,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 4022.477509172413,
+      "source_index": 39,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 76,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 4022.4775091724136,
+      "source_index": 40,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 76,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 4022.4775091724136,
+      "source_index": 40,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 76,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 4022.477509172414,
+      "source_index": 40,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 76,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 4022.477509172414,
+      "source_index": 40,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 76,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 49894.24417663264,
+      "source_index": 75,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 76,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 49894.24417663264,
+      "source_index": 75,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 87,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 61,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 87,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 61,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 87,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 4.295127882649344,
+      "source_index": 45,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 87,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 4.295127882649344,
+      "source_index": 45,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 87,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 4.295127882649345,
+      "source_index": 46,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 87,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 4.295127882649345,
+      "source_index": 46,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 87,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 4.2951278826493455,
+      "source_index": 46,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 87,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 4.2951278826493455,
+      "source_index": 46,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 87,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 609.7382461118145,
+      "source_index": 86,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 87,
+      "reference_pressure_pa": 610.0,
+      "source_pressure_pa": 609.7382461118145,
+      "source_index": 86,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 87,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 60,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 87,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 60,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 87,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 4.964041241422603,
+      "source_index": 45,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 87,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 4.964041241422603,
+      "source_index": 45,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 87,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 4.964041241422604,
+      "source_index": 46,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 87,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 4.964041241422604,
+      "source_index": 46,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 87,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 4.9640412414226045,
+      "source_index": 46,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 87,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 4.9640412414226045,
+      "source_index": 46,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 87,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 704.6974811620152,
+      "source_index": 86,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 87,
+      "reference_pressure_pa": 705.0,
+      "source_pressure_pa": 704.6974811620152,
+      "source_index": 86,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 87,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 43,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 87,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 150.0,
+      "source_index": 43,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 87,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 352.05966251224135,
+      "source_index": 45,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 87,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 352.05966251224135,
+      "source_index": 45,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 87,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 352.0596625122414,
+      "source_index": 46,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 87,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 352.0596625122414,
+      "source_index": 46,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 87,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 352.05966251224146,
+      "source_index": 46,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 87,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 352.05966251224146,
+      "source_index": 46,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
+    {
+      "case": "source-selection",
+      "layers": 87,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 49978.54476326349,
+      "source_index": 86,
+      "base_amplitude": 0.0,
+      "equatorial_amplitude": 0.08,
+      "equatorial_width": 45.0
+    },
+    {
+      "case": "source-selection",
+      "layers": 87,
+      "reference_pressure_pa": 50000.0,
+      "source_pressure_pa": 49978.54476326349,
+      "source_index": 86,
+      "base_amplitude": 0.003,
+      "equatorial_amplitude": 0.04,
+      "equatorial_width": 0.5
+    },
     {
       "case": "driver",
       "layers": 4,
@@ -1763,9 +5964,11 @@
     }
   ],
   "sha256": {
-    "scripts/validate_nonorographic_drag.py": "5434a1ee966289d74f9136b03ac1028d08f42f05f6e445c035444e0e4260b2a8",
+    "scripts/validate_nonorographic_drag.py": "b16f60e4b2ad88baa89a5c2d7b71e57092423c4793dff1d6a0cd2025edd55c85",
     "scripts/native_reference.py": "2e3b0e2f65b685f86fcfdd1b4643b54c5582b81af36a0874a43d9eedc2675d76",
-    "package/src/framework/physics/nonorographic_drag.py": "feccbe04e6da28b596d7f08847ed2ee222c86fd02b10038299e3ea43429c9733"
+    "package/src/framework/physics/nonorographic_drag.py": "0d99b2121e811e8bca2c3f7ac39e5800cb0f3c9b54410087938cd88395213181",
+    "package/src/framework/physics/vertical_grid.py": "6a51bdaa7d68d1e37863bf635bedf793e84bd16ea5decd4aae1ac6a26d8f1fe0",
+    "package/src/framework/physics/vertical_grid_coefficients.npz": "c9bcbba2ee02c01ec796d4b4b11da58a2325f78e43ba4f6dc6b7cd6a0e07d71d"
   },
-  "limits": "Native kernel/driver with explicit valid source indices and no radiation/dynamics coupling. Source index 1 requires a finite auxiliary-wind extension; the application source-level/array-size interface are separate checks."
+  "limits": "Native kernel/driver plus patched source selection on released reference interfaces; no radiation/dynamics coupling. Source index 1 requires a finite auxiliary-wind extension; the coupled application interface requires separate checks."
 }

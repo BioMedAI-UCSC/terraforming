@@ -3,7 +3,8 @@ import numpy as np
 import pytest
 pytest.importorskip('dinosaur')
 from src.framework.gcm._dinosaur import jax,jnp
-from src.framework.physics.vertical_grid import pressure_interfaces,sigma_boundaries,supported_layers,load_grids
+from src.framework.physics.vertical_grid import (pressure_interfaces,sigma_boundaries,supported_layers,
+    load_grids,initialization_reference_interfaces)
 
 jax.config.update('jax_enable_x64',True)
 
@@ -41,3 +42,23 @@ def test_unsupported_grids_and_invalid_pressure_are_not_silently_replaced():
             sigma_boundaries(layers)
     assert np.isnan(pressure_interfaces(56,705.,0.)).all()
     assert np.isnan(pressure_interfaces(56,-1.,705.)).all()
+
+
+@pytest.mark.parametrize('layers',supported_layers())
+@pytest.mark.parametrize('reference',[610.,705.,50000.])
+def test_initialization_selectors_use_native_reference_interfaces(layers,reference):
+    actual=initialization_reference_interfaces(sigma_boundaries(layers),reference)
+    np.testing.assert_allclose(actual,pressure_interfaces(layers,reference,reference),rtol=2e-15)
+    assert actual[0]>0. and actual[-1]==reference
+
+
+def test_custom_sigma_initialization_keeps_supplied_boundaries():
+    sigma=np.array([0.,.1,.5,1.])
+    np.testing.assert_array_equal(initialization_reference_interfaces(sigma,705.),sigma*705.)
+
+
+@pytest.mark.parametrize('sigma,reference',[
+    ([],705.),([0.,1.,.5],705.),([0.,.5],705.),([-1.,1.],705.),
+    ([0.,np.nan,1.],705.),([0.,1.],0.),([0.,1.],np.inf)])
+def test_initialization_selectors_reject_invalid_grid_or_reference(sigma,reference):
+    with pytest.raises(ValueError): initialization_reference_interfaces(sigma,reference)

@@ -1931,7 +1931,7 @@
     "scripts/validate_release_interfaces.py": "d011d879dfd1306d163256c9bced66204e7b17eeff3c9a898aa7e93fd9e8da5d",
     "scripts/native_reference.py": "2e3b0e2f65b685f86fcfdd1b4643b54c5582b81af36a0874a43d9eedc2675d76",
     "package/src/framework/physics/radiative_transfer.py": "13110b90de754991c4a6673040ffc52b9a15409ce1d6087b67ce9be017872891",
-    "package/src/framework/physics/dinosaur_physics.py": "7af253c5add0e865dd25d21eaf475479facc5b1b81ae03fde88df853ec49f860",
+    "package/src/framework/physics/dinosaur_physics.py": "634027398cc326da9f412804a785b1b220193e4eaf49752dab533c24338cfa66",
     "package/src/framework/physics/gcm.py": "4bdc28b9413c53aaa8a425407c65fe863c5bed6b2b16d984b56a4218d48ea2f3",
     "package/src/framework/physics/prescribed_dust.py": "1ec309decbafffc5fdc1f0fd2c7e7acd9c9f4cae1e6289237ef9e0e5232196dc",
     "package/src/framework/physics/simple_radiation.py": "d34833bafeb3c2dc78772b104f95bd6ac34a011ee91856ed2f9cf142104f9532",

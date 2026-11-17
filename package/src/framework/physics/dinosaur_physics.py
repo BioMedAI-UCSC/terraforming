@@ -272,7 +272,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                freeze_tracer_fields=False,no_forcing=False,gust_factor=0.,
                co2_exchange_ratio_pole=.92,co2_exchange_ratio_trop=.991,recalculate_heat_flux=False,
                particle_scavenging=True,form_moment_clouds=True,lifting_suppresses_settling=False,
-               dust_opacity_from_aerosol=False,surface_condensation=True,soil_alpha=.5):
+               dust_opacity_from_aerosol=False,surface_condensation=True,soil_alpha=.5,reference_pressure_pa=None):
     """Dinosaur dynamics followed by Ames-order reference gas-column physics.
 
     Supply a verified radiation component and mapped soil diffusivity. Keeping
@@ -367,6 +367,9 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             raise ValueError('dust optics require 12/15 bands and visible/infrared channel 1/2')
     sigma=np.asarray(coords.vertical.centers,dtype=float)
     dsigma=np.diff(np.asarray(coords.vertical.boundaries,dtype=float))
+    from src.framework.physics.vertical_grid import initialization_reference_interfaces
+    reference_half=initialization_reference_interfaces(coords.vertical.boundaries,
+        body.reference_surface_pressure_pa if reference_pressure_pa is None else reference_pressure_pa)
     if nonorographic_drag_options is not None:
         nonorographic_drag_options=dict(nonorographic_drag_options)
         if 'top_pressure_pa' not in nonorographic_drag_options:
@@ -375,12 +378,12 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
         source_options={name:nonorographic_drag_options.pop(name) for name in
             ('source_pressure_pa','base_amplitude','equatorial_amplitude','equatorial_width')
             if name in nonorographic_drag_options}
-        source_index,amplitude=source_parameters(sigma*body.reference_surface_pressure_pa,
+        source_index,amplitude=source_parameters(reference_half,
             jnp.asarray(grid.latitudes)[None,:],**source_options)
         nonorographic_drag_options.setdefault('source_index',source_index)
         nonorographic_drag_options.setdefault('source_amplitude',amplitude)
     from src.framework.physics.co2_condensation import surface_exchange_start
-    exchange_start=surface_exchange_start(sigma*body.reference_surface_pressure_pa,grid.latitudes,
+    exchange_start=surface_exchange_start(reference_half,grid.latitudes,
         do_qmass=do_qmass,polar_ratio=co2_exchange_ratio_pole,tropical_ratio=co2_exchange_ratio_trop)
     dz=soil_layer_thickness(soil_layers)
     pressure_scale=float(specs.dimensionalize(1.,scales.units.pascal).magnitude)

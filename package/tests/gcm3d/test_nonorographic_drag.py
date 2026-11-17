@@ -95,3 +95,8 @@ def test_held_forcing_recomputes_heating_from_current_winds():
 def test_invalid_timer_is_rejected(frequency,offset):
     with pytest.raises(ValueError,match='whole seconds'):
         schedule(frequency,offset)
+def test_source_selection_excludes_bottom_interface_and_caps_extended_index():
+    level,_=source_parameters([0.,20.,100.,200.],0.,source_pressure_pa=50.)
+    assert level==2
+    with pytest.raises(ValueError,match='source pressure'):
+        source_parameters([0.,20.,100.,200.],0.,source_pressure_pa=100.)

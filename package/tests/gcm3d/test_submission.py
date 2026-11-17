@@ -308,6 +308,7 @@ def test_reference_configuration_keeps_dust_and_frost_independent_of_water(monke
     assert radiation_options['scale_surface_flux'] is scale_surface
     np.testing.assert_allclose(forcing.tsi_1au_w_m2,1356.1 if solar_constant is None else solar_constant*1.524**2)
     assert options['moment_water'] is water and options['moment_dust'] is not water
+    assert options['reference_pressure_pa']==705.
     if fraction_maps:
         assert options['dust_background_options']['injection_fraction_scenario'] is fractions
         assert options['dust_background_options']['local_time_scenario'] is local_fractions

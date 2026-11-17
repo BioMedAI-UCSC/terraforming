@@ -260,7 +260,7 @@ def reference_configuration(grid,data_directory,dt_seconds,*,moment_water=True,d
         radiation_interval_seconds=radiation_interval,radiation_mode='12band',scale_surface_flux=scale_surface_flux,
         linear_k_interpolation=linear_k_interpolation,shortwave_ramp_sols=shortwave_ramp_sols,
         fixed_calendar_date=fixed_calendar_date)
-    options=dict(soil_diffusivity=diffusivity,soil_volumetric_heat_capacity=capacity,
+    options=dict(soil_diffusivity=diffusivity,soil_volumetric_heat_capacity=capacity,reference_pressure_pa=705.,
         radiation_update_seconds=radiation_interval,moment_water=moment_water,moment_dust=not moment_water,
         dust_opacity_channel=1,dust_optical_bands=12,
         initial_water_surface_kg_m2=polar_water_on_grid(grid,data_directory),

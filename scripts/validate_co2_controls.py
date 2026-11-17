@@ -17,15 +17,27 @@ from src.celestials.planets.mars.reference_constants import AMES_BODY_3D as BODY
 from src.framework.physics.column_physics import column_physics
 from src.framework.physics.co2_condensation import surface_exchange_start
 from src.framework.physics.soil_frost import soil_layer_thickness
+from src.framework.physics.vertical_grid import supported_layers,sigma_boundaries,initialization_reference_interfaces
 
 PHYSICS_BLOB='ca0b7c0774b1b23cafaee219062c3bffa3d0c4cc'
+DRIVER_PATCH_BLOB='4116b38b088d4f39a5d8c1da76acc1ffb07847db'
 
 
 def compile_reference(source,directory,compiler):
     raw=(source/'atmos_param_mars/mars_physics.F90').read_bytes()
     blob=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
     if blob!=PHYSICS_BLOB: raise ValueError('reference physics differs from pinned source')
-    text=raw.decode();start=text.index('    if (do_co2_condensation) then')
+    patch=(source/'patches/srcGFDL_acs.patch').read_bytes()
+    assert hashlib.sha1(b'blob '+str(len(patch)).encode()+b'\0'+patch).hexdigest()==DRIVER_PATCH_BLOB
+    driver=patch.decode().split('diff --git a/driver/mars/atmosphere.F90',1)[1].split('\ndiff --git ',1)[0]
+    assert '+      allocate(  p_std(Atm(mygrid)%npz+1) )' in driver
+    assert '+         p_std(k)= Atm(mygrid)%ak(k) + Atm(mygrid)%bk(k)*Atm(mygrid)%flagstruct%p_ref' in driver
+    assert '+                 p_std, Atm(mygrid)%atmos_axes, Time, Atm(mygrid)%domain   )' in driver
+    text=raw.decode()
+    assert 'kd = size(pstd)' in text and 'kd = size(p_full,3)' in text
+    assert 'klev= kd - klevs_co2 - 1' in text
+    assert 'call cg_drag_init (phys_domain, lonb, latb, pstd, Time=Time, axes=axes)' in text
+    start=text.index('    if (do_co2_condensation) then')
     block=text[start:text.index('!***************** IF DO_SURFACE_MARS = FALSE',start)]
     start=text.rfind('do k = kd,1,-1',0,text.index('klevs_trop = kd-k+1'))
     selection=text[start:text.index('! *********************************************************',start)]
@@ -117,7 +129,8 @@ kd=n;ie=ncol;do_qmass=qmass/=0;mcpu0=.false.
 klevs_ratio_pole=polar;klevs_ratio_trop=tropical
 klevs_trop=-999;klevs_pole=-999
 '''+selection+'''
-start_layer=n-klevs_co2-2
+! Initialization receives n interfaces; runtime has n-1 model layers.
+start_layer=(n-1)-klevs_co2-2
 end subroutine
 '''
     tail=tail.replace('\nend module\n','\n'+depth+'end module\n',1)
@@ -132,7 +145,9 @@ end subroutine
     native.controls.restype=None
     native.exchange_depth.argtypes=[ctypes.c_int]*3+[ctypes.c_double]*2+[array]*2+[ctypes.POINTER(ctypes.c_int)]
     native.exchange_depth.restype=None
-    provenance=dict(source_git_blob=blob,block_sha256=hashlib.sha256(block.encode()).hexdigest(),
+    provenance=dict(source_git_blob=blob,driver_patch_git_blob=DRIVER_PATCH_BLOB,
+        initialization_interfaces='N+1 native ak+bk*p_ref interfaces; runtime N full layers',
+        block_sha256=hashlib.sha256(block.encode()).hexdigest(),
         exchange_depth_block_sha256=hashlib.sha256(selection.encode()).hexdigest(),
         compiled_source_sha256=hashlib.sha256(code.encode()).hexdigest(),compiler_flags=flags,
         compiler=subprocess.check_output([compiler,'--version'],text=True).splitlines()[0],
@@ -147,25 +162,27 @@ def validate(source,compiler):
     cases=[];depth_cases=[]
     with tempfile.TemporaryDirectory(prefix='co2-controls-native-') as temporary:
         native,provenance=compile_reference(source,Path(temporary),compiler)
-        for n in (4,12,40,56):
-            for geometry in ('uniform','geometric'):
-                pressure=np.linspace(1.,610.,n) if geometry=='uniform' else np.geomspace(.01,610.,n)
-                boundary=pressure[-3]/pressure[-1]
-                ratios=[(.92,.991),(.7,.99),(1.,1.01),
-                    (np.nextafter(boundary,0.),np.nextafter(boundary,np.inf))]
-                for latitude in ([0.,.5],[np.pi/4.],[-np.pi/4.],
-                    [np.nextafter(np.pi/4.,np.inf)],[-np.nextafter(np.pi/4.,np.inf)],[0.,1.]):
-                    for qmass in (False,True):
-                        for polar,tropical in ratios:
-                            expected=ctypes.c_int(-1)
-                            native.exchange_depth(n,len(latitude),int(qmass),polar,tropical,
-                                f(pressure),f(np.asarray(latitude)[:,None]),ctypes.byref(expected))
-                            actual=surface_exchange_start(pressure,latitude,do_qmass=qmass,
-                                polar_ratio=polar,tropical_ratio=tropical)
-                            np.testing.assert_equal(actual,max(0,expected.value))
-                            depth_cases.append(dict(levels=n,geometry=geometry,latitudes_rad=list(latitude),
-                                do_qmass=qmass,polar_ratio=polar,tropical_ratio=tropical,
-                                start_layer=actual,coarse_grid_bounded=expected.value<0))
+        grids=[(n,geometry,610.,np.linspace(1.,610.,n+1) if geometry=='uniform' else np.geomspace(.01,610.,n+1))
+            for n in (4,12,40,56) for geometry in ('uniform','geometric')]
+        grids.extend((n,'released',reference,initialization_reference_interfaces(sigma_boundaries(n),reference))
+            for n in supported_layers() for reference in (610.,705.,50000.))
+        for n,geometry,reference,pressure in grids:
+            boundary=pressure[-3]/pressure[-1]
+            ratios=[(.92,.991),(.92,.995),(.7,.99),(1.,1.01),
+                (np.nextafter(boundary,0.),np.nextafter(boundary,np.inf))]
+            for latitude in ([0.,.5],[np.pi/4.],[-np.pi/4.],
+                [np.nextafter(np.pi/4.,np.inf)],[-np.nextafter(np.pi/4.,np.inf)],[0.,1.]):
+                for qmass in (False,True):
+                    for polar,tropical in ratios:
+                        expected=ctypes.c_int(-1)
+                        native.exchange_depth(n+1,len(latitude),int(qmass),polar,tropical,
+                            f(pressure),f(np.asarray(latitude)[:,None]),ctypes.byref(expected))
+                        actual=surface_exchange_start(pressure,latitude,do_qmass=qmass,
+                            polar_ratio=polar,tropical_ratio=tropical)
+                        np.testing.assert_equal(actual,max(0,expected.value))
+                        depth_cases.append(dict(levels=n,geometry=geometry,reference_pressure_pa=reference,latitudes_rad=list(latitude),
+                            do_qmass=qmass,polar_ratio=polar,tropical_ratio=tropical,
+                            start_layer=actual,coarse_grid_bounded=expected.value<0))
         for levels in (4,40,56):
             half=jnp.linspace(0.,610.,levels+1);full=.5*(half[1:]+half[:-1])
             co2=jnp.linspace(.9,.7,levels)
@@ -201,7 +218,8 @@ def validate(source,compiler):
                                 cases.append(dict(levels=levels,start_layer=start,flags=flags.tolist()))
     root=Path(__file__).parents[1]
     paths=['scripts/validate_co2_controls.py','package/src/framework/physics/column_physics.py',
-        'package/src/framework/physics/dinosaur_physics.py','package/src/framework/physics/co2_condensation.py']
+        'package/src/framework/physics/dinosaur_physics.py','package/src/framework/physics/co2_condensation.py',
+        'package/src/framework/physics/vertical_grid.py','package/src/framework/physics/vertical_grid_coefficients.npz']
     return dict(status='pass',reference=provenance,cases=cases,depth_cases=depth_cases,
         sha256={p:hashlib.sha256((root/p).read_bytes()).hexdigest() for p in paths},
         limits='Seeded immediate-condensation control block, all three flags and do_qmass surface weights; unchanged initialization depth loops and strict local-domain latitude selection. Dinosaur uses one global domain and bounds the two extra exchange layers at its first layer on coarse grids. Phase kernels, suspended clouds, global projection and derivatives require separate checks.')

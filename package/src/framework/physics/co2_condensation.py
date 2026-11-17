@@ -7,17 +7,17 @@ import numpy as np
 from src.framework.gcm._dinosaur import jnp
 
 
-def surface_exchange_start(pressure_full,latitude_rad,*,do_qmass=False,polar_ratio=.92,tropical_ratio=.991):
+def surface_exchange_start(pressure_half,latitude_rad,*,do_qmass=False,polar_ratio=.92,tropical_ratio=.991):
     """Released local-domain depth choice, converted to a zero-based start.
 
     Dinosaur uses one global domain. The first layer bounds the source's two
     extra exchange layers on coarse grids that cannot contain both of them.
     """
-    pressure=np.asarray(pressure_full,dtype=float)
+    pressure=np.asarray(pressure_half,dtype=float)
     latitude=np.asarray(latitude_rad,dtype=float)
-    if pressure.ndim!=1 or not len(pressure) or not np.isfinite(pressure).all() or \
-            np.any(pressure<=0.) or np.any(np.diff(pressure)<=0.):
-        raise ValueError('CO2 exchange reference pressures must be positive and increase')
+    if pressure.ndim!=1 or len(pressure)<2 or not np.isfinite(pressure).all() or \
+            pressure[0]<0. or np.any(pressure[1:]<=0.) or np.any(np.diff(pressure)<=0.):
+        raise ValueError('CO2 exchange reference interfaces must be nonnegative and increase')
     if not latitude.size or not np.isfinite(latitude).all() or np.any(abs(latitude)>np.pi/2.):
         raise ValueError('CO2 exchange latitudes must be finite radians within the poles')
     if not np.isfinite([polar_ratio,tropical_ratio]).all() or min(polar_ratio,tropical_ratio)<=0.:
@@ -25,7 +25,8 @@ def surface_exchange_start(pressure_full,latitude_rad,*,do_qmass=False,polar_rat
     ratio=polar_ratio if do_qmass and np.any(abs(latitude)>np.pi/4.) else tropical_ratio
     below=np.flatnonzero(pressure/pressure[-1]<ratio)
     if not len(below): raise ValueError('CO2 exchange ratio does not select a reference layer')
-    return max(0,int(below[-1])-2)
+    # Initialization has one more interface than the runtime has model layers.
+    return max(0,int(below[-1])-3)
 
 
 def simple_condensation(predicted_temperature,pressure_half,pressure_full,cp,gravity,latent_heat=5.9e5):

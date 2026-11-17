@@ -54,3 +54,19 @@ def sigma_boundaries(layers):
     if not np.all(np.isfinite(boundaries)) or not np.all(np.diff(boundaries)>0.) or boundaries[-1]!=1.:
         raise ValueError('released vertical grid cannot define increasing sigma boundaries')
     return boundaries
+
+
+def initialization_reference_interfaces(sigma,reference_pressure_pa):
+    """Static source selectors retain the released positive top interface."""
+    sigma=np.asarray(sigma,dtype=float)
+    reference=float(reference_pressure_pa)
+    if sigma.ndim!=1 or len(sigma)<2 or not np.isfinite(sigma).all() or \
+            sigma[0]<0. or sigma[-1]!=1. or np.any(np.diff(sigma)<=0.):
+        raise ValueError('initialization sigma interfaces must increase to one')
+    if not np.isfinite(reference) or reference<=0.:
+        raise ValueError('initialization reference pressure must be finite and positive')
+    layers=len(sigma)-1
+    if layers in supported_layers() and np.array_equal(sigma,sigma_boundaries(layers)):
+        data=load_grids()
+        return data[f'a{layers}']*reference/725.+data[f'b{layers}']*reference
+    return sigma*reference

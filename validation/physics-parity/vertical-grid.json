@@ -1535,7 +1535,7 @@
   "sha256": {
     "scripts/validate_vertical_grid.py": "5c1c1cfed4f5d1e896907a7faabe8cb77db4a05c8624f4010a0cb88d25de54b9",
     "scripts/stage_vertical_grids.py": "be154d678ccf8e42d255cdc3afe59df473ce9b2d27f77f61a8817642aac01fa1",
-    "package/src/framework/physics/vertical_grid.py": "2fe7271e0459e19b4da7f298ab21f184426e1cce643341e5fa11331e92e9873e",
+    "package/src/framework/physics/vertical_grid.py": "6a51bdaa7d68d1e37863bf635bedf793e84bd16ea5decd4aae1ac6a26d8f1fe0",
     "package/src/framework/physics/vertical_grid_coefficients.npz": "c9bcbba2ee02c01ec796d4b4b11da58a2325f78e43ba4f6dc6b7cd6a0e07d71d"
   },
   "limits": "Hybrid equations match native. Dinosaur freezes reference-column fractions and uses a zero top and arithmetic centers; terrain and full-level discretization differences remain explicit."

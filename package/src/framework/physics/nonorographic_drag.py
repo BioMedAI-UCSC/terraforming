@@ -62,19 +62,20 @@ def spectrum(maximum_speed=72.,speed_interval=1.2,wavelength_count=1):
     return speeds,wavenumbers
 
 
-def source_parameters(reference_pressure_pa,latitude_rad,*,source_pressure_pa=150.,
+def source_parameters(reference_pressure_half_pa,latitude_rad,*,source_pressure_pa=150.,
                       base_amplitude=0.,equatorial_amplitude=.08,equatorial_width=45.):
-    """Patched source level and amplitude on a supplied reference full-level grid.
+    """Patched source level and amplitude on the reference interface grid.
 
     The returned source index includes the extra top ghost level. The patched
     latitude formula divides radians by the literal width 45; retain that rule.
     """
-    pressure=np.asarray(reference_pressure_pa,dtype=float)
-    if pressure.ndim!=1 or len(pressure)<3 or not np.all(np.isfinite(pressure)) or np.any(pressure<=0.) or np.any(np.diff(pressure)<=0.):
-        raise ValueError('gravity-wave source requires an increasing reference pressure profile')
-    selected=np.flatnonzero(pressure>source_pressure_pa)
+    pressure=np.asarray(reference_pressure_half_pa,dtype=float)
+    if pressure.ndim!=1 or len(pressure)<3 or not np.all(np.isfinite(pressure)) or \
+            pressure[0]<0. or np.any(pressure[1:]<=0.) or np.any(np.diff(pressure)<=0.):
+        raise ValueError('gravity-wave source requires increasing reference pressure interfaces')
+    selected=np.flatnonzero(pressure[:-1]>source_pressure_pa)
     if not len(selected): raise ValueError('source pressure must be below a reference model level')
-    level=min(int(selected[0])+1,len(pressure)-1)
+    level=min(int(selected[0])+1,len(pressure)-2)
     lat=jnp.asarray(latitude_rad)
     amplitude=base_amplitude+equatorial_amplitude*(1.-jnp.tanh(lat/equatorial_width)**2)
     return level,amplitude
