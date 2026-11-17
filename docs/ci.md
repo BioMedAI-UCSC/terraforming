@@ -10,7 +10,7 @@ assigned twice, or added without a category.
 | radiation | Gas and particle optics, spectral fluxes and radiation solvers |
 | surface | Soil, frost, CO2 microphysics, PBL, convection and drag |
 | particles | Natural dust, water, settling and tracer transport |
-| coupled | Global Dinosaur physics, budgets, feedbacks, restarts and derivatives |
+| coupled | Four integration groups listed below; global physics, restarts and derivatives |
 | neural | Neural physics and training budgets |
 | aerosols | Engineered aerosol state, optics, transport and experiments |
 | legacy | Torch planet model, JAX 0-D prototypes, engine and gas interventions |
@@ -30,7 +30,16 @@ to run all suites or one named suite. Select **Include tests marked slow** when
 those tests are needed. Data-dependent tests still require their documented
 external inputs.
 
-The coupled suite has four parallel partitions. Each coupled case runs in its
+The integration jobs are grouped by the physics they test:
+
+- **Integration: radiation and temperature** — radiation forcing, fluxes, timing and temperature feedback.
+- **Integration: clouds and dust** — water clouds, dust lifting, settling and optical feedback.
+- **Integration: surface and CO2** — frost, surface exchange, convection and cold starts.
+- **Integration: transport and budgets** — remapping, drag, material, energy and momentum.
+
+Each test function and all its parameter cases belong to one named group.
+The planner fails if an integration test has no group or has two groups.
+These groups run in parallel. Each case runs in its
 own process to release JAX compilation memory. Other suites use one process per
 test file. Jobs save JUnit results and slow-test timings as seven-day artifacts.
 All numerical jobs install the locked GCM dependencies. The runtime suite only

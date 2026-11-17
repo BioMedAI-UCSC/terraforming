@@ -29,7 +29,73 @@ DIRECTORIES = {
     'runtime': ('apps/nautalis',),
 }
 SUITES = (*MODULES, 'aerosols', 'coupled', *DIRECTORIES)
-SHARDS = {'coupled': 4}
+INTEGRATION_GROUPS = {
+    'Integration: radiation and temperature': '''
+        thermal_relaxation_reaches_global_rollout_and_reverse_derivative
+        simple_radiation_reaches_global_rollout_and_reverse_derivative
+        scaled_surface_ir_preserves_restart_and_three_step_gradient
+        fixed_spectral_date_routes_geometry_and_optical_clock_but_not_startup_ramp
+        fixed_spectral_calendar_preserves_restart_and_three_step_clock_derivative
+        spectral_ramp_keeps_interface_fluxes_and_stratosphere_unscaled
+        zero_startup_ramp_updates_air_and_soil_like_zero_solar_forcing
+        aerosol_control_requires_matching_provider_switch_and_cache
+        aerosol_opacity_control_holds_native_channels_and_preserves_restart_gradient
+        multistep_dinosaur_reverse_derivative_reaches_surface_state
+        nonlte_callback_keeps_interface_fluxes_and_reports_heating_separately
+        radiation_schedule_holds_kelvin_rate_and_stratosphere_until_source_clock_refresh
+        held_radiation_retains_multistep_reverse_derivative
+        prescribed_dust_scenario_and_size_optics_reach_multistep_reverse_gradient
+    ''',
+    'Integration: clouds and dust': '''
+        released_aerosol_mode_validity_applies_to_initialization_and_step
+        independent_dust_transport_radiation_material_and_restart
+        frozen_dust_retains_dry_transport_but_keeps_surface_sources_and_restart
+        disabled_particle_scavenging_keeps_cloud_cores_material_restart_and_gradient
+        disabled_moment_clouds_keep_settling_and_water_budget_without_advancing_cloud_history
+        independent_dust_lifting_coagulation_radiation_three_step_gradient
+        moist_adjustment_global_water_budget_and_restart
+        moist_adjustment_global_reverse_derivative
+        reference_cloud_backend_forms_suspended_ice_and_closes_raw_mass
+        reference_cloud_backend_multistep_reverse_derivative
+        suspended_cloud_radiation_feedback_and_rollout_gradient
+        bulk_water_backend_closes_material_and_restarts_full_cloud_feedback
+        surface_water_exchange_uses_previous_step_coefficient
+        bulk_water_backend_multistep_reverse_derivative
+        moment_water_cloud_feedback_material_and_restart
+        moment_cloud_multistep_reverse_derivative
+        multimode_cloud_dust_feedback_material_and_restart
+        multimode_cloud_dust_multistep_reverse_derivative
+        seasonal_spatial_dust_shares_preserve_material_restart_and_three_step_gradient
+    ''',
+    'Integration: surface and CO2': '''
+        disabled_co2_feedback_is_not_undone_by_global_inventory_projection
+        disabled_co2_condensation_keeps_suspended_tracer_without_forming_clouds
+        co2_controls_keep_three_step_reverse_derivatives
+        surface_controls_keep_global_reverse_derivatives
+        recalculated_pbl_heat_flux_changes_soil_and_preserves_restart_and_three_step_gradient
+        dinosaur_backend_runs_cold_column_and_preserves_total_inventory
+        convection_source_switch_runs_globally_and_restarts
+        soil_weight_and_surface_phase_controls_preserve_three_step_derivative_and_restart
+        native_cold_atmosphere_keeps_three_step_gradient_and_exact_restart
+    ''',
+    'Integration: transport and budgets': '''
+        sigma_remap_conserves_energy_momentum_and_passive_material
+        impossible_donor_mass_is_nonfinite_instead_of_clipped
+        explicit_co2_remap_changes_only_co2_material_and_preserves_gas_closure
+        sigma_remap_reverse_derivative
+        sigma_remap_carries_suspended_mass_momentum_and_energy
+        no_forcing_advances_dynamics_without_radiation_or_surface_updates
+        explicit_gas_global_species_budget_restart_and_reverse_derivative
+        nonorographic_drag_global_timer_and_restart
+        nonorographic_drag_global_multistep_reverse_derivative
+        passive_transport_keeps_material_through_dynamics_and_column_physics
+        stretched_sigma_global_gradient_and_invalid_geometry
+        surface_drag_transfers_axial_momentum_to_ground_and_reports_projection
+        exchange_energy_surface_derivative_uses_soil_node_capacity
+        water_latent_energy_is_explicit_differentiable_and_used_at_all_repair_stages
+    ''',
+}
+SHARDS = {'coupled': len(INTEGRATION_GROUPS)}
 RADIATION = set('correlated_k scattering_transfer simple_radiation radiation_grid optical_depth '
     'spectral_flux radiative_transfer collision_absorption nonlte_cooling particle_optics solar_geometry twostream'.split())
 SURFACE = set('boundary_layer co2_condensation co2_microphysics co2_clouds soil_frost dry_convection '
@@ -113,11 +179,28 @@ def plan(paths, full=False, suite='all'):
         raise ValueError(f'Unknown suite: {suite}')
     selected = {suite} if suite != 'all' else set(SUITES) if full else affected_suites(paths, files)
     matrix = [dict(suite=name, shard=index, shards=SHARDS.get(name, 1),
-        name=name if name not in SHARDS else f'{name} ({index+1}/{SHARDS[name]})')
+        name=f'Module: {name}' if name != 'coupled' else tuple(INTEGRATION_GROUPS)[index])
         for name in SUITES if name in selected for index in range(SHARDS.get(name, 1))]
     ui = full or any(path.startswith(('ui/', '.github/workflows/')) or path == 'scripts/ci.py' for path in paths)
     return dict(matrix=matrix, ui=ui if suite == 'all' else False,
         selected=sorted(selected), skipped=sorted(set(SUITES)-selected))
+
+
+def integration_groups(nodes):
+    groups = {name: [] for name in INTEGRATION_GROUPS}
+    owners = {}
+    for group, tests in INTEGRATION_GROUPS.items():
+        for test in tests.split():
+            name = 'test_' + test
+            if name in owners:
+                raise ValueError(f'Duplicate integration test: {name}')
+            owners[name] = group
+    for node in nodes:
+        name = node.split('::', 1)[1].split('[', 1)[0]
+        if name not in owners:
+            raise ValueError(f'Unassigned integration test: {node}')
+        groups[owners[name]].append(node)
+    return groups
 
 
 def run_suite(suite, shard=0, shards=1, slow=False, collect_only=False):
@@ -139,7 +222,11 @@ def run_suite(suite, shard=0, shards=1, slow=False, collect_only=False):
         nodes = [line for line in result.stdout.splitlines() if line.startswith(GCM) and '::' in line]
         if not nodes or len(nodes) != len(set(nodes)):
             raise RuntimeError(f'Invalid coupled test collection:\n{result.stdout}')
-        batches = [[node] for node in nodes[shard::shards]]
+        groups = integration_groups(nodes)
+        group = tuple(groups)[shard]
+        batches = [[node] for node in groups[group]]
+        if not batches:
+            raise RuntimeError(f'Empty integration group: {group}')
         if collect_only:
             print('\n'.join(batch[0] for batch in batches))
             return
@@ -190,7 +277,7 @@ def main():
             output.write('ui='+str(result['ui']).lower()+'\n')
     if os.environ.get('GITHUB_STEP_SUMMARY'):
         with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
-            summary.write('## Test selection\n\nSelected: '+', '.join(result['selected'])+'\n\n')
+            summary.write('## Test selection\n\nSelected: '+', '.join(row['name'] for row in result['matrix'])+'\n\n')
             summary.write('Skipped: '+', '.join(result['skipped'])+'\n\nUI build: '+str(result['ui'])+'\n')
 
 

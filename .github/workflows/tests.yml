@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       suite:
-        description: Module to run (all runs the full suite)
+        description: Module to run (coupled runs all four integration groups)
         type: choice
         default: all
         options: [all, dynamics, radiation, surface, particles, neural, aerosols, coupled, legacy, cli, calibration, runtime]
@@ -68,7 +68,7 @@ jobs:
           fi
 
   modules:
-    name: Module / ${{ matrix.name }}
+    name: ${{ matrix.name }}
     needs: plan
     if: needs.plan.outputs.run_tests == 'true'
     strategy:

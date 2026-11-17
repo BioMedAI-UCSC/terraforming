@@ -1,5 +1,6 @@
 """Guard test ownership, safe change selection and runner failure propagation."""
 import importlib.util
+import ast
 from pathlib import Path
 import subprocess
 import tempfile
@@ -76,6 +77,23 @@ class SelectionTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             ci.plan([], suite='typo')
 
+    def test_integration_names_match_all_real_test_functions(self):
+        source = ast.parse((ci.ROOT / ci.GCM / 'test_dinosaur_physics.py').read_text())
+        functions = {node.name for node in source.body
+            if isinstance(node, ast.FunctionDef) and node.name.startswith('test_')}
+        nodes = [ci.GCM + 'test_dinosaur_physics.py::' + name for name in sorted(functions)]
+        groups = ci.integration_groups(nodes)
+        self.assertTrue(all(groups.values()))
+        self.assertCountEqual([node for members in groups.values() for node in members], nodes)
+        configured = ['test_'+name for names in ci.INTEGRATION_GROUPS.values() for name in names.split()]
+        self.assertCountEqual(configured, functions)
+        rows = ci.plan([], full=True, suite='coupled')['matrix']
+        self.assertEqual([row['name'] for row in rows], list(groups))
+
+    def test_new_integration_case_requires_a_group(self):
+        with self.assertRaisesRegex(ValueError, 'Unassigned integration test'):
+            ci.integration_groups([ci.GCM+'test_dinosaur_physics.py::test_new_physics'])
+
 
 class RunnerTests(unittest.TestCase):
     def test_runtime_keeps_reports_and_propagates_failure_after_other_files(self):
@@ -89,8 +107,9 @@ class RunnerTests(unittest.TestCase):
             self.assertTrue(all(any(arg.startswith('--junitxml=') for arg in call.args[0])
                 for call in run.call_args_list))
 
-    def test_coupled_shards_cover_every_node_once_in_isolated_processes(self):
-        nodes = [ci.GCM + f'test_dinosaur_physics.py::test_case[{index}]' for index in range(13)]
+    def test_named_integration_groups_cover_every_node_once_in_isolated_processes(self):
+        nodes = [ci.GCM + f'test_dinosaur_physics.py::test_{name}[{index}]'
+            for names in ci.INTEGRATION_GROUPS.values() for name in names.split() for index in range(2)]
         seen = []
         def execute(command, **kwargs):
             if '-c' in command and 'import dinosaur, jax, h5netcdf' in command:
