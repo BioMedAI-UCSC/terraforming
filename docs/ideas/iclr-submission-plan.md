@@ -485,7 +485,7 @@ a verifiable output.
 ## Source-of-truth links inside this repository
 
 - Physics ledger: `docs/ideas/gcm3d-physics-limitations.md`
-- Ames mapping: `docs/ideas/amesgcm-comparison.md`
+- Ames mapping: `docs/ideas/reference-gcm-comparison.md`
 - Architecture: `docs/package/gcm3d/architecture.md`
 - Implementation: `docs/package/gcm3d/implementation.md`
 - Data staging: `docs/scripts/gcm3d-data.md`

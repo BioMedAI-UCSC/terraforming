@@ -1,0 +1,102 @@
+{
+  "status": "pass",
+  "reference": {
+    "commit": "ba47cada5f9eb89c75c4f10d06dbae6e7f9ecb26",
+    "source_git_blob": "d0351317dfb6edd4c83c01c67d9ad3a39bff3b2d",
+    "compiled_source_sha256": "d8198d9d7b234878a431e68c7e0ea7c61387c90b08a5a09a1fc45d3373c6bf5b",
+    "routine_sha256": {
+      "pass2": "fc30b833f3374fa31fe31a241d43509d835983aa2849d9edd02983e0c573ded2"
+    },
+    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+    "compiler_flags": [
+      "-O3",
+      "-cpp",
+      "-fdefault-real-8",
+      "-fdefault-double-8",
+      "-fPIC",
+      "-shared"
+    ],
+    "real_precision_bits": 64,
+    "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged"
+  },
+  "cases": [
+    {
+      "case": "stable",
+      "max_absolute_errors": {
+        "temperature_k": 2.842170943040401e-14,
+        "u_ms": 2.1316282072803006e-14,
+        "v_ms": 2.842170943040401e-14,
+        "tracer_ratio": 2.168404344971009e-19
+      },
+      "native_seconds": 0.000967143732123077,
+      "jax_seconds": 0.001003052038140595,
+      "native_over_jax_speed_ratio": 0.9642009540361605,
+      "first_jax_call_seconds": 0.11493787495419383
+    },
+    {
+      "case": "unstable",
+      "max_absolute_errors": {
+        "temperature_k": 1.1368683772161603e-13,
+        "u_ms": 2.842170943040401e-14,
+        "v_ms": 3.197442310920451e-14,
+        "tracer_ratio": 2.710505431213761e-19
+      },
+      "native_seconds": 0.004845145833678543,
+      "jax_seconds": 0.0010787749895825982,
+      "native_over_jax_speed_ratio": 4.4913405302001275,
+      "first_jax_call_seconds": 0.0011565419845283031
+    },
+    {
+      "case": "mixed",
+      "max_absolute_errors": {
+        "temperature_k": 8.526512829121202e-14,
+        "u_ms": 2.842170943040401e-14,
+        "v_ms": 2.842170943040401e-14,
+        "tracer_ratio": 3.2526065174565133e-19
+      },
+      "native_seconds": 0.008281229133717715,
+      "jax_seconds": 0.0043569104047492145,
+      "native_over_jax_speed_ratio": 1.900711367553216,
+      "first_jax_call_seconds": 0.0018382919952273369
+    },
+    {
+      "case": "nonuniform",
+      "max_absolute_errors": {
+        "temperature_k": 8.526512829121202e-14,
+        "u_ms": 2.842170943040401e-14,
+        "v_ms": 2.842170943040401e-14,
+        "tracer_ratio": 3.2526065174565133e-19
+      },
+      "native_seconds": 0.005562854139134288,
+      "jax_seconds": 0.003653287491761148,
+      "native_over_jax_speed_ratio": 1.5226981593098197,
+      "first_jax_call_seconds": 0.004301541019231081
+    }
+  ],
+  "source_sha256": "31f30419734a27eea4fa50e89724f048579a8d6fb0302bab0cd674c302e83315",
+  "kernel_sha256": "11d8f2284b7e95cbb38064400c6e284913599f9a7cc9d3a349f7093f60ecf162",
+  "columns": 2048,
+  "layers": 40,
+  "repeats": 20,
+  "constants": {
+    "body": {
+      "name": "Mars",
+      "radius_m": 3386000.0,
+      "gravity_m_s2": 3.72,
+      "rotation_period_s": 88642.88969244076,
+      "gas_constant_j_kg_k": 189.02,
+      "cp_j_kg_k": 735.94,
+      "reference_temperature_k": 200.0,
+      "reference_surface_pressure_pa": 610.0,
+      "solar_day_s": 88704.0
+    },
+    "source": "Ames v3.2.1 patches/srcFMS.patch"
+  },
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "jax_version": "0.11.0",
+  "devices": [
+    "cpu:0"
+  ],
+  "timing_limits": "exploratory local timing; native serial loop and JAX default workers; other workloads and thread counts are not controlled",
+  "limits": "pass2 kernel only; FP64 tolerance agreement, not bitwise identity or whole-model climate/speed equivalence"
+}

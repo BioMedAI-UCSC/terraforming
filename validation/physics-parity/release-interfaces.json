@@ -1,0 +1,1945 @@
+{
+  "status": "pass",
+  "reference": {
+    "commit": "ba47cada5f9eb89c75c4f10d06dbae6e7f9ecb26",
+    "source_git_blobs": {
+      "atmos_param_mars/mars_surface.F90": "aca56974025103ab408ecf866cc78b25779fc469",
+      "atmos_param_mars/mars_physics.F90": "ca0b7c0774b1b23cafaee219062c3bffa3d0c4cc",
+      "atmos_param_mars/null_physics_mod.F90": "4ca7a58d46e31dd8fb281469bbbcd8d50071bba2",
+      "build_run/compile.bash": "3a43a2fdb4e26dc0980e3e5bfaa5efbe0861a597",
+      "build_run/fms_mars_clouds_v3.2": "83b611e6527cf26bef3ec0064c05aebe0bb0d080",
+      "atmos_param_mars/sedim_mod.F90": "df1424b6258a68d7dfb6c7b5ebfb7180224070ad",
+      "atmos_param_mars/BLcode/pblmod_mgcm.F90": "38b3f41e4d07f9a2e3c9d7a689e50577cac7858c",
+      "atmos_param_mars/micromod_mgcm.F90": "4897f72860b59d7effeb6650dbf3d4484b3aca71",
+      "atmos_param_mars/aerosol.F90": "8737535bd91a1cc3f1ab92366405007dcb186bae",
+      "atmos_param_mars/aerosol_util.F90": "353441748fa247b8d938e4993f06d313268580f7",
+      "atmos_param_mars/dust_update.F90": "1e470cc1efb44c6627cbe3168c69c2d1f7640570",
+      "atmos_param_mars/Rad/radiation_driver.F90": "91059b1b696ef35c05db016f1b890b9c7591f482",
+      "atmos_param_mars/Rad/rtmod_mgcm.F90": "40d8879c3735bbec6cabc63817cad5220f281532",
+      "atmos_param_mars/coagulation.F90": "e0c1818849461fa252ff1980dd264a93c57d79ab",
+      "atmos_param_mars/blkh2omod_mgcm.F90": "92667ec8575160bc8e6a68e88cd0a93397d3d450",
+      "atmos_param_mars/co2micromod_mgcm.F90": "aa566e12d6e01afa346162385055f41d8d2bc18f",
+      "atmos_param_mars/palmer_topo_drag.F90": "e25163faee55b4c4d31d90f2d09db13148230123",
+      "atmos_param_mars/Rad/simple_rad_driver.F90": "3e17830d742bcec90d00165db8c8037876d65f5a"
+    },
+    "preprocessor_flags": [
+      "-cpp",
+      "-E",
+      "-P",
+      "-DMARS_GCM",
+      "-DMARS_SURFACE",
+      "-DRELEASE"
+    ],
+    "preprocessed_sha256": "4bafca1acd02f2e53ec6830bcf94a9d43e34d97dc4be09346dafd35089bd2c56",
+    "moment_cloud_guard_sha256": "da60a441db330ce2399dc8f71fc2d57381cd1ca3c51ee0fb7db33914e33c745d",
+    "aerosol_mode_guard_sha256": "3fbb0171ae057f5d64576ed6a330a9abae137e57a01c8bb6c33c8df7c5ce74ed",
+    "dust_lifting_guard_sha256": "82ba3d433748fa636d4e2f5aae6800d824ec6521d433169444d3efa56d007660",
+    "shortwave_ramp_block_sha256": "387dbc34d7638caaa138a2443283f992f005ac0e8e6faf1ce29d07396df91e66",
+    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0"
+  },
+  "cases": [
+    {
+      "interface": "cloud_physics",
+      "released_implementation": "fatal placeholder",
+      "routine_sha256": "ba38c9855aafcde462dd8cb3e1b283eb65f21896ef750556b1ad7216602fe449"
+    },
+    {
+      "interface": "cloud_physics_init",
+      "released_implementation": "fatal placeholder",
+      "routine_sha256": "6b4d8a7bda901b9e3b43c6ed1ec64a002ce5ef7ede54615585ec25f7b03653b0"
+    },
+    {
+      "interface": "photochem_driver",
+      "released_implementation": "fatal placeholder",
+      "routine_sha256": "fd163508da7454313f5cbebe3ee552123a1dfa54ac57061a5d777630fdb4a5c0"
+    },
+    {
+      "interface": "dust_source_sink",
+      "released_implementation": "fatal placeholder",
+      "routine_sha256": "bf9fcae399b7cb1b977368b4162c6a23a9b885b97e34272df7efbaa5075294fa"
+    },
+    {
+      "interface": "dust_source_init",
+      "released_implementation": "fatal placeholder",
+      "routine_sha256": "a50637817553165f521d6c24c2d89444446eab4fbe1b5abc32b68ed9da7e8bb6"
+    }
+  ],
+  "driver_controls": [
+    {
+      "source_control": "no_forcing",
+      "status": "implemented",
+      "implementation": "dinosaur_physics.build_step and column_physics; surface-controls report"
+    },
+    {
+      "source_control": "freeze_tracer_fields",
+      "status": "implemented",
+      "implementation": "dinosaur_physics.build_step and column_physics; surface-controls report"
+    },
+    {
+      "source_control": "gust_fact",
+      "status": "implemented",
+      "implementation": "dinosaur_physics.build_step and column_physics; surface-controls report"
+    },
+    {
+      "source_control": "t_zero",
+      "status": "implemented",
+      "implementation": "thermal_relaxation, radiative_transfer and simple_radiation; analytic kernel is not called by native dispatch"
+    },
+    {
+      "source_control": "t_strat",
+      "status": "implemented",
+      "implementation": "thermal_relaxation, radiative_transfer and simple_radiation; analytic kernel is not called by native dispatch"
+    },
+    {
+      "source_control": "delh",
+      "status": "implemented",
+      "implementation": "thermal_relaxation, radiative_transfer and simple_radiation; analytic kernel is not called by native dispatch"
+    },
+    {
+      "source_control": "delv",
+      "status": "implemented",
+      "implementation": "thermal_relaxation, radiative_transfer and simple_radiation; analytic kernel is not called by native dispatch"
+    },
+    {
+      "source_control": "eps",
+      "status": "implemented",
+      "implementation": "thermal_relaxation, radiative_transfer and simple_radiation; analytic kernel is not called by native dispatch"
+    },
+    {
+      "source_control": "sigma_b",
+      "status": "implemented",
+      "implementation": "thermal_relaxation, radiative_transfer and simple_radiation; analytic kernel is not called by native dispatch"
+    },
+    {
+      "source_control": "ka",
+      "status": "implemented",
+      "implementation": "thermal_relaxation, radiative_transfer and simple_radiation; analytic kernel is not called by native dispatch"
+    },
+    {
+      "source_control": "ks",
+      "status": "implemented",
+      "implementation": "thermal_relaxation, radiative_transfer and simple_radiation; analytic kernel is not called by native dispatch"
+    },
+    {
+      "source_control": "do_teq_z",
+      "status": "implemented",
+      "implementation": "thermal_relaxation, radiative_transfer and simple_radiation; analytic kernel is not called by native dispatch"
+    },
+    {
+      "source_control": "do_mars_radiation",
+      "status": "implemented",
+      "implementation": "thermal_relaxation, radiative_transfer and simple_radiation; analytic kernel is not called by native dispatch"
+    },
+    {
+      "source_control": "do_simple_radiation",
+      "status": "implemented",
+      "implementation": "thermal_relaxation, radiative_transfer and simple_radiation; analytic kernel is not called by native dispatch"
+    },
+    {
+      "source_control": "kf",
+      "status": "implemented",
+      "implementation": "rayleigh_drag.rayleigh_tendencies and column_physics dissipative heating"
+    },
+    {
+      "source_control": "do_conserve_energy",
+      "status": "implemented",
+      "implementation": "rayleigh_drag.rayleigh_tendencies and column_physics dissipative heating"
+    },
+    {
+      "source_control": "rayleighModelTop_flag",
+      "status": "implemented",
+      "implementation": "rayleigh_drag.rayleigh_tendencies and column_physics dissipative heating"
+    },
+    {
+      "source_control": "rayleighModelTop_pres_cutoff",
+      "status": "implemented",
+      "implementation": "rayleigh_drag.rayleigh_tendencies and column_physics dissipative heating"
+    },
+    {
+      "source_control": "rayleighModelTop_tau_days",
+      "status": "implemented",
+      "implementation": "rayleigh_drag.rayleigh_tendencies and column_physics dissipative heating"
+    },
+    {
+      "source_control": "rayleighModelTop_pres_inflex",
+      "status": "implemented",
+      "implementation": "rayleigh_drag.rayleigh_tendencies and column_physics dissipative heating"
+    },
+    {
+      "source_control": "rayleighTropical_flag",
+      "status": "implemented",
+      "implementation": "rayleigh_drag.rayleigh_tendencies and column_physics dissipative heating"
+    },
+    {
+      "source_control": "rayleighTropical_pres_cutoff",
+      "status": "implemented",
+      "implementation": "rayleigh_drag.rayleigh_tendencies and column_physics dissipative heating"
+    },
+    {
+      "source_control": "rayleighTropical_tau_days",
+      "status": "implemented",
+      "implementation": "rayleigh_drag.rayleigh_tendencies and column_physics dissipative heating"
+    },
+    {
+      "source_control": "rayleighTropical_pres_inflex",
+      "status": "implemented",
+      "implementation": "rayleigh_drag.rayleigh_tendencies and column_physics dissipative heating"
+    },
+    {
+      "source_control": "rayleighTropical_lat_width",
+      "status": "implemented",
+      "implementation": "rayleigh_drag.rayleigh_tendencies and column_physics dissipative heating"
+    },
+    {
+      "source_control": "do_mars_surface",
+      "status": "implemented",
+      "implementation": "column_physics surface/PBL controls; release diffuse fallback checked natively"
+    },
+    {
+      "source_control": "do_vert_diff",
+      "status": "implemented",
+      "implementation": "column_physics surface/PBL controls; release diffuse fallback checked natively"
+    },
+    {
+      "source_control": "do_ames_pbl",
+      "status": "implemented",
+      "implementation": "column_physics surface/PBL controls; release diffuse fallback checked natively"
+    },
+    {
+      "source_control": "do_convective_adjust",
+      "status": "implemented",
+      "implementation": "column_physics convection_scheme and moist_convection_options"
+    },
+    {
+      "source_control": "do_fv3_convect",
+      "status": "implemented",
+      "implementation": "column_physics convection_scheme and moist_convection_options"
+    },
+    {
+      "source_control": "do_moist_convective_adjust",
+      "status": "implemented",
+      "implementation": "column_physics convection_scheme and moist_convection_options"
+    },
+    {
+      "source_control": "do_co2_condensation_cycle",
+      "status": "implemented",
+      "implementation": "column_physics, co2_microphysics and co2_condensation.surface_exchange_start; co2-controls report"
+    },
+    {
+      "source_control": "do_co2_condensation",
+      "status": "implemented",
+      "implementation": "column_physics, co2_microphysics and co2_condensation.surface_exchange_start; co2-controls report"
+    },
+    {
+      "source_control": "form_co2_clouds",
+      "status": "implemented",
+      "implementation": "column_physics, co2_microphysics and co2_condensation.surface_exchange_start; co2-controls report"
+    },
+    {
+      "source_control": "do_atmos_co2_loss",
+      "status": "implemented",
+      "implementation": "column_physics, co2_microphysics and co2_condensation.surface_exchange_start; co2-controls report"
+    },
+    {
+      "source_control": "do_qmass",
+      "status": "implemented",
+      "implementation": "column_physics, co2_microphysics and co2_condensation.surface_exchange_start; co2-controls report"
+    },
+    {
+      "source_control": "klevs_ratio_pole",
+      "status": "implemented",
+      "implementation": "column_physics, co2_microphysics and co2_condensation.surface_exchange_start; co2-controls report"
+    },
+    {
+      "source_control": "klevs_ratio_trop",
+      "status": "implemented",
+      "implementation": "column_physics, co2_microphysics and co2_condensation.surface_exchange_start; co2-controls report"
+    },
+    {
+      "source_control": "do_coagul_dst",
+      "status": "implemented",
+      "implementation": "dust_coagulation, water_surface options and column_physics form_bulk_clouds"
+    },
+    {
+      "source_control": "inj_vap_pbl",
+      "status": "implemented",
+      "implementation": "dust_coagulation, water_surface options and column_physics form_bulk_clouds"
+    },
+    {
+      "source_control": "facsubl",
+      "status": "implemented",
+      "implementation": "dust_coagulation, water_surface options and column_physics form_bulk_clouds"
+    },
+    {
+      "source_control": "liquid_vap_pres",
+      "status": "implemented",
+      "implementation": "dust_coagulation, water_surface options and column_physics form_bulk_clouds"
+    },
+    {
+      "source_control": "blk_latent_heat",
+      "status": "implemented",
+      "implementation": "dust_coagulation, water_surface options and column_physics form_bulk_clouds"
+    },
+    {
+      "source_control": "form_bulk_clouds",
+      "status": "implemented",
+      "implementation": "dust_coagulation, water_surface options and column_physics form_bulk_clouds"
+    },
+    {
+      "source_control": "GW_drag_TOG",
+      "status": "implemented",
+      "implementation": "terrain_drag_options and nonorographic_drag_options; terrain factor scales final tendencies"
+    },
+    {
+      "source_control": "topo_drag_fac",
+      "status": "implemented",
+      "implementation": "terrain_drag_options and nonorographic_drag_options; terrain factor scales final tendencies"
+    },
+    {
+      "source_control": "do_dust_source_sink",
+      "status": "unavailable",
+      "implementation": "released fatal placeholder interfaces checked below"
+    },
+    {
+      "source_control": "do_bin_water_cycle",
+      "status": "unavailable",
+      "implementation": "released fatal placeholder interfaces checked below"
+    },
+    {
+      "source_control": "do_pchem",
+      "status": "unavailable",
+      "implementation": "released fatal placeholder interfaces checked below"
+    },
+    {
+      "source_control": "trflux",
+      "status": "inactive",
+      "implementation": "tracer_source_sink has no caller in released mars_physics"
+    },
+    {
+      "source_control": "trsink",
+      "status": "inactive",
+      "implementation": "tracer_source_sink has no caller in released mars_physics"
+    },
+    {
+      "source_control": "tau_diffusion",
+      "status": "excluded",
+      "implementation": "only used in fv3_turb branches excluded by release flags"
+    },
+    {
+      "source_control": "diffusion_smooth",
+      "status": "excluded",
+      "implementation": "only used in fv3_turb branches excluded by release flags"
+    },
+    {
+      "source_control": "checkcons",
+      "status": "diagnostics adaptation",
+      "implementation": "kernel/global material ledgers and validation checks; native FMS debug abort behavior is not copied"
+    }
+  ],
+  "module_controls": [
+    {
+      "namelist": "sedim_nml",
+      "source_control": "scaveng",
+      "implementation": "particle_scavenging"
+    },
+    {
+      "namelist": "ames_pblmod_nml",
+      "source_control": "htflux_recalc",
+      "implementation": "recalculate_heat_flux"
+    },
+    {
+      "namelist": "microphys_nml",
+      "source_control": "microtimestep",
+      "implementation": "moment_cloud_options.microtimestep"
+    },
+    {
+      "namelist": "microphys_nml",
+      "source_control": "latent_heat",
+      "implementation": "moment_cloud_options.latent_heat"
+    },
+    {
+      "namelist": "microphys_nml",
+      "source_control": "makeclouds",
+      "implementation": "form_moment_clouds"
+    },
+    {
+      "namelist": "microphys_nml",
+      "source_control": "subeffmode",
+      "implementation": "moment_cloud_options.effective_input_mode"
+    },
+    {
+      "namelist": "microphys_nml",
+      "source_control": "facsubl",
+      "implementation": "inactive module-local variable"
+    },
+    {
+      "namelist": "microphys_nml",
+      "source_control": "mteta_case",
+      "implementation": "moment_cloud_options.contact_case"
+    },
+    {
+      "namelist": "microphys_nml",
+      "source_control": "mteta",
+      "implementation": "moment_cloud_options.contact"
+    },
+    {
+      "namelist": "coagulation_nml",
+      "source_control": "coal_kg",
+      "implementation": "coagulation_step.coalescence"
+    },
+    {
+      "namelist": "coagulation_nml",
+      "source_control": "kernel_b",
+      "implementation": "coagulation_step.brownian"
+    },
+    {
+      "namelist": "coagulation_nml",
+      "source_control": "kernel_g",
+      "implementation": "coagulation_step.gravitational"
+    },
+    {
+      "namelist": "coagulation_nml",
+      "source_control": "kernel_de",
+      "implementation": "coagulation_step.diffusion_enhancement"
+    },
+    {
+      "namelist": "coagulation_nml",
+      "source_control": "kernel_ti",
+      "implementation": "inactive released table path; FULLCOAG turbulent inertia uses uninitialized eps"
+    },
+    {
+      "namelist": "coagulation_nml",
+      "source_control": "effb",
+      "implementation": "coagulation_step.efficiency"
+    },
+    {
+      "namelist": "coagulation_nml",
+      "source_control": "coal_fac",
+      "implementation": "coagulation_step.factor"
+    },
+    {
+      "namelist": "blkh2oclouds_nml",
+      "source_control": "ccn_blkh2o",
+      "implementation": "water_cloud_options.nuclei_per_kg"
+    },
+    {
+      "namelist": "blkh2oclouds_nml",
+      "source_control": "prec_threshold",
+      "implementation": "water_cloud_options.precipitation_threshold"
+    },
+    {
+      "namelist": "co2microphys_nml",
+      "source_control": "ccn_co2",
+      "implementation": "cloud_nuclei_per_kg"
+    },
+    {
+      "namelist": "palmer_drag_nml",
+      "source_control": "KAP",
+      "implementation": "terrain_drag_options.coefficient"
+    },
+    {
+      "namelist": "palmer_drag_nml",
+      "source_control": "do_IR_damping",
+      "implementation": "terrain_drag_options.ir_damping"
+    },
+    {
+      "namelist": "palmer_drag_nml",
+      "source_control": "grid_res",
+      "implementation": "boundary_inputs.terrain_standard_deviation_on_grid grid_resolution"
+    }
+  ],
+  "aerosol_mode_cases": [
+    {
+      "moment_dust": false,
+      "moment_water": false,
+      "bulk_water": false,
+      "allowed": true
+    },
+    {
+      "moment_dust": false,
+      "moment_water": false,
+      "bulk_water": true,
+      "allowed": true
+    },
+    {
+      "moment_dust": false,
+      "moment_water": true,
+      "bulk_water": false,
+      "allowed": false
+    },
+    {
+      "moment_dust": false,
+      "moment_water": true,
+      "bulk_water": true,
+      "allowed": false
+    },
+    {
+      "moment_dust": true,
+      "moment_water": false,
+      "bulk_water": false,
+      "allowed": true
+    },
+    {
+      "moment_dust": true,
+      "moment_water": false,
+      "bulk_water": true,
+      "allowed": false
+    },
+    {
+      "moment_dust": true,
+      "moment_water": true,
+      "bulk_water": false,
+      "allowed": true
+    },
+    {
+      "moment_dust": true,
+      "moment_water": true,
+      "bulk_water": true,
+      "allowed": false
+    }
+  ],
+  "radiation_driver_controls": [
+    {
+      "source_control": "use_forget_swheat",
+      "status": "inactive",
+      "implementation": "declaration and namelist only"
+    },
+    {
+      "source_control": "use_dust_lwheat",
+      "status": "inactive",
+      "implementation": "declaration and namelist only"
+    },
+    {
+      "source_control": "use_newton_damping",
+      "status": "inactive",
+      "implementation": "declaration and namelist only"
+    },
+    {
+      "source_control": "nchan_swx",
+      "status": "inactive",
+      "implementation": "declaration and namelist only"
+    },
+    {
+      "source_control": "rad_calc_intv",
+      "status": "implemented",
+      "implementation": "radiation_update_seconds and radiation_interval_seconds"
+    },
+    {
+      "source_control": "do_diurnal_avg_rad",
+      "status": "implemented",
+      "implementation": "forcing.diurnal=False and daylight_geometry"
+    },
+    {
+      "source_control": "rampup_rad",
+      "status": "implemented",
+      "implementation": "shortwave_ramp_sols, atmospheric correction and surface shortwave_scale"
+    },
+    {
+      "source_control": "fixed_calender_date",
+      "status": "implemented",
+      "implementation": "radiation_clock and spectral fixed_calendar_date; optical-provider radiative clock; shared with simple radiation"
+    },
+    {
+      "source_control": "use_ames_sw_rad",
+      "status": "source-undefined when disabled",
+      "implementation": "default true; uninitialized local fluxes when false"
+    },
+    {
+      "source_control": "use_ames_lw_rad",
+      "status": "source-undefined when disabled",
+      "implementation": "default true; uninitialized local fluxes when false"
+    }
+  ],
+  "radiation_module_controls": [
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "tmom",
+      "status": "inactive",
+      "implementation": "declaration and namelist only"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "do_fv3_dust_opt",
+      "status": "inactive",
+      "implementation": "declaration and namelist only"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "fv3_gfac",
+      "status": "inactive",
+      "implementation": "declaration and namelist only"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "fv3_sscat",
+      "status": "inactive",
+      "implementation": "declaration and namelist only"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "do_dust_ir_scale",
+      "status": "inactive",
+      "implementation": "declaration and namelist only"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "fv3_ir_scale",
+      "status": "inactive",
+      "implementation": "declaration and namelist only"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "radactive_water",
+      "status": "implemented",
+      "implementation": "radiative_transfer water_vapor_tracer"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "radactive_cloud",
+      "status": "implemented",
+      "implementation": "particle_optics.make_particle_provider selects explicit species and nuclei counts"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "radactive_cloud_bulk",
+      "status": "implemented",
+      "implementation": "particle_optics.make_particle_provider selects explicit species and nuclei counts"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "radactive_co2cloud",
+      "status": "implemented",
+      "implementation": "particle_optics.make_particle_provider selects explicit species and nuclei counts"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "bulk_ccn",
+      "status": "implemented",
+      "implementation": "particle_optics.make_particle_provider selects explicit species and nuclei counts"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "bulk_co2_ccn",
+      "status": "implemented",
+      "implementation": "particle_optics.make_particle_provider selects explicit species and nuclei counts"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "do_nlte_simple",
+      "status": "implemented",
+      "implementation": "radiative_transfer nonlte_tracers and nonlte_cooling"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "rtdata_path",
+      "status": "data adaptation",
+      "implementation": "staged pinned table assets and recorded source hashes"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "ames_15band",
+      "status": "implemented",
+      "implementation": "radiation_mode selects 12band, 15band or extended"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "use_extended_cor_ks",
+      "status": "implemented",
+      "implementation": "radiation_mode selects 12band, 15band or extended"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "do_cia",
+      "status": "implemented",
+      "implementation": "radiative_transfer cia_molar_fractions"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "cia_co2",
+      "status": "implemented",
+      "implementation": "radiative_transfer cia_molar_fractions"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "cia_h2",
+      "status": "implemented",
+      "implementation": "radiative_transfer cia_molar_fractions"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "radactive_dust_TOG",
+      "status": "implemented supported modes",
+      "implementation": "explicit empty, moment or prescribed particle providers; mode 2 unsupported by release"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "use_boxinterp12",
+      "status": "implemented",
+      "implementation": "radiative_transfer linear_k_interpolation"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "radactive_cloud_bin",
+      "status": "excluded bin-cloud mode",
+      "implementation": "optional fixed-radius bin-cloud optics set aside; public bin-cloud microphysics is a fatal placeholder"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "scale_cloud_bin",
+      "status": "excluded bin-cloud mode",
+      "implementation": "optional fixed-radius bin-cloud optics set aside; public bin-cloud microphysics is a fatal placeholder"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "simple_cloud_radius",
+      "status": "excluded bin-cloud mode",
+      "implementation": "optional fixed-radius bin-cloud optics set aside; public bin-cloud microphysics is a fatal placeholder"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "do_irflux_scale",
+      "status": "implemented",
+      "implementation": "radiative_transfer scale_surface_flux"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "scale_by_scon",
+      "status": "implemented",
+      "implementation": "reference_radiative_forcing solar_constant_w_m2"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "user_fixed_dust_opts",
+      "status": "implemented",
+      "implementation": "prescribed_dust fixed_optics and make_fixed_dust_provider optical_properties"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "qxv_read",
+      "status": "implemented",
+      "implementation": "prescribed_dust fixed_optics and make_fixed_dust_provider optical_properties"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "qsv_read",
+      "status": "implemented",
+      "implementation": "prescribed_dust fixed_optics and make_fixed_dust_provider optical_properties"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "gv_read",
+      "status": "implemented",
+      "implementation": "prescribed_dust fixed_optics and make_fixed_dust_provider optical_properties"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "qxi_read",
+      "status": "implemented",
+      "implementation": "prescribed_dust fixed_optics and make_fixed_dust_provider optical_properties"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "qsi_read",
+      "status": "implemented",
+      "implementation": "prescribed_dust fixed_optics and make_fixed_dust_provider optical_properties"
+    },
+    {
+      "namelist": "ames_rtmod_nml",
+      "source_control": "gi_read",
+      "status": "implemented",
+      "implementation": "prescribed_dust fixed_optics and make_fixed_dust_provider optical_properties"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "day_zero",
+      "status": "inactive",
+      "implementation": "declaration and namelist only"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "tdamp",
+      "status": "inactive",
+      "implementation": "declaration and namelist only"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "kwave",
+      "status": "excluded",
+      "implementation": "numerical references require SPEC_CORE, absent from release flags"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "radscale",
+      "status": "excluded",
+      "implementation": "numerical references require SPEC_CORE, absent from release flags"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "rad_amp",
+      "status": "excluded",
+      "implementation": "numerical references require SPEC_CORE, absent from release flags"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "rad_vscale",
+      "status": "excluded",
+      "implementation": "numerical references require SPEC_CORE, absent from release flags"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "modulate_heating",
+      "status": "excluded",
+      "implementation": "numerical references require SPEC_CORE, absent from release flags"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "use_forget_swheat",
+      "status": "implemented",
+      "implementation": "simple_radiation forget_shortwave_heating"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "rad_calc_intv",
+      "status": "implemented",
+      "implementation": "simple_radiation radiation_interval_seconds, daily_mean and fixed_calendar_date"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "do_diurnal_avg_rad",
+      "status": "implemented",
+      "implementation": "simple_radiation radiation_interval_seconds, daily_mean and fixed_calendar_date"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "fixed_calender_date",
+      "status": "implemented",
+      "implementation": "simple_radiation radiation_interval_seconds, daily_mean and fixed_calendar_date"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "use_newton_damping",
+      "status": "implemented",
+      "implementation": "simple_radiation newton_damping retains source infrared suppression"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "optical_depth_inpt",
+      "status": "implemented",
+      "implementation": "simple_radiation column_fluxes optical_depth, single_scattering_albedo, asymmetry, conrath, pressure_exponent, tau_infrared, latitude_variation, no_downward_infrared and reference_pressure"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "sscat_cnst",
+      "status": "implemented",
+      "implementation": "simple_radiation column_fluxes optical_depth, single_scattering_albedo, asymmetry, conrath, pressure_exponent, tau_infrared, latitude_variation, no_downward_infrared and reference_pressure"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "gfac_cnst",
+      "status": "implemented",
+      "implementation": "simple_radiation column_fluxes optical_depth, single_scattering_albedo, asymmetry, conrath, pressure_exponent, tau_infrared, latitude_variation, no_downward_infrared and reference_pressure"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "conrath",
+      "status": "implemented",
+      "implementation": "simple_radiation column_fluxes optical_depth, single_scattering_albedo, asymmetry, conrath, pressure_exponent, tau_infrared, latitude_variation, no_downward_infrared and reference_pressure"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "alfir",
+      "status": "implemented",
+      "implementation": "simple_radiation column_fluxes optical_depth, single_scattering_albedo, asymmetry, conrath, pressure_exponent, tau_infrared, latitude_variation, no_downward_infrared and reference_pressure"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "tauir",
+      "status": "implemented",
+      "implementation": "simple_radiation column_fluxes optical_depth, single_scattering_albedo, asymmetry, conrath, pressure_exponent, tau_infrared, latitude_variation, no_downward_infrared and reference_pressure"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "do_lat_vary_dust",
+      "status": "implemented",
+      "implementation": "simple_radiation column_fluxes optical_depth, single_scattering_albedo, asymmetry, conrath, pressure_exponent, tau_infrared, latitude_variation, no_downward_infrared and reference_pressure"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "no_atmos_dn_ir_flx",
+      "status": "implemented",
+      "implementation": "simple_radiation column_fluxes optical_depth, single_scattering_albedo, asymmetry, conrath, pressure_exponent, tau_infrared, latitude_variation, no_downward_infrared and reference_pressure"
+    },
+    {
+      "namelist": "simple_rad_driver_nml",
+      "source_control": "reference_press",
+      "status": "implemented",
+      "implementation": "simple_radiation column_fluxes optical_depth, single_scattering_albedo, asymmetry, conrath, pressure_exponent, tau_infrared, latitude_variation, no_downward_infrared and reference_pressure"
+    }
+  ],
+  "surface_controls": [
+    {
+      "source_control": "drag_cnst",
+      "status": "inactive",
+      "implementation": "declaration and namelist only"
+    },
+    {
+      "source_control": "zoland",
+      "status": "diagnostic only",
+      "implementation": "stored roughness map and unused local zo; main-driver numerical uses are excluded by release preprocessing; PBL has its own roughness equations"
+    },
+    {
+      "source_control": "soil_ti",
+      "status": "explicit input adaptation",
+      "implementation": "reference loader requires supplied maps; uniform arrays can be supplied directly to the existing forcing and soil kernels"
+    },
+    {
+      "source_control": "soil_alb",
+      "status": "explicit input adaptation",
+      "implementation": "reference loader requires supplied maps; uniform arrays can be supplied directly to the existing forcing and soil kernels"
+    },
+    {
+      "source_control": "soil_temp",
+      "status": "implemented",
+      "implementation": "runner reference_surface_temperature_k and uniform-soil CLI/restart identity"
+    },
+    {
+      "source_control": "use_equilibrated_ts",
+      "status": "implemented",
+      "implementation": "runner reference_surface_temperature_k and uniform-soil CLI/restart identity"
+    },
+    {
+      "source_control": "do_co2_condensation",
+      "status": "implemented",
+      "implementation": "column and Dinosaur surface_condensation and soil_alpha; singular native frost/off state rejected"
+    },
+    {
+      "source_control": "alpha",
+      "status": "implemented",
+      "implementation": "column and Dinosaur surface_condensation and soil_alpha; singular native frost/off state rejected"
+    },
+    {
+      "source_control": "do_subsfc_ice",
+      "status": "implemented",
+      "implementation": "subsurface_properties subsurface_ice, ice_case, legacy, soil_layers, southern_minimum_layers, north_ice_inertia and south_ice_inertia; explicit properties supplied to Dinosaur"
+    },
+    {
+      "source_control": "subsfc_ice_case",
+      "status": "implemented",
+      "implementation": "subsurface_properties subsurface_ice, ice_case, legacy, soil_layers, southern_minimum_layers, north_ice_inertia and south_ice_inertia; explicit properties supplied to Dinosaur"
+    },
+    {
+      "source_control": "use_legacy_soil",
+      "status": "implemented",
+      "implementation": "subsurface_properties subsurface_ice, ice_case, legacy, soil_layers, southern_minimum_layers, north_ice_inertia and south_ice_inertia; explicit properties supplied to Dinosaur"
+    },
+    {
+      "source_control": "nlayers",
+      "status": "implemented",
+      "implementation": "subsurface_properties subsurface_ice, ice_case, legacy, soil_layers, southern_minimum_layers, north_ice_inertia and south_ice_inertia; explicit properties supplied to Dinosaur"
+    },
+    {
+      "source_control": "d2is",
+      "status": "implemented",
+      "implementation": "subsurface_properties subsurface_ice, ice_case, legacy, soil_layers, southern_minimum_layers, north_ice_inertia and south_ice_inertia; explicit properties supplied to Dinosaur"
+    },
+    {
+      "source_control": "gk1",
+      "status": "implemented",
+      "implementation": "subsurface_properties subsurface_ice, ice_case, legacy, soil_layers, southern_minimum_layers, north_ice_inertia and south_ice_inertia; explicit properties supplied to Dinosaur"
+    },
+    {
+      "source_control": "gk2",
+      "status": "implemented",
+      "implementation": "subsurface_properties subsurface_ice, ice_case, legacy, soil_layers, southern_minimum_layers, north_ice_inertia and south_ice_inertia; explicit properties supplied to Dinosaur"
+    },
+    {
+      "source_control": "albedo_ice_np",
+      "status": "implemented",
+      "implementation": "RadiativeForcing co2_frost_albedo_north/south and co2_frost_emissivity_north/south"
+    },
+    {
+      "source_control": "albedo_ice_sp",
+      "status": "implemented",
+      "implementation": "RadiativeForcing co2_frost_albedo_north/south and co2_frost_emissivity_north/south"
+    },
+    {
+      "source_control": "emiss_ice_np",
+      "status": "implemented",
+      "implementation": "RadiativeForcing co2_frost_albedo_north/south and co2_frost_emissivity_north/south"
+    },
+    {
+      "source_control": "emiss_ice_sp",
+      "status": "implemented",
+      "implementation": "RadiativeForcing co2_frost_albedo_north/south and co2_frost_emissivity_north/south"
+    },
+    {
+      "source_control": "np_cap_ti",
+      "status": "implemented",
+      "implementation": "surface_thermal_inertia north_inertia, north_latitude_deg, north_maximum and regional_scale; runner CLI/restart identity"
+    },
+    {
+      "source_control": "np_cap_lat",
+      "status": "implemented",
+      "implementation": "surface_thermal_inertia north_inertia, north_latitude_deg, north_maximum and regional_scale; runner CLI/restart identity"
+    },
+    {
+      "source_control": "np_cap_ti_max",
+      "status": "implemented",
+      "implementation": "surface_thermal_inertia north_inertia, north_latitude_deg, north_maximum and regional_scale; runner CLI/restart identity"
+    },
+    {
+      "source_control": "rescale_sh_ti",
+      "status": "implemented",
+      "implementation": "surface_thermal_inertia north_inertia, north_latitude_deg, north_maximum and regional_scale; runner CLI/restart identity"
+    },
+    {
+      "source_control": "frost_threshold",
+      "status": "implemented",
+      "implementation": "RadiativeForcing water_frost_threshold_m, water_frost_radiative_properties, water_ice_albedo, water_emissivity, water_liquid_albedo and liquid_water_albedo"
+    },
+    {
+      "source_control": "do_waterice_albedo",
+      "status": "implemented",
+      "implementation": "RadiativeForcing water_frost_threshold_m, water_frost_radiative_properties, water_ice_albedo, water_emissivity, water_liquid_albedo and liquid_water_albedo"
+    },
+    {
+      "source_control": "albedo_h2o",
+      "status": "implemented",
+      "implementation": "RadiativeForcing water_frost_threshold_m, water_frost_radiative_properties, water_ice_albedo, water_emissivity, water_liquid_albedo and liquid_water_albedo"
+    },
+    {
+      "source_control": "emiss_h2o",
+      "status": "implemented",
+      "implementation": "RadiativeForcing water_frost_threshold_m, water_frost_radiative_properties, water_ice_albedo, water_emissivity, water_liquid_albedo and liquid_water_albedo"
+    },
+    {
+      "source_control": "albedo_h2o_liquid",
+      "status": "implemented",
+      "implementation": "RadiativeForcing water_frost_threshold_m, water_frost_radiative_properties, water_ice_albedo, water_emissivity, water_liquid_albedo and liquid_water_albedo"
+    },
+    {
+      "source_control": "do_liquidwater_albedo",
+      "status": "implemented",
+      "implementation": "RadiativeForcing water_frost_threshold_m, water_frost_radiative_properties, water_ice_albedo, water_emissivity, water_liquid_albedo and liquid_water_albedo"
+    },
+    {
+      "source_control": "edit_subsfc_temp",
+      "status": "source extra-node defect",
+      "implementation": "initial-conditions report: writes initialized entry 17 outside 16-entry progts; caller extra tendency unwritten"
+    },
+    {
+      "source_control": "nlay_rst",
+      "status": "restart adaptation",
+      "implementation": "NPZ persists complete state and requires the same soil shape; native restart layer-count conversion is not copied"
+    },
+    {
+      "source_control": "init_sfc_frost",
+      "status": "implemented",
+      "implementation": "boundary_inputs.polar_water_on_grid initial_frost_kg_m2"
+    }
+  ],
+  "aerosol_controls": [
+    {
+      "namelist": "aerosol_nml",
+      "source_control": "fixed_dust",
+      "status": "inactive",
+      "implementation": "declaration and namelist only"
+    },
+    {
+      "namelist": "aerosol_nml",
+      "source_control": "special_fixed_dust_case",
+      "status": "inactive",
+      "implementation": "declaration and namelist only"
+    },
+    {
+      "namelist": "aerosol_nml",
+      "source_control": "do_assimilated_dust",
+      "status": "inactive",
+      "implementation": "declaration and namelist only"
+    },
+    {
+      "namelist": "aerosol_nml",
+      "source_control": "optical_depth_inpt",
+      "status": "implemented",
+      "implementation": "prescribed_dust.layer_opacities profile, absolute/fractional pulse and cycle options; composed native dispatch checked"
+    },
+    {
+      "namelist": "aerosol_nml",
+      "source_control": "conrath",
+      "status": "implemented",
+      "implementation": "prescribed_dust.layer_opacities profile, absolute/fractional pulse and cycle options; composed native dispatch checked"
+    },
+    {
+      "namelist": "aerosol_nml",
+      "source_control": "conrath_type",
+      "status": "implemented",
+      "implementation": "prescribed_dust.layer_opacities profile, absolute/fractional pulse and cycle options; composed native dispatch checked"
+    },
+    {
+      "namelist": "aerosol_nml",
+      "source_control": "do_lat_vary_dust",
+      "status": "implemented",
+      "implementation": "prescribed_dust.layer_opacities profile, absolute/fractional pulse and cycle options; composed native dispatch checked"
+    },
+    {
+      "namelist": "aerosol_nml",
+      "source_control": "dust_cycle_scheme",
+      "status": "implemented",
+      "implementation": "prescribed_dust.layer_opacities profile, absolute/fractional pulse and cycle options; composed native dispatch checked"
+    },
+    {
+      "namelist": "aerosol_nml",
+      "source_control": "optical_depth_pulse",
+      "status": "implemented",
+      "implementation": "prescribed_dust.layer_opacities profile, absolute/fractional pulse and cycle options; composed native dispatch checked"
+    },
+    {
+      "namelist": "aerosol_nml",
+      "source_control": "pulse_width",
+      "status": "implemented",
+      "implementation": "prescribed_dust.layer_opacities profile, absolute/fractional pulse and cycle options; composed native dispatch checked"
+    },
+    {
+      "namelist": "aerosol_nml",
+      "source_control": "pulse_center",
+      "status": "implemented",
+      "implementation": "prescribed_dust.layer_opacities profile, absolute/fractional pulse and cycle options; composed native dispatch checked"
+    },
+    {
+      "namelist": "aerosol_nml",
+      "source_control": "optical_depth_pulse_var",
+      "status": "implemented",
+      "implementation": "prescribed_dust.layer_opacities profile, absolute/fractional pulse and cycle options; composed native dispatch checked"
+    },
+    {
+      "namelist": "aerosol_nml",
+      "source_control": "do_inpt_dust_cycle",
+      "status": "implemented",
+      "implementation": "make_fixed_dust_provider scenario and seasonal_fields"
+    },
+    {
+      "namelist": "aerosol_nml",
+      "source_control": "inpt_dust_cycle_dust_index",
+      "status": "implemented",
+      "implementation": "explicit aerosol_tracer name and layer_opacities aerosol_ratio"
+    },
+    {
+      "namelist": "aerosol_nml",
+      "source_control": "do_inpt_dust_cycle_ktop",
+      "status": "implemented",
+      "implementation": "explicit aerosol_tracer name and layer_opacities aerosol_ratio"
+    },
+    {
+      "namelist": "aerosol_nml",
+      "source_control": "do_interactive_dust_rad",
+      "status": "excluded bin-dust radiation",
+      "implementation": "only changes dustref_bin; radiation mode 2 unsupported by the released configuration"
+    },
+    {
+      "namelist": "aerosol_nml",
+      "source_control": "add_storm_opacity",
+      "status": "implemented with explicit source-undefined inputs",
+      "implementation": "storm_opacity and provider storm_options; source slope and latitude coefficient uninitialized"
+    },
+    {
+      "namelist": "aerosol_nml",
+      "source_control": "storm_sigx",
+      "status": "implemented with explicit source-undefined inputs",
+      "implementation": "storm_opacity and provider storm_options; source slope and latitude coefficient uninitialized"
+    },
+    {
+      "namelist": "aerosol_nml",
+      "source_control": "storm_sigy",
+      "status": "implemented with explicit source-undefined inputs",
+      "implementation": "storm_opacity and provider storm_options; source slope and latitude coefficient uninitialized"
+    },
+    {
+      "namelist": "aerosol_nml",
+      "source_control": "storm_lonc",
+      "status": "implemented with explicit source-undefined inputs",
+      "implementation": "storm_opacity and provider storm_options; source slope and latitude coefficient uninitialized"
+    },
+    {
+      "namelist": "aerosol_nml",
+      "source_control": "storm_latc",
+      "status": "implemented with explicit source-undefined inputs",
+      "implementation": "storm_opacity and provider storm_options; source slope and latitude coefficient uninitialized"
+    },
+    {
+      "namelist": "aerosol_nml",
+      "source_control": "add_storm_amp",
+      "status": "implemented with explicit source-undefined inputs",
+      "implementation": "storm_opacity and provider storm_options; source slope and latitude coefficient uninitialized"
+    },
+    {
+      "namelist": "aerosol_nml",
+      "source_control": "storm_areo",
+      "status": "implemented with explicit source-undefined inputs",
+      "implementation": "storm_opacity and provider storm_options; source slope and latitude coefficient uninitialized"
+    },
+    {
+      "namelist": "aerosol_optics_nml",
+      "source_control": "dust_rad_size",
+      "status": "inactive",
+      "implementation": "declaration and namelist only"
+    },
+    {
+      "namelist": "aerosol_optics_nml",
+      "source_control": "do_spectrum_ir",
+      "status": "inactive",
+      "implementation": "declaration and namelist only"
+    },
+    {
+      "namelist": "aerosol_optics_nml",
+      "source_control": "do_cloud_rad",
+      "status": "inactive exported",
+      "implementation": "public declaration and namelist only; no numerical consumer"
+    },
+    {
+      "namelist": "aerosol_optics_nml",
+      "source_control": "scale_inpt_dust_column",
+      "status": "implemented",
+      "implementation": "prescribed_dust.layer_opacities column_scale before the absolute elevated pulse"
+    },
+    {
+      "namelist": "aerosol_optics_nml",
+      "source_control": "qext_cnst",
+      "status": "excluded bin-dust radiation",
+      "implementation": "affect dustref_bin or discarded legacy spectral arrays; supported Ames dispatch uses native particle coefficients and dustref_fix"
+    },
+    {
+      "namelist": "aerosol_optics_nml",
+      "source_control": "sscat_cnst",
+      "status": "excluded bin-dust radiation",
+      "implementation": "affect dustref_bin or discarded legacy spectral arrays; supported Ames dispatch uses native particle coefficients and dustref_fix"
+    },
+    {
+      "namelist": "aerosol_optics_nml",
+      "source_control": "gfac_cnst",
+      "status": "excluded bin-dust radiation",
+      "implementation": "affect dustref_bin or discarded legacy spectral arrays; supported Ames dispatch uses native particle coefficients and dustref_fix"
+    },
+    {
+      "namelist": "aerosol_optics_nml",
+      "source_control": "irad_tracer",
+      "status": "excluded bin-dust radiation",
+      "implementation": "affect dustref_bin or discarded legacy spectral arrays; supported Ames dispatch uses native particle coefficients and dustref_fix"
+    },
+    {
+      "namelist": "aerosol_optics_nml",
+      "source_control": "nrad_tracers",
+      "status": "excluded bin-dust radiation",
+      "implementation": "affect dustref_bin or discarded legacy spectral arrays; supported Ames dispatch uses native particle coefficients and dustref_fix"
+    },
+    {
+      "namelist": "aerosol_optics_nml",
+      "source_control": "reduce_low_level_dust",
+      "status": "excluded bin-dust radiation",
+      "implementation": "affect dustref_bin or discarded legacy spectral arrays; supported Ames dispatch uses native particle coefficients and dustref_fix"
+    },
+    {
+      "namelist": "aerosol_optics_nml",
+      "source_control": "sscat_sw_ice",
+      "status": "excluded bin-cloud optics",
+      "implementation": "cld_distrib_fix outputs used by the set-aside fixed-radius bin-cloud path; moment/bulk clouds use their own tracer optics"
+    },
+    {
+      "namelist": "aerosol_optics_nml",
+      "source_control": "gfac_sw_ice",
+      "status": "excluded bin-cloud optics",
+      "implementation": "cld_distrib_fix outputs used by the set-aside fixed-radius bin-cloud path; moment/bulk clouds use their own tracer optics"
+    },
+    {
+      "namelist": "aerosol_optics_nml",
+      "source_control": "scale_rad_ice",
+      "status": "excluded bin-cloud optics",
+      "implementation": "cld_distrib_fix outputs used by the set-aside fixed-radius bin-cloud path; moment/bulk clouds use their own tracer optics"
+    },
+    {
+      "namelist": "aerosol_optics_nml",
+      "source_control": "scale_rad_ice_np",
+      "status": "excluded bin-cloud optics",
+      "implementation": "cld_distrib_fix outputs used by the set-aside fixed-radius bin-cloud path; moment/bulk clouds use their own tracer optics"
+    },
+    {
+      "namelist": "aerosol_optics_nml",
+      "source_control": "scale_rad_ice_sp",
+      "status": "excluded bin-cloud optics",
+      "implementation": "cld_distrib_fix outputs used by the set-aside fixed-radius bin-cloud path; moment/bulk clouds use their own tracer optics"
+    },
+    {
+      "namelist": "aerosol_optics_nml",
+      "source_control": "rad_ice_scheme",
+      "status": "excluded bin-cloud optics",
+      "implementation": "cld_distrib_fix outputs used by the set-aside fixed-radius bin-cloud path; moment/bulk clouds use their own tracer optics"
+    },
+    {
+      "namelist": "aerosol_util_nml",
+      "source_control": "do_moment_dust",
+      "status": "implemented",
+      "implementation": "Dinosaur moment_dust/moment_water/bulk_water and native mode-restriction guards"
+    },
+    {
+      "namelist": "aerosol_util_nml",
+      "source_control": "do_moment_water",
+      "status": "implemented",
+      "implementation": "Dinosaur moment_dust/moment_water/bulk_water and native mode-restriction guards"
+    },
+    {
+      "namelist": "aerosol_util_nml",
+      "source_control": "do_bulk_water",
+      "status": "implemented",
+      "implementation": "Dinosaur moment_dust/moment_water/bulk_water and native mode-restriction guards"
+    },
+    {
+      "namelist": "aerosol_util_nml",
+      "source_control": "dust_map_scale",
+      "status": "implemented",
+      "implementation": "load_scenario_on_grid map_scale and native visible/infrared conversion"
+    },
+    {
+      "namelist": "aerosol_util_nml",
+      "source_control": "dust_map_scale_bin",
+      "status": "excluded bin-dust radiation",
+      "implementation": "binned mode 2 unsupported by the released configuration"
+    },
+    {
+      "namelist": "aerosol_util_nml",
+      "source_control": "Reff_backgd",
+      "status": "implemented",
+      "implementation": "background effective_radius_m and interactive stress_radius_m/devil_radius_m"
+    },
+    {
+      "namelist": "aerosol_util_nml",
+      "source_control": "Reff_stress",
+      "status": "implemented",
+      "implementation": "background effective_radius_m and interactive stress_radius_m/devil_radius_m"
+    },
+    {
+      "namelist": "aerosol_util_nml",
+      "source_control": "Reff_dd",
+      "status": "implemented",
+      "implementation": "background effective_radius_m and interactive stress_radius_m/devil_radius_m"
+    },
+    {
+      "namelist": "aerosol_util_nml",
+      "source_control": "do_moment_sedim",
+      "status": "implemented",
+      "implementation": "Dinosaur/column moment_sedimentation"
+    },
+    {
+      "namelist": "aerosol_util_nml",
+      "source_control": "do_15band",
+      "status": "implemented",
+      "implementation": "explicit dust_optical_bands and matching radiation_mode"
+    },
+    {
+      "namelist": "aerosol_util_nml",
+      "source_control": "Reff_fixed",
+      "status": "implemented",
+      "implementation": "prescribed_dust effective_radius_m"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "interact",
+      "status": "implemented",
+      "implementation": "dust_lifting_options and dust_background_options; native combined-mode restriction"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "Background",
+      "status": "implemented",
+      "implementation": "dust_lifting_options and dust_background_options; native combined-mode restriction"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "ws_co2_ice_thresh_N",
+      "status": "implemented",
+      "implementation": "stress_options north_snow_threshold/south_snow_threshold/frost_threshold/opacity_threshold/scheme/efficiency"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "ws_co2_ice_thresh_S",
+      "status": "implemented",
+      "implementation": "stress_options north_snow_threshold/south_snow_threshold/frost_threshold/opacity_threshold/scheme/efficiency"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "ws_h2o_ice_thresh",
+      "status": "implemented",
+      "implementation": "stress_options north_snow_threshold/south_snow_threshold/frost_threshold/opacity_threshold/scheme/efficiency"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "optd_thresh",
+      "status": "implemented",
+      "implementation": "stress_options north_snow_threshold/south_snow_threshold/frost_threshold/opacity_threshold/scheme/efficiency"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "stress_scheme",
+      "status": "implemented",
+      "implementation": "stress_options north_snow_threshold/south_snow_threshold/frost_threshold/opacity_threshold/scheme/efficiency"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "alfa",
+      "status": "implemented",
+      "implementation": "stress_options north_snow_threshold/south_snow_threshold/frost_threshold/opacity_threshold/scheme/efficiency"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "dd_co2_ice_thresh_N",
+      "status": "implemented",
+      "implementation": "devil_options thresholds, temperature_threshold, dth_efficiency, dda_efficiency, fv3, dda, dth, fv3_source, grain_diameter_m, fv3_radius_m and heat_flux_threshold"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "dd_co2_ice_thresh_S",
+      "status": "implemented",
+      "implementation": "devil_options thresholds, temperature_threshold, dth_efficiency, dda_efficiency, fv3, dda, dth, fv3_source, grain_diameter_m, fv3_radius_m and heat_flux_threshold"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "dd_h2o_ice_thresh",
+      "status": "implemented",
+      "implementation": "devil_options thresholds, temperature_threshold, dth_efficiency, dda_efficiency, fv3, dda, dth, fv3_source, grain_diameter_m, fv3_radius_m and heat_flux_threshold"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "conv_delt_threshold",
+      "status": "implemented",
+      "implementation": "devil_options thresholds, temperature_threshold, dth_efficiency, dda_efficiency, fv3, dda, dth, fv3_source, grain_diameter_m, fv3_radius_m and heat_flux_threshold"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "alpha_dth",
+      "status": "implemented",
+      "implementation": "devil_options thresholds, temperature_threshold, dth_efficiency, dda_efficiency, fv3, dda, dth, fv3_source, grain_diameter_m, fv3_radius_m and heat_flux_threshold"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "alpha_dda",
+      "status": "implemented",
+      "implementation": "devil_options thresholds, temperature_threshold, dth_efficiency, dda_efficiency, fv3, dda, dth, fv3_source, grain_diameter_m, fv3_radius_m and heat_flux_threshold"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "devils_fv3",
+      "status": "implemented",
+      "implementation": "devil_options thresholds, temperature_threshold, dth_efficiency, dda_efficiency, fv3, dda, dth, fv3_source, grain_diameter_m, fv3_radius_m and heat_flux_threshold"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "DDA",
+      "status": "implemented",
+      "implementation": "devil_options thresholds, temperature_threshold, dth_efficiency, dda_efficiency, fv3, dda, dth, fv3_source, grain_diameter_m, fv3_radius_m and heat_flux_threshold"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "DTH",
+      "status": "implemented",
+      "implementation": "devil_options thresholds, temperature_threshold, dth_efficiency, dda_efficiency, fv3, dda, dth, fv3_source, grain_diameter_m, fv3_radius_m and heat_flux_threshold"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "source_ddfv3",
+      "status": "implemented",
+      "implementation": "devil_options thresholds, temperature_threshold, dth_efficiency, dda_efficiency, fv3, dda, dth, fv3_source, grain_diameter_m, fv3_radius_m and heat_flux_threshold"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "Dlift",
+      "status": "implemented",
+      "implementation": "devil_options thresholds, temperature_threshold, dth_efficiency, dda_efficiency, fv3, dda, dth, fv3_source, grain_diameter_m, fv3_radius_m and heat_flux_threshold"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "reff_ddfv3",
+      "status": "implemented",
+      "implementation": "devil_options thresholds, temperature_threshold, dth_efficiency, dda_efficiency, fv3, dda, dth, fv3_source, grain_diameter_m, fv3_radius_m and heat_flux_threshold"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "thres_shflx",
+      "status": "implemented",
+      "implementation": "devil_options thresholds, temperature_threshold, dth_efficiency, dda_efficiency, fv3, dda, dth, fv3_source, grain_diameter_m, fv3_radius_m and heat_flux_threshold"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "threshold_stress",
+      "status": "implemented",
+      "implementation": "interactive_step threshold_stress, stress_lift, convective_lift, inject_pbl_devils, inject_pbl_stress, initial_surface_dust_kg_m2, limited_reservoir, reservoir_factor, threshold_decrease, devil_threshold_increase, dual_mode and dual_scale"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "stress_lift",
+      "status": "implemented",
+      "implementation": "interactive_step threshold_stress, stress_lift, convective_lift, inject_pbl_devils, inject_pbl_stress, initial_surface_dust_kg_m2, limited_reservoir, reservoir_factor, threshold_decrease, devil_threshold_increase, dual_mode and dual_scale"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "convective_lift",
+      "status": "implemented",
+      "implementation": "interactive_step threshold_stress, stress_lift, convective_lift, inject_pbl_devils, inject_pbl_stress, initial_surface_dust_kg_m2, limited_reservoir, reservoir_factor, threshold_decrease, devil_threshold_increase, dual_mode and dual_scale"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "inject_pbl_dd",
+      "status": "implemented",
+      "implementation": "interactive_step threshold_stress, stress_lift, convective_lift, inject_pbl_devils, inject_pbl_stress, initial_surface_dust_kg_m2, limited_reservoir, reservoir_factor, threshold_decrease, devil_threshold_increase, dual_mode and dual_scale"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "inject_pbl_stress",
+      "status": "implemented",
+      "implementation": "interactive_step threshold_stress, stress_lift, convective_lift, inject_pbl_devils, inject_pbl_stress, initial_surface_dust_kg_m2, limited_reservoir, reservoir_factor, threshold_decrease, devil_threshold_increase, dual_mode and dual_scale"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "dust_surf_ini",
+      "status": "implemented",
+      "implementation": "interactive_step threshold_stress, stress_lift, convective_lift, inject_pbl_devils, inject_pbl_stress, initial_surface_dust_kg_m2, limited_reservoir, reservoir_factor, threshold_decrease, devil_threshold_increase, dual_mode and dual_scale"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "limited_reservoir",
+      "status": "implemented",
+      "implementation": "interactive_step threshold_stress, stress_lift, convective_lift, inject_pbl_devils, inject_pbl_stress, initial_surface_dust_kg_m2, limited_reservoir, reservoir_factor, threshold_decrease, devil_threshold_increase, dual_mode and dual_scale"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "limres_xfac",
+      "status": "implemented",
+      "implementation": "interactive_step threshold_stress, stress_lift, convective_lift, inject_pbl_devils, inject_pbl_stress, initial_surface_dust_kg_m2, limited_reservoir, reservoir_factor, threshold_decrease, devil_threshold_increase, dual_mode and dual_scale"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "limres_dec",
+      "status": "implemented",
+      "implementation": "interactive_step threshold_stress, stress_lift, convective_lift, inject_pbl_devils, inject_pbl_stress, initial_surface_dust_kg_m2, limited_reservoir, reservoir_factor, threshold_decrease, devil_threshold_increase, dual_mode and dual_scale"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "delta_thres",
+      "status": "implemented",
+      "implementation": "interactive_step threshold_stress, stress_lift, convective_lift, inject_pbl_devils, inject_pbl_stress, initial_surface_dust_kg_m2, limited_reservoir, reservoir_factor, threshold_decrease, devil_threshold_increase, dual_mode and dual_scale"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "dual_mode",
+      "status": "implemented",
+      "implementation": "interactive_step threshold_stress, stress_lift, convective_lift, inject_pbl_devils, inject_pbl_stress, initial_surface_dust_kg_m2, limited_reservoir, reservoir_factor, threshold_decrease, devil_threshold_increase, dual_mode and dual_scale"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "dual_scale",
+      "status": "implemented",
+      "implementation": "interactive_step threshold_stress, stress_lift, convective_lift, inject_pbl_devils, inject_pbl_stress, initial_surface_dust_kg_m2, limited_reservoir, reservoir_factor, threshold_decrease, devil_threshold_increase, dual_mode and dual_scale"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "assim_t_thresh",
+      "status": "implemented",
+      "implementation": "background_step minimum_temperature_k, exclude_caps, opacity_scale, inject_through_pbl, injection_scale, sink_scale, remove_excess, minimum_scenario_change, local_time_scale, bottom_sink and injection_type; documented conservative repairs for undefined sink cases"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "no_assim_over_caps",
+      "status": "implemented",
+      "implementation": "background_step minimum_temperature_k, exclude_caps, opacity_scale, inject_through_pbl, injection_scale, sink_scale, remove_excess, minimum_scenario_change, local_time_scale, bottom_sink and injection_type; documented conservative repairs for undefined sink cases"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "tauscale",
+      "status": "implemented",
+      "implementation": "background_step minimum_temperature_k, exclude_caps, opacity_scale, inject_through_pbl, injection_scale, sink_scale, remove_excess, minimum_scenario_change, local_time_scale, bottom_sink and injection_type; documented conservative repairs for undefined sink cases"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "inject_pbl_bd",
+      "status": "implemented",
+      "implementation": "background_step minimum_temperature_k, exclude_caps, opacity_scale, inject_through_pbl, injection_scale, sink_scale, remove_excess, minimum_scenario_change, local_time_scale, bottom_sink and injection_type; documented conservative repairs for undefined sink cases"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "injscale",
+      "status": "implemented",
+      "implementation": "background_step minimum_temperature_k, exclude_caps, opacity_scale, inject_through_pbl, injection_scale, sink_scale, remove_excess, minimum_scenario_change, local_time_scale, bottom_sink and injection_type; documented conservative repairs for undefined sink cases"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "sinkscale",
+      "status": "implemented",
+      "implementation": "background_step minimum_temperature_k, exclude_caps, opacity_scale, inject_through_pbl, injection_scale, sink_scale, remove_excess, minimum_scenario_change, local_time_scale, bottom_sink and injection_type; documented conservative repairs for undefined sink cases"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "sink_bd",
+      "status": "implemented",
+      "implementation": "background_step minimum_temperature_k, exclude_caps, opacity_scale, inject_through_pbl, injection_scale, sink_scale, remove_excess, minimum_scenario_change, local_time_scale, bottom_sink and injection_type; documented conservative repairs for undefined sink cases"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "dtaulim",
+      "status": "implemented",
+      "implementation": "background_step minimum_temperature_k, exclude_caps, opacity_scale, inject_through_pbl, injection_scale, sink_scale, remove_excess, minimum_scenario_change, local_time_scale, bottom_sink and injection_type; documented conservative repairs for undefined sink cases"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "ltscale",
+      "status": "implemented",
+      "implementation": "background_step minimum_temperature_k, exclude_caps, opacity_scale, inject_through_pbl, injection_scale, sink_scale, remove_excess, minimum_scenario_change, local_time_scale, bottom_sink and injection_type; documented conservative repairs for undefined sink cases"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "bottom_sink",
+      "status": "implemented",
+      "implementation": "background_step minimum_temperature_k, exclude_caps, opacity_scale, inject_through_pbl, injection_scale, sink_scale, remove_excess, minimum_scenario_change, local_time_scale, bottom_sink and injection_type; documented conservative repairs for undefined sink cases"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "injec_type",
+      "status": "implemented",
+      "implementation": "background_step minimum_temperature_k, exclude_caps, opacity_scale, inject_through_pbl, injection_scale, sink_scale, remove_excess, minimum_scenario_change, local_time_scale, bottom_sink and injection_type; documented conservative repairs for undefined sink cases"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "segment",
+      "status": "implemented",
+      "implementation": "dust_control.seasonal_sample segment and Dinosaur background scenario selection"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "kfix",
+      "status": "implemented",
+      "implementation": "interactive/background fixed_layers bottom offsets"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "dgdm_type",
+      "status": "implemented",
+      "implementation": "dust_opacity_channel 1/2 and input scenario conversion"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "lifting_nosed",
+      "status": "implemented",
+      "implementation": "lifting_suppresses_settling and native positive bottom-source masks"
+    },
+    {
+      "namelist": "dust_update_nml",
+      "source_control": "opac_from_aerosol",
+      "status": "implemented",
+      "implementation": "dust_opacity_from_aerosol and prescribed reference-opacity cache"
+    }
+  ],
+  "dust_optional_inputs": {
+    "radius_scenario.nc": "implemented: seasonal nodal injection shares by physical mode; static removal fractions and particle radii unchanged",
+    "localtime_frac.nc": "implemented: native-hour field labels, seasonal/nodal fractions and persisted local-time history",
+    "sources.nc": "tagging-only numerical consumers excluded by RELEASE; seasonal source variable has declaration and assignment only",
+    "inidust.nc": "tagging initial-distribution field; tagging calls excluded by RELEASE"
+  },
+  "shortwave_ramp_cases": [
+    {
+      "duration_sols": -1.0,
+      "sols": 0.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": -1.0,
+      "sols": 0.25,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": -1.0,
+      "sols": 1.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": -1.0,
+      "sols": 2.5,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": -1.0,
+      "sols": 5.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": -1.0,
+      "sols": 7.5,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": -1.0,
+      "sols": 10.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": -1.0,
+      "sols": 15.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 0.0,
+      "sols": 0.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 0.0,
+      "sols": 0.25,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 0.0,
+      "sols": 1.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 0.0,
+      "sols": 2.5,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 0.0,
+      "sols": 5.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 0.0,
+      "sols": 7.5,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 0.0,
+      "sols": 10.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 0.0,
+      "sols": 15.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 1.0,
+      "sols": 0.0,
+      "factor": 0.0
+    },
+    {
+      "duration_sols": 1.0,
+      "sols": 0.25,
+      "factor": 0.1464466094067262
+    },
+    {
+      "duration_sols": 1.0,
+      "sols": 1.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 1.0,
+      "sols": 2.5,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 1.0,
+      "sols": 5.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 1.0,
+      "sols": 7.5,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 1.0,
+      "sols": 10.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 1.0,
+      "sols": 15.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 5.0,
+      "sols": 0.0,
+      "factor": 0.0
+    },
+    {
+      "duration_sols": 5.0,
+      "sols": 0.25,
+      "factor": 0.006155829702431115
+    },
+    {
+      "duration_sols": 5.0,
+      "sols": 1.0,
+      "factor": 0.09549150281252627
+    },
+    {
+      "duration_sols": 5.0,
+      "sols": 2.5,
+      "factor": 0.49999999999999994
+    },
+    {
+      "duration_sols": 5.0,
+      "sols": 5.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 5.0,
+      "sols": 7.5,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 5.0,
+      "sols": 10.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 5.0,
+      "sols": 15.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 10.0,
+      "sols": 0.0,
+      "factor": 0.0
+    },
+    {
+      "duration_sols": 10.0,
+      "sols": 0.25,
+      "factor": 0.001541333133436018
+    },
+    {
+      "duration_sols": 10.0,
+      "sols": 1.0,
+      "factor": 0.024471741852423234
+    },
+    {
+      "duration_sols": 10.0,
+      "sols": 2.5,
+      "factor": 0.1464466094067262
+    },
+    {
+      "duration_sols": 10.0,
+      "sols": 5.0,
+      "factor": 0.49999999999999994
+    },
+    {
+      "duration_sols": 10.0,
+      "sols": 7.5,
+      "factor": 0.8535533905932737
+    },
+    {
+      "duration_sols": 10.0,
+      "sols": 10.0,
+      "factor": 1.0
+    },
+    {
+      "duration_sols": 10.0,
+      "sols": 15.0,
+      "factor": 1.0
+    }
+  ],
+  "unsupported_dust_radiation": {
+    "mode": 2,
+    "source": "build_run/fms_mars_clouds_v3.2",
+    "evidence": "!   = 2 not supported",
+    "status": "not supported by the released configuration"
+  },
+  "dust_lifting_guard_cases": [
+    {
+      "enabled": false,
+      "mass_tendency": [
+        -1.0,
+        0.0,
+        1e-30,
+        1.0,
+        -1e-30
+      ],
+      "mask": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "enabled": true,
+      "mass_tendency": [
+        -1.0,
+        0.0,
+        1e-30,
+        1.0,
+        -1e-30
+      ],
+      "mask": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    }
+  ],
+  "excluded_build_interfaces": {
+    "required_definition": "fv3_turb",
+    "calls": [
+      "surface_flux_2d",
+      "vert_diff_driver",
+      "vert_diff_driver_end",
+      "vert_diff_driver_init",
+      "vert_turb_driver",
+      "vert_turb_driver_end",
+      "vert_turb_driver_init"
+    ],
+    "alternate_preprocessed_sha256": "146631ad81c35fed0dd3b9c3b7ff82cbd7d4370858457d121eb179e7288dfbb8"
+  },
+  "sha256": {
+    "scripts/validate_release_interfaces.py": "d011d879dfd1306d163256c9bced66204e7b17eeff3c9a898aa7e93fd9e8da5d",
+    "scripts/native_reference.py": "2e3b0e2f65b685f86fcfdd1b4643b54c5582b81af36a0874a43d9eedc2675d76",
+    "package/src/framework/physics/radiative_transfer.py": "13110b90de754991c4a6673040ffc52b9a15409ce1d6087b67ce9be017872891",
+    "package/src/framework/physics/dinosaur_physics.py": "634027398cc326da9f412804a785b1b220193e4eaf49752dab533c24338cfa66",
+    "package/src/framework/physics/gcm.py": "6a9835598043087bf58f45e2bb4d4a9ffba084b1df86e96b5661c00a73eee690",
+    "package/src/framework/physics/prescribed_dust.py": "1ec309decbafffc5fdc1f0fd2c7e7acd9c9f4cae1e6289237ef9e0e5232196dc",
+    "package/src/framework/physics/simple_radiation.py": "d34833bafeb3c2dc78772b104f95bd6ac34a011ee91856ed2f9cf142104f9532",
+    "package/src/framework/physics/soil_frost.py": "056fc923b24e4597099c8b27801a0d549f3428e513552a8be8d6c171a3fea8e3",
+    "package/src/celestials/planets/mars/surface.py": "c53ba6bf10d7c0b79654b4b41399ff5076098126765dea1e9f4f19f9a98c4810",
+    "package/src/celestials/planets/mars/dust_scenario.py": "668466e8fb1ba6e55f54c5a0b9a46443ac3004f68e87a087bbb4e0069b7d0b3f",
+    "package/src/framework/physics/dust_lifting.py": "c2ff6eae0cdc59fc4c698cf7d9f27c45a194d4de4cda1e464473fea095ed48ac",
+    "package/src/framework/physics/dust_control.py": "bb0749684b3b4078548dff5def298178620f388bf303b1898b20ef95136e3815"
+  },
+  "limits": "The inventory covers the main driver plus sedimentation, PBL, moment/bulk/CO2-cloud, coagulation and terrain-drag controls. The moment-cloud guard leaves tendency outputs zero and cloud history inactive when cloud formation is disabled. Numerical behavior uses the separate native reports and integration checks. The ten radiation-driver controls and the spectral/simple module controls are inventoried separately. Fixed-date forcing shares the source-checked radiation clock with simple radiation; disabling either native radiation channel leaves local fluxes undefined. Forty unchanged startup-ramp block cases check heating and applied surface flux. Bin-cloud microphysics, photochemistry and legacy binned dust-source equations are not in these released implementations. Tagging imports are excluded by RELEASE. Moment water, bulk water and moment dust have separate real modules and validations. Alternate FV3 turbulence calls require fv3_turb, which the pinned build does not define; this exclusion does not implement or validate those alternate schemes."
+}

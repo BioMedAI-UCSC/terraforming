@@ -76,3 +76,37 @@ def test_spinup_and_averaging_window_matches_manual_samples():
     assert np.array_equal(np.asarray(final.surface_temperature),
                           np.asarray(manual.surface_temperature))
     assert float(mean) == pytest.approx(float(jnp.mean(jnp.asarray(values))))
+
+
+def test_auxiliary_reservoirs_and_lagged_exchange_restart_bitwise(tmp_path):
+    state,advance=_model()
+    shape=state.surface_temperature.shape
+    state=state._replace(auxiliary_fields={
+        'water_surface_kg_m2':jnp.full(shape,100.),
+        'water_exchange_coefficient_kg_m2_s':jnp.full(shape,.001),
+        'water_pbl_top_layer':jnp.full(shape,2.),
+    })
+    continuous=integrate(advance,state,6)
+    first=integrate(advance,state,2)
+    restored=load_restart(save_restart(first,tmp_path/'water.npz'))
+    restarted=integrate(advance,restored,4)
+    for expected,actual in zip(jax.tree.leaves(continuous),jax.tree.leaves(restarted),strict=True):
+        np.testing.assert_array_equal(expected,actual)
+    for name,value in state.auxiliary_fields.items():
+        np.testing.assert_allclose(continuous.auxiliary_fields[name],value,rtol=2e-14,atol=1e-14)
+
+
+def test_version_three_restart_still_loads_without_auxiliary_fields(tmp_path):
+    import json
+    state,_=_model();path=save_restart(state,tmp_path/'old.npz')
+    with np.load(path,allow_pickle=False) as data:
+        arrays={name:data[name] for name in data.files}
+    metadata=json.loads(str(arrays['metadata']))
+    metadata['format_version']=3
+    metadata.pop('auxiliary_fields_is_none');metadata.pop('auxiliary_field_names')
+    arrays['metadata']=np.asarray(json.dumps(metadata))
+    np.savez_compressed(path,**arrays)
+    restored=load_restart(path)
+    assert restored.auxiliary_fields is None
+    for expected,actual in zip(jax.tree.leaves(state),jax.tree.leaves(restored),strict=True):
+        np.testing.assert_array_equal(expected,actual)

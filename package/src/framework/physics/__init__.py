@@ -4,4 +4,4 @@ Planet modules configure these operators with their own constants and datasets;
 this package deliberately does not import from :mod:`src.celestials`.
 """
 
-__all__ = ["ames_radiation", "gcm"]
+__all__ = ["correlated_k", "gcm"]

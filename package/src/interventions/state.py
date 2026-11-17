@@ -64,7 +64,7 @@ class GHGState:
         Parameters
         ----------
         dt_years : float
-            Time interval in Mars years over which to apply decay.
+            Time interval in Earth Julian years over which to apply decay.
 
         The mass evolves as M(t+dt) = M(t) × exp(−dt / τ) where τ is
         the compound's atmospheric lifetime in years.  The decay factor is

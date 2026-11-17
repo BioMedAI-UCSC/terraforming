@@ -1,0 +1,142 @@
+{
+  "status": "verified_current_physics_short_lead_calibration",
+  "by_split": {
+    "test": {
+      "calibrated": {
+        "temperature_rmse_k": 2.3337453037131164,
+        "u_rmse_ms": 3.9758703775136413,
+        "v_rmse_ms": 3.9805064663992273
+      },
+      "physical": {
+        "temperature_rmse_k": 2.5322429928929417,
+        "u_rmse_ms": 3.985931513383192,
+        "v_rmse_ms": 3.9819730986410082
+      }
+    },
+    "train": {
+      "calibrated": {
+        "temperature_rmse_k": 2.2664575457843124,
+        "u_rmse_ms": 3.7503105675444646,
+        "v_rmse_ms": 3.7996485192856793
+      },
+      "physical": {
+        "temperature_rmse_k": 2.484192734282511,
+        "u_rmse_ms": 3.768406415295259,
+        "v_rmse_ms": 3.8202109723472333
+      }
+    },
+    "validation": {
+      "calibrated": {
+        "temperature_rmse_k": 2.3818351739140673,
+        "u_rmse_ms": 3.863779354706004,
+        "v_rmse_ms": 3.849464083057267
+      },
+      "physical": {
+        "temperature_rmse_k": 2.5612064454001633,
+        "u_rmse_ms": 3.8679778494043866,
+        "v_rmse_ms": 3.866190315324887
+      }
+    }
+  },
+  "test_temperature_gain_k": 0.19849768917982535,
+  "test_temperature_gain_percent": 7.838808903289854,
+  "test_windows": 4,
+  "temperature_windows_improved": 3,
+  "uncertainty": {
+    "gain_k": 0.19849768917982535,
+    "blocks": 2,
+    "resamples": 4,
+    "interval_95_k": [
+      0.10935296362882896,
+      0.31408634540181074
+    ],
+    "limitation": "conditional paired-block percentile interval; few years, one fitted run, no population-skill claim",
+    "grouping": "Mars year for myYEAR_qQUARTER blocks; otherwise supplied temporal block"
+  },
+  "hardware": {
+    "cpu_model": "AMD EPYC 7252 8-Core Processor",
+    "cpu_model_status": "identified",
+    "architecture": "x86_64",
+    "devices": [
+      {
+        "id": "cuda:0",
+        "platform": "gpu",
+        "kind": "NVIDIA A100-PCIE-40GB"
+      }
+    ]
+  },
+  "source_files_verified": 118,
+  "gradient_checks": 9,
+  "optimization": {
+    "optimizer": "L-BFGS-B",
+    "evaluations": 56,
+    "starts_requested": 3,
+    "starts_completed": 3,
+    "max_evaluations": 300,
+    "gtol": 1e-06,
+    "ftol": 1e-12,
+    "terminations": [
+      {
+        "start": 0,
+        "success": true,
+        "message": "CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL",
+        "iterations": 18,
+        "projected_gradient_inf": 6.346889601455878e-07,
+        "stationary": true,
+        "final_normalized_controls": [
+          0.0,
+          0.9380874727554749,
+          0.05224365152324202
+        ]
+      },
+      {
+        "start": 1,
+        "success": true,
+        "message": "CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL",
+        "iterations": 14,
+        "projected_gradient_inf": 1.0820162682894101e-07,
+        "stationary": true,
+        "final_normalized_controls": [
+          0.0,
+          0.9383295085540626,
+          0.05223273667896536
+        ]
+      },
+      {
+        "start": 2,
+        "success": true,
+        "message": "CONVERGENCE: NORM OF PROJECTED GRADIENT <= PGTOL",
+        "iterations": 12,
+        "projected_gradient_inf": 8.376569932163464e-08,
+        "stationary": true,
+        "final_normalized_controls": [
+          0.0,
+          0.93836987113669,
+          0.052231776493625
+        ]
+      }
+    ],
+    "stationary": true,
+    "validation_selected_projected_gradient_inf": 0.00020239213748409035,
+    "validation_selected_stationary": false,
+    "validation_selected_normalized_controls": [
+      0.0,
+      0.961548207238874,
+      0.054692222673659696
+    ],
+    "validation_loss": 0.04513580668880658,
+    "selection": "stationary describes training endpoints; validation_selected_stationary checks the selected checkpoint",
+    "validation_selected_physical_controls": [
+      0.05,
+      1.9250190041158044,
+      0.45509583502622386
+    ]
+  },
+  "limitations": [
+    "Native 7397.937-second lead; not an annual climate or equilibrium evaluation.",
+    "Training endpoints are stationary; the validation-selected checkpoint is not stationary.",
+    "The selected CO2 opacity control is at its lower bound; fitted controls are not validated physical constants.",
+    "Four held-out windows in two Mars years; the interval is conditional, not population skill or optimizer uncertainty.",
+    "Individual windows and wind components can worsen. No matched performance claim."
+  ]
+}

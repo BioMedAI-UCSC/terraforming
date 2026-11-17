@@ -25,7 +25,8 @@ MANIFEST
 .tokensave
 AmesGCM
 d-gcm
-paper
+/paper/*
+!/paper/arxiv-2610.04081/
 # Track the AEGIS manuscript while leaving other paper scratch work ignored.
 # !/paper/
 # /paper/*
@@ -49,6 +50,7 @@ venv.bak/
 # Testing / Type Checking
 .mypy_cache/
 .pytest_cache/
+test-results/
 .coverage
 htmlcov/
 .tox/
@@ -61,6 +63,8 @@ data/
 # To commit a validated experiment, move or copy it out of outputs/ first,
 # or explicitly `git add -f outputs/sol/exp_<name>/`.
 outputs/
+!/paper/arxiv-2610.04081/evidence/historical-audit/inputs/outputs/
+!/paper/arxiv-2610.04081/evidence/historical-audit/inputs/outputs/**
 
 # Docs build
 site/

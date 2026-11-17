@@ -23,6 +23,9 @@ from common import BODY, configuration, generate_columns, provenance, synchroniz
 
 def fit(params, loss, validation_loss, updates, learning_rate, *, time_budget=None):
     """Validation selection includes the input checkpoint; never inspect test data."""
+    if updates < 1 or (time_budget is not None and
+                       (not np.isfinite(time_budget) or time_budget <= 0)):
+        raise ValueError("updates and optional wall-time budget must be positive")
     @jax.jit
     def update(p, opt):
         value, grad = jax.value_and_grad(loss)(p)
@@ -31,6 +34,7 @@ def fit(params, loss, validation_loss, updates, learning_rate, *, time_budget=No
 
     validate = jax.jit(validation_loss)
     best, best_loss = params, float(validate(params))
+    selected_update = 0
     opt = adam_init(params)
     _, first_call = synchronized_call(update, params, opt)
     start = time.perf_counter()
@@ -49,12 +53,17 @@ def fit(params, loss, validation_loss, updates, learning_rate, *, time_budget=No
             break
         if val < best_loss:
             best, best_loss = params, val
+            selected_update = epoch + 1
         if epoch+1 >= updates and (time_budget is None or time.perf_counter()-start >= time_budget):
             break
     return best, {"history": history, "best_validation_loss": best_loss,
                   "first_update_compile_and_execution_seconds": first_call,
                   "training_seconds": time.perf_counter()-start, "failed": failed,
-                  "time_budget_seconds": time_budget, "updates": len(history)}
+                  "time_budget_seconds": time_budget, "updates": len(history),
+                  "requested_updates": updates, "selected_update": selected_update,
+                  "budget_mode": "fixed_updates" if time_budget is None else "wall_time",
+                  "budget_exhausted": bool(time_budget is not None and len(history) == cap
+                                           and time.perf_counter()-start < time_budget)}
 
 
 def coupled_evaluation(adapter, norm, models, forcing, layers, steps):
@@ -116,13 +125,19 @@ def main():
     p.add_argument("--columns", type=int, default=96)
     p.add_argument("--epochs", type=int, default=100)
     p.add_argument("--fine-tune-epochs", type=int, default=20)
+    p.add_argument("--continuation-updates", type=int,
+                   help="Default: same update count as trajectory fine-tuning")
+    p.add_argument("--continuation-budget", choices=("updates", "wall-time"), default="updates",
+                   help="Fixed updates for reproducible accuracy; wall-time is an optional efficiency experiment")
     p.add_argument("--steps", type=int, default=12)
     p.add_argument("--long-steps", type=int, default=48)
     p.add_argument("--coupled-steps", type=int, default=2)
     p.add_argument("--ames", action="store_true", help="use Ames correlated-k rather than compact reference radiation")
     args = p.parse_args()
+    if args.continuation_updates is None:
+        args.continuation_updates = args.fine_tune_epochs
     if min(args.layers, args.columns, args.epochs, args.fine_tune_epochs, args.steps,
-           args.long_steps, args.coupled_steps) < 1 or args.long_steps <= args.steps:
+           args.long_steps, args.coupled_steps, args.continuation_updates) < 1 or args.long_steps <= args.steps:
         p.error("counts must be positive and long-steps must exceed steps")
     jax.config.update("jax_enable_x64", True)
     out = Path(args.output)
@@ -171,7 +186,9 @@ def main():
     fine, fine_history = fit(local, trajectory_loss("train"), trajectory_loss("validation"),
                              args.fine_tune_epochs, .0003)
     control, control_history = fit(local, local_loss("train"), local_loss("validation"),
-                                   args.fine_tune_epochs, .0003, time_budget=fine_history["training_seconds"])
+                                   args.continuation_updates, .0003,
+                                   time_budget=(fine_history["training_seconds"]
+                                                if args.continuation_budget == "wall-time" else None))
     print("Trajectory fitting and local continuation complete", flush=True)
     models = {"local": local, "trajectory": fine, "continued_local": control}
     metadata = {"feature_schema": feature_schema(args.layers), "physics": {
@@ -184,6 +201,11 @@ def main():
         assert all(np.array_equal(a, b) for a, b in zip(jax.tree.leaves(values), jax.tree.leaves(restored)))
 
     report = {"provenance": provenance(args), "metadata": metadata,
+              "comparison_budget": {"mode": args.continuation_budget,
+                  "accuracy_claim": "fixed-update single-seed capability comparison" if args.continuation_budget == "updates"
+                                    else "hardware-dependent wall-time efficiency comparison",
+                  "trajectory_updates": args.fine_tune_epochs,
+                  "continued_local_updates": args.continuation_updates},
               "training": {"local": local_history, "trajectory": fine_history, "continued_local": control_history},
               "split_policy": "independent whole columns; held-out dust [1,1.5] versus training [0,.8]",
               "selection": "validation only, includes input checkpoint; no test-driven tuning",

@@ -1,0 +1,849 @@
+{
+  "source": "6ddddaff06a70618527c99d77b5973ae4c23eef1",
+  "staged": "/private/tmp/rebuttal-54586-staged",
+  "stage": {
+    "apiVersion": "v1",
+    "kind": "Pod",
+    "metadata": {
+      "name": "aegis-54586-stage-20261115-v1-recovery"
+    },
+    "spec": {
+      "restartPolicy": "Never",
+      "automountServiceAccountToken": false,
+      "securityContext": {
+        "runAsNonRoot": true,
+        "runAsUser": 10001,
+        "runAsGroup": 10001,
+        "fsGroup": 10001
+      },
+      "containers": [
+        {
+          "name": "stage",
+          "image": "samkash/terraforming-paper@sha256:a04422421dbe06a2073d55259ba9ae9d54e2f22488e4bc2552fdbb5bc3f24fd2",
+          "command": [
+            "sh",
+            "-c",
+            "until test -f /data/projected/transfer-complete; do sleep 1; done"
+          ],
+          "resources": {
+            "requests": {
+              "cpu": "1",
+              "memory": "1Gi"
+            },
+            "limits": {
+              "cpu": "1",
+              "memory": "1Gi"
+            }
+          },
+          "securityContext": {
+            "allowPrivilegeEscalation": false,
+            "readOnlyRootFilesystem": true,
+            "capabilities": {
+              "drop": [
+                "ALL"
+              ]
+            }
+          },
+          "volumeMounts": [
+            {
+              "name": "projected",
+              "mountPath": "/data/projected"
+            },
+            {
+              "name": "unprojected",
+              "mountPath": "/data/unprojected"
+            },
+            {
+              "name": "spatial",
+              "mountPath": "/data/spatial"
+            },
+            {
+              "name": "radiation",
+              "mountPath": "/data/radiation"
+            },
+            {
+              "name": "heating",
+              "mountPath": "/data/heating"
+            },
+            {
+              "name": "stability",
+              "mountPath": "/data/stability"
+            }
+          ]
+        }
+      ],
+      "volumes": [
+        {
+          "name": "projected",
+          "persistentVolumeClaim": {
+            "claimName": "aegis-54586-projected-20261115-v1"
+          }
+        },
+        {
+          "name": "unprojected",
+          "persistentVolumeClaim": {
+            "claimName": "aegis-54586-unprojected-20261115-v1"
+          }
+        },
+        {
+          "name": "spatial",
+          "persistentVolumeClaim": {
+            "claimName": "aegis-54586-spatial-20261115-v1"
+          }
+        },
+        {
+          "name": "radiation",
+          "persistentVolumeClaim": {
+            "claimName": "aegis-54586-radiation-20261115-v1"
+          }
+        },
+        {
+          "name": "heating",
+          "persistentVolumeClaim": {
+            "claimName": "aegis-54586-heating-20261115-v1"
+          }
+        },
+        {
+          "name": "stability",
+          "persistentVolumeClaim": {
+            "claimName": "aegis-54586-stability-20261115-v1"
+          }
+        }
+      ]
+    }
+  },
+  "jobs": [
+    {
+      "apiVersion": "batch/v1",
+      "kind": "Job",
+      "metadata": {
+        "name": "aegis-54586-projected-20261115-v1",
+        "namespace": "razvanlab",
+        "labels": {
+          "campaign": "aegis-54586",
+          "task": "projected"
+        },
+        "finalizers": [
+          "aegis.terraforming/retain-results"
+        ]
+      },
+      "spec": {
+        "backoffLimit": 0,
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "nautalis-experiments",
+              "campaign": "aegis-54586",
+              "task": "projected"
+            }
+          },
+          "spec": {
+            "restartPolicy": "Never",
+            "automountServiceAccountToken": false,
+            "terminationGracePeriodSeconds": 120,
+            "securityContext": {
+              "runAsNonRoot": true,
+              "runAsUser": 10001,
+              "runAsGroup": 10001,
+              "fsGroup": 10001,
+              "fsGroupChangePolicy": "OnRootMismatch",
+              "seccompProfile": {
+                "type": "RuntimeDefault"
+              }
+            },
+            "containers": [
+              {
+                "name": "experiment",
+                "image": "samkash/terraforming-paper@sha256:a04422421dbe06a2073d55259ba9ae9d54e2f22488e4bc2552fdbb5bc3f24fd2",
+                "imagePullPolicy": "IfNotPresent",
+                "args": [
+                  "--repository",
+                  "https://github.com/BioMedAI-UCSC/terraforming.git",
+                  "--ref",
+                  "6ddddaff06a70618527c99d77b5973ae4c23eef1",
+                  "--run-id",
+                  "20261115-v1",
+                  "--gpu",
+                  "--experiments",
+                  "experiments/rebuttal-54586",
+                  "--",
+                  "projected"
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "4",
+                    "memory": "32Gi",
+                    "ephemeral-storage": "2Gi",
+                    "nvidia.com/a100": "1"
+                  },
+                  "limits": {
+                    "cpu": "4",
+                    "memory": "32Gi",
+                    "ephemeral-storage": "8Gi",
+                    "nvidia.com/a100": "1"
+                  }
+                },
+                "securityContext": {
+                  "allowPrivilegeEscalation": false,
+                  "readOnlyRootFilesystem": true,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  }
+                },
+                "volumeMounts": [
+                  {
+                    "name": "work",
+                    "mountPath": "/work"
+                  },
+                  {
+                    "name": "tmp",
+                    "mountPath": "/tmp"
+                  },
+                  {
+                    "name": "shm",
+                    "mountPath": "/dev/shm"
+                  }
+                ]
+              }
+            ],
+            "volumes": [
+              {
+                "name": "work",
+                "persistentVolumeClaim": {
+                  "claimName": "aegis-54586-projected-20261115-v1"
+                }
+              },
+              {
+                "name": "tmp",
+                "emptyDir": {
+                  "sizeLimit": "4Gi"
+                }
+              },
+              {
+                "name": "shm",
+                "emptyDir": {
+                  "medium": "Memory",
+                  "sizeLimit": "8Gi"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "batch/v1",
+      "kind": "Job",
+      "metadata": {
+        "name": "aegis-54586-unprojected-20261115-v1",
+        "namespace": "razvanlab",
+        "labels": {
+          "campaign": "aegis-54586",
+          "task": "unprojected"
+        },
+        "finalizers": [
+          "aegis.terraforming/retain-results"
+        ]
+      },
+      "spec": {
+        "backoffLimit": 0,
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "nautalis-experiments",
+              "campaign": "aegis-54586",
+              "task": "unprojected"
+            }
+          },
+          "spec": {
+            "restartPolicy": "Never",
+            "automountServiceAccountToken": false,
+            "terminationGracePeriodSeconds": 120,
+            "securityContext": {
+              "runAsNonRoot": true,
+              "runAsUser": 10001,
+              "runAsGroup": 10001,
+              "fsGroup": 10001,
+              "fsGroupChangePolicy": "OnRootMismatch",
+              "seccompProfile": {
+                "type": "RuntimeDefault"
+              }
+            },
+            "containers": [
+              {
+                "name": "experiment",
+                "image": "samkash/terraforming-paper@sha256:a04422421dbe06a2073d55259ba9ae9d54e2f22488e4bc2552fdbb5bc3f24fd2",
+                "imagePullPolicy": "IfNotPresent",
+                "args": [
+                  "--repository",
+                  "https://github.com/BioMedAI-UCSC/terraforming.git",
+                  "--ref",
+                  "6ddddaff06a70618527c99d77b5973ae4c23eef1",
+                  "--run-id",
+                  "20261115-v1",
+                  "--gpu",
+                  "--experiments",
+                  "experiments/rebuttal-54586",
+                  "--",
+                  "unprojected"
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "4",
+                    "memory": "32Gi",
+                    "ephemeral-storage": "2Gi",
+                    "nvidia.com/a100": "1"
+                  },
+                  "limits": {
+                    "cpu": "4",
+                    "memory": "32Gi",
+                    "ephemeral-storage": "8Gi",
+                    "nvidia.com/a100": "1"
+                  }
+                },
+                "securityContext": {
+                  "allowPrivilegeEscalation": false,
+                  "readOnlyRootFilesystem": true,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  }
+                },
+                "volumeMounts": [
+                  {
+                    "name": "work",
+                    "mountPath": "/work"
+                  },
+                  {
+                    "name": "tmp",
+                    "mountPath": "/tmp"
+                  },
+                  {
+                    "name": "shm",
+                    "mountPath": "/dev/shm"
+                  }
+                ]
+              }
+            ],
+            "volumes": [
+              {
+                "name": "work",
+                "persistentVolumeClaim": {
+                  "claimName": "aegis-54586-unprojected-20261115-v1"
+                }
+              },
+              {
+                "name": "tmp",
+                "emptyDir": {
+                  "sizeLimit": "4Gi"
+                }
+              },
+              {
+                "name": "shm",
+                "emptyDir": {
+                  "medium": "Memory",
+                  "sizeLimit": "8Gi"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "batch/v1",
+      "kind": "Job",
+      "metadata": {
+        "name": "aegis-54586-spatial-20261115-v1",
+        "namespace": "razvanlab",
+        "labels": {
+          "campaign": "aegis-54586",
+          "task": "spatial"
+        },
+        "finalizers": [
+          "aegis.terraforming/retain-results"
+        ]
+      },
+      "spec": {
+        "backoffLimit": 0,
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "nautalis-experiments",
+              "campaign": "aegis-54586",
+              "task": "spatial"
+            }
+          },
+          "spec": {
+            "restartPolicy": "Never",
+            "automountServiceAccountToken": false,
+            "terminationGracePeriodSeconds": 120,
+            "securityContext": {
+              "runAsNonRoot": true,
+              "runAsUser": 10001,
+              "runAsGroup": 10001,
+              "fsGroup": 10001,
+              "fsGroupChangePolicy": "OnRootMismatch",
+              "seccompProfile": {
+                "type": "RuntimeDefault"
+              }
+            },
+            "containers": [
+              {
+                "name": "experiment",
+                "image": "samkash/terraforming-paper@sha256:a04422421dbe06a2073d55259ba9ae9d54e2f22488e4bc2552fdbb5bc3f24fd2",
+                "imagePullPolicy": "IfNotPresent",
+                "args": [
+                  "--repository",
+                  "https://github.com/BioMedAI-UCSC/terraforming.git",
+                  "--ref",
+                  "6ddddaff06a70618527c99d77b5973ae4c23eef1",
+                  "--run-id",
+                  "20261115-v1",
+                  "--gpu",
+                  "--experiments",
+                  "experiments/rebuttal-54586",
+                  "--",
+                  "spatial"
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "4",
+                    "memory": "32Gi",
+                    "ephemeral-storage": "2Gi",
+                    "nvidia.com/a100": "1"
+                  },
+                  "limits": {
+                    "cpu": "4",
+                    "memory": "32Gi",
+                    "ephemeral-storage": "8Gi",
+                    "nvidia.com/a100": "1"
+                  }
+                },
+                "securityContext": {
+                  "allowPrivilegeEscalation": false,
+                  "readOnlyRootFilesystem": true,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  }
+                },
+                "volumeMounts": [
+                  {
+                    "name": "work",
+                    "mountPath": "/work"
+                  },
+                  {
+                    "name": "tmp",
+                    "mountPath": "/tmp"
+                  },
+                  {
+                    "name": "shm",
+                    "mountPath": "/dev/shm"
+                  }
+                ]
+              }
+            ],
+            "volumes": [
+              {
+                "name": "work",
+                "persistentVolumeClaim": {
+                  "claimName": "aegis-54586-spatial-20261115-v1"
+                }
+              },
+              {
+                "name": "tmp",
+                "emptyDir": {
+                  "sizeLimit": "4Gi"
+                }
+              },
+              {
+                "name": "shm",
+                "emptyDir": {
+                  "medium": "Memory",
+                  "sizeLimit": "8Gi"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "batch/v1",
+      "kind": "Job",
+      "metadata": {
+        "name": "aegis-54586-radiation-20261115-v1",
+        "namespace": "razvanlab",
+        "labels": {
+          "campaign": "aegis-54586",
+          "task": "radiation"
+        },
+        "finalizers": [
+          "aegis.terraforming/retain-results"
+        ]
+      },
+      "spec": {
+        "backoffLimit": 0,
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "nautalis-experiments",
+              "campaign": "aegis-54586",
+              "task": "radiation"
+            }
+          },
+          "spec": {
+            "restartPolicy": "Never",
+            "automountServiceAccountToken": false,
+            "terminationGracePeriodSeconds": 120,
+            "securityContext": {
+              "runAsNonRoot": true,
+              "runAsUser": 10001,
+              "runAsGroup": 10001,
+              "fsGroup": 10001,
+              "fsGroupChangePolicy": "OnRootMismatch",
+              "seccompProfile": {
+                "type": "RuntimeDefault"
+              }
+            },
+            "containers": [
+              {
+                "name": "experiment",
+                "image": "samkash/terraforming-paper@sha256:a04422421dbe06a2073d55259ba9ae9d54e2f22488e4bc2552fdbb5bc3f24fd2",
+                "imagePullPolicy": "IfNotPresent",
+                "args": [
+                  "--repository",
+                  "https://github.com/BioMedAI-UCSC/terraforming.git",
+                  "--ref",
+                  "6ddddaff06a70618527c99d77b5973ae4c23eef1",
+                  "--run-id",
+                  "20261115-v1",
+                  "--gpu",
+                  "--experiments",
+                  "experiments/rebuttal-54586",
+                  "--",
+                  "radiation"
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "4",
+                    "memory": "32Gi",
+                    "ephemeral-storage": "2Gi",
+                    "nvidia.com/a100": "1"
+                  },
+                  "limits": {
+                    "cpu": "4",
+                    "memory": "32Gi",
+                    "ephemeral-storage": "8Gi",
+                    "nvidia.com/a100": "1"
+                  }
+                },
+                "securityContext": {
+                  "allowPrivilegeEscalation": false,
+                  "readOnlyRootFilesystem": true,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  }
+                },
+                "volumeMounts": [
+                  {
+                    "name": "work",
+                    "mountPath": "/work"
+                  },
+                  {
+                    "name": "tmp",
+                    "mountPath": "/tmp"
+                  },
+                  {
+                    "name": "shm",
+                    "mountPath": "/dev/shm"
+                  }
+                ]
+              }
+            ],
+            "volumes": [
+              {
+                "name": "work",
+                "persistentVolumeClaim": {
+                  "claimName": "aegis-54586-radiation-20261115-v1"
+                }
+              },
+              {
+                "name": "tmp",
+                "emptyDir": {
+                  "sizeLimit": "4Gi"
+                }
+              },
+              {
+                "name": "shm",
+                "emptyDir": {
+                  "medium": "Memory",
+                  "sizeLimit": "8Gi"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "batch/v1",
+      "kind": "Job",
+      "metadata": {
+        "name": "aegis-54586-heating-20261115-v1",
+        "namespace": "razvanlab",
+        "labels": {
+          "campaign": "aegis-54586",
+          "task": "heating"
+        },
+        "finalizers": [
+          "aegis.terraforming/retain-results"
+        ]
+      },
+      "spec": {
+        "backoffLimit": 0,
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "nautalis-experiments",
+              "campaign": "aegis-54586",
+              "task": "heating"
+            }
+          },
+          "spec": {
+            "restartPolicy": "Never",
+            "automountServiceAccountToken": false,
+            "terminationGracePeriodSeconds": 120,
+            "securityContext": {
+              "runAsNonRoot": true,
+              "runAsUser": 10001,
+              "runAsGroup": 10001,
+              "fsGroup": 10001,
+              "fsGroupChangePolicy": "OnRootMismatch",
+              "seccompProfile": {
+                "type": "RuntimeDefault"
+              }
+            },
+            "containers": [
+              {
+                "name": "experiment",
+                "image": "samkash/terraforming-paper@sha256:a04422421dbe06a2073d55259ba9ae9d54e2f22488e4bc2552fdbb5bc3f24fd2",
+                "imagePullPolicy": "IfNotPresent",
+                "args": [
+                  "--repository",
+                  "https://github.com/BioMedAI-UCSC/terraforming.git",
+                  "--ref",
+                  "6ddddaff06a70618527c99d77b5973ae4c23eef1",
+                  "--run-id",
+                  "20261115-v1",
+                  "--gpu",
+                  "--experiments",
+                  "experiments/rebuttal-54586",
+                  "--",
+                  "heating"
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "4",
+                    "memory": "32Gi",
+                    "ephemeral-storage": "2Gi",
+                    "nvidia.com/a100": "1"
+                  },
+                  "limits": {
+                    "cpu": "4",
+                    "memory": "32Gi",
+                    "ephemeral-storage": "8Gi",
+                    "nvidia.com/a100": "1"
+                  }
+                },
+                "securityContext": {
+                  "allowPrivilegeEscalation": false,
+                  "readOnlyRootFilesystem": true,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  }
+                },
+                "volumeMounts": [
+                  {
+                    "name": "work",
+                    "mountPath": "/work"
+                  },
+                  {
+                    "name": "tmp",
+                    "mountPath": "/tmp"
+                  },
+                  {
+                    "name": "shm",
+                    "mountPath": "/dev/shm"
+                  }
+                ]
+              }
+            ],
+            "volumes": [
+              {
+                "name": "work",
+                "persistentVolumeClaim": {
+                  "claimName": "aegis-54586-heating-20261115-v1"
+                }
+              },
+              {
+                "name": "tmp",
+                "emptyDir": {
+                  "sizeLimit": "4Gi"
+                }
+              },
+              {
+                "name": "shm",
+                "emptyDir": {
+                  "medium": "Memory",
+                  "sizeLimit": "8Gi"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "batch/v1",
+      "kind": "Job",
+      "metadata": {
+        "name": "aegis-54586-stability-20261115-v1",
+        "namespace": "razvanlab",
+        "labels": {
+          "campaign": "aegis-54586",
+          "task": "stability"
+        },
+        "finalizers": [
+          "aegis.terraforming/retain-results"
+        ]
+      },
+      "spec": {
+        "backoffLimit": 0,
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "nautalis-experiments",
+              "campaign": "aegis-54586",
+              "task": "stability"
+            }
+          },
+          "spec": {
+            "restartPolicy": "Never",
+            "automountServiceAccountToken": false,
+            "terminationGracePeriodSeconds": 120,
+            "securityContext": {
+              "runAsNonRoot": true,
+              "runAsUser": 10001,
+              "runAsGroup": 10001,
+              "fsGroup": 10001,
+              "fsGroupChangePolicy": "OnRootMismatch",
+              "seccompProfile": {
+                "type": "RuntimeDefault"
+              }
+            },
+            "containers": [
+              {
+                "name": "experiment",
+                "image": "samkash/terraforming-paper@sha256:a04422421dbe06a2073d55259ba9ae9d54e2f22488e4bc2552fdbb5bc3f24fd2",
+                "imagePullPolicy": "IfNotPresent",
+                "args": [
+                  "--repository",
+                  "https://github.com/BioMedAI-UCSC/terraforming.git",
+                  "--ref",
+                  "6ddddaff06a70618527c99d77b5973ae4c23eef1",
+                  "--run-id",
+                  "20261115-v1",
+                  "--gpu",
+                  "--experiments",
+                  "experiments/rebuttal-54586",
+                  "--",
+                  "stability"
+                ],
+                "resources": {
+                  "requests": {
+                    "cpu": "4",
+                    "memory": "32Gi",
+                    "ephemeral-storage": "2Gi",
+                    "nvidia.com/a100": "1"
+                  },
+                  "limits": {
+                    "cpu": "4",
+                    "memory": "32Gi",
+                    "ephemeral-storage": "8Gi",
+                    "nvidia.com/a100": "1"
+                  }
+                },
+                "securityContext": {
+                  "allowPrivilegeEscalation": false,
+                  "readOnlyRootFilesystem": true,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  }
+                },
+                "volumeMounts": [
+                  {
+                    "name": "work",
+                    "mountPath": "/work"
+                  },
+                  {
+                    "name": "tmp",
+                    "mountPath": "/tmp"
+                  },
+                  {
+                    "name": "shm",
+                    "mountPath": "/dev/shm"
+                  }
+                ]
+              }
+            ],
+            "volumes": [
+              {
+                "name": "work",
+                "persistentVolumeClaim": {
+                  "claimName": "aegis-54586-stability-20261115-v1"
+                }
+              },
+              {
+                "name": "tmp",
+                "emptyDir": {
+                  "sizeLimit": "4Gi"
+                }
+              },
+              {
+                "name": "shm",
+                "emptyDir": {
+                  "medium": "Memory",
+                  "sizeLimit": "8Gi"
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "reason": "Managed Pods have no run deadline. The manual retention finalizer prevents deletion by the cluster-injected completed-Job TTL. PVCs retain all inputs and outputs.",
+  "submitted": [
+    "aegis-54586-projected-20261115-v1",
+    "aegis-54586-unprojected-20261115-v1",
+    "aegis-54586-spatial-20261115-v1",
+    "aegis-54586-radiation-20261115-v1",
+    "aegis-54586-heating-20261115-v1",
+    "aegis-54586-stability-20261115-v1"
+  ],
+  "verified_files_per_volume": 115,
+  "observed_state": "All six Jobs created; their Pods are pending scheduling. Jobs and Pods have no activeDeadlineSeconds. All science Jobs retain the manual finalizer.",
+  "staging_recovery": "Original staging node became NotReady. All six persistent input copies reverified; stability recovered 114 files."
+}

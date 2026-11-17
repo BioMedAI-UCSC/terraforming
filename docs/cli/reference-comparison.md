@@ -1,5 +1,11 @@
 # Model, Ames, MCD and ARCO comparison
 
+Surface comparisons use skin temperature. A dry map that contains only
+lowest-layer air temperature is rejected as a surface-temperature source.
+Seasonal ARCO evaluation aligns longitude, latitude, and sigma coordinates
+before computing errors. Wind speed is calculated before averaging vectors.
+Incomplete reference coverage and repeated sample times raise errors.
+
 Generate an offline browser report from the staged reference files:
 
 ```sh
@@ -115,7 +121,7 @@ are computed by the CLI before export. Cite AmesCAP separately when publishing
 its figures, along with Ames, MCD, ARCO-MACDA/MACDA and MOLA data sources.
 
 The native Ames archive can also be processed with `MarsInterp`, `MarsVars` and
-`MarsPlot`; the CLI's existing `scripts/benchmark_ames.py`,
+`MarsPlot`; the CLI's existing `scripts/benchmark_reference_climate.py`,
 `scripts/benchmark_mcd.py`, and `scripts/evaluate_arco_seasonal.py` remain the
 source-specific evaluation tools. Full pressure-level profile and zonal plots
 need matching vertical coordinates and separate exports; the new common grid

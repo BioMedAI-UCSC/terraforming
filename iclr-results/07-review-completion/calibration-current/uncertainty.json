@@ -1,0 +1,11 @@
+{
+  "gain_k": 0.19849768917982535,
+  "blocks": 2,
+  "resamples": 4,
+  "interval_95_k": [
+    0.10935296362882896,
+    0.31408634540181074
+  ],
+  "limitation": "conditional paired-block percentile interval; few years, one fitted run, no population-skill claim",
+  "grouping": "Mars year for myYEAR_qQUARTER blocks; otherwise supplied temporal block"
+}

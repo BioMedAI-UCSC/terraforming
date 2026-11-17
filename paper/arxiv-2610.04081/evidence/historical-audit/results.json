@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "analysis_kind": "historical evidence reanalysis; no new coupled simulation or calibration",
+  "calibration": {
+    "baseline_rmse_k": 2.4550482272343603,
+    "fitted_rmse_k": 2.3969947731877514,
+    "gain_k": 0.05805345404660889,
+    "year_blocks": 2,
+    "windows": 4,
+    "paired_year_percentile_interval_95_k": [
+      0.03511694657691483,
+      0.08692583659503648
+    ],
+    "limitation": "conditional on two observed Mars years and one fitted run; not population skill or optimizer uncertainty",
+    "selected_controls": [
+      0.9029235232245617,
+      1.0963413155099646,
+      0.8163364561276375
+    ],
+    "updates": 50,
+    "train_loss_last": 0.0416314312395444,
+    "validation_loss_last": 0.0414697334651676,
+    "last_5_train_loss_change": -2.791404302889683e-05,
+    "convergence": "not established: fixed 50-update budget, no archived gradient/stationarity stop"
+  },
+  "reference": {
+    "temperature_bias_range_k": [
+      2.3552395929125236,
+      8.219211298088553
+    ],
+    "limitation": "Ames-informed (0.25,0.25,1) tuning; unmatched temporal/vertical sampling; model/reanalysis characterization, not independent validation"
+  },
+  "pending": [
+    "untuned/held-out reference rerun",
+    "converged merged-physics reanalysis fit",
+    "full 450/300 s long-run convergence",
+    "raw pre-projection long-run energy/momentum accounting",
+    "exact submitted manuscript source",
+    "public raw field/input release"
+  ],
+  "timestep_300_150": {
+    "first_dt_seconds": 300,
+    "second_dt_seconds": 150.0,
+    "common_samples": 74,
+    "sample_span_seconds": 59350800.00242525,
+    "first_absolute_seconds": 143223900.00091055,
+    "last_absolute_seconds": 202574700.0033358,
+    "fields": {
+      "air_temperature": {
+        "equal_snapshot_rmse": 3.699999406380599,
+        "time_integrated_rmse": 3.884262201270587,
+        "first_sample_rmse": 0.003916179629399064,
+        "last_sample_rmse": 2.6832310856857293
+      },
+      "eastward_wind": {
+        "equal_snapshot_rmse": 8.760542501614019,
+        "time_integrated_rmse": 9.191198594770702,
+        "first_sample_rmse": 0.01156602986864293,
+        "last_sample_rmse": 7.135369272716106
+      },
+      "northward_wind": {
+        "equal_snapshot_rmse": 9.148374277225267,
+        "time_integrated_rmse": 9.597586038806178,
+        "first_sample_rmse": 0.01569307056949363,
+        "last_sample_rmse": 7.536565991906831
+      }
+    },
+    "limitation": "paired transient sensitivity; not an equilibrated error estimate or a 450/300 s certification"
+  },
+  "winds": {
+    "max_wind_ms": 236.0459976970617,
+    "max_wind_location": {
+      "time": 1813.319713338507,
+      "sigma": 0.0416666679084301,
+      "lat": 58.14295404920327,
+      "lon": 348.75
+    },
+    "air_temperature_at_max_wind_k": 188.44169968448807,
+    "max_mach": 1.0977417260805162,
+    "max_mach_location": {
+      "time": 1813.319713338507,
+      "sigma": 0.0416666679084301,
+      "lat": 58.14295404920327,
+      "lon": 354.375
+    },
+    "max_horizontal_advective_cfl": 1.3726957908319284,
+    "minimum_air_temperature_k": 93.26257000421154,
+    "maximum_below_co2_frost_point_k": 35.76786900961304,
+    "sampled_mach_exceeds_one": true,
+    "co2_frost_assumption": "model total-pressure approximation; not a general gas-mixture saturation calculation",
+    "interpretation": "sampled extrema; local Mach/CFL diagnostics do not establish solver stability or a drag-error cause"
+  },
+  "performance": {
+    "external_speedup": "not measured; no claim",
+    "original_gpu_model": "not recorded"
+  }
+}

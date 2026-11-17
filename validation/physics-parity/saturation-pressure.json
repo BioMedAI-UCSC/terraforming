@@ -1,0 +1,367 @@
+{
+  "status": "pass",
+  "reference": {
+    "source_git_blob": "00ce7089d0dc164d4936b7a8af4e20a2546f89f4",
+    "compiled_source_sha256": "b8204b05b665cdd7588195b068c728c6892180e4251254522bf72514493e0bf7",
+    "routine_sha256": {
+      "SAT_VAPOR_PRES_INIT_K_": "c49fbca69110f54598105f91d201275e0ede73af29e5c5aa5796b5ccf2aee492",
+      "COMPUTE_ES_K_": "0c0632fedc83803240ed69105ed6f381bdf40d7619caa14eacc8b1e51b6b63fa",
+      "COMPUTE_ES_LIQ_K_": "f1d05cba019b1604b6fad4d2aaf7cab37dabf96640339c1c5c70537ae23d9934",
+      "COMPUTE_ES_LIQ_ICE_K_": "f639bdee5a941a9b7cb9c259aba771f2b34f1cc57e0d45918be4cfc371907bee",
+      "LOOKUP_ES_DES_K_0D_": "8c9c827f810528c4260539869a286e46fc57421243b45fc3f540102ffbcd8857",
+      "LOOKUP_ES2_DES2_K_0D_": "7cf0979b1415ad8f639d933bf0f9464b7891bce8814368df0ee59f1cf54fd8b5",
+      "LOOKUP_ES3_DES3_K_0D_": "762944b41b4397c177de0930295c99836397845a85d6d987ab6c8f5454b82cb5",
+      "LOOKUP_ES_K_0D_": "58ed4fc5d8e14fe8f57f3d358dbcffd30992249452f420c48788939ccdfbc1b0",
+      "LOOKUP_ES2_K_0D_": "b4cf8b3d935a1f713909f1631b4ed3fbc870660e44ce305e0c08b5e0df62a0f7",
+      "LOOKUP_ES3_K_0D_": "a604051effe10f907c748a678b9fcee1e6dec0652134196a7c34ad5f9906165c",
+      "COMPUTE_QS_K_0D_": "106284defab319ee95e3d90bfe59647f8cafe8307c9dc924d7cb08bb10e174c6"
+    },
+    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+    "compiler_flags": [
+      "-O3",
+      "-cpp",
+      "-fdefault-real-8",
+      "-fdefault-double-8",
+      "-fPIC",
+      "-shared"
+    ],
+    "real_precision_bits": 64,
+    "adaptation": "Unchanged FMS kernel bodies with original kind/name macro bindings; NASA table bounds and water constants supplied by C adapters; no FMS I/O",
+    "fms_revision": "71957e9d",
+    "mars_patch_git_blob": "6deea614300cc5340dfd5bd02fc2d5ddc1bdebee"
+  },
+  "cases": [
+    {
+      "model": "smithsonian",
+      "phase": "blend",
+      "relative_humidity": 0.2,
+      "exact_qs": false,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 3.879563337250147e-12
+    },
+    {
+      "model": "smithsonian",
+      "phase": "blend",
+      "relative_humidity": 0.2,
+      "exact_qs": true,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 1.1368683772161603e-12
+    },
+    {
+      "model": "smithsonian",
+      "phase": "blend",
+      "relative_humidity": 1.0,
+      "exact_qs": false,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 1.5205614545266144e-12
+    },
+    {
+      "model": "smithsonian",
+      "phase": "blend",
+      "relative_humidity": 1.0,
+      "exact_qs": true,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 5.4569682106375694e-12
+    },
+    {
+      "model": "smithsonian",
+      "phase": "blend",
+      "relative_humidity": 1.1,
+      "exact_qs": false,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 3.3224978324142285e-11
+    },
+    {
+      "model": "smithsonian",
+      "phase": "blend",
+      "relative_humidity": 1.1,
+      "exact_qs": true,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 7.275957614183426e-12
+    },
+    {
+      "model": "smithsonian",
+      "phase": "liquid",
+      "relative_humidity": 0.2,
+      "exact_qs": false,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 3.879563337250147e-12
+    },
+    {
+      "model": "smithsonian",
+      "phase": "liquid",
+      "relative_humidity": 0.2,
+      "exact_qs": true,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 1.1368683772161603e-12
+    },
+    {
+      "model": "smithsonian",
+      "phase": "liquid",
+      "relative_humidity": 1.0,
+      "exact_qs": false,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 1.5205614545266144e-12
+    },
+    {
+      "model": "smithsonian",
+      "phase": "liquid",
+      "relative_humidity": 1.0,
+      "exact_qs": true,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 5.4569682106375694e-12
+    },
+    {
+      "model": "smithsonian",
+      "phase": "liquid",
+      "relative_humidity": 1.1,
+      "exact_qs": false,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 3.3224978324142285e-11
+    },
+    {
+      "model": "smithsonian",
+      "phase": "liquid",
+      "relative_humidity": 1.1,
+      "exact_qs": true,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 7.275957614183426e-12
+    },
+    {
+      "model": "smithsonian",
+      "phase": "ice-liquid",
+      "relative_humidity": 0.2,
+      "exact_qs": false,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 3.879563337250147e-12
+    },
+    {
+      "model": "smithsonian",
+      "phase": "ice-liquid",
+      "relative_humidity": 0.2,
+      "exact_qs": true,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 1.1368683772161603e-12
+    },
+    {
+      "model": "smithsonian",
+      "phase": "ice-liquid",
+      "relative_humidity": 1.0,
+      "exact_qs": false,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 1.5205614545266144e-12
+    },
+    {
+      "model": "smithsonian",
+      "phase": "ice-liquid",
+      "relative_humidity": 1.0,
+      "exact_qs": true,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 5.4569682106375694e-12
+    },
+    {
+      "model": "smithsonian",
+      "phase": "ice-liquid",
+      "relative_humidity": 1.1,
+      "exact_qs": false,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 3.3224978324142285e-11
+    },
+    {
+      "model": "smithsonian",
+      "phase": "ice-liquid",
+      "relative_humidity": 1.1,
+      "exact_qs": true,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 7.275957614183426e-12
+    },
+    {
+      "model": "simple",
+      "phase": "blend",
+      "relative_humidity": 0.2,
+      "exact_qs": false,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 1.9753088054130785e-12
+    },
+    {
+      "model": "simple",
+      "phase": "blend",
+      "relative_humidity": 0.2,
+      "exact_qs": true,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 2.7284841053187847e-12
+    },
+    {
+      "model": "simple",
+      "phase": "blend",
+      "relative_humidity": 1.0,
+      "exact_qs": false,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 3.154809746774845e-12
+    },
+    {
+      "model": "simple",
+      "phase": "blend",
+      "relative_humidity": 1.0,
+      "exact_qs": true,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 1.2732925824820995e-11
+    },
+    {
+      "model": "simple",
+      "phase": "blend",
+      "relative_humidity": 1.1,
+      "exact_qs": false,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 4.014566457044566e-13
+    },
+    {
+      "model": "simple",
+      "phase": "blend",
+      "relative_humidity": 1.1,
+      "exact_qs": true,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 1.4551915228366852e-11
+    },
+    {
+      "model": "simple",
+      "phase": "liquid",
+      "relative_humidity": 0.2,
+      "exact_qs": false,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 5.243805389909539e-12
+    },
+    {
+      "model": "simple",
+      "phase": "liquid",
+      "relative_humidity": 0.2,
+      "exact_qs": true,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 9.094947017729282e-13
+    },
+    {
+      "model": "simple",
+      "phase": "liquid",
+      "relative_humidity": 1.0,
+      "exact_qs": false,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 4.172306944383308e-11
+    },
+    {
+      "model": "simple",
+      "phase": "liquid",
+      "relative_humidity": 1.0,
+      "exact_qs": true,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 5.4569682106375694e-12
+    },
+    {
+      "model": "simple",
+      "phase": "liquid",
+      "relative_humidity": 1.1,
+      "exact_qs": false,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 3.943512183468556e-12
+    },
+    {
+      "model": "simple",
+      "phase": "liquid",
+      "relative_humidity": 1.1,
+      "exact_qs": true,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 6.366462912410498e-12
+    },
+    {
+      "model": "simple",
+      "phase": "ice-liquid",
+      "relative_humidity": 0.2,
+      "exact_qs": false,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 5.243805389909539e-12
+    },
+    {
+      "model": "simple",
+      "phase": "ice-liquid",
+      "relative_humidity": 0.2,
+      "exact_qs": true,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 9.094947017729282e-13
+    },
+    {
+      "model": "simple",
+      "phase": "ice-liquid",
+      "relative_humidity": 1.0,
+      "exact_qs": false,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 1.2732925824820995e-11
+    },
+    {
+      "model": "simple",
+      "phase": "ice-liquid",
+      "relative_humidity": 1.0,
+      "exact_qs": true,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 5.4569682106375694e-12
+    },
+    {
+      "model": "simple",
+      "phase": "ice-liquid",
+      "relative_humidity": 1.1,
+      "exact_qs": false,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 3.5349501104064984e-13
+    },
+    {
+      "model": "simple",
+      "phase": "ice-liquid",
+      "relative_humidity": 1.1,
+      "exact_qs": true,
+      "points": 1815,
+      "valid_points": 1813,
+      "max_humidity_error": 6.366462912410498e-12
+    }
+  ],
+  "sha256": {
+    "scripts/validate_saturation_pressure.py": "d32a6a130960a6f0390e51a83e9e0bfdbc499a3df11d93c2919666d1d4c4d267",
+    "scripts/stage_saturation_tables.py": "7e77e2278cef9354d4cbb64322abef3e2d9a321bf07a39cbfbc534f6512e7d8c",
+    "scripts/native_reference.py": "2e3b0e2f65b685f86fcfdd1b4643b54c5582b81af36a0874a43d9eedc2675d76",
+    "package/src/framework/physics/saturation_pressure.py": "909ddc6134eb31e356417b805f8d0f1eb99a36f2d9036ea3009a5956b1d7e86b",
+    "package/src/framework/physics/saturation_tables.npz": "912d3525a7e51e22e3d86ab87e140d4ed2d10bf8936caf36cad554daa33ea513"
+  },
+  "limits": "Original Smithsonian/simple table generators and all three phase tables, nearest-node quadratic lookup and compute_qs formulas. Native index truncation is retained, including its lower-edge extension. Invalid temperatures return NaNs and valid=False in JAX; the FMS public wrapper would raise FATAL. Moist convection coupling is separate."
+}

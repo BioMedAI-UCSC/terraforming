@@ -1,0 +1,26 @@
+{
+  "status": "pass",
+  "truncation": "T21",
+  "layers": 4,
+  "steps": 8,
+  "dt_seconds": 60,
+  "initial_ls_deg": 0,
+  "terrain": "flat",
+  "parameter": "albedo",
+  "objective": "area_mean_surface_temperature_k",
+  "value": 200.2518688785579,
+  "autodiff": -1.0190578815587885,
+  "finite_difference_checks": [
+    {
+      "epsilon": 0.001,
+      "finite_difference": -1.019057882089669,
+      "relative_error": 5.209522050134255e-10
+    },
+    {
+      "epsilon": 0.0001,
+      "finite_difference": -1.019057886395558,
+      "relative_error": 4.746314703009608e-09
+    }
+  ],
+  "limitations": "Short smooth trajectory; does not establish gradients at frost/convection switching boundaries or climate skill."
+}

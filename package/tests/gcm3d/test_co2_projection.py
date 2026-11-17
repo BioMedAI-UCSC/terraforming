@@ -96,6 +96,19 @@ def test_declared_source_or_sink_survives_projection_with_exact_escape(model, so
     np.testing.assert_array_equal(final.dynamics.temperature_variation, raw.dynamics.temperature_variation)
 
 
+def test_projection_off_keeps_raw_mass_error_and_physical_state(model):
+    coords, specs, initial = model
+    raw_step = source_step(model, lambda s, dt: jnp.asarray(0.), pressure_error_pa=.1)
+    raw = jax.jit(raw_step)(initial)
+    final, diagnostics = jax.jit(positivity_preserving_co2_step(
+        raw_step, coords, specs, body=BODY, dt_seconds=300.,
+        inventory_projection=False, return_diagnostics=True))(initial)
+    np.testing.assert_array_equal(final.dynamics.log_surface_pressure, raw.dynamics.log_surface_pressure)
+    assert mass_kg(final, coords, specs) > mass_kg(initial, coords, specs)
+    assert float(diagnostics.atmospheric_rescale_kg) == 0.
+    assert float(diagnostics.pressure_factor) == 1.
+
+
 def test_undeclared_source_is_still_a_closed_budget(model):
     coords, specs, initial = model
     raw_step = source_step(model, lambda state, dt: 1e12)
@@ -246,3 +259,56 @@ def test_spatial_budget_is_rejected_instead_of_broadcast_as_global_mass(model):
     )
     with pytest.raises(ValueError, match="scalar global mass"):
         step(initial)
+
+
+@pytest.mark.parametrize("negative_frost", [False, True])
+def test_pressure_repairs_preserve_passive_tracer_material(model, negative_frost):
+    coords,specs,state=model
+    grid=coords.horizontal
+    tracer=grid.to_modal(jnp.full((4,)+grid.nodal_shape,.001))
+    state=state._replace(dynamics=dataclasses.replace(state.dynamics,
+        tracers={**state.dynamics.tracers, "passive_gas":tracer}))
+    def raw(s):
+        ps=jnp.exp(grid.to_nodal(s.dynamics.log_surface_pressure))
+        return s._replace(co2_ice=s.co2_ice+(-.01 if negative_frost else .01)*ps)
+    raw_state=raw(state)
+    result=jax.jit(positivity_preserving_co2_step(raw,coords,specs))(state)
+    def material(s):
+        pressure=jnp.exp(grid.to_nodal(s.dynamics.log_surface_pressure))
+        q=grid.to_nodal(s.dynamics.tracers["passive_gas"])
+        dsigma=jnp.asarray(np.diff(coords.vertical.boundaries))[:,None,None]
+        return jnp.sum(pressure*q*dsigma*grid.quadrature_weights)
+    np.testing.assert_allclose(material(result),material(raw_state),rtol=2e-12)
+
+
+def test_model_specific_budgets_measure_each_repair_without_changing_state(model):
+    coords,specs,initial=model;grid=coords.horizontal
+    pressure_scale=float(specs.dimensionalize(1.,_u.pascal).magnitude)
+    weights=jnp.asarray(grid.quadrature_weights);normal=jnp.sum(weights)
+    p0=float(jnp.sum(jnp.exp(grid.to_nodal(initial.dynamics.log_surface_pressure))[0]*pressure_scale*weights)/normal)
+    def budget(state):
+        pressure=jnp.exp(grid.to_nodal(state.dynamics.log_surface_pressure))[0]*pressure_scale
+        ice=state.co2_ice[0]*pressure_scale
+        energy=jnp.sum((pressure**2+2.*ice)*weights)/normal
+        return energy,2.*energy
+    def raw(state):
+        pressure=jnp.exp(grid.to_nodal(state.dynamics.log_surface_pressure))*pressure_scale+5.
+        return state._replace(co2_ice=jnp.full_like(state.co2_ice,-2./pressure_scale),
+            dynamics=dataclasses.replace(state.dynamics,
+                log_surface_pressure=grid.to_modal(jnp.log(pressure/pressure_scale))))
+    options=dict(body=BODY,return_diagnostics=True)
+    baseline,_=jax.jit(positivity_preserving_co2_step(raw,coords,specs,**options))(initial)
+    final,diagnostics=jax.jit(positivity_preserving_co2_step(raw,coords,specs,
+        budget_fn=budget,**options))(initial)
+    for a,b in zip(jax.tree_util.tree_leaves(final),jax.tree_util.tree_leaves(baseline),strict=True):
+        np.testing.assert_array_equal(a,b)
+    expected=dict(raw=(p0+5.)**2-4.,frost_repaired=(p0+3.)**2,
+        settled=(p0+3.)**2,saturation_adjusted=(p0+3.)**2,corrected=p0**2)
+    for stage,value in expected.items():
+        np.testing.assert_allclose(getattr(diagnostics,stage+'_exchange_energy_j'),value,rtol=3e-14)
+        np.testing.assert_allclose(getattr(diagnostics,stage+'_axial_angular_momentum_kg_m2_s'),2.*value,rtol=3e-14)
+    with pytest.raises(ValueError,match='budget_fn'):
+        positivity_preserving_co2_step(raw,coords,specs,body=BODY,budget_fn=1.)
+    invalid=positivity_preserving_co2_step(raw,coords,specs,**options,
+        budget_fn=lambda state:(jnp.ones(2),jnp.asarray(1.)))
+    with pytest.raises(ValueError,match='scalar global budgets'): invalid(initial)

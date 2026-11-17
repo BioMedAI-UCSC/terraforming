@@ -10,7 +10,7 @@
 | `coordinates.py` | Spectral grid (`T21…T170`) × equidistant sigma levels. |
 | `dynamics.py` | Dry `PrimitiveEquationsSigma`, semi-implicit stepper, scan integrator. |
 | `physics.py` | All Mars column physics: orbit, insolation, two-stream radiation, surface energy, drag, PBL diffusion, dry convection, regolith conduction, CO₂ cycle. |
-| `ames_radiation.py` | Bilinear interpolation of the bundled Ames 12-band correlated-k CO₂ tables + fixed dust optics. |
+| `correlated_k.py` | Bilinear interpolation of the bundled Ames 12-band correlated-k CO₂ tables + fixed dust optics. |
 | `topography.py` | MOLA MEGDR raster → nodal → modal orography (SHA-256 verified). |
 | `surface.py` | Interpolate an albedo/thermal-inertia (TES) dataset to the grid. |
 | `dust.py` | Interpolate an Ames seasonal dust (τ, z_max) scenario to the grid. |
@@ -145,7 +145,7 @@ Tests mirror the source tree under `package/tests/gcm3d/`. Coverage includes:
 - **Physics invariants**: positive temperatures, exact energy closure, CO₂ mass
   budget, frost positivity (`test_physics.py`).
 - **Assets**: MOLA checksum, Ames table interpolation (`test_topography.py`,
-  `test_ames_radiation.py`).
+  `test_correlated_k.py`).
 
 ## Resolved implementation checks
 

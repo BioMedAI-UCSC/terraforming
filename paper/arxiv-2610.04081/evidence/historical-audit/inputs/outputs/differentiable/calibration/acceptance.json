@@ -1,0 +1,6 @@
+{
+  "gradient_checks_pass": true,
+  "identity_checked": false,
+  "validation_loss": 0.04146973346516766,
+  "scope": "Capability experiment; held-out skill is reported regardless of improvement. Synthetic continuation is not independent climate validation."
+}

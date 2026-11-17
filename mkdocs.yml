@@ -90,6 +90,7 @@ nav:
       - Neural experiments: package/gcm3d/neural-experiments.md
       - Temperature-only postprocessing: package/gcm3d/temperature-only.md
       - Differentiable experiment runbook: differentiable-experiments.md
+      - Paper reproduction and revision: paper-reproduction.md
       - Temperature-only runbook: neural-temp-only-runbook.md
       - Data & validation scripts: scripts/gcm3d-data.md
       - Validation & limitations: package/gcm3d/validation.md

@@ -184,40 +184,37 @@ INTERVENTION OPTIONS
                                 annual rate.  Repeat for multiple compounds.
                                 Omit to run a baseline (no injection) run.
 
-    Available compounds (Marinova 2005 RF efficiencies):
+    Available compounds (IPCC AR6 Table 7.SM.7 Earth-reference proxies):
+    Efficiencies and lifetimes are not validated for Mars.
 
-      CF4    Carbon tetrafluoride (CFC-14)        0.0880 W/m²/ppb  lifetime 50 000 yr
-             Most stable perfluorocarbon; near-permanent once injected.
-             Best choice for long-horizon warming that outlasts the mission.
+      CF4    Carbon tetrafluoride (PFC-14)        0.0990 W/m²/ppb  lifetime 50 000 yr
+             Longest Earth-reference lifetime in this registry.
 
-      C2F6   Hexafluoroethane (CFC-116)           0.2600 W/m²/ppb  lifetime 10 000 yr
-             3× stronger forcing than CF4; industrial semiconductor byproduct.
-             Good balance of high efficiency and very long persistence.
+      C2F6   Hexafluoroethane (PFC-116)           0.2610 W/m²/ppb  lifetime 10 000 yr
+             Industrial semiconductor byproduct.
 
-      C3F8   Octafluoropropane (CFC-218)          0.2400 W/m²/ppb  lifetime  2 600 yr
+      C3F8   Octafluoropropane (PFC-218)          0.2700 W/m²/ppb  lifetime  2 600 yr
              Common refrigerant and fire suppressant on Earth.
-             Useful for medium-term scenarios where some reversibility is wanted.
 
-      SF6    Sulfur hexafluoride                  0.5700 W/m²/ppb  lifetime  3 200 yr
-             Highest RF efficiency of all registered compounds — 6.5× CF4.
-             Used as an electrical insulator; most warming per kg injected.
+      SF6    Sulfur hexafluoride                  0.5670 W/m²/ppb  lifetime  1 000 yr
+             Highest Earth-reference RF efficiency of the registered compounds.
+             Used as an electrical insulator.
 
-      NF3    Nitrogen trifluoride                 0.2100 W/m²/ppb  lifetime    500 yr
-             Shortest lifetime; used in LCD and solar panel manufacturing.
-             Best for fast early warming; significant decay within centuries.
+      NF3    Nitrogen trifluoride                 0.2040 W/m²/ppb  lifetime    569 yr
+             Shortest Earth-reference lifetime; used in LCD manufacturing.
 
-      C4F10  Decafluorobutane (CFC-31-10)         0.3600 W/m²/ppb  lifetime  2 600 yr
+      C4F10  Decafluorobutane (PFC-3-1-10)        0.3690 W/m²/ppb  lifetime  2 600 yr
              Fire suppression agent with strong warming potential.
              Similar lifetime to C3F8 but higher RF efficiency.
 
-      C6F14  Tetradecafluorohexane (CFC-41-12)    0.4900 W/m²/ppb  lifetime  3 200 yr
+      C6F14  Tetradecafluorohexane (PFC-5-1-14)   0.4490 W/m²/ppb  lifetime  3 100 yr
              Heaviest molecule in the registry; used as a heat-transfer fluid.
              High RF efficiency with multi-millennial persistence.
 
     Each year the controller:
       1. Injects the scheduled mass (kg → Pa added to atmosphere.composition)
       2. Integrates the coupled ODE for one Mars year with the updated GHF
-      3. Decays all GHG partial pressures by their atmospheric lifetime
+      3. Decays all GHG column weights by their atmospheric lifetime
       4. Records an InterventionSnapshot (T, P, ice, ΔF, GHF, ppb per species)
 
 OUTPUT OPTIONS
@@ -330,6 +327,7 @@ def _wizard_mars(
             (ExpType.year,  "Full Martian year (668 sols)"),
             (ExpType.multi, "3 latitudes simultaneously  (45°N / equator / 40°S)"),
             (ExpType.spots, "4 landmark sites  (Olympus Mons / Elysium / Hellas / South Pole)"),
+            (ExpType.intervention, "Annual GHG injection over N Mars years"),
         ]
         for i, (key, desc) in enumerate(type_choices, 1):
             click.echo(
@@ -338,7 +336,8 @@ def _wizard_mars(
                 + _c(f"  {desc}", "bright_black")
             )
         idx      = click.prompt(click.style("\n  Select type", fg="bright_white"),
-                                type=click.IntRange(1, 4), default=1, show_default=True)
+                                type=click.IntRange(1, len(type_choices)),
+                                default=1, show_default=True)
         exp_type = type_choices[idx - 1][0]
     wizard_updates["exp_type"] = exp_type
 
@@ -400,6 +399,70 @@ def _wizard_mars(
                             default=default, type=float, show_default=True)
         if val != default:
             wizard_updates[field] = val
+
+    if exp_type == ExpType.intervention:
+        iv = base.intervention
+        if given_flags.n_years is not None:
+            click.echo(
+                _label("  years    ") + _c(str(given_flags.n_years), "bright_white")
+                + _c("  (from --years flag)", "bright_black")
+            )
+        else:
+            n_years = click.prompt(
+                click.style("    Mars years", fg="bright_white"),
+                default=iv.n_years, type=click.IntRange(1), show_default=True,
+            )
+            if n_years != iv.n_years:
+                wizard_updates["n_years"] = n_years
+
+        if given_flags.inject is not None:
+            injections = "  ".join(
+                f"{name} {rate:.2e} kg/yr"
+                for name, rate in given_flags.inject.items()
+            ) or "none"
+            click.echo(
+                _label("  inject   ") + _c(injections, "bright_white")
+                + _c("  (from --inject flag)", "bright_black")
+            )
+        else:
+            injection = dict(iv.injection)
+            if injection:
+                click.echo(
+                    _label("  inject   ")
+                    + _c("  ".join(
+                        f"{name} {rate:.2e} kg/yr"
+                        for name, rate in injection.items()
+                    ), "bright_white")
+                    + _c("  (currently configured)", "bright_black")
+                )
+            available_compounds = _list_compounds()
+            click.echo(
+                _c("  Annual injections", "bright_white", bold=True)
+                + _c("  (COMPOUND:KG_PER_YEAR; Enter to finish; optional for a baseline run)",
+                     "bright_black")
+            )
+            click.echo(_c(f"    Available: {', '.join(available_compounds)}", "bright_black"))
+            while True:
+                item = click.prompt(
+                    click.style("    Injection", fg="bright_white"),
+                    default="", show_default=False,
+                ).strip()
+                if not item:
+                    break
+                try:
+                    compound, kg_str = item.split(":", 1)
+                    compound = compound.strip().upper()
+                    if compound not in available_compounds:
+                        raise ValueError(
+                            f"unknown compound {compound!r}; available: "
+                            + ", ".join(available_compounds)
+                        )
+                    injection[compound] = float(kg_str.strip())
+                except ValueError as exc:
+                    click.echo(_c(f"  ✖  Invalid injection '{item}': {exc}", "bright_red"))
+                    continue
+            if injection != iv.injection:
+                wizard_updates["inject"] = injection
 
     def _ask_accuracy() -> None:
         if given_flags.accuracy is not None:
