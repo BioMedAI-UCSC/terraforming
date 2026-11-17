@@ -76,6 +76,14 @@ def fetch_sources(directory):
 
 def prepare_native(cache):
     nasa=fetch_sources(cache/'src');execution=cache/'exec';execution.mkdir(exist_ok=True)
+    path=cache/'src/FMS/diag_manager/diag_manager.F90'
+    before=path.read_text()
+    old='if (output_fields(out_num)%last_output > time) CYCLE'
+    guarded='if (.not.output_fields(out_num)%static) then\n'+old+'\nendif'
+    # Static fields have no initialized dynamic output clock.
+    if guarded not in before:
+        if before.count(old)!=1: raise ValueError('native static diagnostic time gate differs')
+        path.write_text(before.replace(old,guarded))
     for name,expected in INPUTS.items():
         if digest(nasa/'data'/name)!=expected: raise ValueError(f'{name}: native release input differs')
     query=lambda tool,option:subprocess.check_output([tool,option],text=True).strip()
@@ -105,7 +113,7 @@ def prepare_native(cache):
     return dict(executable=str(binary),executable_sha256=digest(binary),
         source_sha256=source_hashes(cache/'src'),
         compiler=query('gfortran','--version'),mpi=query('mpirun','--version'),
-        adaptations='GNU compiler and paths, MPI/netCDF linkage, source-list regular expressions, lowercase four CPP directives; no Fortran statements changed')
+        adaptations='GNU compiler and paths, MPI/netCDF linkage, source-list regular expressions, lowercase four CPP directives; static diagnostic fields bypass the undefined dynamic output-time gate; Fortran physics statements unchanged')
 
 
 def prepare_dinosaur(cache,source):

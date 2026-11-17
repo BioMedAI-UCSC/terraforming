@@ -532,6 +532,17 @@ on six MPI ranks while C48 ran concurrently. Its final logged surface pressure i
 records the binary/input hashes and final printed diagnostics. NetCDF climate and
 paired performance analysis remain pending; this timing is not an isolated
 hardware benchmark.
+Saved C24 surface pressure and temperature pass finite/fill-value checks at all
+1,200 saved times on six faces (8,294,400 values). Its original static coordinate
+and map exports were zero. A separate FMS I/O probe identifies an undefined
+dynamic output-time gate on static fields; bypassing that gate restores the
+exports and keeps all 44 restart files byte-identical at both C24 and C48.
+The benchmark's frozen binary, inputs and outputs remain unchanged. Future
+native builds apply this diagnostic-only guard. The source-checked coordinate
+sidecars cover the sphere to roundoff and match 36,312 independently exported
+native coordinates within their FP32 storage/FP64 angular roundoff bound.
+See the [metadata recovery instructions](../experiments/reference-comparison/README.md#recover-frozen-grid-metadata)
+and [probe evidence](../iclr-results/03-benchmarks/reference-comparison/native-static-output-probe.json).
 
 ## Explicit CO2 and argon mass
 

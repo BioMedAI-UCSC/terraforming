@@ -38,10 +38,14 @@ class ComparisonTests(unittest.TestCase):
     def test_native_build_search_excludes_documentation_before_basename_deduplication(self):
         with tempfile.TemporaryDirectory() as temporary:
             root=Path(temporary);nasa=root/'src/AmesGCM';(nasa/'build_run/bin').mkdir(parents=True)
+            diagnostic=root/'src/FMS/diag_manager/diag_manager.F90';diagnostic.parent.mkdir(parents=True)
+            diagnostic.write_text('if (output_fields(out_num)%last_output > time) CYCLE\n')
             (nasa/'build_run/bin/mkmf.template.gnu').write_text('CFLAGS = -D__GFORTRAN $(CPPFLAGS) $(MARS_CPP) $(FFLAGS)\n')
             line='${listpaths} -o "$execdir/atmos_cubed/pathnames_atmos_cubed" "$src_fv3"'
             (nasa/'build_run/compile.bash').write_text(line+'\n')
             def build(arguments,**kwargs):
+                self.assertIn('if (.not.output_fields(out_num)%static) then\n'
+                    'if (output_fields(out_num)%last_output > time) CYCLE\nendif',diagnostic.read_text())
                 script=Path(arguments[1]).read_text()
                 self.assertIn('"$src_fv3/model" "$src_fv3/tools" "$src_fv3/GFDL_tools"',script)
                 self.assertNotIn('"$src_fv3"',script)
@@ -58,17 +62,22 @@ class ComparisonTests(unittest.TestCase):
                     ' for p in sorted(Path(directory).rglob("*.F90")): paths.setdefault(p.name,p)\n'
                     'Path(sys.argv[2]).write_text("\\n".join(map(str,paths.values())))\n')
                 listing.chmod(0o755)
-                target=root/'exec/atmos_cubed';target.mkdir(parents=True)
+                target=root/'exec/atmos_cubed';target.mkdir(parents=True,exist_ok=True)
                 subprocess.run(['/bin/bash',arguments[1]],check=True,env=dict(os.environ,
                     listpaths=str(listing),execdir=str(root/'exec'),src_fv3=str(tree)))
                 selected=(target/'pathnames_atmos_cubed').read_text()
                 self.assertEqual(Path(selected).read_text(),'model implementation')
-                binary=root/'exec/exec.gnu.mars3.2/FMS_MARS.x';binary.parent.mkdir(parents=True)
+                binary=root/'exec/exec.gnu.mars3.2/FMS_MARS.x';binary.parent.mkdir(parents=True,exist_ok=True)
                 binary.write_bytes(b'fixture')
             with patch.object(comparison,'fetch_sources',return_value=nasa),patch.object(comparison,'INPUTS',{}),\
                  patch.object(comparison.subprocess,'check_output',return_value='fixture'),\
                  patch.object(comparison,'execute',side_effect=build):
                 comparison.prepare_native(root)
+                first=diagnostic.read_text();comparison.prepare_native(root)
+                self.assertEqual(diagnostic.read_text(),first)
+                diagnostic.write_text('changed source')
+                with self.assertRaisesRegex(ValueError,'static diagnostic time gate differs'):
+                    comparison.prepare_native(root)
 
     def test_deployment_has_parallel_cpu_preparation_and_separate_cpu_gpu_compute(self):
         args=SimpleNamespace(name='matched-v1',ref='a'*40,phase='prepare',namespace='razvanlab',

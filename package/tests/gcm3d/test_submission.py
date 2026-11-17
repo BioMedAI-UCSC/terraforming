@@ -15,6 +15,21 @@ def _script(name):
     return module
 
 
+@pytest.mark.parametrize('cells',[24,48])
+def test_native_grid_reconstruction_accepts_only_checked_source_controls(tmp_path,cells):
+    module=_script('reconstruct_native_grid');path=tmp_path/'input.nml'
+    base=f'&fv_core_nml\n npx={cells+1}, npy={cells+1},\n /\n'
+    path.write_text(base)
+    assert module.grid_cells(path)==cells
+    for control in ('grid_type=1','shift_fac=0','do_schmidt=T','do_cube_transform=T',
+                    'regional=T','nested=T',"grid_file='other.nc'",'do_schmidt=invalid'):
+        path.write_text(base+control+'\n')
+        with pytest.raises(ValueError,match='grid control'): module.grid_cells(path)
+    for shape in ('npx=25,npy=49','npx=37,npy=37','npx=25','npx=25,npx=25,npy=25'):
+        path.write_text(shape)
+        with pytest.raises(ValueError,match='square C24 or C48'): module.grid_cells(path)
+
+
 def test_gaussian_area_mean_integrates_latitude_polynomial():
     benchmark = _script("benchmark_mcd")
     nodes, _ = np.polynomial.legendre.leggauss(32)

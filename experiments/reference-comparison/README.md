@@ -27,6 +27,11 @@ model and install the locked Python/CUDA environment on persistent volumes.
 Four uppercase preprocessor directives are lowercased for GNU; compiler paths,
 source-list regular expressions and one missing input namelist terminator are
 adapted. Fortran physics statements are unchanged. No setup runs on a GPU.
+Future builds also keep static fields out of FMS's dynamic output-time gate.
+That gate uses an undefined time for static fields and wrote zero coordinates
+and maps in the frozen baseline. Parallel zero-step probes at C24 and C48 restored
+those exports while all 44 restart files at each resolution remained byte-identical. Existing runs and
+their runtime caches are unchanged.
 On GNU/Linux, `HAVE_GETTID` selects the system thread-ID function supported by
 the image's glibc, as FMS's source interface requires.
 
@@ -67,3 +72,31 @@ steady computation and output costs separately. A 100-sol cold start checks
 stability and early seasonal response; it does not establish an equilibrated
 climate or a speedup. Compare native and Dinosaur outputs on common physical
 coordinates and report each grid, numerical adaptation, precision and hardware.
+
+## Recover frozen grid metadata
+
+The completed C24 baseline has valid saved surface fields but zero coordinates
+in its original `grid_spec` files. Use a separate grid sidecar for this frozen
+run. The script checks the exact grid source hashes and supported controls,
+calls the unchanged native geometry routines, and checks that all six faces
+cover the sphere. It rejects alternate grids and existing output paths.
+
+```sh
+python scripts/reconstruct_native_grid.py \
+  --source /path/to/frozen/GFDL_atmos_cubed_sphere \
+  --input-namelist /path/to/native/outputs/input.nml \
+  --output outputs/native-c24-grid.npz
+```
+
+The NPZ contains corner longitude/latitude in radians and cell solid angles
+in steradians. Axes are `(tile, y, x)` in native tile order. It also records
+source, routine, compiled-code and input-namelist hashes. Native NetCDF time
+uses `no_calendar`; open these files with `decode_times=False` and retain the
+numeric Mars-day axis.
+
+Recorded [C24 surface checks](../../iclr-results/03-benchmarks/reference-comparison/native-c24-surface-checks.json)
+cover 1,200 saved times on each tile: 8,294,400 pressure/temperature values are
+finite and contain no fill values. The recovered area-weighted final pressure
+matches the native log within 6e-8 Pa. This is a saved-surface-field check;
+CO2/water inventories, 3-D energy budgets and paired climate agreement require
+their own analysis. The original outputs remain unchanged.
