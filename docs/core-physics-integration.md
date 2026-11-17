@@ -26,6 +26,14 @@ record implementation hashes; reports affected by the separation are rerun.
 The real-input T21/56-level smoke uses the pinned native MOLA16 file and checks
 restart continuation. [CI groups and commands](ci.md) describe the test jobs.
 
+Before publication, 84 focused CO2/radiation/restart/terrain cases and ten CI
+runner checks passed. The two terrain cases also ran separately with verified
+MEGDR input. All 48 native/data reports matched the core source and assets after
+four affected validators were rerun. Full collection assigned 1,340 non-slow
+cases. The built wheel contained the core physics, radiation tables and license
+notices, with no engineered-particle package. These checks precede the complete
+GitHub regression run; they do not replace that merge gate.
+
 Code integration does not establish whole-model equivalence, equilibrated
 climate skill or a performance advantage. Those require the separate matched
 experiments and budget analysis documented in [physics parity](physics-parity.md).
