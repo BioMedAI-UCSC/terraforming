@@ -1457,3 +1457,33 @@ def test_seasonal_spatial_dust_shares_preserve_material_restart_and_three_step_g
         if modes==1: surface=surface[...,None]
         return jnp.sum((air+surface)*jnp.asarray(grid.quadrature_weights)[...,None],axis=(0,1))
     np.testing.assert_allclose(inventory(final),inventory(state),rtol=3e-12,atol=1e-10)
+
+
+@pytest.mark.parametrize('moment,latent',[(False,2.8e6),(True,2.8343e6)])
+def test_water_latent_energy_is_explicit_differentiable_and_used_at_all_repair_stages(moment,latent):
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.framework.gcm.specs import physics_specs
+    from src.framework.physics.water_bulk import WATER_VAPOR_TRACER
+    coords=coordinate_system('T21',4);specs=physics_specs(BODY);grid=coords.horizontal
+    state,step,_=backend_case(temperature_k=180.,surface_temperature_k=185.,return_diagnostics=True,
+        bulk_water=not moment,moment_water=moment,initial_water_vapor_ratio=1e-6,
+        initial_water_surface_kg_m2=100.)
+    def energy(ratio):
+        tracers=dict(state.dynamics.tracers)
+        tracers[WATER_VAPOR_TRACER]=grid.to_modal(jnp.full((4,*grid.nodal_shape),ratio))
+        current=state._replace(dynamics=dataclasses.replace(state.dynamics,tracers=tracers))
+        return exchange_energy(current,coords,specs,BODY,water_vapor_tracer=WATER_VAPOR_TRACER,
+            water_latent_heat_j_kg=latent)
+    derivative=jax.jit(jax.grad(energy))(1e-6)
+    expected=610./BODY.gravity_m_s2*latent*BODY.surface_area_m2
+    np.testing.assert_allclose(derivative,expected,rtol=2e-14)
+    # Resolve the latent increment against the much larger deep-soil storage.
+    difference=energy(1e-3)-exchange_energy(state,coords,specs,BODY)
+    np.testing.assert_allclose(difference,expected*1e-3,rtol=5e-9)
+    final,diagnostics=jax.jit(step)(state)
+    direct=exchange_energy(final,coords,specs,BODY,water_vapor_tracer=WATER_VAPOR_TRACER,
+        water_latent_heat_j_kg=latent)
+    np.testing.assert_allclose(diagnostics.corrected_exchange_energy_j,direct,rtol=2e-14)
+    for stage in ('raw','frost_repaired','settled','saturation_adjusted','corrected'):
+        assert np.isfinite(getattr(diagnostics,stage+'_exchange_energy_j'))
+        assert np.isfinite(getattr(diagnostics,stage+'_axial_angular_momentum_kg_m2_s'))

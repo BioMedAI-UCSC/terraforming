@@ -59,6 +59,9 @@ def test_batched_independent_columns_match_single_columns():
         reference=advance(temperatures[index],snow[index],down[index])
         np.testing.assert_allclose(result[0][:,index],reference[0],rtol=2e-14,atol=2e-14)
         np.testing.assert_allclose(result[1][index],reference[1],rtol=2e-14,atol=2e-14)
+        for name in reference[2]:
+            value=jnp.broadcast_to(result[2][name],temperatures.shape)[index]
+            np.testing.assert_allclose(value,reference[2][name],rtol=2e-12,atol=1e-6)
 
 
 def test_subsurface_ice_depth_has_north_south_symmetry_and_finite_gradient():
@@ -113,3 +116,26 @@ def test_surface_inertia_adjustments_keep_reverse_derivatives_through_active_con
     np.testing.assert_allclose(derivative,3600.,rtol=2e-15)
     epsilon=1e-5
     np.testing.assert_allclose(derivative,(objective(1.+epsilon)-objective(1.-epsilon))/(2.*epsilon),rtol=2e-10)
+
+
+@pytest.mark.parametrize('legacy',[False,True])
+@pytest.mark.parametrize('alpha',[0.,.5,1.])
+@pytest.mark.parametrize('temperature,snow,down',[
+    (200.,0.,180.),(148.,0.,0.),(148.,100.,0.),(148.,.001,100.)])
+def test_soil_energy_accounts_for_native_boundary_material_and_phase_work(legacy,alpha,temperature,snow,down):
+    from src.framework.physics.soil_frost import subsurface_properties
+    soil=jnp.linspace(temperature,180.,16)
+    dz=soil_layer_thickness(16)
+    diffusion,capacity=subsurface_properties(1.3,250.,60.,legacy=legacy)
+    def advance_flux(flux):
+        return surface_step(soil,dz,diffusion,capacity,610.,snow,flux,-2.,.5,.95,300.,alpha=alpha,
+            bulk_latent_flux=7.,bulk_latent_derivative=-3.)
+    result,_,diagnostics=advance_flux(down)
+    storage=jnp.sum(capacity[:-1]*dz[:-2]*(result[:-1]-soil[:-1]))-5.9e5*diagnostics['co2_phase_change_kg_m2']
+    np.testing.assert_allclose(diagnostics['soil_energy_change_j_m2'],storage,rtol=2e-15)
+    bound=64.*np.finfo(np.float64).eps*jnp.sum(capacity*dz[:-1]*(abs(soil)+abs(result)))
+    assert abs(float(diagnostics['energy_residual_j_m2']))<float(bound)
+    objective=lambda flux:advance_flux(flux)[2]['soil_energy_change_j_m2']
+    automatic=jax.grad(objective)(down)
+    finite=(objective(down+.01)-objective(down-.01))/.02
+    np.testing.assert_allclose(automatic,finite,rtol=2e-5,atol=2e-4)

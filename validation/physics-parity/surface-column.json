@@ -869,7 +869,10 @@
       "ice_error_kg_m2": 0.0,
       "final_surface_temperature_k": 203.28270929799092,
       "co2_phase_change_kg_m2": 0.0,
-      "frost_retry": false
+      "frost_retry": false,
+      "native_energy_change_j_m2": -165578.14259096468,
+      "energy_residual_j_m2": -2.9103830456733704e-11,
+      "energy_roundoff_bound_j_m2": 1.3952262431486468e-07
     },
     {
       "layers": 4,
@@ -878,7 +881,10 @@
       "ice_error_kg_m2": 0.0,
       "final_surface_temperature_k": 156.1185995050407,
       "co2_phase_change_kg_m2": 0.0,
-      "frost_retry": false
+      "frost_retry": false,
+      "native_energy_change_j_m2": -161984.88487275696,
+      "energy_residual_j_m2": 1.4551915228366852e-10,
+      "energy_roundoff_bound_j_m2": 1.1119856132960483e-07
     },
     {
       "layers": 4,
@@ -887,7 +893,10 @@
       "ice_error_kg_m2": 0.0,
       "final_surface_temperature_k": 147.73982484905562,
       "co2_phase_change_kg_m2": 0.014165658263889895,
-      "frost_retry": true
+      "frost_retry": true,
+      "native_energy_change_j_m2": -143086.09110140827,
+      "energy_residual_j_m2": -1.382431946694851e-10,
+      "energy_roundoff_bound_j_m2": 1.031921326791971e-07
     },
     {
       "layers": 4,
@@ -896,7 +905,10 @@
       "ice_error_kg_m2": 0.0,
       "final_surface_temperature_k": 147.73982484905562,
       "co2_phase_change_kg_m2": 0.012227953678007105,
-      "frost_retry": false
+      "frost_retry": false,
+      "native_energy_change_j_m2": -141942.84539573741,
+      "energy_residual_j_m2": -1.255102688446641e-10,
+      "energy_roundoff_bound_j_m2": 1.0317588618057003e-07
     },
     {
       "layers": 4,
@@ -905,7 +917,10 @@
       "ice_error_kg_m2": 0.0,
       "final_surface_temperature_k": 147.73982484905562,
       "co2_phase_change_kg_m2": -0.03861950394911154,
-      "frost_retry": false
+      "frost_retry": false,
+      "native_energy_change_j_m2": -111942.84539573741,
+      "energy_residual_j_m2": -1.255102688446641e-10,
+      "energy_roundoff_bound_j_m2": 1.0339716360767089e-07
     },
     {
       "layers": 4,
@@ -914,7 +929,10 @@
       "ice_error_kg_m2": 0.0,
       "final_surface_temperature_k": 150.71203341387198,
       "co2_phase_change_kg_m2": -0.001,
-      "frost_retry": false
+      "frost_retry": false,
+      "native_energy_change_j_m2": -120654.48002724872,
+      "energy_residual_j_m2": -5.820766091346741e-11,
+      "energy_roundoff_bound_j_m2": 1.0327336383359056e-07
     },
     {
       "layers": 4,
@@ -923,7 +941,10 @@
       "ice_error_kg_m2": 0.0,
       "final_surface_temperature_k": 147.73982484905562,
       "co2_phase_change_kg_m2": -0.025301065469288134,
-      "frost_retry": false
+      "frost_retry": false,
+      "native_energy_change_j_m2": -293849.0116664737,
+      "energy_residual_j_m2": -5.820766091346741e-11,
+      "energy_roundoff_bound_j_m2": 1.2351222250591612e-07
     },
     {
       "layers": 16,
@@ -932,7 +953,10 @@
       "ice_error_kg_m2": 0.0,
       "final_surface_temperature_k": 205.23846920600258,
       "co2_phase_change_kg_m2": 0.0,
-      "frost_retry": false
+      "frost_retry": false,
+      "native_energy_change_j_m2": 23923.469942827385,
+      "energy_residual_j_m2": -2.0475822282151057e-07,
+      "energy_roundoff_bound_j_m2": 0.00025591988664743246
     },
     {
       "layers": 16,
@@ -941,7 +965,10 @@
       "ice_error_kg_m2": 0.0,
       "final_surface_temperature_k": 157.76188928657632,
       "co2_phase_change_kg_m2": 0.0,
-      "frost_retry": false
+      "frost_retry": false,
+      "native_energy_change_j_m2": -10355.490754476275,
+      "energy_residual_j_m2": -3.23571214266849e-08,
+      "energy_roundoff_bound_j_m2": 0.00020473549017920685
     },
     {
       "layers": 16,
@@ -950,7 +977,10 @@
       "ice_error_kg_m2": 0.0,
       "final_surface_temperature_k": 147.73982484905562,
       "co2_phase_change_kg_m2": 0.014165658263889895,
-      "frost_retry": true
+      "frost_retry": true,
+      "native_energy_change_j_m2": -9632.213354258245,
+      "energy_residual_j_m2": -7.782637112541124e-08,
+      "energy_roundoff_bound_j_m2": 0.00018938056519833988
     },
     {
       "layers": 16,
@@ -959,7 +989,10 @@
       "ice_error_kg_m2": 0.0,
       "final_surface_temperature_k": 147.73982484905562,
       "co2_phase_change_kg_m2": 0.012227953678007105,
-      "frost_retry": false
+      "frost_retry": false,
+      "native_energy_change_j_m2": -8488.967648587399,
+      "energy_residual_j_m2": -7.782637112541124e-08,
+      "energy_roundoff_bound_j_m2": 0.00018938054895184124
     },
     {
       "layers": 16,
@@ -968,7 +1001,10 @@
       "ice_error_kg_m2": 0.0,
       "final_surface_temperature_k": 147.73982484905562,
       "co2_phase_change_kg_m2": -0.03861950394911154,
-      "frost_retry": false
+      "frost_retry": false,
+      "native_energy_change_j_m2": 21511.0323514126,
+      "energy_residual_j_m2": -7.78245521360077e-08,
+      "energy_roundoff_bound_j_m2": 0.00018938077022926834
     },
     {
       "layers": 16,
@@ -977,7 +1013,10 @@
       "ice_error_kg_m2": 0.0,
       "final_surface_temperature_k": 152.24960422806635,
       "co2_phase_change_kg_m2": -0.001,
-      "frost_retry": false
+      "frost_retry": false,
+      "native_energy_change_j_m2": 20005.50710241524,
+      "energy_residual_j_m2": -7.456952744178125e-08,
+      "energy_roundoff_bound_j_m2": 0.00018938074883446777
     },
     {
       "layers": 16,
@@ -986,182 +1025,260 @@
       "ice_error_kg_m2": 0.0,
       "final_surface_temperature_k": 147.73982484905562,
       "co2_phase_change_kg_m2": -0.025301065469288134,
-      "frost_retry": false
+      "frost_retry": false,
+      "native_energy_change_j_m2": -133174.2573003598,
+      "energy_residual_j_m2": -2.0943116396665573e-07,
+      "energy_roundoff_bound_j_m2": 0.00023032569948700687
     },
     {
       "layers": 16,
       "case": "case-7-subsurface-ice",
       "latitude_rad": -1.3,
       "max_soil_error_k": 2.842170943040401e-14,
-      "ice_error_kg_m2": 0.0
+      "ice_error_kg_m2": 0.0,
+      "native_energy_change_j_m2": 7547373.337448225,
+      "energy_residual_j_m2": -2.0954757928848267e-07,
+      "energy_roundoff_bound_j_m2": 0.00022959698626205875
     },
     {
       "layers": 16,
       "case": "case-7-subsurface-ice",
       "latitude_rad": -0.7,
       "max_soil_error_k": 5.684341886080802e-14,
-      "ice_error_kg_m2": 0.0
+      "ice_error_kg_m2": 0.0,
+      "native_energy_change_j_m2": 7547373.337448491,
+      "energy_residual_j_m2": -1.2293457984924316e-07,
+      "energy_roundoff_bound_j_m2": 0.00022959698626205872
     },
     {
       "layers": 16,
       "case": "case-7-subsurface-ice",
       "latitude_rad": 0.0,
       "max_soil_error_k": 5.684341886080802e-14,
-      "ice_error_kg_m2": 0.0
+      "ice_error_kg_m2": 0.0,
+      "native_energy_change_j_m2": 7547373.337448491,
+      "energy_residual_j_m2": -1.2293457984924316e-07,
+      "energy_roundoff_bound_j_m2": 0.00022959698626205872
     },
     {
       "layers": 16,
       "case": "case-7-subsurface-ice",
       "latitude_rad": 0.7,
       "max_soil_error_k": 5.684341886080802e-14,
-      "ice_error_kg_m2": 0.0
+      "ice_error_kg_m2": 0.0,
+      "native_energy_change_j_m2": 7547373.337448491,
+      "energy_residual_j_m2": -1.2293457984924316e-07,
+      "energy_roundoff_bound_j_m2": 0.00022959698626205872
     },
     {
       "layers": 16,
       "case": "case-7-subsurface-ice",
       "latitude_rad": 1.3,
       "max_soil_error_k": 5.684341886080802e-14,
-      "ice_error_kg_m2": 0.0
+      "ice_error_kg_m2": 0.0,
+      "native_energy_change_j_m2": 7547373.197105374,
+      "energy_residual_j_m2": -2.1792948246002197e-07,
+      "energy_roundoff_bound_j_m2": 0.00022959698626006436
     },
     {
       "case": "soil-materials",
       "legacy": false,
       "ice_case": 0,
       "latitude_rad": -1.3,
-      "max_soil_error_k": 5.684341886080802e-14
+      "max_soil_error_k": 5.684341886080802e-14,
+      "native_energy_change_j_m2": 7548855.348803198,
+      "energy_residual_j_m2": -1.6111880540847778e-07,
+      "energy_roundoff_bound_j_m2": 0.0002295970073227068
     },
     {
       "case": "soil-materials",
       "legacy": false,
       "ice_case": 0,
       "latitude_rad": -0.7,
-      "max_soil_error_k": 5.684341886080802e-14
+      "max_soil_error_k": 5.684341886080802e-14,
+      "native_energy_change_j_m2": 7548855.348803198,
+      "energy_residual_j_m2": -1.6111880540847778e-07,
+      "energy_roundoff_bound_j_m2": 0.0002295970073227068
     },
     {
       "case": "soil-materials",
       "legacy": false,
       "ice_case": 0,
       "latitude_rad": 0.0,
-      "max_soil_error_k": 5.684341886080802e-14
+      "max_soil_error_k": 5.684341886080802e-14,
+      "native_energy_change_j_m2": 7548855.348803198,
+      "energy_residual_j_m2": -1.6111880540847778e-07,
+      "energy_roundoff_bound_j_m2": 0.0002295970073227068
     },
     {
       "case": "soil-materials",
       "legacy": false,
       "ice_case": 0,
       "latitude_rad": 0.7,
-      "max_soil_error_k": 5.684341886080802e-14
+      "max_soil_error_k": 5.684341886080802e-14,
+      "native_energy_change_j_m2": 7548855.348803198,
+      "energy_residual_j_m2": -1.6111880540847778e-07,
+      "energy_roundoff_bound_j_m2": 0.0002295970073227068
     },
     {
       "case": "soil-materials",
       "legacy": false,
       "ice_case": 0,
       "latitude_rad": 1.3,
-      "max_soil_error_k": 5.684341886080802e-14
+      "max_soil_error_k": 5.684341886080802e-14,
+      "native_energy_change_j_m2": 7548855.348803198,
+      "energy_residual_j_m2": -1.6111880540847778e-07,
+      "energy_roundoff_bound_j_m2": 0.0002295970073227068
     },
     {
       "case": "soil-materials",
       "legacy": false,
       "ice_case": 7,
       "latitude_rad": -1.3,
-      "max_soil_error_k": 2.842170943040401e-14
+      "max_soil_error_k": 2.842170943040401e-14,
+      "native_energy_change_j_m2": 7547373.337448225,
+      "energy_residual_j_m2": -2.0954757928848267e-07,
+      "energy_roundoff_bound_j_m2": 0.00022959698626205875
     },
     {
       "case": "soil-materials",
       "legacy": false,
       "ice_case": 7,
       "latitude_rad": -0.7,
-      "max_soil_error_k": 5.684341886080802e-14
+      "max_soil_error_k": 5.684341886080802e-14,
+      "native_energy_change_j_m2": 7547373.337448491,
+      "energy_residual_j_m2": -1.2293457984924316e-07,
+      "energy_roundoff_bound_j_m2": 0.00022959698626205872
     },
     {
       "case": "soil-materials",
       "legacy": false,
       "ice_case": 7,
       "latitude_rad": 0.0,
-      "max_soil_error_k": 5.684341886080802e-14
+      "max_soil_error_k": 5.684341886080802e-14,
+      "native_energy_change_j_m2": 7547373.337448491,
+      "energy_residual_j_m2": -1.2293457984924316e-07,
+      "energy_roundoff_bound_j_m2": 0.00022959698626205872
     },
     {
       "case": "soil-materials",
       "legacy": false,
       "ice_case": 7,
       "latitude_rad": 0.7,
-      "max_soil_error_k": 5.684341886080802e-14
+      "max_soil_error_k": 5.684341886080802e-14,
+      "native_energy_change_j_m2": 7547373.337448491,
+      "energy_residual_j_m2": -1.2293457984924316e-07,
+      "energy_roundoff_bound_j_m2": 0.00022959698626205872
     },
     {
       "case": "soil-materials",
       "legacy": false,
       "ice_case": 7,
       "latitude_rad": 1.3,
-      "max_soil_error_k": 5.684341886080802e-14
+      "max_soil_error_k": 5.684341886080802e-14,
+      "native_energy_change_j_m2": 7547373.197105374,
+      "energy_residual_j_m2": -2.1792948246002197e-07,
+      "energy_roundoff_bound_j_m2": 0.00022959698626006436
     },
     {
       "case": "soil-materials",
       "legacy": true,
       "ice_case": 0,
       "latitude_rad": -1.3,
-      "max_soil_error_k": 5.684341886080802e-14
+      "max_soil_error_k": 5.684341886080802e-14,
+      "native_energy_change_j_m2": 9969267.512112824,
+      "energy_residual_j_m2": -2.5704503059387207e-07,
+      "energy_roundoff_bound_j_m2": 0.0003033423795476795
     },
     {
       "case": "soil-materials",
       "legacy": true,
       "ice_case": 0,
       "latitude_rad": -0.7,
-      "max_soil_error_k": 5.684341886080802e-14
+      "max_soil_error_k": 5.684341886080802e-14,
+      "native_energy_change_j_m2": 9969267.512112824,
+      "energy_residual_j_m2": -2.5704503059387207e-07,
+      "energy_roundoff_bound_j_m2": 0.0003033423795476795
     },
     {
       "case": "soil-materials",
       "legacy": true,
       "ice_case": 0,
       "latitude_rad": 0.0,
-      "max_soil_error_k": 5.684341886080802e-14
+      "max_soil_error_k": 5.684341886080802e-14,
+      "native_energy_change_j_m2": 9969267.512112824,
+      "energy_residual_j_m2": -2.5704503059387207e-07,
+      "energy_roundoff_bound_j_m2": 0.0003033423795476795
     },
     {
       "case": "soil-materials",
       "legacy": true,
       "ice_case": 0,
       "latitude_rad": 0.7,
-      "max_soil_error_k": 5.684341886080802e-14
+      "max_soil_error_k": 5.684341886080802e-14,
+      "native_energy_change_j_m2": 9969267.512112824,
+      "energy_residual_j_m2": -2.5704503059387207e-07,
+      "energy_roundoff_bound_j_m2": 0.0003033423795476795
     },
     {
       "case": "soil-materials",
       "legacy": true,
       "ice_case": 0,
       "latitude_rad": 1.3,
-      "max_soil_error_k": 5.684341886080802e-14
+      "max_soil_error_k": 5.684341886080802e-14,
+      "native_energy_change_j_m2": 9969267.512112824,
+      "energy_residual_j_m2": -2.5704503059387207e-07,
+      "energy_roundoff_bound_j_m2": 0.0003033423795476795
     },
     {
       "case": "soil-materials",
       "legacy": true,
       "ice_case": 7,
       "latitude_rad": -1.3,
-      "max_soil_error_k": 5.684341886080802e-14
+      "max_soil_error_k": 5.684341886080802e-14,
+      "native_energy_change_j_m2": 20027931.47812869,
+      "energy_residual_j_m2": -3.453783676832245e-07,
+      "energy_roundoff_bound_j_m2": 0.0004548851500347721
     },
     {
       "case": "soil-materials",
       "legacy": true,
       "ice_case": 7,
       "latitude_rad": -0.7,
-      "max_soil_error_k": 5.684341886080802e-14
+      "max_soil_error_k": 5.684341886080802e-14,
+      "native_energy_change_j_m2": 20028017.303142875,
+      "energy_residual_j_m2": -7.795848342428968e-07,
+      "energy_roundoff_bound_j_m2": 0.0004187309927508287
     },
     {
       "case": "soil-materials",
       "legacy": true,
       "ice_case": 7,
       "latitude_rad": 0.0,
-      "max_soil_error_k": 5.684341886080802e-14
+      "max_soil_error_k": 5.684341886080802e-14,
+      "native_energy_change_j_m2": 20030275.05347391,
+      "energy_residual_j_m2": -9.897898212152256e-08,
+      "energy_roundoff_bound_j_m2": 0.0004187310248353906
     },
     {
       "case": "soil-materials",
       "legacy": true,
       "ice_case": 7,
       "latitude_rad": 0.7,
-      "max_soil_error_k": 5.684341886080802e-14
+      "max_soil_error_k": 5.684341886080802e-14,
+      "native_energy_change_j_m2": 20030275.05347391,
+      "energy_residual_j_m2": -9.897898212152256e-08,
+      "energy_roundoff_bound_j_m2": 0.0004187310248353906
     },
     {
       "case": "soil-materials",
       "legacy": true,
       "ice_case": 7,
       "latitude_rad": 1.3,
-      "max_soil_error_k": 2.842170943040401e-14
+      "max_soil_error_k": 2.842170943040401e-14,
+      "native_energy_change_j_m2": 20029818.61781051,
+      "energy_residual_j_m2": 6.837387900304748e-08,
+      "energy_roundoff_bound_j_m2": 0.00045535047290356704
     },
     {
       "case": "soil-controls",
@@ -1171,7 +1288,10 @@
       "snow_kg_m2": 0.0,
       "gradient": false,
       "native_finite": true,
-      "max_soil_error_k": 0.0
+      "max_soil_error_k": 0.0,
+      "native_energy_change_j_m2": 19154.368484926745,
+      "energy_residual_j_m2": -4.204991910228273e-11,
+      "energy_roundoff_bound_j_m2": 1.0526016706769675e-07
     },
     {
       "case": "soil-controls",
@@ -1181,191 +1301,14 @@
       "snow_kg_m2": 0.0,
       "gradient": true,
       "native_finite": true,
-      "max_soil_error_k": 0.0
+      "max_soil_error_k": 0.0,
+      "native_energy_change_j_m2": 122473.8246470039,
+      "energy_residual_j_m2": -8.731149137020111e-11,
+      "energy_roundoff_bound_j_m2": 1.218618255144151e-07
     },
     {
       "case": "soil-controls",
       "layers": 4,
-      "condensation": false,
-      "alpha": 0.0,
-      "snow_kg_m2": 100.0,
-      "gradient": true,
-      "native_finite": false,
-      "status": "singular native frost state rejected"
-    },
-    {
-      "case": "soil-controls",
-      "layers": 4,
-      "condensation": false,
-      "alpha": 0.5,
-      "snow_kg_m2": 0.0,
-      "gradient": false,
-      "native_finite": true,
-      "max_soil_error_k": 2.842170943040401e-14
-    },
-    {
-      "case": "soil-controls",
-      "layers": 4,
-      "condensation": false,
-      "alpha": 0.5,
-      "snow_kg_m2": 0.0,
-      "gradient": true,
-      "native_finite": true,
-      "max_soil_error_k": 5.684341886080802e-14
-    },
-    {
-      "case": "soil-controls",
-      "layers": 4,
-      "condensation": false,
-      "alpha": 0.5,
-      "snow_kg_m2": 100.0,
-      "gradient": true,
-      "native_finite": false,
-      "status": "singular native frost state rejected"
-    },
-    {
-      "case": "soil-controls",
-      "layers": 4,
-      "condensation": false,
-      "alpha": 1.0,
-      "snow_kg_m2": 0.0,
-      "gradient": false,
-      "native_finite": true,
-      "max_soil_error_k": 2.842170943040401e-14
-    },
-    {
-      "case": "soil-controls",
-      "layers": 4,
-      "condensation": false,
-      "alpha": 1.0,
-      "snow_kg_m2": 0.0,
-      "gradient": true,
-      "native_finite": true,
-      "max_soil_error_k": 2.842170943040401e-14
-    },
-    {
-      "case": "soil-controls",
-      "layers": 4,
-      "condensation": false,
-      "alpha": 1.0,
-      "snow_kg_m2": 100.0,
-      "gradient": true,
-      "native_finite": false,
-      "status": "singular native frost state rejected"
-    },
-    {
-      "case": "soil-controls",
-      "layers": 4,
-      "condensation": true,
-      "alpha": 0.0,
-      "snow_kg_m2": 0.0,
-      "gradient": false,
-      "native_finite": true,
-      "max_soil_error_k": 0.0
-    },
-    {
-      "case": "soil-controls",
-      "layers": 4,
-      "condensation": true,
-      "alpha": 0.0,
-      "snow_kg_m2": 0.0,
-      "gradient": true,
-      "native_finite": true,
-      "max_soil_error_k": 0.0
-    },
-    {
-      "case": "soil-controls",
-      "layers": 4,
-      "condensation": true,
-      "alpha": 0.0,
-      "snow_kg_m2": 100.0,
-      "gradient": true,
-      "native_finite": true,
-      "max_soil_error_k": 0.0
-    },
-    {
-      "case": "soil-controls",
-      "layers": 4,
-      "condensation": true,
-      "alpha": 0.5,
-      "snow_kg_m2": 0.0,
-      "gradient": false,
-      "native_finite": true,
-      "max_soil_error_k": 2.842170943040401e-14
-    },
-    {
-      "case": "soil-controls",
-      "layers": 4,
-      "condensation": true,
-      "alpha": 0.5,
-      "snow_kg_m2": 0.0,
-      "gradient": true,
-      "native_finite": true,
-      "max_soil_error_k": 5.684341886080802e-14
-    },
-    {
-      "case": "soil-controls",
-      "layers": 4,
-      "condensation": true,
-      "alpha": 0.5,
-      "snow_kg_m2": 100.0,
-      "gradient": true,
-      "native_finite": true,
-      "max_soil_error_k": 2.842170943040401e-14
-    },
-    {
-      "case": "soil-controls",
-      "layers": 4,
-      "condensation": true,
-      "alpha": 1.0,
-      "snow_kg_m2": 0.0,
-      "gradient": false,
-      "native_finite": true,
-      "max_soil_error_k": 2.842170943040401e-14
-    },
-    {
-      "case": "soil-controls",
-      "layers": 4,
-      "condensation": true,
-      "alpha": 1.0,
-      "snow_kg_m2": 0.0,
-      "gradient": true,
-      "native_finite": true,
-      "max_soil_error_k": 2.842170943040401e-14
-    },
-    {
-      "case": "soil-controls",
-      "layers": 4,
-      "condensation": true,
-      "alpha": 1.0,
-      "snow_kg_m2": 100.0,
-      "gradient": true,
-      "native_finite": true,
-      "max_soil_error_k": 2.842170943040401e-14
-    },
-    {
-      "case": "soil-controls",
-      "layers": 16,
-      "condensation": false,
-      "alpha": 0.0,
-      "snow_kg_m2": 0.0,
-      "gradient": false,
-      "native_finite": true,
-      "max_soil_error_k": 0.0
-    },
-    {
-      "case": "soil-controls",
-      "layers": 16,
-      "condensation": false,
-      "alpha": 0.0,
-      "snow_kg_m2": 0.0,
-      "gradient": true,
-      "native_finite": true,
-      "max_soil_error_k": 2.842170943040401e-14
-    },
-    {
-      "case": "soil-controls",
-      "layers": 16,
       "condensation": false,
       "alpha": 0.0,
       "snow_kg_m2": 100.0,
@@ -1375,13 +1318,241 @@
     },
     {
       "case": "soil-controls",
+      "layers": 4,
+      "condensation": false,
+      "alpha": 0.5,
+      "snow_kg_m2": 0.0,
+      "gradient": false,
+      "native_finite": true,
+      "max_soil_error_k": 2.842170943040401e-14,
+      "native_energy_change_j_m2": -120677.0648609233,
+      "energy_residual_j_m2": -2.0372681319713593e-10,
+      "energy_roundoff_bound_j_m2": 1.0327304288380045e-07
+    },
+    {
+      "case": "soil-controls",
+      "layers": 4,
+      "condensation": false,
+      "alpha": 0.5,
+      "snow_kg_m2": 0.0,
+      "gradient": true,
+      "native_finite": true,
+      "max_soil_error_k": 5.684341886080802e-14,
+      "native_energy_change_j_m2": -59033.38583323896,
+      "energy_residual_j_m2": -2.0372681319713593e-10,
+      "energy_roundoff_bound_j_m2": 1.1928245291651879e-07
+    },
+    {
+      "case": "soil-controls",
+      "layers": 4,
+      "condensation": false,
+      "alpha": 0.5,
+      "snow_kg_m2": 100.0,
+      "gradient": true,
+      "native_finite": false,
+      "status": "singular native frost state rejected"
+    },
+    {
+      "case": "soil-controls",
+      "layers": 4,
+      "condensation": false,
+      "alpha": 1.0,
+      "snow_kg_m2": 0.0,
+      "gradient": false,
+      "native_finite": true,
+      "max_soil_error_k": 2.842170943040401e-14,
+      "native_energy_change_j_m2": -236716.6813326499,
+      "energy_residual_j_m2": -1.7462298274040222e-10,
+      "energy_roundoff_bound_j_m2": 1.0162402075291297e-07
+    },
+    {
+      "case": "soil-controls",
+      "layers": 4,
+      "condensation": false,
+      "alpha": 1.0,
+      "snow_kg_m2": 0.0,
+      "gradient": true,
+      "native_finite": true,
+      "max_soil_error_k": 2.842170943040401e-14,
+      "native_energy_change_j_m2": -209876.14846478472,
+      "energy_residual_j_m2": -1.7462298274040222e-10,
+      "energy_roundoff_bound_j_m2": 1.1713884833192217e-07
+    },
+    {
+      "case": "soil-controls",
+      "layers": 4,
+      "condensation": false,
+      "alpha": 1.0,
+      "snow_kg_m2": 100.0,
+      "gradient": true,
+      "native_finite": false,
+      "status": "singular native frost state rejected"
+    },
+    {
+      "case": "soil-controls",
+      "layers": 4,
+      "condensation": true,
+      "alpha": 0.0,
+      "snow_kg_m2": 0.0,
+      "gradient": false,
+      "native_finite": true,
+      "max_soil_error_k": 0.0,
+      "native_energy_change_j_m2": 19154.368484926745,
+      "energy_residual_j_m2": -4.204991910228273e-11,
+      "energy_roundoff_bound_j_m2": 1.0526016706769675e-07
+    },
+    {
+      "case": "soil-controls",
+      "layers": 4,
+      "condensation": true,
+      "alpha": 0.0,
+      "snow_kg_m2": 0.0,
+      "gradient": true,
+      "native_finite": true,
+      "max_soil_error_k": 0.0,
+      "native_energy_change_j_m2": 122473.8246470039,
+      "energy_residual_j_m2": -8.731149137020111e-11,
+      "energy_roundoff_bound_j_m2": 1.218618255144151e-07
+    },
+    {
+      "case": "soil-controls",
+      "layers": 4,
+      "condensation": true,
+      "alpha": 0.0,
+      "snow_kg_m2": 100.0,
+      "gradient": true,
+      "native_finite": true,
+      "max_soil_error_k": 0.0,
+      "native_energy_change_j_m2": 131320.21433792615,
+      "energy_residual_j_m2": -1.5916157281026244e-11,
+      "energy_roundoff_bound_j_m2": 1.2198754027306684e-07
+    },
+    {
+      "case": "soil-controls",
+      "layers": 4,
+      "condensation": true,
+      "alpha": 0.5,
+      "snow_kg_m2": 0.0,
+      "gradient": false,
+      "native_finite": true,
+      "max_soil_error_k": 2.842170943040401e-14,
+      "native_energy_change_j_m2": -120677.0648609233,
+      "energy_residual_j_m2": -2.0372681319713593e-10,
+      "energy_roundoff_bound_j_m2": 1.0327304288380045e-07
+    },
+    {
+      "case": "soil-controls",
+      "layers": 4,
+      "condensation": true,
+      "alpha": 0.5,
+      "snow_kg_m2": 0.0,
+      "gradient": true,
+      "native_finite": true,
+      "max_soil_error_k": 5.684341886080802e-14,
+      "native_energy_change_j_m2": -59033.38583323896,
+      "energy_residual_j_m2": -2.0372681319713593e-10,
+      "energy_roundoff_bound_j_m2": 1.1928245291651879e-07
+    },
+    {
+      "case": "soil-controls",
+      "layers": 4,
+      "condensation": true,
+      "alpha": 0.5,
+      "snow_kg_m2": 100.0,
+      "gradient": true,
+      "native_finite": true,
+      "max_soil_error_k": 2.842170943040401e-14,
+      "native_energy_change_j_m2": -42325.821601237534,
+      "energy_residual_j_m2": -4.001776687800884e-11,
+      "energy_roundoff_bound_j_m2": 1.1951988168446463e-07
+    },
+    {
+      "case": "soil-controls",
+      "layers": 4,
+      "condensation": true,
+      "alpha": 1.0,
+      "snow_kg_m2": 0.0,
+      "gradient": false,
+      "native_finite": true,
+      "max_soil_error_k": 2.842170943040401e-14,
+      "native_energy_change_j_m2": -236716.68132996038,
+      "energy_residual_j_m2": 5.820766091346741e-11,
+      "energy_roundoff_bound_j_m2": 1.0162402075295119e-07
+    },
+    {
+      "case": "soil-controls",
+      "layers": 4,
+      "condensation": true,
+      "alpha": 1.0,
+      "snow_kg_m2": 0.0,
+      "gradient": true,
+      "native_finite": true,
+      "max_soil_error_k": 2.842170943040401e-14,
+      "native_energy_change_j_m2": -209876.14846478472,
+      "energy_residual_j_m2": -1.7462298274040222e-10,
+      "energy_roundoff_bound_j_m2": 1.1713884833192217e-07
+    },
+    {
+      "case": "soil-controls",
+      "layers": 4,
+      "condensation": true,
+      "alpha": 1.0,
+      "snow_kg_m2": 100.0,
+      "gradient": true,
+      "native_finite": true,
+      "max_soil_error_k": 2.842170943040401e-14,
+      "native_energy_change_j_m2": -164874.30394338013,
+      "energy_residual_j_m2": 1.8189894035458565e-10,
+      "energy_roundoff_bound_j_m2": 1.1777836300633196e-07
+    },
+    {
+      "case": "soil-controls",
+      "layers": 16,
+      "condensation": false,
+      "alpha": 0.0,
+      "snow_kg_m2": 0.0,
+      "gradient": false,
+      "native_finite": true,
+      "max_soil_error_k": 0.0,
+      "native_energy_change_j_m2": 19199.460159845723,
+      "energy_residual_j_m2": -4.320099833421409e-11,
+      "energy_roundoff_bound_j_m2": 0.00018938073737985176
+    },
+    {
+      "case": "soil-controls",
+      "layers": 16,
+      "condensation": false,
+      "alpha": 0.0,
+      "snow_kg_m2": 0.0,
+      "gradient": true,
+      "native_finite": true,
+      "max_soil_error_k": 2.842170943040401e-14,
+      "native_energy_change_j_m2": 24129365.282915313,
+      "energy_residual_j_m2": 7.450580596923828e-08,
+      "energy_roundoff_bound_j_m2": 0.00022798933772439392
+    },
+    {
+      "case": "soil-controls",
+      "layers": 16,
+      "condensation": false,
+      "alpha": 0.0,
+      "snow_kg_m2": 100.0,
+      "gradient": true,
+      "native_finite": false,
+      "status": "singular native frost state rejected"
+    },
+    {
+      "case": "soil-controls",
       "layers": 16,
       "condensation": false,
       "alpha": 0.5,
       "snow_kg_m2": 0.0,
       "gradient": false,
       "native_finite": true,
-      "max_soil_error_k": 2.842170943040401e-14
+      "max_soil_error_k": 2.842170943040401e-14,
+      "native_energy_change_j_m2": 19988.0820072177,
+      "energy_residual_j_m2": -7.818567837603041e-08,
+      "energy_roundoff_bound_j_m2": 0.00018938074858684226
     },
     {
       "case": "soil-controls",
@@ -1391,7 +1562,10 @@
       "snow_kg_m2": 0.0,
       "gradient": true,
       "native_finite": true,
-      "max_soil_error_k": 5.684341886080802e-14
+      "max_soil_error_k": 5.684341886080802e-14,
+      "native_energy_change_j_m2": 24130650.12807656,
+      "energy_residual_j_m2": -1.7881393432617188e-07,
+      "energy_roundoff_bound_j_m2": 0.00022798935598314184
     },
     {
       "case": "soil-controls",
@@ -1411,7 +1585,10 @@
       "snow_kg_m2": 0.0,
       "gradient": false,
       "native_finite": true,
-      "max_soil_error_k": 5.684341886080802e-14
+      "max_soil_error_k": 5.684341886080802e-14,
+      "native_energy_change_j_m2": 20204.185080203915,
+      "energy_residual_j_m2": -7.909193300292827e-10,
+      "energy_roundoff_bound_j_m2": 0.0001893807516578517
     },
     {
       "case": "soil-controls",
@@ -1421,7 +1598,10 @@
       "snow_kg_m2": 0.0,
       "gradient": true,
       "native_finite": true,
-      "max_soil_error_k": 2.842170943040401e-14
+      "max_soil_error_k": 2.842170943040401e-14,
+      "native_energy_change_j_m2": 24131011.866739355,
+      "energy_residual_j_m2": -4.0978193283081055e-08,
+      "energy_roundoff_bound_j_m2": 0.00022798936112375745
     },
     {
       "case": "soil-controls",
@@ -1441,7 +1621,10 @@
       "snow_kg_m2": 0.0,
       "gradient": false,
       "native_finite": true,
-      "max_soil_error_k": 0.0
+      "max_soil_error_k": 0.0,
+      "native_energy_change_j_m2": 19199.460159845723,
+      "energy_residual_j_m2": -4.320099833421409e-11,
+      "energy_roundoff_bound_j_m2": 0.00018938073737985176
     },
     {
       "case": "soil-controls",
@@ -1451,7 +1634,10 @@
       "snow_kg_m2": 0.0,
       "gradient": true,
       "native_finite": true,
-      "max_soil_error_k": 2.842170943040401e-14
+      "max_soil_error_k": 2.842170943040401e-14,
+      "native_energy_change_j_m2": 24129365.282915313,
+      "energy_residual_j_m2": 7.450580596923828e-08,
+      "energy_roundoff_bound_j_m2": 0.00022798933772439392
     },
     {
       "case": "soil-controls",
@@ -1461,7 +1647,10 @@
       "snow_kg_m2": 100.0,
       "gradient": true,
       "native_finite": true,
-      "max_soil_error_k": 0.0
+      "max_soil_error_k": 0.0,
+      "native_energy_change_j_m2": 24133416.088259798,
+      "energy_residual_j_m2": 8.06162461230997e-08,
+      "energy_roundoff_bound_j_m2": 0.00022798939528980016
     },
     {
       "case": "soil-controls",
@@ -1471,7 +1660,10 @@
       "snow_kg_m2": 0.0,
       "gradient": false,
       "native_finite": true,
-      "max_soil_error_k": 2.842170943040401e-14
+      "max_soil_error_k": 2.842170943040401e-14,
+      "native_energy_change_j_m2": 19988.0820072177,
+      "energy_residual_j_m2": -7.818567837603041e-08,
+      "energy_roundoff_bound_j_m2": 0.00018938074858684226
     },
     {
       "case": "soil-controls",
@@ -1481,7 +1673,10 @@
       "snow_kg_m2": 0.0,
       "gradient": true,
       "native_finite": true,
-      "max_soil_error_k": 5.684341886080802e-14
+      "max_soil_error_k": 5.684341886080802e-14,
+      "native_energy_change_j_m2": 24130650.12807656,
+      "energy_residual_j_m2": -1.7881393432617188e-07,
+      "energy_roundoff_bound_j_m2": 0.00022798935598314184
     },
     {
       "case": "soil-controls",
@@ -1491,7 +1686,10 @@
       "snow_kg_m2": 100.0,
       "gradient": true,
       "native_finite": true,
-      "max_soil_error_k": 5.684341886080802e-14
+      "max_soil_error_k": 5.684341886080802e-14,
+      "native_energy_change_j_m2": 24134083.254222605,
+      "energy_residual_j_m2": -1.6930607671383768e-07,
+      "energy_roundoff_bound_j_m2": 0.00022798940477079872
     },
     {
       "case": "soil-controls",
@@ -1501,7 +1699,10 @@
       "snow_kg_m2": 0.0,
       "gradient": false,
       "native_finite": true,
-      "max_soil_error_k": 5.684341886080802e-14
+      "max_soil_error_k": 5.684341886080802e-14,
+      "native_energy_change_j_m2": 20204.185080203915,
+      "energy_residual_j_m2": -7.909193300292827e-10,
+      "energy_roundoff_bound_j_m2": 0.0001893807516578517
     },
     {
       "case": "soil-controls",
@@ -1511,7 +1712,10 @@
       "snow_kg_m2": 0.0,
       "gradient": true,
       "native_finite": true,
-      "max_soil_error_k": 2.842170943040401e-14
+      "max_soil_error_k": 2.842170943040401e-14,
+      "native_energy_change_j_m2": 24131011.866739355,
+      "energy_residual_j_m2": -4.0978193283081055e-08,
+      "energy_roundoff_bound_j_m2": 0.00022798936112375745
     },
     {
       "case": "soil-controls",
@@ -1521,11 +1725,14 @@
       "snow_kg_m2": 100.0,
       "gradient": true,
       "native_finite": true,
-      "max_soil_error_k": 2.842170943040401e-14
+      "max_soil_error_k": 2.842170943040401e-14,
+      "native_energy_change_j_m2": 24134298.702904426,
+      "energy_residual_j_m2": -4.444586920726579e-08,
+      "energy_roundoff_bound_j_m2": 0.00022798940783250862
     }
   ],
-  "source_sha256": "1c9052183ba8318dc57ffb8ca5e012b111ac0e07974634c44ec073b3bf333733",
-  "kernel_sha256": "7f1f5f102997896d01746c13984a2718aff47d7b6ed101d7ac688a2be8580371",
+  "source_sha256": "928540dd1fc7b28c2c308fc3440a263119c1c2276309dada19015b63f4441612",
+  "kernel_sha256": "056fc923b24e4597099c8b27801a0d549f3428e513552a8be8d6c171a3fea8e3",
   "water_surface_sha256": "a9b6006b64953372871ee6f627fb8589eea6aaac19542b59a55266719a89e2c4",
   "vertical_solver_sha256": "0d01f1d42fe7f086a887a2c0c51cb3b4385d26a3c944b72f81150b8a57ddd991",
   "jax_version": "0.11.0",

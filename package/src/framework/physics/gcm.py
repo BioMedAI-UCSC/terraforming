@@ -2113,6 +2113,7 @@ def positivity_preserving_co2_step(
     external_co2_mass_change_kg: Callable[[ColumnPhysicsState, float], object] | None = None,
     return_diagnostics: bool = False,
     inventory_projection: bool = True,
+    budget_fn: Callable[[ColumnPhysicsState], tuple[object, object]] | None = None,
 ):
     """Wrap an IMEX step with positivity and global CO2-mass projections.
 
@@ -2150,7 +2151,11 @@ def positivity_preserving_co2_step(
     ``inventory_projection=False`` disables numerical reservoir repair and
     pressure rescaling for paired experiments; physical settling and saturation
     adjustment remain active. This diagnostic mode can produce negative frost.
+    Optional ``budget_fn(state)`` supplies a model-specific, pure JAX pair of
+    global energy and axial momentum for every repair stage.
     """
+    if budget_fn is not None and not callable(budget_fn):
+        raise ValueError('budget_fn must return global energy and axial momentum for one state')
     grid = coords.horizontal
     weights = jnp.asarray(grid.quadrature_weights)
     pressure_scale = float(specs.dimensionalize(1.0, _u.pascal).magnitude)
@@ -2248,9 +2253,16 @@ def positivity_preserving_co2_step(
         if not return_diagnostics:
             return final
         negative_frost_integral = jnp.sum(jnp.maximum(-raw.co2_ice[0], 0.0) * weights)
-        budgets = ([co2_exchange_budgets(s, coords, specs, body, co2_forcing)
-                    for s in (raw, frost_repaired, saturation_adjusted, settled, final)]
-                   if co2_forcing is not None else [(None, None)] * 5)
+        stages=(raw,frost_repaired,saturation_adjusted,settled,final)
+        if budget_fn is not None:
+            budgets=[budget_fn(stage) for stage in stages]
+            if any(not isinstance(values,(tuple,list)) or len(values)!=2 or
+                any(jnp.ndim(value)!=0 for value in values) for values in budgets):
+                raise ValueError('budget_fn must return two scalar global budgets')
+        elif co2_forcing is not None:
+            budgets=[co2_exchange_budgets(stage,coords,specs,body,co2_forcing) for stage in stages]
+        else:
+            budgets=[(None,None)]*5
         diagnostics = CO2ProjectionDiagnostics(
             raw_total_mass_kg=total_pressure_integral(raw) * mass_per_integral,
             target_total_mass_kg=target_total * mass_per_integral,

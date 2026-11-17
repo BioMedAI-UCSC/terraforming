@@ -303,9 +303,19 @@ from PBL and mass transfer. A rotating-wind test checks gas/ground axial momentu
 the diagnostic path separately records raw and pressure-corrected angular momentum.
 These checks do not establish a conservation theorem for arbitrary global climates.
 The exchange-energy ledger counts gas enthalpy/kinetic energy, evolving soil-node
-sensible energy and frost enthalpy cp*T-L. It records raw and corrected values.
+sensible energy and frost enthalpy cp*T-L. All five numerical repair stages use
+the same energy and axial momentum definitions. When water is active, vapor adds
+latent energy relative to ice: 2.8e6 J/kg for bulk water and 2.8343e6 J/kg for
+moment water. These are the constants used by the respective source schemes.
+Counting stored latent energy does not enable latent heating; the matched moment
+benchmark keeps that heating off. Source passive water has no separate sensible
+or kinetic heat capacity in this ledger.
 The fixed deep node is an external reservoir. The reference defaults omit some
 drag/convection dissipative reheating; those losses must not be hidden as repairs.
+The soil column reports sensible-minus-CO2-latent storage, the linearized surface
+heat input, deep heat flux, and separate work from the native deep-row equation,
+material interfaces and frost approximation. Their residual measures accounting
+closure. A small residual does not mean that those source terms conserve energy.
 The backend requires an explicit radiation callback and soil diffusivity. The
 initial cold smoke uses the existing radiation callback; the multi-step gradient
 test also exercises the new full-radiation callback. Nonzero suspended CO2 clouds are
@@ -358,6 +368,16 @@ matching nonfinite results separately from finite coefficient errors. These
 input regions cannot be called validated finite climate states. Gas-only and
 tested cloudy rollouts use finite cells; water-cycle coupling must enforce and
 audit its actual thermodynamic states. No replacement coefficients are invented.
+The extended validator now checks every temperature/pressure node and every cell
+center for all ten water mixtures in both 15-band options. All 13,930 lookup
+states match unchanged Fortran, including separate NaN and signed-infinity masks.
+The 800 K IR option gives 3,048 nonfinite coefficients at the tested nodes and
+2,899 at the cell centers; these counts are lookup results, not raw table counts.
+The source uses fixed `grav/cp_air` for heating and `cmk=3.51e22` molecules per
+millibar for gas paths. Water selects opacity mixtures; it does not update these
+thermodynamic constants. CIA uses separately supplied CO2/H2 molar fractions.
+The port retains these approximations. Composition-dependent heat capacity or
+gas-path conversion would change the released model.
 
 Bulk water uses the original bracketed Newton/bisection iteration, including
 its unusual derivative and absolute `1e-8` step tolerance. Three corrections
@@ -506,6 +526,12 @@ must remain explicit in upper-atmosphere and climate comparisons.
 
 The reusable Fortran/MPI runtime and parallel 100-sol preparation/compute
 protocol are described in [the comparison experiment](../experiments/reference-comparison/README.md).
+The frozen native C24 run completed 100 sols with exit code zero in 78,461 seconds
+on six MPI ranks while C48 ran concurrently. Its final logged surface pressure is
+675.477 Pa. The [completion record](../iclr-results/03-benchmarks/reference-comparison/native-c24-100sol.json)
+records the binary/input hashes and final printed diagnostics. NetCDF climate and
+paired performance analysis remain pending; this timing is not an isolated
+hardware benchmark.
 
 ## Explicit CO2 and argon mass
 
@@ -844,7 +870,7 @@ limiter or establish matched transport accuracy.
 | --- | --- |
 | Thermal relaxation | Fixed-profile, evolving-height and analytic Held--Suarez kernels match 36 unchanged native cases, including the original FMS interpolation. Fixed and height forcing connect to the Dinosaur step and command-line runner, replace radiation on every step, and retain profile hashes/timescales in restart identity. NetCDF readers preserve the source equal-level-count bypass and reuse the native-checked bilinear map. Analytic forcing remains an explicit kernel because the released dispatch does not call it. Thirty-two native NetCDF reader/composed-damping cases also pass, including pressure interpolation, equal-count bypass, poles, seam and singleton time axes. NetCDF-Fortran I/O adapters replace FMS parallel I/O. Long climate comparisons remain. |
 | Simple radiation | `simple_radiation` implements the released fixed-dust profile, `ecoeffs`/`scatter_calc`, `swheat`, `lwheat` and five-sol SW ramp. Twenty-four native columns and 24 independent scattering cases pass. The callback, map/restart path and three-step reverse derivative are connected. CLI selection is `--config reference --reference-radiation simple`. The source's unused emissivity argument and surface-only IR suppression are preserved; SPEC_CORE-only modulation is excluded by the release flags. |
-| Global budgets | Momentum exchange and repair-stage ledgers are connected. Extend the energy audit across dissipation, fixed-deep-soil exchange, phase approximations and long global runs; select gas and particle tracers explicitly. |
+| Global budgets | Momentum exchange and consistent five-stage repair ledgers are connected, including bulk/moment water-vapor latent storage. Native soil storage and surface/deep/material/phase work close within roundoff in 69 valid columns; 35 soil tests also check derivatives. Extend process exchange accounting across dissipation and long global runs. |
 | Radiation schedule | Optional integer-second source schedule now holds heating in K/s and surface fluxes, carries the 170 K initial stratosphere and its source update, and persists caches in restarts. Match the configured interval and callback averaging window in whole-model comparisons. |
 | Dust and cloud opacity | Size-dependent dust and all three cloud optical kernels are implemented. CO2 optical feedback is connected; prescribed dust, moment clouds, interactive lifting and seasonal control pass three-step global gradient checks. Multiple physical populations now connect lifting, coagulation, clouds, settling, opacity diagnostics, surface reservoirs and saved effective inputs. Matched climatology remains. |
 | Soil and frost | Mapped TES/GRS inputs and default case-7 profiles are implemented and checked. Compare diurnal/seasonal response in global runs; modern and legacy material profiles now pass native checks. |

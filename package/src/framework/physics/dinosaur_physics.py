@@ -12,8 +12,9 @@ from src.framework.physics.column_physics import column_physics,BulkWaterColumnS
 from src.framework.physics.soil_frost import soil_layer_thickness
 from src.framework.physics.co2_clouds import _remap_extensive,CO2_CLOUD_TRACER
 from src.framework.physics.co2_microphysics import LATENT_HEAT as CLOUD_LATENT_HEAT
-from src.framework.physics.water_bulk import WATER_VAPOR_TRACER,WATER_CLOUD_TRACER
-from src.framework.physics.water_moments import moment_particle_tracers,dust_particle_tracers,EffectiveState
+from src.framework.physics.water_bulk import WATER_VAPOR_TRACER,WATER_CLOUD_TRACER,LATENT_HEAT as WATER_LATENT_HEAT
+from src.framework.physics.water_moments import (moment_particle_tracers,dust_particle_tracers,EffectiveState,
+    LATENT_HEAT as MOMENT_WATER_LATENT_HEAT)
 from src.framework.physics.particle_optics import dust_optics
 from src.framework.physics.radiation_grid import radiation_grid
 from src.framework.physics.terrain_drag import hydrostatic_heights
@@ -213,11 +214,14 @@ def axial_angular_momentum(state,coords,specs,body):
 
 
 def exchange_energy(state,coords,specs,body,*,soil_volumetric_heat_capacity=1500.*627.9,
-                    latent_heat=5.9e5):
+                    latent_heat=5.9e5,water_vapor_tracer=None,water_latent_heat_j_kg=WATER_LATENT_HEAT):
     """SI resolved gas/cloud/soil/frost exchange ledger for reference modes.
 
     Count gas enthalpy plus relative kinetic energy, cloud latent/kinetic energy,
     evolving soil-node sensible energy, and frost enthalpy cp*T_surface-L.
+    An explicitly selected water vapor tracer adds L*q_v, relative to zero
+    latent energy for water ice. Passive-water sensible/kinetic heat capacities
+    are omitted by the source model.
     The fixed deep node is an external reservoir. This quantity exposes numerical
     repair changes; it is not a conservation theorem for the reference physics,
     whose default drag/convection omit dissipative reheating.
@@ -236,6 +240,9 @@ def exchange_energy(state,coords,specs,body,*,soil_volumetric_heat_capacity=1500
         cloud=gas*grid.to_nodal(state.dynamics.tracers[CO2_CLOUD_TRACER])
         # The source bulk scheme neglects cloud sensible and potential energy.
         energy=energy+jnp.sum(cloud*(.5*(u*u+v*v)*speed_scale**2-CLOUD_LATENT_HEAT),axis=0)
+    if water_vapor_tracer is not None:
+        vapor=grid.to_nodal(state.dynamics.tracers[water_vapor_tracer])
+        energy=energy+jnp.sum(gas*vapor*water_latent_heat_j_kg,axis=0)
     soil=jnp.concatenate([state.surface_temperature,state.ground_temperature],axis=0)
     capacity=jnp.asarray(soil_volumetric_heat_capacity)
     if capacity.ndim==1:
@@ -748,17 +755,17 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
     if not return_diagnostics:
         return positivity_preserving_co2_step(advance,coords,specs,body=body,inventory_projection=project_inventory)
 
+    def reference_budgets(state):
+        return (exchange_energy(state,coords,specs,body,soil_volumetric_heat_capacity=soil_volumetric_heat_capacity,
+            water_vapor_tracer=WATER_VAPOR_TRACER if water_cycle else None,
+            water_latent_heat_j_kg=MOMENT_WATER_LATENT_HEAT if moment_water else WATER_LATENT_HEAT),
+            axial_angular_momentum(state,coords,specs,body))
+
     def audited(state):
         raw,transport_diagnostics,moist_diagnostics=advance_with_transport(state)
         final,diagnostics=positivity_preserving_co2_step(lambda _:raw,coords,specs,
-            body=body,return_diagnostics=True,inventory_projection=project_inventory)(state)
+            body=body,return_diagnostics=True,inventory_projection=project_inventory,budget_fn=reference_budgets)(state)
         diagnostics=diagnostics._replace(
-            raw_exchange_energy_j=exchange_energy(raw,coords,specs,body,
-                soil_volumetric_heat_capacity=soil_volumetric_heat_capacity),
-            corrected_exchange_energy_j=exchange_energy(final,coords,specs,body,
-                soil_volumetric_heat_capacity=soil_volumetric_heat_capacity),
-            raw_axial_angular_momentum_kg_m2_s=axial_angular_momentum(raw,coords,specs,body),
-            corrected_axial_angular_momentum_kg_m2_s=axial_angular_momentum(final,coords,specs,body),
             tracer_transport=transport_diagnostics,moist_convection=moist_diagnostics)
         if water_cycle:
             diagnostics=diagnostics._replace(raw_water_mass_kg=water_inventory(raw,coords,specs,body),

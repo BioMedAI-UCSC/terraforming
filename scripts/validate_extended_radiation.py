@@ -69,20 +69,32 @@ def validate(source,compiler):
             lookup,lookup_prov=compile_lookup(source,root/'lookup',compiler,mode)
             spectra,spectral_prov=compile_spectra(source,root/'spectra',compiler,mode=mode)
             references[mode]=dict(lookup=lookup_prov,spectra=spectral_prov)
-            n=100
-            p=np.geomspace(1e-10,1e6,n);t=np.linspace(30.,950.,n)
-            water=np.resize(np.array([0.,1e-7,3e-6,.0001,.005,.05,.1,.25,.4,.8]),n)
-            depths=correlated_k_optical_depths(t,p*100.,np.full(n,100.),mode=mode,water_mass_fraction=water)
-            for kind,bands in (('sw',7),('ir',8)):
-                expected=f(np.zeros((n,bands,ng)))
-                lookup.lookup(n,bands,ng,f(p),f(t),f(water),f(data['pressure_mbar_ames']),f(data['temperature_k']),
-                    f(data[f'log10_k_{kind}_mixtures_ames']),expected)
-                actual=np.moveaxis(np.asarray(depths[0 if kind=='sw' else 1])[:,:-1],(0,1),(1,2))/3.51e22
-                np.testing.assert_allclose(actual,expected,rtol=3e-12,atol=1e-200)
-                finite=np.isfinite(expected)
-                cases.append(dict(mode=mode,kind=kind,lookup_points=n,
-                    max_finite_coefficient_error=float(np.max(np.abs(actual[finite]-expected[finite]))),
-                    matching_nonfinite_coefficients=int(np.sum(~finite))))
+            temperature=data['temperature_k'];pressure=data['pressure_mbar_ames']
+            nodes=np.meshgrid(temperature,pressure,data['water_mass_fractions'],indexing='ij')
+            centers=np.meshgrid(.5*(temperature[:-1]+temperature[1:]),
+                np.sqrt(pressure[:-1]*pressure[1:]),data['water_mass_fractions'],indexing='ij')
+            samples=[('range-sweep',np.linspace(30.,950.,100),np.geomspace(1e-10,1e6,100),
+                np.resize(np.array([0.,1e-7,3e-6,.0001,.005,.05,.1,.25,.4,.8]),100))]
+            samples.extend((label,*(field.ravel() for field in fields)) for label,fields in
+                (('all-table-nodes',nodes),('all-cell-centers',centers)))
+            for label,t,p,water in samples:
+                n=len(t)
+                depths=correlated_k_optical_depths(t,p*100.,np.full(n,100.),mode=mode,water_mass_fraction=water)
+                for kind,bands in (('sw',7),('ir',8)):
+                    expected=f(np.zeros((n,bands,ng)))
+                    lookup.lookup(n,bands,ng,f(p),f(t),f(water),f(pressure),f(temperature),
+                        f(data[f'log10_k_{kind}_mixtures_ames']),expected)
+                    actual=np.moveaxis(np.asarray(depths[0 if kind=='sw' else 1])[:,:-1],(0,1),(1,2))/3.51e22
+                    np.testing.assert_array_equal(np.isnan(actual),np.isnan(expected))
+                    np.testing.assert_array_equal(np.isposinf(actual),np.isposinf(expected))
+                    np.testing.assert_array_equal(np.isneginf(actual),np.isneginf(expected))
+                    np.testing.assert_allclose(actual,expected,rtol=3e-12,atol=1e-200)
+                    finite=np.isfinite(expected)
+                    cases.append(dict(mode=mode,kind=kind,case=label,lookup_points=n,
+                        max_finite_coefficient_error=float(np.max(np.abs(actual[finite]-expected[finite]))),
+                        matching_nan_coefficients=int(np.sum(np.isnan(expected))),
+                        matching_positive_infinite_coefficients=int(np.sum(np.isposinf(expected))),
+                        matching_nonfinite_coefficients=int(np.sum(~finite))))
             for layers in (2,5,13):
                 for label,loading in (('merged',0.),('mixed',.005),('absorbing',1.)):
                     for kind,bands in (('visible',7),('infrared',8)):

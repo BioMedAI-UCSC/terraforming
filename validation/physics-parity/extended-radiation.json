@@ -96,15 +96,61 @@
     {
       "mode": "15band",
       "kind": "sw",
+      "case": "range-sweep",
       "lookup_points": 100,
       "max_finite_coefficient_error": 9.860761315262648e-32,
+      "matching_nan_coefficients": 0,
+      "matching_positive_infinite_coefficients": 0,
       "matching_nonfinite_coefficients": 0
     },
     {
       "mode": "15band",
       "kind": "ir",
+      "case": "range-sweep",
       "lookup_points": 100,
       "max_finite_coefficient_error": 4.930380657631324e-32,
+      "matching_nan_coefficients": 0,
+      "matching_positive_infinite_coefficients": 0,
+      "matching_nonfinite_coefficients": 0
+    },
+    {
+      "mode": "15band",
+      "kind": "sw",
+      "case": "all-table-nodes",
+      "lookup_points": 3250,
+      "max_finite_coefficient_error": 3.944304526105059e-31,
+      "matching_nan_coefficients": 0,
+      "matching_positive_infinite_coefficients": 0,
+      "matching_nonfinite_coefficients": 0
+    },
+    {
+      "mode": "15band",
+      "kind": "ir",
+      "case": "all-table-nodes",
+      "lookup_points": 3250,
+      "max_finite_coefficient_error": 1.9721522630525295e-31,
+      "matching_nan_coefficients": 0,
+      "matching_positive_infinite_coefficients": 0,
+      "matching_nonfinite_coefficients": 0
+    },
+    {
+      "mode": "15band",
+      "kind": "sw",
+      "case": "all-cell-centers",
+      "lookup_points": 2880,
+      "max_finite_coefficient_error": 6.1136720154628415e-30,
+      "matching_nan_coefficients": 0,
+      "matching_positive_infinite_coefficients": 0,
+      "matching_nonfinite_coefficients": 0
+    },
+    {
+      "mode": "15band",
+      "kind": "ir",
+      "case": "all-cell-centers",
+      "lookup_points": 2880,
+      "max_finite_coefficient_error": 7.099748146989106e-30,
+      "matching_nan_coefficients": 0,
+      "matching_positive_infinite_coefficients": 0,
       "matching_nonfinite_coefficients": 0
     },
     {
@@ -308,16 +354,62 @@
     {
       "mode": "extended",
       "kind": "sw",
+      "case": "range-sweep",
       "lookup_points": 100,
       "max_finite_coefficient_error": 6.933347799794049e-33,
+      "matching_nan_coefficients": 0,
+      "matching_positive_infinite_coefficients": 0,
       "matching_nonfinite_coefficients": 0
     },
     {
       "mode": "extended",
       "kind": "ir",
+      "case": "range-sweep",
       "lookup_points": 100,
       "max_finite_coefficient_error": 8.281498760865114e-33,
+      "matching_nan_coefficients": 116,
+      "matching_positive_infinite_coefficients": 4,
       "matching_nonfinite_coefficients": 120
+    },
+    {
+      "mode": "extended",
+      "kind": "sw",
+      "case": "all-table-nodes",
+      "lookup_points": 4000,
+      "max_finite_coefficient_error": 3.0814879110195774e-33,
+      "matching_nan_coefficients": 0,
+      "matching_positive_infinite_coefficients": 0,
+      "matching_nonfinite_coefficients": 0
+    },
+    {
+      "mode": "extended",
+      "kind": "ir",
+      "case": "all-table-nodes",
+      "lookup_points": 4000,
+      "max_finite_coefficient_error": 6.162975822039155e-33,
+      "matching_nan_coefficients": 2998,
+      "matching_positive_infinite_coefficients": 50,
+      "matching_nonfinite_coefficients": 3048
+    },
+    {
+      "mode": "extended",
+      "kind": "sw",
+      "case": "all-cell-centers",
+      "lookup_points": 3600,
+      "max_finite_coefficient_error": 1.4791141972893971e-31,
+      "matching_nan_coefficients": 0,
+      "matching_positive_infinite_coefficients": 0,
+      "matching_nonfinite_coefficients": 0
+    },
+    {
+      "mode": "extended",
+      "kind": "ir",
+      "case": "all-cell-centers",
+      "lookup_points": 3600,
+      "max_finite_coefficient_error": 3.4512664603419266e-31,
+      "matching_nan_coefficients": 2899,
+      "matching_positive_infinite_coefficients": 0,
+      "matching_nonfinite_coefficients": 2899
     },
     {
       "mode": "extended",
@@ -545,7 +637,7 @@
     }
   },
   "sha256": {
-    "scripts/validate_extended_radiation.py": "ca66891ae0c7734cb204564d4a58bb21792b85ebab0dfb939dd50157e28d6b58",
+    "scripts/validate_extended_radiation.py": "32edfac3a2d4a305bf0708e50a192baaf34f3e0f830ea6782a1a2580d2c5f3fa",
     "scripts/stage_extended_radiation_tables.py": "0cbd94082f35c97ab039dbdf058ed5d6eafbcf169a90a6aedaeecc95adea407d",
     "scripts/validate_spectral_flux.py": "5368b4de0eaefb3492af65f00ea0167519b75200e9557f7c8ef986e5cedf3cce",
     "package/src/framework/physics/correlated_k.py": "803e33cfc1d14f46fb4251f2fd49c7a64bd55529574132cc9a04c2635240d13e",

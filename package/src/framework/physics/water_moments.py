@@ -13,6 +13,7 @@ WATER_MOLAR_MASS=.01801
 GAS_CONSTANT=8.3143
 ICE_DENSITY=917.
 AVOGADRO=6.02e23
+LATENT_HEAT=2.8343e6
 MOMENT_PARTICLE_TRACERS=('dust_mass','dust_number','water_ice_number','water_core_mass')
 
 
@@ -215,7 +216,7 @@ def nucleation_condensation(temperature,pressure_pa,tracers,dt_seconds,*,
     updated=updated.at[...,4].set(jnp.where(cleared,0.,updated[...,4]))
     updated=updated.at[...,3].set(jnp.where(cleared,0.,updated[...,3]))
     updated=updated.at[...,5].set(old[...,5]-(updated[...,2]-old[...,2]))
-    return MomentResult(condensed*2.8343e6/cp/dt_seconds if latent_heat else jnp.zeros_like(t),
+    return MomentResult(condensed*LATENT_HEAT/cp/dt_seconds if latent_heat else jnp.zeros_like(t),
         jnp.maximum(-old,updated-old)/dt_seconds,jnp.maximum(-dm,new_dm-dm)/dt_seconds,
         jnp.maximum(-dn,new_dn-dn)/dt_seconds,sat,m)
 

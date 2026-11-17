@@ -160,15 +160,38 @@ def surface_step(soil,thickness,diffusivity,volumetric_heat_capacity,pressure_pa
         surface=jnp.where(persists,frost,solved[0])
         solved=solved.at[0].set(surface)
         result=jnp.concatenate([solved,soil[-1:]],axis=0)
-        return result,phase,snowtmp+phase
+        external=dt_seconds*(nonlatent-(4.*stefan*emissivity*ts**3+sensible_surface_derivative)*(surface-ts))
+        phase_work=jnp.zeros_like(ts)
+        if condensation:
+            depleted_external=dt_seconds*(downward_flux_w_m2+sensible_flux_w_m2-depleted_ir-
+                (4.*stefan*emissivity*depleted_ts**3+sensible_surface_derivative)*(surface-depleted_ts))
+            external=jnp.where(persists,dt_seconds*nonlatent,jnp.where(depleted,depleted_external,external))
+            new_flux=diffusion[0]*capacity[0]*interface[0]*(result[1]-surface)
+            phase_work=jnp.where(persists,capacity[0]*dz[0]*(surface-ts)-latent_heat*seed+
+                alpha*dt_seconds*(flux[0]-new_flux),0.)
+        return result,phase,snowtmp+phase,external,phase_work
 
-    first,phase,snowtmp=solve(jnp.zeros_like(soil[0]))
+    first,phase,snowtmp,external,phase_work=solve(jnp.zeros_like(soil[0]))
     retry=(first[0]<frost)&(snowtmp==0.) if condensation else jnp.zeros_like(soil[0],dtype=bool)
-    second,second_phase,_=solve(jnp.where(retry,1.e-10,0.))
+    second,second_phase,_,second_external,second_phase_work=solve(jnp.where(retry,1.e-10,0.))
     result=jnp.where(retry[None],second,first)
     phase=jnp.where(retry,second_phase,phase)
+    external=jnp.where(retry,second_external,external)
+    phase_work=jnp.where(retry,second_phase_work,phase_work)
     valid=jnp.ones_like(snow,dtype=bool) if condensation else snow==0.
     # Native disabled condensation has a singular soil row when frost is present.
     result=jnp.where(valid[None],result,jnp.nan)
+    new_flux=-diffusion*capacity[:-1]*interface*(result[:-1]-result[1:])
+    interface_work=alpha*dt_seconds*diffusion[:-1]*interface[:-1]*(capacity[1:-1]-capacity[:-2])*(
+        result[:-2]-result[1:-1])
+    deep_flux=dt_seconds*((1.-alpha)*flux[-1]+alpha*new_flux[-1])
+    deep_work=capacity[-2]*dz[-2]*(result[-2]-soil[-2])-dt_seconds*(
+        (1.-alpha)*(flux[-1]-flux[-2])+alpha*(new_flux[-1]-new_flux[-2]))-interface_work[-1]
+    storage=jnp.sum(capacity[:-1]*dz[:-1]*(result[:-1]-soil[:-1]),axis=0)-latent_heat*phase
+    material_work=jnp.sum(interface_work,axis=0)
+    residual=storage-external-deep_flux-deep_work-material_work-phase_work
     return result,snow+phase,dict(valid_condensation_state=valid,co2_phase_change_kg_m2=phase,
-        frost_temperature_k=frost,frost_retry=retry)
+        frost_temperature_k=frost,frost_retry=retry,soil_energy_change_j_m2=storage,
+        surface_energy_input_j_m2=external,deep_boundary_flux_energy_j_m2=deep_flux,
+        native_deep_boundary_work_j_m2=deep_work,material_interface_work_j_m2=material_work,
+        phase_approximation_work_j_m2=phase_work,energy_residual_j_m2=residual)

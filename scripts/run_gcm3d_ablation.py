@@ -692,9 +692,12 @@ def main() -> int:
             )
             if reference:
                 from src.framework.physics.dinosaur_physics import water_inventory,exchange_energy
+                from src.framework.physics.water_moments import LATENT_HEAT
                 record['total_water_mass_kg']=float(water_inventory(checkpoint_state,coords,specs,body))
                 record['exchange_energy_j']=float(exchange_energy(checkpoint_state,coords,specs,body,
-                    soil_volumetric_heat_capacity=reference_options['soil_volumetric_heat_capacity']))
+                    soil_volumetric_heat_capacity=reference_options['soil_volumetric_heat_capacity'],
+                    water_vapor_tracer='water_vapor' if reference_options.get('moment_water',False) else None,
+                    water_latent_heat_j_kg=LATENT_HEAT))
                 pressure=np.exp(np.asarray(grid.to_nodal(checkpoint_state.dynamics.log_surface_pressure)))[0]*float(
                     specs.dimensionalize(1.,scales.units.pascal).magnitude)
                 dust=sum((np.asarray(grid.to_nodal(checkpoint_state.dynamics.tracers[key]))

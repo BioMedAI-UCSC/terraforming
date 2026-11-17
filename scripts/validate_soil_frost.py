@@ -164,6 +164,20 @@ end module
     return native,provenance
 
 
+def check_energy(actual,soil,result,dz,capacity,phase):
+    capacity=np.broadcast_to(np.asarray(capacity),soil.shape)
+    weights=capacity*dz[:len(soil)]
+    storage=np.sum(weights[:-1]*(result[:-1]-soil[:-1]))-5.9e5*phase
+    roundoff=64.*np.finfo(np.float64).eps*(np.sum(weights*(abs(soil)+abs(result)))+5.9e5*abs(phase))
+    propagated=np.sum(weights[:-1]*abs(np.asarray(actual[0][:-1])-result[:-1]))+5.9e5*abs(
+        float(actual[2]['co2_phase_change_kg_m2'])-phase)
+    np.testing.assert_allclose(actual[2]['soil_energy_change_j_m2'],storage,rtol=0.,atol=roundoff+propagated)
+    residual=float(actual[2]['energy_residual_j_m2'])
+    assert abs(residual)<=roundoff,(residual,roundoff)
+    return dict(native_energy_change_j_m2=float(storage),energy_residual_j_m2=residual,
+        energy_roundoff_bound_j_m2=float(roundoff))
+
+
 def validate(source,compiler):
     jax.config.update("jax_enable_x64",True)
     cases=[]
@@ -209,7 +223,8 @@ def validate(source,compiler):
                 cases.append(dict(layers=n,case=name,max_soil_error_k=float(np.max(np.abs(np.asarray(actual[0])-result))),
                     ice_error_kg_m2=float(abs(float(actual[1])-ice[0])),
                     final_surface_temperature_k=float(result[0]),co2_phase_change_kg_m2=float(phase[0]),
-                    frost_retry=bool(actual[2]['frost_retry'])))
+                    frost_retry=bool(actual[2]['frost_retry']),
+                    **check_energy(actual,soil,result,dz,1500.*627.9,phase[0])))
         n=16
         dz=np.asfortranarray(soil_layer_thickness(n))
         for latitude in (-1.3,-.7,0.,.7,1.3):
@@ -222,7 +237,8 @@ def validate(source,compiler):
             np.testing.assert_allclose(actual[1],ice[0],rtol=2e-12,atol=2e-12)
             cases.append(dict(layers=n,case='case-7-subsurface-ice',latitude_rad=latitude,
                 max_soil_error_k=float(np.max(np.abs(np.asarray(actual[0])-result))),
-                ice_error_kg_m2=float(abs(float(actual[1])-ice[0]))))
+                ice_error_kg_m2=float(abs(float(actual[1])-ice[0])),
+                **check_energy(actual,soil,result,dz,1500.*627.9,phase[0])))
         for legacy in (False,True):
             for icecase in (0,7):
                 for latitude in (-1.3,-.7,0.,.7,1.3):
@@ -235,7 +251,8 @@ def validate(source,compiler):
                     np.testing.assert_allclose(actual[0],result,rtol=2e-12,atol=2e-12)
                     np.testing.assert_allclose(actual[1],ice[0],rtol=2e-12,atol=2e-12)
                     cases.append(dict(case='soil-materials',legacy=legacy,ice_case=icecase,latitude_rad=latitude,
-                        max_soil_error_k=float(np.max(np.abs(np.asarray(actual[0])-result)))))
+                        max_soil_error_k=float(np.max(np.abs(np.asarray(actual[0])-result))),
+                        **check_energy(actual,soil,result,dz,capacity,phase[0])))
         for n in (4,16):
             dz=np.asfortranarray(soil_layer_thickness(n))
             for condense in (False,True):
@@ -256,6 +273,7 @@ def validate(source,compiler):
                             np.testing.assert_allclose(actual[1],ice[0],rtol=2e-12,atol=2e-12)
                             np.testing.assert_allclose(actual[2]['co2_phase_change_kg_m2'],phase[0],rtol=2e-12,atol=2e-12)
                             case['max_soil_error_k']=float(np.max(abs(np.asarray(actual[0])-result)))
+                            case.update(check_energy(actual,soil,result,dz,1500.*627.9,phase[0]))
                         else:
                             assert not np.isfinite(result).all()
                             assert np.isnan(actual[0]).all()
