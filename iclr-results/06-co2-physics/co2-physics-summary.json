@@ -1,0 +1,63 @@
+{
+  "status": "pass",
+  "duration_sols": 5.001394307629275,
+  "cases": {
+    "surface_only": {
+      "300": {
+        "final_frost_deficit_k": 13.510593644090562,
+        "max_relative_total_co2_mass_drift": 1.5021317523178368e-13,
+        "max_raw_step_mass_error_kg": 3518968.0,
+        "max_projection_energy_change_j": 357601116160.0,
+        "finite": true,
+        "valid_inventory": true
+      },
+      "150": {
+        "final_frost_deficit_k": 13.510594684241184,
+        "max_relative_total_co2_mass_drift": 4.175548795615214e-13,
+        "max_raw_step_mass_error_kg": 360596.0,
+        "max_projection_energy_change_j": 36652974080.0,
+        "finite": true,
+        "valid_inventory": true
+      }
+    },
+    "atmospheric_condensation": {
+      "300": {
+        "final_frost_deficit_k": 0.0914094521954496,
+        "max_relative_total_co2_mass_drift": 1.965094753586527e-13,
+        "max_raw_step_mass_error_kg": 158969888.0,
+        "max_projection_energy_change_j": 16239692349440.0,
+        "finite": true,
+        "valid_inventory": true,
+        "deficit_reduction_percent": 99.32342386572013
+      },
+      "150": {
+        "final_frost_deficit_k": 0.09140961172343509,
+        "max_relative_total_co2_mass_drift": 5.313527395855999e-13,
+        "max_raw_step_mass_error_kg": 19030300.0,
+        "max_projection_energy_change_j": 1938259181568.0,
+        "finite": true,
+        "valid_inventory": true,
+        "deficit_reduction_percent": 99.3234227370461
+      }
+    }
+  },
+  "timestep_endpoint_differences_300_minus_150": {
+    "surface_only": {
+      "mean_surface_pressure_pa": 7.870861622905068e-06,
+      "mean_surface_temperature_k": 8.22556103230454e-08,
+      "min_air_temperature_k": 4.0136806944701675e-06,
+      "mean_co2_cloud_ice_pa": 0.0,
+      "max_wind_speed_ms": -4.099954044045617e-07
+    },
+    "atmospheric_condensation": {
+      "mean_surface_pressure_pa": -0.0025513929909948274,
+      "mean_surface_temperature_k": 0.0005418755766868344,
+      "min_air_temperature_k": -2.53948706756546e-05,
+      "mean_co2_cloud_ice_pa": 7.058057005854268e-05,
+      "max_wind_speed_ms": -3.265134849522733e-05
+    }
+  },
+  "limitations": "Synthetic paired mechanism test. No observational skill, seasonal equilibrium, terrain stability or full dry-core energy/momentum closure is established. Raw errors and projection energy changes remain reported.",
+  "source_snapshots_verified": true,
+  "initial_states_identical": true
+}

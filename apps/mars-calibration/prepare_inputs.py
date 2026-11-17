@@ -1,4 +1,4 @@
-"""Freeze the existing MY32 Ls45 demonstration inputs without new downloads."""
+"""Freeze staged inputs, optionally using a fresh current-code restart."""
 import argparse
 import json
 from pathlib import Path
@@ -8,6 +8,8 @@ from mars_calibration.launch import sha256
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--repo", type=Path, default=Path(__file__).resolve().parents[2])
 parser.add_argument("--output", type=Path, required=True)
+parser.add_argument("--restart", type=Path,
+                    help="Fresh restart made with this checkout; relative paths are resolved under --repo")
 args = parser.parse_args()
 sources = {
     "restart.npz": "outputs/branch_physical_diurnal_lw025_t21_l12_dt300/convection/checkpoints/restart_000477393.npz",
@@ -16,11 +18,14 @@ sources = {
     "dust.nc": "data/ames/fv3betaout1/ames_surface_reference.nc",
     "mola.img": "data/mola/meg004/megt90n000cb.img",
 }
+if args.restart is not None:
+    sources["restart.npz"] = str(args.restart)
 for source in sources.values():
     if not (args.repo / source).is_file():
         raise FileNotFoundError(args.repo / source)
 args.output.mkdir(parents=True, exist_ok=False)
-manifest = {"description": "MY32 Ls45 single-window calibration; daily-mean target index 5",
+manifest = {"description": ("Explicit restart with staged surface/dust/terrain inputs; target.nc is the legacy daily reference" if args.restart is not None else
+                            "MY32 Ls45 single-window calibration; daily-mean target index 5"),
             "files": {}}
 for name, source in sources.items():
     destination = args.output / name

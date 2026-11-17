@@ -81,7 +81,7 @@ MARS_DIURNAL_SWING_AMP: torch.Tensor  = torch.tensor(50.0,     dtype=TF_DTYPE)  
 MARS_THERMAL_TIDE_PA: torch.Tensor    = torch.tensor(30.0,     dtype=TF_DTYPE)  # Pa
 MARS_THERMAL_TIDE_PHASE: torch.Tensor = torch.tensor(-0.7 * math.pi, dtype=TF_DTYPE)  # rad
 
-# Default atmospheric composition (partial pressures in Pa)
+# Default atmospheric composition (column weights g*M/A in Pa)
 MARS_DEFAULT_COMPOSITION: Dict[str, torch.Tensor] = {
     "CO2": torch.tensor(580.0, dtype=TF_DTYPE),
     "N2":  torch.tensor(15.0,  dtype=TF_DTYPE),
@@ -154,7 +154,7 @@ class Mars(Planet):
     greenhouse_factor : float, optional
         Effective greenhouse enhancement (≥1).  Default 1.02.
     composition : dict, optional
-        Species → partial pressure (Pa).  Default is current Mars atmosphere.
+        Species → column weight (Pa).  Default is current Mars atmosphere.
     ice_mass : float, optional
         Initial polar + permafrost ice mass (kg).  Default 5 × 10¹⁵ kg.
     smooth_gates : bool, optional
@@ -241,7 +241,7 @@ class Mars(Planet):
             self._init_composition = {k: v.to(d) for k, v in MARS_DEFAULT_COMPOSITION.items()}
 
         # Composition is the single source of truth for what the atmosphere
-        # contains: rescale the partial pressures so they sum exactly to the
+        # contains: rescale the column weights so they sum exactly to the
         # (elevation-corrected) total surface pressure.
         comp_total = sum(self._init_composition.values())
         self._init_composition = {
@@ -569,7 +569,7 @@ class Mars(Planet):
 
         All bulk pressure change (polar-cap exchange, atmospheric escape) is
         CO₂ — the other species neither condense nor escape at these rates —
-        so the CO₂ partial pressure is the total minus the inert partials:
+        so the CO₂ column weight is the total minus the inert partials:
 
             P_CO2 = P_total − Σ P_i (i ≠ CO2)
 
@@ -627,7 +627,7 @@ class Mars(Planet):
     def inject(self, schedule: dict[str, float | torch.Tensor]) -> None:
         """Add GHGs to atmosphere.composition (kg → Pa) and resync GHF.
 
-        Each compound's partial pressure increases by ΔP = M·g / A_surface.
+        Each compound's column weight increases by ΔP = M·g / A_surface.
         Unknown compounds are added to composition on first injection.
         After this call ``mars.thermal.greenhouse_factor`` and ``mars.delta_F``
         reflect the updated atmospheric state.
@@ -655,6 +655,7 @@ class Mars(Planet):
     def decay_ghg(self, dt_years: float) -> None:
         """Exponentially decay all COMPOUNDS-registered gases in composition.
 
+        dt_years is elapsed time in Earth Julian years, matching the registry.
         Only species present in the COMPOUNDS registry (the seven super-GHGs)
         are decayed. Background gases (CO₂, N₂, Ar) are unaffected.
         """

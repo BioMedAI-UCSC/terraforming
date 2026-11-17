@@ -1,0 +1,653 @@
+{
+  "arguments": {
+    "task": "calibration",
+    "inputs": "outputs/nautilus-calibration-inputs",
+    "output": "outputs/differentiable/calibration",
+    "manifest": "outputs/differentiable/macda/windows.json",
+    "dt": 295.91748,
+    "steps": [
+      1,
+      4,
+      16,
+      32,
+      74
+    ],
+    "epsilons": [
+      0.001,
+      0.0001,
+      1e-05
+    ],
+    "updates": 50,
+    "learning_rate": 0.001,
+    "heating_bound": 0.0002,
+    "seed": 0,
+    "require_gpu": true,
+    "validate_only": false,
+    "cases": [
+      "no_pbl",
+      "no_convection",
+      "no_regolith",
+      "half_timestep"
+    ]
+  },
+  "inputs": {
+    "description": "MY32 Ls45 single-window calibration; daily-mean target index 5",
+    "files": {
+      "restart.npz": {
+        "source": "outputs/branch_physical_diurnal_lw025_t21_l12_dt300/convection/checkpoints/restart_000477393.npz",
+        "sha256": "1145fc8ef0dcea8bcdd146c75ba68a8bde8a6ad24dd2563815fc0d3078f7aa53"
+      },
+      "target.nc": {
+        "source": "data/arco_macda/macda_my32_ls045_10sol_daily_t21_l12.nc",
+        "sha256": "b4b459f5cb632e745b00a4cba647eb0bf38b1fa2d730be03ec29aecef17dbb98"
+      },
+      "surface.nc": {
+        "source": "data/tes/mgs_tes_surface_1deg.nc",
+        "sha256": "01d772af41e12f54c99236d32c5711da1dcfcff52569ce845712f3b8289ad16e"
+      },
+      "dust.nc": {
+        "source": "data/ames/fv3betaout1/ames_surface_reference.nc",
+        "sha256": "6a4dd4fd9da051c95505175a825a18877dd87fe29917d09f490746a843953833"
+      },
+      "mola.img": {
+        "source": "data/mola/meg004/megt90n000cb.img",
+        "sha256": "25f16fb7aaf857898dcf98bc4f841341a24f8b9f7e98453ca083bc45d897ca2c"
+      }
+    }
+  },
+  "manifest": {
+    "schema_version": 1,
+    "windows": [
+      {
+        "id": "my24_q0_s0",
+        "split": "train",
+        "block": "my24_q0",
+        "source": "https://huggingface.co/datasets/ananyo01/ARCO-MACDA/resolve/65a0bebd804b9c240752277e83f5737d58c6ee9c/macda_combined.zarr@65a0bebd804b9c240752277e83f5737d58c6ee9c",
+        "reference_kind": "reanalysis",
+        "start_seconds": 2855603.682,
+        "end_seconds": 2863001.619,
+        "restart": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my24_q0_s0-restart.npz",
+        "target": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my24_q0_s0-target.npz",
+        "forcing": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my24_q0_s0-forcing.npz",
+        "restart_sha256": "a9641595854b84a51252eb51510ebe01a34515f000505a3287cd26d05b7830fb",
+        "target_sha256": "fcd2a1f4d929b3d66e5a6677035442137b2f47004d652d9c2f0b56bb71a9a212",
+        "forcing_sha256": "586bb1016d3ef9486b2dca9cb7456a19faa20e096b89a0341eda054ff0c8eb54"
+      },
+      {
+        "id": "my26_q1_s1",
+        "split": "train",
+        "block": "my26_q1",
+        "source": "https://huggingface.co/datasets/ananyo01/ARCO-MACDA/resolve/65a0bebd804b9c240752277e83f5737d58c6ee9c/macda_combined.zarr@65a0bebd804b9c240752277e83f5737d58c6ee9c",
+        "reference_kind": "reanalysis",
+        "start_seconds": 142610031.54900002,
+        "end_seconds": 142617429.48600003,
+        "restart": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my26_q1_s1-restart.npz",
+        "target": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my26_q1_s1-target.npz",
+        "forcing": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my26_q1_s1-forcing.npz",
+        "restart_sha256": "b9cbf56007a7d5eed70a5db6f0ac251ce7c03010392dd3d02ee0790149239495",
+        "target_sha256": "e638c639970c45b8d3114cc3f08452b500da301a0452b145eb89be42af8ac727",
+        "forcing_sha256": "d12c1e07b2d97c091782f810c43b766c46b36d0c9ed10d52e33eec4fb5b13180"
+      },
+      {
+        "id": "my29_q2_s2",
+        "split": "train",
+        "block": "my29_q2",
+        "source": "https://huggingface.co/datasets/ananyo01/ARCO-MACDA/resolve/65a0bebd804b9c240752277e83f5737d58c6ee9c/macda_combined.zarr@65a0bebd804b9c240752277e83f5737d58c6ee9c",
+        "reference_kind": "reanalysis",
+        "start_seconds": 337013020.035,
+        "end_seconds": 337020417.972,
+        "restart": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my29_q2_s2-restart.npz",
+        "target": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my29_q2_s2-target.npz",
+        "forcing": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my29_q2_s2-forcing.npz",
+        "restart_sha256": "fbc4155827271b44582739de236ec9b4027b033d876e393dae16c90ddeeff6bb",
+        "target_sha256": "966918c680e443d44b84b36d3353504217f82341b410721b11ef8849b38277d9",
+        "forcing_sha256": "1bab3ea17c50a73bbbb29e310f0de883cac756813df0b88f526fe8e1929b0f80"
+      },
+      {
+        "id": "my31_q3_s3",
+        "split": "train",
+        "block": "my31_q3",
+        "source": "https://huggingface.co/datasets/ananyo01/ARCO-MACDA/resolve/65a0bebd804b9c240752277e83f5737d58c6ee9c/macda_combined.zarr@65a0bebd804b9c240752277e83f5737d58c6ee9c",
+        "reference_kind": "reanalysis",
+        "start_seconds": 474000619.464,
+        "end_seconds": 474008017.40099996,
+        "restart": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my31_q3_s3-restart.npz",
+        "target": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my31_q3_s3-target.npz",
+        "forcing": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my31_q3_s3-forcing.npz",
+        "restart_sha256": "7f008a6bc1e457ec38ab326fc21a40393ae390a118d4d6bdea7ca0df06dbe1ec",
+        "target_sha256": "09d97049a951e04baea246119bf62c670d214e3844bbbf190af1c6411338f1b5",
+        "forcing_sha256": "162bdd5aa22542bfcce3e01c7744ab773fb6eedfc70a83fd74b6a620bc7e4a79"
+      },
+      {
+        "id": "my32_q0_s0",
+        "split": "validation",
+        "block": "my32_q0",
+        "source": "https://huggingface.co/datasets/ananyo01/ARCO-MACDA/resolve/65a0bebd804b9c240752277e83f5737d58c6ee9c/macda_combined.zarr@65a0bebd804b9c240752277e83f5737d58c6ee9c",
+        "reference_kind": "reanalysis",
+        "start_seconds": 476094235.63500005,
+        "end_seconds": 476101633.572,
+        "restart": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my32_q0_s0-restart.npz",
+        "target": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my32_q0_s0-target.npz",
+        "forcing": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my32_q0_s0-forcing.npz",
+        "restart_sha256": "167f039f864194a3a33025a8fe68a5c4d5bf2e1f52d036e3521c1a5c77c7faa1",
+        "target_sha256": "bb72aa03343f293511dd33c4d5ff0a2877a924f1d6d8e3866ccb3ed430da0c04",
+        "forcing_sha256": "efce2237d092d4d49d7d2a25ec4c366cc9e19cbb035ba5db7929b9a166352c6a"
+      },
+      {
+        "id": "my32_q1_s2",
+        "split": "validation",
+        "block": "my32_q1",
+        "source": "https://huggingface.co/datasets/ananyo01/ARCO-MACDA/resolve/65a0bebd804b9c240752277e83f5737d58c6ee9c/macda_combined.zarr@65a0bebd804b9c240752277e83f5737d58c6ee9c",
+        "reference_kind": "reanalysis",
+        "start_seconds": 502586248.032,
+        "end_seconds": 502593645.969,
+        "restart": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my32_q1_s2-restart.npz",
+        "target": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my32_q1_s2-target.npz",
+        "forcing": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my32_q1_s2-forcing.npz",
+        "restart_sha256": "a9da7a5ba6ef8931beeedbeb01ed70198b77a608de23592eab22b868eb6c7e32",
+        "target_sha256": "11f15183b84958ff0c907b376b13e2e259d8a72608d5a04fe1564d6f0dfb4788",
+        "forcing_sha256": "196dccc2f47e69185aef491cdd7fade47a39d7c82f110b469a8914eb3f7afd1b"
+      },
+      {
+        "id": "my33_q2_s0",
+        "split": "validation",
+        "block": "my33_q2",
+        "source": "https://huggingface.co/datasets/ananyo01/ARCO-MACDA/resolve/65a0bebd804b9c240752277e83f5737d58c6ee9c/macda_combined.zarr@65a0bebd804b9c240752277e83f5737d58c6ee9c",
+        "reference_kind": "reanalysis",
+        "start_seconds": 570373544.763,
+        "end_seconds": 570380942.7,
+        "restart": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my33_q2_s0-restart.npz",
+        "target": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my33_q2_s0-target.npz",
+        "forcing": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my33_q2_s0-forcing.npz",
+        "restart_sha256": "0e27138f2216cbabe26c77010650ed2e151b274310c90fc8527405684bcd9559",
+        "target_sha256": "fe1fedaecb5be43aeb1b252fef4299c06bcd26b7f79e8054fd5feaa8951f8182",
+        "forcing_sha256": "98fa3ae218836463c605caa238caa98e81c135ca06e895ff91e40d8ac77ed403"
+      },
+      {
+        "id": "my33_q3_s3",
+        "split": "validation",
+        "block": "my33_q3",
+        "source": "https://huggingface.co/datasets/ananyo01/ARCO-MACDA/resolve/65a0bebd804b9c240752277e83f5737d58c6ee9c/macda_combined.zarr@65a0bebd804b9c240752277e83f5737d58c6ee9c",
+        "reference_kind": "reanalysis",
+        "start_seconds": 591072972.489,
+        "end_seconds": 591080370.426,
+        "restart": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my33_q3_s3-restart.npz",
+        "target": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my33_q3_s3-target.npz",
+        "forcing": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my33_q3_s3-forcing.npz",
+        "restart_sha256": "18f13528673ba6eb6eedd3da6b42dbf6b72166b909233a550d9471979ed5a49a",
+        "target_sha256": "1645095a29b37bf545fc8ea1b8ea95a99a92fbdc65213dd378f216ef15490129",
+        "forcing_sha256": "2a1690d70514918a04f50e30f8eefe350b64160dbb0722c4527596992dab48f2"
+      },
+      {
+        "id": "my34_q0_s0",
+        "split": "test",
+        "block": "my34_q0",
+        "source": "https://huggingface.co/datasets/ananyo01/ARCO-MACDA/resolve/65a0bebd804b9c240752277e83f5737d58c6ee9c/macda_combined.zarr@65a0bebd804b9c240752277e83f5737d58c6ee9c",
+        "reference_kind": "reanalysis",
+        "start_seconds": 595127041.965,
+        "end_seconds": 595134439.9020001,
+        "restart": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my34_q0_s0-restart.npz",
+        "target": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my34_q0_s0-target.npz",
+        "forcing": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my34_q0_s0-forcing.npz",
+        "restart_sha256": "cdc76e8839198f9d86a2850be2eb23b5198abf53015835170a1a6f2e3688b44b",
+        "target_sha256": "8a6896f7d1592390377f53f179b04cc1201980ee877b6ba52bcb278a031023ae",
+        "forcing_sha256": "d2e8d0e7614084caff855a2f59243a321f5a0a6b7282914cfe614067f26b08dc"
+      },
+      {
+        "id": "my34_q1_s2",
+        "split": "test",
+        "block": "my34_q1",
+        "source": "https://huggingface.co/datasets/ananyo01/ARCO-MACDA/resolve/65a0bebd804b9c240752277e83f5737d58c6ee9c/macda_combined.zarr@65a0bebd804b9c240752277e83f5737d58c6ee9c",
+        "reference_kind": "reanalysis",
+        "start_seconds": 619458856.758,
+        "end_seconds": 619466254.695,
+        "restart": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my34_q1_s2-restart.npz",
+        "target": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my34_q1_s2-target.npz",
+        "forcing": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my34_q1_s2-forcing.npz",
+        "restart_sha256": "4c4621f75c50e17d4334e313aca4b74b2c6de3fbe123197068d562ddeeef90ec",
+        "target_sha256": "588daf76bcb9efff3e9da47c6f2024a17b8e8d4e639bf7dd44a7640340bcf611",
+        "forcing_sha256": "fa236b31b38933d9d42aac45adc93f3284e286b84224915ed2916a3407fad089"
+      },
+      {
+        "id": "my35_q2_s0",
+        "split": "test",
+        "block": "my35_q2",
+        "source": "https://huggingface.co/datasets/ananyo01/ARCO-MACDA/resolve/65a0bebd804b9c240752277e83f5737d58c6ee9c/macda_combined.zarr@65a0bebd804b9c240752277e83f5737d58c6ee9c",
+        "reference_kind": "reanalysis",
+        "start_seconds": 687845386.386,
+        "end_seconds": 687852784.3230001,
+        "restart": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my35_q2_s0-restart.npz",
+        "target": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my35_q2_s0-target.npz",
+        "forcing": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my35_q2_s0-forcing.npz",
+        "restart_sha256": "cc20780f66b1c0a7858d7539c8b86d39880ca7dfb8c0cfb087b9e9f0233fc200",
+        "target_sha256": "0ae0fc708e40afdf0970b7f966ac784ad711c7beca3806bd0f83e48990090d6c",
+        "forcing_sha256": "5947863f8a0130d2319dc41e03e76eeb02453da67e8f821298f79979bcc032d2"
+      },
+      {
+        "id": "my35_q3_s3",
+        "split": "test",
+        "block": "my35_q3",
+        "source": "https://huggingface.co/datasets/ananyo01/ARCO-MACDA/resolve/65a0bebd804b9c240752277e83f5737d58c6ee9c/macda_combined.zarr@65a0bebd804b9c240752277e83f5737d58c6ee9c",
+        "reference_kind": "reanalysis",
+        "start_seconds": 710460879.7950001,
+        "end_seconds": 710468277.7320001,
+        "restart": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my35_q3_s3-restart.npz",
+        "target": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my35_q3_s3-target.npz",
+        "forcing": "/home/md-ml/ssudars1/terraforming/outputs/differentiable/macda/my35_q3_s3-forcing.npz",
+        "restart_sha256": "06018cec56c145d9373113531ac79dd1d9d5bc30e42ff50c704ba8f74d71e7ec",
+        "target_sha256": "fad43cd20559d04978ccd9a7442654bb0a1de82cff9137f940291c617696b119",
+        "forcing_sha256": "79a184938ac1ff48784c18f9a3de7b7b2912dd5c3f8ab49fe85f6efcb5d2b040"
+      }
+    ],
+    "dt_seconds": 295.91748,
+    "native_contract": {
+      "citations": [
+        "10.57967/hf/8771",
+        "10.5285/cd037a9ea387438fabf4d674dbe53088"
+      ],
+      "clock": "MACDA epoch midnight; solver clock=(source_sol+0.5)*rotation_period; orbit anchored to start Ls",
+      "co2": {
+        "energy_limited": true,
+        "escape_rate_kg_s": 0.0,
+        "exchange_rate_pa_s_per_k": 0.0001,
+        "exchange_timestep_s": 24000.0,
+        "frost_point_k": 149.0,
+        "gravity_m_s2": 3.72076,
+        "ice_ref_pa": 100.0,
+        "latent_heat_j_kg": 570000.0,
+        "supply_scale_pa": 50.0,
+        "thermal_inertia": 60000.0,
+        "use_pressure_frost": true
+      },
+      "code_revision": "79d2279cc75b7ab7ae7511c90b380cacd1ba23f3",
+      "criteria": {
+        "beats_no_gcm": true,
+        "neural_beats_linear": true,
+        "paired_block_mse_interval_excludes_zero": true,
+        "relative_rmse_reduction": 0.1
+      },
+      "dt_seconds": 295.91748,
+      "dust": "start coldust held fixed; visible=coldust, longwave=coldust/3",
+      "feature_schema": [
+        [
+          "start_t",
+          "K"
+        ],
+        [
+          "start_surface_t",
+          "K"
+        ],
+        [
+          "start_next_t",
+          "K"
+        ],
+        [
+          "start_u",
+          "m/s"
+        ],
+        [
+          "start_v",
+          "m/s"
+        ],
+        [
+          "start_pressure",
+          "Pa"
+        ],
+        [
+          "start_dust",
+          "1"
+        ],
+        [
+          "forecast_t",
+          "K"
+        ],
+        [
+          "forecast_delta_t",
+          "K"
+        ],
+        [
+          "forecast_surface_t",
+          "K"
+        ],
+        [
+          "forecast_surface_air_delta",
+          "K"
+        ],
+        [
+          "forecast_vertical_delta",
+          "K"
+        ],
+        [
+          "forecast_u",
+          "m/s"
+        ],
+        [
+          "forecast_v",
+          "m/s"
+        ],
+        [
+          "forecast_pressure",
+          "Pa"
+        ],
+        [
+          "insolation",
+          "W/m2"
+        ],
+        [
+          "sin_lst",
+          "1"
+        ],
+        [
+          "cos_lst",
+          "1"
+        ],
+        [
+          "sin_ls",
+          "1"
+        ],
+        [
+          "cos_ls",
+          "1"
+        ],
+        [
+          "sin_lat",
+          "1"
+        ],
+        [
+          "sin_lon",
+          "1"
+        ],
+        [
+          "cos_lon",
+          "1"
+        ],
+        [
+          "terrain",
+          "m"
+        ]
+      ],
+      "fit": {
+        "batch_starts": 8,
+        "clip": 1.0,
+        "columns": 128,
+        "epochs": 100,
+        "lr": 0.001,
+        "patience": 10,
+        "ridge": 0.001,
+        "seed": 0,
+        "weight_decay": 0.0001
+      },
+      "forcing": {
+        "albedo": 0.25,
+        "ames_co2_longwave_opacity_scale": 1.0,
+        "ames_correlated_k_enabled": true,
+        "ames_dust_longwave_opacity_scale": 1.0,
+        "au_m": 149597870700.0,
+        "axial_tilt_rad": 0.4396484385773716,
+        "co2_longwave_band_strengths": [
+          0.12,
+          1.32,
+          0.48
+        ],
+        "co2_longwave_band_weights": [
+          0.18,
+          0.62,
+          0.2
+        ],
+        "co2_longwave_optical_depth": 0.35,
+        "co2_longwave_pressure_exponents": [
+          1.0,
+          1.22,
+          1.08
+        ],
+        "co2_longwave_temperature_exponents": [
+          0.1,
+          0.75,
+          0.35
+        ],
+        "co2_near_ir_optical_depth": 0.08,
+        "co2_radiation_enabled": true,
+        "co2_reference_temperature_k": 200.0,
+        "co2_shortwave_band_strengths": [
+          0.35,
+          2.67
+        ],
+        "co2_shortwave_band_weights": [
+          0.72,
+          0.28
+        ],
+        "co2_shortwave_pressure_exponents": [
+          1.0,
+          1.18
+        ],
+        "co2_shortwave_temperature_exponents": [
+          0.15,
+          0.55
+        ],
+        "convective_adjustment_enabled": true,
+        "convective_relaxation_s": 900.0,
+        "diurnal": true,
+        "dust_climatology_ls_deg": null,
+        "dust_conrath_parameter": 0.003,
+        "dust_longwave_climatology": null,
+        "dust_longwave_optical_depth": 0.0,
+        "dust_single_scattering_albedo": 0.92,
+        "dust_top_height_km": 35.0,
+        "dust_visible_climatology": null,
+        "dust_visible_optical_depth": 0.0,
+        "eccentricity": 0.0934,
+        "emissivity": 0.95,
+        "greenhouse_factor": 1.02,
+        "init_orbital_angle_rad": 0.0,
+        "ls_perihelion_rad": 4.380776422505767,
+        "minimum_wind_ms": 0.1,
+        "orbital_period_s": 59356800.0,
+        "pbl_diffusion_enabled": true,
+        "pbl_height_m": 5000.0,
+        "pbl_implicit_timestep_s": 1800.0,
+        "regolith_enabled": true,
+        "regolith_layer_skin_depth_fractions": [
+          0.25,
+          0.5,
+          1.0,
+          2.0,
+          4.0,
+          8.0,
+          12.0,
+          18.0,
+          26.0,
+          38.0,
+          56.0,
+          82.0
+        ],
+        "regolith_volumetric_heat_capacity_j_m3_k": 1000000.0,
+        "rotation_period_s": 88775.244,
+        "semi_major_axis_m": 227939200000.0,
+        "sensible_heat_transfer_w_m2_k": 2.0,
+        "solar_slant_path_enabled": true,
+        "stability_exchange_enabled": true,
+        "stefan_boltzmann": 5.670374419e-08,
+        "surface_exchange_multiplier": 1.0,
+        "surface_roughness_m": 0.01,
+        "surface_thermal_inertia_tiu": 250.0,
+        "thermal_inertia": 60000.0,
+        "tsi_1au_w_m2": 1361.0,
+        "von_karman_constant": 0.4
+      },
+      "grid": "T21/L12",
+      "implementation_hash": "7a46d70a47848378e80b75b3c80accdbb42e5f56837790010567f099ade3c5b1",
+      "initialization": "observed spectral T/u/v/log(ps); start-only surface/frost; soil initially uniform oldest history T, insulated bottom, one sol prescribed past surface conduction",
+      "lead_seconds": 7397.937000000001,
+      "lead_sols": 0.08333333333333333,
+      "manifest_hash": "8b33ee87723797a8632cb39747c5787d571ff99b90d81a258fa6d14418826b09",
+      "precision": "float64",
+      "schema": 1,
+      "sigma_centers": [
+        0.041666666666666664,
+        0.125,
+        0.20833333333333334,
+        0.2916666666666667,
+        0.375,
+        0.4583333333333333,
+        0.5416666666666666,
+        0.625,
+        0.7083333333333334,
+        0.7916666666666666,
+        0.875,
+        0.9583333333333334
+      ],
+      "software": {
+        "dinosaur": "1.3.6",
+        "jax": "0.11.0",
+        "jaxlib": "0.11.0",
+        "numpy": "2.4.2",
+        "torch": "2.14.0",
+        "xarray": "2026.7.0"
+      },
+      "source_revision": "65a0bebd804b9c240752277e83f5737d58c6ee9c",
+      "source_url": "https://huggingface.co/datasets/ananyo01/ARCO-MACDA/resolve/65a0bebd804b9c240752277e83f5737d58c6ee9c/macda_combined.zarr",
+      "source_variables": [
+        "temp",
+        "uwind",
+        "vwind",
+        "psurf",
+        "tsurf",
+        "coldust",
+        "co2ice"
+      ],
+      "steps": 25,
+      "terrain_path": "/home/md-ml/ssudars1/terraforming/data/mola/meg004/megt90n000cb.img",
+      "terrain_sha256": "25f16fb7aaf857898dcf98bc4f841341a24f8b9f7e98453ca083bc45d897ca2c"
+    },
+    "limitation": "Prespecified seasonal pilot, not full-coverage held-out climatology"
+  },
+  "environment": {
+    "python": "3.14.7 | packaged by conda-forge | (main, Sep  2 2026, 21:08:32) [GCC 15.3.0]",
+    "platform": "Linux-6.8.0-138-generic-x86_64-with-glibc2.39",
+    "processor": "x86_64",
+    "cpu_count": 32,
+    "backend": "gpu",
+    "devices": [
+      "cuda:0",
+      "cuda:1",
+      "cuda:2",
+      "cuda:3"
+    ],
+    "packages": {
+      "jax": "0.11.0",
+      "jaxlib": "0.11.0",
+      "dinosaur": "1.3.6",
+      "numpy": "2.4.2",
+      "scipy": "1.18.0"
+    },
+    "git_commit": "79d2279cc75b7ab7ae7511c90b380cacd1ba23f3",
+    "git_status": "",
+    "xla_flags": "--xla_cpu_multi_thread_eigen=false intra_op_parallelism_threads=2",
+    "jax_enable_x64": true
+  },
+  "source_hashes": {
+    "scripts/cache_neural_temp.py": "335d73e3b88b3722675236858e113c9b103989fe639a29426cdfb7850988c5b8",
+    "scripts/calibrate_mars_physics.py": "5606c5e734af4e02c39a067876a5286fc256235a77af1aea2d69e9306a596b22",
+    "scripts/test_fetch.py": "b505d7e3fec980c600793d55f1d07fa2f27847f20370d64b03abf024384e18f7",
+    "scripts/stage_ames_co2_radiation.py": "af9633520166d1d179ae6eda7a5c0d2211bda15c1e583f67e48e77061a6d3273",
+    "scripts/export_mars_seasonal_checkpoints.py": "fc81fef27afd663957df95f4ee4c8f198a1fd5d7e228fe4fa5b44d8f5cd34024",
+    "scripts/download_maven_euv_samples.py": "fd439e1fdc9b3879b7b7b3a175d38d0326f62dd545fc2f89fc112e54501764c7",
+    "scripts/validate_mars_gradient.py": "2416a40723fe173f89605df5482cfca0aa4baacc12b6f338c498b62e336f0b5b",
+    "scripts/create_crustal_magnetism_map_from_tif.py": "e1b4c69e7fa1aed6633ab266af75ddc428efba05d1f5d9789014ad6a589c73aa",
+    "scripts/prepare_differentiable_windows.py": "b2287d19e3d887d2bcb7a6d2aee3a81ed4671689ddde2daca3ea30dbeec5c7a2",
+    "scripts/evaluate_seasonal_field_convergence.py": "a0daf93eba994f112192742b0dffac3f9d19d8889fd707436b65dab81d9b664f",
+    "scripts/neural_temp_data.py": "411eb8cdfbef850bd37041e57c42bd3ef2ef497ef98086b69b3378657d3a0c89",
+    "scripts/evaluate_neural_temp.py": "1e515fd41b0732116b595f4dcfd4b6cd8d9973f51c2bcb430c6f9bfc1c6aedb2",
+    "scripts/create_crustal_magnetism_relief_composite.py": "35b85cb7e311299c2bba9de1dc4f2d282c01bf7f88c7d2deba5bc75ad8ec81de",
+    "scripts/create_mars_mantle_map_local_data.py": "6e53461ba58bb152ddacaa74e4a841a61d30f86062a09a3c41891db54f4d7ed8",
+    "scripts/run_mars_paper_experiments.py": "d175ea86b6424e7beeaeb6db4afc14554d3f19e1e85abaa021b7e2e0ee831c13",
+    "scripts/stage_mola.py": "e7f7dae93388289e24f9fe3bb9f362d673b67c2e4ebeb64cf07f8a25454f39fd",
+    "scripts/find_marsis_polar_orbits.py": "f49d13c1614de65ef4726f83ad6fb1954da2bf0a2ea966f52fd17d6c62251761",
+    "scripts/benchmark_ames.py": "12945ccd6dd8ec400b4dbfd38ed071b5ce9e38ba81474e259cde81f542a4c9ca",
+    "scripts/compare_mars_reference.py": "88477adf17047db87b00af4670138948c49c497b4c2e8936ec6af94667004fd3",
+    "scripts/evaluate_physical_baseline.py": "38da38d0d2e5fdb8724ebcf0b2f6c7d803d9b1f7ee4291d790530efe083d2849",
+    "scripts/stage_tes_surface.py": "893b99be8f1debc71dff5d87d3fb553fa6a5fcbbc9e99920f9537193370ca058",
+    "scripts/run_neural_temp.py": "eda12262740b72621489c840a9089f4f18a5a26ecbc7f7365ed04b70d3e18df7",
+    "scripts/create_mars_internal_structure_diagram.py": "dc9f6cea1bd651266608d5561e3a453ae956ddac387f16509e00159a3ac411a1",
+    "scripts/run_differentiable_experiments.py": "bd7e83ba5615cac78f8a142e520232383d2e46cb2575655b999913761cb37b3f",
+    "scripts/diagnose_mars_energy_budget.py": "c0f0530ebefd037e7a875fb8b78769bb14cb1970788631cf852ceb98c2a6cbb3",
+    "scripts/download_maven_kp_api.py": "d0c8356fb725f487d520a1d5954e85dc364c38af5c519a56651b86c2561a2963",
+    "scripts/evaluate_arco_seasonal.py": "29f3d8045f803a4f9da28292a884fb52ddafddce65092c26f02dd5fa73c37fe4",
+    "scripts/create_mars_main_characters_videoclip.py": "3c4cb8fb9b3fc94d4222abbe9a8d5fb5f0dcb7680a59dbb833923105da4bbc0c",
+    "scripts/neural_temp_model.py": "fcaec8c26a62b961fb98f1d76fcd71bf2b240ac250b83defb124a131b1de06f5",
+    "scripts/download_marsis_optim.py": "9caa22f44a10f2d7f9cfc9825ac0b96aa9e40123e185d926aaa65dc9348280f0",
+    "scripts/analyze_differentiable_experiments.py": "3818b94b028bb06a997eab0cbda51c18e74a212d6038e1a49c6aeb81a6ba74ee",
+    "scripts/train_neural_temp.py": "714de200aae14c33c7caf9191f6612240a37937549f92e926b03bb665699fea7",
+    "scripts/create_jupiter_seen_from_mars_local_data.py": "d4b394af6d192602debea8b4ab05238f0de794126ecf74541606eb073963cd00",
+    "scripts/create_south_pole_melt_map.py": "86734ef97b18d80d982b2c27d8a5505ce487a20d0c3d3c44eaf6fb0113ead355",
+    "scripts/create_wider_hellas_melt_fit_map.py": "87101d5e09f9eda90952a85638f011bdc5b62c31127e33c6fee92ea0da522f04",
+    "scripts/run_gcm3d_ablation.py": "b2467426b2059b105dc85c40ca51c9755c1d003fea924f3b21fa8164409fd9c9",
+    "scripts/create_mars_flooded_lowlands_map.py": "555bedb69dbc32dfc32394ba9f29804c7abb2f62a177d2e4eac6e253f8dab97c",
+    "scripts/stage_arco_macda.py": "7923b856cbb5f46ab423c1e447e75cffd66f9f91a453f815ad7e3de5f0a0cde4",
+    "scripts/evaluate_seasonal_convergence.py": "2026e3f4eb7a82fce5799fa9928c0c0df9d9bb4e40271f35820c1c6517e8aeff",
+    "scripts/benchmark_mcd.py": "2536580f86d2e46410975c3feb57807d1379c22222cfbfedd8128838de43103f",
+    "scripts/stage_ames_surface_reference.py": "715c93e325840c9ef2c43aa6fe825e5ece1cdca87ea50927ff2f9ac9d372ff5a",
+    "package/src/__init__.py": "b29da4fb16e7ef0dd91a4a319be1ac209b2fd2e4d12565e976c464f7c6719eb2",
+    "package/src/framework/planet.py": "23454eea3b6c1d8e5f7d0f9b27d78a5319ac91a28bf2c455ca2e452d21cbf93c",
+    "package/src/framework/atmosphere.py": "6fb2d56b0ac856748c8d2b519d76237dd488d6d52290600177a00c82b9cb54e7",
+    "package/src/framework/__init__.py": "4bf8a80fcc054cddc8fa4f62ae17d29c71bfd6ff7aa98d0ed0a59ffdde1fa186",
+    "package/src/framework/orbital.py": "be19edc7951c4366c40311321ff28230d5754064f3df056104bd0ec274be4390",
+    "package/src/framework/water.py": "23b1460cb36efa435a74842b2272cbf34821e9b56fa2a349f853a74b93602ad2",
+    "package/src/framework/magnetic.py": "9d29057390d5492426b17e11facf590c613160c0e52b603fe8a5dec8c8962730",
+    "package/src/framework/radiation.py": "34cc7a3d0df54a7e42c6c3c8efe824a1f33e0840eb37db9e95b8bde53bbc8138",
+    "package/src/framework/thermal.py": "2759be7e81672a86023ab1c73fae211b600d3cbbf67e967346827737493fafa1",
+    "package/src/framework/intrinsic.py": "fbbfccdf74ecea7ecd79ceae17c7c28e5fa0370fdb38c9cbc4339db607828f13",
+    "package/src/engine/__init__.py": "d91e7bb01689149254a4002e7c7e539f732894534e265ae9f836a6a89b039d7d",
+    "package/src/engine/batched_controller.py": "9ee922c568e9a0fce0dbdf4899b5986d4dabf5bc5dda2216fdceb0ae295c1955",
+    "package/src/engine/time_controller.py": "3e954de77930878e8f5819676cb9aac0c7e595bad312ec152294aaf06fc12807",
+    "package/src/engine/diagnostics.py": "1f85db1dc3a74f171618942b2598310dabd32d801b24d1b74b6b68413332bd6b",
+    "package/src/interventions/forcing.py": "457f411fa614bc46dc869df9a9fdf29fcdc5667e07d7aaec87aeab3d737e99df",
+    "package/src/interventions/state.py": "e96117b4b780a8c58e7a89510c9474022be198e83a47cc4242cd53ec091cb873",
+    "package/src/interventions/__init__.py": "95200729f58fcd67f602596a9e2315fc35ecd7e0385c858c2ef7667cc383365e",
+    "package/src/interventions/magneticfield.py": "830b2004adefae1cec7dd228102826d33d98b839509c800107f800d6f25d0e10",
+    "package/src/interventions/controller.py": "f52c58e9e1a71e9d3f904eca23691a8c5fead76d5429bb04c0cead09ccfae83f",
+    "package/src/interventions/compounds.py": "e5f2f6f9f1d9340c6dfd05bd30150e102d0caeeed2678d90acbbd1b7225bac41",
+    "package/src/celestials/__init__.py": "29c2fd48e346e559c402fefa1f3ed1cc9c6188813eb2a2aec4dbb3decdc9ea63",
+    "package/src/constants/__init__.py": "8a6fa8cb471cf45a5ed4a1127defe4f080740547290cd69e04710a3141e98043",
+    "package/src/celestials/planets/__init__.py": "84e079788db2f414b3d394f38c5ee4e91311959f37e7385c1006c3be04846e8c",
+    "package/src/celestials/planets/mars/dust.py": "6167ffa94c8505e5dc52217ed1f4b0d1f68e79de5a00dfe0af7ec9432a514263",
+    "package/src/celestials/planets/mars/planet.py": "588857bfa4997852d9c7f1e05768c801f6e2a89fce2b10cfbee57619b93041e1",
+    "package/src/celestials/planets/mars/gcm.py": "44b6e395f1f029ee8bbd9634531b191d89fad67a063dd66a871488a49da215a9",
+    "package/src/celestials/planets/mars/seasonal.py": "608b567647de09c3550f6c3072e0b9c741270f7d11aa7fc38437ef7ef7c3c815",
+    "package/src/celestials/planets/mars/maps.py": "786c30ba734c7c5688c7ead539e46d0d8657b2fa1e88c6c3682a7347f73e06db",
+    "package/src/celestials/planets/mars/__init__.py": "97a2a9aec311bd23f337e3bcb46c922dfcd0d761458b8961a6c7350b0e2a7e3c",
+    "package/src/celestials/planets/mars/mcd.py": "fc7fd83b0515af6302cf68d4239fac038eb81443d336b3d295e24450db469df0",
+    "package/src/celestials/planets/mars/surface.py": "2f6206fe51c1c5bb7c24ca8e22d1d74f534f2e74a7a66f5d1bfb3f1b7dba72bb",
+    "package/src/celestials/planets/mars/topography.py": "c44017d8beac81071a068a6b213d95500f309bad62334640f4aabed3dfd9c361",
+    "package/src/framework/physics/gcm.py": "bfb14176e40347c2f9c63f68ed47fddbd6ebf0a455fd7130644240413ee4ff11",
+    "package/src/framework/physics/ames_radiation.py": "de744fe65f5c7e9a5633fd6499a54e5a9fd397ecf0149cf5d5d64d063d743234",
+    "package/src/framework/physics/__init__.py": "61429bf57d5d51c7078c4b880802072116ea69582cb9444f54769d932ab99dc9",
+    "package/src/framework/gcm/coordinates.py": "f7ce0d0bd41d0a480e2fe962c6bfa07fae148eb0952a47a42e4292eb46419be2",
+    "package/src/framework/gcm/body.py": "1f5ad7c21904e8391b74b121904ff58cb273054702388a334422415740afc1a3",
+    "package/src/framework/gcm/restart.py": "f023436cd0e0aa800b37debbbd866ca0e7431332ba88f1c2bcb24d6503c81293",
+    "package/src/framework/gcm/__init__.py": "f4b352ba4c1ecc9e5b8754bd624e55ab975829036f1807c97ede55b64dd8999b",
+    "package/src/framework/gcm/learning.py": "171a402dfc4c1ab85aa6e181b1ef6f89683b6876844e037ae57b81cad13b6f65",
+    "package/src/framework/gcm/specs.py": "0fcbb0581ed66b9da3840517947dde1aee4f5b0f293d0ca5a98504500fbbb23b",
+    "package/src/framework/gcm/_dinosaur.py": "b921798f40d367595ec4f4fa496feb2a14f8c4c6ac187d3aad6d743ae66677fa",
+    "package/src/framework/gcm/benchmarks.py": "c9756c19041978c60ea7c5e0232eaad9f381db7bb549ba756623cc355a99b2cd",
+    "package/src/framework/gcm/dynamics.py": "d00cf8a43824f621c91389bc86f0e7269d4b47a880f9b60dd3fe1682e5030524",
+    "package/src/framework/neural/training.py": "8891170a38ab9957df3ffff60974e9974fe4653e15350a8bff804e032902a06f",
+    "package/src/framework/neural/checkpoints.py": "0bd023bbfc8c6d4db787ae2bf57ade7da7b6cfa5e324e387eb2e51214066284d",
+    "package/src/framework/neural/__init__.py": "2d4b98ec72ad9017856ce2aa5a5def59f9d3800294e9393c8b5a74feb051ce17",
+    "package/src/framework/neural/columns.py": "242539d36a418204c11a37fffbc7883629d75df619d005dba5214ee18d5a21e1",
+    "package/src/framework/neural/tendency.py": "f518112bee1cd39830d1233aeadbd9405538d3a2f34516b51fe2aa8c131065d8",
+    "package/src/framework/neural/radiation.py": "c7e69ddb159e21d4c4de568e559d83ae01caeb8d5102b2e4d7eb7636b4203237",
+    "package/src/framework/neural/models.py": "9ae49e1c19014c94f5fbfd253a0f259ed2534e54400b9896673feeb01e5c7eda",
+    "apps/mars-calibration/prepare_inputs.py": "7e83a3e9b959e4bb1b6a56610ea8ea912f104fb8c965324a6d28ff0398407839",
+    "apps/mars-calibration/mars_calibration/__init__.py": "fe2f4b094c4b3b3487fa43a9280c1f3dddd193b28c2ba640fd73d0527b62c3b2",
+    "apps/mars-calibration/mars_calibration/launch.py": "e5418e553f0f43de18d30d8e0822be3398e0d3023bda0c688252f9cc38dafc61",
+    "apps/mars-calibration/mars_calibration/driver.py": "3071e2fbe022d0c24dd6968e8cf1484280a98c4b7572b4899227ad12fe4139c2",
+    "apps/mars-calibration/mars_calibration/paper.py": "69be4bb63fb1612a0792db8f823e6279ae115e52070c6048ced5dd241ff3f59e",
+    "apps/mars-calibration/tests/test_differentiable_experiments.py": "34106c3e37a546fa709a2f88c7f7048ea1d369bb265eaf122058272618b55840",
+    "apps/mars-calibration/tests/test_paper.py": "44c6227b04ed120ebc4b73d9d6ade42311bc260a2a2944381c033c5b5b5f6c56",
+    "apps/mars-calibration/tests/test_application.py": "b89b243c400b53635a648d4b300cd0c3f605a1c709fa01815d4c7303d1deb43c",
+    "apps/mars-calibration/build/lib/mars_calibration/__init__.py": "fe2f4b094c4b3b3487fa43a9280c1f3dddd193b28c2ba640fd73d0527b62c3b2",
+    "apps/mars-calibration/build/lib/mars_calibration/launch.py": "e5418e553f0f43de18d30d8e0822be3398e0d3023bda0c688252f9cc38dafc61",
+    "apps/mars-calibration/build/lib/mars_calibration/driver.py": "8eb0619ba7f056d563490bdf82b90010c4658c887aaf18ee0f13c66cf7955d93"
+  }
+}

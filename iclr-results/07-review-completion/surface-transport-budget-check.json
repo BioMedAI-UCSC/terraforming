@@ -1,0 +1,96 @@
+{
+  "scope": "Prescribed exchange-only column, not observed Mars accuracy or full-model energy closure",
+  "legacy_source_commit": "313e43532e5addff0ca6b2dbbafae56b01b68fe2",
+  "source_sha256": {
+    "scripts/validate_surface_mass_transport.py": "dcdd281ac6a147e074f40d8474db9e85e6c1359ca7a0aa917c22d7f4b4cab853",
+    "package/src/framework/physics/co2_clouds.py": "000fdef931306dc21601fd1e591fe586142eb1ec891e12113b245de2f2694a31",
+    "package/src/framework/physics/gcm.py": "b9330b6b067c1384cef5036ae93423236f7b882ab69465389ec26f0d12409965",
+    "package/tests/gcm3d/test_co2_clouds.py": "f89547ff4775ce89a1f9aab746e1f40ab8fb16e98d8b0f0f0809d848bae30e96"
+  },
+  "forcing": {
+    "frost_point_k": 149.0,
+    "latent_heat_j_kg": 570000.0,
+    "gravity_m_s2": 3.72076,
+    "thermal_inertia": 60000.0,
+    "use_pressure_frost": true,
+    "exchange_rate_pa_s_per_k": 0.0001,
+    "ice_ref_pa": 100.0,
+    "supply_scale_pa": 50.0,
+    "escape_rate_kg_s": 0.0,
+    "energy_limited": true,
+    "exchange_timestep_s": 24000.0,
+    "atmospheric_condensation": true,
+    "atmospheric_condensation_timescale_s": 3600.0,
+    "surface_exchange_pressure_ratio": 0.991,
+    "cloud_particle_radius_m": 5e-05,
+    "cloud_ice_density_kg_m3": 1600.0,
+    "cloud_ice_heat_capacity_j_kg_k": 850.0
+  },
+  "pressure_pa": 610.0,
+  "surface_temperature_k": 150.0,
+  "frost_mass_kg_m2": 20.0,
+  "temperature_k": [
+    140.0,
+    145.45454545454544,
+    150.9090909090909,
+    156.36363636363637,
+    161.8181818181818,
+    167.27272727272728,
+    172.72727272727275,
+    178.1818181818182,
+    183.63636363636365,
+    189.0909090909091,
+    194.54545454545456,
+    200.0
+  ],
+  "wind_ms": [
+    [
+      -30.0,
+      -18.18181818181818,
+      -6.36363636363636,
+      5.454545454545455,
+      17.272727272727277,
+      29.090909090909093,
+      40.909090909090914,
+      52.727272727272734,
+      64.54545454545455,
+      76.36363636363637,
+      88.18181818181819,
+      100.0
+    ],
+    [
+      5.0,
+      5.0,
+      5.0,
+      5.0,
+      5.0,
+      5.0,
+      5.0,
+      5.0,
+      5.0,
+      5.0,
+      5.0,
+      5.0
+    ]
+  ],
+  "cloud_ice_kg_per_kg_gas": 0.01,
+  "surface_deposition_kg_m2_s": 0.0001,
+  "results": {
+    "legacy": {
+      "mass_residual_kg_m2_s": 0.0,
+      "energy_residual_w_m2": 15.6642803030303,
+      "horizontal_momentum_residual_pa": [
+        -0.0034999999999999996,
+        -0.0004999999999999998
+      ]
+    },
+    "corrected": {
+      "mass_residual_kg_m2_s": 0.0,
+      "energy_residual_w_m2": 0.0,
+      "horizontal_momentum_residual_pa": [
+        1.734723475976807e-18,
+        1.0842021724855044e-19
+      ]
+    }
+  }
+}

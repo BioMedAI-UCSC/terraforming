@@ -16,6 +16,8 @@ Covers:
 
 from __future__ import annotations
 
+import math
+from types import SimpleNamespace
 import pytest
 import torch
 
@@ -58,6 +60,17 @@ class TestInterventionControllerInit:
         keys_before = set(mars.atmosphere.composition.keys())
         InterventionController(mars, {"CF4": 1e9})
         assert set(mars.atmosphere.composition.keys()) == keys_before
+
+    def test_one_mars_orbit_decays_over_elapsed_earth_years(self, monkeypatch):
+        mars = Mars(device="cpu")
+        controller = InterventionController(mars, {"SF6": 1e9})
+        monkeypatch.setattr(controller._tc, "run", lambda duration: [SimpleNamespace()])
+        monkeypatch.setattr(controller, "_make_snapshot", lambda year, history: None)
+        controller.run(1)
+        area = 4 * math.pi * _val(mars.intrinsic_params.radius)**2
+        initial = 1e9 * _val(mars.intrinsic_params.gravity) / area
+        retention = math.exp(-controller._year_s / (365.25 * 86400.) / COMPOUNDS["SF6"].atmospheric_lifetime_yr)
+        assert _val(mars.atmosphere.composition["SF6"]) == pytest.approx(initial * retention, rel=1e-12)
 
     def test_empty_schedule_leaves_composition_unchanged(self):
         mars = Mars()

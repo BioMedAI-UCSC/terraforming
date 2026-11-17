@@ -1,10 +1,10 @@
 name: Nautalis experiment runtime
 on:
   pull_request:
-    paths: ['apps/nautalis/**', 'iclr_experiments/**', '.github/workflows/paper-experiments.yml']
+    paths: ['apps/nautalis/**', 'experiments/**', '.github/workflows/paper-experiments.yml']
   push:
     branches: [main]
-    paths: ['apps/nautalis/**', 'iclr_experiments/**', '.github/workflows/paper-experiments.yml']
+    paths: ['apps/nautalis/**', 'experiments/**', '.github/workflows/paper-experiments.yml']
 permissions:
   contents: read
 jobs:
@@ -16,4 +16,4 @@ jobs:
         with:
           python-version: '3.12'
       - run: python apps/nautalis/test_runtime.py
-      - run: python iclr_experiments/test_runtime.py
+      - run: python apps/nautalis/test_init.py

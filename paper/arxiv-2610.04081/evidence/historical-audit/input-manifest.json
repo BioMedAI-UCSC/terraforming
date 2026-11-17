@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "inputs": [
+    {
+      "path": "iclr-results/01-mola-topography-comparisons/metrics.csv",
+      "sha256": "afe81b6a2ea280cdc67da03c4b2f465bebc789a4fabb92f4592a890f0b263427",
+      "bytes": 7322,
+      "availability": "bundled",
+      "bundled_path": "inputs/iclr-results/01-mola-topography-comparisons/metrics.csv"
+    },
+    {
+      "path": "outputs/differentiable/calibration/training.csv",
+      "sha256": "90697c336b4eda3ecdea589b70a63b97269dc2a1d773c13c18bcf4e48def54dd",
+      "bytes": 3205,
+      "availability": "bundled",
+      "bundled_path": "inputs/outputs/differentiable/calibration/training.csv"
+    },
+    {
+      "path": "outputs/differentiable/calibration/skill.csv",
+      "sha256": "8e7028df5d9ebdb28617a798d9c099c05d6deaa06b3e43227701ccb76500c67b",
+      "bytes": 3009,
+      "availability": "bundled",
+      "bundled_path": "inputs/outputs/differentiable/calibration/skill.csv"
+    },
+    {
+      "path": "outputs/differentiable/calibration/checkpoint.npz",
+      "sha256": "3fbe4ac58021a505dd8749acaf8b5308a7f6a43e901963806a2fd766ab345d35",
+      "bytes": 1960,
+      "availability": "bundled",
+      "bundled_path": "inputs/outputs/differentiable/calibration/checkpoint.npz"
+    },
+    {
+      "path": "outputs/differentiable/calibration/provenance.json",
+      "sha256": "8827eb1d341afd3ceb64e3fe0cabee7bc0b73abebcb5cafa229c56706814bee6",
+      "bytes": 33664,
+      "availability": "bundled",
+      "bundled_path": "inputs/outputs/differentiable/calibration/provenance.json"
+    },
+    {
+      "path": "outputs/differentiable/calibration/acceptance.json",
+      "sha256": "ba19b9820637bd279ce74cc8bdc6b02f000b589cdd678ca0ed467bc45b8e181c",
+      "bytes": 259,
+      "availability": "bundled",
+      "bundled_path": "inputs/outputs/differentiable/calibration/acceptance.json"
+    },
+    {
+      "path": "outputs/Untitled/full.nc",
+      "sha256": "261e13a990e37666f62c784fbe6c40a12c3bc6566d960e440f15d98b2bd14af5",
+      "bytes": 90992490,
+      "availability": "local_only_not_published"
+    },
+    {
+      "path": "outputs/paper-year-gpu3/half_timestep.nc",
+      "sha256": "b0dfe691105323f2b1f5a31ee06e5f39c1de432896143ed6f45b811174c66e82",
+      "bytes": 90992490,
+      "availability": "local_only_not_published"
+    },
+    {
+      "path": "outputs/Untitled/config.json",
+      "sha256": "99a75e193765dc31b385a1f9670c76007de9c50261533c14732b0ea52bc27f34",
+      "bytes": 1598,
+      "availability": "bundled",
+      "bundled_path": "inputs/outputs/Untitled/config.json"
+    },
+    {
+      "path": "outputs/paper-year-gpu3/ablations.json",
+      "sha256": "88d4b8fefc6b064f3cfaf39ebac1039eea9585c70ad3a23c51f9a63fbfaa2265",
+      "bytes": 184071,
+      "availability": "bundled",
+      "bundled_path": "inputs/outputs/paper-year-gpu3/ablations.json"
+    },
+    {
+      "path": "iclr-results/03-benchmarks/performance-timing/environment.json",
+      "sha256": "4e2629c20aa0d9bcb855091f34d44999e01eaccdecda6d0d033cf2ccc06b5070",
+      "bytes": 593,
+      "availability": "bundled",
+      "bundled_path": "inputs/iclr-results/03-benchmarks/performance-timing/environment.json"
+    },
+    {
+      "path": "iclr-results/03-benchmarks/performance-timing/timing.json",
+      "sha256": "63d6f3c20496d1a66f375023523587513d928dc3e0df5659a5570d4ad03b8d70",
+      "bytes": 1483,
+      "availability": "bundled",
+      "bundled_path": "inputs/iclr-results/03-benchmarks/performance-timing/timing.json"
+    }
+  ]
+}
