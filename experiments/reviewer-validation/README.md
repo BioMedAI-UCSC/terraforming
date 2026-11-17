@@ -29,8 +29,8 @@ separate analysis of the saved states.
 Check the submitted campaign:
 
 ```sh
-rtk kubectl --context nautilus -n razvanlab get pods -l job-name=mars-review-104-20261113-a100-v3 -o wide
-rtk kubectl --context nautilus -n razvanlab logs job/mars-review-104-20261113-a100-v3 --tail=80
+kubectl --context nautilus -n razvanlab get pods -l job-name=mars-review-104-20261113-a100-v3 -o wide
+kubectl --context nautilus -n razvanlab logs job/mars-review-104-20261113-a100-v3 --tail=80
 ```
 
 H100 quota is zero. A40 and V100 attempts could not schedule and were deleted

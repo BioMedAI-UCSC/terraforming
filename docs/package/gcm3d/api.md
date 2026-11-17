@@ -81,7 +81,7 @@ finite-rate ablation, with a 3600 s relaxation time. Cloud ice can sublimate or 
 the fixed particle radius is 50 µm. Cloud radiation and particle growth are absent.
 Integrate this cycle with `positivity_preserving_co2_step`, passing `body`,
 `co2_forcing` and `dt_seconds` so settling and saturation run after each step.
-See `docs/ames-co2-saturation.md` for the mass, energy and momentum contract.
+See `docs/co2-saturation.md` for the mass, energy and momentum contract.
 
 The Mars radiative factory enables `co2_frost_radiative_properties`. Above
 2 kg/m² of surface CO₂ frost, albedo/emissivity become 0.65/0.81 in the north
@@ -147,7 +147,7 @@ mixture thermodynamics remain separate work.
 - `cos_zenith_nodal(t_s, lat_rad, lon_rad, f)` — cos(zenith) on the `(n_lon, n_lat)` grid; diurnal terminator or daily-mean.
 - `orbital_distance(t_s, f)`, `mean_anomaly_for_ls(ls_rad, f)`, `co2_frost_point_k(pressure_pa)`.
 
-## Correlated-k radiation — `framework/physics/ames_radiation.py`
+## Correlated-k radiation — `framework/physics/correlated_k.py`
 - `load_ames_co2_tables()` / `load_ames_co2_tables_jax()` — the bundled 12-band correlated-k asset.
 - `correlated_k_optical_depths(temperature_k, pressure_mid_pa, delta_pressure_pa) -> (sw_tau, lw_tau)`.
 - `channel_weights(clear_fraction)`, `planck_band_fractions(temperature_k)`.

@@ -44,7 +44,7 @@ from typing import Callable, NamedTuple
 
 import numpy as np
 
-from src.framework.physics import ames_radiation
+from src.framework.physics import correlated_k
 from src.framework.gcm._dinosaur import (
     jax,
     jnp,
@@ -172,24 +172,46 @@ class RadiativeForcing:
     co2_frost_emissivity_north: float = 0.81
     co2_frost_emissivity_south: float = 0.88
 
+    water_frost_radiative_properties: bool = False
+    water_frost_threshold_m: float = 1.e6
+    water_ice_albedo: float = .4
+    water_liquid_albedo: float = .07
+    water_emissivity: float = 1.
+    liquid_water_albedo: bool = False
+
 
 def surface_radiative_forcing(state, coords, specs, body, forcing):
-    """Apply the Ames CO2 snow optical properties above 2 kg/m2 of frost."""
-    if not forcing.co2_frost_radiative_properties:
+    """Apply reference CO2 and optional surface-water optical properties."""
+    if not (forcing.co2_frost_radiative_properties or forcing.water_frost_radiative_properties):
         return forcing
     for name in ("co2_frost_albedo_north", "co2_frost_albedo_south",
-                 "co2_frost_emissivity_north", "co2_frost_emissivity_south"):
+                 "co2_frost_emissivity_north", "co2_frost_emissivity_south",
+                 "water_ice_albedo", "water_liquid_albedo", "water_emissivity"):
         value = getattr(forcing, name)
         if not np.isfinite(value) or not 0.0 <= value <= 1.0:
             raise ValueError(f"{name} must be finite and in [0, 1]")
+    if not np.isfinite(forcing.water_frost_threshold_m) or forcing.water_frost_threshold_m < 0.:
+        raise ValueError("water_frost_threshold_m must be finite and nonnegative")
     scale = float(specs.dimensionalize(1.0, _u.pascal).magnitude)
-    covered = state.co2_ice[0] > 2.0 * body.gravity_m_s2 / scale
-    north = jnp.asarray(coords.horizontal.latitudes)[None, :] > 0.0
-    albedo = jnp.where(north, forcing.co2_frost_albedo_north, forcing.co2_frost_albedo_south)
-    emissivity = jnp.where(north, forcing.co2_frost_emissivity_north, forcing.co2_frost_emissivity_south)
-    return dataclasses.replace(forcing,
-        albedo=jnp.where(covered, albedo, forcing.albedo),
-        emissivity=jnp.where(covered, emissivity, forcing.emissivity))
+    snow = state.co2_ice[0] * scale / body.gravity_m_s2
+    albedo, emissivity = forcing.albedo, forcing.emissivity
+    if forcing.co2_frost_radiative_properties:
+        north = jnp.asarray(coords.horizontal.latitudes)[None, :] > 0.0
+        albedo = jnp.where(state.co2_ice[0] > 2. * body.gravity_m_s2 / scale,
+            jnp.where(north, forcing.co2_frost_albedo_north, forcing.co2_frost_albedo_south), albedo)
+        emissivity = jnp.where(state.co2_ice[0] > 2. * body.gravity_m_s2 / scale,
+            jnp.where(north, forcing.co2_frost_emissivity_north, forcing.co2_frost_emissivity_south), emissivity)
+    if forcing.water_frost_radiative_properties:
+        from src.framework.physics.water_surface import optical_properties
+        fields = state.auxiliary_fields
+        if fields is None or 'water_surface_kg_m2' not in fields:
+            raise ValueError("water frost optics require the surface water reservoir")
+        albedo, emissivity = optical_properties(albedo, emissivity, state.surface_temperature[0],
+            snow, fields['water_surface_kg_m2'][0],
+            frost_threshold_m=forcing.water_frost_threshold_m,ice_albedo=forcing.water_ice_albedo,
+            liquid_albedo=forcing.water_liquid_albedo,water_emissivity=forcing.water_emissivity,
+            liquid_water=forcing.liquid_water_albedo)
+    return dataclasses.replace(forcing, albedo=albedo, emissivity=emissivity)
 
 
 # ── Keplerian orbit ───────────────────────────────────────────────────────────
@@ -373,6 +395,7 @@ class ColumnPhysicsState(NamedTuple):
     co2_ice: object
     ground_temperature: object
     surface_momentum: object = None
+    auxiliary_fields: object = None
 
 
 class SurfaceEnergyDiagnostics(NamedTuple):
@@ -383,7 +406,12 @@ class SurfaceEnergyDiagnostics(NamedTuple):
 
 
 class RadiativeFluxDiagnostics(NamedTuple):
-    """Interface fluxes, ordered from TOA (0) to the surface (L)."""
+    """Interface fluxes, ordered from TOA (0) to the surface (L).
+
+    nonlte_heating_k_s carries additive atmospheric driver corrections.
+    shortwave_scale applies the native startup ramp to the surface forcing;
+    the reported interface fluxes retain their original unscaled values.
+    """
 
     shortwave_down_w_m2: object
     shortwave_up_w_m2: object
@@ -392,6 +420,9 @@ class RadiativeFluxDiagnostics(NamedTuple):
     atmospheric_convergence_w_m2: object
     surface_net_w_m2: object
     toa_net_down_w_m2: object
+    nonlte_heating_k_s: object = 0.
+    stratosphere_flux_convergence_w_m2: object = 0.
+    shortwave_scale: object = 1.
 
 
 def _validate_radiative_bands(f: RadiativeForcing) -> None:
@@ -445,6 +476,7 @@ class ColumnPhysicsTendencies(NamedTuple):
     ground_temperature: object
     tracers: object
     surface_momentum: object = None
+    auxiliary_fields: object = None
 
 
 def column_primitive_equations(base, parameterization):
@@ -470,10 +502,18 @@ def column_primitive_equations(base, parameterization):
                 for name, value in dry.tracers.items()
             },
         )
+        auxiliary=None
+        provided={} if phy.auxiliary_fields is None else phy.auxiliary_fields
+        expected={} if state.auxiliary_fields is None else state.auxiliary_fields
+        if set(provided)-set(expected):
+            raise ValueError('auxiliary tendencies require matching initial-state fields')
+        if state.auxiliary_fields is not None:
+            auxiliary={key:provided.get(key,jnp.zeros_like(value)) for key,value in expected.items()}
         return ColumnPhysicsState(
             dynamics, phy.surface_temperature, phy.co2_ice, phy.ground_temperature,
             (None if state.surface_momentum is None else
              jnp.zeros_like(state.surface_momentum) if phy.surface_momentum is None else phy.surface_momentum),
+            auxiliary,
         )
 
     def implicit_terms(state):
@@ -483,6 +523,7 @@ def column_primitive_equations(base, parameterization):
             jnp.zeros_like(state.co2_ice),
             jnp.zeros_like(state.ground_temperature),
             None if state.surface_momentum is None else jnp.zeros_like(state.surface_momentum),
+            jax.tree_util.tree_map(jnp.zeros_like,state.auxiliary_fields),
         )
 
     def implicit_inverse(state, step_size):
@@ -492,6 +533,7 @@ def column_primitive_equations(base, parameterization):
             state.co2_ice,
             state.ground_temperature,
             state.surface_momentum,
+            state.auxiliary_fields,
         )
 
     return time_integration.ImplicitExplicitODE.from_functions(
@@ -524,6 +566,9 @@ def compose_column_parameterizations(*parameterizations):
             (None if state.surface_momentum is None else
              sum((v.surface_momentum for v in values if v.surface_momentum is not None),
                  jnp.zeros_like(state.surface_momentum))),
+            (None if state.auxiliary_fields is None else {
+                key:sum((v.auxiliary_fields.get(key,0.) for v in values if v.auxiliary_fields is not None),
+                    jnp.zeros_like(value)) for key,value in state.auxiliary_fields.items()}),
         )
     return combined
 
@@ -680,30 +725,30 @@ def column_radiative_fluxes(
     if f.ames_correlated_k_enabled:
         pressure_mid_pa = sigma_mid * ps_pa[None]
         delta_pressure_pa = dsigma * ps_pa[None]
-        sw_tau, lw_tau = ames_radiation.correlated_k_optical_depths(
+        sw_tau, lw_tau = correlated_k.correlated_k_optical_depths(
             air_k, pressure_mid_pa, delta_pressure_pa
         )
         lw_tau = lw_tau * f.ames_co2_longwave_opacity_scale
-        data = ames_radiation.load_ames_co2_tables_jax()
-        sw_channel_weights = ames_radiation.channel_weights(
+        data = correlated_k.load_ames_co2_tables_jax()
+        sw_channel_weights = correlated_k.channel_weights(
             data["clear_fraction_sw"]
         )
-        lw_channel_weights = ames_radiation.channel_weights(
+        lw_channel_weights = correlated_k.channel_weights(
             data["clear_fraction_ir"]
         )
         # Fixed-size Ames/Wolff dust optics are spectral by gas-table band and
         # applied consistently to every correlated-k channel in that band.
-        reference_extinction = ames_radiation.DUST_SW_EXTINCTION[5]
+        reference_extinction = correlated_k.DUST_SW_EXTINCTION[5]
         dust_column = dust_visible * column_pressure_ratio
         dust_ext_sw = (
             dust_column[None, None, None] * dust_layer_fraction[None, None]
-            * ames_radiation.DUST_SW_EXTINCTION[:, None, None, None, None]
+            * correlated_k.DUST_SW_EXTINCTION[:, None, None, None, None]
             / reference_extinction
         )
         dust_ssa_sw = (
-            ames_radiation.DUST_SW_SCATTERING / ames_radiation.DUST_SW_EXTINCTION
+            correlated_k.DUST_SW_SCATTERING / correlated_k.DUST_SW_EXTINCTION
         )[:, None, None, None, None]
-        dust_g_sw = ames_radiation.DUST_SW_ASYMMETRY[:, None, None, None, None]
+        dust_g_sw = correlated_k.DUST_SW_ASYMMETRY[:, None, None, None, None]
         total_sw_tau = sw_tau + dust_ext_sw
         omega_sw = dust_ext_sw * dust_ssa_sw / jnp.clip(total_sw_tau, 1.0e-30, None)
         g_sw = jnp.where(dust_ext_sw > 0.0, dust_g_sw, 0.0)
@@ -719,15 +764,15 @@ def column_radiative_fluxes(
         # The prescribed IR opacity is a separate Ames field; do not infer it
         # from visible opacity. Normalize the five spectral extinction values to
         # the 9-micron-like reference interval used by the column product.
-        reference_ir_extinction = ames_radiation.DUST_IR_EXTINCTION[3]
+        reference_ir_extinction = correlated_k.DUST_IR_EXTINCTION[3]
         dust_ir_column = dust_longwave * column_pressure_ratio
         dust_ext_ir = (
             dust_ir_column[None, None, None] * dust_layer_fraction[None, None]
-            * ames_radiation.DUST_IR_EXTINCTION[:, None, None, None, None]
+            * correlated_k.DUST_IR_EXTINCTION[:, None, None, None, None]
             / reference_ir_extinction
         )
         dust_abs_ir = dust_ext_ir * (1.0 - (
-            ames_radiation.DUST_IR_SCATTERING / ames_radiation.DUST_IR_EXTINCTION
+            correlated_k.DUST_IR_SCATTERING / correlated_k.DUST_IR_EXTINCTION
         )[:, None, None, None, None])
         lw_tau = lw_tau + dust_abs_ir * f.ames_dust_longwave_opacity_scale
         lw_trans = jnp.exp(-jnp.clip(lw_tau / 0.5, 0.0, 50.0))
@@ -769,8 +814,8 @@ def column_radiative_fluxes(
         sw = jnp.sum(down_levels, axis=(1, 2))
         sw_up = jnp.sum(up_levels, axis=(1, 2))
 
-        planck_air = ames_radiation.planck_band_fractions(air_k)
-        planck_surface = ames_radiation.planck_band_fractions(surface_k)
+        planck_air = correlated_k.planck_band_fractions(air_k)
+        planck_surface = correlated_k.planck_band_fractions(surface_k)
         channel = lw_channel_weights[:, :, None, None]
         thermal_emission = (
             blackbody_air[None, None] * planck_air[:, None] * channel[:, :, None]
@@ -1223,32 +1268,8 @@ def _implicit_vertical_diffusion_tendency(
         lower = lower.at[k + 1].set(-timestep_s * ratio * rate)
         diagonal = diagonal.at[k + 1].add(timestep_s * ratio * rate)
 
-    c0 = upper[0] / diagonal[0]
-    d0 = field_si[0] / diagonal[0]
-
-    def eliminate(carry, row):
-        c_prev, d_prev = carry
-        lo, diag, up, rhs = row
-        pivot = diag - lo * c_prev
-        c = up / pivot
-        d = (rhs - lo * d_prev) / pivot
-        return (c, d), (c, d)
-
-    (_, _), (c_tail, d_tail) = jax.lax.scan(
-        eliminate, (c0, d0), (lower[1:], diagonal[1:], upper[1:], field_si[1:])
-    )
-    c_prime = jnp.concatenate([c0[None], c_tail], axis=0)
-    d_prime = jnp.concatenate([d0[None], d_tail], axis=0)
-
-    def substitute(next_value, row):
-        c, d = row
-        value = d - c * next_value
-        return value, value
-
-    _, reversed_solution = jax.lax.scan(
-        substitute, d_prime[-1], (c_prime[:-1][::-1], d_prime[:-1][::-1])
-    )
-    new = jnp.concatenate([reversed_solution[::-1], d_prime[-1:]], axis=0)
+    from src.framework.physics.vertical_solve import solve_tridiagonal
+    new = solve_tridiagonal(lower,diagonal,upper,field_si)
     tendency_si = (new - field_si) / timestep_s
     if velocity:
         tendency = specs.nondimensionalize(
@@ -1953,14 +1974,14 @@ def project_co2_reservoirs(state: ColumnPhysicsState, coords, specs):
             lambda _: grid.to_modal(jnp.log(ps_pa / pressure_scale)),
             lambda _: state.dynamics.log_surface_pressure, operand=None),
     )
+    if dynamics.tracers:
+        tracers={name:jax.lax.cond(jnp.any(deficit_pa>0.),
+            lambda value:grid.to_modal(grid.to_nodal(value)*ps_nd/(ps_pa/pressure_scale)),
+            lambda value:value,value) for name,value in dynamics.tracers.items()}
+        dynamics=dataclasses.replace(dynamics,tracers=tracers)
     from src.framework.physics.co2_clouds import CO2_CLOUD_TRACER
     if CO2_CLOUD_TRACER in dynamics.tracers:
-        original = dynamics.tracers[CO2_CLOUD_TRACER]
-        cloud = grid.to_nodal(original)
-        # A gas-carrier change must preserve cloud burden, not mixing ratio.
-        cloud = jax.lax.cond(jnp.any(deficit_pa > 0.),
-            lambda _: grid.to_modal(cloud * ps_nd / (ps_pa / pressure_scale)),
-            lambda _: original, operand=None)
+        cloud = dynamics.tracers[CO2_CLOUD_TRACER]
         nodal = grid.to_nodal(cloud)
         weights = jnp.asarray(grid.quadrature_weights) * ps_pa[0]
         mean = jnp.sum(nodal * weights, axis=(-2, -1), keepdims=True) / jnp.sum(weights)
@@ -2007,6 +2028,11 @@ class CO2ProjectionDiagnostics(NamedTuple):
     frost_repaired_total_mass_kg: object = None
     settled_total_mass_kg: object = None
     saturation_adjusted_total_mass_kg: object = None
+    raw_water_mass_kg: object = None
+    corrected_water_mass_kg: object = None
+    target_water_mass_kg: object = None
+    tracer_transport: object = None
+    moist_convection: object = None
 
 
 def co2_exchange_budgets(state, coords, specs, body, cf):
@@ -2054,6 +2080,7 @@ def positivity_preserving_co2_step(
     external_co2_mass_change_kg: Callable[[ColumnPhysicsState, float], object] | None = None,
     return_diagnostics: bool = False,
     inventory_projection: bool = True,
+    budget_fn: Callable[[ColumnPhysicsState], tuple[object, object]] | None = None,
 ):
     """Wrap an IMEX step with positivity and global CO2-mass projections.
 
@@ -2091,7 +2118,11 @@ def positivity_preserving_co2_step(
     ``inventory_projection=False`` disables numerical reservoir repair and
     pressure rescaling for paired experiments; physical settling and saturation
     adjustment remain active. This diagnostic mode can produce negative frost.
+    Optional ``budget_fn(state)`` supplies a model-specific, pure JAX pair of
+    global energy and axial momentum for every repair stage.
     """
+    if budget_fn is not None and not callable(budget_fn):
+        raise ValueError('budget_fn must return global energy and axial momentum for one state')
     grid = coords.horizontal
     weights = jnp.asarray(grid.quadrature_weights)
     pressure_scale = float(specs.dimensionalize(1.0, _u.pascal).magnitude)
@@ -2182,17 +2213,23 @@ def positivity_preserving_co2_step(
                 projected.dynamics.log_surface_pressure + log_factor * uniform_log_pressure
             ),
         )
-        from src.framework.physics.co2_clouds import CO2_CLOUD_TRACER
-        if CO2_CLOUD_TRACER in corrected.tracers:
-            corrected = dataclasses.replace(corrected, tracers={**corrected.tracers,
-                CO2_CLOUD_TRACER: corrected.tracers[CO2_CLOUD_TRACER] / pressure_factor})
+        if corrected.tracers:
+            corrected = dataclasses.replace(corrected,
+                tracers={name:value/pressure_factor for name,value in corrected.tracers.items()})
         final = projected._replace(dynamics=corrected)
         if not return_diagnostics:
             return final
         negative_frost_integral = jnp.sum(jnp.maximum(-raw.co2_ice[0], 0.0) * weights)
-        budgets = ([co2_exchange_budgets(s, coords, specs, body, co2_forcing)
-                    for s in (raw, frost_repaired, saturation_adjusted, settled, final)]
-                   if co2_forcing is not None else [(None, None)] * 5)
+        stages=(raw,frost_repaired,saturation_adjusted,settled,final)
+        if budget_fn is not None:
+            budgets=[budget_fn(stage) for stage in stages]
+            if any(not isinstance(values,(tuple,list)) or len(values)!=2 or
+                any(jnp.ndim(value)!=0 for value in values) for values in budgets):
+                raise ValueError('budget_fn must return two scalar global budgets')
+        elif co2_forcing is not None:
+            budgets=[co2_exchange_budgets(stage,coords,specs,body,co2_forcing) for stage in stages]
+        else:
+            budgets=[(None,None)]*5
         diagnostics = CO2ProjectionDiagnostics(
             raw_total_mass_kg=total_pressure_integral(raw) * mass_per_integral,
             target_total_mass_kg=target_total * mass_per_integral,

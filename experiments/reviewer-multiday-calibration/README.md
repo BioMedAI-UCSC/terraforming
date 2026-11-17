@@ -32,7 +32,7 @@ frozen file hashes identify the actual reference data used.
 Prepare locally from the existing staged references:
 
 ```sh
-rtk proxy .venv/bin/python scripts/prepare_multiday_windows.py \
+.venv/bin/python scripts/prepare_multiday_windows.py \
   --daily data/arco_macda --inputs outputs/review/inputs-current \
   --output outputs/review/multiday-windows
 ```

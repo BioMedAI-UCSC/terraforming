@@ -6,6 +6,8 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import time
+import signal
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
@@ -72,6 +74,17 @@ class RuntimeTests(unittest.TestCase):
             self.assertEqual(saved['revision'],expected)
             self.assertEqual(saved['requested_ref'],'experiment-branch')
 
+    def test_long_unicode_output_is_preserved_across_read_chunks(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary);source=self.source(root);work=root/'work'
+            (source/'sample/run.py').write_text(SCRIPT.replace("print('experiment complete',flush=True)",
+                "print('\\u20ac'*70000,flush=True)"))
+            result=self.invoke(source,work)
+            self.assertEqual(result.returncode,0,result.stderr)
+            log=next(work.glob('outputs/sample/*/test/attempts/*/run.log')).read_text()
+            self.assertIn('\u20ac'*70000,log)
+            self.assertNotIn('\ufffd',log)
+
     def test_selected_folder_cannot_escape_source(self):
         with tempfile.TemporaryDirectory() as temporary:
             root=Path(temporary);source=self.source(root)
@@ -106,6 +119,60 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(container['args'][-4:],['--','task','--seed','7'])
         self.assertEqual(container['resources']['requests']['nvidia.com/a100'],'1')
         self.assertNotIn('nvidia.com/a100',cpu['items'][1]['spec']['template']['spec']['containers'][0]['resources']['requests'])
+
+    def test_experiments_overlap_and_duplicate_folders_are_rejected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary);source=self.source(root);work=root/'work'
+            barrier='''import os,time
+from pathlib import Path
+root=Path(os.environ['EXPERIMENT_WORK_DIR']).parents[3]
+name=Path(__file__).parent.name
+(root/('ready-'+name)).touch()
+end=time.monotonic()+5
+while len(list(root.glob('ready-*')))<2 and time.monotonic()<end: time.sleep(.02)
+assert len(list(root.glob('ready-*')))==2, 'experiments did not overlap'
+'''
+            (source/'sample/run.py').write_text(barrier)
+            (source/'second').mkdir();(source/'second/run.py').write_text(barrier)
+            options=[sys.executable,str(HERE/'run.py'),'--source',str(source),
+                '--work',str(work),'--run-id','test','--experiments']
+            result=subprocess.run([*options,'sample','second'],capture_output=True,text=True,timeout=15)
+            self.assertEqual(result.returncode,0,result.stderr+result.stdout)
+            self.assertEqual(len(list(work.glob('outputs/*/*/test/attempts/*/status.json'))),2)
+            duplicate=subprocess.run([*options,'sample','./sample'],capture_output=True,text=True)
+            self.assertNotEqual(duplicate.returncode,0)
+            self.assertIn('must be distinct',duplicate.stderr)
+
+    def test_shutdown_reaches_all_parallel_experiments_and_records_status(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary);source=self.source(root);work=root/'work'
+            script='''import os,time
+from pathlib import Path
+(Path(os.environ['EXPERIMENT_OUTPUT_DIR'])/'ready').touch()
+while True: time.sleep(1)
+'''
+            (source/'sample/run.py').write_text(script)
+            (source/'second').mkdir();(source/'second/run.py').write_text(script)
+            process=subprocess.Popen([sys.executable,str(HERE/'run.py'),'--source',str(source),
+                '--work',str(work),'--run-id','test','--experiments','sample','second'],
+                stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
+            try:
+                end=time.monotonic()+10
+                while len(list(work.glob('outputs/*/*/test/attempts/*/outputs/ready')))<2 and time.monotonic()<end:
+                    time.sleep(.02)
+                ready=len(list(work.glob('outputs/*/*/test/attempts/*/outputs/ready')))
+                if ready!=2:
+                    process.terminate();stdout,stderr=process.communicate(timeout=10)
+                    self.fail(f'only {ready} workers started: {stderr}\n{stdout}')
+                process.send_signal(signal.SIGTERM)
+                stdout,stderr=process.communicate(timeout=10)
+                self.assertEqual(process.returncode,143,stderr+stdout)
+                statuses=[json.loads(path.read_text()) for path in work.glob('outputs/*/*/test/attempts/*/status.json')]
+                self.assertEqual(len(statuses),2)
+                self.assertTrue(all(status['returncode']==-signal.SIGTERM for status in statuses))
+            finally:
+                if process.poll() is None:
+                    process.terminate();process.communicate(timeout=10)
 
     def test_completed_job_download_uses_readonly_reader_and_cleans_it_up(self):
         with tempfile.TemporaryDirectory() as temporary:

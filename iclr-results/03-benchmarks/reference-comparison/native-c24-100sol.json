@@ -1,0 +1,42 @@
+{
+  "status": "completed",
+  "job": "mars-reference-100sol-v3-native-mpi-100sol",
+  "namespace": "razvanlab",
+  "attempt": "/work/outputs/experiments/reference-comparison/native-c24/d540a8e9e7317743b3ee654d3c29477fe891ba40/matched-100sol-mpi/attempts/20261116T034726443808Z",
+  "completion": {
+    "framework": "native",
+    "resolution": "C24",
+    "sols": 100,
+    "dt_seconds": 231,
+    "wall_seconds": 78460.86104992399,
+    "limits": "Same released physical setup and input hashes; FV3 hybrid/cubed-sphere and Dinosaur sigma/spectral discretizations differ."
+  },
+  "runtime": {
+    "revision": "d540a8e9e7317743b3ee654d3c29477fe891ba40",
+    "inputs_sha256": {
+      "mars_thermal_inertia8_2011.nc": "43756c80ff8052a9123b71530942ed267b8c8af24e137bc3ba27b47b69c53476",
+      "mars_TES_albedo8_new.nc": "4e4cc150a58be27bef0c3713d432789154b94e64c804ddeaf07eee7119e34fd7",
+      "mars_sfc_emissivity8.nc": "23b53ed48a530679606f6fdf7b6fafbd0d92d022c507eb94dadb109b74dbab5d",
+      "GRS_interp16.nc": "7c718ccec796fe1937b37f9ee9606cbf7720703c17eb0031076e9ef4fbda576f",
+      "npcflag8.nc": "8acd88316770617d5f720dc8f57b96e845937ae1135fa4b84aa817f5d4711c7c",
+      "DustScenario_MY30.nc": "1fefe32b06c8ae0b550a2aae0da44a83643b6cdcee377f15f5f53f4ed8177421",
+      "mars_topo_mola16.nc": "59873fba00f78cc96a62c9f26127c789dccb1107504ad4d3fe6adb79e9e458f8"
+    },
+    "executable_sha256": "1e5a8c85df1ea46097532f135fe09087fc66b9613c1ef147708c607c7798c1d9",
+    "compiler": "GNU Fortran (Debian 12.2.0-14+deb12u1) 12.2.0\nCopyright (C) 2022 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+    "mpi": "mpirun (Open MPI) 4.1.4\n\nReport bugs to http://www.open-mpi.org/community/help/",
+    "adaptations": "GNU compiler and paths, MPI/netCDF linkage, source-list regular expressions, lowercase four CPP directives; no Fortran statements changed"
+  },
+  "log_sha256": "76a8b9865be9c7df341dd2fd87da6cae65c2e8b2c36af3a8ccf902a964d84c28",
+  "final_clock": {
+    "sol": 100,
+    "seconds": 0
+  },
+  "final_logged_surface_pressure_pa": 675.4773607380408,
+  "final_logged_air_temperature_k": {
+    "maximum": 251.66033,
+    "minimum": 104.2563,
+    "mean": 197.71194
+  },
+  "limits": "Completion and printed native diagnostics only. No NetCDF climate, long budget, convergence or paired speed comparison has been completed. Dinosaur remains pending. Timing includes six MPI ranks and concurrent C48 work; it is not an isolated hardware benchmark."
+}

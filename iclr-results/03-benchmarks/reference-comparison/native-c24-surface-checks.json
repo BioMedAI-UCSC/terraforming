@@ -1,0 +1,100 @@
+{
+  "status": "pass_saved_surface_field_checks_with_reconstructed_geometry",
+  "grid_provenance": {
+    "cells": 24,
+    "compiled_source_sha256": "f7f9595edea2953297ee19516a48a2d03c5d74f9dc9896a60eaea234343b59f0",
+    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+    "compiler_flags": [
+      "-O2",
+      "-cpp",
+      "-fdefault-real-8",
+      "-fdefault-double-8",
+      "-fPIC",
+      "-shared"
+    ],
+    "controls": {
+      "do_cube_transform": false,
+      "do_schmidt": false,
+      "grid_type": 0,
+      "shift_fac": 18.0
+    },
+    "input_namelist_sha256": "21bd3cd4d0bb3b82ca2e3146aa335744cc2aae1366889bd9446bd739e7abf843",
+    "limits": "Default frozen FV3 grid only. Corner geometry is reconstructed, not read from the defective static export. Original model outputs are unchanged.",
+    "model/fv_arrays.F90": {
+      "routine_sha256": {},
+      "sha256": "bac6ff3b90c4db609998e1758f4aa8b5e47b4a9cce6884df3f57dd965123d044"
+    },
+    "model/fv_grid_utils.F90": {
+      "routine_sha256": {
+        "cart_to_latlon": "23da62e9c943bd2fa8938ee7128c4c64dc91b69b605f287511845a995b60030f",
+        "gnomonic_ed": "55578d5b0b6e5832b0041504fa59ab5381b24c16684686262af028026035de91",
+        "great_circle_dist": "91d0791582eff5c00e994ef75ff401b3d04cd477c3a81b2cc4b5023c151df640",
+        "latlon2xyz": "bd0ee2a00af7938322ad32a6dd2e1dc4d2bbbc557b936198d1b210620f69cbc7",
+        "latlon2xyz2": "ee3c3e7b7245ed99773d72d1fddbdd7e6cbc2c83267c577d7c514b829ce77e41",
+        "mirror_latlon": "975bbec8fea2cb6d90322d55627812031eb57185674f35f39835eae45789f17f",
+        "symm_ed": "91345a3c51c85d6df77ffd97ab8e47799ba059c37704e7aa587571bce1e0406e",
+        "vect_cross": "5923bc1a96c7a259f119403bf346be6b7565c9d5c36417e7b750736d7945159f"
+      },
+      "sha256": "60f1bc780968fd9079a4a5cbc06372bc8af7ec17acd83845721845e395cb2cf5"
+    },
+    "tools/fv_grid_tools.F90": {
+      "routine_sha256": {
+        "cartesian_to_spherical": "076e9db4cfc03564f623904a65851daa876712c2ea31c0f1c650ddc9c37f3480",
+        "mirror_grid": "8cb1162493005c9bfdc5d17dacaffa85c07b3ffeb6934239aa7f050fda4f8bae",
+        "rot_3d": "111fc3590b8c7f21e013f668cea738cec6ac9449f3e61108923f576283482734",
+        "spherical_to_cartesian": "c572f20c83cc27fb4fa236208cb4d71f3276517202e9f06a829ecf876b1c853d"
+      },
+      "sha256": "1cccc0ba40afe086e6b244c22e2e3bb6d5eed5af9deaa7902b46d7f31bc619df"
+    },
+    "total_solid_angle_sr": 12.566370614359172
+  },
+  "files_sha256": {
+    "grid_spec.tile1.nc": "faef0180d057a40c6c0a358e86c28fe19ec018e9dac7c10ce9fe5dd26a9dfb1a",
+    "atmos_daily.tile1.nc": "4f56d83af1002cc5cd428cf9b18dd69850bfedfaa945ee6b6402d06363a4327e",
+    "grid_spec.tile2.nc": "faef0180d057a40c6c0a358e86c28fe19ec018e9dac7c10ce9fe5dd26a9dfb1a",
+    "atmos_daily.tile2.nc": "ede8e2f99868139d9d84cec362b7d9511f149b250c0afcf9389f40ba330a612e",
+    "grid_spec.tile3.nc": "faef0180d057a40c6c0a358e86c28fe19ec018e9dac7c10ce9fe5dd26a9dfb1a",
+    "atmos_daily.tile3.nc": "1c485418ed5d6fa905eeb52935b6a592649903d6af9aa1c6b5bfb879b694a551",
+    "grid_spec.tile4.nc": "faef0180d057a40c6c0a358e86c28fe19ec018e9dac7c10ce9fe5dd26a9dfb1a",
+    "atmos_daily.tile4.nc": "a4fb840350b76de6a930b1f187751b09a356670251f27612d1a9294e999c71af",
+    "grid_spec.tile5.nc": "faef0180d057a40c6c0a358e86c28fe19ec018e9dac7c10ce9fe5dd26a9dfb1a",
+    "atmos_daily.tile5.nc": "43b6bf65621813494e42e2e39f08ca3cc2297b6b937b08a1b4b310cbbcfdafe6",
+    "grid_spec.tile6.nc": "faef0180d057a40c6c0a358e86c28fe19ec018e9dac7c10ce9fe5dd26a9dfb1a",
+    "atmos_daily.tile6.nc": "980bf0e51e636e1115fca35c3e6d32f4001685b3db5cbde6be408f6b3e991609"
+  },
+  "samples_per_tile": 1200,
+  "surface_values_checked": 8294400,
+  "time": {
+    "first": 0.08333333333333333,
+    "last": 100.0,
+    "units": "days since 0000-00-00 00:00:00"
+  },
+  "total_cell_solid_angle_sr": 12.566370614359174,
+  "solid_angle_error_sr": 1.7763568394002505e-15,
+  "weighting": "Zero coordinate exports were replaced in memory by unchanged native gnomonic_ed/symm_ed/mirror_grid routines from the frozen source, grid_type=0, shift_fac=18, no stretching. Two spherical triangles per cell; six tiles sum to 4*pi. Original files are unchanged.",
+  "fields": {
+    "ts": {
+      "units": "K",
+      "minimum_all_saved_samples": 137.47438049316406,
+      "maximum_all_saved_samples": 295.3757629394531,
+      "first_area_mean": 202.39289826498606,
+      "final_area_mean": 202.6613278508164,
+      "minimum_area_mean": 199.02167170806771,
+      "maximum_area_mean": 209.6880734952218
+    },
+    "ps": {
+      "units": "Pa",
+      "minimum_all_saved_samples": 118.95197296142578,
+      "maximum_all_saved_samples": 1446.3192138671875,
+      "first_area_mean": 703.263149433886,
+      "final_area_mean": 675.4773607968091,
+      "minimum_area_mean": 675.4773607968091,
+      "maximum_area_mean": 703.263149433886
+    }
+  },
+  "limits": "Finite and fill-value checks cover saved surface temperature and pressure only. Surface pressure excludes CO2 frost and is not a total mass budget. No paired climate comparison or 3D atmospheric budget is established.",
+  "grid_sidecar_sha256": "288beeb34932f344aa012fdc1bf07227a0097f8e20b5043d12224d0a12158650",
+  "grid_sidecar": "native-c24-grid.npz",
+  "logged_final_pressure_pa": 675.4773607380408,
+  "final_pressure_log_difference_pa": 5.8768250710272696e-08
+}

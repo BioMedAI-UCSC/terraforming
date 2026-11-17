@@ -4,6 +4,8 @@
 !apps/
 !apps/mars-calibration/
 !apps/mars-calibration/**
+!scripts/
+!scripts/**
 **/__pycache__/
 **/.pytest_cache/
 **/*.egg-info/

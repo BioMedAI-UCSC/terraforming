@@ -13,9 +13,9 @@ The main workspace stays on `main`; development changes live on PR branches.
 From the repository root:
 
 ```sh
-rtk git switch main
-rtk git pull --ff-only
-rtk proxy uv sync --frozen --all-packages --dev --extra gcm3d --extra arco
+git switch main
+git pull --ff-only
+uv sync --frozen --all-packages --dev --extra gcm3d --extra arco
 ```
 
 Use `.venv/bin/python` below. `arco` supplies the HTTPS/Zarr dependencies;
@@ -24,8 +24,8 @@ should use a GPU. On a supported Linux NVIDIA host, install the matching pinned
 CUDA build once and verify the backend:
 
 ```sh
-rtk proxy uv pip install --python .venv/bin/python 'jax[cuda12]==0.11.0'
-rtk proxy .venv/bin/python -c 'import jax; print(jax.__version__, jax.devices()); assert jax.default_backend()=="gpu"'
+uv pip install --python .venv/bin/python 'jax[cuda12]==0.11.0'
+.venv/bin/python -c 'import jax; print(jax.__version__, jax.devices()); assert jax.default_backend()=="gpu"'
 ```
 
 Do not run `uv sync` again during a CUDA experiment: it can restore CPU wheels.
@@ -35,8 +35,8 @@ Do not load historical nondimensional restarts into the changed sidereal units.
 ## 2. Rebuild the corrected paper now (no external climate downloads)
 
 ```sh
-rtk proxy .venv/bin/python paper/arxiv-2610.04081/regenerate.py
-rtk proxy latexmk -cd -pdf -interaction=nonstopmode -halt-on-error paper/arxiv-2610.04081/revision/iclr2027_conference.tex
+.venv/bin/python paper/arxiv-2610.04081/regenerate.py
+latexmk -cd -pdf -interaction=nonstopmode -halt-on-error paper/arxiv-2610.04081/revision/iclr2027_conference.tex
 ```
 
 Open `paper/arxiv-2610.04081/revision/iclr2027_conference.pdf`.
@@ -60,7 +60,7 @@ protocol as an unresolved provenance detail.
 To repeat the historical small-data audit independently:
 
 ```sh
-rtk proxy .venv/bin/python scripts/audit_paper_results.py --data-root paper/arxiv-2610.04081/evidence/historical-audit/inputs --output outputs/paper/review-audit --skip-fields
+.venv/bin/python scripts/audit_paper_results.py --data-root paper/arxiv-2610.04081/evidence/historical-audit/inputs --output outputs/paper/review-audit --skip-fields
 ```
 
 This reproduces the old calibration/control-vector and reference-bias analysis,
@@ -77,8 +77,8 @@ rerun its wind/Mach/frost-point or 300/150 s field calculations.
 ## 3. Reproduce the new radiation result (self-contained)
 
 ```sh
-rtk proxy .venv/bin/python examples/neural/train_radiation.py --output outputs/paper/radiation-seed0 --seed 0 --epochs 100 --fine-tune-epochs 20 --continuation-updates 20 --continuation-budget updates
-rtk proxy .venv/bin/python examples/neural/train_radiation.py --output outputs/paper/radiation-repeat --seed 0 --epochs 100 --fine-tune-epochs 20 --continuation-updates 20 --continuation-budget updates
+.venv/bin/python examples/neural/train_radiation.py --output outputs/paper/radiation-seed0 --seed 0 --epochs 100 --fine-tune-epochs 20 --continuation-updates 20 --continuation-budget updates
+.venv/bin/python examples/neural/train_radiation.py --output outputs/paper/radiation-repeat --seed 0 --epochs 100 --fine-tune-epochs 20 --continuation-updates 20 --continuation-budget updates
 ```
 
 Read each `report.json`: both continuations must have 20 updates, zero failed
@@ -94,7 +94,7 @@ experiment; it must not replace the primary fixed-update table.
 The controlled scalar inverse example is also self-contained:
 
 ```sh
-rtk proxy .venv/bin/python examples/neural/recover_parameter.py --output outputs/paper/column-recovery --iterations 120 --steps 24 --seed 0
+.venv/bin/python examples/neural/recover_parameter.py --output outputs/paper/column-recovery --iterations 120 --steps 24 --seed 0
 ```
 
 This recovers a generated column-model multiplier of 1.6. It is **not** the
@@ -103,7 +103,7 @@ For the separate neural-control example, the corrected metric is the final
 uncontrolled forecast, not the initial field:
 
 ```sh
-rtk proxy .venv/bin/python examples/neural/optimize_atmospheric_control.py --output outputs/paper/control --iterations 40 --steps 8 --layers 2 --target-shift-k -0.2 --seed 0
+.venv/bin/python examples/neural/optimize_atmospheric_control.py --output outputs/paper/control --iterations 40 --steps 8 --layers 2 --target-shift-k -0.2 --seed 0
 ```
 
 ## 4. Prepare fresh physical/reanalysis inputs
@@ -111,11 +111,11 @@ rtk proxy .venv/bin/python examples/neural/optimize_atmospheric_control.py --out
 Run the staging scripts from the checkout whose physics will be evaluated:
 
 ```sh
-rtk proxy .venv/bin/python scripts/stage_mola.py
-rtk proxy .venv/bin/python scripts/stage_tes_surface.py
-rtk proxy .venv/bin/python scripts/stage_arco_macda.py --mars-year 32 --center-ls 45 --sols 10 --truncation T21 --layers 12 --output data/arco_macda/macda_my32_ls045_10sol_daily_t21_l12.nc
-rtk proxy .venv/bin/python scripts/neural_temp_data.py --run-dir outputs/paper/native --mola data/mola/meg004/megt90n000cb.img
-rtk proxy .venv/bin/python scripts/prepare_differentiable_windows.py --native-run outputs/paper/native --output outputs/paper/windows --per-split 4
+.venv/bin/python scripts/stage_mola.py
+.venv/bin/python scripts/stage_tes_surface.py
+.venv/bin/python scripts/stage_arco_macda.py --mars-year 32 --center-ls 45 --sols 10 --truncation T21 --layers 12 --output data/arco_macda/macda_my32_ls045_10sol_daily_t21_l12.nc
+.venv/bin/python scripts/neural_temp_data.py --run-dir outputs/paper/native --mola data/mola/meg004/megt90n000cb.img
+.venv/bin/python scripts/prepare_differentiable_windows.py --native-run outputs/paper/native --output outputs/paper/windows --per-split 4
 ```
 
 Native staging pins ARCO-MACDA revision
@@ -128,10 +128,10 @@ The physical driver also needs the prescribed Ames dust reference. Download the
 original release file (large), then extract the compact surface/dust product:
 
 ```sh
-rtk proxy mkdir -p data/ames/fv3betaout1
-rtk proxy curl -fL https://data.nas.nasa.gov/legacygcm/fv3betaout1/fv3betaout1/03340.atmos_average_zstd.nc -o data/ames/fv3betaout1/03340.atmos_average_zstd.nc
-rtk proxy .venv/bin/python scripts/stage_ames_surface_reference.py data/ames/fv3betaout1/03340.atmos_average_zstd.nc data/ames/fv3betaout1/ames_surface_reference.nc
-rtk proxy env PYTHONPATH=apps/mars-calibration .venv/bin/python apps/mars-calibration/prepare_inputs.py --repo . --restart outputs/paper/windows/my32_q0_s0-restart.npz --output outputs/paper/inputs
+mkdir -p data/ames/fv3betaout1
+curl -fL https://data.nas.nasa.gov/legacygcm/fv3betaout1/fv3betaout1/03340.atmos_average_zstd.nc -o data/ames/fv3betaout1/03340.atmos_average_zstd.nc
+.venv/bin/python scripts/stage_surface_reference.py data/ames/fv3betaout1/03340.atmos_average_zstd.nc data/ames/fv3betaout1/ames_surface_reference.nc
+env PYTHONPATH=apps/mars-calibration .venv/bin/python apps/mars-calibration/prepare_inputs.py --repo . --restart outputs/paper/windows/my32_q0_s0-restart.npz --output outputs/paper/inputs
 ```
 
 Check `windows.json` and the input manifest before running. The fresh explicit
@@ -145,8 +145,8 @@ daily `target.nc` is retained for the legacy driver and is not the native fit ta
 First validate the manifests and run a small gradient pilot:
 
 ```sh
-rtk proxy .venv/bin/python scripts/run_differentiable_experiments.py calibration --inputs outputs/paper/inputs --manifest outputs/paper/windows/windows.json --output outputs/paper/preflight --validate-only
-rtk proxy .venv/bin/python scripts/run_differentiable_experiments.py gradients --inputs outputs/paper/inputs --output outputs/paper/gradient-pilot --steps 1 --epsilons 1e-3 1e-4
+.venv/bin/python scripts/run_differentiable_experiments.py calibration --inputs outputs/paper/inputs --manifest outputs/paper/windows/windows.json --output outputs/paper/preflight --validate-only
+.venv/bin/python scripts/run_differentiable_experiments.py gradients --inputs outputs/paper/inputs --output outputs/paper/gradient-pilot --steps 1 --epsilons 1e-3 1e-4
 ```
 
 Then run the full physical derivatives, multi-diagnostic derivatives, bounded
@@ -154,11 +154,11 @@ reanalysis calibration, neural pilot, and short paired ablations. Add
 `--require-gpu` on the GPU host to reject CPU fallback:
 
 ```sh
-rtk proxy .venv/bin/python scripts/run_differentiable_experiments.py gradients --inputs outputs/paper/inputs --output outputs/paper/gradients --steps 1 4 16 32 74 148 --epsilons 1e-3 1e-4 1e-5
-rtk proxy .venv/bin/python scripts/run_scalar_sensitivity.py --inputs outputs/paper/inputs --output outputs/paper/scalar-sensitivity --steps 74 296 1480 --dt 300 --epsilon 1e-3
-rtk proxy .venv/bin/python scripts/run_differentiable_experiments.py calibration --inputs outputs/paper/inputs --manifest outputs/paper/windows/windows.json --output outputs/paper/calibration --optimizer lbfgsb --starts 3 --updates 500 --max-evaluations 1000 --gtol 1e-6 --ftol 1e-12 --seed 0
-rtk proxy .venv/bin/python scripts/run_differentiable_experiments.py neural --inputs outputs/paper/inputs --manifest outputs/paper/windows/windows.json --output outputs/paper/neural-seed0 --updates 50 --seed 0
-rtk proxy .venv/bin/python scripts/run_differentiable_experiments.py ablations --inputs outputs/paper/inputs --manifest outputs/paper/windows/windows.json --output outputs/paper/short-ablations --cases no_pbl no_convection no_regolith half_timestep
+.venv/bin/python scripts/run_differentiable_experiments.py gradients --inputs outputs/paper/inputs --output outputs/paper/gradients --steps 1 4 16 32 74 148 --epsilons 1e-3 1e-4 1e-5
+.venv/bin/python scripts/run_scalar_sensitivity.py --inputs outputs/paper/inputs --output outputs/paper/scalar-sensitivity --steps 74 296 1480 --dt 300 --epsilon 1e-3
+.venv/bin/python scripts/run_differentiable_experiments.py calibration --inputs outputs/paper/inputs --manifest outputs/paper/windows/windows.json --output outputs/paper/calibration --optimizer lbfgsb --starts 3 --updates 500 --max-evaluations 1000 --gtol 1e-6 --ftol 1e-12 --seed 0
+.venv/bin/python scripts/run_differentiable_experiments.py neural --inputs outputs/paper/inputs --manifest outputs/paper/windows/windows.json --output outputs/paper/neural-seed0 --updates 50 --seed 0
+.venv/bin/python scripts/run_differentiable_experiments.py ablations --inputs outputs/paper/inputs --manifest outputs/paper/windows/windows.json --output outputs/paper/short-ablations --cases no_pbl no_convection no_regolith half_timestep
 ```
 
 Inspect `acceptance.json`, `optimization.json`, `uncertainty.json`, `training.csv`, `skill.csv`, and
@@ -172,9 +172,9 @@ native 25-step target interval is 295.91748 s per step; do not force it to 300 s
 For the synthetic three-control recovery, timing and long ablation protocols:
 
 ```sh
-rtk proxy .venv/bin/python scripts/run_mars_paper_experiments.py --inputs outputs/paper/inputs --config apps/mars-calibration/paper-experiment.json --output outputs/paper/synthetic --task recovery
-rtk proxy .venv/bin/python scripts/run_mars_paper_experiments.py --inputs outputs/paper/inputs --config apps/mars-calibration/paper-experiment.json --output outputs/paper/timing --task benchmark
-rtk proxy .venv/bin/python scripts/run_mars_paper_experiments.py --inputs outputs/paper/inputs --config apps/mars-calibration/paper-ablations-year.json --output outputs/paper/annual --task ablations
+.venv/bin/python scripts/run_mars_paper_experiments.py --inputs outputs/paper/inputs --config apps/mars-calibration/paper-experiment.json --output outputs/paper/synthetic --task recovery
+.venv/bin/python scripts/run_mars_paper_experiments.py --inputs outputs/paper/inputs --config apps/mars-calibration/paper-experiment.json --output outputs/paper/timing --task benchmark
+.venv/bin/python scripts/run_mars_paper_experiments.py --inputs outputs/paper/inputs --config apps/mars-calibration/paper-ablations-year.json --output outputs/paper/annual --task ablations
 ```
 
 Timing reports must identify actual hardware and distinguish compile/warmup from
@@ -185,14 +185,14 @@ weaken the calibration driver's 300 s guard to recreate the v1 headline.
 For fresh seasonal spinup with untuned (1,1,1) controls:
 
 ```sh
-rtk proxy .venv/bin/python scripts/run_gcm3d_ablation.py data/tes/mgs_tes_surface_1deg.nc --output-dir outputs/paper/climate --config convection --truncation T21 --layers 12 --dt 300 --initial-ls 0 --diurnal --sols 2006 --chunk-sols 5 --cooldown-seconds 0 --co2-lw-scale 1 --dust-lw-scale 1 --surface-exchange-multiplier 1 --ames-dust-reference data/ames/fv3betaout1/ames_surface_reference.nc
-rtk proxy .venv/bin/python scripts/evaluate_seasonal_convergence.py outputs/paper/climate/convection/checkpoint_diagnostics.csv --start-sol 668 --output outputs/paper/climate/convergence.json
+.venv/bin/python scripts/run_gcm3d_ablation.py data/tes/mgs_tes_surface_1deg.nc --output-dir outputs/paper/climate --config convection --truncation T21 --layers 12 --dt 300 --initial-ls 0 --diurnal --sols 2006 --chunk-sols 5 --cooldown-seconds 0 --co2-lw-scale 1 --dust-lw-scale 1 --surface-exchange-multiplier 1 --ames-dust-reference data/ames/fv3betaout1/ames_surface_reference.nc
+.venv/bin/python scripts/evaluate_seasonal_convergence.py outputs/paper/climate/convection/checkpoint_diagnostics.csv --start-sol 668 --output outputs/paper/climate/convergence.json
 ```
 
 2006 sols is a requested pilot, not proof of equilibration. Extend using the
 identical command plus `--resume` if seasonal pressure, frost, surface T or deep
 soil fail the convergence criteria. `export_mars_seasonal_checkpoints.py` exports
-matched seasonal evaluation windows; `benchmark_ames.py`, `benchmark_mcd.py`,
+matched seasonal evaluation windows; `benchmark_reference_climate.py`, `benchmark_mcd.py`,
 `evaluate_arco_seasonal.py`, and `tform mars compare` perform the documented
 reference comparisons. Their exact options and contracts are in
 `docs/differentiable-experiments.md`, `docs/ideas/iclr-minimal-validation.md`, and
@@ -212,12 +212,12 @@ gradient preflight. Per-member and archive SHA-256 files are tracked under
 and heat-capacity corrections. Global-mean surface-temperature agreement alone
 does not validate local winds: sampled annual peak Mach reaches 3.158 at 150 s.
 
-`docs/ames-surface-mass-transport.md` describes the missing mass, enthalpy and
+`docs/surface-mass-transport.md` describes the missing mass, enthalpy and
 momentum coupling and the common frost heat capacity. This prescribed-column
 check reproduces its budget improvement without external observations:
 
 ```sh
-rtk proxy env PYTHONPATH=package .venv/bin/python scripts/validate_surface_mass_transport.py \
+env PYTHONPATH=package .venv/bin/python scripts/validate_surface_mass_transport.py \
   --output /tmp/surface-transport-budget-check.json
 ```
 

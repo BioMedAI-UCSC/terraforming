@@ -10,7 +10,7 @@
 | `coordinates.py` | Spectral grid (`T21…T170`) × equidistant sigma levels. |
 | `dynamics.py` | Dry `PrimitiveEquationsSigma`, semi-implicit stepper, scan integrator. |
 | `framework/physics/gcm.py` | Reusable column physics: orbit, radiation, surface exchange, PBL, convection, regolith, CO₂ cycle. |
-| `ames_radiation.py` | Bilinear interpolation of the bundled Ames 12-band correlated-k CO₂ tables + fixed dust optics. |
+| `correlated_k.py` | Bilinear interpolation of the bundled Ames 12-band correlated-k CO₂ tables + fixed dust optics. |
 | `topography.py` | MOLA MEGDR raster → nodal → modal orography (SHA-256 verified). |
 | `surface.py` | Interpolate an albedo/thermal-inertia (TES) dataset to the grid. |
 | `dust.py` | Interpolate an Ames seasonal dust (τ, z_max) scenario to the grid. |
@@ -41,7 +41,7 @@ two-stream). Optical depth per layer scales with local pressure ratio and a
 temperature ratio raised to per-band exponents. Two closures:
 - **Ames correlated-k (when `co2_radiation_enabled` and `ames_correlated_k_enabled`)**: gas SW/LW optical
   depths from `correlated_k_optical_depths` (bilinear in T and log-p over the
-  bundled `ames_co2_12band.npz` table), split into split-Gaussian channels
+  bundled `co2_12band_tables.npz` table), split into split-Gaussian channels
   (`channel_weights`). Dust adds an energy-conserving hemispheric two-stream layer
   (reflectance/transmittance from single-scattering albedo ω and asymmetry g),
   thermal emission split by interpolated Planck band fractions
@@ -178,7 +178,7 @@ Tests mirror the source tree under `package/tests/gcm3d/`. Coverage includes:
 - **Physics invariants**: positive temperatures, exact energy closure, CO₂ mass
   budget, frost positivity (`test_physics.py`).
 - **Assets**: MOLA checksum, Ames table interpolation (`test_topography.py`,
-  `test_ames_radiation.py`).
+  `test_correlated_k.py`).
 
 ## Resolved implementation checks
 

@@ -60,3 +60,25 @@ def test_surface_absorbs_only_emissivity_times_downward_infrared(ames, emissivit
                                expected, rtol=2.e-13, atol=1.e-13)
     np.testing.assert_allclose(jnp.sum(flux.atmospheric_convergence_w_m2, axis=0)
                                + flux.surface_net_w_m2, flux.toa_net_down_w_m2, atol=1.e-12)
+
+
+def test_water_radiation_uses_old_reservoir_and_co2_takes_priority():
+    coords=coordinate_system('T21',4);specs=physics_specs(BODY)
+    shape=coords.horizontal.nodal_shape
+    scale=float(specs.dimensionalize(1.,scales.units.pascal).magnitude)
+    snow=jnp.zeros(shape).at[1].set(.01).at[2].set(3.)
+    water=jnp.ones((1,*shape))*10.
+    forcing=dataclasses.replace(radiative_forcing(),water_frost_radiative_properties=True,
+        water_frost_threshold_m=.001,liquid_water_albedo=True)
+    state=SimpleNamespace(co2_ice=(snow*BODY.gravity_m_s2/scale)[None],
+        surface_temperature=jnp.full((1,*shape),280.),auxiliary_fields={'water_surface_kg_m2':water})
+    result=physics.surface_radiative_forcing(state,coords,specs,BODY,forcing)
+    np.testing.assert_allclose(result.albedo[0],.07)
+    np.testing.assert_allclose(result.emissivity[0],1.)
+    np.testing.assert_allclose(result.albedo[1],forcing.albedo)
+    north=np.asarray(coords.horizontal.latitudes)>0.
+    np.testing.assert_allclose(result.albedo[2],np.where(north,.65,.43))
+    state.auxiliary_fields={'water_surface_kg_m2':jnp.zeros_like(water)}
+    restored=physics.surface_radiative_forcing(state,coords,specs,BODY,forcing)
+    np.testing.assert_allclose(restored.albedo[0],forcing.albedo)
+    np.testing.assert_allclose(restored.emissivity[0],forcing.emissivity)

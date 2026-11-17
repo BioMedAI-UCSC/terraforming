@@ -4,17 +4,20 @@ import json
 import re
 import subprocess
 
-IMAGE='samkash/terraforming-paper@sha256:a04422421dbe06a2073d55259ba9ae9d54e2f22488e4bc2552fdbb5bc3f24fd2'
+IMAGE='samkash/terraforming-paper@sha256:40c9ea792caad0067d1628eb5fa03a4b053bb64879f5791926b5e13d6bbcea05'
 REPOSITORY='https://github.com/BioMedAI-UCSC/terraforming.git'
 
 
 def manifests(args):
+    if args.parallel is not None and args.parallel<1:
+        raise ValueError('parallel must be positive')
     for name in (args.name,args.namespace,args.pvc or args.name):
         if not re.fullmatch(r'[a-z0-9](?:[-a-z0-9]*[a-z0-9])?',name) or len(name)>63:
             raise ValueError('job, namespace and PVC names must be DNS labels of at most 63 characters')
     pvc=args.pvc or args.name
     invocation=['--repository',args.repository,'--ref',args.ref,'--run-id',args.run_id]
     if args.gpu: invocation.append('--gpu')
+    if args.parallel is not None: invocation+=['--parallel',str(args.parallel)]
     invocation+=['--experiments',*args.experiments]
     invocation+=args.arguments if args.arguments[:1]==['--'] else ['--',*args.arguments]
     requests={'cpu':args.cpu,'memory':args.memory,'ephemeral-storage':'2Gi'}
@@ -55,6 +58,7 @@ def parser():
     parser.add_argument('--cpu',default='8')
     parser.add_argument('--memory',default='64Gi')
     parser.add_argument('--gpu',action='store_true')
+    parser.add_argument('--parallel',type=int,help='Concurrent experiments; default is all selected folders')
     parser.add_argument('--gpu-resource',default='nvidia.com/a100')
     parser.add_argument('--submit',action='store_true',help='Apply instead of printing JSON')
     parser.add_argument('arguments',nargs=argparse.REMAINDER)
@@ -65,6 +69,6 @@ if __name__=='__main__':
     args=parser().parse_args()
     body=json.dumps(manifests(args),indent=2)
     if args.submit:
-        subprocess.run(['rtk','kubectl','--context',args.context,'-n',args.namespace,'apply','-f','-'],input=body,text=True,check=True)
+        subprocess.run(['kubectl','--context',args.context,'-n',args.namespace,'apply','-f','-'],input=body,text=True,check=True)
     else:
         print(body)

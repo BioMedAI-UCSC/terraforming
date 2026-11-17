@@ -24,7 +24,7 @@ def main(default_job=None,default_path='/work/outputs',default_output='outputs')
     if output.exists() and any(output.iterdir()):
         parser.error('output directory is not empty; choose a new snapshot path')
     output.mkdir(parents=True,exist_ok=True)
-    kube=['rtk','kubectl','--context',args.context,'-n',args.namespace]
+    kube=['kubectl','--context',args.context,'-n',args.namespace]
     def read(*arguments):
         return subprocess.check_output([*kube,*arguments],text=True)
     job=json.loads(read('get','job',args.job,'-o','json'))

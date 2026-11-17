@@ -1,0 +1,13 @@
+vertical_grid.py and vertical_grid_coefficients.npz derive from the NASA Ames
+Mars GCM v3.2.1 patch patches/srcGFDL_acs.patch, including set_eta and
+fv_eta_mars.h, at revision ba47cada5f9eb89c75c4f10d06dbae6e7f9ecb26.
+Patch Git blob: 4116b38b088d4f39a5d8c1da76acc1ffb07847db.
+
+Copyright 2023 United States Government, as represented by the Administrator
+of the National Aeronautics and Space Administration. All rights reserved.
+Licensed under the Apache License, Version 2.0. See Apache-2.0.txt.
+
+The coefficients retain the released hybrid pressure grids. The Dinosaur
+adapter freezes reference-column pressure fractions and sets the top boundary
+to zero. Dinosaur uses arithmetic full-level centers rather than FV3's
+logarithmic pressure means.

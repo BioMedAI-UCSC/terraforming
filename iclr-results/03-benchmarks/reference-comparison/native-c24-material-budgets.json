@@ -1,0 +1,96 @@
+{
+  "reservoirs_kg": {
+    "initial": {
+      "gas": 2.7236912821812796e+16,
+      "surface_co2": 0.0,
+      "cloud_co2": 0.0,
+      "water": 588949433485416.4,
+      "dust": 4322201664844403.5,
+      "gas_plus_co2": 2.7236912821812796e+16
+    },
+    "final": {
+      "gas": 2.616078559724577e+16,
+      "surface_co2": 1076127224566955.0,
+      "cloud_co2": 0.0,
+      "water": 588949433485421.6,
+      "dust": 4322201664844153.0,
+      "gas_plus_co2": 2.7236912821812724e+16
+    }
+  },
+  "changes": {
+    "gas_plus_co2": {
+      "change_kg": -72.0,
+      "relative_change": -2.643471397475653e-15
+    },
+    "water": {
+      "change_kg": 5.25,
+      "relative_change": 8.914177858921399e-15
+    },
+    "dust": {
+      "change_kg": -250.5,
+      "relative_change": -5.795657385389902e-14
+    }
+  },
+  "files_sha256": {
+    "/work/metadata-probe-20261116/original/RESTART/fv_core.res.tile1.nc": "9b9237699b3b0299956c084831a3c562fee08d3d391fbbb9e84a0cfc4edf0826",
+    "/work/metadata-probe-20261116/original/RESTART/soil_temp.res.tile1.nc": "de98a85d91eb3cf7ee66465136083121ed7bb1973c52c676195e4d6e361ec667",
+    "/work/metadata-probe-20261116/original/RESTART/fv_tracer.res.tile1.nc": "395ac4c750ef6463e8e3808c3e36e70eb02647ab5135fcdf5be43f4d260144ca",
+    "/work/metadata-probe-20261116/original/RESTART/soil_accum2.res.tile1.nc": "f388209a4ca1dc27c47af308a655a8ad6819abe5999cc794eeb13aa860c656d2",
+    "/work/metadata-probe-20261116/original/RESTART/fv_core.res.tile2.nc": "e2a3e8f1c31229a993b68ad9f50ace0bed9514017b8765242039a691e3341370",
+    "/work/metadata-probe-20261116/original/RESTART/soil_temp.res.tile2.nc": "5bfc79aaedff05f7ffe93bfd99d45bc4cab4541b03d451f0839d3780d07cfce7",
+    "/work/metadata-probe-20261116/original/RESTART/fv_tracer.res.tile2.nc": "395ac4c750ef6463e8e3808c3e36e70eb02647ab5135fcdf5be43f4d260144ca",
+    "/work/metadata-probe-20261116/original/RESTART/soil_accum2.res.tile2.nc": "f388209a4ca1dc27c47af308a655a8ad6819abe5999cc794eeb13aa860c656d2",
+    "/work/metadata-probe-20261116/original/RESTART/fv_core.res.tile3.nc": "129bd3a3e3e3e913573f2afcb7c35cb121767d5c8521f061c34ee18e346613bf",
+    "/work/metadata-probe-20261116/original/RESTART/soil_temp.res.tile3.nc": "0f6baaac88fd8443bc3cbb5fadae7479fa3784176742a2b09b97c30abee507de",
+    "/work/metadata-probe-20261116/original/RESTART/fv_tracer.res.tile3.nc": "395ac4c750ef6463e8e3808c3e36e70eb02647ab5135fcdf5be43f4d260144ca",
+    "/work/metadata-probe-20261116/original/RESTART/soil_accum2.res.tile3.nc": "f388209a4ca1dc27c47af308a655a8ad6819abe5999cc794eeb13aa860c656d2",
+    "/work/metadata-probe-20261116/original/RESTART/fv_core.res.tile4.nc": "9b2a4fe35add679707c724dede6f55b711e50926571bdf0cf2aa5a9a631c16bc",
+    "/work/metadata-probe-20261116/original/RESTART/soil_temp.res.tile4.nc": "843e4f6b7de5852097aa157212cfbdab6ee2001f48f4b756fb51c8e84b74dabd",
+    "/work/metadata-probe-20261116/original/RESTART/fv_tracer.res.tile4.nc": "395ac4c750ef6463e8e3808c3e36e70eb02647ab5135fcdf5be43f4d260144ca",
+    "/work/metadata-probe-20261116/original/RESTART/soil_accum2.res.tile4.nc": "f388209a4ca1dc27c47af308a655a8ad6819abe5999cc794eeb13aa860c656d2",
+    "/work/metadata-probe-20261116/original/RESTART/fv_core.res.tile5.nc": "05965f5febce9f321e7780a1aa3ce94c632deefb6064f6ccfcc65700438d3ec7",
+    "/work/metadata-probe-20261116/original/RESTART/soil_temp.res.tile5.nc": "4eca42b7009fe818cc9de8f96930eded784443989f8977e9377a00b77e9f1a7b",
+    "/work/metadata-probe-20261116/original/RESTART/fv_tracer.res.tile5.nc": "395ac4c750ef6463e8e3808c3e36e70eb02647ab5135fcdf5be43f4d260144ca",
+    "/work/metadata-probe-20261116/original/RESTART/soil_accum2.res.tile5.nc": "f388209a4ca1dc27c47af308a655a8ad6819abe5999cc794eeb13aa860c656d2",
+    "/work/metadata-probe-20261116/original/RESTART/fv_core.res.tile6.nc": "90d31966a7f034f9edfac8b0b62d4f2d4ce5f81b19a82c24db4f5009d04702d9",
+    "/work/metadata-probe-20261116/original/RESTART/soil_temp.res.tile6.nc": "4901c7e2bf0d0d168c0eea9cc95b6a601e8e27a138dfc76b77f36234b2563f27",
+    "/work/metadata-probe-20261116/original/RESTART/fv_tracer.res.tile6.nc": "395ac4c750ef6463e8e3808c3e36e70eb02647ab5135fcdf5be43f4d260144ca",
+    "/work/metadata-probe-20261116/original/RESTART/soil_accum2.res.tile6.nc": "f388209a4ca1dc27c47af308a655a8ad6819abe5999cc794eeb13aa860c656d2",
+    "/work/outputs/experiments/reference-comparison/native-c24/d540a8e9e7317743b3ee654d3c29477fe891ba40/matched-100sol-mpi/attempts/20261116T034726443808Z/outputs/RESTART/fv_core.res.tile1.nc": "be541d6f3560840e43ed341adf40fb93f08e451471e475ec9c14eac14023ba70",
+    "/work/outputs/experiments/reference-comparison/native-c24/d540a8e9e7317743b3ee654d3c29477fe891ba40/matched-100sol-mpi/attempts/20261116T034726443808Z/outputs/RESTART/soil_temp.res.tile1.nc": "db405f5e2536a3349dbda080063e57ba3c809854e899539e309148c6076f7f29",
+    "/work/outputs/experiments/reference-comparison/native-c24/d540a8e9e7317743b3ee654d3c29477fe891ba40/matched-100sol-mpi/attempts/20261116T034726443808Z/outputs/RESTART/fv_tracer.res.tile1.nc": "7f6a587a51902597a343e46df65c8c7ec1a2077f003f4599029052b473b7543c",
+    "/work/outputs/experiments/reference-comparison/native-c24/d540a8e9e7317743b3ee654d3c29477fe891ba40/matched-100sol-mpi/attempts/20261116T034726443808Z/outputs/RESTART/soil_accum2.res.tile1.nc": "59948704e7bf158c47f1279052cbd1991982076d0d9c347fc00ae629a93d4d56",
+    "/work/outputs/experiments/reference-comparison/native-c24/d540a8e9e7317743b3ee654d3c29477fe891ba40/matched-100sol-mpi/attempts/20261116T034726443808Z/outputs/RESTART/fv_core.res.tile2.nc": "30dab20dc675c0d22a5485ad970e68417b789a8c3ac7a51ded0afe099d75890d",
+    "/work/outputs/experiments/reference-comparison/native-c24/d540a8e9e7317743b3ee654d3c29477fe891ba40/matched-100sol-mpi/attempts/20261116T034726443808Z/outputs/RESTART/soil_temp.res.tile2.nc": "1494247884297bc39231d29355869a6df999dbc4d2d71d4494db6446c401ad84",
+    "/work/outputs/experiments/reference-comparison/native-c24/d540a8e9e7317743b3ee654d3c29477fe891ba40/matched-100sol-mpi/attempts/20261116T034726443808Z/outputs/RESTART/fv_tracer.res.tile2.nc": "025bf7502cb9fe3a040639a2fd81dec5a6452d1f85f5d1f3ac2c5255492d4f62",
+    "/work/outputs/experiments/reference-comparison/native-c24/d540a8e9e7317743b3ee654d3c29477fe891ba40/matched-100sol-mpi/attempts/20261116T034726443808Z/outputs/RESTART/soil_accum2.res.tile2.nc": "addfd2b286dbb8a12033b8a9c580197658910a5a23a0de8d21dcc3b4bcb066ce",
+    "/work/outputs/experiments/reference-comparison/native-c24/d540a8e9e7317743b3ee654d3c29477fe891ba40/matched-100sol-mpi/attempts/20261116T034726443808Z/outputs/RESTART/fv_core.res.tile3.nc": "4f0a660c37b8a74e6c4e9f3f621252b6248f163303b5570b443192f006529aed",
+    "/work/outputs/experiments/reference-comparison/native-c24/d540a8e9e7317743b3ee654d3c29477fe891ba40/matched-100sol-mpi/attempts/20261116T034726443808Z/outputs/RESTART/soil_temp.res.tile3.nc": "a2f98fe788ba961a97c6d5daf5af2bc32456363c700a6636c20bf5e271c4b32a",
+    "/work/outputs/experiments/reference-comparison/native-c24/d540a8e9e7317743b3ee654d3c29477fe891ba40/matched-100sol-mpi/attempts/20261116T034726443808Z/outputs/RESTART/fv_tracer.res.tile3.nc": "7f56ce4e6af83eebfb3b93d435488f35b53a6b3af45a00d69f9c0c18700af3b1",
+    "/work/outputs/experiments/reference-comparison/native-c24/d540a8e9e7317743b3ee654d3c29477fe891ba40/matched-100sol-mpi/attempts/20261116T034726443808Z/outputs/RESTART/soil_accum2.res.tile3.nc": "a895d573c9270d1b88f82c777587561b28db2967bb8daeecf80c6d0f27e82d00",
+    "/work/outputs/experiments/reference-comparison/native-c24/d540a8e9e7317743b3ee654d3c29477fe891ba40/matched-100sol-mpi/attempts/20261116T034726443808Z/outputs/RESTART/fv_core.res.tile4.nc": "4f5f9330004cdb8482fd1aafdd03d9d5414d938e088f6c22343edc468fb6802d",
+    "/work/outputs/experiments/reference-comparison/native-c24/d540a8e9e7317743b3ee654d3c29477fe891ba40/matched-100sol-mpi/attempts/20261116T034726443808Z/outputs/RESTART/soil_temp.res.tile4.nc": "242bf1bb84c91591208c6ed179fbb905b290f517d896d2093752e2ba4e405d8a",
+    "/work/outputs/experiments/reference-comparison/native-c24/d540a8e9e7317743b3ee654d3c29477fe891ba40/matched-100sol-mpi/attempts/20261116T034726443808Z/outputs/RESTART/fv_tracer.res.tile4.nc": "df078e93e7c8563ff2a74070b7731e38d1e100137da4cf7cc280608ebb001aa5",
+    "/work/outputs/experiments/reference-comparison/native-c24/d540a8e9e7317743b3ee654d3c29477fe891ba40/matched-100sol-mpi/attempts/20261116T034726443808Z/outputs/RESTART/soil_accum2.res.tile4.nc": "c0af3bd4d94282db2456d17bc5f1fc14c0f619d6555ed76f0036e9f4eb82a136",
+    "/work/outputs/experiments/reference-comparison/native-c24/d540a8e9e7317743b3ee654d3c29477fe891ba40/matched-100sol-mpi/attempts/20261116T034726443808Z/outputs/RESTART/fv_core.res.tile5.nc": "45ba87a2fb0ac2b903e7a757e9646788a7321fea8b41606dd0d45140734274f3",
+    "/work/outputs/experiments/reference-comparison/native-c24/d540a8e9e7317743b3ee654d3c29477fe891ba40/matched-100sol-mpi/attempts/20261116T034726443808Z/outputs/RESTART/soil_temp.res.tile5.nc": "3ca463f84d0e918bf8b573cc261fbb92b7a6d854016b0c54484f63f0cd6a5919",
+    "/work/outputs/experiments/reference-comparison/native-c24/d540a8e9e7317743b3ee654d3c29477fe891ba40/matched-100sol-mpi/attempts/20261116T034726443808Z/outputs/RESTART/fv_tracer.res.tile5.nc": "741da0448cf5887ac33c5589e7fc8b82273dbd3e5ebb7ce6e5bb6071e698d5e4",
+    "/work/outputs/experiments/reference-comparison/native-c24/d540a8e9e7317743b3ee654d3c29477fe891ba40/matched-100sol-mpi/attempts/20261116T034726443808Z/outputs/RESTART/soil_accum2.res.tile5.nc": "70441608f117b89d47feccb0d96d56d16ae70cd7dbf216460d7c5675575eaa24",
+    "/work/outputs/experiments/reference-comparison/native-c24/d540a8e9e7317743b3ee654d3c29477fe891ba40/matched-100sol-mpi/attempts/20261116T034726443808Z/outputs/RESTART/fv_core.res.tile6.nc": "da1638770278f88c3031521762fce5223fe40b06811800f78176651c30541bb6",
+    "/work/outputs/experiments/reference-comparison/native-c24/d540a8e9e7317743b3ee654d3c29477fe891ba40/matched-100sol-mpi/attempts/20261116T034726443808Z/outputs/RESTART/soil_temp.res.tile6.nc": "f11ec3f1cad0c808b3040268af36f9eb4875b20ddef6ffff8a48fb8b59c732f8",
+    "/work/outputs/experiments/reference-comparison/native-c24/d540a8e9e7317743b3ee654d3c29477fe891ba40/matched-100sol-mpi/attempts/20261116T034726443808Z/outputs/RESTART/fv_tracer.res.tile6.nc": "216852e72467a6faa259dbaedb41e7bb9697f9a1343785ab9763e051886cbd37",
+    "/work/outputs/experiments/reference-comparison/native-c24/d540a8e9e7317743b3ee654d3c29477fe891ba40/matched-100sol-mpi/attempts/20261116T034726443808Z/outputs/RESTART/soil_accum2.res.tile6.nc": "637c8b71c320ea19d10e1688afd04e44e87df1935a5c91cf11f9a80b7dfbf0d1"
+  },
+  "status": "pass_native_endpoint_material_checks",
+  "initial_state": "Zero-step cold start from the same frozen native executable and inputs",
+  "final_state": "Completed 100-sol C24 restart",
+  "gravity_m_s2": 3.72,
+  "radius_m": 3386000.0,
+  "grid_sidecar_sha256": "288beeb34932f344aa012fdc1bf07227a0097f8e20b5043d12224d0a12158650",
+  "formulas": {
+    "gas_plus_co2": "Sum(delp/g + surface_CO2 + delp/g * suspended_CO2_ratio) * cell_area",
+    "water": "Sum(delp/g * (moment_vapor + moment_ice) + surface_moment_ice) * cell_area",
+    "dust": "Sum(delp/g * (free_dust + cloud_core_dust) + surface_dust) * cell_area"
+  },
+  "limits": "Native endpoint material inventories only, using the released gas-carrier convention. This does not establish energy/momentum conservation, intermediate-step closure, Dinosaur agreement or equilibrated climate."
+}

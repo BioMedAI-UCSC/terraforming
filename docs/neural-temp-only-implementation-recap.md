@@ -97,7 +97,7 @@ After a passing gate and completed test cache, finalize and verify:
 ```bash
 env CUDA_VISIBLE_DEVICES= JAX_PLATFORMS=cpu .venv/bin/python scripts/run_neural_temp.py --run-dir outputs/neural_temp/temp_only_v1 --stage report
 .venv/bin/python scripts/run_neural_temp.py --run-dir outputs/neural_temp/temp_only_v1 --verify
-rtk read outputs/neural_temp/temp_only_v1/report.md
+cat outputs/neural_temp/temp_only_v1/report.md
 ```
 
 Expected for a completed held-out experiment: intact artifacts, `status:
