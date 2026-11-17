@@ -55,7 +55,7 @@ def test_checkpoint_history_rejects_reversed_time(tmp_path):
         )
 
 
-def test_reference_cold_start_sets_global_dry_mass_and_keeps_hydrostatic_terrain():
+def test_reference_cold_start_keeps_native_log_weighted_pressure_correction():
     pytest.importorskip('dinosaur')
     from src.framework.gcm.coordinates import coordinate_system
     from src.framework.gcm.specs import physics_specs
@@ -69,17 +69,42 @@ def test_reference_cold_start_sets_global_dry_mass_and_keeps_hydrostatic_terrain
     scale=float(specs.dimensionalize(1.,scales.units.pascal).magnitude)
     pressure=np.exp(np.asarray(grid.to_nodal(state.log_surface_pressure)))[0]*scale
     weights=np.asarray(grid.quadrature_weights)
-    assert np.sum(pressure*weights)/np.sum(weights)==pytest.approx(705.,rel=2e-14)
     expected=np.exp(-body.gravity_m_s2*elevation/(body.gas_constant_j_kg_k*170.))
     from src.celestials.planets.mars.maps import hydrostatic_surface_pressure_pa
     hydrostatic=hydrostatic_surface_pressure_pa(elevation,body,t_ref_k=170.,p0_pa=705.)
     np.testing.assert_allclose(hydrostatic,705.*expected,rtol=2e-15)
-    original=driver.initial_rest_state(coords,specs,body,elevation,t_ref_k=170.,p0_pa=705.)
-    original_pressure=np.exp(np.asarray(grid.to_nodal(original.log_surface_pressure)))[0]*scale
-    np.testing.assert_allclose(pressure/pressure.mean(),original_pressure/original_pressure.mean(),rtol=2e-14)
+    base=.8*hydrostatic
+    expected=base+(705.-np.sum(base*weights)/np.sum(np.broadcast_to(weights,base.shape)))*np.log(base)/np.log(705.)
+    expected=np.exp(np.asarray(grid.to_nodal(grid.clip_wavenumbers(grid.to_modal(np.log(expected[None]/scale))))))[0]*scale
+    np.testing.assert_allclose(pressure,expected,rtol=2e-13)
+    assert np.sum(pressure*weights)/np.sum(np.broadcast_to(weights,pressure.shape))<705.
     from src.framework.gcm.dynamics import reference_temperature
     air=grid.to_nodal(state.temperature_variation)+np.asarray(reference_temperature(coords,body))[:,None,None]
     np.testing.assert_allclose(air,170.,atol=1e-12)
+
+
+@pytest.mark.parametrize('isothermal',[False,True])
+def test_reference_atmosphere_controls_retain_global_initial_state_derivatives(isothermal):
+    pytest.importorskip('dinosaur')
+    import jax
+    import jax.numpy as jnp
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.framework.gcm.specs import physics_specs
+    from src.celestials.planets.mars.reference_constants import AMES_BODY_3D as body
+    jax.config.update('jax_enable_x64',True)
+    driver=_script('run_gcm3d_ablation');coords=coordinate_system('T21',4);grid=coords.horizontal
+    specs=physics_specs(body)
+    elevation=jnp.broadcast_to(2000.*jnp.sin(grid.latitudes)[None,:],grid.nodal_shape)
+    def objective(scale):
+        state=driver.reference_rest_state(coords,specs,body,elevation*scale,
+            temperature_k=170.+7.*(scale-1.),isothermal=isothermal)
+        return jnp.mean(grid.to_nodal(state.temperature_variation))+jnp.mean(
+            jnp.exp(grid.to_nodal(state.log_surface_pressure)))
+    automatic=jax.jit(jax.grad(objective))(1.)
+    assert np.isfinite(automatic) and abs(float(automatic))>1e-5
+    for epsilon in (1e-4,1e-5):
+        finite=(objective(1.+epsilon)-objective(1.-epsilon))/(2.*epsilon)
+        np.testing.assert_allclose(automatic,finite,rtol=2e-5,atol=1e-7)
 
 
 def test_reference_cold_surface_profile_retains_source_transition_and_polar_values():
@@ -421,6 +446,20 @@ def test_soil_solver_cli_rejects_invalid_configuration_before_inputs(monkeypatch
     with pytest.raises(SystemExit) as stopped: driver.main()
     assert stopped.value.code==2
     assert 'soil' in capsys.readouterr().err
+
+
+@pytest.mark.parametrize('arguments',[
+    ['--no-isothermal-atmosphere'],['--initial-air-temperature','180'],
+    ['--config','reference','--initial-air-temperature','nan'],
+    ['--config','reference','--initial-air-temperature','0']])
+def test_atmosphere_cli_rejects_invalid_cold_start_before_inputs(monkeypatch,capsys,arguments):
+    import sys
+    driver=_script('run_gcm3d_ablation')
+    monkeypatch.setattr(sys,'argv',['run_gcm3d_ablation.py','unused-surface',*arguments])
+    with pytest.raises(SystemExit) as stopped: driver.main()
+    assert stopped.value.code==2
+    error=capsys.readouterr().err
+    assert 'initial atmosphere' in error or 'initial air temperature' in error
 
 
 def test_release_namelist_inventory_ignores_comments_inside_continuations(monkeypatch):

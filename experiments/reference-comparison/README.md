@@ -13,6 +13,13 @@ dynamics remapping frequency as required by the released resolution rule.
 Dinosaur retains its sigma grid, arithmetic centers, spectral filtering and
 zero-pressure top. Native FV3 retains hybrid interfaces and a finite top.
 These numerical differences must appear in the comparison report.
+Atmospheric pressure now follows the released `hydro_eq` correction with
+`drym=705 Pa`. That parameter is not an exact global mean. The native C24 cold
+start averages 703.263153 Pa; the actual mean depends on the grid and terrain.
+Record each model's initial inventories. Earlier Dinosaur revision `32724e2`
+forced an exact 705 Pa mean and cannot establish matched cold-start equations.
+The corrected initializer and both native atmosphere controls are checked
+against unchanged Fortran; see the [cold-pressure evidence](../../iclr-results/03-benchmarks/reference-comparison/native-c24-cold-pressure-check.json).
 
 The released visible-dust scenario uses `dgdm_type=1` and
 `dust_map_scale=3.67`: the mapped input optical depth is multiplied by
@@ -100,3 +107,9 @@ finite and contain no fill values. The recovered area-weighted final pressure
 matches the native log within 6e-8 Pa. This is a saved-surface-field check;
 CO2/water inventories, 3-D energy budgets and paired climate agreement require
 their own analysis. The original outputs remain unchanged.
+
+The separate [native endpoint inventory check](../../iclr-results/03-benchmarks/reference-comparison/native-c24-material-budgets.json)
+includes gas plus surface/suspended CO2, moment water and free/core/surface dust.
+Over 100 sols, each total changes by less than 6e-14 of its initial value.
+This verifies the native comparator's material reservoirs. It does not establish
+the port's long-run conservation, energy closure or climate agreement.

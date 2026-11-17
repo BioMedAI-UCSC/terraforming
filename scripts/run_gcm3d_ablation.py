@@ -290,18 +290,26 @@ def reference_configuration(grid,data_directory,dt_seconds,*,moment_water=True,d
     return AMES_BODY_3D,forcing,radiation,options,hashes
 
 
-def reference_rest_state(coords,specs,body,elevation_nodal_m):
-    """Match the released cloud run's 705 Pa dry-mass target over terrain."""
-    dynamics=initial_rest_state(coords,specs,body,elevation_nodal_m,t_ref_k=170.,p0_pa=705.)
+def reference_rest_state(coords,specs,body,elevation_nodal_m,*,temperature_k=170.,isothermal=True):
+    """Released hydro_eq cold start, with Dinosaur's spectral/sigma geometry."""
+    from src.framework.physics.hydrostatic_initialization import surface_pressure,air_temperature
+    from src.framework.physics.vertical_grid import coefficients
+    from src.framework.gcm.dynamics import reference_temperature
     grid=coords.horizontal
+    dynamics=initial_rest_state(coords,specs,body,np.zeros(grid.nodal_shape),t_ref_k=170.,p0_pa=705.)
     scale=float(specs.dimensionalize(1.,scales.units.pascal).magnitude)
-    pressure=jnp.exp(grid.to_nodal(dynamics.log_surface_pressure))*scale
-    weights=jnp.asarray(grid.quadrature_weights)
-    mean=jnp.sum(pressure*weights)/jnp.sum(weights)
-    unit=jnp.zeros_like(dynamics.log_surface_pressure).at[...,0,0].set(1.)
-    normalization=jnp.mean(grid.to_nodal(unit))
-    corrected=dynamics.log_surface_pressure.at[...,0,0].add(jnp.log(705./mean)/normalization)
-    return dataclasses.replace(dynamics,log_surface_pressure=corrected)
+    top=coefficients(56,705.)[0][0]
+    pressure=surface_pressure(body.gravity_m_s2*jnp.asarray(elevation_nodal_m),grid.quadrature_weights,
+        temperature_k=temperature_k,gas_constant=body.gas_constant_j_kg_k,top_pressure_pa=top)
+    log_pressure=grid.clip_wavenumbers(grid.to_modal(jnp.log(pressure[None]/scale)))
+    resolved=jnp.exp(grid.to_nodal(log_pressure))[0]*scale
+    half=jnp.asarray(coords.vertical.boundaries)[:,None,None]*resolved
+    temperature=air_temperature(half,resolved,temperature_k=temperature_k,isothermal=isothermal,
+        gravity=body.gravity_m_s2,cp=body.cp_j_kg_k)
+    kelvin=float(specs.nondimensionalize(1.*scales.units.kelvin))
+    reference=jnp.asarray(reference_temperature(coords,body))[:,None,None]
+    variation=grid.to_modal(temperature*kelvin-reference)
+    return dataclasses.replace(dynamics,log_surface_pressure=log_pressure,temperature_variation=variation)
 
 
 def reference_surface_temperature_k(latitude_rad,*,equilibrated=True,soil_temperature_k=170.):
@@ -388,6 +396,9 @@ def main() -> int:
     parser.add_argument('--equilibrated-surface',action=argparse.BooleanOptionalAction,default=True,
         help='use the released latitude profile; disable for uniform initial soil temperature')
     parser.add_argument('--soil-temperature',type=float,default=170.,help='uniform initial soil temperature in K')
+    parser.add_argument('--initial-air-temperature',type=float,default=170.,help='native isotemp cold-start temperature in K')
+    parser.add_argument('--isothermal-atmosphere',action=argparse.BooleanOptionalAction,default=True,
+        help='native do_isothermal cold start; disable for its frost-limited lapse profile')
     parser.add_argument('--north-inertia',type=float,default=-900.,help='replace thermal inertia north of the cap latitude when positive')
     parser.add_argument('--north-inertia-latitude',type=float,default=65.,help='north thermal-inertia boundary in degrees')
     parser.add_argument('--north-inertia-maximum',type=float,default=800.,help='thermal-inertia cap north of the boundary')
@@ -443,6 +454,10 @@ def main() -> int:
     solar_constant=589. if args.reference_radiation=='simple' and args.solar_constant is None else args.solar_constant
     if not np.isfinite(args.soil_temperature) or args.soil_temperature<=0.:
         parser.error('initial soil temperature must be finite and positive')
+    if not np.isfinite(args.initial_air_temperature) or args.initial_air_temperature<=0.:
+        parser.error('initial air temperature must be finite and positive')
+    if (args.initial_air_temperature!=170. or not args.isothermal_atmosphere) and not reference:
+        parser.error('initial atmosphere controls require --config reference')
     if not np.isfinite(args.soil_alpha): parser.error('soil alpha must be finite')
     soil_controls={}
     if not args.surface_condensation: soil_controls['surface_condensation']=False
@@ -625,11 +640,12 @@ def main() -> int:
                                         if args.ames_dust_reference else None))
         if reference:
             config.update(reference_input_sha256=input_hashes,body=dataclasses.asdict(body),
-                initial_mean_surface_pressure_pa=705.,reference_protocol='present-Mars-clouds-v3.2',
+                initial_dry_mass_parameter_pa=705.,initial_pressure_scheme='released-hydro-eq',reference_protocol='present-Mars-clouds-v3.2',
                 radiation_mode='12band',radiation_update_seconds=8*args.dt,
                 reference_release_commit='ba47cada5f9eb89c75c4f10d06dbae6e7f9ecb26',
                 reference_build_blob='83b611e6527cf26bef3ec0064c05aebe0bb0d080',
-                initial_air_temperature_k=170.,initial_surface_profile='released-equilibrated-latitude',
+                initial_air_temperature_k=args.initial_air_temperature,isothermal_atmosphere=args.isothermal_atmosphere,
+                initial_surface_profile='released-equilibrated-latitude',
                 sigma_boundaries=sigma.tolist())
             config.update(alternate_radiation_metadata)
             if args.scale_surface_ir_flux: config['reference_radiation_controls']=dict(scale_surface_flux=True)
@@ -730,7 +746,8 @@ def main() -> int:
             # Establish the exact denominator for all conservation-drift claims.
             # This mirrors run_maps' MOLA-aware resting-state initialization.
             elevation_nodal_m = regrid_to_nodal(coords,mola_path=args.mola_path)
-            initial_dynamics = reference_rest_state(coords,specs,body,elevation_nodal_m) if reference else initial_rest_state(
+            initial_dynamics = reference_rest_state(coords,specs,body,elevation_nodal_m,
+                temperature_k=args.initial_air_temperature,isothermal=args.isothermal_atmosphere) if reference else initial_rest_state(
                 coords,
                 specs,
                 body,

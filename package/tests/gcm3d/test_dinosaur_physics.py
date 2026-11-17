@@ -1487,3 +1487,36 @@ def test_water_latent_energy_is_explicit_differentiable_and_used_at_all_repair_s
     for stage in ('raw','frost_repaired','settled','saturation_adjusted','corrected'):
         assert np.isfinite(getattr(diagnostics,stage+'_exchange_energy_j'))
         assert np.isfinite(getattr(diagnostics,stage+'_axial_angular_momentum_kg_m2_s'))
+
+
+@pytest.mark.parametrize('isothermal',[False,True])
+def test_native_cold_atmosphere_keeps_three_step_gradient_and_exact_restart(tmp_path,isothermal):
+    import importlib.util
+    from pathlib import Path
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.framework.gcm.specs import physics_specs
+    from src.framework.gcm.restart import save_restart,load_restart
+    path=Path(__file__).resolve().parents[3]/'scripts/run_gcm3d_ablation.py'
+    spec=importlib.util.spec_from_file_location('cold_driver',path)
+    driver=importlib.util.module_from_spec(spec);spec.loader.exec_module(driver)
+    coords=coordinate_system('T21',4);specs=physics_specs(BODY)
+    baseline,step,grid=backend_case(temperature_k=170.,surface_temperature_k=180.)
+    def start(temperature):
+        dynamics=driver.reference_rest_state(coords,specs,BODY,jnp.zeros(grid.nodal_shape),
+            temperature_k=temperature,isothermal=isothermal)
+        dynamics=dataclasses.replace(dynamics,tracers=baseline.dynamics.tracers,sim_time=0.)
+        return baseline._replace(dynamics=dynamics)
+    def objective(temperature):
+        final=jax.lax.scan(lambda state,_:(step(state),None),start(temperature),None,length=3)[0]
+        return jnp.mean(final.dynamics.temperature_variation)+jnp.mean(final.surface_temperature)
+    selected=170.037
+    derivative=jax.jit(jax.grad(objective))(selected)
+    assert np.isfinite(derivative) and abs(float(derivative))>1e-5
+    for epsilon in (1e-3,1e-4):
+        finite=(objective(selected+epsilon)-objective(selected-epsilon))/(2.*epsilon)
+        np.testing.assert_allclose(derivative,finite,rtol=3e-5,atol=1e-8)
+    tick=jax.jit(step);first=tick(start(170.))
+    restored=load_restart(save_restart(first,tmp_path/'cold-atmosphere.npz'))
+    for a,b in zip(jax.tree.leaves(tick(tick(first))),jax.tree.leaves(tick(tick(restored))),strict=True):
+        assert np.isfinite(a).all()
+        np.testing.assert_array_equal(a,b)

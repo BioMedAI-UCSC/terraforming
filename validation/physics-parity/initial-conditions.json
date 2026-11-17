@@ -4,7 +4,7 @@
     "surface_git_blob": "aca56974025103ab408ecf866cc78b25779fc469",
     "patch_git_blob": "4116b38b088d4f39a5d8c1da76acc1ffb07847db",
     "block_sha256": "fd9e136cd13553c72de80b451103dfb01b518185aab5ea4b5267532d27df38b5",
-    "compiled_source_sha256": "75a3bd8771d8bb86ee7ab578cf94a0f693c8f7ce4ca5b7fb42cc46d731cb11a6",
+    "compiled_source_sha256": "0afc28133abede94ee18e9f0275742337f83b675173abccefaaa8a61463a1bd9",
     "compiler_flags": [
       "-O3",
       "-fdefault-real-8",
@@ -90,6 +90,668 @@
       "max_surface_error_k": 2.842170943040401e-14
     }
   ],
+  "hydrostatic_cases": [
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 610.0,
+      "temperature_k": 130.0,
+      "isothermal": false,
+      "terrain": false,
+      "max_pressure_error_pa": 1.1368683772161603e-13,
+      "max_temperature_error_k": 1.4210854715202004e-14
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 610.0,
+      "temperature_k": 130.0,
+      "isothermal": false,
+      "terrain": true,
+      "max_pressure_error_pa": 3.637978807091713e-12,
+      "max_temperature_error_k": 2.842170943040401e-14
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 610.0,
+      "temperature_k": 130.0,
+      "isothermal": true,
+      "terrain": false,
+      "max_pressure_error_pa": 1.1368683772161603e-13,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 610.0,
+      "temperature_k": 130.0,
+      "isothermal": true,
+      "terrain": true,
+      "max_pressure_error_pa": 3.637978807091713e-12,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 610.0,
+      "temperature_k": 170.0,
+      "isothermal": false,
+      "terrain": false,
+      "max_pressure_error_pa": 1.1368683772161603e-13,
+      "max_temperature_error_k": 2.842170943040401e-14
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 610.0,
+      "temperature_k": 170.0,
+      "isothermal": false,
+      "terrain": true,
+      "max_pressure_error_pa": 4.547473508864641e-12,
+      "max_temperature_error_k": 2.842170943040401e-14
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 610.0,
+      "temperature_k": 170.0,
+      "isothermal": true,
+      "terrain": false,
+      "max_pressure_error_pa": 1.1368683772161603e-13,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 610.0,
+      "temperature_k": 170.0,
+      "isothermal": true,
+      "terrain": true,
+      "max_pressure_error_pa": 4.547473508864641e-12,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 610.0,
+      "temperature_k": 250.0,
+      "isothermal": false,
+      "terrain": false,
+      "max_pressure_error_pa": 1.1368683772161603e-13,
+      "max_temperature_error_k": 2.842170943040401e-14
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 610.0,
+      "temperature_k": 250.0,
+      "isothermal": false,
+      "terrain": true,
+      "max_pressure_error_pa": 2.0463630789890885e-12,
+      "max_temperature_error_k": 2.842170943040401e-14
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 610.0,
+      "temperature_k": 250.0,
+      "isothermal": true,
+      "terrain": false,
+      "max_pressure_error_pa": 1.1368683772161603e-13,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 610.0,
+      "temperature_k": 250.0,
+      "isothermal": true,
+      "terrain": true,
+      "max_pressure_error_pa": 2.0463630789890885e-12,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 705.0,
+      "temperature_k": 130.0,
+      "isothermal": false,
+      "terrain": false,
+      "max_pressure_error_pa": 1.1368683772161603e-13,
+      "max_temperature_error_k": 1.4210854715202004e-14
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 705.0,
+      "temperature_k": 130.0,
+      "isothermal": false,
+      "terrain": true,
+      "max_pressure_error_pa": 3.865352482534945e-12,
+      "max_temperature_error_k": 2.842170943040401e-14
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 705.0,
+      "temperature_k": 130.0,
+      "isothermal": true,
+      "terrain": false,
+      "max_pressure_error_pa": 1.1368683772161603e-13,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 705.0,
+      "temperature_k": 130.0,
+      "isothermal": true,
+      "terrain": true,
+      "max_pressure_error_pa": 3.865352482534945e-12,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 705.0,
+      "temperature_k": 170.0,
+      "isothermal": false,
+      "terrain": false,
+      "max_pressure_error_pa": 1.1368683772161603e-13,
+      "max_temperature_error_k": 1.4210854715202004e-14
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 705.0,
+      "temperature_k": 170.0,
+      "isothermal": false,
+      "terrain": true,
+      "max_pressure_error_pa": 5.4569682106375694e-12,
+      "max_temperature_error_k": 2.842170943040401e-14
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 705.0,
+      "temperature_k": 170.0,
+      "isothermal": true,
+      "terrain": false,
+      "max_pressure_error_pa": 1.1368683772161603e-13,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 705.0,
+      "temperature_k": 170.0,
+      "isothermal": true,
+      "terrain": true,
+      "max_pressure_error_pa": 5.4569682106375694e-12,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 705.0,
+      "temperature_k": 250.0,
+      "isothermal": false,
+      "terrain": false,
+      "max_pressure_error_pa": 0.0,
+      "max_temperature_error_k": 2.842170943040401e-14
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 705.0,
+      "temperature_k": 250.0,
+      "isothermal": false,
+      "terrain": true,
+      "max_pressure_error_pa": 2.7284841053187847e-12,
+      "max_temperature_error_k": 2.842170943040401e-14
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 705.0,
+      "temperature_k": 250.0,
+      "isothermal": true,
+      "terrain": false,
+      "max_pressure_error_pa": 0.0,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 705.0,
+      "temperature_k": 250.0,
+      "isothermal": true,
+      "terrain": true,
+      "max_pressure_error_pa": 2.7284841053187847e-12,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 50000.0,
+      "temperature_k": 130.0,
+      "isothermal": false,
+      "terrain": false,
+      "max_pressure_error_pa": 1.4551915228366852e-11,
+      "max_temperature_error_k": 1.4210854715202004e-14
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 50000.0,
+      "temperature_k": 130.0,
+      "isothermal": false,
+      "terrain": true,
+      "max_pressure_error_pa": 2.764863893389702e-10,
+      "max_temperature_error_k": 5.684341886080802e-14
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 50000.0,
+      "temperature_k": 130.0,
+      "isothermal": true,
+      "terrain": false,
+      "max_pressure_error_pa": 1.4551915228366852e-11,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 50000.0,
+      "temperature_k": 130.0,
+      "isothermal": true,
+      "terrain": true,
+      "max_pressure_error_pa": 2.764863893389702e-10,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 50000.0,
+      "temperature_k": 170.0,
+      "isothermal": false,
+      "terrain": false,
+      "max_pressure_error_pa": 1.4551915228366852e-11,
+      "max_temperature_error_k": 1.4210854715202004e-14
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 50000.0,
+      "temperature_k": 170.0,
+      "isothermal": false,
+      "terrain": true,
+      "max_pressure_error_pa": 3.7834979593753815e-10,
+      "max_temperature_error_k": 5.684341886080802e-14
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 50000.0,
+      "temperature_k": 170.0,
+      "isothermal": true,
+      "terrain": false,
+      "max_pressure_error_pa": 1.4551915228366852e-11,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 50000.0,
+      "temperature_k": 170.0,
+      "isothermal": true,
+      "terrain": true,
+      "max_pressure_error_pa": 3.7834979593753815e-10,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 50000.0,
+      "temperature_k": 250.0,
+      "isothermal": false,
+      "terrain": false,
+      "max_pressure_error_pa": 0.0,
+      "max_temperature_error_k": 2.842170943040401e-14
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 50000.0,
+      "temperature_k": 250.0,
+      "isothermal": false,
+      "terrain": true,
+      "max_pressure_error_pa": 1.8917489796876907e-10,
+      "max_temperature_error_k": 2.842170943040401e-14
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 50000.0,
+      "temperature_k": 250.0,
+      "isothermal": true,
+      "terrain": false,
+      "max_pressure_error_pa": 0.0,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 24,
+      "dry_mass_parameter_pa": 50000.0,
+      "temperature_k": 250.0,
+      "isothermal": true,
+      "terrain": true,
+      "max_pressure_error_pa": 1.8917489796876907e-10,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 610.0,
+      "temperature_k": 130.0,
+      "isothermal": false,
+      "terrain": false,
+      "max_pressure_error_pa": 0.0,
+      "max_temperature_error_k": 2.842170943040401e-14
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 610.0,
+      "temperature_k": 130.0,
+      "isothermal": false,
+      "terrain": true,
+      "max_pressure_error_pa": 7.958078640513122e-13,
+      "max_temperature_error_k": 2.842170943040401e-14
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 610.0,
+      "temperature_k": 130.0,
+      "isothermal": true,
+      "terrain": false,
+      "max_pressure_error_pa": 0.0,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 610.0,
+      "temperature_k": 130.0,
+      "isothermal": true,
+      "terrain": true,
+      "max_pressure_error_pa": 7.958078640513122e-13,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 610.0,
+      "temperature_k": 170.0,
+      "isothermal": false,
+      "terrain": false,
+      "max_pressure_error_pa": 0.0,
+      "max_temperature_error_k": 2.842170943040401e-14
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 610.0,
+      "temperature_k": 170.0,
+      "isothermal": false,
+      "terrain": true,
+      "max_pressure_error_pa": 2.0463630789890885e-12,
+      "max_temperature_error_k": 2.842170943040401e-14
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 610.0,
+      "temperature_k": 170.0,
+      "isothermal": true,
+      "terrain": false,
+      "max_pressure_error_pa": 0.0,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 610.0,
+      "temperature_k": 170.0,
+      "isothermal": true,
+      "terrain": true,
+      "max_pressure_error_pa": 2.0463630789890885e-12,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 610.0,
+      "temperature_k": 250.0,
+      "isothermal": false,
+      "terrain": false,
+      "max_pressure_error_pa": 0.0,
+      "max_temperature_error_k": 2.842170943040401e-14
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 610.0,
+      "temperature_k": 250.0,
+      "isothermal": false,
+      "terrain": true,
+      "max_pressure_error_pa": 2.2737367544323206e-13,
+      "max_temperature_error_k": 2.842170943040401e-14
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 610.0,
+      "temperature_k": 250.0,
+      "isothermal": true,
+      "terrain": false,
+      "max_pressure_error_pa": 0.0,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 610.0,
+      "temperature_k": 250.0,
+      "isothermal": true,
+      "terrain": true,
+      "max_pressure_error_pa": 2.2737367544323206e-13,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 705.0,
+      "temperature_k": 130.0,
+      "isothermal": false,
+      "terrain": false,
+      "max_pressure_error_pa": 0.0,
+      "max_temperature_error_k": 2.842170943040401e-14
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 705.0,
+      "temperature_k": 130.0,
+      "isothermal": false,
+      "terrain": true,
+      "max_pressure_error_pa": 9.094947017729282e-13,
+      "max_temperature_error_k": 2.842170943040401e-14
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 705.0,
+      "temperature_k": 130.0,
+      "isothermal": true,
+      "terrain": false,
+      "max_pressure_error_pa": 0.0,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 705.0,
+      "temperature_k": 130.0,
+      "isothermal": true,
+      "terrain": true,
+      "max_pressure_error_pa": 9.094947017729282e-13,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 705.0,
+      "temperature_k": 170.0,
+      "isothermal": false,
+      "terrain": false,
+      "max_pressure_error_pa": 0.0,
+      "max_temperature_error_k": 2.842170943040401e-14
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 705.0,
+      "temperature_k": 170.0,
+      "isothermal": false,
+      "terrain": true,
+      "max_pressure_error_pa": 2.5011104298755527e-12,
+      "max_temperature_error_k": 5.684341886080802e-14
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 705.0,
+      "temperature_k": 170.0,
+      "isothermal": true,
+      "terrain": false,
+      "max_pressure_error_pa": 0.0,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 705.0,
+      "temperature_k": 170.0,
+      "isothermal": true,
+      "terrain": true,
+      "max_pressure_error_pa": 2.5011104298755527e-12,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 705.0,
+      "temperature_k": 250.0,
+      "isothermal": false,
+      "terrain": false,
+      "max_pressure_error_pa": 0.0,
+      "max_temperature_error_k": 2.842170943040401e-14
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 705.0,
+      "temperature_k": 250.0,
+      "isothermal": false,
+      "terrain": true,
+      "max_pressure_error_pa": 2.2737367544323206e-13,
+      "max_temperature_error_k": 5.684341886080802e-14
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 705.0,
+      "temperature_k": 250.0,
+      "isothermal": true,
+      "terrain": false,
+      "max_pressure_error_pa": 0.0,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 705.0,
+      "temperature_k": 250.0,
+      "isothermal": true,
+      "terrain": true,
+      "max_pressure_error_pa": 2.2737367544323206e-13,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 50000.0,
+      "temperature_k": 130.0,
+      "isothermal": false,
+      "terrain": false,
+      "max_pressure_error_pa": 0.0,
+      "max_temperature_error_k": 5.684341886080802e-14
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 50000.0,
+      "temperature_k": 130.0,
+      "isothermal": false,
+      "terrain": true,
+      "max_pressure_error_pa": 5.820766091346741e-11,
+      "max_temperature_error_k": 5.684341886080802e-14
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 50000.0,
+      "temperature_k": 130.0,
+      "isothermal": true,
+      "terrain": false,
+      "max_pressure_error_pa": 0.0,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 50000.0,
+      "temperature_k": 130.0,
+      "isothermal": true,
+      "terrain": true,
+      "max_pressure_error_pa": 5.820766091346741e-11,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 50000.0,
+      "temperature_k": 170.0,
+      "isothermal": false,
+      "terrain": false,
+      "max_pressure_error_pa": 0.0,
+      "max_temperature_error_k": 5.684341886080802e-14
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 50000.0,
+      "temperature_k": 170.0,
+      "isothermal": false,
+      "terrain": true,
+      "max_pressure_error_pa": 1.7462298274040222e-10,
+      "max_temperature_error_k": 5.684341886080802e-14
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 50000.0,
+      "temperature_k": 170.0,
+      "isothermal": true,
+      "terrain": false,
+      "max_pressure_error_pa": 0.0,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 50000.0,
+      "temperature_k": 170.0,
+      "isothermal": true,
+      "terrain": true,
+      "max_pressure_error_pa": 1.7462298274040222e-10,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 50000.0,
+      "temperature_k": 250.0,
+      "isothermal": false,
+      "terrain": false,
+      "max_pressure_error_pa": 0.0,
+      "max_temperature_error_k": 2.842170943040401e-14
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 50000.0,
+      "temperature_k": 250.0,
+      "isothermal": false,
+      "terrain": true,
+      "max_pressure_error_pa": 1.4551915228366852e-11,
+      "max_temperature_error_k": 5.684341886080802e-14
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 50000.0,
+      "temperature_k": 250.0,
+      "isothermal": true,
+      "terrain": false,
+      "max_pressure_error_pa": 0.0,
+      "max_temperature_error_k": 0.0
+    },
+    {
+      "layers": 56,
+      "dry_mass_parameter_pa": 50000.0,
+      "temperature_k": 250.0,
+      "isothermal": true,
+      "terrain": true,
+      "max_pressure_error_pa": 1.4551915228366852e-11,
+      "max_temperature_error_k": 0.0
+    }
+  ],
+  "hydrostatic_block_sha256": "e9da37488a6773762e4d00433371b3494457470eb7842aa921a0953b33454772",
+  "atmosphere_controls": [
+    {
+      "source_control": "isotemp",
+      "implementation": "--initial-air-temperature"
+    },
+    {
+      "source_control": "do_isothermal",
+      "implementation": "--isothermal-atmosphere/--no-isothermal-atmosphere"
+    }
+  ],
+  "global_reduction_adapter": "single-process weighted sum replaces FMS g_sum; numerical cold-start block unchanged",
   "initialized_soil_nodes": 17,
   "solver_soil_nodes": 16,
   "extra_node_audit": {
@@ -99,9 +761,10 @@
   },
   "max_surface_error_k": 2.842170943040401e-14,
   "sha256": {
-    "scripts/validate_initial_conditions.py": "3ccb5deff7d4fc161dd3feda00f4d10eb32e518fabe4e0efa3a9a16cb61bd425",
-    "scripts/run_gcm3d_ablation.py": "f4ba37c0d0534cad0489943bd36bf2a9a239b334dee79aa4f2e4dcbfeb1cdd7f",
-    "package/src/celestials/planets/mars/maps.py": "1ebb0dff9d1197d462e6d34ba88927b13aa8c72dc5ffe2940a8d97f2a2d9c34e"
+    "scripts/validate_initial_conditions.py": "2ff7a0f22a5ae9c18ea48ed37258ec1c3130eeaa4fcc0e277996f086d4031e68",
+    "scripts/run_gcm3d_ablation.py": "b07e3be690d7366f9b2ecdc1c3a005afb2f90e38f60939a47c699f47b78d557e",
+    "package/src/celestials/planets/mars/maps.py": "1ebb0dff9d1197d462e6d34ba88927b13aa8c72dc5ffe2940a8d97f2a2d9c34e",
+    "package/src/framework/physics/hydrostatic_initialization.py": "b65d7d8d23bb608c781e323f15ba3f5218220762a1f97587da9253a7074e8310"
   },
-  "limits": "Unchanged surface cold-start and optional extra-node reset blocks; the unused initialized entry and unwritten caller tendency are audited, not copied into active physics. Pinned isothermal atmosphere default; Dinosaur retains its separately tested hydrostatic pressure normalization and sigma adaptation."
+  "limits": "Unchanged surface and atmospheric cold-start blocks, including log-weighted pressure correction and optional frost-limited temperature profile. The surface extra-node defect is audited, not copied into active physics. Dinosaur projects log pressure to its spectral space and evaluates the non-isothermal profile on sigma interfaces."
 }

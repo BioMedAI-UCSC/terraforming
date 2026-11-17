@@ -464,10 +464,21 @@ dust, MY30 background dust, moment water clouds with contact parameter 0.95,
 30-second cloud substeps without latent reheating, 12-band radiation, and the
 top Rayleigh sponge. Radiation refreshes every eight physics steps. The surface
 and soil use the four released TES/GRS maps; polar water uses the pinned cap map.
-The cold start sets global mean gas pressure to 705 Pa. Terrain pressure
-differences stay hydrostatic. This matches the source's dry-mass target rather
-than assigning 705 Pa at zero elevation.
-Air starts at the released 170 K isothermal default. The surface and all soil
+The cold start uses the source `drym=705 Pa` parameter. Native `hydro_eq` starts
+from 80% of that pressure, evaluates terrain pressure, then adds a correction
+weighted by log pressure. It does not reach an exact 705 Pa global mean. The
+native C24 mean is 703.263153 Pa. The previous exact global rescale was incorrect
+and is replaced by the source equation. On the same native terrain and weights,
+all 3,456 corrected pressures match within 2.6e-12 Pa.
+On those same native cells, the previous pressure law had 19.53 Pa area-weighted
+RMSE and 67.72 Pa maximum error before any backend spectral projection.
+Air starts at the released 170 K isothermal default. `--initial-air-temperature`
+sets source `isotemp`; `--no-isothermal-atmosphere` selects its frost-limited
+lapse profile. Both controls are saved in restart identity. Seventy-two unchanged
+native atmospheric configurations check pressure, layer thickness and both
+temperature branches. Kernel and global-state derivatives also pass. The
+non-isothermal profile uses Dinosaur's actual sigma interfaces; native uses its
+hybrid interfaces. The surface and all soil
 nodes start from the released latitude profile. An unchanged native initializer
 matches 184 latitude samples, including the southern branch transition.
 The shared map initializer now uses an explicit temperature for both the air
@@ -487,10 +498,11 @@ Its sigma coordinates cannot retain FV3's fixed-pressure hybrid interfaces
 over changing terrain. Saved restarts include the selected boundaries and reject
 different vertical geometry.
 
-The cold start filters pressure with the same terrain modes as the dynamical
-core. An actual MOLA dry check reduced false wind after five seconds from
+Log pressure is projected into the spectral space of the dynamical core.
+The generic, uncorrected hydrostatic initializer's MOLA dry check reduced false wind after five seconds from
 0.225396 m/s to 1.30e-12 m/s. Independent high-mode terrain tests cover uniform
-and stretched grids. This removes an initialization imbalance.
+and stretched grids. The released log-weighted correction is retained even
+though it changes exact isothermal balance.
 
 ```sh
 env PYTHONPATH=package:. python scripts/run_gcm3d_ablation.py /path/to/AmesGCM/data \

@@ -1,0 +1,16 @@
+{
+  "status": "pass",
+  "cells": 3456,
+  "max_pressure_error_pa": 2.5011104298755527e-12,
+  "area_mean_pressure_pa": 703.2631531591794,
+  "native_area_mean_pressure_pa": 703.2631531591788,
+  "input_snapshot_sha256": "b0c464cf3fef572f603952f39b91aa9b19dd58390482d9330f37658378ab5cf1",
+  "kernel_sha256": "b65d7d8d23bb608c781e323f15ba3f5218220762a1f97587da9253a7074e8310",
+  "limits": "Same native terrain and source-derived C24 area weights. Tests the pressure initializer before Dinosaur spectral projection. Gaussian/sigma initial fields retain their backend grid differences.",
+  "previous_initializer_comparison": {
+    "area_weighted_rmse_pa": 19.529410360832763,
+    "area_weighted_bias_pa": 1.7368468408210473,
+    "maximum_absolute_error_pa": 67.72152739778653,
+    "method": "Previous hydrostatic law with uniform global rescale, evaluated on the same native C24 terrain/cell weights before any backend spectral projection"
+  }
+}
