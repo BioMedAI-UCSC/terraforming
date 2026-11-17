@@ -19,8 +19,11 @@ import pytest
 
 pytest.importorskip("dinosaur")
 
+from src.framework.gcm._dinosaur import jax  # noqa: E402
 from src.celestials.planets.mars import gcm as mars_gcm  # noqa: E402
 from src.framework.physics import gcm as P  # noqa: E402
+
+jax.config.update("jax_enable_x64", True)
 
 
 def _forcing():

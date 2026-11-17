@@ -21,6 +21,18 @@ def column():
     return temperature,u,-u,tracers,half,full,.25
 
 
+def setup_state():
+    from src.celestials.planets.mars import MARS_BODY_3D as body
+    from src.celestials.planets.mars.maps import initial_rest_state
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.framework.gcm.specs import physics_specs
+    from src.framework.physics.gcm import initial_column_state
+    coords=coordinate_system('T21',4);specs=physics_specs(body)
+    dynamics=initial_rest_state(coords,specs,body,np.zeros(coords.horizontal.nodal_shape),p0_pa=610.)
+    dynamics=dataclasses.replace(dynamics,sim_time=0.)
+    return coords,specs,initial_column_state(dynamics,coords,210.,specs)
+
+
 def test_pass2_conserves_heat_momentum_and_tracers_on_nonuniform_layers():
     values = column()
     adjusted = jax.jit(pass2)(*values)
@@ -62,7 +74,6 @@ def test_pass2_rejects_inconsistent_grid():
 
 
 def test_dinosaur_adapter_preserves_inventories_and_reverse_derivative():
-    from .test_aerosol_state import setup_state
     from src.celestials.planets.mars import MARS_BODY_3D as body
     from src.framework.gcm.dynamics import reference_temperature
     coords,specs,state = setup_state()
@@ -88,7 +99,6 @@ def test_dinosaur_adapter_preserves_inventories_and_reverse_derivative():
 
 
 def test_complete_step_is_differentiable_and_does_not_double_apply_convection():
-    from .test_aerosol_state import setup_state
     from src.celestials.planets.mars import MARS_BODY_3D as body
     from src.celestials.planets.mars import gcm as mars_gcm
     coords,specs,state=setup_state()
