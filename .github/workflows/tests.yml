@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       suite:
-        description: Module to run (coupled runs all four integration groups)
+        description: Module to run (coupled runs all five integration groups)
         type: choice
         default: all
         options: [all, dynamics, radiation, surface, particles, neural, coupled, legacy, cli, calibration, runtime]

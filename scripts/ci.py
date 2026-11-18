@@ -46,13 +46,18 @@ INTEGRATION_GROUPS = {
         held_radiation_retains_multistep_reverse_derivative
         prescribed_dust_scenario_and_size_optics_reach_multistep_reverse_gradient
     ''',
-    'Integration: clouds and dust': '''
+    'Integration: dust transport and cloud coupling': '''
         released_aerosol_mode_validity_applies_to_initialization_and_step
         independent_dust_transport_radiation_material_and_restart
         frozen_dust_retains_dry_transport_but_keeps_surface_sources_and_restart
         disabled_particle_scavenging_keeps_cloud_cores_material_restart_and_gradient
-        disabled_moment_clouds_keep_settling_and_water_budget_without_advancing_cloud_history
         independent_dust_lifting_coagulation_radiation_three_step_gradient
+        multimode_cloud_dust_feedback_material_and_restart
+        multimode_cloud_dust_multistep_reverse_derivative
+        seasonal_spatial_dust_shares_preserve_material_restart_and_three_step_gradient
+    ''',
+    'Integration: water clouds': '''
+        disabled_moment_clouds_keep_settling_and_water_budget_without_advancing_cloud_history
         moist_adjustment_global_water_budget_and_restart
         moist_adjustment_global_reverse_derivative
         reference_cloud_backend_forms_suspended_ice_and_closes_raw_mass
@@ -63,9 +68,6 @@ INTEGRATION_GROUPS = {
         bulk_water_backend_multistep_reverse_derivative
         moment_water_cloud_feedback_material_and_restart
         moment_cloud_multistep_reverse_derivative
-        multimode_cloud_dust_feedback_material_and_restart
-        multimode_cloud_dust_multistep_reverse_derivative
-        seasonal_spatial_dust_shares_preserve_material_restart_and_three_step_gradient
     ''',
     'Integration: surface and CO2': '''
         disabled_co2_feedback_is_not_undone_by_global_inventory_projection
