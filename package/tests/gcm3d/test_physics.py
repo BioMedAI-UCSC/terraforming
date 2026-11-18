@@ -773,6 +773,34 @@ class TestCO2FrostPoint:
     def test_finite_in_vacuum(self):
         assert np.isfinite(float(physics.co2_frost_point_k(0.0)))
 
+    def test_issue_77_frost_point_uses_co2_partial_pressure(self):
+        # Regression (#77): the frost point was evaluated at total surface
+        # pressure, so a CO2/N2 mixture condensed as if it were pure CO2.
+        # At 610 Pa total the frost point is ~148 K; at 50% CO2 (305 Pa
+        # partial) it is ~143 K. A 145.5 K surface lies between the two.
+        coords, specs, _, _, cf, state = _co2_state()
+        state = state._replace(
+            surface_temperature=jnp.full_like(state.surface_temperature, 145.5)
+        )
+
+        _, dice_pure, _ = physics._co2_surface_tendencies(
+            state, coords, specs, MARS_BODY_3D, cf,
+        )
+        mixed = dataclasses.replace(cf, co2_mole_fraction=0.5)
+        _, dice_mixed, _ = physics._co2_surface_tendencies(
+            state, coords, specs, MARS_BODY_3D, mixed,
+        )
+
+        # Pure CO2: surface is below the frost point, so frost forms.
+        assert np.all(np.asarray(dice_pure) > 0.0)
+        # Half CO2: surface is above the (lower) frost point, so no frost forms.
+        assert np.all(np.asarray(dice_mixed) <= 0.0)
+
+    def test_co2_mole_fraction_defaults_to_pure_co2(self):
+        """The default keeps existing runs and calibrations unchanged."""
+        cf = mars_gcm.co2_forcing()
+        assert cf.co2_mole_fraction == 1.0
+
 
 class TestCO2Cycle:
 
