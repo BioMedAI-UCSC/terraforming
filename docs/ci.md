@@ -10,7 +10,7 @@ assigned twice, or added without a category.
 | radiation | Gas and particle optics, spectral fluxes and radiation solvers |
 | surface | Soil, frost, CO2 microphysics, PBL, convection and drag |
 | particles | Natural dust, water, settling and tracer transport |
-| coupled | Four integration groups listed below; global physics, restarts and derivatives |
+| coupled | Five integration groups listed below; global physics, restarts and derivatives |
 | neural | Neural physics and training budgets |
 | legacy | Torch planet model, JAX 0-D prototypes, engine and gas interventions |
 | cli | Command line, server and output contracts |
@@ -36,13 +36,15 @@ because the raster is absent.
 The integration jobs are grouped by the physics they test:
 
 - **Integration: radiation and temperature** — radiation forcing, fluxes, timing and temperature feedback.
-- **Integration: clouds and dust** — water clouds, dust lifting, settling and optical feedback.
+- **Integration: dust transport and cloud coupling** — dust lifting, settling, optical feedback and dust/cloud exchange.
+- **Integration: water clouds** — bulk and moment water clouds, moist convection and optical feedback.
 - **Integration: surface and CO2** — frost, surface exchange, convection and cold starts.
 - **Integration: transport and budgets** — remapping, drag, material, energy and momentum.
 
 Each test function and all its parameter cases belong to one named group.
 The planner fails if an integration test has no group or has two groups.
-These groups run in parallel. Each case runs in its
+These groups run in parallel. Dust and water-cloud tests use separate jobs because
+their combined runtime exceeded the 60-minute CI job limit. Each case runs in its
 own process to release JAX compilation memory. Other suites use one process per
 test file. Jobs save JUnit results and slow-test timings as seven-day artifacts.
 All numerical jobs install the locked GCM dependencies. The runtime suite only
@@ -59,6 +61,6 @@ Run the same selection locally:
 python scripts/ci.py --plan --base main --head HEAD
 python scripts/ci.py --plan --full
 env PYTHONPATH=package:.:scripts:apps/nautalis python scripts/ci.py --suite radiation
-env PYTHONPATH=package:.:scripts:apps/nautalis python scripts/ci.py --suite coupled --shard 0 --shards 4
+env PYTHONPATH=package:.:scripts:apps/nautalis python scripts/ci.py --suite coupled --shard 0 --shards 5
 python -m unittest discover -s scripts/tests -p test_ci.py -v
 ```
