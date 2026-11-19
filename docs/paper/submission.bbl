@@ -1,0 +1,287 @@
+\begin{thebibliography}{33}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Banfield et~al.(2020)Banfield, Spiga, Newman, Forget, Lemmon, Lorenz,
+  Murdoch, Viudez-Moreiras, Pla-Garcia, Garcia, et~al.]{banfield2020insight}
+Don Banfield, Aymeric Spiga, Claire Newman, Fran\c{c}ois Forget, Mark Lemmon,
+  Ralph Lorenz, Naomi Murdoch, Daniel Viudez-Moreiras, Jorge Pla-Garcia,
+  Rapha{\"e}l~F. Garcia, et~al.
+\newblock The atmosphere of mars as observed by {InSight}.
+\newblock \emph{Nature Geoscience}, 13\penalty0 (3):\penalty0 190--198, 2020.
+\newblock \doi{10.1038/s41561-020-0534-0}.
+
+\bibitem[Bhattacharya(2026)]{bhattacharya2026arcomars}
+Ananyo Bhattacharya.
+\newblock {ARCO-Mars}: A unified cloud-optimized archive of mars atmosphere
+  reanalysis, 2026.
+
+\bibitem[Bradbury et~al.(2018)Bradbury, Frostig, Hawkins, Johnson, Leary,
+  Maclaurin, Necula, Paszke, VanderPlas, Wanderman-Milne, and Zhang]{jax2018}
+James Bradbury, Roy Frostig, Peter Hawkins, Matthew~James Johnson, Chris Leary,
+  Dougal Maclaurin, George Necula, Adam Paszke, Jake VanderPlas, Skye
+  Wanderman-Milne, and Qiao Zhang.
+\newblock {JAX}: Composable transformations of {Python}+{NumPy} programs.
+\newblock \url{https://github.com/jax-ml/jax}, 2018.
+
+\bibitem[Christensen et~al.(2001)Christensen, Bandfield, Hamilton, Ruff,
+  Kieffer, et~al.]{christensen2001tes}
+P.~R. Christensen, J.~L. Bandfield, V.~E. Hamilton, S.~W. Ruff, H.~H. Kieffer,
+  et~al.
+\newblock Mars global surveyor thermal emission spectrometer experiment:
+  Investigation description and surface science results.
+\newblock \emph{Journal of Geophysical Research: Planets}, 106\penalty0
+  (E10):\penalty0 23823--23871, 2001.
+\newblock \doi{10.1029/2000JE001370}.
+
+\bibitem[Cola{\"i}tis et~al.(2013)Cola{\"i}tis, Spiga, Hourdin, Rio, Forget,
+  and Millour]{colaitis2013pbl}
+A.~Cola{\"i}tis, A.~Spiga, F.~Hourdin, C.~Rio, F.~Forget, and E.~Millour.
+\newblock A thermal plume model for the martian convective boundary layer.
+\newblock \emph{Journal of Geophysical Research: Planets}, 118\penalty0
+  (7):\penalty0 1468--1487, 2013.
+\newblock \doi{10.1002/jgre.20104}.
+
+\bibitem[Davenport et~al.(2026)Davenport, Madan, Gjini, Brzenski, Crawford, Ho,
+  Hsu, Liang, Liu, Manivannan, Pham, Vutukuru, Williams, Yang, Yu, Lutsko,
+  Hoyer, and Watson-Parris]{davenport2026jcm}
+Ellen~H. Davenport, J.~Varan Madan, Rebecca Gjini, Jared Brzenski, Benjamin
+  Crawford, Nick Ho, Tien-Yiao Hsu, Yueshan Liang, Zhixing Liu, Veeramakali
+  Manivannan, Eric Pham, Rohith Vutukuru, Andrew I.~L. Williams, Zhiqi Yang,
+  Rose Yu, Nicholas~J. Lutsko, Stephan Hoyer, and Duncan Watson-Parris.
+\newblock {JCM v1.1}: A differentiable, intermediate-complexity atmospheric
+  model.
+\newblock \emph{Geoscientific Model Development}, 19\penalty0 (14):\penalty0
+  6451--6466, 2026.
+\newblock \doi{10.5194/gmd-19-6451-2026}.
+
+\bibitem[DeBenedictis et~al.(2025)DeBenedictis, Kite, Wordsworth, Lanza,
+  Cockell, Silver, Ramirez, Cumbers, Mohseni, Mason, Fischer, and
+  McKay]{debenedictis2025case}
+Erika~Alden DeBenedictis, Edwin~S. Kite, Robin~D. Wordsworth, Nina~L. Lanza,
+  Charles~S. Cockell, Pamela~A. Silver, Ramses~M. Ramirez, John Cumbers, Hooman
+  Mohseni, Christopher~E. Mason, Woodward~W. Fischer, and Christopher~P. McKay.
+\newblock The case for mars terraforming research.
+\newblock \emph{Nature Astronomy}, 9\penalty0 (5):\penalty0 634--639, 2025.
+\newblock \doi{10.1038/s41550-025-02548-0}.
+
+\bibitem[Forget et~al.(1999)Forget, Hourdin, Fournier, Hourdin, Talagrand,
+  Collins, Lewis, Read, and Huot]{forget1999improved}
+Fran\c{c}ois Forget, Fr\'ed\'eric Hourdin, Richard Fournier, Christophe
+  Hourdin, Olivier Talagrand, Matthew Collins, Stephen~R. Lewis, Peter~L. Read,
+  and Jean-Paul Huot.
+\newblock Improved general circulation models of the martian atmosphere from
+  the surface to above 80 km.
+\newblock \emph{Journal of Geophysical Research: Planets}, 104\penalty0
+  (E10):\penalty0 24155--24175, 1999.
+\newblock \doi{10.1029/1999JE001025}.
+
+\bibitem[{Google Research}(2024)]{dinosaur2024}
+{Google Research}.
+\newblock Dinosaur: Differentiable dynamics for global atmospheric modeling.
+\newblock \url{https://github.com/neuralgcm/dinosaur}, 2024.
+\newblock Software repository; accessed 2026-09-17.
+
+\bibitem[Greybush et~al.(2019)Greybush, Kalnay, Wilson, Hoffman, Nehrkorn,
+  et~al.]{greybush2019emars}
+Steven~J. Greybush, Eugenia Kalnay, R.~John Wilson, Ross~N. Hoffman, Thomas
+  Nehrkorn, et~al.
+\newblock The ensemble mars atmosphere reanalysis system ({EMARS}) version 1.0.
+\newblock \emph{Geoscience Data Journal}, 6\penalty0 (2):\penalty0 137--150,
+  2019.
+\newblock \doi{10.1002/gdj3.77}.
+
+\bibitem[Guo et~al.(2009)Guo, Lawson, Richardson, and Toigo]{guo2009seasonal}
+Xin Guo, William~G. Lawson, Mark~I. Richardson, and Anthony~D. Toigo.
+\newblock Modeling the annual cycle of the martian surface pressure.
+\newblock \emph{Journal of Geophysical Research: Planets}, 114:\penalty0
+  E07006, 2009.
+\newblock \doi{10.1029/2008JE003302}.
+
+\bibitem[Haberle et~al.(2019)Haberle, Kahre, Hollingsworth, Montmessin, Wilson,
+  Urata, Brecht, Wolff, Kling, and Schaeffer]{haberle2019ames}
+Robert~M. Haberle, Melinda~A. Kahre, Jeffery~L. Hollingsworth, Franck
+  Montmessin, R.~John Wilson, Richard~A. Urata, Amanda~S. Brecht, Michael~J.
+  Wolff, Alexandre~M. Kling, and James~R. Schaeffer.
+\newblock Documentation of the {NASA/Ames} legacy mars global climate model:
+  Simulations of the present seasonal water cycle.
+\newblock \emph{Icarus}, 333:\penalty0 130--164, 2019.
+\newblock \doi{10.1016/j.icarus.2019.03.026}.
+
+\bibitem[Held and Suarez(1994)]{held1994proposal}
+Isaac~M. Held and Max~J. Suarez.
+\newblock A proposal for the intercomparison of the dynamical cores of
+  atmospheric general circulation models.
+\newblock \emph{Bulletin of the American Meteorological Society}, 75\penalty0
+  (10):\penalty0 1825--1830, 1994.
+\newblock \doi{10.1175/1520-0477(1994)075<1825:APFTIO>2.0.CO;2}.
+
+\bibitem[Holmes et~al.(2020)Holmes, Lewis, and Patel]{holmes2020openmars}
+James~A. Holmes, Stephen~R. Lewis, and Manish~R. Patel.
+\newblock {OpenMARS}: A global record of martian weather from 1999 to 2015.
+\newblock \emph{Planetary and Space Science}, 188:\penalty0 104962, 2020.
+\newblock \doi{10.1016/j.pss.2020.104962}.
+
+\bibitem[Jablonowski and Williamson(2006)]{jablonowski2006baroclinic}
+Christiane Jablonowski and David~L. Williamson.
+\newblock A baroclinic instability test case for atmospheric model dynamical
+  cores.
+\newblock \emph{Quarterly Journal of the Royal Meteorological Society},
+  132\penalty0 (621C):\penalty0 2943--2975, 2006.
+\newblock \doi{10.1256/qj.06.12}.
+
+\bibitem[Jakosky and Edwards(2018)]{jakosky2018inventory}
+Bruce~M. Jakosky and Christopher~S. Edwards.
+\newblock Inventory of {CO$_2$} available for terraforming mars.
+\newblock \emph{Nature Astronomy}, 2\penalty0 (8):\penalty0 634--639, 2018.
+\newblock \doi{10.1038/s41550-018-0529-6}.
+
+\bibitem[Kling et~al.(2025)Kling, Wilson, Kahre, Brecht, and
+  Murphy]{kling2025resolution}
+Alexandre Kling, R.~John Wilson, Melinda Kahre, Amanda Brecht, and James
+  Murphy.
+\newblock Impact of grid resolution on wave--mean flow interactions with
+  high-resolution mars global climate model simulations.
+\newblock \emph{Geophysical Research Letters}, 52\penalty0 (2):\penalty0
+  e2024GL112297, 2025.
+\newblock \doi{10.1029/2024GL112297}.
+
+\bibitem[Kochkov et~al.(2024)Kochkov, Yuval, Langmore, Norgaard, Smith, Mooers,
+  Kl{\"o}wer, Lottes, Rasp, D{\"u}ben, Hatfield, Battaglia, Sanchez-Gonzalez,
+  Willson, Brenner, and Hoyer]{kochkov2024neuralgcm}
+Dmitrii Kochkov, Janni Yuval, Ian Langmore, Peter Norgaard, Jamie Smith,
+  Griffin Mooers, Milan Kl{\"o}wer, James Lottes, Stephan Rasp, Peter
+  D{\"u}ben, Sam Hatfield, Peter Battaglia, Alvaro Sanchez-Gonzalez, Matthew
+  Willson, Michael~P. Brenner, and Stephan Hoyer.
+\newblock Neural general circulation models for weather and climate.
+\newblock \emph{Nature}, 632\penalty0 (8027):\penalty0 1060--1066, 2024.
+\newblock \doi{10.1038/s41586-024-07744-y}.
+
+\bibitem[Leighton and Murray(1966)]{leighton1966co2}
+Robert~B. Leighton and Bruce~C. Murray.
+\newblock Behavior of carbon dioxide and other volatiles on mars.
+\newblock \emph{Science}, 153\penalty0 (3732):\penalty0 136--144, 1966.
+\newblock \doi{10.1126/science.153.3732.136}.
+
+\bibitem[Madeleine et~al.(2011)Madeleine, Forget, Millour, Montabone, and
+  Wolff]{madeleine2011dust}
+Jean-Baptiste Madeleine, Fran\c{c}ois Forget, Ehouarn Millour, Luca Montabone,
+  and Michael~J. Wolff.
+\newblock Revisiting the radiative impact of dust on mars using the {LMD}
+  global climate model.
+\newblock \emph{Journal of Geophysical Research: Planets}, 116\penalty0
+  (E11):\penalty0 E11010, 2011.
+\newblock \doi{10.1029/2011JE003855}.
+
+\bibitem[McCleese et~al.(2007)McCleese, Schofield, Taylor, Calcutt, Foote,
+  Kass, Leovy, Paige, Read, and Zurek]{mccleese2007mcs}
+D.~J. McCleese, J.~T. Schofield, F.~W. Taylor, S.~B. Calcutt, M.~C. Foote,
+  D.~M. Kass, C.~B. Leovy, D.~A. Paige, P.~L. Read, and R.~W. Zurek.
+\newblock Mars climate sounder: An investigation of thermal and water vapor
+  structure, dust and condensate distributions in the atmosphere, and energy
+  balance of the polar regions.
+\newblock \emph{Journal of Geophysical Research: Planets}, 112\penalty0 (E5),
+  2007.
+\newblock \doi{10.1029/2006JE002790}.
+
+\bibitem[McKay et~al.(1991)McKay, Toon, and Kasting]{mckay1991making}
+Christopher~P. McKay, Owen~B. Toon, and James~F. Kasting.
+\newblock Making mars habitable.
+\newblock \emph{Nature}, 352:\penalty0 489--496, 1991.
+\newblock \doi{10.1038/352489a0}.
+
+\bibitem[Millour et~al.(2022)Millour, Forget, Spiga, Navarro, Madeleine,
+  Montabone, Pottier, Lefevre, Montmessin, and Chaufray]{mcd61}
+Ehouarn Millour, Fran\c{c}ois Forget, Aymeric Spiga, Thomas Navarro,
+  Jean-Baptiste Madeleine, Luca Montabone, Anna Pottier, Franck Lefevre, Franck
+  Montmessin, and Jean-Yves Chaufray.
+\newblock The mars climate database version 6.1: Detailed design document.
+\newblock \url{https://www-mars.lmd.jussieu.fr/mars/info_web/ddd_MCD_v6.1.pdf},
+  2022.
+\newblock Technical documentation.
+
+\bibitem[Montabone et~al.(2014)Montabone, Marsh, Lewis, Read, Smith, Holmes,
+  Spiga, Lowe, and Pamment]{montabone2014macda}
+L.~Montabone, K.~Marsh, S.~R. Lewis, P.~L. Read, M.~D. Smith, J.~Holmes,
+  A.~Spiga, D.~Lowe, and A.~Pamment.
+\newblock The mars analysis correction data assimilation ({MACDA}) dataset
+  v1.0.
+\newblock \emph{Geoscience Data Journal}, 1\penalty0 (2):\penalty0 129--139,
+  2014.
+\newblock \doi{10.1002/gdj3.13}.
+
+\bibitem[Montabone et~al.(2015)Montabone, Forget, Millour, Wilson, Lewis,
+  Cantor, Kass, Kleinb{\"o}hl, Lemmon, Smith, and Wolff]{montabone2015dust}
+L.~Montabone, F.~Forget, E.~Millour, R.~J. Wilson, S.~R. Lewis, B.~Cantor,
+  D.~Kass, A.~Kleinb{\"o}hl, M.~T. Lemmon, M.~D. Smith, and M.~J. Wolff.
+\newblock Eight-year climatology of dust optical depth on mars.
+\newblock \emph{Icarus}, 251:\penalty0 65--95, 2015.
+\newblock \doi{10.1016/j.icarus.2014.12.034}.
+
+\bibitem[Richardson et~al.(2007)Richardson, Toigo, and
+  Newman]{richardson2007planetwrf}
+Mark~I. Richardson, Anthony~D. Toigo, and Claire~E. Newman.
+\newblock {PlanetWRF}: A general purpose, local to global numerical model for
+  planetary atmospheric and climate dynamics.
+\newblock \emph{Journal of Geophysical Research: Planets}, 112\penalty0 (E9),
+  2007.
+\newblock \doi{10.1029/2006JE002825}.
+
+\bibitem[Roy et~al.(2026)Roy, Nair, Wu, Priftis, Wang,
+  et~al.]{roy2026foundation}
+Sujit Roy, Udayshankar Nair, Yuling Wu, Georgios Priftis, Liping Wang, et~al.
+\newblock Towards a foundation model for the martian atmosphere, 2026.
+
+\bibitem[Sagan(1973)]{sagan1973planetary}
+Carl Sagan.
+\newblock Planetary engineering on mars.
+\newblock \emph{Icarus}, 20\penalty0 (4):\penalty0 513--514, 1973.
+\newblock \doi{10.1016/0019-1035(73)90026-2}.
+
+\bibitem[Singh et~al.(2026)Singh, Dhanuka, Sudharsan, Owhadi, Soderlund, and
+  Altinok]{singh2026aircast}
+Manmeet Singh, Saptarishi Dhanuka, Naveen Sudharsan, Houman Owhadi, Krista~M.
+  Soderlund, and Alphan Altinok.
+\newblock {Aircast-Mars}: A mars foundation model for global weather
+  forecasting with {HEALPix}-aware convolutions, 2026.
+
+\bibitem[Smith et~al.(2001)Smith, Zuber, Frey, Garvin, Head,
+  et~al.]{smith2001mola}
+David~E. Smith, Maria~T. Zuber, Herbert~V. Frey, James~B. Garvin, James~W.
+  Head, et~al.
+\newblock Mars orbiter laser altimeter: Experiment summary after the first year
+  of global mapping of mars.
+\newblock \emph{Journal of Geophysical Research: Planets}, 106\penalty0
+  (E10):\penalty0 23689--23722, 2001.
+\newblock \doi{10.1029/2000JE001364}.
+
+\bibitem[Toon et~al.(1989)Toon, McKay, Ackerman, and
+  Santhanam]{toon1989twostream}
+Owen~B. Toon, C.~P. McKay, T.~P. Ackerman, and K.~Santhanam.
+\newblock Rapid calculation of radiative heating rates and photodissociation
+  rates in inhomogeneous multiple scattering atmospheres.
+\newblock \emph{Journal of Geophysical Research: Atmospheres}, 94\penalty0
+  (D13):\penalty0 16287--16301, 1989.
+\newblock \doi{10.1029/JD094iD13p16287}.
+
+\bibitem[Williamson et~al.(1992)Williamson, Drake, Hack, Jakob, and
+  Swarztrauber]{williamson1992standard}
+David~L. Williamson, John~B. Drake, James~J. Hack, R{\"u}diger Jakob, and
+  Paul~N. Swarztrauber.
+\newblock A standard test set for numerical approximations to the shallow water
+  equations in spherical geometry.
+\newblock \emph{Journal of Computational Physics}, 102\penalty0 (1):\penalty0
+  211--224, 1992.
+\newblock \doi{10.1016/S0021-9991(05)80016-6}.
+
+\bibitem[Yuval and O'Gorman(2020)]{yuval2020stable}
+Janni Yuval and Paul~A. O'Gorman.
+\newblock Stable machine-learning parameterization of subgrid processes for
+  climate modeling at a range of resolutions.
+\newblock \emph{Nature Communications}, 11\penalty0 (1):\penalty0 3295, 2020.
+\newblock \doi{10.1038/s41467-020-17142-3}.
+
+\end{thebibliography}

@@ -1,0 +1,63 @@
+\begin{thebibliography}{6}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Bhattacharya(2026)]{bhattacharya2026arcomars}
+Ananyo Bhattacharya.
+\newblock {ARCO-MACDA}: Analysis-ready cloud-optimized {MACDA} reanalysis,
+  2026.
+\newblock URL \url{https://huggingface.co/datasets/ananyo01/ARCO-MACDA}.
+\newblock Dataset; ARCO conversion of MACDA v2.0.
+
+\bibitem[Forget et~al.(1999)Forget, Hourdin, Fournier, Hourdin, Talagrand,
+  Collins, Lewis, Read, and Huot]{forget1999improved}
+Fran\c{c}ois Forget, Fr\'ed\'eric Hourdin, Richard Fournier, Christophe
+  Hourdin, Olivier Talagrand, Matthew Collins, Stephen~R. Lewis, Peter~L. Read,
+  and Jean-Paul Huot.
+\newblock Improved general circulation models of the martian atmosphere from
+  the surface to above 80 km.
+\newblock \emph{Journal of Geophysical Research: Planets}, 104\penalty0
+  (E10):\penalty0 24155--24175, 1999.
+\newblock \doi{10.1029/1999JE001025}.
+
+\bibitem[Haberle et~al.(2019)Haberle, Kahre, Hollingsworth, Montmessin, Wilson,
+  Urata, Brecht, Wolff, Kling, and Schaeffer]{haberle2019ames}
+Robert~M. Haberle, Melinda~A. Kahre, Jeffery~L. Hollingsworth, Franck
+  Montmessin, R.~John Wilson, Richard~A. Urata, Amanda~S. Brecht, Michael~J.
+  Wolff, Alexandre~M. Kling, and James~R. Schaeffer.
+\newblock Documentation of the {NASA/Ames} legacy mars global climate model:
+  Simulations of the present seasonal water cycle.
+\newblock \emph{Icarus}, 333:\penalty0 130--164, 2019.
+\newblock \doi{10.1016/j.icarus.2019.03.026}.
+
+\bibitem[Kochkov et~al.(2024)Kochkov, Yuval, Langmore, Norgaard, Smith, Mooers,
+  Kl{\"o}wer, Lottes, Rasp, D{\"u}ben, Hatfield, Battaglia, Sanchez-Gonzalez,
+  Willson, Brenner, and Hoyer]{kochkov2024neuralgcm}
+Dmitrii Kochkov, Janni Yuval, Ian Langmore, Peter Norgaard, Jamie Smith,
+  Griffin Mooers, Milan Kl{\"o}wer, James Lottes, Stephan Rasp, Peter
+  D{\"u}ben, Sam Hatfield, Peter Battaglia, Alvaro Sanchez-Gonzalez, Matthew
+  Willson, Michael~P. Brenner, and Stephan Hoyer.
+\newblock Neural general circulation models for weather and climate.
+\newblock \emph{Nature}, 632\penalty0 (8027):\penalty0 1060--1066, 2024.
+\newblock \doi{10.1038/s41586-024-07744-y}.
+
+\bibitem[Valeanu et~al.(2026)Valeanu, Rajendran, Montabone, and
+  Read]{valeanu2026macda}
+A.~Valeanu, K.~Rajendran, L.~Montabone, and P.~L. Read.
+\newblock Mars analysis correction data assimilation ({MACDA}): Atmospheric and
+  surface fields produced from assimilated {MGS/TES}, {ODY/THEMIS}, and
+  {MRO/MCS} observations, v2.0, 2026.
+\newblock URL \url{https://doi.org/10.5285/cd037a9ea387438fabf4d674dbe53088}.
+\newblock Dataset, released 30 January 2026.
+
+\bibitem[Yuval and O'Gorman(2020)]{yuval2020stable}
+Janni Yuval and Paul~A. O'Gorman.
+\newblock Stable machine-learning parameterization of subgrid processes for
+  climate modeling at a range of resolutions.
+\newblock \emph{Nature Communications}, 11\penalty0 (1):\penalty0 3295, 2020.
+\newblock \doi{10.1038/s41467-020-17142-3}.
+
+\end{thebibliography}
