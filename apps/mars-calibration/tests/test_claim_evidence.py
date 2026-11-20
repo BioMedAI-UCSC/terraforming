@@ -4,8 +4,8 @@ import sys
 
 import pytest
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "paper/arxiv-2610.04081"))
-from regenerate import verify_claims
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "scripts"))
+from audit_paper_results import verify_claims
 
 
 def test_claims_reject_missing_evidence_and_duplicate_seasonal_map(tmp_path):
