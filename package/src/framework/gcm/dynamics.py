@@ -157,7 +157,8 @@ def stepper(equation, dt_seconds: float, specs, *, coords=None,
         def divergence_diffusion(previous,next_state):
             column=hasattr(next_state,'dynamics')
             dynamics=next_state.dynamics if column else next_state
-            dynamics=dataclasses.replace(dynamics,divergence=dynamics.divergence*decay)
+            dynamics=dataclasses.replace(dynamics,divergence=dynamics.divergence*jax.numpy.asarray(
+                decay,dtype=dynamics.divergence.dtype))
             return next_state._replace(dynamics=dynamics) if column else dynamics
         step=time_integration.step_with_filters(step,[divergence_diffusion])
     return step
