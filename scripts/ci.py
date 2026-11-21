@@ -87,6 +87,9 @@ INTEGRATION_GROUPS = {
         sigma_remap_reverse_derivative
         sigma_remap_carries_suspended_mass_momentum_and_energy
         no_forcing_advances_dynamics_without_radiation_or_surface_updates
+        layer_divergence_diffusion_preserves_material_and_other_fields
+        layer_divergence_diffusion_rejects_invalid_profile
+        layer_divergence_diffusion_keeps_full_physics_gradient_and_restart
         explicit_gas_global_species_budget_restart_and_reverse_derivative
         nonorographic_drag_global_timer_and_restart
         nonorographic_drag_global_multistep_reverse_derivative
