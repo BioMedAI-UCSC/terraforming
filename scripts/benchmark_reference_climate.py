@@ -51,7 +51,10 @@ def main() -> int:
                         "temperature": opened.surface_temperature.isel(time=0),
                         "u": opened.eastward_wind.isel(time=0, sigma=-1),
                         "v": opened.northward_wind.isel(time=0, sigma=-1),
-                        "wind_speed": opened.wind_speed.isel(time=0, sigma=-1),
+                        "wind_speed": np.hypot(
+                            opened.eastward_wind.isel(time=0, sigma=-1),
+                            opened.northward_wind.isel(time=0, sigma=-1),
+                        ),
                         "co2_ice": opened.co2_frost.isel(time=0),
                     }
                 ).load()
@@ -93,7 +96,8 @@ def main() -> int:
                 f"{model_insolation} insolation; Ames fields are five-sol averages."
             ),
             "Wind compares each model's lowest layer; their effective heights are not identical.",
-            "Ames dust opacity is prescribed to Dinosaur piecewise at checkpoint cadence, so dust is a matched boundary condition rather than an independent target.",
+            "Wind speed is the magnitude of each five-sol mean vector, matching the staged Ames diagnostic.",
+            "Matched dust forcing and physical switches must be checked in each run's input records.",
             "Ames MGCM and MCD are model references, not observational truth.",
         ],
     }

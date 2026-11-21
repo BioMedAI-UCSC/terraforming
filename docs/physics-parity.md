@@ -17,6 +17,22 @@ All 285 repository and asset file hash checks match the implementation.
 The validators also verify the pinned native bodies and compiled adapters.
 Full-model transport, restart and climate checks have separate evidence.
 
+The PR #123 five-sol check passes finite-state and material-budget checks, but
+upper-atmosphere climate agreement remains open. T21/L56 at 231 seconds gives a
+five-sol mean top zonal-wind RMS of 12.49 m/s and mean top temperature of 156.01 K.
+The native C24/C48 first five-sol means give 3.96/4.36 m/s and 168.96/169.24 K.
+These wind statistics use time-mean components on each model's own top layer.
+Instantaneous Dinosaur checkpoint winds still reach 339 m/s. The radiation-top
+fix does not establish matched upper dynamics; FV3's top divergence damping and
+the different pressure coordinates still need a controlled comparison.
+Vapour and cloud top-five/bottom-five ratios are 3.31e-11 and 1.10e-115, and
+relative CO2, water and dust inventory changes are below 8e-13. This checks the
+local transport fix without claiming the climates agree.
+The five-sol result is from the local CPU. The Nautilus T21/T42 two-step runs
+and exact restart check pass. These results exclude the longer Nautilus GPU matrix.
+The [review validation record](../validation/pr123-review.json) stores source,
+input and output hashes, native statistics and the verified Nautilus results.
+
 ## Verified ports
 
 | Process | Implementation | Native comparison | Coupled status |

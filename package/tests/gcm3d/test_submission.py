@@ -511,14 +511,14 @@ def test_reference_comparator_reads_first_year_means_on_the_supplied_grid(tmp_pa
     surface=np.ones((1,4,8));air=np.zeros((1,2,4,8))
     data=xr.Dataset(dict(surface_pressure=(('time','lat','lon'),surface*600.),
         surface_temperature=(('time','lat','lon'),surface*180.),
-        eastward_wind=(('time','sigma','lat','lon'),air),northward_wind=(('time','sigma','lat','lon'),air),
-        wind_speed=(('time','sigma','lat','lon'),air),co2_frost=(('time','lat','lon'),surface*0.),
+        eastward_wind=(('time','sigma','lat','lon'),air+3.),northward_wind=(('time','sigma','lat','lon'),air+4.),
+        wind_speed=(('time','sigma','lat','lon'),air+99.),co2_frost=(('time','lat','lon'),surface*0.),
         solar_longitude=('time',[45.])),coords=coords,
         attrs=dict(complete_window=1,temporal_sampling='step mean'))
     samples=tmp_path/'model/checkpoints';samples.mkdir(parents=True)
     data.to_netcdf(samples/'mean_000001920.nc')
     native=xr.Dataset({name:(('ls','lat','lon'),np.full((1,4,8),value)) for name,value in
-        [('surface_pressure',600.),('temperature',180.),('wind_speed',0.),('co2_ice',0.)]},
+        [('surface_pressure',600.),('temperature',180.),('wind_speed',5.),('co2_ice',0.)]},
         coords=dict(ls=[45.],lat=lat,lon=lon))
     native['average_duration_days']=('ls',[5.]);reference=tmp_path/'native.nc';native.to_netcdf(reference)
     output=tmp_path/'comparison'
@@ -528,3 +528,4 @@ def test_reference_comparator_reads_first_year_means_on_the_supplied_grid(tmp_pa
     assert '8x4' in report['model']
     assert report['seasons']['ls045']['model_sample_count']==1
     assert report['seasons']['ls045']['metrics']['temperature']['rmse']<1e-10
+    assert report['seasons']['ls045']['metrics']['wind_speed']['rmse']<1e-10
