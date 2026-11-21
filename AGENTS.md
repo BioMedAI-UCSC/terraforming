@@ -17,3 +17,20 @@ that was not checked and any material risk.
 - Do not set Job or Pod deadlines, use timeout wrappers, or add automatic timed
   deletion. Do not stop running experiments because a time estimate or compute
   budget was reached. Let them finish unless the user asks to stop them.
+
+## Agent skills
+
+### Issue tracker
+
+Track issues and specs in GitHub Issues for `BioMedAI-UCSC/terraforming`.
+Read `docs/agents/issue-tracker.md` before issue operations.
+
+### Triage labels
+
+Use the five standard triage labels. Read `docs/agents/triage-labels.md`
+before assigning triage states.
+
+### Domain docs
+
+Use one root glossary and `docs/adr/`. Read `docs/agents/domain.md`
+before domain exploration or recording design decisions.
