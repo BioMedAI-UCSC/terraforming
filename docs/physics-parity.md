@@ -10,10 +10,16 @@ layout and integration interfaces as needed for Dinosaur. Kernel agreement,
 global climate agreement, gradient accuracy and speed are separate checks.
 No complete-model equivalence or speed claim has passed yet.
 
-The 48 archived reports were regenerated on Ubuntu 24.04 with gfortran 13
-from physics revision `71be0ef`. All cases passed in the
-[Linux parity run](https://github.com/BioMedAI-UCSC/terraforming/actions/runs/44873833106).
-All 285 repository and asset file hash checks match the implementation.
+All 48 validators passed on Ubuntu 24.04 with gfortran 13 at `09e8c105` in the
+[Linux parity run](https://github.com/BioMedAI-UCSC/terraforming/actions/runs/44956196319).
+Seven archived reports were copied from that run because their recorded source
+files changed: coupled-column, CO2 controls, gas mass, initial conditions,
+radiative driver, release interfaces and surface controls. The other 41 reports
+retain their `71be0ef` results for unchanged source files. All 285 repository and
+asset file hash checks match the current implementation. The
+[freshness record](../validation/pr123-native-freshness.json) records this audit.
+The [repeat at `97b356d`](https://github.com/BioMedAI-UCSC/terraforming/actions/runs/44956786121)
+also passed all four native shards.
 The validators also verify the pinned native bodies and compiled adapters.
 Full-model transport, restart and climate checks have separate evidence.
 

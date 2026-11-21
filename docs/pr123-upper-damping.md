@@ -141,6 +141,8 @@ already promotes float32 input to float64 under enabled x64; no dedicated
 float32-output regression is claimed at that interface.
 
 The controls support this source-derived treatment; they do not establish a
-matched climate. Five-sol T21/T42 comparisons, native pressure-aware means,
-time-step convergence, fresh coupled-column source validation and full CI
-remain required. The frozen-sigma pressure and sampling differences remain.
+matched climate. The [native validation](physics-parity.md) passed all 48
+validators, including 24 coupled-column cases, with current source hashes.
+Five-sol T21/T42 comparisons, native pressure-aware means, time-step convergence
+and full CI remain required. The frozen-sigma pressure and sampling differences
+remain.
