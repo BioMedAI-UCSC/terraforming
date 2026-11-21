@@ -291,8 +291,13 @@ def reference_configuration(grid,data_directory,dt_seconds,*,moment_water=True,d
     return AMES_BODY_3D,forcing,radiation,options,hashes
 
 
-def reference_rest_state(coords,specs,body,elevation_nodal_m,*,temperature_k=170.,isothermal=True):
-    """Released hydro_eq cold start, with Dinosaur's spectral/sigma geometry."""
+def reference_rest_state(coords,specs,body,elevation_nodal_m,*,temperature_k=170.,isothermal=True,
+                         pressure_scheme='native'):
+    """Released hydro_eq pressure, or explicit isothermal sigma balance at its mass."""
+    if pressure_scheme not in ('native','sigma-balanced'):
+        raise ValueError('initial pressure scheme must be native or sigma-balanced')
+    if pressure_scheme=='sigma-balanced' and not isothermal:
+        raise ValueError('sigma-balanced pressure requires an isothermal atmosphere')
     from src.framework.physics.hydrostatic_initialization import surface_pressure,air_temperature
     from src.framework.physics.vertical_grid import coefficients
     from src.framework.gcm.dynamics import reference_temperature
@@ -304,6 +309,16 @@ def reference_rest_state(coords,specs,body,elevation_nodal_m,*,temperature_k=170
         temperature_k=temperature_k,gas_constant=body.gas_constant_j_kg_k,top_pressure_pa=top)
     log_pressure=grid.to_modal(jnp.log(pressure[None]/scale))
     resolved=jnp.exp(grid.to_nodal(log_pressure))[0]*scale
+    if pressure_scheme=='sigma-balanced':
+        # Match the core terrain cutoff, then preserve the native projected gas mass.
+        weights=jnp.broadcast_to(jnp.asarray(grid.quadrature_weights),resolved.shape)
+        target=jnp.sum(resolved*weights)/jnp.sum(weights)
+        log_pressure=grid.clip_wavenumbers(grid.to_modal((-body.gravity_m_s2*jnp.asarray(
+            elevation_nodal_m)/(body.gas_constant_j_kg_k*temperature_k))[None]))
+        unscaled=jnp.exp(grid.to_nodal(log_pressure))[0]
+        offset=jnp.log(target/(scale*jnp.sum(unscaled*weights)/jnp.sum(weights)))
+        log_pressure=log_pressure+grid.to_modal(jnp.broadcast_to(offset,coords.surface_nodal_shape))
+        resolved=jnp.exp(grid.to_nodal(log_pressure))[0]*scale
     half=jnp.asarray(coords.vertical.boundaries)[:,None,None]*resolved
     temperature=air_temperature(half,resolved,temperature_k=temperature_k,isothermal=isothermal,
         gravity=body.gravity_m_s2,cp=body.cp_j_kg_k)
@@ -400,6 +415,8 @@ def main() -> int:
     parser.add_argument('--initial-air-temperature',type=float,default=170.,help='native isotemp cold-start temperature in K')
     parser.add_argument('--isothermal-atmosphere',action=argparse.BooleanOptionalAction,default=True,
         help='native do_isothermal cold start; disable for its frost-limited lapse profile')
+    parser.add_argument('--initial-pressure-scheme',choices=('native','sigma-balanced'),default='native',
+        help='retain source pressure, or balance isothermal pressure to core terrain at the same gas mass')
     parser.add_argument('--north-inertia',type=float,default=-900.,help='replace thermal inertia north of the cap latitude when positive')
     parser.add_argument('--north-inertia-latitude',type=float,default=65.,help='north thermal-inertia boundary in degrees')
     parser.add_argument('--north-inertia-maximum',type=float,default=800.,help='thermal-inertia cap north of the boundary')
@@ -459,6 +476,8 @@ def main() -> int:
         parser.error('initial air temperature must be finite and positive')
     if (args.initial_air_temperature!=170. or not args.isothermal_atmosphere) and not reference:
         parser.error('initial atmosphere controls require --config reference')
+    if args.initial_pressure_scheme!='native' and (not reference or not args.isothermal_atmosphere):
+        parser.error('sigma-balanced pressure requires --config reference and an isothermal atmosphere')
     if not np.isfinite(args.soil_alpha): parser.error('soil alpha must be finite')
     soil_controls={}
     if not args.surface_condensation: soil_controls['surface_condensation']=False
@@ -647,7 +666,8 @@ def main() -> int:
                                         if args.ames_dust_reference else None))
         if reference:
             config.update(reference_input_sha256=input_hashes,body=dataclasses.asdict(body),
-                initial_dry_mass_parameter_pa=705.,initial_pressure_scheme='released-hydro-eq',reference_protocol='present-Mars-clouds-v3.2',
+                initial_dry_mass_parameter_pa=705.,initial_pressure_scheme=('released-hydro-eq' if
+                    args.initial_pressure_scheme=='native' else 'sigma-balanced-native-mass'),reference_protocol='present-Mars-clouds-v3.2',
                 radiation_mode='12band',radiation_update_seconds=1848.,
                 reference_release_commit='ba47cada5f9eb89c75c4f10d06dbae6e7f9ecb26',
                 reference_build_blob='83b611e6527cf26bef3ec0064c05aebe0bb0d080',
@@ -754,7 +774,8 @@ def main() -> int:
             # This mirrors run_maps' MOLA-aware resting-state initialization.
             elevation_nodal_m = regrid_to_nodal(coords,mola_path=args.mola_path)
             initial_dynamics = reference_rest_state(coords,specs,body,elevation_nodal_m,
-                temperature_k=args.initial_air_temperature,isothermal=args.isothermal_atmosphere) if reference else initial_rest_state(
+                temperature_k=args.initial_air_temperature,isothermal=args.isothermal_atmosphere,
+                pressure_scheme=args.initial_pressure_scheme) if reference else initial_rest_state(
                 coords,
                 specs,
                 body,

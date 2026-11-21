@@ -113,8 +113,43 @@ def test_reference_cold_start_keeps_native_log_weighted_pressure_correction():
     np.testing.assert_allclose(air,170.,atol=1e-12)
 
 
-@pytest.mark.parametrize('isothermal',[False,True])
-def test_reference_atmosphere_controls_retain_global_initial_state_derivatives(isothermal):
+def test_sigma_balanced_reference_cold_start_stays_at_rest_for_one_sol(tmp_path):
+    pytest.importorskip('dinosaur')
+    from src.framework.gcm._dinosaur import jax,jnp,scales,spherical_harmonic
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.framework.gcm.specs import physics_specs
+    from src.framework.gcm.restart import save_restart,load_restart
+    from src.framework.physics.dinosaur_physics import initial_state,build_step
+    from src.framework.physics.vertical_grid import sigma_boundaries
+    from src.celestials.planets.mars.topography import mola_modal_orography
+    from src.celestials.planets.mars.reference_constants import AMES_BODY_3D as body,reference_radiative_forcing
+    jax.config.update('jax_enable_x64',True)
+    coords=coordinate_system('T21',56,sigma_boundaries=sigma_boundaries(56));grid=coords.horizontal;specs=physics_specs(body)
+    terrain=jnp.zeros(grid.modal_shape).at[0,2].set(1500.).at[0,-1].set(1500.)
+    elevation=np.asarray(grid.to_nodal(terrain));driver=_script('run_gcm3d_ablation')
+    native=driver.reference_rest_state(coords,specs,body,elevation)
+    balanced=driver.reference_rest_state(coords,specs,body,elevation,pressure_scheme='sigma-balanced')
+    weights=jnp.asarray(grid.quadrature_weights)
+    mean=lambda dyn:jnp.sum(jnp.exp(grid.to_nodal(dyn.log_surface_pressure))*weights)
+    np.testing.assert_allclose(mean(balanced),mean(native),rtol=2e-14)
+    state=initial_state(balanced,coords,specs,temperature_k=170.)
+    step=build_step(coords,specs,body,reference_radiative_forcing(),231.,radiation_component=None,
+        soil_diffusivity=1.e-7,no_forcing=True,hyperdiffusion_tau_seconds=.1*body.solar_day_seconds,
+        orography=mola_modal_orography(coords,specs,elevation_nodal_m=elevation))
+    final=jax.jit(lambda value:jax.lax.fori_loop(0,384,lambda _,carry:step(carry),value))(state)
+    u,v=spherical_harmonic.vor_div_to_uv_nodal(grid,final.dynamics.vorticity,final.dynamics.divergence)
+    speed=float(specs.dimensionalize(1.,scales.units.meter/scales.units.second).magnitude)
+    assert float(jnp.max(jnp.hypot(u,v)))*speed<1.e-6
+    temperature=grid.to_nodal(final.dynamics.temperature_variation)+body.reference_temperature_k
+    np.testing.assert_allclose(temperature,170.,atol=1.e-7)
+    tick=jax.jit(step);first=tick(state)
+    resumed=tick(load_restart(save_restart(first,tmp_path/'balanced.npz')))
+    for a,b in zip(jax.tree.leaves(resumed),jax.tree.leaves(tick(first)),strict=True):
+        np.testing.assert_array_equal(a,b)
+
+
+@pytest.mark.parametrize('isothermal,pressure_scheme',[(False,'native'),(True,'native'),(True,'sigma-balanced')])
+def test_reference_atmosphere_controls_retain_global_initial_state_derivatives(isothermal,pressure_scheme):
     pytest.importorskip('dinosaur')
     import jax
     import jax.numpy as jnp
@@ -127,7 +162,7 @@ def test_reference_atmosphere_controls_retain_global_initial_state_derivatives(i
     elevation=jnp.broadcast_to(2000.*jnp.sin(grid.latitudes)[None,:],grid.nodal_shape)
     def objective(scale):
         state=driver.reference_rest_state(coords,specs,body,elevation*scale,
-            temperature_k=170.+7.*(scale-1.),isothermal=isothermal)
+            temperature_k=170.+7.*(scale-1.),isothermal=isothermal,pressure_scheme=pressure_scheme)
         return jnp.mean(grid.to_nodal(state.temperature_variation))+jnp.mean(
             jnp.exp(grid.to_nodal(state.log_surface_pressure)))
     automatic=jax.jit(jax.grad(objective))(1.)
@@ -200,6 +235,8 @@ def test_alternate_reference_cli_rejects_unsupported_combinations(monkeypatch):
                       ['--config','reference','--co2-exchange-ratio-trop','nan'],
                       ['--config','reference','--co2-exchange-ratio-pole','0'],
                       ['--config','reference','--no-mars-surface'],
+                      ['--initial-pressure-scheme','sigma-balanced'],
+                      ['--config','reference','--initial-pressure-scheme','sigma-balanced','--no-isothermal-atmosphere'],
                       ['--config','reference','--reference-radiation','height']):
         monkeypatch.setattr(sys,'argv',['run_gcm3d_ablation.py','unused-surface',*arguments])
         with pytest.raises(SystemExit) as stopped: driver.main()
