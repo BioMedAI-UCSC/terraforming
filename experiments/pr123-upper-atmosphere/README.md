@@ -52,8 +52,9 @@ Results go to `/work/pr123/<source>/five-sol-cpu`,
 The GPU probe measures T21 memory and utilization before choosing more GPU
 concurrency. Its sizing record does not prove that concurrent T42 fits.
 The CPU matrix remains useful if no GPU is available. The older full GPU matrix
-has not been stopped. Its requested 64 GiB, eight CPUs and GPU memory above
-40,000 MiB excluded nodes before any experiment started.
+was suspended before scheduling after a fresh unbound-container check. Its
+requested 64 GiB, eight CPUs and GPU memory above 40,000 MiB excluded nodes
+before any experiment started. Its Job and ConfigMap remain preserved.
 
 The native metadata reader uses saved `ak`, `bk`, pressure coordinates,
 `delz`, `delp` and the first `[0, 5]` time bounds. It keeps the input namelist
@@ -152,3 +153,9 @@ init containers copy prepared archives to local scratch, verify the same hashes,
 extract locally, then remove only their own cached tar after successful extraction.
 The final T42 balanced job requests four CPUs and 16 GiB with eight-CPU/64-GiB
 limits, based on measured GPU host memory. Assigned cases were left unchanged.
+
+The archived GPU recipes are `paired-t21-gpu.json`, `d2-t21.json`,
+`d2-t42-native.json` and `d2-t42-balanced.json`. `d2-source.json` records CPU
+source preparation. Use new Job, ConfigMap and output names before a rerun.
+Actual downloaded files remain under `outputs/pr123-validation` in the main
+workspace; tracked `validation/pr123-*-artifact-hashes.json` files identify them.
