@@ -131,7 +131,8 @@ def test_sigma_balanced_reference_cold_start_stays_at_rest_for_one_sol(tmp_path)
     balanced=driver.reference_rest_state(coords,specs,body,elevation,pressure_scheme='sigma-balanced')
     weights=jnp.asarray(grid.quadrature_weights)
     mean=lambda dyn:jnp.sum(jnp.exp(grid.to_nodal(dyn.log_surface_pressure))*weights)
-    np.testing.assert_allclose(mean(balanced),mean(native),rtol=2e-14)
+    # Spectral transforms of large nondimensional pressures add platform roundoff.
+    np.testing.assert_allclose(mean(balanced),mean(native),rtol=1e-12)
     state=initial_state(balanced,coords,specs,temperature_k=170.)
     step=build_step(coords,specs,body,reference_radiative_forcing(),231.,radiation_component=None,
         soil_diffusivity=1.e-7,no_forcing=True,hyperdiffusion_tau_seconds=.1*body.solar_day_seconds,
