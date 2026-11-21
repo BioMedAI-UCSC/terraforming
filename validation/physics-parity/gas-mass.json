@@ -1,0 +1,783 @@
+{
+  "status": "pass",
+  "reference": {
+    "source_git_blob": "26f594e50fb4c6be6645cbd54d027ba72706c619",
+    "species_loop_sha256": "fe77585c91ad12c75285b9da5f4c37714b5068eb28949345f13a25b6bea0c397",
+    "pressure_loop_sha256": "d281b1486bc890df429e703f181c16f0e35590f6dff085a7b076f4dac07c3218",
+    "compiled_source_sha256": "02c640fd03a58d5ac925af2decfb32e05aae58d8602f0ab05a0a6973ceb7ab3d",
+    "compiler_flags": [
+      "-O3",
+      "-fdefault-real-8",
+      "-fdefault-double-8",
+      "-fPIC",
+      "-shared"
+    ],
+    "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "adaptation": "unchanged do_qmass species and qratio pressure loops; declarations, C adapter and fv_phys ratio normalization"
+  },
+  "cases": [
+    {
+      "layers": 1,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 3.552713678800501e-15
+    },
+    {
+      "layers": 1,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 1.7763568394002505e-15
+    },
+    {
+      "layers": 1,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 1.7763568394002505e-15
+    },
+    {
+      "layers": 1,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 5.329070518200751e-15
+    },
+    {
+      "layers": 1,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 1.7763568394002505e-15
+    },
+    {
+      "layers": 1,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 0.0
+    },
+    {
+      "layers": 1,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 1.7763568394002505e-15
+    },
+    {
+      "layers": 1,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 0.0
+    },
+    {
+      "layers": 1,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 1.7763568394002505e-15
+    },
+    {
+      "layers": 1,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 2.842170943040401e-14
+    },
+    {
+      "layers": 1,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 0.0
+    },
+    {
+      "layers": 1,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 1.7763568394002505e-15
+    },
+    {
+      "layers": 1,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 4.263256414560601e-14
+    },
+    {
+      "layers": 1,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 0.0
+    },
+    {
+      "layers": 1,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 2.842170943040401e-14
+    },
+    {
+      "layers": 1,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 0.0
+    },
+    {
+      "layers": 1,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 7.105427357601002e-15
+    },
+    {
+      "layers": 1,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 0.0
+    },
+    {
+      "layers": 1,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 1.8189894035458565e-12
+    },
+    {
+      "layers": 1,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 0.0
+    },
+    {
+      "layers": 1,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 0.0
+    },
+    {
+      "layers": 1,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 2.7755575615628914e-17
+    },
+    {
+      "layers": 1,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 0.0
+    },
+    {
+      "layers": 1,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 2.7755575615628914e-17
+    },
+    {
+      "layers": 1,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 2.7755575615628914e-17
+    },
+    {
+      "layers": 1,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 0.0
+    },
+    {
+      "layers": 1,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 0.0
+    },
+    {
+      "layers": 4,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 4.440892098500626e-16
+    },
+    {
+      "layers": 4,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 2.710505431213761e-20
+    },
+    {
+      "layers": 4,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 2.220446049250313e-16
+    },
+    {
+      "layers": 4,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 3.552713678800501e-15
+    },
+    {
+      "layers": 4,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 2.710505431213761e-20
+    },
+    {
+      "layers": 4,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 1.7763568394002505e-15
+    },
+    {
+      "layers": 4,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 4.440892098500626e-16
+    },
+    {
+      "layers": 4,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 2.710505431213761e-20
+    },
+    {
+      "layers": 4,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 4.440892098500626e-16
+    },
+    {
+      "layers": 4,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 3.552713678800501e-15
+    },
+    {
+      "layers": 4,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 0.0
+    },
+    {
+      "layers": 4,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 2.168404344971009e-19
+    },
+    {
+      "layers": 4,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 2.842170943040401e-14
+    },
+    {
+      "layers": 4,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 0.0
+    },
+    {
+      "layers": 4,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 0.0
+    },
+    {
+      "layers": 4,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 2.168404344971009e-19
+    },
+    {
+      "layers": 4,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 0.0
+    },
+    {
+      "layers": 4,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 2.168404344971009e-19
+    },
+    {
+      "layers": 4,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 2.2737367544323206e-13
+    },
+    {
+      "layers": 4,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 0.0
+    },
+    {
+      "layers": 4,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 2.7755575615628914e-17
+    },
+    {
+      "layers": 4,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 1.8189894035458565e-12
+    },
+    {
+      "layers": 4,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 4.547473508864641e-13
+    },
+    {
+      "layers": 4,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 2.7755575615628914e-17
+    },
+    {
+      "layers": 4,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 1.8189894035458565e-12
+    },
+    {
+      "layers": 4,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 1.8189894035458565e-12
+    },
+    {
+      "layers": 4,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 1.8189894035458565e-12
+    },
+    {
+      "layers": 12,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 1.7763568394002505e-15
+    },
+    {
+      "layers": 12,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 1.7763568394002505e-15
+    },
+    {
+      "layers": 12,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 1.7763568394002505e-15
+    },
+    {
+      "layers": 12,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 3.552713678800501e-15
+    },
+    {
+      "layers": 12,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 8.881784197001252e-16
+    },
+    {
+      "layers": 12,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 0.0
+    },
+    {
+      "layers": 12,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 1.7763568394002505e-15
+    },
+    {
+      "layers": 12,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 0.0
+    },
+    {
+      "layers": 12,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 2.710505431213761e-20
+    },
+    {
+      "layers": 12,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 2.168404344971009e-19
+    },
+    {
+      "layers": 12,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 0.0
+    },
+    {
+      "layers": 12,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 2.168404344971009e-19
+    },
+    {
+      "layers": 12,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 7.105427357601002e-15
+    },
+    {
+      "layers": 12,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 7.105427357601002e-15
+    },
+    {
+      "layers": 12,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 2.842170943040401e-14
+    },
+    {
+      "layers": 12,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 3.552713678800501e-15
+    },
+    {
+      "layers": 12,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 0.0
+    },
+    {
+      "layers": 12,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 0.0
+    },
+    {
+      "layers": 12,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 0.0
+    },
+    {
+      "layers": 12,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 0.0
+    },
+    {
+      "layers": 12,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 2.2737367544323206e-13
+    },
+    {
+      "layers": 12,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 0.0
+    },
+    {
+      "layers": 12,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 0.0
+    },
+    {
+      "layers": 12,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 3.637978807091713e-12
+    },
+    {
+      "layers": 12,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 3.637978807091713e-12
+    },
+    {
+      "layers": 12,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 3.637978807091713e-12
+    },
+    {
+      "layers": 12,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 0.0
+    },
+    {
+      "layers": 56,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 1.7763568394002505e-15
+    },
+    {
+      "layers": 56,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 1.7763568394002505e-15
+    },
+    {
+      "layers": 56,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 1.7763568394002505e-15
+    },
+    {
+      "layers": 56,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 1.7763568394002505e-15
+    },
+    {
+      "layers": 56,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 1.7763568394002505e-15
+    },
+    {
+      "layers": 56,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 0.0
+    },
+    {
+      "layers": 56,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 3.552713678800501e-15
+    },
+    {
+      "layers": 56,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 1.7763568394002505e-15
+    },
+    {
+      "layers": 56,
+      "pressure_pa": 61.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 3.552713678800501e-15
+    },
+    {
+      "layers": 56,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 7.105427357601002e-15
+    },
+    {
+      "layers": 56,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 0.0
+    },
+    {
+      "layers": 56,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 0.0
+    },
+    {
+      "layers": 56,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 5.684341886080802e-14
+    },
+    {
+      "layers": 56,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 7.105427357601002e-15
+    },
+    {
+      "layers": 56,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 0.0
+    },
+    {
+      "layers": 56,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 3.552713678800501e-15
+    },
+    {
+      "layers": 56,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 3.552713678800501e-15
+    },
+    {
+      "layers": 56,
+      "pressure_pa": 705.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 2.842170943040401e-14
+    },
+    {
+      "layers": 56,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 1.8189894035458565e-12
+    },
+    {
+      "layers": 56,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 2.2737367544323206e-13
+    },
+    {
+      "layers": 56,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.1,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 0.0
+    },
+    {
+      "layers": 56,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 1.8189894035458565e-12
+    },
+    {
+      "layers": 56,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 1.8189894035458565e-12
+    },
+    {
+      "layers": 56,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.8,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 1.8189894035458565e-12
+    },
+    {
+      "layers": 56,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": -0.01,
+      "max_species_mass_error_kg_m2": 2.2737367544323206e-13
+    },
+    {
+      "layers": 56,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": 0.0,
+      "max_species_mass_error_kg_m2": 1.8189894035458565e-12
+    },
+    {
+      "layers": 56,
+      "pressure_pa": 50000.0,
+      "co2_fraction": 0.999,
+      "loss_fraction": 0.01,
+      "max_species_mass_error_kg_m2": 2.2737367544323206e-13
+    }
+  ],
+  "sha256": {
+    "scripts/validate_gas_mass.py": "23d764d870d208c037d3afd36f5b656c9e489e47a8d514250a3d85abef65dfda",
+    "package/src/framework/physics/dinosaur_physics.py": "e736d8ea8e35f735d908f11b56d4ffbdb1769b3e398046cdffa054cc4beb4d44",
+    "package/src/framework/physics/co2_clouds.py": "dc6deda4e254042dc02eb2aad40f81a41d639c02bcb144655f2f737ab32f42c5",
+    "package/src/celestials/planets/mars/reference_constants.py": "3823b68ef06e3b7abcba4db1ed9a73b209cce87bedbd125dc64fd765a314d710"
+  },
+  "limits": "Native mass update and species inventories agree; multilevel results compare integrated species mass after the separate Dinosaur sigma remap. This does not validate mixture thermodynamics or climate."
+}

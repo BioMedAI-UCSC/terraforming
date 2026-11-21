@@ -27,6 +27,29 @@ _HAS_MOLA = topo._DEFAULT_MOLA.exists()
 needs_mola = pytest.mark.skipif(not _HAS_MOLA, reason="MOLA MEGDR raster not staged")
 
 
+def test_reference_netcdf_topography_preserves_area_orientation_and_periodic_seam(tmp_path):
+    import xarray as xr
+    coords=coordinate_system('T21',4);grid=coords.horizontal
+    field=np.arange(4)[:,None]*100.+np.arange(8)[None,:]*10.
+    ds=xr.Dataset({'topo':(('lat','lon'),field,{'units':'meters'})},
+        coords={'lat':np.linspace(-67.5,67.5,4),'lon':np.linspace(22.5,337.5,8)})
+    path=tmp_path/'mola.nc';ds.to_netcdf(path)
+    actual=topo.regrid_to_nodal(coords,mola_path=path)
+    weights=np.broadcast_to(np.asarray(grid.quadrature_weights),actual.shape)
+    lat_weights=np.diff(np.sin(np.deg2rad(np.linspace(-90.,90.,5))))
+    expected=np.sum(field*lat_weights[:,None])/(2.*field.shape[1])
+    assert np.sum(actual*weights)/weights.sum()==pytest.approx(expected,abs=1e-12)
+    assert np.all(actual[:,-1]>actual[:,0])
+    np.testing.assert_allclose(actual[0],actual[16]+20.,atol=1e-12)
+    reverse=tmp_path/'reverse.nc';ds.sortby('lat',ascending=False).to_netcdf(reverse)
+    np.testing.assert_array_equal(topo.regrid_to_nodal(coords,mola_path=reverse),actual)
+    for invalid,match in ((ds.assign(topo=ds.topo.assign_attrs(units='km')),'metres'),
+                           (ds.assign_coords(lon=ds.lon+1.),'cell-centre'),
+                           (ds.assign(topo=ds.topo.where(ds.lon>45.)),'missing values')):
+        bad=tmp_path/'bad.nc';invalid.to_netcdf(bad)
+        with pytest.raises(ValueError,match=match): topo.regrid_to_nodal(coords,mola_path=bad)
+
+
 class TestProvenance:
     """Integrity/reproducibility of the staged MOLA raster (fast, no dinosaur run)."""
 

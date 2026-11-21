@@ -1,0 +1,109 @@
+"""Material and derivative checks for scenario-controlled dust."""
+import numpy as np
+import pytest
+pytest.importorskip('dinosaur')
+from src.framework.gcm._dinosaur import jax,jnp
+from src.framework.physics.dust_lifting import background_step
+
+jax.config.update('jax_enable_x64',True)
+HALF=jnp.array([0.,50.,200.,400.,610.])
+MASS=jnp.array([3e-6,2e-6,1e-6,1e-7])
+NUMBER=MASS*1e13
+
+
+def update(current=.1,scenario=.2,**options):
+    return background_step(MASS,NUMBER,HALF,1,230.,0.,current,scenario,1.,30.,300.,
+        extinction_efficiency=2.45,**options)
+
+
+@pytest.mark.parametrize('injection_type',range(1,8))
+@pytest.mark.parametrize('pbl',[False,True])
+def test_scenario_injection_preserves_surface_plus_air_mass(injection_type,pbl):
+    result=update(injection_type=injection_type,inject_through_pbl=pbl)
+    air_change=jnp.sum((result.mass_ratio-MASS)*jnp.diff(HALF)/3.72)
+    np.testing.assert_allclose(air_change+result.surface_dust_kg_m2,30.,rtol=1e-15,atol=1e-14)
+    assert air_change>0.
+    np.testing.assert_array_equal(result.mass_ratio[:1 if pbl else 3],MASS[:1 if pbl else 3])
+
+
+@pytest.mark.parametrize('bottom',[False,True])
+def test_sink_removes_across_cells_without_negative_material(bottom):
+    result=update(current=10.,scenario=0.,remove_excess=True,bottom_sink=bottom)
+    air_change=jnp.sum((result.mass_ratio-MASS)*jnp.diff(HALF)/3.72)
+    np.testing.assert_allclose(air_change+result.surface_dust_kg_m2,30.,rtol=1e-15,atol=1e-14)
+    assert np.all(result.mass_ratio>=0.) and np.all(result.number_ratio>=0.)
+    assert air_change<0.
+    if bottom: assert result.mass_ratio[-1]==0. and result.mass_ratio[-2]<MASS[-2]
+
+
+def test_all_source_injection_masks_and_local_time_fraction():
+    for ts,snow,change,fraction in ((100.,0.,1.,1.),(230.,1.,1.,1.),
+        (230.,0.,-1000.,1.),(230.,0.,1.,0.)):
+        result=background_step(MASS,NUMBER,HALF,1,ts,snow,.1,.2,change,30.,300.,
+            extinction_efficiency=2.45,local_time_fraction=fraction)
+        np.testing.assert_array_equal(result.mass_ratio,MASS)
+
+
+def test_injection_and_bottom_sink_keep_reverse_derivatives():
+    for bottom in (False,True):
+        objective=(lambda x:jnp.sum(update(current=x,scenario=0.,remove_excess=True,
+            bottom_sink=True).mass_ratio)) if bottom else (
+            lambda x:jnp.sum(update(scenario=x,injection_type=4).mass_ratio))
+        point=10. if bottom else .2;eps=1e-5
+        auto=jax.jit(jax.grad(objective))(point)
+        fd=(objective(point+eps)-objective(point-eps))/(2.*eps)
+        assert np.isfinite(auto) and abs(float(auto))>0.
+        np.testing.assert_allclose(auto,fd,rtol=1e-7,atol=1e-14)
+
+
+def test_source_negative_sink_allowance_is_repaired_and_reported():
+    result=background_step(jnp.zeros(4),jnp.zeros(4),HALF,1,230.,0.,10.,0.,-1.,30.,300.,
+        extinction_efficiency=2.45,remove_excess=True)
+    assert np.all(result.mass_ratio>=0.) and np.all(result.number_ratio>=0.)
+    assert result.diagnostics['negative_sink_repair_kg_m2']>0.
+
+
+@pytest.mark.parametrize('fractions',[None,(.25,.75),(1.,1.)])
+def test_mode_fractions_keep_separate_reservoirs_and_particle_sizes(fractions):
+    from src.framework.physics.dust_lifting import background_modes_step
+    mass=jnp.stack([MASS,MASS],axis=-1);number=jnp.stack([NUMBER,NUMBER],axis=-1)
+    options={} if fractions is None else dict(opacity_fraction=fractions)
+    result=background_modes_step(mass,number,HALF,1,230.,0.,.1,.2,1.,
+        surface_dust_kg_m2=jnp.array([30.,20.]),dt_seconds=300.,
+        extinction_efficiency=(2.45,2.),effective_radius_m=(1e-6,3e-6),**options)
+    amount=jnp.sum((result.mass_ratio-mass)*jnp.diff(HALF)[:,None]/3.72,axis=0)
+    np.testing.assert_allclose(amount+result.surface_dust_kg_m2,[30.,20.],atol=1e-14)
+    assert amount[0]>0.
+    if fractions is None or sum(fractions)!=1.:
+        np.testing.assert_array_equal(result.mass_ratio[...,1],MASS)
+    else:
+        assert amount[1]>amount[0]
+
+
+def test_spatial_injection_shares_do_not_change_static_removal_fractions():
+    from src.framework.physics.dust_lifting import background_modes_step
+    mass=jnp.broadcast_to(MASS[:,None,None],(4,2,2));number=mass*1e13
+    half=jnp.broadcast_to(HALF[:,None],(5,2));reservoir=jnp.array([[30.,20.],[40.,10.]])
+    fractions=jnp.array([[.1,.9],[.8,.2]])
+    def update(fractions,current=.1,scenario=.2,remove=False):
+        return background_modes_step(mass,number,half,1,230.,0.,current,scenario,1.,
+            surface_dust_kg_m2=reservoir,dt_seconds=300.,extinction_efficiency=(2.45,2.),
+            effective_radius_m=(1e-6,3e-6),opacity_fraction=(.25,.75),
+            injection_fraction=fractions,remove_excess=remove,inject_through_pbl=False)
+    actual=update(fractions)
+    for mode in range(2):
+        expected=background_step(mass[...,mode],number[...,mode],half,1,230.,0.,.1,.2,1.,
+            reservoir[...,mode],300.,extinction_efficiency=(2.45,2.)[mode],
+            effective_radius_m=(1e-6,3e-6)[mode],opacity_fraction=(.25,.75)[mode],
+            injection_fraction=fractions[...,mode],inject_through_pbl=False)
+        np.testing.assert_allclose(actual.mass_ratio[...,mode],expected.mass_ratio,rtol=2e-15)
+        np.testing.assert_allclose(actual.number_ratio[...,mode],expected.number_ratio,rtol=2e-15)
+    mass_change=jnp.sum((actual.mass_ratio-mass)*jnp.diff(half,axis=0)[...,None]/3.72,axis=0)
+    np.testing.assert_allclose(mass_change+actual.surface_dust_kg_m2,reservoir,atol=1e-14)
+    first=update(fractions,10.,0.,True);second=update(fractions[::-1],10.,0.,True)
+    np.testing.assert_array_equal(first.mass_ratio,second.mass_ratio)
+    np.testing.assert_array_equal(first.surface_dust_kg_m2,second.surface_dust_kg_m2)
+    objective=lambda value:jnp.sum(update(fractions*value).mass_ratio)
+    derivative=jax.jit(jax.grad(objective))(1.);epsilon=1e-5
+    assert np.isfinite(derivative) and derivative>0.
+    np.testing.assert_allclose(derivative,(objective(1.+epsilon)-objective(1.-epsilon))/(2.*epsilon),rtol=2e-8)

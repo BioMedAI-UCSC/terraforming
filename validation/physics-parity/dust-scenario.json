@@ -1,0 +1,254 @@
+{
+  "status": "pass",
+  "reference": {
+    "source_git_blob": "f998b823f73ab3f3d5ec662a49c893fc2f67006b",
+    "compiled_source_sha256": "3560ad88785d33eb6ae826b01a4e1e66822071dc9f25d643284faa20285b6941",
+    "routine_sha256": {
+      "HORIZ_INTERP_BILINEAR_NEW_1D_": "3ab58f7b9ff3bfd690216ae69387e28ec2d4845f5d573c2e3bf19bffee69efb8"
+    },
+    "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "compiler_flags": [
+      "-O3",
+      "-cpp",
+      "-ffree-line-length-none",
+      "-fdefault-real-8",
+      "-fdefault-double-8",
+      "-fPIC",
+      "-shared"
+    ],
+    "real_precision_bits": 64,
+    "adaptation": "unchanged routine body, intended precision macros, module/type declarations and C adapter; monotone nearest_index uses minloc; unused diagnostics stubbed",
+    "dust_update_git_blob": "1e470cc1efb44c6627cbe3168c69c2d1f7640570",
+    "scenario_scaling_block_sha256": "458b7bab8a83fdeb65268f54c29a8f939e5747cd9c01d634e08a6543084d3d2a"
+  },
+  "input_blobs": {
+    "DustScenario_Background.nc": "ad086574f8def0d45247409811b02bf76afacbbf",
+    "DustScenario_MGS.nc": "27b7d7387e3170c63aac609a930d89cef0ff6e88",
+    "DustScenario_MY24.nc": "5cdc13d5cd83deedca7f12dcb411a54e5a009c03",
+    "DustScenario_MY30.nc": "da305d4b2c1f678abc36a1a82f78ab52d636a851",
+    "DustScenario_MY31.nc": "578dc00bb774edd86b3fa984d46e33bb7b31c75e",
+    "DustScenario_MY34.nc": "50e8f4288f111c612539d17c2b1b7c505aa0013a"
+  },
+  "verified_inputs": {
+    "DustScenario_Background.nc": {
+      "source_git_blob": "ad086574f8def0d45247409811b02bf76afacbbf",
+      "seasonal_samples": 668,
+      "periodic_endpoint_appended": false,
+      "min_opacity": 0.022222002665762467,
+      "min_top_height_km": 20.27168256379813
+    },
+    "DustScenario_MGS.nc": {
+      "source_git_blob": "27b7d7387e3170c63aac609a930d89cef0ff6e88",
+      "seasonal_samples": 669,
+      "periodic_endpoint_appended": true,
+      "min_opacity": 0.03637423957970986,
+      "min_top_height_km": 20.27167825207038
+    },
+    "DustScenario_MY24.nc": {
+      "source_git_blob": "5cdc13d5cd83deedca7f12dcb411a54e5a009c03",
+      "seasonal_samples": 669,
+      "periodic_endpoint_appended": true,
+      "min_opacity": 0.0033350050274349855,
+      "min_top_height_km": 20.27169400788993
+    },
+    "DustScenario_MY30.nc": {
+      "source_git_blob": "da305d4b2c1f678abc36a1a82f78ab52d636a851",
+      "seasonal_samples": 669,
+      "periodic_endpoint_appended": true,
+      "min_opacity": 0.0008686162749660227,
+      "min_top_height_km": 20.27169400788993
+    },
+    "DustScenario_MY31.nc": {
+      "source_git_blob": "578dc00bb774edd86b3fa984d46e33bb7b31c75e",
+      "seasonal_samples": 669,
+      "periodic_endpoint_appended": true,
+      "min_opacity": 0.0021280625874907796,
+      "min_top_height_km": 20.27169400788993
+    },
+    "DustScenario_MY34.nc": {
+      "source_git_blob": "50e8f4288f111c612539d17c2b1b7c505aa0013a",
+      "seasonal_samples": 668,
+      "periodic_endpoint_appended": false,
+      "min_opacity": 0.005337142637029716,
+      "min_top_height_km": 20.271682563798134
+    }
+  },
+  "cases": [
+    {
+      "grid": "T21",
+      "field": "taufill",
+      "max_error": 1.1102230246251565e-16
+    },
+    {
+      "grid": "T21",
+      "field": "zmax",
+      "max_error": 1.4210854715202004e-14
+    },
+    {
+      "grid": "T42",
+      "field": "taufill",
+      "max_error": 1.3877787807814457e-16
+    },
+    {
+      "grid": "T42",
+      "field": "zmax",
+      "max_error": 2.1316282072803006e-14
+    },
+    {
+      "grid": "T85",
+      "field": "taufill",
+      "max_error": 1.6653345369377348e-16
+    },
+    {
+      "grid": "T85",
+      "field": "zmax",
+      "max_error": 2.1316282072803006e-14
+    },
+    {
+      "grid": "T170",
+      "field": "taufill",
+      "max_error": 1.942890293094024e-16
+    },
+    {
+      "grid": "T170",
+      "field": "zmax",
+      "max_error": 2.1316282072803006e-14
+    },
+    {
+      "grid": "seam-poles",
+      "field": "taufill",
+      "max_error": 0.0
+    },
+    {
+      "grid": "seam-poles",
+      "field": "zmax",
+      "max_error": 0.0
+    }
+  ],
+  "scaling_cases": [
+    {
+      "grid": "T21",
+      "channel": 1,
+      "map_scale": 0.0,
+      "max_error": 0.0
+    },
+    {
+      "grid": "T21",
+      "channel": 1,
+      "map_scale": 1.0,
+      "max_error": 5.551115123125783e-17
+    },
+    {
+      "grid": "T21",
+      "channel": 1,
+      "map_scale": 3.67,
+      "max_error": 2.220446049250313e-16
+    },
+    {
+      "grid": "T21",
+      "channel": 2,
+      "map_scale": 3.67,
+      "max_error": 5.551115123125783e-17
+    },
+    {
+      "grid": "T42",
+      "channel": 1,
+      "map_scale": 0.0,
+      "max_error": 0.0
+    },
+    {
+      "grid": "T42",
+      "channel": 1,
+      "map_scale": 1.0,
+      "max_error": 5.551115123125783e-17
+    },
+    {
+      "grid": "T42",
+      "channel": 1,
+      "map_scale": 3.67,
+      "max_error": 2.220446049250313e-16
+    },
+    {
+      "grid": "T42",
+      "channel": 2,
+      "map_scale": 3.67,
+      "max_error": 5.551115123125783e-17
+    },
+    {
+      "grid": "T85",
+      "channel": 1,
+      "map_scale": 0.0,
+      "max_error": 0.0
+    },
+    {
+      "grid": "T85",
+      "channel": 1,
+      "map_scale": 1.0,
+      "max_error": 6.938893903907228e-17
+    },
+    {
+      "grid": "T85",
+      "channel": 1,
+      "map_scale": 3.67,
+      "max_error": 2.7755575615628914e-16
+    },
+    {
+      "grid": "T85",
+      "channel": 2,
+      "map_scale": 3.67,
+      "max_error": 6.938893903907228e-17
+    },
+    {
+      "grid": "T170",
+      "channel": 1,
+      "map_scale": 0.0,
+      "max_error": 0.0
+    },
+    {
+      "grid": "T170",
+      "channel": 1,
+      "map_scale": 1.0,
+      "max_error": 8.326672684688674e-17
+    },
+    {
+      "grid": "T170",
+      "channel": 1,
+      "map_scale": 3.67,
+      "max_error": 2.498001805406602e-16
+    },
+    {
+      "grid": "T170",
+      "channel": 2,
+      "map_scale": 3.67,
+      "max_error": 8.326672684688674e-17
+    },
+    {
+      "grid": "seam-poles",
+      "channel": 1,
+      "map_scale": 0.0,
+      "max_error": 0.0
+    },
+    {
+      "grid": "seam-poles",
+      "channel": 1,
+      "map_scale": 1.0,
+      "max_error": 0.0
+    },
+    {
+      "grid": "seam-poles",
+      "channel": 1,
+      "map_scale": 3.67,
+      "max_error": 0.0
+    },
+    {
+      "grid": "seam-poles",
+      "channel": 2,
+      "map_scale": 3.67,
+      "max_error": 0.0
+    }
+  ],
+  "sha256": {
+    "scripts/validate_dust_scenario.py": "ff4ea4067574c400f7728fb1e7edb2b7628353c2859042d68563a9cdf018ff1b",
+    "package/src/celestials/planets/mars/dust_scenario.py": "668466e8fb1ba6e55f54c5a0b9a46443ac3004f68e87a087bbb4e0069b7d0b3f"
+  }
+}

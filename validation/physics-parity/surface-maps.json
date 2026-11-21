@@ -1,0 +1,1178 @@
+{
+  "status": "pass",
+  "reference_commit": "ba47cada5f9eb89c75c4f10d06dbae6e7f9ecb26",
+  "inputs": {
+    "mars_thermal_inertia8_2011.nc": {
+      "git_blob": "e91fc91677b866e9c3c9ddbe42e33204c96ae20f",
+      "sha256": "43756c80ff8052a9123b71530942ed267b8c8af24e137bc3ba27b47b69c53476"
+    },
+    "mars_TES_albedo8_new.nc": {
+      "git_blob": "c6d3ae52404a89686809865a7621ed9b97f6337c",
+      "sha256": "4e4cc150a58be27bef0c3713d432789154b94e64c804ddeaf07eee7119e34fd7"
+    },
+    "mars_sfc_emissivity8.nc": {
+      "git_blob": "8b92607e72bc87d594942c23cc2dd251aa097b94",
+      "sha256": "23b53ed48a530679606f6fdf7b6fafbd0d92d022c507eb94dadb109b74dbab5d"
+    },
+    "GRS_interp16.nc": {
+      "git_blob": "6420557ea160ebab630e3aa53e82f36f74f67c13",
+      "sha256": "7c718ccec796fe1937b37f9ee9606cbf7720703c17eb0031076e9ef4fbda576f"
+    }
+  },
+  "cases": [
+    {
+      "truncation": "T21",
+      "shape": [
+        64,
+        32
+      ],
+      "fields": {
+        "thermal_inertia": {
+          "source_area_mean": 201.39732336431638,
+          "remapped_area_mean": 201.39732336431626,
+          "final_min": 40.889286505760076,
+          "final_max": 1137.1507436328145
+        },
+        "albedo": {
+          "source_area_mean": 0.20391939843504822,
+          "remapped_area_mean": 0.20391939843504803,
+          "final_min": 0.10047838171846735,
+          "final_max": 0.3197327627313377
+        },
+        "emissivity": {
+          "source_area_mean": 0.9750918863765234,
+          "remapped_area_mean": 0.975091886376524,
+          "final_min": 0.9278887143256801,
+          "final_max": 1.000693729556787
+        },
+        "grs_ice_latitude_deg": {
+          "source_area_mean": -1.4093517504495263,
+          "remapped_area_mean": -1.4093517504495447,
+          "final_min": -57.75138888888887,
+          "final_max": 58.59652777777784
+        }
+      },
+      "emissivity_above_one_cells": 2,
+      "soil_diffusivity_shape": [
+        15,
+        64,
+        32
+      ]
+    },
+    {
+      "truncation": "T42",
+      "shape": [
+        128,
+        64
+      ],
+      "fields": {
+        "thermal_inertia": {
+          "source_area_mean": 201.39732336431638,
+          "remapped_area_mean": 201.39732336431652,
+          "final_min": 39.32039192728672,
+          "final_max": 1150.0000000000002
+        },
+        "albedo": {
+          "source_area_mean": 0.20391939843504822,
+          "remapped_area_mean": 0.2039193984350481,
+          "final_min": 0.09597590104938121,
+          "final_max": 0.3199999445544184
+        },
+        "emissivity": {
+          "source_area_mean": 0.9750918863765234,
+          "remapped_area_mean": 0.975091886376524,
+          "final_min": 0.9217857508289288,
+          "final_max": 1.003644162211463
+        },
+        "grs_ice_latitude_deg": {
+          "source_area_mean": -1.4093517504495263,
+          "remapped_area_mean": -1.4093517504495172,
+          "final_min": -57.99861111111114,
+          "final_max": 58.606250000000045
+        }
+      },
+      "emissivity_above_one_cells": 36,
+      "soil_diffusivity_shape": [
+        15,
+        128,
+        64
+      ]
+    }
+  ],
+  "inertia_adjustments": {
+    "surface_git_blob": "aca56974025103ab408ecf866cc78b25779fc469",
+    "block_sha256": "156340ca973ba82316fcd26de8251085df5c2fec94b0d823a3fcd7fe4d6220a8",
+    "compiled_source_sha256": "61bf1e4adfa1fca0647c0d2f1c9a9467a3f745ccd26a726d478da95d81c8c107",
+    "compiler_flags": [
+      "-O3",
+      "-fdefault-real-8",
+      "-fdefault-double-8",
+      "-fPIC",
+      "-shared"
+    ],
+    "cases": [
+      {
+        "latitude_count": 187,
+        "north_inertia": -900.0,
+        "north_latitude_deg": 0.0,
+        "north_maximum": 700.0,
+        "regional_scale": -100.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": -900.0,
+        "north_latitude_deg": 0.0,
+        "north_maximum": 700.0,
+        "regional_scale": 0.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": -900.0,
+        "north_latitude_deg": 0.0,
+        "north_maximum": 700.0,
+        "regional_scale": 0.5,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": -900.0,
+        "north_latitude_deg": 0.0,
+        "north_maximum": 700.0,
+        "regional_scale": 2.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": -900.0,
+        "north_latitude_deg": 0.0,
+        "north_maximum": 800.0,
+        "regional_scale": -100.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": -900.0,
+        "north_latitude_deg": 0.0,
+        "north_maximum": 800.0,
+        "regional_scale": 0.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": -900.0,
+        "north_latitude_deg": 0.0,
+        "north_maximum": 800.0,
+        "regional_scale": 0.5,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": -900.0,
+        "north_latitude_deg": 0.0,
+        "north_maximum": 800.0,
+        "regional_scale": 2.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 600.0,
+        "north_latitude_deg": 0.0,
+        "north_maximum": 700.0,
+        "regional_scale": -100.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 600.0,
+        "north_latitude_deg": 0.0,
+        "north_maximum": 700.0,
+        "regional_scale": 0.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 600.0,
+        "north_latitude_deg": 0.0,
+        "north_maximum": 700.0,
+        "regional_scale": 0.5,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 600.0,
+        "north_latitude_deg": 0.0,
+        "north_maximum": 700.0,
+        "regional_scale": 2.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 600.0,
+        "north_latitude_deg": 0.0,
+        "north_maximum": 800.0,
+        "regional_scale": -100.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 600.0,
+        "north_latitude_deg": 0.0,
+        "north_maximum": 800.0,
+        "regional_scale": 0.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 600.0,
+        "north_latitude_deg": 0.0,
+        "north_maximum": 800.0,
+        "regional_scale": 0.5,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 600.0,
+        "north_latitude_deg": 0.0,
+        "north_maximum": 800.0,
+        "regional_scale": 2.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 1000.0,
+        "north_latitude_deg": 0.0,
+        "north_maximum": 700.0,
+        "regional_scale": -100.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 1000.0,
+        "north_latitude_deg": 0.0,
+        "north_maximum": 700.0,
+        "regional_scale": 0.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 1000.0,
+        "north_latitude_deg": 0.0,
+        "north_maximum": 700.0,
+        "regional_scale": 0.5,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 1000.0,
+        "north_latitude_deg": 0.0,
+        "north_maximum": 700.0,
+        "regional_scale": 2.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 1000.0,
+        "north_latitude_deg": 0.0,
+        "north_maximum": 800.0,
+        "regional_scale": -100.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 1000.0,
+        "north_latitude_deg": 0.0,
+        "north_maximum": 800.0,
+        "regional_scale": 0.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 1000.0,
+        "north_latitude_deg": 0.0,
+        "north_maximum": 800.0,
+        "regional_scale": 0.5,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 1000.0,
+        "north_latitude_deg": 0.0,
+        "north_maximum": 800.0,
+        "regional_scale": 2.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 185,
+        "north_inertia": -900.0,
+        "north_latitude_deg": 30.0,
+        "north_maximum": 700.0,
+        "regional_scale": -100.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 185,
+        "north_inertia": -900.0,
+        "north_latitude_deg": 30.0,
+        "north_maximum": 700.0,
+        "regional_scale": 0.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 185,
+        "north_inertia": -900.0,
+        "north_latitude_deg": 30.0,
+        "north_maximum": 700.0,
+        "regional_scale": 0.5,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 185,
+        "north_inertia": -900.0,
+        "north_latitude_deg": 30.0,
+        "north_maximum": 700.0,
+        "regional_scale": 2.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 185,
+        "north_inertia": -900.0,
+        "north_latitude_deg": 30.0,
+        "north_maximum": 800.0,
+        "regional_scale": -100.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 185,
+        "north_inertia": -900.0,
+        "north_latitude_deg": 30.0,
+        "north_maximum": 800.0,
+        "regional_scale": 0.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 185,
+        "north_inertia": -900.0,
+        "north_latitude_deg": 30.0,
+        "north_maximum": 800.0,
+        "regional_scale": 0.5,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 185,
+        "north_inertia": -900.0,
+        "north_latitude_deg": 30.0,
+        "north_maximum": 800.0,
+        "regional_scale": 2.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 185,
+        "north_inertia": 600.0,
+        "north_latitude_deg": 30.0,
+        "north_maximum": 700.0,
+        "regional_scale": -100.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 185,
+        "north_inertia": 600.0,
+        "north_latitude_deg": 30.0,
+        "north_maximum": 700.0,
+        "regional_scale": 0.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 185,
+        "north_inertia": 600.0,
+        "north_latitude_deg": 30.0,
+        "north_maximum": 700.0,
+        "regional_scale": 0.5,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 185,
+        "north_inertia": 600.0,
+        "north_latitude_deg": 30.0,
+        "north_maximum": 700.0,
+        "regional_scale": 2.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 185,
+        "north_inertia": 600.0,
+        "north_latitude_deg": 30.0,
+        "north_maximum": 800.0,
+        "regional_scale": -100.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 185,
+        "north_inertia": 600.0,
+        "north_latitude_deg": 30.0,
+        "north_maximum": 800.0,
+        "regional_scale": 0.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 185,
+        "north_inertia": 600.0,
+        "north_latitude_deg": 30.0,
+        "north_maximum": 800.0,
+        "regional_scale": 0.5,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 185,
+        "north_inertia": 600.0,
+        "north_latitude_deg": 30.0,
+        "north_maximum": 800.0,
+        "regional_scale": 2.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 185,
+        "north_inertia": 1000.0,
+        "north_latitude_deg": 30.0,
+        "north_maximum": 700.0,
+        "regional_scale": -100.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 185,
+        "north_inertia": 1000.0,
+        "north_latitude_deg": 30.0,
+        "north_maximum": 700.0,
+        "regional_scale": 0.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 185,
+        "north_inertia": 1000.0,
+        "north_latitude_deg": 30.0,
+        "north_maximum": 700.0,
+        "regional_scale": 0.5,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 185,
+        "north_inertia": 1000.0,
+        "north_latitude_deg": 30.0,
+        "north_maximum": 700.0,
+        "regional_scale": 2.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 185,
+        "north_inertia": 1000.0,
+        "north_latitude_deg": 30.0,
+        "north_maximum": 800.0,
+        "regional_scale": -100.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 185,
+        "north_inertia": 1000.0,
+        "north_latitude_deg": 30.0,
+        "north_maximum": 800.0,
+        "regional_scale": 0.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 185,
+        "north_inertia": 1000.0,
+        "north_latitude_deg": 30.0,
+        "north_maximum": 800.0,
+        "regional_scale": 0.5,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 185,
+        "north_inertia": 1000.0,
+        "north_latitude_deg": 30.0,
+        "north_maximum": 800.0,
+        "regional_scale": 2.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": -900.0,
+        "north_latitude_deg": 65.0,
+        "north_maximum": 700.0,
+        "regional_scale": -100.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": -900.0,
+        "north_latitude_deg": 65.0,
+        "north_maximum": 700.0,
+        "regional_scale": 0.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": -900.0,
+        "north_latitude_deg": 65.0,
+        "north_maximum": 700.0,
+        "regional_scale": 0.5,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": -900.0,
+        "north_latitude_deg": 65.0,
+        "north_maximum": 700.0,
+        "regional_scale": 2.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": -900.0,
+        "north_latitude_deg": 65.0,
+        "north_maximum": 800.0,
+        "regional_scale": -100.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": -900.0,
+        "north_latitude_deg": 65.0,
+        "north_maximum": 800.0,
+        "regional_scale": 0.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": -900.0,
+        "north_latitude_deg": 65.0,
+        "north_maximum": 800.0,
+        "regional_scale": 0.5,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": -900.0,
+        "north_latitude_deg": 65.0,
+        "north_maximum": 800.0,
+        "regional_scale": 2.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 600.0,
+        "north_latitude_deg": 65.0,
+        "north_maximum": 700.0,
+        "regional_scale": -100.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 600.0,
+        "north_latitude_deg": 65.0,
+        "north_maximum": 700.0,
+        "regional_scale": 0.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 600.0,
+        "north_latitude_deg": 65.0,
+        "north_maximum": 700.0,
+        "regional_scale": 0.5,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 600.0,
+        "north_latitude_deg": 65.0,
+        "north_maximum": 700.0,
+        "regional_scale": 2.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 600.0,
+        "north_latitude_deg": 65.0,
+        "north_maximum": 800.0,
+        "regional_scale": -100.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 600.0,
+        "north_latitude_deg": 65.0,
+        "north_maximum": 800.0,
+        "regional_scale": 0.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 600.0,
+        "north_latitude_deg": 65.0,
+        "north_maximum": 800.0,
+        "regional_scale": 0.5,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 600.0,
+        "north_latitude_deg": 65.0,
+        "north_maximum": 800.0,
+        "regional_scale": 2.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 1000.0,
+        "north_latitude_deg": 65.0,
+        "north_maximum": 700.0,
+        "regional_scale": -100.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 1000.0,
+        "north_latitude_deg": 65.0,
+        "north_maximum": 700.0,
+        "regional_scale": 0.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 1000.0,
+        "north_latitude_deg": 65.0,
+        "north_maximum": 700.0,
+        "regional_scale": 0.5,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 1000.0,
+        "north_latitude_deg": 65.0,
+        "north_maximum": 700.0,
+        "regional_scale": 2.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 1000.0,
+        "north_latitude_deg": 65.0,
+        "north_maximum": 800.0,
+        "regional_scale": -100.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 1000.0,
+        "north_latitude_deg": 65.0,
+        "north_maximum": 800.0,
+        "regional_scale": 0.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 1000.0,
+        "north_latitude_deg": 65.0,
+        "north_maximum": 800.0,
+        "regional_scale": 0.5,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 1000.0,
+        "north_latitude_deg": 65.0,
+        "north_maximum": 800.0,
+        "regional_scale": 2.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": -900.0,
+        "north_latitude_deg": 90.0,
+        "north_maximum": 700.0,
+        "regional_scale": -100.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": -900.0,
+        "north_latitude_deg": 90.0,
+        "north_maximum": 700.0,
+        "regional_scale": 0.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": -900.0,
+        "north_latitude_deg": 90.0,
+        "north_maximum": 700.0,
+        "regional_scale": 0.5,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": -900.0,
+        "north_latitude_deg": 90.0,
+        "north_maximum": 700.0,
+        "regional_scale": 2.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": -900.0,
+        "north_latitude_deg": 90.0,
+        "north_maximum": 800.0,
+        "regional_scale": -100.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": -900.0,
+        "north_latitude_deg": 90.0,
+        "north_maximum": 800.0,
+        "regional_scale": 0.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": -900.0,
+        "north_latitude_deg": 90.0,
+        "north_maximum": 800.0,
+        "regional_scale": 0.5,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": -900.0,
+        "north_latitude_deg": 90.0,
+        "north_maximum": 800.0,
+        "regional_scale": 2.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 600.0,
+        "north_latitude_deg": 90.0,
+        "north_maximum": 700.0,
+        "regional_scale": -100.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 600.0,
+        "north_latitude_deg": 90.0,
+        "north_maximum": 700.0,
+        "regional_scale": 0.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 600.0,
+        "north_latitude_deg": 90.0,
+        "north_maximum": 700.0,
+        "regional_scale": 0.5,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 600.0,
+        "north_latitude_deg": 90.0,
+        "north_maximum": 700.0,
+        "regional_scale": 2.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 600.0,
+        "north_latitude_deg": 90.0,
+        "north_maximum": 800.0,
+        "regional_scale": -100.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 600.0,
+        "north_latitude_deg": 90.0,
+        "north_maximum": 800.0,
+        "regional_scale": 0.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 600.0,
+        "north_latitude_deg": 90.0,
+        "north_maximum": 800.0,
+        "regional_scale": 0.5,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 600.0,
+        "north_latitude_deg": 90.0,
+        "north_maximum": 800.0,
+        "regional_scale": 2.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 1000.0,
+        "north_latitude_deg": 90.0,
+        "north_maximum": 700.0,
+        "regional_scale": -100.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 1000.0,
+        "north_latitude_deg": 90.0,
+        "north_maximum": 700.0,
+        "regional_scale": 0.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 1000.0,
+        "north_latitude_deg": 90.0,
+        "north_maximum": 700.0,
+        "regional_scale": 0.5,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 1000.0,
+        "north_latitude_deg": 90.0,
+        "north_maximum": 700.0,
+        "regional_scale": 2.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 1000.0,
+        "north_latitude_deg": 90.0,
+        "north_maximum": 800.0,
+        "regional_scale": -100.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 1000.0,
+        "north_latitude_deg": 90.0,
+        "north_maximum": 800.0,
+        "regional_scale": 0.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 1000.0,
+        "north_latitude_deg": 90.0,
+        "north_maximum": 800.0,
+        "regional_scale": 0.5,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "latitude_count": 187,
+        "north_inertia": 1000.0,
+        "north_latitude_deg": 90.0,
+        "north_maximum": 800.0,
+        "regional_scale": 2.0,
+        "max_errors": [
+          0.0,
+          0.0
+        ]
+      }
+    ]
+  },
+  "sha256": {
+    "scripts/validate_surface_maps.py": "b474b91e1799ff8944b40ed891a8e09153e9e26503b8f926c02df901e1e1e3f5",
+    "package/src/celestials/planets/mars/surface.py": "c53ba6bf10d7c0b79654b4b41399ff5076098126765dea1e9f4f19f9a98c4810",
+    "package/src/framework/physics/soil_frost.py": "9ec7f8c73ac5a7b973dd5708251ad98080650f1191c530392fa15a6e2500220e"
+  },
+  "limits": "Gaussian lat/lon conservative area remap; source emissivity above one is preserved; does not establish FV3/Dinosaur climate agreement"
+}

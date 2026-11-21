@@ -159,10 +159,28 @@ def regrid_to_nodal(coords, elevation_m=None, mola_path=None) -> np.ndarray:
     """Regrid MOLA elevation onto the dynamics nodal grid.
 
     Returns a NumPy array of elevation in metres shaped ``coords.horizontal
-    .nodal_shape`` (``(n_lon, n_lat)``), ready to nondimensionalize. Bilinear;
-    the dycore's own spectral truncation handles smoothing to the model
-    resolution afterwards.
+    .nodal_shape`` (``(n_lon, n_lat)``), ready to nondimensionalize. The released
+    NetCDF MOLA input uses conservative cell areas; MEGDR images use bilinear
+    sampling. The dycore then applies its spectral truncation.
     """
+    if elevation_m is None and mola_path is not None and Path(mola_path).suffix=='.nc':
+        import xarray as xr
+        from src.celestials.planets.mars.surface import conservative_surface_field
+        with xr.open_dataset(mola_path) as opened:
+            if 'topo' not in opened or set(opened.topo.dims)!={'lat','lon'}:
+                raise ValueError('MOLA NetCDF requires a latitude/longitude topo field')
+            field=opened.topo.sortby('lat').sortby('lon')
+            if field.attrs.get('units') not in ('m','meters'):
+                raise ValueError('MOLA NetCDF topography must use metres')
+            for name,span,start in (('lat',180.,-90.),('lon',360.,0.)):
+                axis=np.asarray(field[name])
+                if axis.ndim!=1 or axis.size<2:
+                    raise ValueError('MOLA NetCDF requires one-dimensional global coordinate axes')
+                spacing=span/axis.size
+                if not np.allclose(axis,start+(np.arange(len(axis))+.5)*spacing,
+                                                rtol=0.,atol=5e-6):
+                    raise ValueError('MOLA NetCDF requires uniform global cell-centre coordinates')
+            return conservative_surface_field(coords.horizontal,field)
     if elevation_m is None:
         elevation_m, src_lats, src_lons = load_mola_meg(mola_path)
     else:

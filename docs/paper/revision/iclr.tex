@@ -1,0 +1,567 @@
+
+\documentclass{article} % For LaTeX2e
+\usepackage{iclr2027_conference,times}
+
+% Optional math commands from https://github.com/goodfeli/dlbook_notation.
+\input{math_commands.tex}
+
+\usepackage{hyperref}
+\usepackage{url}
+
+
+
+\usepackage{amsmath,amssymb,booktabs,graphicx,microtype,xcolor,enumitem,multirow}
+\usepackage{flafter}
+% \usepackage{tikz}
+% \usetikzlibrary{arrows.meta,positioning,fit}
+\usepackage{hyperref,url}
+\definecolor{dynblue}{HTML}{DCEBFA}
+\definecolor{physorange}{HTML}{FBE4CB}
+\definecolor{datagreen}{HTML}{DDEFD8}
+\definecolor{learnpurple}{HTML}{E9DDF2}
+\definecolor{projred}{HTML}{F5D4D4}
+\newcommand{\done}{\(\boxtimes\)}
+\newcommand{\todo}{\(\square\)}
+\newcommand{\model}{\textsc{DiffMars}}
+% \newcommand{\Ls}{L_\mathrm{s}}
+\newcommand{\fast}{\textit{Fast strategy:}}
+\newcommand{\evidence}{\textit{Evidence:}}
+\newcommand{\pending}[1]{\textcolor{blue!65!black}{[To complete: #1]}}
+
+
+\graphicspath{{assets/}{./}}
+\newcommand{\co}{CO$_2$}
+
+
+\title{AEGIS: Differentiable Mars Climate Model with Neural Closures}
+
+% Authors must not appear in the submitted version. They should be hidden
+% as long as the \iclrfinalcopy macro remains commented out below.
+% Non-anonymous submissions will be rejected without review.
+
+\iclrfinalcopy
+
+\author{Sameera S Kashyap, Victor Cruz, Angel Yepez  \& Razvan Marinescu \\
+Department of Computer Science\\
+UC Santa Cruz\\
+Santa Cruz, CA 95064, USA \\
+\texttt{\{ssudars1, vcruz17, ayepezal, ramarine\}@ucsc.edu} \\
+% \And
+% Ji Q. Ren \& Yevgeny LeNet \\
+% Department of Computational Neuroscience \\
+% University of the Witwatersrand \\
+% Joburg, South Africa \\
+% \texttt{\{robot,net\}@wits.ac.za} \\
+% \AND
+% Coauthor \\
+% Affiliation \\
+% Address \\
+% \texttt{email}
+}
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to \LaTeX{} to determine where to break
+% the lines. Using \AND forces a linebreak at that point. So, if \LaTeX{}
+% puts 3 of 4 authors names on the first line, and the last on the second
+% line, try using \AND instead of \And before the third author name.
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+\begin{document}
+\maketitle
+\begin{abstract}                                                      
+General circulation models (GCMs) are the primary tool for simulating planetary atmospheres. They play a vital role in understanding Mars's atmosphere, as forecasting its unique weather is mission-critical for operations such as entry, descent, and landing. Mars poses unusual challenges for these models, as observations are sparse compared to Earth.  In addition, a thin \co{} atmosphere alongside a radiatively active dust cycle creates a volatile atmosphere with large diurnal temperature swings and no true terrestrial analog for validation. Existing Mars GCMs, including the LMD PCM, the NASA Ames Mars GCM, and PlanetWRF, are mature and physically detailed but are implemented in legacy Fortran with finite-difference or finite-volume solvers, and they do not expose gradients for calibration or machine learning. Here we present AEGIS, a modular differentiable Mars climate model that couples Mars's unique atmospheric physics to the Dinosaur dynamical core, with interfaces for neural closures. We showcase stable ten-Mars-year simulations that reproduce the seasonal \co{} cycle while conserving the total \co{} inventory, capture realistic large-scale surface-temperature structure, and produce surface pressure that follows Mars Orbiter Laser Altimeter (MOLA) topography. Gradients through coupled trajectories agree with finite differences and support physical calibration and neural training. We compare with conventional GCMs, highlighting the framework's computational efficiency and differentiability.
+\end{abstract}
+
+\section{Introduction}
+General circulation models (GCMs) connect the governing equations of atmospheric motion to the physical processes that shape planetary climate. Established Mars models include the LMD Mars GCM, the NASA Ames Mars GCM, and PlanetWRF \citep{forget1999,haberle1993,richardson2007}. On Mars, radiative heating by dust and \co{}, exchange with a thermally active surface, and seasonal condensation onto polar caps jointly shape circulation, pressure, and frost. A useful model must represent these interactions while allowing individual assumptions to be tested \citep{forget2010co2cycle}.
+
+Traditional GCMs contain uncertain parameterization coefficients whose
+coupled effects can complicate tuning and permit compensating errors
+\citep{forget1999}. Parameter sweeps and ensemble calibration are often computationally expensive \citep{cleary2020augmented}. In addition, the forward-model interface does not generally expose gradients, and maintaining separate adjoint implementations incurs substantial development effort \citep{giering1998}. Introducing a learned component can also require substantial changes to the coupling between numerical and physical routines. These challenges motivate models in which physical simulation and gradient optimization share the same implementation \citep{davenport2026}.
+
+Differentiable programming bridges this gap. When a simulation is
+implemented as differentiable numerical operations, automatic differentiation applies the chain rule through its computational graph to obtain derivatives of outputs with respect to inputs and parameters or learned weights \citep{baydin2018autodiff}. This supports calibration, sensitivity analysis, inverse problems, and training over multiple time steps. In particular, a neural parameterization can be optimized for its effect on a coupled trajectory, accounting for feedback between the learned tendency and the resolved dynamics \citep{rasp2020, kashyap2024modelingchaoticlorenzode}. NeuralGCM demonstrates the potential of this approach for Earth's weather and climate by coupling learned parameterizations to a differentiable atmospheric dynamical core \citep{kochkov2024}. Its Dinosaur core solves the hydrostatic primitive equations using spectral horizontal coordinates and a sigma vertical coordinate. The JAX Circulation Model (JCM) uses the same core with an explicit suite of intermediate-complexity physical parameterizations, providing a setting for process-based studies and hybrid modeling for Earth's climate and atmosphere \citep{gelbrecht2023differentiable, davenport2026}. In a different physical domain, JAX MD illustrates how reusable numerical components and neural models can be composed within a common differentiable simulation environment \citep{schoenholz2020}. AEGIS shares the Dinosaur backbone with JCM and NeuralGCM, but addresses a different physical regime and adds coupled state variables and operators needed for Mars.
+
+% Applying this approach to Mars requires more than substituting planetary
+% constants into an Earth configuration. Mars has a thin,
+% CO$_2$-dominated atmosphere, radiatively active dust, large terrain
+% variations, and strong surface thermal forcing that comprises a substantial fraction of atmospheric mass. Its seasonal CO$_2$ frost cycle changes surface pressure and the surface energy budget \citep{haberle2019ames,piqueux2024co2seasonal}. These processes require planetary radiation, surface, and mass-exchange operators. AEGIS supplies these components and extends the state and time-step coupling around Dinosaur to carry the surface reservoirs and evolving atmospheric inventory.
+
+In this work, we present AEGIS, a differentiable Mars Climate Model based on the Dinosaur Core. Unlike the Earth-focused configurations of its Dinosaur-based predecessors, AEGIS uses planetary radius, rotation, and thermodynamic scales at the dynamical interface. It adds Mars radiation and surface physics, evolves frost and regolith alongside the atmosphere, feeds \co{} phase change into the dynamical core's prognostic log-pressure state, and projects the coupled atmosphere--frost inventory after each step. These additions make mass exchange and surface memory part of the differentiated trajectory.
+
+We make three contributions:
+\begin{enumerate}[leftmargin=*,nosep]
+\item We extend the Dinosaur core with planetary-unit rescaling, a coupled atmosphere--surface--frost--regolith state, \co{} mass exchange into prognostic pressure, and an atmosphere--frost inventory projection.
+\item We provide modular Mars radiation, surface, transport, and neural interfaces through which physical controls and learned components can enter the same coupled simulation.
+\item We verify physical and neural gradients, evaluate Mars fields against reference products, and demonstrate calibration, year-long forward integration, and controlled neural experiments, and showcase them in Section~\ref{sec:results}.
+\end{enumerate}
+
+\section{Methods}
+AEGIS couples a modular Mars physics suite to the Dinosaur spectral dynamical core, carrying the atmosphere, surface, \co{} frost, and regolith in a single differentiable state (Section~\ref{sec:framework}). Automatic differentiation through this coupled time step provides gradients for physical calibration and for training learned components that enter through a common neural interface (Section~\ref{sec:differentiation}).
+
+ \subsection{Atmospheric configurations and the dynamical framework}\label{sec:framework}
+
+AEGIS separates the description of a planetary atmosphere from the numerical machinery used to evolve it. A body configuration specifies radius $a$, gravity $g$, rotation rate $\Omega$, specific gas constant $R$, heat capacity $c_p$, and reference temperature and pressure. We use Mars values for the planetary constants \citep{nasaMarsFactSheet}. The dynamical equations consume these values through a common interface. Length and time are scaled by $a$ and $(2\Omega)^{-1}$, respectively, so the nondimensional radius and rotation rate follow Dinosaur's conventions for each body, removing dependence on Earth-specific default scales while retaining the existing spectral operators.
+
+The framework supports a hierarchy of atmospheric configurations. Dynamical configurations isolate resolved transport; physically forced configurations add radiation, surface exchange, mixing, and volatile reservoirs; hybrid configurations add a learned tendency or substitute a learned component at a selected physical interface. Complexity is therefore introduced through explicit components: a body definition establishes the mechanical and thermodynamic constants, while its radiation, condensables, and boundary conditions establish the atmospheric regime. The physically developed configuration evaluated here is Mars; extending to another atmosphere involves supplying the relevant process operators as well as its constants \citep{hu2025stablemachinelearningparameterizationsubgrid}.
+
+Dinosaur advances the hydrostatic primitive equations on a sphere \citep{kochkov2024,davenport2026}. The atmospheric state contains spectral vorticity and divergence, temperature relative to a reference profile, log surface pressure, optional transported tracers, and simulation time, on a vertical coordinate $\sigma=p/p_s$ that follows changes in atmospheric mass and the terrain-dependent lower boundary \citep{Richardson2018OnTR}. 
+Spectral transform models using sigma coordinates have a long history in Mars atmospheric modeling \citep{wilson1997stationarywaves}. The main experiments use triangular truncation T21, a $64\times32$ longitude--latitude transform grid, and 12 equally spaced sigma layers.
+
+The coupled state augments the atmospheric variables with surface temperature, pressure-equivalent \co{} frost, and a vertical regolith temperature profile attached to their geographic columns. Writing the full state as $\vx$, the coupled equations take the form
+\begin{equation}
+ \frac{d\vx}{dt}=\mathcal{D}_{\mathrm{imp}}(\vx)
+ +\mathcal{D}_{\mathrm{exp}}(\vx)
+ +\mathcal{P}_{\boldsymbol{\alpha}}(\vx,t)
+ +\mathcal{N}_{\boldsymbol{\theta}}(\vx,t),
+ \label{eq:coupled}
+\end{equation}
+where $\mathcal{D}$ denotes resolved dynamics, $\mathcal{P}_{\boldsymbol{\alpha}}$ denotes physical parameterizations with parameters $\boldsymbol{\alpha}$, and $\mathcal{N}_{\boldsymbol{\theta}}$ denotes an optional neural tendency. A neural replacement for a physical component is composed inside $\mathcal{P}$ instead of being added a second time. Time integration uses Dinosaur's implicit--explicit SIL3 Runge--Kutta scheme \citep{whitaker2013}, with linear gravity-wave terms treated implicitly and nonlinear dynamics and assembled physical tendencies on the explicit side. Planetary unit conversion, the augmented state, and the atmosphere--frost correction are implemented in AEGIS's surrounding operators.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=.65\linewidth]{assets/architecture.png}
+\caption{AEGIS architecture. Planetary constants and boundary data configure a shared GCM. Dinosaur supplies resolved dynamics; Mars physical operators supply column tendencies and surface evolution; neural components enter as bounded residuals or component replacements. The coupled time step advances atmosphere and surface reservoirs. Trajectory objectives connect the simulated fields to physical-parameter calibration and neural training through automatic differentiation. Dashed arrows denote this gradient-based update path.}
+\label{fig:architecture}
+\end{figure}
+
+The Mars operators in $\mathcal{P}_{\boldsymbol{\alpha}}$ span \co{} and dust radiation, surface and regolith energy exchange, boundary-layer mixing and dry convection, and a \co{} condensation cycle \citep{lacis1991,forget1999improved,haberle2019ames,petrosyan2011pbl}. The last is the distinctive Mars coupling: surface condensation and sublimation transfer mass between the atmosphere and frost, feeding the prognostic log surface pressure,
+\begin{equation}
+ \left.\frac{d\log p_s}{dt}\right|_{\mathrm{phase}}
+ =-\frac{1}{p_s}\frac{dI}{dt},
+ \label{eq:mass}
+\end{equation}
+
+Here, \(p_s\) is the local surface pressure and \(I\) is the
+pressure-equivalent atmospheric mass inventory added by surface
+condensation--sublimation. Thus, 
+Thus, \(dI/dt>0\) denotes net sublimation of
+surface \co{} frost into the atmosphere and increases \(p_s\), whereas
+\(dI/dt<0\) denotes net condensation from the atmosphere onto the surface and decreases \(p_s\). The factor \(1/p_s\) converts this pressure tendency to the tendency of the prognostic variable \(\log p_s\). $I=g m_{\mathrm{ice}}$ is frost mass per unit area in pressure units, and a per-step projection matches the atmosphere-plus-frost inventory to its pre-step value while allowing seasonal exchange. Because \co{} is both a radiative gas and a substantial mobile mass reservoir, carrying its phase change through the prognostic pressure state, alongside surface and subsurface temperatures \citep{kellyseaonalpolar}, makes this coupling part of the simulated system and its derivatives. The radiation, surface, boundary-layer, and \co{}-inventory operators are detailed in Appendix~\ref{app:physics}.
+
+\subsection{Differentiation and neural components}\label{sec:differentiation}
+
+Let \(\Phi_{\boldsymbol{\alpha},\boldsymbol{\theta}}\) denote the operator that propagates a single time step, including the reservoir corrections. A trajectory is the repeated composition of $\vx_{n+1}=\Phi_{\boldsymbol{\alpha},\boldsymbol{\theta}}(\vx_n)$ while a loss function can be evaluated over an entire trajectory rollout as $\mathcal{L}(\boldsymbol{\alpha},\boldsymbol{\theta})=\ell\bigl(\mathcal{H}(\vx_1),\vy_1,\mathcal{H}(\vx_2),\vy_2,\ldots,\mathcal{H}(\vx_N),\vy_N\bigr)$, where \(\mathcal{H}\) extracts evaluated fields and \(\vy_n\) denotes the target data at step \(n\). JAX differentiates this discrete numerical trajectory using automatic differentiation. We use forward-mode differentiation for the three physical controls and reverse-mode differentiation for neural weights; forward mode efficiently evaluates derivatives with respect to a small number of controls, whereas reverse mode is appropriate for a scalar loss with many parameters \citep{baydin2018autodiff,jax2024autodiff}. Reverse-mode training through coupled rollouts, as in the heating experiment below, uses fixed-length scans with step rematerialization, which trades additional computation for reduced reverse-mode memory use by recomputing selected forward intermediates during the backward pass \citep{jax2024checkpoint}.
+
+
+Learned components are exposed through two adapters that share one interface: a model is initialized from a random key into a JAX parameter tree, input normalization is fitted on training data only, and a \texttt{bind} call returns a pure JAX function that is passed to the coupled equations when the time step is built. The residual adapter adds a bounded heating tendency computed from current-state column features: the temperature profile, surface temperature and pressure, lowest-layer winds, geographic coordinates, and insolation, 21 features at T21/L12, as the equation
+\begin{equation}
+ \dot T_{\mathrm{NN}}=h_{\max}\tanh f_{\boldsymbol{\theta}}(\vz),
+ \label{eq:neural}
+\end{equation}
+where $f_{\boldsymbol{\theta}}$ is the network, $\vz$ the normalized column features, and $h_{\max}$ a fixed heating bound, converts it to the dynamical core's tendency units, and adds it to the physical tendencies while leaving the surface reservoirs under physical control; a zero-initialized output layer reproduces the physical model exactly at the start of training. The replacement adapter is a drop-in radiation component: it predicts interface fluxes from the column temperature and pressure profiles, dust, sunlight, albedo, and emissivity, bounds shortwave fluxes by the incoming sunlight, keeps longwave fluxes positive, imposes the top and surface boundary conditions exactly, and computes heating from flux convergence, so the column energy budget closes for any network weights. Both adapters accept a custom network through an \texttt{apply(params, features)} function and check the vertical grid and radiation configuration when bound. Because a bound component is part of the coupled step, its parameters can be trained on local targets or by reverse-mode differentiation through rollouts, and they are saved together with their normalization and metadata in validated checkpoints. Training protocols for the reported experiments are given in Appendix~\ref{app:protocol}.
+
+% We demonstrate the learning abilities of AEGIS by training two neural components that refine the climate dynamics. The first neural component adds a bounded atmospheric heating tendency. It consumes the current temperature profile, surface temperature, surface pressure, lowest-layer winds, geographic coordinates, and insolation. At T21/L12 this gives 21 features per column. The model uses a shared multilayer perceptron with one eight-unit GELU hidden layer and one output, for 185 trainable parameters. Its heating is
+% \begin{equation}
+%  \dot T_{\mathrm{NN}}=h_{\max}\tanh f_{\theta}(z),
+%  \qquad h_{\max}=2\times10^{-4}\ \mathrm{K\,s^{-1}}.
+%  \label{eq:neural}
+% \end{equation}
+% The scalar output is broadcast across the atmospheric layers of each column and converted to the dynamical core's tendency units. The final layer is initialized to zero, giving the physical model at initialization. Because the correction enters each time step, its effect propagates through subsequent circulation and physical tendencies. A custom network can be supplied through the adapter; experiments with vertically resolved outputs or other prognostic tendencies can extend the same contract with corresponding physical constraints.
+
+% The second neural component replaces the radiation term with predicted interface fluxes. Its inputs include atmospheric temperature and pressure profiles, surface temperature, dust properties, sunlight, albedo, and emissivity. Shortwave outputs are bounded fractions of incoming sunlight, longwave outputs are positive, and the prescribed top and surface boundary conditions are imposed explicitly. Heating is calculated from flux convergence, preserving the column energy accounting. In the experiments reported here, the learned operator emulates the compact multiband radiation scheme on generated four-layer columns with fixed pressure, dust, and illumination per column, and the trained operator is also run inside the coupled T21 model. This setting supports comparisons between local flux fitting and trajectory-based training while retaining a common coupling to the GCM. Finally, we test the same differentiable inverse workflow without a neural network by recovering a known surface-exchange multiplier in the column model. The calibration and neural-training protocols---reanalysis windows, initialization, loss weighting, optimization, and the neural-radiation setup---are detailed in Appendix~\ref{app:protocol}.
+
+
+\section{Results}\label{sec:results}
+% \subsection{Verified gradients through the coupled Mars model}
+
+% \begin{table}[t]
+% \centering
+% \small
+% \caption{Derivative checks through coupled AEGIS-Mars trajectories. All
+% comparisons satisfy
+% \(\lvert g_{\mathrm{AD}}-g_{\mathrm{FD}}\rvert
+% \leq10^{-8}+10^{-4}\lvert g_{\mathrm{FD}}\rvert\).}
+% \label{tab:derivative_checks}
+% \begin{tabular}{llccc}
+% \toprule
+% Category & Objective & Horizon & Checks & Passed \\
+% \midrule
+% Physical sensitivity &
+% Final mean atmospheric temperature &
+% 1--148 steps &
+% 54 &
+% 54/54 \\
+
+% Physical calibration &
+% Scalar fitting objective &
+% task-dependent &
+% 9 &
+% 9/9 \\
+
+% Neural fitting &
+% Multi-field trajectory objective &
+% 25 steps &
+% 3 &
+% 3/3 \\
+% \bottomrule
+% \label{diff-table}
+% \end{tabular}
+% \end{table}
+
+
+% We verify derivatives through both a scalar atmospheric diagnostic and the objectives used for physical calibration and neural fitting. The physical derivative experiment differentiates final area- and layer-mean atmospheric temperature with respect to the three physical controls. It compares automatic differentiation (AD) with centered finite differences (FD) over six rollout horizons, from 1 to 148 steps, corresponding to 300--44{,}400\,s at a 300\,s
+% timestep. For each control and horizon, FD estimates use perturbations
+% \(10^{-3}\), \(10^{-4}\), and \(10^{-5}\), yielding 54 comparisons through the coupled dynamics and Mars physics given by Table \ref{diff-table}. All 54 physical-sensitivity checks pass the recorded criterion. At the longest horizon, \(44{,}400\,\mathrm{s}\), the largest discrepancy is \(3.56\times10^{-7}\). Agreement across perturbation sizes and integration horizons supports the use of the computed derivatives for physical-parameter sensitivity in these coupled simulations.
+
+% Gradient-based calibration improves atmospheric temperature RMSE on each data split in the twelve-window pilot (Table~\ref{tab:skill}). Training RMSE decreases from 2.45 to 2.38\,K, validation RMSE from 2.49 to 2.44\,K, and test RMSE from 2.46 to 2.40\,K. The unrounded test reduction is about 0.06\,K (2.4\%), and all four test windows improve. This per-window consistency demonstrates that differentiating the coupled trajectory loss yields a reliable, direction-correct optimization signal across seasons.
+
+% \input{assets/reference.tex}
+
+
+\subsection{Verified gradients through the coupled Mars model}
+
+\begin{table}[t]
+\centering
+\small
+\caption{Derivative checks through coupled AEGIS trajectories. All
+comparisons satisfy
+\(\lvert g_{\mathrm{AD}}-g_{\mathrm{FD}}\rvert
+\leq10^{-8}+10^{-4}\lvert g_{\mathrm{FD}}\rvert\).}
+\label{tab:derivative_checks}
+\begin{tabular}{llccc}
+\toprule
+Category & Objective & Horizon & Checks & Passed \\
+\midrule
+Physical sensitivity &
+Final mean atmospheric temperature &
+1--148 steps &
+54 &
+54/54 \\
+
+Physical calibration &
+Scalar fitting objective &
+task-dependent &
+9 &
+9/9 \\
+
+Neural fitting &
+Multi-field trajectory objective &
+25 steps &
+3 &
+3/3 \\
+
+Multi-diagnostic sensitivity &
+Mean surface $T$, $p_s$, and \co{} frost &
+74--1480 steps &
+9 &
+9/9 \\
+\bottomrule
+\label{diff-table}
+\end{tabular}
+\end{table}
+
+
+We verify derivatives through both a scalar atmospheric diagnostic and the objectives used for physical calibration and neural fitting. The physical derivative experiment differentiates final area- and layer-mean atmospheric temperature with respect to the three physical controls. It compares automatic differentiation (AD) with centered finite differences (FD) over six rollout horizons, from 1 to 148 steps, corresponding to 300--44{,}400\,s at a 300\,s
+timestep. For each control and horizon, FD estimates use perturbations
+\(10^{-3}\), \(10^{-4}\), and \(10^{-5}\), yielding 54 comparisons through the coupled dynamics and Mars physics given by Table \ref{diff-table}. All 54 physical-sensitivity checks pass the recorded criterion. At the longest horizon, \(44{,}400\,\mathrm{s}\), the largest discrepancy is \(3.56\times10^{-7}\). Agreement across perturbation sizes and integration horizons supports the use of the computed derivatives for physical-parameter sensitivity in these coupled simulations.
+
+We extend this verification to multi-day rollouts and to several coupled diagnostics at once. Starting from a MY32, $L_s=45^\circ$ ARCO-MACDA window, we compute the forward-mode Jacobian \texttt{jax.jacfwd} of global-mean surface temperature, surface pressure, and surface \co{} frost with respect to the \co{} longwave opacity multiplier $\beta$ at its nominal value $\beta=1$, through the complete coupled rollout at horizons of 0.25, 1, and 5 sols (74, 296, and 1480 steps). All nine derivatives agree with centered finite differences ($\epsilon=10^{-3}$), with a maximum relative discrepancy of $3.99\times10^{-6}$ (Fig.~\ref{fig:co2-sensitivity}). The sensitivities are physically interpretable: increasing \co{} longwave opacity warms the surface, with $\partial\bar T_s/\partial\beta$ growing from 0.488 to 0.785 and 0.945\,K per unit $\beta$ as the response accumulates, and the warmer surface suppresses condensation, so surface pressure rises while frost falls ($\partial\bar p_s/\partial\beta$ grows from $2.94\times10^{-3}$ to $4.66\times10^{-2}$\,Pa). The pressure and frost derivatives are equal and opposite at every horizon, with their sum at most $9.3\times10^{-11}$\,Pa, so the gradient itself respects the atmosphere--frost mass inventory that the projection enforces on the state. A warm evaluation of the diagnostics and their Jacobian over the 5-sol rollout takes about 92\,s on a single GPU, showing that exact sensitivities of the coupled mass exchange are available over multi-day horizons at modest cost.
+
+\begin{figure}[!hbt]
+\centering
+\includegraphics[width=0.85\linewidth]{co2-longwave-sensitivity.pdf}
+\caption{Differentiable response of AEGIS to the \co{} longwave opacity multiplier $\beta$ at $\beta=1$, from a MY32, $L_s=45^\circ$ window. Top: global-mean surface temperature, surface pressure, and surface \co{} frost at rollout horizons of 0.25, 1, and 5 sols. Bottom: their derivatives with respect to $\beta$ computed by forward-mode automatic differentiation through the full coupled rollout (lines) and by centered finite differences (crosses). The pressure and frost sensitivities are equal and opposite, reflecting conservation of the atmosphere--frost \co{} inventory.}
+\label{fig:co2-sensitivity}
+\end{figure}
+
+Gradient-based calibration improves atmospheric temperature RMSE on each data split in the twelve-window pilot (Table~\ref{tab:skill}). Training RMSE decreases from 2.45 to 2.38\,K, validation RMSE from 2.49 to 2.44\,K, and test RMSE from 2.46 to 2.40\,K. The unrounded test reduction is about 0.06\,K (2.4\%), and all four test windows improve. This per-window consistency demonstrates that differentiating the coupled trajectory loss yields a reliable, direction-correct optimization signal across seasons.
+
+\input{assets/skill.tex}
+
+
+\subsection{Computational performance and long integrations}
+\label{sec:performance}
+
+From our performance analysis, a full Mars year (668.6 sols; T21, 12 sigma layers, $\Delta t=450$\,s, float64) takes 131{,}900 steps and completes in 86.6 minutes on a single GPU, or about 463 simulated sols per wall-clock hour. This timing includes compilation, checkpointing, and diagnostics. The NASA Ames legacy Mars GCM documentation reports about 20 sols per hour for its tutorial configuration ($60\times36$ grid, 24 layers, $\Delta t=120$\,s, hardware not specified), or roughly 33\,h per Mars year. While resolution, physics, and hardware differ between the two models, AEGIS is significantly faster on a consumer GPU. All 68 saved states are finite, and the total atmosphere--frost \co{} inventory is conserved to a maximum relative drift of $2.8\times10^{-9}$. The model reproduces the seasonal \co{} cycle: global-mean surface pressure falls to 485\,Pa at $L_s\approx146^\circ$ and peaks at 654\,Pa at $L_s\approx235^\circ$, a 30\% annual range, while surface frost peaks at 185\,Pa. The integration is stable across the physics configurations as well: all thirteen annual ablation runs complete with finite states and inventory drift below $8.6\times10^{-9}$. These runs remove boundary-layer mixing, convection, regolith conduction, or \co{} exchange, weaken diffusion, halve the time step, or change each calibrated multiplier by $\pm20\%$.
+%% Sources: outputs/mars-year-dt450-float64-stage/{year_benchmark.json,
+%%          validation_report.json, ames_timing_comparison.csv};
+%%          outputs/paper-year-gpu{1,2,3}/ablations.csv.
+%% GPU model is recorded only as "cuda:0"; add it if known.
+
+We also conduct a long-horizon stability analysis continuing with the same configuration ($\Delta t=450$\,s, float64), a ten-Mars-year run (6686 sols, 1{,}319{,}003 steps) completes in 11.4\,h on one GPU (586 sols per hour, about 68 minutes per Mars year), with all 670 saved states finite and a maximum relative \co{} inventory drift of $2.9\times10^{-8}$. By the tenth year the seasonal cycle repeats closely: global-mean surface pressure and surface temperature differing negligibly (0.16\,Pa and 0.20\,K) from year nine.
+%% Source: outputs/mars-ten-years-dt450-float64-stage-01/{year_benchmark.json,
+
+\subsection{Seasonal comparisons with MOLA topography}
+The MOLA-based lower boundary produces a strong geographic structure in surface pressure \citep{smith2001, mola}. Elevated regions contain less atmospheric column mass, while low-lying terrain supports higher surface pressure. Across our twelve season--reference comparisons, surface-pressure pattern correlations range from 0.975 to 0.989 (Table~\ref{tab:reference}). The model reproduces the terrain-driven hydrostatic pressure structure set by the MOLA lower boundary across all four seasons and all three reference products. Figure~\ref{fig:maps} shows the terrain context and the seasonal fields at $L_s=135^\circ$.
+
+Surface-temperature patterns also agree across the reference products, with correlations of 0.732--0.821. Surface frost provides a complementary diagnostic of the atmosphere--surface coupling. RMSE values are provided in Table~\ref{tab:reference}. These fields help identify the processes and sampling choices that matter for subsequent calibration.
+
+
+The seasonal comparison uses the documented sampling of each product: sparse model checkpoints within $\pm5^\circ$ of the target season, five-sol Ames averages, daily ARCO-MACDA averages, and four-local-time MCD means. Wind levels and frost averaging periods also differ between products. We interpret these as model and reanalysis comparisons.
+
+\begin{figure}[!hbt]
+\centering
+\includegraphics[width=\linewidth,height=.58\textheight,keepaspectratio]{ls135_grid.png}
+\caption{MOLA terrain on the comparison grid (top), and seasonal fields at $L_s=135^\circ$ (bottom). The seasonal panels compare the physical model with NASA Ames, MCD 6.1, and ARCO-MACDA for surface temperature, pressure, near-surface wind speed, and surface \co{} frost.}
+\label{fig:maps}
+\end{figure}
+
+% \subsection{Physical calibration against reanalysis}
+
+
+% The selected physical multipliers are approximately 0.903 for \co{} longwave opacity, 1.096 for dust longwave opacity, and 0.816 for surface exchange. They are obtained by differentiating the coupled trajectory loss and updating all three controls together. The result demonstrates a practical use of differentiability: parameters are estimated against reanalysis while the atmosphere, radiation, and surface continue to interact during the forecast.
+
+\input{assets/reference.tex}
+
+\subsection{Physics ablations: process sensitivity}
+We experiment with an ablation suite that pairs the full Mars configuration with twelve process perturbations, such as removing boundary-layer mixing, dry convection, regolith conduction, or \co{} exchange, \co{} longwave opacity, and dust longwave opacity. Each is launched from the same initial state, so any divergence traces to the changed process, and we report the root-mean-square (RMS) separation from the paired full-physics trajectory. At a 44,400,s horizon, the perturbations separate into a well-resolved sensitivity ranking (Fig.~\ref{fig:short-physics}): regolith conduction and boundary-layer mixing dominate, followed by dry convection and the surface-exchange multipliers, while the calibrated radiative opacity multipliers produce smaller but clearly resolved changes. Halving the time step changes temperature by only 0.0042\,K, a numerical-consistency control confirming that the ranking reflects physics rather than discretization.
+
+\begin{figure}[!hbt]
+\centering
+\includegraphics[width=0.9\linewidth]{short-ablations-rmse.pdf}
+\caption{Sensitivity of the T21/L12 Mars configuration. Bars show RMS differences from the paired full-physics trajectory over five saved times through 44\,400\,s; the right panel combines zonal and meridional wind RMSE by quadrature. All cases begin from the same state.}
+\label{fig:short-physics}
+\end{figure}
+
+% The ranking is corroborated on the year-long runs: at 88\,800\,s the half-step difference is still 0.0042\,K, against 1.169, 1.035, and 0.438\,K for regolith conduction, boundary-layer mixing, and \co{} exchange. 
+% Extended to a full Mars orbital period (59\,356\,800\,s), 
+All thirteen configurations complete with finite states, demonstrating stable long-horizon integration; by that horizon the freely evolving trajectories reach chaotic saturation, so RMS separations converge and process sensitivity is read from the short horizon. These integrations also verify conservation: the full-physics year has a maximum relative \co{} atmosphere--frost inventory drift of $4.28\times10^{-9}$, confirming that the inventory projection holds total \co{} mass to near machine precision over a Mars year while allowing seasonal exchange with the polar frost.
+
+
+
+
+% can \subsection{Short-run physics sensitivity}
+% In a paired 44\,400\,s experiment, the full Mars configuration and twelve perturbations start from the same state. Differences are measured against the full-physics trajectory at five saved times. Removing regolith conduction changes atmospheric temperature by 0.732\,K root mean square (RMS), and removing boundary-layer mixing changes it by 0.673\,K (Fig.~\ref{fig:short-physics}). The corresponding wind-vector differences are 0.855 and 2.283\,m\,s$^{-1}$. Halving the time step changes temperature by only 0.0042\,K over these samples. Throughout both sensitivity suites, RMS quantifies each process's coupled influence as the trajectory separation it produces from the paired full-physics run.
+
+% \begin{figure}[!hbt]
+% \centering
+% \includegraphics[width=\linewidth]{short-ablations-rmse.pdf}
+% \caption{Short-run sensitivity of the T21/L12 Mars configuration. Bars show RMS differences from the paired full-physics trajectory over five saved times through 44\,400\,s; the right panel combines zonal and meridional wind RMSE by quadrature. All cases begin from the same state.}
+% \label{fig:short-physics}
+% \end{figure}
+
+% \subsection{Annual integration and sensitivity}
+% The annual suite evaluates a full-physics baseline and twelve perturbations over 59\,356\,800\,s, one adopted Mars orbital period. The perturbations remove boundary-layer diffusion, dry convection, regolith conduction, or \co{} exchange; weaken horizontal diffusion; halve the time step; or change one of the three physical multipliers by 20\%. Four computational partitions share the same initial restart and reproduce the same baseline. The merged result counts that baseline once.
+
+% All thirteen configurations complete with finite sampled states. The largest temperature separation from full physics occurs when \co{} exchange is removed: 5.009\,K, with zonal- and meridional-wind differences of 10.522 and 9.902\,m\,s$^{-1}$ (Fig.~\ref{fig:annual}). Removing regolith conduction gives a temperature difference of 4.144\,K, followed by boundary-layer diffusion at 3.950\,K and dry convection at 3.792\,K. These runs show that the process switches affect the coupled solution.
+
+% Each bar pools squared field differences over 74 saved times and 12 sigma layers using horizontal Gaussian area weights, then takes the square root. Saved times receive equal weight, including the more closely spaced samples near initialization.
+
+% The 20\% parameter changes produce temperature differences of 3.531--3.867\,K. Halving the time step produces a difference of 3.700\,K over the annual sampling period, comparable to several physical perturbations. The saved early-time fields clarify this result. At 88\,800\,s, the half-step difference is only 0.0042\,K, compared with 1.035\,K after removing boundary-layer diffusion, 1.169\,K after removing regolith conduction, and 0.438\,K after removing \co{} exchange. By later times, freely evolving trajectories have separated substantially even under the smaller time step.
+
+% The full-physics run has maximum relative total \co{} inventory drift of $4.28\times10^{-9}$. Every annual configuration remains below $8.55\times10^{-9}$ in this diagnostic. This verifies the operation of the atmosphere--frost inventory correction over long integrations while allowing seasonal exchange between reservoirs. The annual calculations are restart-based transients; the experiment tests numerical completion and sensitivity over a Mars year.
+
+
+% \begin{figure}[t]
+% \centering
+% \includegraphics[width=\linewidth]{year-ablations.pdf}
+% \caption{One-Mars-year trajectory sensitivity. Each bar is the root mean squared difference from the shared full-physics run, using area weights and equal weights across 12 layers and 74 saved times. The half-time-step case supplies numerical context. Four compatible partitions contribute twelve perturbations and one shared baseline.}
+% \label{fig:annual}
+% \end{figure}
+
+
+
+
+% % \subsection{Computational cost of differentiable experiments}
+% % The archived GPU timing experiment evaluates a T21/L12 trajectory to 22\,200\,s, sampled at 6000, 12\,000, and 22\,200\,s. The median of three synchronized warm evaluations is 2.125\,s for the forward trajectory and 8.719\,s for the loss with three forward tangents. These correspond to approximately 423.7 and 103.3 simulated sols per wall-clock hour for their respective workloads. The derivative workload costs about 4.10 times the forward evaluation in this experiment.
+
+% % Recorded compilation times are 13.81 and 44.39\,s, respectively. Execution includes sampled field decoding and excludes input loading, compilation, and warmup. The measurements show that repeated gradient evaluations are practical once the workload hereis compiled. They also make the cost of derivative information explicit for designing calibration experiments. The archive identifies a single NVIDIA RTX A4000 GPU with float64 arithmetic.
+
+
+\subsection{Neural components as coupled experiments}
+AEGIS exposes learned components through the same operator interface as its physical parameterizations. A neural module attaches at a chosen process either as a bounded additive residual or as a full component replacement. Because the module enters the coupled step, its effect propagates through the subsequent dynamics and physics, and it is trained by differentiating the resulting trajectory. We showcase two experiments using these interfaces exposed by the framework.
+% The coupled neural-heating experiment exercises the full path from current-state features to learned tendencies, time stepping, trajectory loss, and reverse-mode updates. Zero-output initialization reproduces the physical baseline within the recorded identity tolerance. All directional gradient checks pass. Over 50 updates, normalized training loss falls from about 0.0419 to 0.0417, and the selected validation loss is about 0.0416.
+
+% Temperature training RMSE decreases from about 2.45 to 2.42\,K. On the four test windows, the coupled neural configuration matches the physical baseline to within 0.003\,K (both round to 2.46\,K; Table~\ref{tab:skill}), confirming that inserting a learned tendency preserves the calibrated physical solution while opening it to optimization. The normalized objective combines temperature and both wind components. This pilot establishes a complete, gradient-checked coupled-learning path---from state-dependent features through time stepping and a trajectory loss to reverse-mode updates---ready for richer neural hypotheses within Mars physics.
+
+
+
+\subsubsection{Learning radiative fluxes}
+We replace the compact physical radiation kernel with a structured learned flux operator that preserves the discrete radiative budget. Four-layer columns are first trained locally for 100 updates. Starting from this local fit, the operator is either fine-tuned through 12-step column trajectories for 20 updates or trained further on the local loss for the same wall-clock budget, which amounts to 234 updates. Table~\ref{tab:radiation_results} compares the initial local fit, trajectory fine-tuning, and continued local training on interpolation and higher-dust extrapolation tests.
+
+\begin{table}[!hbt]
+\centering
+\small
+\caption{Atmospheric-temperature RMSE (K) after 48 coupled steps for learned
+radiation variants. All models use the same structured flux interface.}
+\label{tab:radiation_results}
+\begin{tabular}{lcc}
+\toprule
+Training procedure & Interpolation & Higher dust \\
+\midrule
+Initial local fit & 0.620 & 1.799 \\
+Trajectory fine-tuning & 0.566 & 1.653 \\
+Continued local fitting & \textbf{0.416} & \textbf{0.979} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Continued local fitting gives the lowest 48-step temperature error in this experiment, improving interpolation RMSE from 0.620 to 0.416\,K and higher-dust extrapolation RMSE from 1.799 to 0.979\,K. The learned flux representation retains the discrete radiative budget: the largest instantaneous closure residual across held-out local evaluations is \(1.42\times10^{-14}\,\mathrm{W\,m^{-2}}\). All three variants also complete a two-step coupled T21 rollout. The shared framework permits comparisons among learned processes, physical constraints, and local versus coupled trajectory objectives.
+
+
+% Together with the heating experiment, this result demonstrates two supported
+% learning interfaces: additive residual learning and replacement of a physical
+% operator. 
+
+\begin{figure}[!hbt]
+\centering
+\includegraphics[width=0.85\linewidth]{neural-radiation-48step.pdf}
+\caption{Archived neural-radiation experiment at a 48-step column rollout. Air-temperature RMSE is evaluated against the compact physical radiation kernel on held-out interpolation columns and higher-dust extrapolation columns (24 columns per split). The three bars compare the initial local fit, trajectory fine-tuning, and continued local fitting.}
+\label{fig:neural-radiation}
+\end{figure}
+
+% \subsubsection{Optimizing a neural atmospheric control}
+% A second experiment optimizes a bounded neural heating policy through the coupled model. The target is the final physical temperature field shifted by $-1.5$\,K. The archived run uses T21 with two layers, three 30\,s steps, and twelve optimization updates. The policy is constrained to heating magnitudes below $2\times10^{-4}$\,K\,s$^{-1}$, a strict physical bound that the optimizer respects exactly throughout training. Its final-state objective, including parameter regularization, decreases by 1.5\%, from 2.245 to 2.211, and the rollout remains finite. This experiment demonstrates end-to-end gradient-based optimization of a bounded, state-dependent heating policy through the coupled Mars model, using the same tendency interface as the neural closures.
+
+\subsubsection{Recovering a physical parameter through a trajectory}
+The differentiable column system recovers a known \(1.6\) multiplier on a bulk sensible-heat conductance of \(2\,\mathrm{W\,m^{-2}\,K^{-1}}\), using targets generated with fixed illumination, dust, and pressure per column. After 120 updates through 24-step trajectories, initial multipliers of
+\(0.5\), \(1.0\), and \(3.0\) converge to \(1.59950\), \(1.59901\), and \(1.59696\), all within \(0.20\%\) of the target
+(Fig.~\ref{fig:parameter-recovery}). Derivative checks at multipliers
+\(0.5\), \(1.0\), and \(2.5\) agree with finite differences to relative discrepancies below \(3.41\times10^{-10}\). A derivative-free scalar reference reaches \(1.60000007\) in nine objective evaluations. This controlled recovery establishes parameter identifiability and a gradient-based inverse workflow through the shared differentiable column
+operators.
+
+\begin{figure}[!hbt]
+\centering
+\includegraphics[width=.75\linewidth]{parameter-recovery.pdf}
+\caption{Physical inverse experiment from the neural-framework archive. Gradient-based optimization recovers a prescribed surface-exchange multiplier of 1.6 from three initial values over 120 updates. Each curve includes its initial value and the saved multiplier after every update. The parameter belongs to the controlled column model; the experiment tests the shared differentiable inference workflow.}
+\label{fig:parameter-recovery}
+\end{figure}
+
+\section{Future extensions}
+% AEGIS connects a physically interpretable planetary model to the tools needed for differentiable experimentation. The same model supports forward climate integration, gradients with respect to physical parameters, and neural training through time. The Mars-specific work is concentrated in the operators that matter for its atmosphere: \co{} and dust radiation, surface and regolith energy storage, vertical exchange, and a condensable mass budget. This organization makes it possible to change one component while retaining the rest of the coupled system. The experiments also suggest a productive order for model development. Reference comparisons identify the spatial and seasonal fields to target. Physical calibration tests whether a small set of interpretable controls can reduce errors. Neural residuals or component r eplacements then provide additional hypotheses whose effects can be assessed with the same trajectory objectives and held-out windows.
+
+% \paragraph{Scope and extension toward terraforming.}
+The present demonstrations span coarse-resolution physical simulations, coupled-heating seed, and structured neural component replacement, and they establish the differentiable physical and neural interfaces. The framework already supports the natural next steps: broader observational comparison, repeated neural experiments across seeds, and multi-year equilibration studies, each reusing the same coupled operators and trajectory objectives. The explicit planetary, radiation, and reservoir interfaces provide a route to experiments with changing Martian boundary conditions. Altered surface albedo, imposed heating, or specified changes in volatile inventory could be introduced through these interfaces and evaluated    with spatial climate diagnostics. Differentiable objectives could then connect intervention parameters to quantities such as regional temperature, frost persistence, or atmospheric pressure. For larger changes in atmospheric composition and mass, the body thermodynamics, opacity data, condensable processes, and applicable dynamical assumptions would be extended together. 
+
+
+\section{Conclusion}                                                      
+We have presented AEGIS, a differentiable Mars climate model that couples 
+ a modular Mars physics suite to the Dinosaur dynamical core and exposes     
+ interfaces for learned components. The model represents terrain, radiative  
+ forcing, surface and subsurface heat exchange, vertical transport, and the  
+ seasonal exchange of \co{} between atmosphere and frost within a single     
+ differentiated trajectory. Its gradients agree with finite differences      
+ through coupled trajectories, and gradient-based calibration lowers         
+ held-out reanalysis temperature error in every test window. Integrations of 
+ up to ten Mars years remain stable, reproduce the seasonal \co{} cycle and  
+ the terrain-driven surface-pressure structure, and conserve the total \co{} 
+ inventory, with a Mars year completing in under 1.5\,h on a single GPU.     
+ Neural heating and radiation interfaces make the same framework usable for  
+ training and comparing learned components. AEGIS thus provides a common     
+ foundation for physical sensitivity studies, gradient-based calibration,    
+ and the development of hybrid planetary climate models.
+
+% \section*{Code and data availability}
+% The model repository contains the manuscript, local figure assets, machine-readable result tables, and experiment provenance. Figure locations and checksums are recorded in \texttt{figure-manifest.json}; derivative and fitting metrics are preserved in \texttt{evidence}. The accompanying script regenerates numerical tables and verifies headline metrics. External inputs include MOLA, TES-derived boundary fields, NASA Ames output, MCD 6.1, and ARCO-MACDA.
+
+% \newpage
+
+% \subsection*{AI use statement}
+% We used generative AI tools in the following ways and have reviewed all AI-assisted work. We take responsibility for the final content of this work, including text, claims, and artifacts produced with the aid of generative AI.
+% \begin{itemize}[leftmargin=*,nosep]
+% \item \textbf{To aid or polish writing.} AI tools helped draft, condense, and reword manuscript text, including section summaries, captions, and the abstract and conclusion. All AI-assisted text was checked by the authors against the reported results, and every number in the paper was traced to its archived result file.
+% \item \textbf{For retrieval and discovery.} AI tools helped identify related work and check bibliography entries against their Crossref, DataCite, and arXiv records. Every citation was verified against its DOI or arXiv record, and incorrect entries were corrected or removed.
+% \item \textbf{For research ideation or execution.} AI tools suggested candidate experiments and helped write and test analysis, plotting, and auxiliary experiment scripts. The core model was written by the authors. AI-written scripts were inspected, tested with smoke and gradient checks, and run by the authors. No simulation outputs or numerical results were produced or altered by AI tools; all reported values come from executed model runs archived with the code.
+% \end{itemize}
+
+% \subsection*{Ethics statement}
+
+% (This section is \textbf{recommended} and does not count toward the page limit.)
+
+% If authors feel that their paper submission raises questions regarding the Code
+% of Ethics, they are encouraged to include a paragraph of Ethics Statement (at
+% the end of the main text before references) to address potential concerns where
+% appropriate. Topics include, but are not limited to, studies that involve human
+% subjects, practices to data set releases, potentially harmful insights,
+% methodologies and applications, potential conflicts of interest and sponsorship,
+% discrimination/bias/fairness concerns, privacy and security issues, legal
+% compliance, and research integrity issues (e.g., IRB, documentation, research
+% ethics). This statement should not be more than 1 page.
+
+% \subsection*{Reproducibility statement}
+
+% (This section is \textbf{recommended} and does not count toward the page limit.)
+
+% It is important that the work published in ICLR is reproducible. Authors are
+% strongly encouraged to include a paragraph-long Reproducibility Statement at the
+% end of the main text (before references) to discuss the efforts that have been
+% made to ensure reproducibility. This paragraph should not itself describe
+% details needed for reproducing the results, but rather reference the parts of
+% the main paper, appendix, and supplemental materials that will help with
+% reproducibility. For example, for novel models or algorithms, a link to an
+% anonymous downloadable source code can be submitted as supplementary materials;
+% for theoretical results, clear explanations of any assumptions and a complete
+% proof of the claims can be included in the appendix; for any datasets used in
+% the experiments, a complete description of the data processing steps can be
+% provided in the supplementary materials. Each of the above are examples of
+% things that can be referenced in the reproducibility statement.
+
+% \subsubsection*{Author Contributions}
+% If you'd like to, you may include  a section for author contributions as is done
+% % in many journals. This is optional and at the discretion of the authors.
+
+% \subsubsection*{Acknowledgments}
+% Use unnumbered third level headings for the acknowledgments. All
+% acknowledgments, including those to funding agencies, go at the end of the paper.
+
+
+\bibliography{iclr2027_conference}
+\bibliographystyle{iclr2027_conference}
+
+\appendix
+\section{Mars physics operators}\label{app:physics}
+
+MOLA elevation data provide the lower boundary \citep{smith2001,mola}. The raster is regridded onto the transform grid and converted into spectral orography. Prescribed dust fields can be supplied through seasonal or per-window adapters. These data remain separate from the numerical operators, making boundary-condition experiments straightforward.
+
+Radiation combines \co{} absorption and dust optical properties in a column flux calculation. The correlated-$k$ approach represents nongray gaseous absorption using a reduced distribution of absorption coefficients \citep{lacis1991}. The main physical configuration uses bundled Ames-derived 12-band correlated-$k$ tables, interpolated in temperature and log pressure, together with two-stream transfer. Solar and thermal fluxes are evaluated at layer interfaces, and atmospheric heating follows from their convergence. For layer $k$, with pressure thickness $\Delta p_k=p_s\Delta\sigma_k$, the atmospheric heat capacity per unit area is
+\begin{equation}
+ C_k=\frac{c_p\Delta p_k}{g},\qquad
+ \left.\frac{dT_k}{dt}\right|_{\mathrm{rad}}=\frac{Q_k}{C_k},
+\end{equation}
+where $Q_k$ is radiative flux convergence. Computing atmospheric and surface heating from a common set of interface fluxes makes the column energy exchanges telescope to the top-of-atmosphere balance. This same construction is used for the neural radiation interface.
+
+The surface temperature evolves from radiative, sensible, conductive, and latent heat exchange \citep{forget1999improved,haberle2019ames}. A bulk aerodynamic sensible heat flux couples the surface to the lowest atmospheric layer. The surface loss and atmospheric gain use the same flux, with atmospheric heating divided by the layer heat capacity. Surface stress transfers momentum, and Richardson-number-dependent vertical diffusion mixes momentum, heat, and tracers. The vertical diffusion solve uses a batched tridiagonal algorithm \citep{petrosyan2011pbl}. Dissipated resolved kinetic energy is returned as heat. Dry convective adjustment mixes unstable adjacent layers while conserving their sigma-weighted enthalpy. A 12-layer regolith conducts heat beneath the surface and supplies thermal memory across daily and seasonal forcing.
+
+The \co{} cycle couples temperature to atmospheric mass. Surface condensation releases latent heat and transfers mass from the atmosphere to frost; sublimation reverses the exchange. The local phase-change contributions satisfy
+\begin{equation}
+ \left.\frac{dp_s}{dt}\right|_{\mathrm{phase}}=-\frac{dI}{dt},
+ \qquad
+ \left.\frac{d\log p_s}{dt}\right|_{\mathrm{phase}}
+ =-\frac{1}{p_s}\frac{dI}{dt}.
+\end{equation}
+The frost temperature follows a pressure-dependent saturation relation, and an energy-limited option ties the exchange to the surface energy budget. After each complete time step, a projection repairs negative frost and transfers the corresponding deficit from the atmospheric column. A global pressure rescaling then matches the quadrature-integrated atmosphere-plus-frost inventory to its pre-step value, accounting for prescribed escape when enabled. This addresses the finite-step inventory error associated with advancing log pressure. Atmospheric pressure can still change seasonally as mass moves into and out of the surface reservoir.
+
+
+\section{Calibration and neural-training protocol}\label{app:protocol}
+
+Physical calibration and coupled heating are evaluated using twelve prespecified ARCO-MACDA reanalysis windows \citep{arcomacda,macda}. Four windows from Mars years 24, 26, 29, and 31 are used for training; four from years 32--33 for validation; and four from years 34--35 for testing. Each split samples four seasonal quarters. Atmospheric initial conditions are constructed from the reference temperature, winds, and pressure. Surface and frost initialization use start-time fields, and the soil initialization uses preceding surface history. The native reference interval of 7397.937\,s is integrated with 25 steps of 295.91748\,s. Start-time dust and the orbital phase are matched for each window.
+
+The training loss averages squared errors in temperature, zonal wind, and meridional wind, after scaling each field by its training-target standard deviation. It uses horizontal area weights, equal sigma-layer weights, and equal window weights. Feature normalization uses initial states from training data. Both fitting experiments perform 50 Adam updates \citep{kingma2014} with learning rate $10^{-3}$ and gradient-norm clipping at one. Validation selects the checkpoint, including the initial physical baseline among the candidates. Physical calibration adjusts \co{} longwave opacity, dust longwave opacity, and surface exchange within bounds $[0.05,2]$, $[0.05,2]$, and $[0.25,4]$. Neural fitting retains all three physical multipliers at one. Reported split RMSE is the square root of the mean per-window MSE, matching the figure-generation code.
+
+\section{Additional seasonal reference comparisons}\label{app:seasonal-maps}
+Figure~\ref{fig:maps} in the main text shows the seasonal fields at $L_s=135^\circ$. Figures~\ref{fig:maps-ls045} and~\ref{fig:maps-ls315} give the remaining perihelion-side and aphelion-side seasons, $L_s=45^\circ$ and $L_s=315^\circ$, under the same sampling conventions and the same set of reference products. The terrain-driven surface-pressure structure and the seasonal temperature and \co{}-frost patterns summarized in Table~\ref{tab:reference} are consistent across all evaluated seasons.
+
+\begin{figure}[!hbt]
+\centering
+\includegraphics[width=\linewidth,height=.58\textheight,keepaspectratio]{ls045_grid.png}
+\caption{Seasonal fields at $L_s=45^\circ$. The panels compare the physical model with NASA Ames, MCD 6.1, and ARCO-MACDA for surface temperature, pressure, near-surface wind speed, and surface \co{} frost, under the sampling conventions described in the main text.}
+\label{fig:maps-ls045}
+\end{figure}
+
+\begin{figure}[!hbt]
+\centering
+\includegraphics[width=\linewidth,height=.58\textheight,keepaspectratio]{ls315_grid.png}
+\caption{Seasonal fields at $L_s=315^\circ$. The panels compare the physical model with NASA Ames, MCD 6.1, and ARCO-MACDA for surface temperature, pressure, near-surface wind speed, and surface \co{} frost, under the sampling conventions described in the main text.}
+\label{fig:maps-ls315}
+\end{figure}
+
+\begin{figure}[!hbt]
+\centering
+\includegraphics[width=\linewidth,height=.58\textheight,keepaspectratio]{ls135_grid.png}
+\caption{Seasonal diagnostic comparison at $L_s=135^\circ$, organized as a $4\times4$ grid. Each \emph{row} is one surface field---surface temperature (K), surface pressure (Pa), near-surface wind speed (m\,s$^{-1}$), and surface \co{} frost (Pa-equivalent)---and each \emph{column} is one source: the AEGIS physical model (leftmost) alongside the NASA Ames, MCD~6.1, and ARCO-MACDA reference products. All panels are longitude--latitude maps ($0$--$360^\circ$E, $90^\circ$S--$90^\circ$N) with the MOLA terrain contour overlaid for geographic reference, and the color scale is shared within each row so the model and the three references are directly comparable field by field. Reading across a row shows how closely the modeled field tracks each reference; reading down the leftmost column shows the modeled state across all four diagnostics. Table~\ref{tab:reference} summarizes the corresponding pattern correlations and RMSE.}
+\label{fig:maps-ls135-grid}
+\end{figure}
+
+%% ---- "How to read the grid" paragraph (place near Figure 2 in the main text) ----
+Each row of Figure~\ref{fig:maps} isolates one diagnostic, and the shared per-row color scale makes model--reference differences visible directly. Surface pressure (second row) is dominated by topography: low-lying basins hold more atmospheric column mass and appear as pressure maxima, while elevated terrain appears as minima, and the model reproduces this terrain-driven structure, which is shared by all three references. Surface temperature (first row) shows the daytime-weighted seasonal heating, with a cold winter pole. Near-surface wind speed (third row) is the most reference-dependent field, because the products differ in reported level and averaging; the model's organized near-surface jets are therefore compared against references with distinct sampling. Surface \co{} frost (fourth row) concentrates near the seasonal winter cap and is a sensitive diagnostic of the atmosphere--surface mass exchange. These qualitative comparisons complement the quantitative pattern correlations and RMSE in Table~\ref{tab:reference}.
+
+%% ---- Enriched appendix intro (replaces the short lead sentence) ----
+Figure~\ref{fig:maps} in the main text shows the $L_s=135^\circ$ season. Figures~\ref{fig:maps-ls045} and~\ref{fig:maps-ls315} present the remaining evaluated seasons, $L_s=45^\circ$ and $L_s=315^\circ$, using the identical $4\times4$ layout: rows are the four surface fields, columns are the AEGIS model and the three reference products, panels are longitude--latitude maps with the MOLA terrain contour, and the color scale is shared within each row. The same reading applies---across a row for model--reference agreement, down the model column for the simulated state. Across all three evaluated seasons, the terrain-driven surface-pressure structure, the seasonal temperature pattern, and the winter-cap \co{} frost distribution summarized in Table~\ref{tab:reference} remain consistent, while near-surface wind speed continues to show the largest spread between reference products.
+
+
+\end{document}

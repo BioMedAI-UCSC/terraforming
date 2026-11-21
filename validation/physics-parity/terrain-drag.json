@@ -1,0 +1,840 @@
+{
+  "status": "pass",
+  "reference": {
+    "source_git_blob": "e25163faee55b4c4d31d90f2d09db13148230123",
+    "compiled_source_sha256": "74b7a24738078ed1691f1ff98f1775588dee88724fa93351074b368766bde7d7",
+    "routine_sha256": {
+      "palmer_drag": "18ee67f995bf4e1c611d607e27a1794ffc2df81ed957e998a34b7e5d61225c16",
+      "IR_damping": "6164f2d1ed1d123f060beda7483596887d3b5cda1574d03f806911c5d8a9f2bf"
+    },
+    "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "compiler_flags": [
+      "-O3",
+      "-cpp",
+      "-ffree-line-length-none",
+      "-fdefault-real-8",
+      "-fdefault-double-8",
+      "-fPIC",
+      "-shared"
+    ],
+    "real_precision_bits": 64,
+    "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged"
+  },
+  "cases": [
+    {
+      "layers": 8,
+      "mode": "sheared",
+      "terrain_std_m": 10.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 0.0,
+      "max_v_error_m_s2": 0.0,
+      "unresolved_stress_pa": 0.0
+    },
+    {
+      "layers": 8,
+      "mode": "sheared",
+      "terrain_std_m": 10.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 1.5246593050577406e-20,
+      "max_v_error_m_s2": 1.376428539288238e-21,
+      "unresolved_stress_pa": -3.2056179359053925e-08
+    },
+    {
+      "layers": 8,
+      "mode": "sheared",
+      "terrain_std_m": 300.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 2.6020852139652106e-18,
+      "max_v_error_m_s2": 2.168404344971009e-19,
+      "unresolved_stress_pa": 0.0
+    },
+    {
+      "layers": 8,
+      "mode": "sheared",
+      "terrain_std_m": 300.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 4.87890977618477e-19,
+      "max_v_error_m_s2": 4.0657581468206416e-20,
+      "unresolved_stress_pa": -5.013747398424293e-07
+    },
+    {
+      "layers": 8,
+      "mode": "sheared",
+      "terrain_std_m": 1500.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 1.3877787807814457e-17,
+      "max_v_error_m_s2": 8.673617379884035e-19,
+      "unresolved_stress_pa": -1.734723475976807e-18
+    },
+    {
+      "layers": 8,
+      "mode": "sheared",
+      "terrain_std_m": 1500.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 1.3877787807814457e-17,
+      "max_v_error_m_s2": 8.673617379884035e-19,
+      "unresolved_stress_pa": -5.013747398432966e-07
+    },
+    {
+      "layers": 8,
+      "mode": "critical",
+      "terrain_std_m": 10.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 0.0,
+      "max_v_error_m_s2": 0.0,
+      "unresolved_stress_pa": 0.0
+    },
+    {
+      "layers": 8,
+      "mode": "critical",
+      "terrain_std_m": 10.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 0.0,
+      "max_v_error_m_s2": 0.0,
+      "unresolved_stress_pa": 0.0
+    },
+    {
+      "layers": 8,
+      "mode": "critical",
+      "terrain_std_m": 300.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 0.0,
+      "max_v_error_m_s2": 0.0,
+      "unresolved_stress_pa": 0.0
+    },
+    {
+      "layers": 8,
+      "mode": "critical",
+      "terrain_std_m": 300.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 0.0,
+      "max_v_error_m_s2": 0.0,
+      "unresolved_stress_pa": 0.0
+    },
+    {
+      "layers": 8,
+      "mode": "critical",
+      "terrain_std_m": 1500.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 0.0,
+      "max_v_error_m_s2": 0.0,
+      "unresolved_stress_pa": 0.0
+    },
+    {
+      "layers": 8,
+      "mode": "critical",
+      "terrain_std_m": 1500.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 0.0,
+      "max_v_error_m_s2": 0.0,
+      "unresolved_stress_pa": 0.0
+    },
+    {
+      "layers": 8,
+      "mode": "unstable",
+      "terrain_std_m": 10.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 0.0,
+      "max_v_error_m_s2": 0.0,
+      "unresolved_stress_pa": 1.3508374129413526e-06
+    },
+    {
+      "layers": 8,
+      "mode": "unstable",
+      "terrain_std_m": 10.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 0.0,
+      "max_v_error_m_s2": 0.0,
+      "unresolved_stress_pa": 1.3508374129413526e-06
+    },
+    {
+      "layers": 8,
+      "mode": "unstable",
+      "terrain_std_m": 300.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 0.0,
+      "max_v_error_m_s2": 0.0,
+      "unresolved_stress_pa": 0.0012157536716472174
+    },
+    {
+      "layers": 8,
+      "mode": "unstable",
+      "terrain_std_m": 300.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 0.0,
+      "max_v_error_m_s2": 0.0,
+      "unresolved_stress_pa": 0.0012157536716472174
+    },
+    {
+      "layers": 8,
+      "mode": "unstable",
+      "terrain_std_m": 1500.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 0.0,
+      "max_v_error_m_s2": 0.0,
+      "unresolved_stress_pa": 0.013508374129413527
+    },
+    {
+      "layers": 8,
+      "mode": "unstable",
+      "terrain_std_m": 1500.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 0.0,
+      "max_v_error_m_s2": 0.0,
+      "unresolved_stress_pa": 0.013508374129413527
+    },
+    {
+      "layers": 8,
+      "mode": "near-uniform",
+      "terrain_std_m": 10.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 1.0842021724855044e-19,
+      "max_v_error_m_s2": 0.0,
+      "unresolved_stress_pa": 1.0587911840678754e-22
+    },
+    {
+      "layers": 8,
+      "mode": "near-uniform",
+      "terrain_std_m": 10.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 8.470329472543003e-21,
+      "max_v_error_m_s2": 1.4823076576950256e-21,
+      "unresolved_stress_pa": -1.704633924889022e-08
+    },
+    {
+      "layers": 8,
+      "mode": "near-uniform",
+      "terrain_std_m": 300.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 1.3010426069826053e-18,
+      "max_v_error_m_s2": 2.168404344971009e-19,
+      "unresolved_stress_pa": 0.0
+    },
+    {
+      "layers": 8,
+      "mode": "near-uniform",
+      "terrain_std_m": 300.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 7.806255641895632e-18,
+      "max_v_error_m_s2": 1.3010426069826053e-18,
+      "unresolved_stress_pa": -1.5341705324001123e-05
+    },
+    {
+      "layers": 8,
+      "mode": "near-uniform",
+      "terrain_std_m": 1500.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 1.3010426069826053e-18,
+      "max_v_error_m_s2": 2.168404344971009e-19,
+      "unresolved_stress_pa": 0.0
+    },
+    {
+      "layers": 8,
+      "mode": "near-uniform",
+      "terrain_std_m": 1500.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 5.963111948670274e-19,
+      "max_v_error_m_s2": 1.0842021724855044e-19,
+      "unresolved_stress_pa": -6.491588644781318e-07
+    },
+    {
+      "layers": 8,
+      "mode": "strong-shear",
+      "terrain_std_m": 10.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 1.0842021724855044e-19,
+      "max_v_error_m_s2": 3.3881317890172014e-21,
+      "unresolved_stress_pa": 0.0
+    },
+    {
+      "layers": 8,
+      "mode": "strong-shear",
+      "terrain_std_m": 10.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 3.134021904840911e-20,
+      "max_v_error_m_s2": 1.2705494208814505e-21,
+      "unresolved_stress_pa": -5.88727674218677e-08
+    },
+    {
+      "layers": 8,
+      "mode": "strong-shear",
+      "terrain_std_m": 300.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 2.168404344971009e-19,
+      "max_v_error_m_s2": 1.0164395367051604e-20,
+      "unresolved_stress_pa": 2.168404344971009e-19
+    },
+    {
+      "layers": 8,
+      "mode": "strong-shear",
+      "terrain_std_m": 300.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 3.2526065174565133e-19,
+      "max_v_error_m_s2": 1.0164395367051604e-20,
+      "unresolved_stress_pa": -1.6432634026468732e-07
+    },
+    {
+      "layers": 8,
+      "mode": "strong-shear",
+      "terrain_std_m": 1500.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 1.3877787807814457e-17,
+      "max_v_error_m_s2": 1.0164395367051604e-20,
+      "unresolved_stress_pa": 0.0
+    },
+    {
+      "layers": 8,
+      "mode": "strong-shear",
+      "terrain_std_m": 1500.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 1.3877787807814457e-17,
+      "max_v_error_m_s2": 1.0164395367051604e-20,
+      "unresolved_stress_pa": -1.6432634026425363e-07
+    },
+    {
+      "layers": 12,
+      "mode": "sheared",
+      "terrain_std_m": 10.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 1.5178830414797062e-18,
+      "max_v_error_m_s2": 1.3552527156068805e-19,
+      "unresolved_stress_pa": 0.0
+    },
+    {
+      "layers": 12,
+      "mode": "sheared",
+      "terrain_std_m": 10.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 4.235164736271502e-21,
+      "max_v_error_m_s2": 4.764560328305439e-22,
+      "unresolved_stress_pa": -5.899930569689516e-07
+    },
+    {
+      "layers": 12,
+      "mode": "sheared",
+      "terrain_std_m": 300.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 1.5178830414797062e-18,
+      "max_v_error_m_s2": 1.3552527156068805e-19,
+      "unresolved_stress_pa": 0.0
+    },
+    {
+      "layers": 12,
+      "mode": "sheared",
+      "terrain_std_m": 300.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 1.3010426069826053e-18,
+      "max_v_error_m_s2": 1.0842021724855044e-19,
+      "unresolved_stress_pa": -0.00020878754963564038
+    },
+    {
+      "layers": 12,
+      "mode": "sheared",
+      "terrain_std_m": 1500.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 1.734723475976807e-18,
+      "max_v_error_m_s2": 2.168404344971009e-19,
+      "unresolved_stress_pa": 3.469446951953614e-18
+    },
+    {
+      "layers": 12,
+      "mode": "sheared",
+      "terrain_std_m": 1500.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 1.734723475976807e-18,
+      "max_v_error_m_s2": 2.168404344971009e-19,
+      "unresolved_stress_pa": -1.0044992343156284e-05
+    },
+    {
+      "layers": 12,
+      "mode": "critical",
+      "terrain_std_m": 10.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 1.6940658945086007e-21,
+      "max_v_error_m_s2": 2.117582368135751e-22,
+      "unresolved_stress_pa": 0.0
+    },
+    {
+      "layers": 12,
+      "mode": "critical",
+      "terrain_std_m": 10.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 8.470329472543003e-22,
+      "max_v_error_m_s2": 5.293955920339377e-23,
+      "unresolved_stress_pa": -4.5348495959428694e-07
+    },
+    {
+      "layers": 12,
+      "mode": "critical",
+      "terrain_std_m": 300.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 2.710505431213761e-20,
+      "max_v_error_m_s2": 2.541098841762901e-21,
+      "unresolved_stress_pa": 0.0
+    },
+    {
+      "layers": 12,
+      "mode": "critical",
+      "terrain_std_m": 300.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 4.336808689942018e-19,
+      "max_v_error_m_s2": 2.710505431213761e-20,
+      "unresolved_stress_pa": -0.0001987425572924804
+    },
+    {
+      "layers": 12,
+      "mode": "critical",
+      "terrain_std_m": 1500.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 1.734723475976807e-18,
+      "max_v_error_m_s2": 2.168404344971009e-19,
+      "unresolved_stress_pa": 3.469446951953614e-18
+    },
+    {
+      "layers": 12,
+      "mode": "critical",
+      "terrain_std_m": 1500.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 1.734723475976807e-18,
+      "max_v_error_m_s2": 2.168404344971009e-19,
+      "unresolved_stress_pa": 3.469446951953614e-18
+    },
+    {
+      "layers": 12,
+      "mode": "unstable",
+      "terrain_std_m": 10.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 0.0,
+      "max_v_error_m_s2": 0.0,
+      "unresolved_stress_pa": 1.8657067218537303e-06
+    },
+    {
+      "layers": 12,
+      "mode": "unstable",
+      "terrain_std_m": 10.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 0.0,
+      "max_v_error_m_s2": 0.0,
+      "unresolved_stress_pa": 1.8657067218537303e-06
+    },
+    {
+      "layers": 12,
+      "mode": "unstable",
+      "terrain_std_m": 300.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 0.0,
+      "max_v_error_m_s2": 0.0,
+      "unresolved_stress_pa": 0.0016791360496683574
+    },
+    {
+      "layers": 12,
+      "mode": "unstable",
+      "terrain_std_m": 300.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 0.0,
+      "max_v_error_m_s2": 0.0,
+      "unresolved_stress_pa": 0.0016791360496683574
+    },
+    {
+      "layers": 12,
+      "mode": "unstable",
+      "terrain_std_m": 1500.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 0.0,
+      "max_v_error_m_s2": 0.0,
+      "unresolved_stress_pa": 0.018657067218537302
+    },
+    {
+      "layers": 12,
+      "mode": "unstable",
+      "terrain_std_m": 1500.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 0.0,
+      "max_v_error_m_s2": 0.0,
+      "unresolved_stress_pa": 0.018657067218537302
+    },
+    {
+      "layers": 12,
+      "mode": "near-uniform",
+      "terrain_std_m": 10.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 2.168404344971009e-19,
+      "max_v_error_m_s2": 0.0,
+      "unresolved_stress_pa": 0.0
+    },
+    {
+      "layers": 12,
+      "mode": "near-uniform",
+      "terrain_std_m": 10.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 2.541098841762901e-21,
+      "max_v_error_m_s2": 4.764560328305439e-22,
+      "unresolved_stress_pa": -3.137373824539072e-07
+    },
+    {
+      "layers": 12,
+      "mode": "near-uniform",
+      "terrain_std_m": 300.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 2.168404344971009e-18,
+      "max_v_error_m_s2": 4.0657581468206416e-19,
+      "unresolved_stress_pa": 0.0
+    },
+    {
+      "layers": 12,
+      "mode": "near-uniform",
+      "terrain_std_m": 300.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 3.469446951953614e-18,
+      "max_v_error_m_s2": 5.963111948670274e-19,
+      "unresolved_stress_pa": -0.00016083787138682884
+    },
+    {
+      "layers": 12,
+      "mode": "near-uniform",
+      "terrain_std_m": 1500.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 2.168404344971009e-18,
+      "max_v_error_m_s2": 4.0657581468206416e-19,
+      "unresolved_stress_pa": 0.0
+    },
+    {
+      "layers": 12,
+      "mode": "near-uniform",
+      "terrain_std_m": 1500.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 3.469446951953614e-18,
+      "max_v_error_m_s2": 5.963111948670274e-19,
+      "unresolved_stress_pa": -5.515362820696264e-05
+    },
+    {
+      "layers": 12,
+      "mode": "strong-shear",
+      "terrain_std_m": 10.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 4.0657581468206416e-20,
+      "max_v_error_m_s2": 1.6940658945086007e-21,
+      "unresolved_stress_pa": 0.0
+    },
+    {
+      "layers": 12,
+      "mode": "strong-shear",
+      "terrain_std_m": 10.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 8.470329472543003e-21,
+      "max_v_error_m_s2": 3.1763735522036263e-22,
+      "unresolved_stress_pa": -1.0835515871806322e-06
+    },
+    {
+      "layers": 12,
+      "mode": "strong-shear",
+      "terrain_std_m": 300.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 5.421010862427522e-19,
+      "max_v_error_m_s2": 2.202285662861181e-20,
+      "unresolved_stress_pa": 0.0
+    },
+    {
+      "layers": 12,
+      "mode": "strong-shear",
+      "terrain_std_m": 300.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 5.421010862427522e-19,
+      "max_v_error_m_s2": 2.202285662861181e-20,
+      "unresolved_stress_pa": -3.517257974746356e-07
+    },
+    {
+      "layers": 12,
+      "mode": "strong-shear",
+      "terrain_std_m": 1500.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 5.421010862427522e-19,
+      "max_v_error_m_s2": 2.202285662861181e-20,
+      "unresolved_stress_pa": -3.469446951953614e-18
+    },
+    {
+      "layers": 12,
+      "mode": "strong-shear",
+      "terrain_std_m": 1500.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 5.421010862427522e-19,
+      "max_v_error_m_s2": 2.202285662861181e-20,
+      "unresolved_stress_pa": -3.51725797476804e-07
+    },
+    {
+      "layers": 40,
+      "mode": "sheared",
+      "terrain_std_m": 10.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 8.131516293641283e-18,
+      "max_v_error_m_s2": 7.047314121155779e-19,
+      "unresolved_stress_pa": 0.0
+    },
+    {
+      "layers": 40,
+      "mode": "sheared",
+      "terrain_std_m": 10.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 2.5516867536035798e-20,
+      "max_v_error_m_s2": 2.329340604949326e-21,
+      "unresolved_stress_pa": -9.708607611982415e-06
+    },
+    {
+      "layers": 40,
+      "mode": "sheared",
+      "terrain_std_m": 300.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 1.691355389077387e-17,
+      "max_v_error_m_s2": 1.463672932855431e-18,
+      "unresolved_stress_pa": 4.336808689942018e-19
+    },
+    {
+      "layers": 40,
+      "mode": "sheared",
+      "terrain_std_m": 300.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 1.6046192152785466e-17,
+      "max_v_error_m_s2": 1.4094628242311558e-18,
+      "unresolved_stress_pa": -0.0055751967331134425
+    },
+    {
+      "layers": 40,
+      "mode": "sheared",
+      "terrain_std_m": 1500.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 4.423544863740858e-17,
+      "max_v_error_m_s2": 3.848917712323541e-18,
+      "unresolved_stress_pa": 0.0
+    },
+    {
+      "layers": 40,
+      "mode": "sheared",
+      "terrain_std_m": 1500.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 4.423544863740858e-17,
+      "max_v_error_m_s2": 3.848917712323541e-18,
+      "unresolved_stress_pa": -0.02543350336761347
+    },
+    {
+      "layers": 40,
+      "mode": "critical",
+      "terrain_std_m": 10.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 0.0,
+      "max_v_error_m_s2": 0.0,
+      "unresolved_stress_pa": 4.235164736271502e-22
+    },
+    {
+      "layers": 40,
+      "mode": "critical",
+      "terrain_std_m": 10.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 8.470329472543003e-21,
+      "max_v_error_m_s2": 6.352747104407253e-22,
+      "unresolved_stress_pa": -8.333397381862143e-06
+    },
+    {
+      "layers": 40,
+      "mode": "critical",
+      "terrain_std_m": 300.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 1.691355389077387e-17,
+      "max_v_error_m_s2": 1.463672932855431e-18,
+      "unresolved_stress_pa": 4.336808689942018e-19
+    },
+    {
+      "layers": 40,
+      "mode": "critical",
+      "terrain_std_m": 300.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 1.5612511283791264e-17,
+      "max_v_error_m_s2": 1.3552527156068805e-18,
+      "unresolved_stress_pa": -0.005375767852988036
+    },
+    {
+      "layers": 40,
+      "mode": "critical",
+      "terrain_std_m": 1500.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 4.423544863740858e-17,
+      "max_v_error_m_s2": 3.848917712323541e-18,
+      "unresolved_stress_pa": 0.0
+    },
+    {
+      "layers": 40,
+      "mode": "critical",
+      "terrain_std_m": 1500.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 4.423544863740858e-17,
+      "max_v_error_m_s2": 3.848917712323541e-18,
+      "unresolved_stress_pa": -0.02523407448748806
+    },
+    {
+      "layers": 40,
+      "mode": "unstable",
+      "terrain_std_m": 10.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 0.0,
+      "max_v_error_m_s2": 0.0,
+      "unresolved_stress_pa": 3.2020057652035548e-06
+    },
+    {
+      "layers": 40,
+      "mode": "unstable",
+      "terrain_std_m": 10.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 0.0,
+      "max_v_error_m_s2": 0.0,
+      "unresolved_stress_pa": 3.2020057652035548e-06
+    },
+    {
+      "layers": 40,
+      "mode": "unstable",
+      "terrain_std_m": 300.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 0.0,
+      "max_v_error_m_s2": 0.0,
+      "unresolved_stress_pa": 0.002881805188683199
+    },
+    {
+      "layers": 40,
+      "mode": "unstable",
+      "terrain_std_m": 300.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 0.0,
+      "max_v_error_m_s2": 0.0,
+      "unresolved_stress_pa": 0.002881805188683199
+    },
+    {
+      "layers": 40,
+      "mode": "unstable",
+      "terrain_std_m": 1500.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 0.0,
+      "max_v_error_m_s2": 0.0,
+      "unresolved_stress_pa": 0.03202005765203555
+    },
+    {
+      "layers": 40,
+      "mode": "unstable",
+      "terrain_std_m": 1500.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 0.0,
+      "max_v_error_m_s2": 0.0,
+      "unresolved_stress_pa": 0.03202005765203555
+    },
+    {
+      "layers": 40,
+      "mode": "near-uniform",
+      "terrain_std_m": 10.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 1.3010426069826053e-17,
+      "max_v_error_m_s2": 2.222614453595284e-18,
+      "unresolved_stress_pa": 0.0
+    },
+    {
+      "layers": 40,
+      "mode": "near-uniform",
+      "terrain_std_m": 10.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 1.3552527156068805e-20,
+      "max_v_error_m_s2": 2.2631661559450837e-21,
+      "unresolved_stress_pa": -5.162693193550133e-06
+    },
+    {
+      "layers": 40,
+      "mode": "near-uniform",
+      "terrain_std_m": 300.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 1.6479873021779667e-17,
+      "max_v_error_m_s2": 2.791820594150174e-18,
+      "unresolved_stress_pa": 2.168404344971009e-19
+    },
+    {
+      "layers": 40,
+      "mode": "near-uniform",
+      "terrain_std_m": 300.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 8.023096076392733e-18,
+      "max_v_error_m_s2": 1.328147661294743e-18,
+      "unresolved_stress_pa": -0.0031222153492893407
+    },
+    {
+      "layers": 40,
+      "mode": "near-uniform",
+      "terrain_std_m": 1500.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 1.8214596497756474e-17,
+      "max_v_error_m_s2": 3.0899761915836876e-18,
+      "unresolved_stress_pa": 0.0
+    },
+    {
+      "layers": 40,
+      "mode": "near-uniform",
+      "terrain_std_m": 1500.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 1.8214596497756474e-17,
+      "max_v_error_m_s2": 3.0899761915836876e-18,
+      "unresolved_stress_pa": -0.008802074914810207
+    },
+    {
+      "layers": 40,
+      "mode": "strong-shear",
+      "terrain_std_m": 10.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 5.827586677109586e-19,
+      "max_v_error_m_s2": 2.329340604949326e-20,
+      "unresolved_stress_pa": 0.0
+    },
+    {
+      "layers": 40,
+      "mode": "strong-shear",
+      "terrain_std_m": 10.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 4.743384504624082e-20,
+      "max_v_error_m_s2": 1.9058241313221758e-21,
+      "unresolved_stress_pa": -1.7830340650654698e-05
+    },
+    {
+      "layers": 40,
+      "mode": "strong-shear",
+      "terrain_std_m": 300.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 1.6479873021779667e-17,
+      "max_v_error_m_s2": 6.505213034913027e-19,
+      "unresolved_stress_pa": 0.0
+    },
+    {
+      "layers": 40,
+      "mode": "strong-shear",
+      "terrain_std_m": 300.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 8.673617379884035e-18,
+      "max_v_error_m_s2": 3.5236570605778894e-19,
+      "unresolved_stress_pa": -0.008945516027803909
+    },
+    {
+      "layers": 40,
+      "mode": "strong-shear",
+      "terrain_std_m": 1500.0,
+      "ir_damping": false,
+      "max_u_error_m_s2": 1.5785983631388945e-16,
+      "max_v_error_m_s2": 6.396792817664476e-18,
+      "unresolved_stress_pa": 6.938893903907228e-18
+    },
+    {
+      "layers": 40,
+      "mode": "strong-shear",
+      "terrain_std_m": 1500.0,
+      "ir_damping": true,
+      "max_u_error_m_s2": 3.469446951953614e-17,
+      "max_v_error_m_s2": 1.4094628242311558e-18,
+      "unresolved_stress_pa": -0.05455166832541769
+    }
+  ],
+  "sha256": {
+    "scripts/validate_terrain_drag.py": "57397dab52e937a6edafe896b54c6275dd3776a6c1a9d636a2ce828bcdafd952",
+    "package/src/framework/physics/terrain_drag.py": "6b0a6c769d9d40abed95d2e9aaa51b14abdb0f22cb5fd73f5811bcad2c863ead"
+  },
+  "limits": "calm-wind and zero-shear limits have separate analytic/gradient tests; original missing impulses retained and reported"
+}

@@ -1,0 +1,78 @@
+{
+  "status": "pass",
+  "reference_input_blobs": {
+    "npcflag8.nc": "750894161ea187f4934301409974696c94aa3be3",
+    "palmer_drag_input_c24_c48_c96.nc": "0f77f437e7ce0742952f2b6dc5057299d4d4e474"
+  },
+  "cases": [
+    {
+      "truncation": "T21",
+      "field": "npcflag",
+      "source_mean": 0.008892342893317922,
+      "mapped_mean": 0.008892342893317681,
+      "mapped_min": 0.0,
+      "mapped_max": 1.0000000000000009
+    },
+    {
+      "truncation": "T21",
+      "field": "SD24",
+      "source_mean": 410.19260121004305,
+      "mapped_mean": 410.1926012100431,
+      "mapped_min": 6.983287917590694,
+      "mapped_max": 4047.0594724656657
+    },
+    {
+      "truncation": "T21",
+      "field": "SD48",
+      "source_mean": 291.91500262344584,
+      "mapped_mean": 291.91500262344584,
+      "mapped_min": 10.545515522815807,
+      "mapped_max": 2412.6565327387593
+    },
+    {
+      "truncation": "T21",
+      "field": "SD96",
+      "source_mean": 198.6009807278631,
+      "mapped_mean": 198.60098072786315,
+      "mapped_min": 6.261272267774858,
+      "mapped_max": 1431.900084587804
+    },
+    {
+      "truncation": "T42",
+      "field": "npcflag",
+      "source_mean": 0.008892342893317922,
+      "mapped_mean": 0.008892342893317978,
+      "mapped_min": 0.0,
+      "mapped_max": 1.0000000000000004
+    },
+    {
+      "truncation": "T42",
+      "field": "SD24",
+      "source_mean": 410.19260121004305,
+      "mapped_mean": 410.192601210043,
+      "mapped_min": -206.82412218499954,
+      "mapped_max": 5129.982075504252
+    },
+    {
+      "truncation": "T42",
+      "field": "SD48",
+      "source_mean": 291.91500262344584,
+      "mapped_mean": 291.91500262344573,
+      "mapped_min": 0.4237893668853831,
+      "mapped_max": 3545.2717744043443
+    },
+    {
+      "truncation": "T42",
+      "field": "SD96",
+      "source_mean": 198.6009807278631,
+      "mapped_mean": 198.6009807278631,
+      "mapped_min": 2.28146240142085,
+      "mapped_max": 2551.659974140855
+    }
+  ],
+  "sha256": {
+    "scripts/validate_boundary_inputs.py": "8e08f56198ad70b489ed83c56ecf8e63d1752155b4c418cce6406951432dc8b8",
+    "package/src/celestials/planets/mars/boundary_inputs.py": "e75949935d263d0f58a93ac0c509d5d87ac4e6de2ca07ad4cb761027e9f55a6c",
+    "package/src/celestials/planets/mars/surface.py": "c53ba6bf10d7c0b79654b4b41399ff5076098126765dea1e9f4f19f9a98c4810"
+  }
+}

@@ -1,0 +1,31 @@
+name: Linux native parity
+on:
+  schedule:
+    - cron: '17 8 * * 1'
+  workflow_dispatch:
+  pull_request:
+    types: [labeled, synchronize]
+permissions:
+  contents: read
+jobs:
+  native:
+    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'native-parity')
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    env:
+      PYTHONPATH: package:.:scripts
+      JAX_PLATFORMS: cpu
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: sudo apt-get update && sudo apt-get install -y gfortran libnetcdf-dev libnetcdff-dev
+      - run: uv sync --frozen --dev --all-packages --extra gcm3d
+      - run: uv run --no-sync python scripts/run_native_validation.py --sources /tmp/native-sources --output native-results --shard ${{ matrix.shard }} --shards 4
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-parity-${{ matrix.shard }}
+          path: native-results/

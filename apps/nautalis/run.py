@@ -1,5 +1,7 @@
 """Fetch a source revision and run selected experiment folders; no science protocols."""
 import argparse
+import asyncio
+import codecs
 import datetime
 import fcntl
 import hashlib
@@ -52,7 +54,7 @@ def archive(source,path):
         handle.add(source,arcname='source',filter=include)
 
 
-def run_folder(source,folder,work,revision,run_id,arguments,gpu,repository,ref):
+async def run_folder(source,folder,work,revision,run_id,arguments,gpu,repository,ref,active,stopped):
     directory=(source/folder).resolve()
     if not directory.is_relative_to(source.resolve()) or not directory.is_dir():
         raise ValueError('experiment folder must exist inside the supplied source')
@@ -76,24 +78,51 @@ def run_folder(source,folder,work,revision,run_id,arguments,gpu,repository,ref):
         EXPERIMENT_RUN_ID=run_id,EXPERIMENT_GPU=str(int(gpu)))
     env['PYTHONPATH']=os.pathsep.join([str(source),str(source/'package'),env.get('PYTHONPATH','')])
     invocation=[sys.executable if entry.suffix=='.py' else '/bin/sh',str(entry),*arguments]
-    print(f'Experiment {folder}; source {revision}; outputs {output}',flush=True)
+    print(f'Experiment {folder}; launcher {os.getpid()}; source {revision}; outputs {output}',flush=True)
     with (attempt/'run.log').open('w') as log:
-        process=subprocess.Popen(invocation,cwd=source,env=env,stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,text=True,errors='replace',start_new_session=True)
-        def forward(number,frame):
-            try: os.killpg(process.pid,number)
+        process=await asyncio.create_subprocess_exec(*invocation,cwd=source,env=env,
+            stdout=asyncio.subprocess.PIPE,stderr=asyncio.subprocess.STDOUT,start_new_session=True)
+        print(f'Experiment {folder}; process {process.pid}',flush=True)
+        active.add(process)
+        if stopped:
+            try: os.killpg(process.pid,stopped[0])
             except ProcessLookupError: pass
-        previous={sig:signal.signal(sig,forward)
-                  for sig in (signal.SIGTERM,signal.SIGINT)}
         try:
-            for line in process.stdout:
-                log.write(line);log.flush();print(line,end='',flush=True)
-            code=process.wait()
+            decode=codecs.getincrementaldecoder('utf-8')('replace')
+            while chunk:=await process.stdout.read(65536):
+                text=decode.decode(chunk)
+                log.write(text);log.flush();print(text,end='',flush=True)
+            text=decode.decode(b'',final=True)
+            log.write(text);print(text,end='',flush=True)
+            code=await process.wait()
         finally:
-            for sig,handler in previous.items(): signal.signal(sig,handler)
+            active.remove(process)
     status=dict(returncode=code,command=invocation,attempt=str(attempt),revision=revision)
     (attempt/'status.json').write_text(json.dumps(status,indent=2))
     return 128-code if code<0 else code
+
+
+async def run_parallel(invocations,parallel):
+    """Keep experiment slots full and forward shutdown to every active worker."""
+    active=set();stopped=[];slots=asyncio.Semaphore(parallel)
+    def forward(number,frame):
+        stopped.append(number)
+        for process in active:
+            try: os.killpg(process.pid,number)
+            except ProcessLookupError: pass
+    previous={number:signal.signal(number,forward) for number in (signal.SIGTERM,signal.SIGINT)}
+    async def invoke(arguments):
+        async with slots:
+            if stopped: return 128+stopped[0]
+            return await run_folder(*arguments,active,stopped)
+    try:
+        results=await asyncio.gather(*(invoke(arguments) for arguments in invocations),return_exceptions=True)
+    finally:
+        for number,handler in previous.items(): signal.signal(number,handler)
+    for result in results:
+        if isinstance(result,BaseException): raise result
+    failures=[code for code in results if code]
+    return 128+stopped[0] if stopped else failures[0] if failures else 0
 
 
 def main():
@@ -106,8 +135,10 @@ def main():
     parser.add_argument('--run-id',required=True)
     parser.add_argument('--work',type=Path,default=Path('/work'))
     parser.add_argument('--gpu',action='store_true')
+    parser.add_argument('--parallel',type=int,help='Concurrent experiments; default is all selected folders')
     parser.add_argument('arguments',nargs=argparse.REMAINDER)
     args=parser.parse_args()
+    if args.parallel is not None and args.parallel<1: parser.error('parallel must be positive')
     if not args.run_id or any(c not in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_' for c in args.run_id):
         parser.error('run-id must contain only letters, digits, dash or underscore')
     work=args.work.resolve();work.mkdir(parents=True,exist_ok=True)
@@ -124,12 +155,16 @@ def main():
         else:
             source,revision=checkout(work,args.repository,args.ref)
         arguments=args.arguments[1:] if args.arguments[:1]==['--'] else args.arguments
-        failures=[]
+        resolved=[(source/folder).resolve() for folder in args.experiments]
+        if len(set(resolved))!=len(resolved): parser.error('experiment folders must be distinct')
+        if any(not directory.is_relative_to(source.resolve()) or not directory.is_dir() or
+            not any((directory/name).is_file() for name in ('run.py','run.sh')) for directory in resolved):
+            parser.error('experiment folders must exist inside the supplied source and contain run.py or run.sh')
+        invocations=[]
         for folder in args.experiments:
-            code=run_folder(source,folder,work,revision,args.run_id,arguments,args.gpu,
-                            None if args.source else args.repository,args.ref)
-            if code: failures.append(code)
-        return failures[0] if failures else 0
+            invocations.append((source,folder,work,revision,args.run_id,arguments,args.gpu,
+                            None if args.source else args.repository,args.ref))
+        return asyncio.run(run_parallel(invocations,args.parallel or len(invocations)))
 
 
 if __name__=='__main__':

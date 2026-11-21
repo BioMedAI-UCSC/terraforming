@@ -9,6 +9,7 @@ CI); the dedicated gcm3d CI workflow installs the extra and runs these. Covers:
 from __future__ import annotations
 
 import pytest
+import numpy as np
 
 jax = pytest.importorskip("jax")
 jnp = pytest.importorskip("jax.numpy")
@@ -40,6 +41,18 @@ class TestCoordinateSystem:
     def test_rejects_nonpositive_layers(self):
         with pytest.raises(ValueError):
             coordinate_system("T21", n_layers=0)
+
+    def test_explicit_sigma_levels_are_retained(self):
+        boundaries=np.array([0.,.001,.1,.7,1.])
+        coords=coordinate_system('T21',4,sigma_boundaries=boundaries)
+        np.testing.assert_array_equal(coords.vertical.boundaries,boundaries)
+        np.testing.assert_array_equal(coords.vertical.centers,.5*(boundaries[:-1]+boundaries[1:]))
+
+    @pytest.mark.parametrize('boundaries',[[0.,.5,1.],[.01,.1,.5,.7,1.],
+        [0.,.1,.1,.7,1.],[0.,.1,np.nan,.7,1.]])
+    def test_invalid_explicit_sigma_levels_are_rejected(self,boundaries):
+        with pytest.raises(ValueError,match='sigma boundaries'):
+            coordinate_system('T21',4,sigma_boundaries=boundaries)
 
 
 class TestDifferentiableTransform:

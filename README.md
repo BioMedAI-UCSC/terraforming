@@ -15,9 +15,10 @@
 **[Documentation](https://biomedai-ucsc.github.io/terraforming-docs/)** ·
 **[GCM architecture](docs/package/gcm3d/architecture.md)** ·
 **[Physics status and limitations](docs/ideas/gcm3d-physics-limitations.md)** ·
-**[AmesGCM comparison](docs/ideas/amesgcm-comparison.md)**
+**[AmesGCM comparison](docs/ideas/reference-gcm-comparison.md)**
 
-**[Run the paper experiments on Nautilus](apps/paper-experiments/README.md)**
+**[Run experiments on Nautilus](apps/nautalis/README.md)** ·
+**[Paper revision and reproduction steps](docs/paper-reproduction.md)**
 
 </div>
 
@@ -254,6 +255,10 @@ uv run python -m pytest cli/tests -m "not slow"
 uv run mkdocs serve
 uv run pyright
 ```
+
+[CI test modules](docs/ci.md) lists the module jobs, change-based selection and
+commands to run one suite. Each test has one owner. Manual workflow runs can
+include slow tests.
 
 JAX compilation can be expensive on laptops. Prefer the supplied low-resolution
 or `--laptop` configurations for smoke tests and use restart checkpoints for
