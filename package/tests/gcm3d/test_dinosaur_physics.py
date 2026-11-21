@@ -143,7 +143,7 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
         reference_radiative_forcing())
     radiation=two_stream_radiative_fluxes if radiation_component is None else radiation_component
     if thermal_relaxation_options is not None: radiation=None
-    step=build_step(coords,specs,BODY,forcing,5.,radiation_component=radiation,
+    step=build_step(coords,specs,BODY,forcing,6. if radiation_update_seconds is not None else 5.,radiation_component=radiation,
         soil_diffusivity=(250./(1500.*627.9))**2,return_diagnostics=return_diagnostics,
         suspended_co2_clouds=suspended_co2_clouds,bulk_water=bulk_water,moment_water=moment_water,
         moment_cloud_options=dict(latent_heat=True,microtimestep=1.,effective_input_mode=effective_input_mode),
@@ -693,7 +693,7 @@ def test_aerosol_opacity_control_holds_native_channels_and_preserves_restart_gra
     radiation=make_radiation_component(make_particle_provider(bands=bands,
         dust_tracers=(('dust_mass','dust_number'),),
         water_moment_tracers=(WATER_CLOUD_TRACER,'water_core_mass','water_ice_number') if water else None),
-        radiation_interval_seconds=10.,radiation_mode=f'{bands}band')
+        radiation_interval_seconds=12.,radiation_mode=f'{bands}band')
     state,step,grid=backend_case(temperature_k=180.371,surface_temperature_k=180.371,
         moment_dust=not water,moment_water=water,initial_water_surface_kg_m2=10.,wind_speed=20.,
         radiation_component=radiation,radiation_update_seconds=12.,dust_optical_bands=bands,
@@ -707,10 +707,10 @@ def test_aerosol_opacity_control_holds_native_channels_and_preserves_restart_gra
         assert np.all(np.asarray(current.auxiliary_fields['dust_fixed_reference_opacity'])>0.)
     if storm is not None:
         assert np.ptp(np.asarray(first.auxiliary_fields['dust_fixed_reference_opacity'][0]))>1e-4
-    assert np.any(np.asarray(first.auxiliary_fields['dust_fixed_reference_opacity'])!=
-        np.asarray(second.auxiliary_fields['dust_fixed_reference_opacity']))
-    np.testing.assert_array_equal(third.auxiliary_fields['dust_fixed_reference_opacity'],
+    np.testing.assert_array_equal(first.auxiliary_fields['dust_fixed_reference_opacity'],
         second.auxiliary_fields['dust_fixed_reference_opacity'])
+    assert np.any(np.asarray(third.auxiliary_fields['dust_fixed_reference_opacity'])!=
+        np.asarray(second.auxiliary_fields['dust_fixed_reference_opacity']))
     restored=load_restart(save_restart(second,tmp_path/'aerosol-control.npz'))
     for actual,expected in zip(jax.tree.leaves(tick(restored)),jax.tree.leaves(third),strict=True):
         np.testing.assert_array_equal(actual,expected)

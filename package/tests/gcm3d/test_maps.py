@@ -443,6 +443,14 @@ def test_reference_maps_backend_runs_water_and_preserves_restart_state(monkeypat
     fields,first=maps.run_maps(**kwargs,n_steps=1)
     _,second=maps.run_maps(**kwargs,n_steps=1,initial_state=first)
     _,whole=maps.run_maps(**kwargs,n_steps=2)
+    if thermal is False and dust_mode_count==1 and boundaries is None:
+        import dataclasses
+        horizontal=coordinate_system('T21',4).horizontal
+        legacy=first._replace(dynamics=dataclasses.replace(first.dynamics,tracers={
+            name:horizontal.to_modal(value) for name,value in first.dynamics.tracers.items()}))
+        _,converted=maps.run_maps(**kwargs,n_steps=1,initial_state=legacy)
+        for name,value in second.dynamics.tracers.items():
+            np.testing.assert_allclose(converted.dynamics.tracers[name],value,rtol=3e-12,atol=1e-18)
     assert fields.co2_ice_pa is not None
     assert 'reference column physics' in fields.physics
     expected_height=-AMES_BODY_3D.gas_constant_j_kg_k*180./AMES_BODY_3D.gravity_m_s2*np.log(fields.wind_level_sigma)

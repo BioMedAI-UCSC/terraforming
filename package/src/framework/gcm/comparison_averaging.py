@@ -67,7 +67,9 @@ def apply_means(dataset,state,body,dt_seconds):
     aux=state.auxiliary_fields
     count=int(aux['comparison_count'])
     if count<1: raise ValueError('comparison average contains no samples')
-    dataset=dataset.copy()
+    dataset=dataset.drop_vars([name for name in dataset.data_vars
+        if "comparison_sum_"+name not in aux and name!="solar_longitude"]).copy()
+    dataset.solar_longitude.attrs["sampling"]="end of averaging window"
     for name in list(dataset.data_vars):
         key='comparison_sum_'+name
         if key not in aux: continue

@@ -6,6 +6,8 @@ import pytest
 pytest.importorskip("dinosaur")
 import jax
 
+jax.config.update("jax_enable_x64",True)
+
 from src.celestials.planets.mars import MARS_BODY_3D  # noqa: E402
 from src.framework.gcm.coordinates import coordinate_system  # noqa: E402
 from src.framework.gcm.dynamics import integrate, stepper  # noqa: E402

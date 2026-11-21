@@ -648,7 +648,7 @@ def main() -> int:
         if reference:
             config.update(reference_input_sha256=input_hashes,body=dataclasses.asdict(body),
                 initial_dry_mass_parameter_pa=705.,initial_pressure_scheme='released-hydro-eq',reference_protocol='present-Mars-clouds-v3.2',
-                radiation_mode='12band',radiation_update_seconds=8*args.dt,
+                radiation_mode='12band',radiation_update_seconds=1848.,
                 reference_release_commit='ba47cada5f9eb89c75c4f10d06dbae6e7f9ecb26',
                 reference_build_blob='83b611e6527cf26bef3ec0064c05aebe0bb0d080',
                 initial_air_temperature_k=args.initial_air_temperature,isothermal_atmosphere=args.isothermal_atmosphere,

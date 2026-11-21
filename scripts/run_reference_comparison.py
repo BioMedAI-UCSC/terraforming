@@ -226,5 +226,5 @@ def main(framework,resolution):
             '--chunk-sols','5','--cooldown-seconds','0','--output-dir',output/'climate']
     started=time.perf_counter();execute(invocation,cwd=output if framework=='native' else source,env=env)
     (output/'completed.json').write_text(json.dumps(dict(framework=framework,resolution=resolution,
-        sols=args.sols,dt_seconds=231,wall_seconds=time.perf_counter()-started,
+        sols=args.sols,dt_seconds=231,timing_scope='concurrent experiment throughput; not an isolated speed measurement',wall_seconds=time.perf_counter()-started,
         limits='Same released physical setup and input hashes; FV3 hybrid/cubed-sphere and Dinosaur sigma/spectral discretizations differ.'),indent=2)+'\n')

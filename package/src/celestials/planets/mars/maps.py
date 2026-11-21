@@ -365,6 +365,10 @@ def run_maps(
             if (saved is None and sigma_boundaries is not None) or (saved is not None and
                 not np.array_equal(np.asarray(saved),np.asarray(coords.vertical.boundaries))):
                 raise ValueError('reference restart sigma boundaries differ or are missing')
+        if initial_state is not None:
+            from src.framework.physics.tracer_transport import tracer_to_nodal
+            state0=state0._replace(dynamics=dataclasses.replace(state0.dynamics,tracers={
+                name:tracer_to_nodal(grid,value) for name,value in state0.dynamics.tracers.items()}))
         options=dict(reference_options)
         comparison_window=options.pop("comparison_window_steps",None)
         initial_water=options.pop('initial_water_surface_kg_m2',0.)
