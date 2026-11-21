@@ -15,6 +15,36 @@ def _script(name):
     return module
 
 
+def test_dry_budgets_and_checkpoint_accept_nodal_reference_tracers():
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.framework.gcm.specs import physics_specs
+    from src.framework.gcm.benchmarks import dry_conserved_quantities
+    from src.framework.physics.dinosaur_physics import initial_state
+    import dataclasses
+    from src.celestials.planets.mars import MARS_BODY_3D
+
+    from src.framework.gcm._dinosaur import jax
+    jax.config.update("jax_enable_x64", True)
+    coords = coordinate_system('T21', 56)
+    specs = physics_specs(MARS_BODY_3D)
+    driver = _script('run_gcm3d_ablation')
+    dry = driver.reference_rest_state(
+        coords, specs, MARS_BODY_3D, np.zeros(coords.horizontal.nodal_shape)
+    )
+    dry = dataclasses.replace(dry, sim_time=0.)
+    state = initial_state(dry, coords, specs, moment_water=True)
+    reference = np.full(56, MARS_BODY_3D.reference_temperature_k)
+    expected = dry_conserved_quantities(
+        dataclasses.replace(dry, tracers={}), coords, specs, MARS_BODY_3D, reference
+    )
+    assert dry_conserved_quantities(
+        state.dynamics, coords, specs, MARS_BODY_3D, reference
+    ) == expected
+    record = driver._checkpoint_diagnostics(state, coords, specs, 231.)
+    assert record['dry_atmospheric_mass_kg_m2_sr'] == expected.mass_kg_m2_sr
+    assert all(np.isfinite(value) for value in record.values())
+
+
 @pytest.mark.parametrize('cells',[24,48])
 def test_native_grid_reconstruction_accepts_only_checked_source_controls(tmp_path,cells):
     module=_script('reconstruct_native_grid');path=tmp_path/'input.nml'
