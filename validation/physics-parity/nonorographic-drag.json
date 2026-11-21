@@ -13,7 +13,7 @@
       "-shared"
     ],
     "real_precision_bits": 64,
-    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+    "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
     "routine_sha256": {
       "gwfc": "201aac9781f07c2a29f4f79ecfdccadde1aa62a6049209fdc7b3125b2e279d4f",
       "cg_drag_calc": "c5c624e6e1f60368a5c90ab9d93ec8c115050510b34742bc573cd3ae6d25e6d6",
@@ -4494,8 +4494,8 @@
       "dump_remaining_flux": false,
       "conserve_energy": false,
       "max_errors": [
-        1.0842021724855044e-19,
-        4.0657581468206416e-20,
+        2.168404344971009e-19,
+        2.710505431213761e-20,
         0.0
       ]
     },
@@ -4507,9 +4507,9 @@
       "dump_remaining_flux": false,
       "conserve_energy": true,
       "max_errors": [
-        1.0842021724855044e-19,
-        4.0657581468206416e-20,
-        2.541098841762901e-21
+        2.168404344971009e-19,
+        2.710505431213761e-20,
+        3.3881317890172014e-21
       ]
     },
     {
@@ -4520,7 +4520,7 @@
       "dump_remaining_flux": true,
       "conserve_energy": false,
       "max_errors": [
-        1.0842021724855044e-19,
+        2.168404344971009e-19,
         4.0657581468206416e-20,
         0.0
       ]
@@ -4533,9 +4533,9 @@
       "dump_remaining_flux": true,
       "conserve_energy": true,
       "max_errors": [
-        1.0842021724855044e-19,
+        2.168404344971009e-19,
         4.0657581468206416e-20,
-        2.541098841762901e-21
+        3.3881317890172014e-21
       ]
     },
     {
@@ -4599,7 +4599,7 @@
       "conserve_energy": false,
       "max_errors": [
         1.0842021724855044e-19,
-        1.3552527156068805e-20,
+        5.082197683525802e-21,
         0.0
       ]
     },
@@ -4612,8 +4612,8 @@
       "conserve_energy": true,
       "max_errors": [
         1.0842021724855044e-19,
-        1.3552527156068805e-20,
-        1.6940658945086007e-21
+        5.082197683525802e-21,
+        3.3881317890172014e-21
       ]
     },
     {
@@ -4706,8 +4706,8 @@
       "dump_remaining_flux": false,
       "conserve_energy": false,
       "max_errors": [
-        8.605717656630391e-23,
-        8.605717656630391e-23,
+        8.605717656630389e-23,
+        8.605717656630389e-23,
         0.0
       ]
     },
@@ -4719,9 +4719,9 @@
       "dump_remaining_flux": false,
       "conserve_energy": true,
       "max_errors": [
-        8.605717656630391e-23,
-        8.605717656630391e-23,
-        3.018929928484934e-45
+        8.605717656630389e-23,
+        8.605717656630389e-23,
+        3.018929928484932e-45
       ]
     },
     {
@@ -4732,8 +4732,8 @@
       "dump_remaining_flux": true,
       "conserve_energy": false,
       "max_errors": [
-        1.087816497533436e-21,
-        1.087816497533436e-21,
+        1.0878164975334364e-21,
+        1.0878164975334364e-21,
         0.0
       ]
     },
@@ -4745,9 +4745,9 @@
       "dump_remaining_flux": true,
       "conserve_energy": true,
       "max_errors": [
-        1.087816497533436e-21,
-        1.087816497533436e-21,
-        1.3493548067340286e-42
+        1.0878164975334364e-21,
+        1.0878164975334364e-21,
+        1.3493548067340287e-42
       ]
     },
     {
@@ -4758,8 +4758,8 @@
       "dump_remaining_flux": false,
       "conserve_energy": false,
       "max_errors": [
-        1.6940658945086007e-21,
-        8.470329472543003e-22,
+        3.3881317890172014e-21,
+        1.2705494208814505e-21,
         0.0
       ]
     },
@@ -4771,9 +4771,9 @@
       "dump_remaining_flux": false,
       "conserve_energy": true,
       "max_errors": [
-        1.6940658945086007e-21,
-        8.470329472543003e-22,
-        2.6469779601696886e-23
+        3.3881317890172014e-21,
+        1.2705494208814505e-21,
+        5.293955920339377e-23
       ]
     },
     {
@@ -4784,8 +4784,8 @@
       "dump_remaining_flux": true,
       "conserve_energy": false,
       "max_errors": [
-        1.6940658945086007e-21,
-        6.352747104407253e-22,
+        3.3881317890172014e-21,
+        3.1763735522036263e-22,
         0.0
       ]
     },
@@ -4797,8 +4797,8 @@
       "dump_remaining_flux": true,
       "conserve_energy": true,
       "max_errors": [
-        1.6940658945086007e-21,
-        6.352747104407253e-22,
+        3.3881317890172014e-21,
+        3.1763735522036263e-22,
         5.293955920339377e-23
       ]
     },
@@ -4811,7 +4811,7 @@
       "conserve_energy": false,
       "max_errors": [
         1.5881867761018131e-22,
-        7.940933880509066e-23,
+        1.3234889800848443e-22,
         0.0
       ]
     },
@@ -4824,8 +4824,8 @@
       "conserve_energy": true,
       "max_errors": [
         1.5881867761018131e-22,
-        7.940933880509066e-23,
-        9.926167350636332e-24
+        1.3234889800848443e-22,
+        6.617444900424222e-24
       ]
     },
     {
@@ -4836,8 +4836,8 @@
       "dump_remaining_flux": true,
       "conserve_energy": false,
       "max_errors": [
-        3.3881317890172014e-21,
-        5.082197683525802e-21,
+        6.776263578034403e-21,
+        6.776263578034403e-21,
         0.0
       ]
     },
@@ -4849,9 +4849,9 @@
       "dump_remaining_flux": true,
       "conserve_energy": true,
       "max_errors": [
-        3.3881317890172014e-21,
-        5.082197683525802e-21,
-        2.117582368135751e-22
+        6.776263578034403e-21,
+        6.776263578034403e-21,
+        4.235164736271502e-22
       ]
     },
     {
@@ -4863,7 +4863,7 @@
       "conserve_energy": false,
       "max_errors": [
         3.1763735522036263e-22,
-        1.3234889800848443e-22,
+        1.5881867761018131e-22,
         0.0
       ]
     },
@@ -4876,7 +4876,7 @@
       "conserve_energy": true,
       "max_errors": [
         3.1763735522036263e-22,
-        1.3234889800848443e-22,
+        1.5881867761018131e-22,
         6.617444900424222e-24
       ]
     },
@@ -4888,8 +4888,8 @@
       "dump_remaining_flux": true,
       "conserve_energy": false,
       "max_errors": [
-        6.776263578034403e-21,
-        4.0234064994579266e-21,
+        8.470329472543003e-21,
+        4.446922973085077e-21,
         0.0
       ]
     },
@@ -4901,9 +4901,9 @@
       "dump_remaining_flux": true,
       "conserve_energy": true,
       "max_errors": [
-        6.776263578034403e-21,
-        4.0234064994579266e-21,
-        1.5881867761018131e-22
+        8.470329472543003e-21,
+        4.446922973085077e-21,
+        2.117582368135751e-22
       ]
     },
     {
@@ -4914,8 +4914,8 @@
       "dump_remaining_flux": false,
       "conserve_energy": false,
       "max_errors": [
-        7.047438185001413e-20,
-        7.047438185001413e-20,
+        7.047438185001404e-20,
+        7.047438185001404e-20,
         0.0
       ]
     },
@@ -4927,9 +4927,9 @@
       "dump_remaining_flux": false,
       "conserve_energy": true,
       "max_errors": [
-        7.047438185001413e-20,
-        7.047438185001413e-20,
-        2.2446446560987196e-38
+        7.047438185001404e-20,
+        7.047438185001404e-20,
+        2.2446446560987165e-38
       ]
     },
     {
@@ -4966,8 +4966,8 @@
       "dump_remaining_flux": false,
       "conserve_energy": false,
       "max_errors": [
-        5.421010862427522e-19,
-        8.131516293641283e-20,
+        4.336808689942018e-19,
+        5.421010862427522e-20,
         0.0
       ]
     },
@@ -4979,9 +4979,9 @@
       "dump_remaining_flux": false,
       "conserve_energy": true,
       "max_errors": [
-        5.421010862427522e-19,
-        8.131516293641283e-20,
-        2.710505431213761e-20
+        4.336808689942018e-19,
+        5.421010862427522e-20,
+        2.0328790734103208e-20
       ]
     },
     {
@@ -4993,7 +4993,7 @@
       "conserve_energy": false,
       "max_errors": [
         6.505213034913027e-19,
-        8.131516293641283e-20,
+        5.421010862427522e-20,
         0.0
       ]
     },
@@ -5006,8 +5006,8 @@
       "conserve_energy": true,
       "max_errors": [
         6.505213034913027e-19,
-        8.131516293641283e-20,
-        2.710505431213761e-20
+        5.421010862427522e-20,
+        2.0328790734103208e-20
       ]
     },
     {
@@ -5019,7 +5019,7 @@
       "conserve_energy": false,
       "max_errors": [
         4.336808689942018e-19,
-        1.6263032587282567e-19,
+        1.0842021724855044e-19,
         0.0
       ]
     },
@@ -5032,7 +5032,7 @@
       "conserve_energy": true,
       "max_errors": [
         4.336808689942018e-19,
-        1.6263032587282567e-19,
+        1.0842021724855044e-19,
         4.0657581468206416e-20
       ]
     },
@@ -5044,8 +5044,8 @@
       "dump_remaining_flux": true,
       "conserve_energy": false,
       "max_errors": [
-        1.734723475976807e-18,
-        6.505213034913027e-19,
+        1.3010426069826053e-18,
+        5.421010862427522e-19,
         0.0
       ]
     },
@@ -5057,9 +5057,9 @@
       "dump_remaining_flux": true,
       "conserve_energy": true,
       "max_errors": [
-        1.734723475976807e-18,
-        6.505213034913027e-19,
-        1.3552527156068805e-19
+        1.3010426069826053e-18,
+        5.421010862427522e-19,
+        8.131516293641283e-20
       ]
     },
     {
@@ -5070,7 +5070,7 @@
       "dump_remaining_flux": false,
       "conserve_energy": false,
       "max_errors": [
-        1.0842021724855044e-19,
+        5.421010862427522e-20,
         1.0842021724855044e-19,
         0.0
       ]
@@ -5083,9 +5083,9 @@
       "dump_remaining_flux": false,
       "conserve_energy": true,
       "max_errors": [
+        5.421010862427522e-20,
         1.0842021724855044e-19,
-        1.0842021724855044e-19,
-        2.541098841762901e-21
+        1.6940658945086007e-21
       ]
     },
     {
@@ -5096,7 +5096,7 @@
       "dump_remaining_flux": true,
       "conserve_energy": false,
       "max_errors": [
-        1.0842021724855044e-19,
+        5.421010862427522e-20,
         1.0842021724855044e-19,
         0.0
       ]
@@ -5109,9 +5109,9 @@
       "dump_remaining_flux": true,
       "conserve_energy": true,
       "max_errors": [
+        5.421010862427522e-20,
         1.0842021724855044e-19,
-        1.0842021724855044e-19,
-        3.3881317890172014e-21
+        1.6940658945086007e-21
       ]
     },
     {
@@ -5230,7 +5230,7 @@
       "dump_remaining_flux": false,
       "conserve_energy": false,
       "max_errors": [
-        8.470329472543003e-22,
+        1.2705494208814505e-21,
         8.470329472543003e-22,
         0.0
       ]
@@ -5243,9 +5243,9 @@
       "dump_remaining_flux": false,
       "conserve_energy": true,
       "max_errors": [
+        1.2705494208814505e-21,
         8.470329472543003e-22,
-        8.470329472543003e-22,
-        2.6469779601696886e-23
+        3.3087224502121107e-23
       ]
     },
     {
@@ -5256,7 +5256,7 @@
       "dump_remaining_flux": true,
       "conserve_energy": false,
       "max_errors": [
-        1.1858461261560205e-20,
+        1.3552527156068805e-20,
         3.3881317890172014e-21,
         0.0
       ]
@@ -5269,7 +5269,7 @@
       "dump_remaining_flux": true,
       "conserve_energy": true,
       "max_errors": [
-        1.1858461261560205e-20,
+        1.3552527156068805e-20,
         3.3881317890172014e-21,
         1.852884572118782e-22
       ]
@@ -5282,8 +5282,8 @@
       "dump_remaining_flux": false,
       "conserve_energy": false,
       "max_errors": [
-        5.293955920339377e-23,
-        5.293955920339377e-23,
+        7.940933880509066e-23,
+        7.940933880509066e-23,
         0.0
       ]
     },
@@ -5295,9 +5295,9 @@
       "dump_remaining_flux": false,
       "conserve_energy": true,
       "max_errors": [
-        5.293955920339377e-23,
-        5.293955920339377e-23,
-        1.6543612251060553e-24
+        7.940933880509066e-23,
+        7.940933880509066e-23,
+        2.481541837659083e-24
       ]
     },
     {
@@ -5439,7 +5439,7 @@
       "conserve_energy": false,
       "max_errors": [
         6.505213034913027e-19,
-        2.846030702774449e-19,
+        3.2526065174565133e-19,
         0.0
       ]
     },
@@ -5452,7 +5452,7 @@
       "conserve_energy": true,
       "max_errors": [
         6.505213034913027e-19,
-        2.846030702774449e-19,
+        3.2526065174565133e-19,
         2.710505431213761e-20
       ]
     },
@@ -5465,7 +5465,7 @@
       "conserve_energy": false,
       "max_errors": [
         8.673617379884035e-19,
-        2.846030702774449e-19,
+        3.2526065174565133e-19,
         0.0
       ]
     },
@@ -5478,7 +5478,7 @@
       "conserve_energy": true,
       "max_errors": [
         8.673617379884035e-19,
-        2.846030702774449e-19,
+        3.2526065174565133e-19,
         2.710505431213761e-20
       ]
     },
@@ -5490,8 +5490,8 @@
       "dump_remaining_flux": false,
       "conserve_energy": false,
       "max_errors": [
-        8.673617379884035e-19,
-        3.2526065174565133e-19,
+        1.0842021724855044e-18,
+        2.710505431213761e-19,
         0.0
       ]
     },
@@ -5503,8 +5503,8 @@
       "dump_remaining_flux": false,
       "conserve_energy": true,
       "max_errors": [
-        8.673617379884035e-19,
-        3.2526065174565133e-19,
+        1.0842021724855044e-18,
+        2.710505431213761e-19,
         6.776263578034403e-20
       ]
     },
@@ -5542,8 +5542,8 @@
       "dump_remaining_flux": false,
       "conserve_energy": false,
       "max_errors": [
-        4.336808689942018e-19,
-        2.710505431213761e-19,
+        3.2526065174565133e-19,
+        2.168404344971009e-19,
         0.0
       ]
     },
@@ -5555,9 +5555,9 @@
       "dump_remaining_flux": false,
       "conserve_energy": true,
       "max_errors": [
-        4.336808689942018e-19,
-        2.710505431213761e-19,
-        5.082197683525802e-21
+        3.2526065174565133e-19,
+        2.168404344971009e-19,
+        3.3881317890172014e-21
       ]
     },
     {
@@ -5568,8 +5568,8 @@
       "dump_remaining_flux": true,
       "conserve_energy": false,
       "max_errors": [
-        4.336808689942018e-19,
-        2.710505431213761e-19,
+        3.2526065174565133e-19,
+        2.168404344971009e-19,
         0.0
       ]
     },
@@ -5581,9 +5581,9 @@
       "dump_remaining_flux": true,
       "conserve_energy": true,
       "max_errors": [
-        4.336808689942018e-19,
-        2.710505431213761e-19,
-        5.082197683525802e-21
+        3.2526065174565133e-19,
+        2.168404344971009e-19,
+        3.3881317890172014e-21
       ]
     },
     {
@@ -5964,10 +5964,10 @@
     }
   ],
   "sha256": {
-    "scripts/validate_nonorographic_drag.py": "b16f60e4b2ad88baa89a5c2d7b71e57092423c4793dff1d6a0cd2025edd55c85",
-    "scripts/native_reference.py": "2e3b0e2f65b685f86fcfdd1b4643b54c5582b81af36a0874a43d9eedc2675d76",
-    "package/src/framework/physics/nonorographic_drag.py": "0d99b2121e811e8bca2c3f7ac39e5800cb0f3c9b54410087938cd88395213181",
-    "package/src/framework/physics/vertical_grid.py": "6a51bdaa7d68d1e37863bf635bedf793e84bd16ea5decd4aae1ac6a26d8f1fe0",
+    "scripts/validate_nonorographic_drag.py": "771b2045ca4c3e4e2b0b73cfc78205a68a6f1aece76bd1ed31db935171df2832",
+    "scripts/native_reference.py": "eceabb32987f6cbb84c4ccc5f87a3994e6569c55b41b9fce82192571990755ef",
+    "package/src/framework/physics/nonorographic_drag.py": "834511938621c958a53109cfe812d638523c29c766b198d010d1a68a170270b8",
+    "package/src/framework/physics/vertical_grid.py": "76a6c1d7fb4aa5aff60831de1f96f13bdf75420b242b8f8db10dbbfef04e16e0",
     "package/src/framework/physics/vertical_grid_coefficients.npz": "c9bcbba2ee02c01ec796d4b4b11da58a2325f78e43ba4f6dc6b7cd6a0e07d71d"
   },
   "limits": "Native kernel/driver plus patched source selection on released reference interfaces; no radiation/dynamics coupling. Source index 1 requires a finite auxiliary-wind extension; the coupled application interface requires separate checks."

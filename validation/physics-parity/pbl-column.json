@@ -20,10 +20,11 @@
       "fm": "bd86444cf2d640e8c457f72b68c929f4fb4dbe640e2339782b4ae76f56861ef3",
       "fmprime": "017ab4d645c70b08919d9e2bbd1131eba6e6e8c21890e29e11458602a133ba25"
     },
-    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+    "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
     "compiler_flags": [
       "-O3",
       "-cpp",
+      "-ffree-line-length-none",
       "-fdefault-real-8",
       "-fdefault-double-8",
       "-fPIC",
@@ -76,8 +77,8 @@
       "max_absolute_eddy_errors": {
         "km": 4.547473508864641e-13,
         "kh": 9.094947017729282e-13,
-        "richardson": 2.7755575615628914e-17,
-        "shear_squared": 0.0
+        "richardson": 5.551115123125783e-17,
+        "shear_squared": 1.734723475976807e-18
       },
       "max_absolute_surface_error": 0.0,
       "max_absolute_column_errors": {
@@ -94,8 +95,8 @@
       "max_absolute_eddy_errors": {
         "km": 4.547473508864641e-13,
         "kh": 9.094947017729282e-13,
-        "richardson": 2.7755575615628914e-17,
-        "shear_squared": 0.0
+        "richardson": 5.551115123125783e-17,
+        "shear_squared": 1.734723475976807e-18
       },
       "max_absolute_surface_error": 0.0,
       "max_absolute_column_errors": {
@@ -112,7 +113,7 @@
       "max_absolute_eddy_errors": {
         "km": 0.0,
         "kh": 0.0,
-        "richardson": 2.220446049250313e-16,
+        "richardson": 0.0,
         "shear_squared": 0.0
       },
       "max_absolute_surface_error": 0.0,
@@ -130,7 +131,7 @@
       "max_absolute_eddy_errors": {
         "km": 0.0,
         "kh": 0.0,
-        "richardson": 2.220446049250313e-16,
+        "richardson": 0.0,
         "shear_squared": 0.0
       },
       "max_absolute_surface_error": 0.0,
@@ -149,9 +150,9 @@
         "km": 6.821210263296962e-13,
         "kh": 6.821210263296962e-13,
         "richardson": 1.3877787807814457e-17,
-        "shear_squared": 6.938893903907228e-18
+        "shear_squared": 1.734723475976807e-18
       },
-      "max_absolute_surface_error": 2.220446049250313e-16,
+      "max_absolute_surface_error": 0.0,
       "max_absolute_column_errors": {
         "temperature_k": 5.684341886080802e-14,
         "u_ms": 1.7763568394002505e-15,
@@ -167,9 +168,9 @@
         "km": 6.821210263296962e-13,
         "kh": 6.821210263296962e-13,
         "richardson": 1.3877787807814457e-17,
-        "shear_squared": 6.938893903907228e-18
+        "shear_squared": 1.734723475976807e-18
       },
-      "max_absolute_surface_error": 2.220446049250313e-16,
+      "max_absolute_surface_error": 0.0,
       "max_absolute_column_errors": {
         "temperature_k": 5.684341886080802e-14,
         "u_ms": 1.7763568394002505e-15,
@@ -182,10 +183,10 @@
       "case": "unstable",
       "recalculate_heat_flux": false,
       "max_absolute_eddy_errors": {
-        "km": 1.3642420526593924e-12,
+        "km": 9.094947017729282e-13,
         "kh": 1.8189894035458565e-12,
-        "richardson": 1.3877787807814457e-17,
-        "shear_squared": 1.3877787807814457e-17
+        "richardson": 6.938893903907228e-18,
+        "shear_squared": 3.469446951953614e-18
       },
       "max_absolute_surface_error": 2.220446049250313e-16,
       "max_absolute_column_errors": {
@@ -200,10 +201,10 @@
       "case": "unstable",
       "recalculate_heat_flux": true,
       "max_absolute_eddy_errors": {
-        "km": 1.3642420526593924e-12,
+        "km": 9.094947017729282e-13,
         "kh": 1.8189894035458565e-12,
-        "richardson": 1.3877787807814457e-17,
-        "shear_squared": 1.3877787807814457e-17
+        "richardson": 6.938893903907228e-18,
+        "shear_squared": 3.469446951953614e-18
       },
       "max_absolute_surface_error": 2.220446049250313e-16,
       "max_absolute_column_errors": {
@@ -218,9 +219,9 @@
       "case": "zero-wind",
       "recalculate_heat_flux": false,
       "max_absolute_eddy_errors": {
-        "km": 3.410605131648481e-13,
+        "km": 2.2737367544323206e-13,
         "kh": 4.547473508864641e-13,
-        "richardson": 1.1102230246251565e-16,
+        "richardson": 0.0,
         "shear_squared": 0.0
       },
       "max_absolute_surface_error": 4.547473508864641e-13,
@@ -236,9 +237,9 @@
       "case": "zero-wind",
       "recalculate_heat_flux": true,
       "max_absolute_eddy_errors": {
-        "km": 3.410605131648481e-13,
+        "km": 2.2737367544323206e-13,
         "kh": 4.547473508864641e-13,
-        "richardson": 1.1102230246251565e-16,
+        "richardson": 0.0,
         "shear_squared": 0.0
       },
       "max_absolute_surface_error": 4.547473508864641e-13,
@@ -252,83 +253,83 @@
     {
       "layers": 40,
       "case": "stable",
-      "recalculate_heat_flux": false,
-      "max_absolute_eddy_errors": {
-        "km": 6.821210263296962e-13,
-        "kh": 9.094947017729282e-13,
-        "richardson": 2.7755575615628914e-17,
-        "shear_squared": 1.734723475976807e-18
-      },
-      "max_absolute_surface_error": 3.469446951953614e-18,
-      "max_absolute_column_errors": {
-        "temperature_k": 5.684341886080802e-14,
-        "u_ms": 1.0658141036401503e-14,
-        "v_ms": 7.105427357601002e-15,
-        "tracer_ratio": 2.710505431213761e-20
-      }
-    },
-    {
-      "layers": 40,
-      "case": "stable",
-      "recalculate_heat_flux": true,
-      "max_absolute_eddy_errors": {
-        "km": 6.821210263296962e-13,
-        "kh": 9.094947017729282e-13,
-        "richardson": 2.7755575615628914e-17,
-        "shear_squared": 1.734723475976807e-18
-      },
-      "max_absolute_surface_error": 3.469446951953614e-18,
-      "max_absolute_column_errors": {
-        "temperature_k": 5.684341886080802e-14,
-        "u_ms": 1.0658141036401503e-14,
-        "v_ms": 7.105427357601002e-15,
-        "tracer_ratio": 2.710505431213761e-20
-      }
-    },
-    {
-      "layers": 40,
-      "case": "unstable",
-      "recalculate_heat_flux": false,
-      "max_absolute_eddy_errors": {
-        "km": 1.3642420526593924e-12,
-        "kh": 2.7284841053187847e-12,
-        "richardson": 2.7755575615628914e-17,
-        "shear_squared": 6.938893903907228e-18
-      },
-      "max_absolute_surface_error": 2.220446049250313e-16,
-      "max_absolute_column_errors": {
-        "temperature_k": 8.526512829121202e-14,
-        "u_ms": 1.4210854715202004e-14,
-        "v_ms": 7.105427357601002e-15,
-        "tracer_ratio": 2.710505431213761e-20
-      }
-    },
-    {
-      "layers": 40,
-      "case": "unstable",
-      "recalculate_heat_flux": true,
-      "max_absolute_eddy_errors": {
-        "km": 1.3642420526593924e-12,
-        "kh": 2.7284841053187847e-12,
-        "richardson": 2.7755575615628914e-17,
-        "shear_squared": 6.938893903907228e-18
-      },
-      "max_absolute_surface_error": 2.220446049250313e-16,
-      "max_absolute_column_errors": {
-        "temperature_k": 8.526512829121202e-14,
-        "u_ms": 1.4210854715202004e-14,
-        "v_ms": 7.105427357601002e-15,
-        "tracer_ratio": 2.710505431213761e-20
-      }
-    },
-    {
-      "layers": 40,
-      "case": "zero-wind",
       "recalculate_heat_flux": false,
       "max_absolute_eddy_errors": {
         "km": 4.547473508864641e-13,
+        "kh": 9.094947017729282e-13,
+        "richardson": 1.3877787807814457e-17,
+        "shear_squared": 1.734723475976807e-18
+      },
+      "max_absolute_surface_error": 3.469446951953614e-18,
+      "max_absolute_column_errors": {
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 1.1546319456101628e-13,
+        "v_ms": 6.661338147750939e-14,
+        "tracer_ratio": 1.4230153513872246e-19
+      }
+    },
+    {
+      "layers": 40,
+      "case": "stable",
+      "recalculate_heat_flux": true,
+      "max_absolute_eddy_errors": {
+        "km": 4.547473508864641e-13,
+        "kh": 9.094947017729282e-13,
+        "richardson": 1.3877787807814457e-17,
+        "shear_squared": 1.734723475976807e-18
+      },
+      "max_absolute_surface_error": 3.469446951953614e-18,
+      "max_absolute_column_errors": {
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 1.1546319456101628e-13,
+        "v_ms": 6.661338147750939e-14,
+        "tracer_ratio": 1.4230153513872246e-19
+      }
+    },
+    {
+      "layers": 40,
+      "case": "unstable",
+      "recalculate_heat_flux": false,
+      "max_absolute_eddy_errors": {
+        "km": 9.094947017729282e-13,
+        "kh": 2.7284841053187847e-12,
+        "richardson": 2.7755575615628914e-17,
+        "shear_squared": 6.938893903907228e-18
+      },
+      "max_absolute_surface_error": 2.220446049250313e-16,
+      "max_absolute_column_errors": {
+        "temperature_k": 8.526512829121202e-14,
+        "u_ms": 2.5224267119483557e-13,
+        "v_ms": 2.922107000813412e-13,
+        "tracer_ratio": 4.2012834183813297e-19
+      }
+    },
+    {
+      "layers": 40,
+      "case": "unstable",
+      "recalculate_heat_flux": true,
+      "max_absolute_eddy_errors": {
+        "km": 9.094947017729282e-13,
+        "kh": 2.7284841053187847e-12,
+        "richardson": 2.7755575615628914e-17,
+        "shear_squared": 6.938893903907228e-18
+      },
+      "max_absolute_surface_error": 2.220446049250313e-16,
+      "max_absolute_column_errors": {
+        "temperature_k": 8.526512829121202e-14,
+        "u_ms": 2.5224267119483557e-13,
+        "v_ms": 2.922107000813412e-13,
+        "tracer_ratio": 4.2012834183813297e-19
+      }
+    },
+    {
+      "layers": 40,
+      "case": "zero-wind",
+      "recalculate_heat_flux": false,
+      "max_absolute_eddy_errors": {
+        "km": 2.2737367544323206e-13,
         "kh": 4.547473508864641e-13,
-        "richardson": 1.6653345369377348e-16,
+        "richardson": 0.0,
         "shear_squared": 0.0
       },
       "max_absolute_surface_error": 0.0,
@@ -344,9 +345,9 @@
       "case": "zero-wind",
       "recalculate_heat_flux": true,
       "max_absolute_eddy_errors": {
-        "km": 4.547473508864641e-13,
+        "km": 2.2737367544323206e-13,
         "kh": 4.547473508864641e-13,
-        "richardson": 1.6653345369377348e-16,
+        "richardson": 0.0,
         "shear_squared": 0.0
       },
       "max_absolute_surface_error": 0.0,

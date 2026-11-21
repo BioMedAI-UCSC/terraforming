@@ -6,10 +6,11 @@
     "routine_sha256": {
       "flux_stress": "d6d521999c51fabb7fc8d97da2ab3eb79f31c5b55915bd3167d94a50dac7056f"
     },
-    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+    "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
     "compiler_flags": [
       "-O3",
       "-cpp",
+      "-ffree-line-length-none",
       "-fdefault-real-8",
       "-fdefault-double-8",
       "-fPIC",
@@ -5774,8 +5775,8 @@
   ],
   "sha256": {
     "scripts/validate_dust_lifting.py": "1c798cc50f2a1755fdd0b9f2ea40a97de27b83b8c2ed38465d6d361e5378dad6",
-    "scripts/native_reference.py": "2e3b0e2f65b685f86fcfdd1b4643b54c5582b81af36a0874a43d9eedc2675d76",
-    "package/src/framework/physics/dust_lifting.py": "c2ff6eae0cdc59fc4c698cf7d9f27c45a194d4de4cda1e464473fea095ed48ac"
+    "scripts/native_reference.py": "eceabb32987f6cbb84c4ccc5f87a3994e6569c55b41b9fce82192571990755ef",
+    "package/src/framework/physics/dust_lifting.py": "d18f83515f11dd582a407026383946a08e514bbb16dd50ed579385f3badac56f"
   },
   "limits": "Physical interactive dust modes with shared first-reservoir gating. Background scenario control, dual modes and tags are separate. Collapsed PBL efficiency uses its finite limit; inactive stress divisions use finite surrogates."
 }

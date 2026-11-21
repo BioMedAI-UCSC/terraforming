@@ -1,15 +1,16 @@
 {
   "status": "pass",
   "reference": {
-    "source_git_blob": "89f1a0b2efb58e77bf47cbc121ae2d382ba32e13",
-    "compiled_source_sha256": "ba147a8906c4069d0d58208cd5c2173b5205d0ffe3c4f978b5afc18fc6414df7",
+    "source_git_blob": "f998b823f73ab3f3d5ec662a49c893fc2f67006b",
+    "compiled_source_sha256": "3560ad88785d33eb6ae826b01a4e1e66822071dc9f25d643284faa20285b6941",
     "routine_sha256": {
-      "HORIZ_INTERP_BILINEAR_NEW_1D_": "5bbfef7530c80018ff467801829e20a8e0f57e9e3cb64757d59bb55a95168a54"
+      "HORIZ_INTERP_BILINEAR_NEW_1D_": "3ab58f7b9ff3bfd690216ae69387e28ec2d4845f5d573c2e3bf19bffee69efb8"
     },
-    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+    "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
     "compiler_flags": [
       "-O3",
       "-cpp",
+      "-ffree-line-length-none",
       "-fdefault-real-8",
       "-fdefault-double-8",
       "-fPIC",
@@ -68,7 +69,7 @@
       "source_git_blob": "50e8f4288f111c612539d17c2b1b7c505aa0013a",
       "seasonal_samples": 668,
       "periodic_endpoint_appended": false,
-      "min_opacity": 0.005337142637029741,
+      "min_opacity": 0.005337142637029716,
       "min_top_height_km": 20.271682563798134
     }
   },
@@ -86,7 +87,7 @@
     {
       "grid": "T42",
       "field": "taufill",
-      "max_error": 1.6653345369377348e-16
+      "max_error": 1.3877787807814457e-16
     },
     {
       "grid": "T42",
@@ -159,43 +160,43 @@
       "grid": "T42",
       "channel": 1,
       "map_scale": 1.0,
-      "max_error": 8.326672684688674e-17
-    },
-    {
-      "grid": "T42",
-      "channel": 1,
-      "map_scale": 3.67,
-      "max_error": 3.3306690738754696e-16
-    },
-    {
-      "grid": "T42",
-      "channel": 2,
-      "map_scale": 3.67,
-      "max_error": 8.326672684688674e-17
-    },
-    {
-      "grid": "T85",
-      "channel": 1,
-      "map_scale": 0.0,
-      "max_error": 0.0
-    },
-    {
-      "grid": "T85",
-      "channel": 1,
-      "map_scale": 1.0,
       "max_error": 5.551115123125783e-17
     },
     {
-      "grid": "T85",
+      "grid": "T42",
       "channel": 1,
       "map_scale": 3.67,
       "max_error": 2.220446049250313e-16
     },
     {
-      "grid": "T85",
+      "grid": "T42",
       "channel": 2,
       "map_scale": 3.67,
       "max_error": 5.551115123125783e-17
+    },
+    {
+      "grid": "T85",
+      "channel": 1,
+      "map_scale": 0.0,
+      "max_error": 0.0
+    },
+    {
+      "grid": "T85",
+      "channel": 1,
+      "map_scale": 1.0,
+      "max_error": 6.938893903907228e-17
+    },
+    {
+      "grid": "T85",
+      "channel": 1,
+      "map_scale": 3.67,
+      "max_error": 2.7755575615628914e-16
+    },
+    {
+      "grid": "T85",
+      "channel": 2,
+      "map_scale": 3.67,
+      "max_error": 6.938893903907228e-17
     },
     {
       "grid": "T170",
@@ -213,7 +214,7 @@
       "grid": "T170",
       "channel": 1,
       "map_scale": 3.67,
-      "max_error": 3.3306690738754696e-16
+      "max_error": 2.498001805406602e-16
     },
     {
       "grid": "T170",
@@ -247,7 +248,7 @@
     }
   ],
   "sha256": {
-    "scripts/validate_dust_scenario.py": "d98c5bf181e526065746bc5abab4b274bf37819d7f440decaef03213873d9695",
+    "scripts/validate_dust_scenario.py": "ff4ea4067574c400f7728fb1e7edb2b7628353c2859042d68563a9cdf018ff1b",
     "package/src/celestials/planets/mars/dust_scenario.py": "668466e8fb1ba6e55f54c5a0b9a46443ac3004f68e87a087bbb4e0069b7d0b3f"
   }
 }

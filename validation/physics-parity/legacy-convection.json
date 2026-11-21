@@ -7,10 +7,11 @@
       "legacy_convect": "6a20368b139598967fbd3267ecd9fadeb9ad8dce666c966801686bd22ce9bec0",
       "potemp1": "000bacc331c6695e5bfb488cca615a75bd67ee67639d6e47e92cc37db8fd06e3"
     },
-    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+    "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
     "compiler_flags": [
       "-O3",
       "-cpp",
+      "-ffree-line-length-none",
       "-fdefault-real-8",
       "-fdefault-double-8",
       "-fPIC",
@@ -26,7 +27,7 @@
       "profile": "stable",
       "tracer_gate_applied": true,
       "max_tracer_error": 0.0,
-      "max_temperature_error_k": 0.0
+      "max_temperature_error_k": 2.842170943040401e-14
     },
     {
       "layers": 2,
@@ -34,7 +35,7 @@
       "profile": "unstable",
       "tracer_gate_applied": true,
       "max_tracer_error": 0.0,
-      "max_temperature_error_k": 5.684341886080802e-14
+      "max_temperature_error_k": 2.842170943040401e-14
     },
     {
       "layers": 2,
@@ -49,8 +50,8 @@
       "top_pressure_pa": 0.0,
       "profile": "neutral",
       "tracer_gate_applied": false,
-      "max_tracer_error": 8.470329472543003e-22,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_tracer_error": 1.6940658945086007e-21,
+      "max_temperature_error_k": 5.684341886080802e-14
     },
     {
       "layers": 2,
@@ -65,7 +66,7 @@
       "top_pressure_pa": 0.0,
       "profile": "neutral-unstable-side",
       "tracer_gate_applied": true,
-      "max_tracer_error": 8.470329472543003e-22,
+      "max_tracer_error": 1.6940658945086007e-21,
       "max_temperature_error_k": 5.684341886080802e-14
     },
     {
@@ -113,7 +114,7 @@
       "top_pressure_pa": 0.03,
       "profile": "neutral-unstable-side",
       "tracer_gate_applied": true,
-      "max_tracer_error": 8.470329472543003e-22,
+      "max_tracer_error": 1.2705494208814505e-21,
       "max_temperature_error_k": 0.0
     },
     {
@@ -138,15 +139,15 @@
       "profile": "mixed",
       "tracer_gate_applied": true,
       "max_tracer_error": 1.6940658945086007e-21,
-      "max_temperature_error_k": 0.0
+      "max_temperature_error_k": 5.684341886080802e-14
     },
     {
       "layers": 4,
       "top_pressure_pa": 0.0,
       "profile": "neutral",
       "tracer_gate_applied": false,
-      "max_tracer_error": 4.6049743136878215e-06,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_tracer_error": 1.6940658945086007e-21,
+      "max_temperature_error_k": 0.0
     },
     {
       "layers": 4,
@@ -161,8 +162,8 @@
       "top_pressure_pa": 0.0,
       "profile": "neutral-unstable-side",
       "tracer_gate_applied": true,
-      "max_tracer_error": 1.6940658945086007e-21,
-      "max_temperature_error_k": 0.0
+      "max_tracer_error": 2.541098841762901e-21,
+      "max_temperature_error_k": 5.684341886080802e-14
     },
     {
       "layers": 4,
@@ -178,7 +179,7 @@
       "profile": "unstable",
       "tracer_gate_applied": true,
       "max_tracer_error": 1.6940658945086007e-21,
-      "max_temperature_error_k": 0.0
+      "max_temperature_error_k": 8.526512829121202e-14
     },
     {
       "layers": 4,
@@ -186,14 +187,14 @@
       "profile": "mixed",
       "tracer_gate_applied": true,
       "max_tracer_error": 8.470329472543003e-22,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_temperature_error_k": 8.526512829121202e-14
     },
     {
       "layers": 4,
       "top_pressure_pa": 0.03,
       "profile": "neutral",
       "tracer_gate_applied": false,
-      "max_tracer_error": 2.637020313156474e-06,
+      "max_tracer_error": 1.6940658945086007e-21,
       "max_temperature_error_k": 2.842170943040401e-14
     },
     {
@@ -210,7 +211,7 @@
       "profile": "neutral-unstable-side",
       "tracer_gate_applied": true,
       "max_tracer_error": 1.6940658945086007e-21,
-      "max_temperature_error_k": 0.0
+      "max_temperature_error_k": 5.684341886080802e-14
     },
     {
       "layers": 12,
@@ -218,7 +219,7 @@
       "profile": "stable",
       "tracer_gate_applied": true,
       "max_tracer_error": 0.0,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_temperature_error_k": 5.684341886080802e-14
     },
     {
       "layers": 12,
@@ -226,23 +227,23 @@
       "profile": "unstable",
       "tracer_gate_applied": true,
       "max_tracer_error": 5.929230630780102e-21,
-      "max_temperature_error_k": 0.0
+      "max_temperature_error_k": 5.684341886080802e-14
     },
     {
       "layers": 12,
       "top_pressure_pa": 0.0,
       "profile": "mixed",
       "tracer_gate_applied": true,
-      "max_tracer_error": 5.082197683525802e-21,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_tracer_error": 6.776263578034403e-21,
+      "max_temperature_error_k": 1.1368683772161603e-13
     },
     {
       "layers": 12,
       "top_pressure_pa": 0.0,
       "profile": "neutral",
       "tracer_gate_applied": false,
-      "max_tracer_error": 2.4177847620871863e-06,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_tracer_error": 3.837890316369495e-06,
+      "max_temperature_error_k": 5.684341886080802e-14
     },
     {
       "layers": 12,
@@ -250,7 +251,7 @@
       "profile": "neutral-stable-side",
       "tracer_gate_applied": true,
       "max_tracer_error": 0.0,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_temperature_error_k": 0.0
     },
     {
       "layers": 12,
@@ -258,7 +259,7 @@
       "profile": "neutral-unstable-side",
       "tracer_gate_applied": true,
       "max_tracer_error": 6.776263578034403e-21,
-      "max_temperature_error_k": 0.0
+      "max_temperature_error_k": 2.842170943040401e-14
     },
     {
       "layers": 12,
@@ -273,15 +274,15 @@
       "top_pressure_pa": 0.03,
       "profile": "unstable",
       "tracer_gate_applied": true,
-      "max_tracer_error": 7.623296525288703e-21,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_tracer_error": 8.470329472543003e-21,
+      "max_temperature_error_k": 5.684341886080802e-14
     },
     {
       "layers": 12,
       "top_pressure_pa": 0.03,
       "profile": "mixed",
       "tracer_gate_applied": true,
-      "max_tracer_error": 4.235164736271502e-21,
+      "max_tracer_error": 3.3881317890172014e-21,
       "max_temperature_error_k": 5.684341886080802e-14
     },
     {
@@ -289,8 +290,8 @@
       "top_pressure_pa": 0.03,
       "profile": "neutral",
       "tracer_gate_applied": false,
-      "max_tracer_error": 2.9513983633122285e-06,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_tracer_error": 6.378456862123895e-06,
+      "max_temperature_error_k": 5.684341886080802e-14
     },
     {
       "layers": 12,
@@ -305,8 +306,8 @@
       "top_pressure_pa": 0.03,
       "profile": "neutral-unstable-side",
       "tracer_gate_applied": true,
-      "max_tracer_error": 1.1011428314305904e-20,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_tracer_error": 9.317362419797304e-21,
+      "max_temperature_error_k": 1.1368683772161603e-13
     },
     {
       "layers": 40,
@@ -321,7 +322,7 @@
       "top_pressure_pa": 0.0,
       "profile": "unstable",
       "tracer_gate_applied": true,
-      "max_tracer_error": 2.795208725939191e-20,
+      "max_tracer_error": 2.710505431213761e-20,
       "max_temperature_error_k": 2.842170943040401e-14
     },
     {
@@ -329,7 +330,7 @@
       "top_pressure_pa": 0.0,
       "profile": "mixed",
       "tracer_gate_applied": true,
-      "max_tracer_error": 5.082197683525802e-21,
+      "max_tracer_error": 4.235164736271502e-21,
       "max_temperature_error_k": 1.9895196601282805e-13
     },
     {
@@ -337,8 +338,8 @@
       "top_pressure_pa": 0.0,
       "profile": "neutral",
       "tracer_gate_applied": false,
-      "max_tracer_error": 2.121975502336768e-06,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_tracer_error": 2.4559817895942696e-06,
+      "max_temperature_error_k": 5.684341886080802e-14
     },
     {
       "layers": 40,
@@ -353,7 +354,7 @@
       "top_pressure_pa": 0.0,
       "profile": "neutral-unstable-side",
       "tracer_gate_applied": true,
-      "max_tracer_error": 2.879912020664621e-20,
+      "max_tracer_error": 4.2351647362715017e-20,
       "max_temperature_error_k": 2.842170943040401e-14
     },
     {
@@ -369,7 +370,7 @@
       "top_pressure_pa": 0.03,
       "profile": "unstable",
       "tracer_gate_applied": true,
-      "max_tracer_error": 2.795208725939191e-20,
+      "max_tracer_error": 3.7269449679189215e-20,
       "max_temperature_error_k": 8.526512829121202e-14
     },
     {
@@ -377,7 +378,7 @@
       "top_pressure_pa": 0.03,
       "profile": "mixed",
       "tracer_gate_applied": true,
-      "max_tracer_error": 5.929230630780102e-21,
+      "max_tracer_error": 1.1011428314305904e-20,
       "max_temperature_error_k": 5.684341886080802e-14
     },
     {
@@ -385,7 +386,7 @@
       "top_pressure_pa": 0.03,
       "profile": "neutral",
       "tracer_gate_applied": false,
-      "max_tracer_error": 1.2438145474461727e-06,
+      "max_tracer_error": 1.4496466871405623e-06,
       "max_temperature_error_k": 5.684341886080802e-14
     },
     {
@@ -402,14 +403,14 @@
       "profile": "neutral-unstable-side",
       "tracer_gate_applied": true,
       "max_tracer_error": 2.795208725939191e-20,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_temperature_error_k": 8.526512829121202e-14
     }
   ],
   "strict_full_field_cases": 40,
   "neutral_temperature_wind_cases": 8,
   "sha256": {
     "scripts/validate_legacy_convection.py": "e29a95b58c72c3f8d3683442007a5f72e708c95f2c8567fda656054a61bb5be4",
-    "scripts/native_reference.py": "2e3b0e2f65b685f86fcfdd1b4643b54c5582b81af36a0874a43d9eedc2675d76",
+    "scripts/native_reference.py": "eceabb32987f6cbb84c4ccc5f87a3994e6569c55b41b9fce82192571990755ef",
     "scripts/validate_dry_convection.py": "31f30419734a27eea4fa50e89724f048579a8d6fb0302bab0cd674c302e83315",
     "package/src/framework/physics/legacy_convection.py": "3b5502f055e45cfc2601809aeec5237142427d7b8356058bfc12ddcb89388df3"
   },

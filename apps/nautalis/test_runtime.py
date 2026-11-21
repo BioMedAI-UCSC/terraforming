@@ -114,6 +114,7 @@ class RuntimeTests(unittest.TestCase):
             pod=body['items'][1]['spec']['template']['spec']
             self.assertNotIn('activeDeadlineSeconds',pod)
             self.assertFalse(pod['automountServiceAccountToken'])
+            self.assertEqual(pod['containers'][0]['env'],[{'name':'USER','value':'nautalis'}])
             self.assertNotIn('initContainers',pod)
             self.assertIn('custom_folder',pod['containers'][0]['args'])
             self.assertEqual(body['items'][0]['spec']['accessModes'],['ReadWriteOnce'])

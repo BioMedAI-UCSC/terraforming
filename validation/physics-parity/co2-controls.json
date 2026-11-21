@@ -15,7 +15,7 @@
       "-fPIC",
       "-shared"
     ],
-    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+    "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
     "adaptation": "Unchanged control block; phase output seeds and disabled diagnostic adapters. Suspended-cloud phase kernels are validated separately."
   },
   "cases": [
@@ -40984,10 +40984,10 @@
   ],
   "sha256": {
     "scripts/validate_co2_controls.py": "54a9d80683ff7691d623b73a49f37f862d84d0b0702e71238b65bcfc0166503d",
-    "package/src/framework/physics/column_physics.py": "7d40bac67003cb22d1a9215e37aa50f4e1f80d9b309d8242c7cd680192d8378c",
-    "package/src/framework/physics/dinosaur_physics.py": "634027398cc326da9f412804a785b1b220193e4eaf49752dab533c24338cfa66",
+    "package/src/framework/physics/column_physics.py": "1273fc270fcc1fa0d54e5bd0894c5019f26ecd2cb69149a868251ec5dbc4fb78",
+    "package/src/framework/physics/dinosaur_physics.py": "e736d8ea8e35f735d908f11b56d4ffbdb1769b3e398046cdffa054cc4beb4d44",
     "package/src/framework/physics/co2_condensation.py": "232b5679f26a795c6e09c24aaa302b65bd5489ac4048c1c684a0fc4305756752",
-    "package/src/framework/physics/vertical_grid.py": "6a51bdaa7d68d1e37863bf635bedf793e84bd16ea5decd4aae1ac6a26d8f1fe0",
+    "package/src/framework/physics/vertical_grid.py": "76a6c1d7fb4aa5aff60831de1f96f13bdf75420b242b8f8db10dbbfef04e16e0",
     "package/src/framework/physics/vertical_grid_coefficients.npz": "c9bcbba2ee02c01ec796d4b4b11da58a2325f78e43ba4f6dc6b7cd6a0e07d71d"
   },
   "limits": "Seeded immediate-condensation control block, all three flags and do_qmass surface weights; unchanged initialization depth loops and strict local-domain latitude selection. Dinosaur uses one global domain and bounds the two extra exchange layers at its first layer on coarse grids. Phase kernels, suspended clouds, global projection and derivatives require separate checks."

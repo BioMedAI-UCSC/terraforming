@@ -12,7 +12,7 @@
       "-fPIC",
       "-shared"
     ],
-    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0"
+    "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0"
   },
   "initial_air_temperature_k": 170.0,
   "latitude_cases": 184,
@@ -97,8 +97,8 @@
       "temperature_k": 130.0,
       "isothermal": false,
       "terrain": false,
-      "max_pressure_error_pa": 1.1368683772161603e-13,
-      "max_temperature_error_k": 1.4210854715202004e-14
+      "max_pressure_error_pa": 0.0,
+      "max_temperature_error_k": 0.0
     },
     {
       "layers": 24,
@@ -115,7 +115,7 @@
       "temperature_k": 130.0,
       "isothermal": true,
       "terrain": false,
-      "max_pressure_error_pa": 1.1368683772161603e-13,
+      "max_pressure_error_pa": 0.0,
       "max_temperature_error_k": 0.0
     },
     {
@@ -133,7 +133,7 @@
       "temperature_k": 170.0,
       "isothermal": false,
       "terrain": false,
-      "max_pressure_error_pa": 1.1368683772161603e-13,
+      "max_pressure_error_pa": 0.0,
       "max_temperature_error_k": 2.842170943040401e-14
     },
     {
@@ -142,7 +142,7 @@
       "temperature_k": 170.0,
       "isothermal": false,
       "terrain": true,
-      "max_pressure_error_pa": 4.547473508864641e-12,
+      "max_pressure_error_pa": 4.092726157978177e-12,
       "max_temperature_error_k": 2.842170943040401e-14
     },
     {
@@ -151,7 +151,7 @@
       "temperature_k": 170.0,
       "isothermal": true,
       "terrain": false,
-      "max_pressure_error_pa": 1.1368683772161603e-13,
+      "max_pressure_error_pa": 0.0,
       "max_temperature_error_k": 0.0
     },
     {
@@ -160,7 +160,7 @@
       "temperature_k": 170.0,
       "isothermal": true,
       "terrain": true,
-      "max_pressure_error_pa": 4.547473508864641e-12,
+      "max_pressure_error_pa": 4.092726157978177e-12,
       "max_temperature_error_k": 0.0
     },
     {
@@ -169,7 +169,7 @@
       "temperature_k": 250.0,
       "isothermal": false,
       "terrain": false,
-      "max_pressure_error_pa": 1.1368683772161603e-13,
+      "max_pressure_error_pa": 0.0,
       "max_temperature_error_k": 2.842170943040401e-14
     },
     {
@@ -187,7 +187,7 @@
       "temperature_k": 250.0,
       "isothermal": true,
       "terrain": false,
-      "max_pressure_error_pa": 1.1368683772161603e-13,
+      "max_pressure_error_pa": 0.0,
       "max_temperature_error_k": 0.0
     },
     {
@@ -214,7 +214,7 @@
       "temperature_k": 130.0,
       "isothermal": false,
       "terrain": true,
-      "max_pressure_error_pa": 3.865352482534945e-12,
+      "max_pressure_error_pa": 4.092726157978177e-12,
       "max_temperature_error_k": 2.842170943040401e-14
     },
     {
@@ -232,7 +232,7 @@
       "temperature_k": 130.0,
       "isothermal": true,
       "terrain": true,
-      "max_pressure_error_pa": 3.865352482534945e-12,
+      "max_pressure_error_pa": 4.092726157978177e-12,
       "max_temperature_error_k": 0.0
     },
     {
@@ -250,7 +250,7 @@
       "temperature_k": 170.0,
       "isothermal": false,
       "terrain": true,
-      "max_pressure_error_pa": 5.4569682106375694e-12,
+      "max_pressure_error_pa": 5.229594535194337e-12,
       "max_temperature_error_k": 2.842170943040401e-14
     },
     {
@@ -268,7 +268,7 @@
       "temperature_k": 170.0,
       "isothermal": true,
       "terrain": true,
-      "max_pressure_error_pa": 5.4569682106375694e-12,
+      "max_pressure_error_pa": 5.229594535194337e-12,
       "max_temperature_error_k": 0.0
     },
     {
@@ -277,7 +277,7 @@
       "temperature_k": 250.0,
       "isothermal": false,
       "terrain": false,
-      "max_pressure_error_pa": 0.0,
+      "max_pressure_error_pa": 1.1368683772161603e-13,
       "max_temperature_error_k": 2.842170943040401e-14
     },
     {
@@ -295,7 +295,7 @@
       "temperature_k": 250.0,
       "isothermal": true,
       "terrain": false,
-      "max_pressure_error_pa": 0.0,
+      "max_pressure_error_pa": 1.1368683772161603e-13,
       "max_temperature_error_k": 0.0
     },
     {
@@ -322,7 +322,7 @@
       "temperature_k": 130.0,
       "isothermal": false,
       "terrain": true,
-      "max_pressure_error_pa": 2.764863893389702e-10,
+      "max_pressure_error_pa": 2.6193447411060333e-10,
       "max_temperature_error_k": 5.684341886080802e-14
     },
     {
@@ -340,7 +340,7 @@
       "temperature_k": 130.0,
       "isothermal": true,
       "terrain": true,
-      "max_pressure_error_pa": 2.764863893389702e-10,
+      "max_pressure_error_pa": 2.6193447411060333e-10,
       "max_temperature_error_k": 0.0
     },
     {
@@ -358,7 +358,7 @@
       "temperature_k": 170.0,
       "isothermal": false,
       "terrain": true,
-      "max_pressure_error_pa": 3.7834979593753815e-10,
+      "max_pressure_error_pa": 3.4924596548080444e-10,
       "max_temperature_error_k": 5.684341886080802e-14
     },
     {
@@ -376,7 +376,7 @@
       "temperature_k": 170.0,
       "isothermal": true,
       "terrain": true,
-      "max_pressure_error_pa": 3.7834979593753815e-10,
+      "max_pressure_error_pa": 3.4924596548080444e-10,
       "max_temperature_error_k": 0.0
     },
     {
@@ -385,7 +385,7 @@
       "temperature_k": 250.0,
       "isothermal": false,
       "terrain": false,
-      "max_pressure_error_pa": 0.0,
+      "max_pressure_error_pa": 1.4551915228366852e-11,
       "max_temperature_error_k": 2.842170943040401e-14
     },
     {
@@ -394,7 +394,7 @@
       "temperature_k": 250.0,
       "isothermal": false,
       "terrain": true,
-      "max_pressure_error_pa": 1.8917489796876907e-10,
+      "max_pressure_error_pa": 2.0372681319713593e-10,
       "max_temperature_error_k": 2.842170943040401e-14
     },
     {
@@ -403,7 +403,7 @@
       "temperature_k": 250.0,
       "isothermal": true,
       "terrain": false,
-      "max_pressure_error_pa": 0.0,
+      "max_pressure_error_pa": 1.4551915228366852e-11,
       "max_temperature_error_k": 0.0
     },
     {
@@ -412,7 +412,7 @@
       "temperature_k": 250.0,
       "isothermal": true,
       "terrain": true,
-      "max_pressure_error_pa": 1.8917489796876907e-10,
+      "max_pressure_error_pa": 2.0372681319713593e-10,
       "max_temperature_error_k": 0.0
     },
     {
@@ -466,8 +466,8 @@
       "temperature_k": 170.0,
       "isothermal": false,
       "terrain": true,
-      "max_pressure_error_pa": 2.0463630789890885e-12,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_pressure_error_pa": 2.2737367544323206e-12,
+      "max_temperature_error_k": 5.684341886080802e-14
     },
     {
       "layers": 56,
@@ -484,7 +484,7 @@
       "temperature_k": 170.0,
       "isothermal": true,
       "terrain": true,
-      "max_pressure_error_pa": 2.0463630789890885e-12,
+      "max_pressure_error_pa": 2.2737367544323206e-12,
       "max_temperature_error_k": 0.0
     },
     {
@@ -503,7 +503,7 @@
       "isothermal": false,
       "terrain": true,
       "max_pressure_error_pa": 2.2737367544323206e-13,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_temperature_error_k": 5.684341886080802e-14
     },
     {
       "layers": 56,
@@ -602,7 +602,7 @@
       "isothermal": false,
       "terrain": false,
       "max_pressure_error_pa": 0.0,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_temperature_error_k": 5.684341886080802e-14
     },
     {
       "layers": 56,
@@ -718,8 +718,8 @@
       "temperature_k": 250.0,
       "isothermal": false,
       "terrain": true,
-      "max_pressure_error_pa": 1.4551915228366852e-11,
-      "max_temperature_error_k": 5.684341886080802e-14
+      "max_pressure_error_pa": 2.9103830456733704e-11,
+      "max_temperature_error_k": 2.842170943040401e-14
     },
     {
       "layers": 56,
@@ -736,7 +736,7 @@
       "temperature_k": 250.0,
       "isothermal": true,
       "terrain": true,
-      "max_pressure_error_pa": 1.4551915228366852e-11,
+      "max_pressure_error_pa": 2.9103830456733704e-11,
       "max_temperature_error_k": 0.0
     }
   ],
@@ -762,8 +762,8 @@
   "max_surface_error_k": 2.842170943040401e-14,
   "sha256": {
     "scripts/validate_initial_conditions.py": "2ff7a0f22a5ae9c18ea48ed37258ec1c3130eeaa4fcc0e277996f086d4031e68",
-    "scripts/run_gcm3d_ablation.py": "ebffc7e6ef5e9f60d62d01dcbeeff3a6877572b00131658b34bcc2c698ff7fcd",
-    "package/src/celestials/planets/mars/maps.py": "1ebb0dff9d1197d462e6d34ba88927b13aa8c72dc5ffe2940a8d97f2a2d9c34e",
+    "scripts/run_gcm3d_ablation.py": "7dc42106656db37b72037a1c2a33b66fd451549f32af7f8db0730dd70ed0f3b7",
+    "package/src/celestials/planets/mars/maps.py": "f0e65e1c1387c2245dccc6186365f28cada141dbf7d3264a86796fd1cdb974b9",
     "package/src/framework/physics/hydrostatic_initialization.py": "b65d7d8d23bb608c781e323f15ba3f5218220762a1f97587da9253a7074e8310"
   },
   "limits": "Unchanged surface and atmospheric cold-start blocks, including log-weighted pressure correction and optional frost-limited temperature profile. The surface extra-node defect is audited, not copied into active physics. Dinosaur projects log pressure to its spectral space and evaluates the non-isothermal profile on sigma interfaces."

@@ -1312,7 +1312,7 @@ def test_nonlte_callback_keeps_interface_fluxes_and_reports_heating_separately()
     np.testing.assert_allclose(corrected.nonlte_heating_k_s,expected,rtol=2e-11,atol=2e-14)
 
 
-def scheduled_backend(amplitude=1.):
+def scheduled_backend(amplitude=1.,interval=24.,dt=6.):
     from src.framework.gcm.coordinates import coordinate_system
     from src.framework.gcm.specs import physics_specs
     from src.framework.gcm._dinosaur import scales
@@ -1320,7 +1320,7 @@ def scheduled_backend(amplitude=1.):
     from src.celestials.planets.mars.reference_constants import reference_radiative_forcing
     coords=coordinate_system('T21',4);specs=physics_specs(BODY);grid=coords.horizontal
     state,_,_=backend_case(temperature_k=180.,surface_temperature_k=180.)
-    state=initial_state(state.dynamics,coords,specs,180.,radiation_update_seconds=24.)
+    state=initial_state(state.dynamics,coords,specs,180.,radiation_update_seconds=interval)
     time_scale=float(specs.dimensionalize(1.,scales.units.second).magnitude)
     pressure_scale=float(specs.dimensionalize(1.,scales.units.pascal).magnitude)
     def radiation(state,*args):
@@ -1332,14 +1332,14 @@ def scheduled_backend(amplitude=1.):
         return RadiativeFluxDiagnostics(interfaces,interfaces,interfaces,interfaces,
             capacity*seconds*1e-6*amplitude,surface,surface,
             stratosphere_flux_convergence_w_m2=100.*amplitude)
-    step=build_step(coords,specs,BODY,reference_radiative_forcing(),6.,radiation_component=radiation,
-        radiation_update_seconds=24.,soil_diffusivity=(250./(1500.*627.9))**2)
+    step=build_step(coords,specs,BODY,reference_radiative_forcing(),dt,radiation_component=radiation,
+        radiation_update_seconds=interval,soil_diffusivity=(250./(1500.*627.9))**2)
     return state,step,coords,specs
 
 
 def test_radiation_schedule_holds_kelvin_rate_and_stratosphere_until_source_clock_refresh(tmp_path):
     from src.framework.gcm.restart import save_restart,load_restart
-    state,step,_,_=scheduled_backend()
+    state,step,coords,specs=scheduled_backend()
     step=jax.jit(step)
     for count,expected in enumerate((0.,0.,0.,0.,24.),1):
         state=step(state)
@@ -1355,6 +1355,20 @@ def test_radiation_schedule_holds_kelvin_rate_and_stratosphere_until_source_cloc
             restored=load_restart(path)
             for a,b in zip(jax.tree_util.tree_leaves(step(state)),jax.tree_util.tree_leaves(step(restored)),strict=True):
                 np.testing.assert_array_equal(a,b)
+
+    from src.framework.gcm._dinosaur import scales
+    unit=float(specs.dimensionalize(1.,scales.units.second).magnitude)
+    cached=1.234e-6
+    fields={**state.auxiliary_fields,'radiation_heating_k_s':jnp.full_like(state.auxiliary_fields['radiation_heating_k_s'],cached)}
+    state=state._replace(dynamics=dataclasses.replace(state.dynamics,sim_time=(BODY.solar_day_seconds-12.)/unit),
+        auxiliary_fields=fields)
+    for expected in (cached,cached,BODY.solar_day_seconds*1e-6):
+        state=step(state)
+        np.testing.assert_allclose(state.auxiliary_fields['radiation_heating_k_s'],expected,rtol=2e-13)
+    with pytest.raises(ValueError,match='divide the model day'):
+        scheduled_backend(interval=30.)
+    with pytest.raises(ValueError,match='whole seconds'):
+        scheduled_backend(dt=1.5)
 
 
 def test_held_radiation_retains_multistep_reverse_derivative():

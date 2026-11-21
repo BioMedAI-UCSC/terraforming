@@ -1,6 +1,6 @@
 # Ames physics on Dinosaur
 
-Work branch: `feat/ames-physics-parity`, from `experimenal` at `9013f42`.
+Original work branch: `feat/ames-physics-parity`, from `experimenal` at `9013f42`.
 Reference: NASA Ames GCM v3.2.1, commit
 `ba47cada5f9eb89c75c4f10d06dbae6e7f9ecb26`.
 
@@ -9,6 +9,13 @@ physical equations, process switches and boundary conditions. Adapt array
 layout and integration interfaces as needed for Dinosaur. Kernel agreement,
 global climate agreement, gradient accuracy and speed are separate checks.
 No complete-model equivalence or speed claim has passed yet.
+
+The 48 archived reports were regenerated on Ubuntu 24.04 with gfortran 13
+from physics revision `71be0ef`. All cases passed in the
+[Linux parity run](https://github.com/BioMedAI-UCSC/terraforming/actions/runs/44873833106).
+All 285 repository and asset file hash checks match the implementation.
+The validators also verify the pinned native bodies and compiled adapters.
+Full-model transport, restart and climate checks have separate evidence.
 
 ## Verified ports
 
@@ -23,7 +30,7 @@ No complete-model equivalence or speed claim has passed yet.
 | PBL surface exchange | `boundary_layer.surface_exchange` | Compiled original `bndcond`, stable/unstable/zero-wind cases | Used by the new column driver |
 | PBL turbulent mixing | `boundary_layer.eddy_coefficients` | Compiled original `eddycoef`, 4/12/40 layers | Used by the new column driver |
 | PBL gas-column driver | `boundary_layer.column_step` | Compiled original `pbl_driver`, `newpbl`, matrix, scaling and solve routines; 18 column cases with both heat-flux choices, both heat derivatives and exchange coefficients; temperature errors below 1e-13 K | Connected to soil/frost and Dinosaur; optional solved-temperature heat flux, restart and three-step gradient checks pass. Gas species mix separately from cloud and moment particle tracers |
-| Radiation pressure-table staging | `stage_co2_radiation_tables.ames_pressure_interpolation` | Original `laginterp` and `lagrange`; all ten gas mixtures match exactly in the recorded run | Enabled in the existing correlated-k kernel |
+| Radiation pressure-table staging | `stage_co2_radiation_tables.ames_pressure_interpolation` | Original `laginterp` and `lagrange`; all ten gas mixtures checked against the original routines | Enabled in the existing correlated-k kernel |
 | Radiation table lookup | `correlated_k._interp2_log_table` and `_interp_linear_k` | Original `tpindex15`/`boxinterp` at 100 points; original `tpindex` and unchanged linear-k blocks at 210 mixed-water/extrapolation points | Default log-k lookup and optional `--linear-k-interpolation` |
 | Two-stream flux kernels | `scattering_transfer.visible_fluxes` and `infrared_fluxes` | Original `gfluxv`, `gfluxi`, `dsolver`, `dtridgl`; 1/4/12/40-layer thin/moderate/thick columns | Visible keeps the original solve. IR solves the same hemispheric equations with stable layer adding; the composed check uses unchanged Fortran routines at binary128 without relaxing flux tolerances |
 | Radiation pressure/temperature grid | `radiation_grid.radiation_grid` | Original `fillpt`; all output arrays agree exactly in the recorded 1/4/12/40-layer cases, with positive and zero top pressure | The reference callback uses a positive radiation-only top; the kernel still checks the zero-top limit |

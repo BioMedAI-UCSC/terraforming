@@ -8,10 +8,11 @@
       "sol88": "ae6897ebc5680bafa7ec8fc697c1e55af36af3b4c185e36b49e25b7c66b4546b",
       "zenith": "c8e806d1ceb9b5cb302baff5414f774c4ad9876b4fbd197ef90408f008ee71cc"
     },
-    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+    "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
     "compiler_flags": [
       "-O3",
       "-cpp",
+      "-ffree-line-length-none",
       "-fdefault-real-8",
       "-fdefault-double-8",
       "-fPIC",
@@ -31,10 +32,11 @@
     "routine_sha256": {
       "normalization": "93e6173f1b38a597657ca51d21ec457528ee7bb5c994581dc6fe4302261176fc"
     },
-    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+    "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
     "compiler_flags": [
       "-O3",
       "-cpp",
+      "-ffree-line-length-none",
       "-fdefault-real-8",
       "-fdefault-double-8",
       "-fPIC",
@@ -45,7 +47,7 @@
     "block_sha256": "81b3e5fc81eb841d26d6ac5312f9f7c8beeacc9f2146eca1b1b8ad05c4c42c6a"
   },
   "normalization_cases": 148,
-  "max_normalization_error_w_m2": 5.684341886080801e-13,
+  "max_normalization_error_w_m2": 4.547473508864641e-13,
   "max_orbit_error": 7.840215437089414e-15,
   "geometry_cases": [
     {
@@ -80,7 +82,7 @@
         0.0,
         0.0,
         0.0,
-        1.1102230246251565e-16,
+        0.0,
         0.0
       ]
     },
@@ -88,18 +90,6 @@
       "declination": 0.0,
       "day_fraction": 0.25,
       "half_angle": 0.01,
-      "max_errors": [
-        0.0,
-        0.0,
-        0.0,
-        1.1102230246251565e-16,
-        0.0
-      ]
-    },
-    {
-      "declination": 0.0,
-      "day_fraction": 0.25,
-      "half_angle": 0.3,
       "max_errors": [
         0.0,
         0.0,
@@ -111,6 +101,18 @@
     {
       "declination": 0.0,
       "day_fraction": 0.25,
+      "half_angle": 0.3,
+      "max_errors": [
+        0.0,
+        0.0,
+        0.0,
+        1.1102230246251565e-16,
+        0.0
+      ]
+    },
+    {
+      "declination": 0.0,
+      "day_fraction": 0.25,
       "half_angle": 2.0,
       "max_errors": [
         0.0,
@@ -152,7 +154,7 @@
         0.0,
         0.0,
         0.0,
-        5.551115123125783e-17,
+        0.0,
         0.0
       ]
     },
@@ -162,10 +164,10 @@
       "half_angle": 0.01,
       "max_errors": [
         2.220446049250313e-16,
-        2.220446049250313e-16,
+        0.0,
         1.1102230246251565e-16,
         2.220446049250313e-16,
-        1.1102230246251565e-14
+        0.0
       ]
     },
     {
@@ -174,9 +176,9 @@
       "half_angle": 0.3,
       "max_errors": [
         2.220446049250313e-16,
-        2.220446049250313e-16,
+        0.0,
         1.1102230246251565e-16,
-        1.942890293094024e-16,
+        2.220446049250313e-16,
         4.440892098500626e-16
       ]
     },
@@ -186,10 +188,10 @@
       "half_angle": 2.0,
       "max_errors": [
         2.220446049250313e-16,
-        2.220446049250313e-16,
+        0.0,
         1.1102230246251565e-16,
-        4.440892098500626e-16,
-        2.7755575615628914e-16
+        1.6653345369377348e-16,
+        1.1102230246251565e-16
       ]
     },
     {
@@ -198,10 +200,10 @@
       "half_angle": 0.01,
       "max_errors": [
         2.220446049250313e-16,
+        0.0,
+        1.1102230246251565e-16,
         2.220446049250313e-16,
-        1.1102230246251565e-16,
-        1.1102230246251565e-16,
-        1.1102230246251565e-14
+        0.0
       ]
     },
     {
@@ -210,7 +212,7 @@
       "half_angle": 0.3,
       "max_errors": [
         2.220446049250313e-16,
-        2.220446049250313e-16,
+        0.0,
         1.1102230246251565e-16,
         2.220446049250313e-16,
         4.440892098500626e-16
@@ -222,10 +224,10 @@
       "half_angle": 2.0,
       "max_errors": [
         2.220446049250313e-16,
-        2.220446049250313e-16,
+        0.0,
         1.1102230246251565e-16,
-        4.440892098500626e-16,
-        2.7755575615628914e-16
+        1.6653345369377348e-16,
+        1.1102230246251565e-16
       ]
     },
     {
@@ -234,9 +236,9 @@
       "half_angle": 0.01,
       "max_errors": [
         2.220446049250313e-16,
+        0.0,
+        1.1102230246251565e-16,
         2.220446049250313e-16,
-        1.1102230246251565e-16,
-        1.1102230246251565e-16,
         0.0
       ]
     },
@@ -246,7 +248,7 @@
       "half_angle": 0.3,
       "max_errors": [
         2.220446049250313e-16,
-        2.220446049250313e-16,
+        0.0,
         1.1102230246251565e-16,
         2.220446049250313e-16,
         4.440892098500626e-16
@@ -258,10 +260,10 @@
       "half_angle": 2.0,
       "max_errors": [
         2.220446049250313e-16,
-        2.220446049250313e-16,
+        0.0,
         1.1102230246251565e-16,
-        4.440892098500626e-16,
-        2.7755575615628914e-16
+        2.220446049250313e-16,
+        1.1102230246251565e-16
       ]
     },
     {
@@ -269,8 +271,8 @@
       "day_fraction": 0.0,
       "half_angle": 0.01,
       "max_errors": [
-        2.220446049250313e-16,
-        1.1102230246251565e-16,
+        0.0,
+        0.0,
         1.1102230246251565e-16,
         1.1102230246251565e-16,
         0.0
@@ -281,11 +283,11 @@
       "day_fraction": 0.0,
       "half_angle": 0.3,
       "max_errors": [
-        2.220446049250313e-16,
+        0.0,
+        0.0,
         1.1102230246251565e-16,
-        1.1102230246251565e-16,
         2.220446049250313e-16,
-        4.440892098500626e-16
+        0.0
       ]
     },
     {
@@ -293,11 +295,11 @@
       "day_fraction": 0.0,
       "half_angle": 2.0,
       "max_errors": [
-        2.220446049250313e-16,
+        0.0,
+        0.0,
         1.1102230246251565e-16,
-        1.1102230246251565e-16,
-        3.885780586188048e-16,
-        2.7755575615628914e-16
+        0.0,
+        0.0
       ]
     },
     {
@@ -305,10 +307,10 @@
       "day_fraction": 0.25,
       "half_angle": 0.01,
       "max_errors": [
+        0.0,
+        0.0,
+        1.1102230246251565e-16,
         2.220446049250313e-16,
-        1.1102230246251565e-16,
-        1.1102230246251565e-16,
-        1.1102230246251565e-16,
         0.0
       ]
     },
@@ -317,11 +319,11 @@
       "day_fraction": 0.25,
       "half_angle": 0.3,
       "max_errors": [
+        0.0,
+        0.0,
+        1.1102230246251565e-16,
         2.220446049250313e-16,
-        1.1102230246251565e-16,
-        1.1102230246251565e-16,
-        1.942890293094024e-16,
-        4.440892098500626e-16
+        0.0
       ]
     },
     {
@@ -329,11 +331,11 @@
       "day_fraction": 0.25,
       "half_angle": 2.0,
       "max_errors": [
-        2.220446049250313e-16,
+        0.0,
+        0.0,
         1.1102230246251565e-16,
-        1.1102230246251565e-16,
-        3.3306690738754696e-16,
-        2.7755575615628914e-16
+        0.0,
+        0.0
       ]
     },
     {
@@ -341,11 +343,11 @@
       "day_fraction": 0.55,
       "half_angle": 0.01,
       "max_errors": [
-        2.220446049250313e-16,
+        0.0,
+        0.0,
         1.1102230246251565e-16,
-        1.1102230246251565e-16,
         2.220446049250313e-16,
-        1.1102230246251565e-14
+        0.0
       ]
     },
     {
@@ -353,11 +355,11 @@
       "day_fraction": 0.55,
       "half_angle": 0.3,
       "max_errors": [
+        0.0,
+        0.0,
+        1.1102230246251565e-16,
         2.220446049250313e-16,
-        1.1102230246251565e-16,
-        1.1102230246251565e-16,
-        1.942890293094024e-16,
-        4.440892098500626e-16
+        0.0
       ]
     },
     {
@@ -365,11 +367,11 @@
       "day_fraction": 0.55,
       "half_angle": 2.0,
       "max_errors": [
-        2.220446049250313e-16,
+        0.0,
+        0.0,
         1.1102230246251565e-16,
-        1.1102230246251565e-16,
-        3.3306690738754696e-16,
-        2.7755575615628914e-16
+        0.0,
+        0.0
       ]
     }
   ],
@@ -401,13 +403,13 @@
     {
       "elapsed_sols": 0.0,
       "fixed_date": 667,
-      "max_clock_orbit_error": 1.133107779529596e-15,
+      "max_clock_orbit_error": 2.4492935982947064e-16,
       "solar_error_w_m2": 2.2737367544323206e-13
     },
     {
       "elapsed_sols": 0.0,
       "fixed_date": 999,
-      "max_clock_orbit_error": 2.9094646189298464e-15,
+      "max_clock_orbit_error": 1.133107779529596e-15,
       "solar_error_w_m2": 2.2737367544323206e-13
     },
     {
@@ -425,7 +427,7 @@
     {
       "elapsed_sols": 0.371,
       "fixed_date": 100,
-      "max_clock_orbit_error": 1.133107779529596e-15,
+      "max_clock_orbit_error": 2.4492935982947064e-16,
       "solar_error_w_m2": 0.0
     },
     {
@@ -437,7 +439,7 @@
     {
       "elapsed_sols": 0.371,
       "fixed_date": 667,
-      "max_clock_orbit_error": 2.8362728832220796e-16,
+      "max_clock_orbit_error": 2.4492935982947064e-16,
       "solar_error_w_m2": 2.2737367544323206e-13
     },
     {
@@ -509,13 +511,13 @@
     {
       "elapsed_sols": 1.0,
       "fixed_date": 667,
-      "max_clock_orbit_error": 1.133107779529596e-15,
+      "max_clock_orbit_error": 2.4492935982947064e-16,
       "solar_error_w_m2": 2.2737367544323206e-13
     },
     {
       "elapsed_sols": 1.0,
       "fixed_date": 999,
-      "max_clock_orbit_error": 2.9094646189298464e-15,
+      "max_clock_orbit_error": 1.133107779529596e-15,
       "solar_error_w_m2": 2.2737367544323206e-13
     },
     {
@@ -533,7 +535,7 @@
     {
       "elapsed_sols": 3.371,
       "fixed_date": 100,
-      "max_clock_orbit_error": 1.133107779529596e-15,
+      "max_clock_orbit_error": 2.4492935982947064e-16,
       "solar_error_w_m2": 0.0
     },
     {
@@ -545,7 +547,7 @@
     {
       "elapsed_sols": 3.371,
       "fixed_date": 667,
-      "max_clock_orbit_error": 2.8362728832220796e-16,
+      "max_clock_orbit_error": 2.4492935982947064e-16,
       "solar_error_w_m2": 2.2737367544323206e-13
     },
     {
@@ -623,7 +625,7 @@
     {
       "elapsed_sols": 1336.5,
       "fixed_date": 999,
-      "max_clock_orbit_error": 4.996003610813204e-16,
+      "max_clock_orbit_error": 2.7755575615628914e-16,
       "solar_error_w_m2": 2.2737367544323206e-13
     }
   ],
@@ -631,7 +633,7 @@
     "scripts/validate_solar_geometry.py": "bac9f4749f4da5229b2539e71122de10853f140f4afbc47a4276515beb1fd875",
     "package/src/framework/physics/solar_geometry.py": "40ba8eb1d68b516ad435672e1654a410cb408329932b53feccbb4fa93140c029",
     "package/src/celestials/planets/mars/reference_constants.py": "3823b68ef06e3b7abcba4db1ed9a73b209cce87bedbd125dc64fd765a314d710",
-    "package/src/framework/physics/gcm.py": "6a9835598043087bf58f45e2bb4d4a9ffba084b1df86e96b5661c00a73eee690"
+    "package/src/framework/physics/gcm.py": "c517d00f8ae20c3012b084c3a18cf26c3c7124b2099b6e2298d6b276d41b56ef"
   },
   "limits": "Periodic orbit, fixed/evolving driver calendar, sol88/zenith and unchanged scale_by_scon block. Calendar uses source reference orbital constants; held radiation and long climate validation are separate."
 }

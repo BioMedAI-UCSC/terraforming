@@ -30,6 +30,8 @@ def manifests(args):
             'fsGroupChangePolicy':'OnRootMismatch','seccompProfile':{'type':'RuntimeDefault'}},
         'affinity':{'nodeAffinity':{'requiredDuringSchedulingIgnoredDuringExecution':{'nodeSelectorTerms':[{'matchExpressions':affinity}]}}},
         'containers':[{'name':'experiment','image':args.image,'imagePullPolicy':'IfNotPresent','args':invocation,
+            # Numeric UIDs need a name for Python/Torch cache paths.
+            'env':[{'name':'USER','value':'nautalis'}],
             'resources':{'requests':requests,'limits':limits},
             'securityContext':{'allowPrivilegeEscalation':False,'readOnlyRootFilesystem':True,'capabilities':{'drop':['ALL']}},
             'volumeMounts':[{'name':'work','mountPath':'/work'},{'name':'tmp','mountPath':'/tmp'},{'name':'shm','mountPath':'/dev/shm'}]}],

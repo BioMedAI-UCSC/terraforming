@@ -35,7 +35,7 @@
     "aerosol_mode_guard_sha256": "3fbb0171ae057f5d64576ed6a330a9abae137e57a01c8bb6c33c8df7c5ce74ed",
     "dust_lifting_guard_sha256": "82ba3d433748fa636d4e2f5aae6800d824ec6521d433169444d3efa56d007660",
     "shortwave_ramp_block_sha256": "387dbc34d7638caaa138a2443283f992f005ac0e8e6faf1ce29d07396df91e66",
-    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0"
+    "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0"
   },
   "cases": [
     {
@@ -1929,16 +1929,16 @@
   },
   "sha256": {
     "scripts/validate_release_interfaces.py": "d011d879dfd1306d163256c9bced66204e7b17eeff3c9a898aa7e93fd9e8da5d",
-    "scripts/native_reference.py": "2e3b0e2f65b685f86fcfdd1b4643b54c5582b81af36a0874a43d9eedc2675d76",
-    "package/src/framework/physics/radiative_transfer.py": "13110b90de754991c4a6673040ffc52b9a15409ce1d6087b67ce9be017872891",
-    "package/src/framework/physics/dinosaur_physics.py": "634027398cc326da9f412804a785b1b220193e4eaf49752dab533c24338cfa66",
-    "package/src/framework/physics/gcm.py": "6a9835598043087bf58f45e2bb4d4a9ffba084b1df86e96b5661c00a73eee690",
-    "package/src/framework/physics/prescribed_dust.py": "1ec309decbafffc5fdc1f0fd2c7e7acd9c9f4cae1e6289237ef9e0e5232196dc",
+    "scripts/native_reference.py": "eceabb32987f6cbb84c4ccc5f87a3994e6569c55b41b9fce82192571990755ef",
+    "package/src/framework/physics/radiative_transfer.py": "04ecff1b231b64e2d27bae15999994ef12e01d27ebd53c717f1ea6116bc72077",
+    "package/src/framework/physics/dinosaur_physics.py": "e736d8ea8e35f735d908f11b56d4ffbdb1769b3e398046cdffa054cc4beb4d44",
+    "package/src/framework/physics/gcm.py": "c517d00f8ae20c3012b084c3a18cf26c3c7124b2099b6e2298d6b276d41b56ef",
+    "package/src/framework/physics/prescribed_dust.py": "3989a164fdfe259be9f1663d41873042ee0cbbab8aae4bae895b4bb2e55bbc0d",
     "package/src/framework/physics/simple_radiation.py": "d34833bafeb3c2dc78772b104f95bd6ac34a011ee91856ed2f9cf142104f9532",
-    "package/src/framework/physics/soil_frost.py": "056fc923b24e4597099c8b27801a0d549f3428e513552a8be8d6c171a3fea8e3",
+    "package/src/framework/physics/soil_frost.py": "9ec7f8c73ac5a7b973dd5708251ad98080650f1191c530392fa15a6e2500220e",
     "package/src/celestials/planets/mars/surface.py": "c53ba6bf10d7c0b79654b4b41399ff5076098126765dea1e9f4f19f9a98c4810",
     "package/src/celestials/planets/mars/dust_scenario.py": "668466e8fb1ba6e55f54c5a0b9a46443ac3004f68e87a087bbb4e0069b7d0b3f",
-    "package/src/framework/physics/dust_lifting.py": "c2ff6eae0cdc59fc4c698cf7d9f27c45a194d4de4cda1e464473fea095ed48ac",
+    "package/src/framework/physics/dust_lifting.py": "d18f83515f11dd582a407026383946a08e514bbb16dd50ed579385f3badac56f",
     "package/src/framework/physics/dust_control.py": "bb0749684b3b4078548dff5def298178620f388bf303b1898b20ef95136e3815"
   },
   "limits": "The inventory covers the main driver plus sedimentation, PBL, moment/bulk/CO2-cloud, coagulation and terrain-drag controls. The moment-cloud guard leaves tendency outputs zero and cloud history inactive when cloud formation is disabled. Numerical behavior uses the separate native reports and integration checks. The ten radiation-driver controls and the spectral/simple module controls are inventoried separately. Fixed-date forcing shares the source-checked radiation clock with simple radiation; disabling either native radiation channel leaves local fluxes undefined. Forty unchanged startup-ramp block cases check heating and applied surface flux. Bin-cloud microphysics, photochemistry and legacy binned dust-source equations are not in these released implementations. Tagging imports are excluded by RELEASE. Moment water, bulk water and moment dust have separate real modules and validations. Alternate FV3 turbulence calls require fv3_turb, which the pinned build does not define; this exclusion does not implement or validate those alternate schemes."

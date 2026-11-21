@@ -3,21 +3,22 @@
   "readers": [
     {
       "source_git_blob": "ca0b7c0774b1b23cafaee219062c3bffa3d0c4cc",
-      "compiled_source_sha256": "f09e0bf9c0bd72dcfd550a9f35d5c368c93266ee421b7570b90fa44388950862",
+      "compiled_source_sha256": "3a0158ab03fedfc2b306fac234430e7ee98eac0ba26da5fa81bd232e8209cefd",
       "routine_sha256": {
         "read_teq": "f51133d31004373cd5709cd2779a16e9a730d9940c2c78f5d605c921710102ce",
         "read_teq_z": "feb9e5734192bd74ffcb233a622b7645feffc640a2c5d60e0e877a73547cf12c"
       },
       "weights": {
-        "source_git_blob": "89f1a0b2efb58e77bf47cbc121ae2d382ba32e13",
-        "compiled_source_sha256": "ef2978d32203f06cefb6e9bf5cd875277de2bddab9f401ff0187f9d836ee9d39",
+        "source_git_blob": "f998b823f73ab3f3d5ec662a49c893fc2f67006b",
+        "compiled_source_sha256": "b4d5c825fce36a21f2f34cfb2160055e43203918822c57f0c5ee4b46b3bdecd6",
         "routine_sha256": {
-          "HORIZ_INTERP_BILINEAR_NEW_1D_": "5bbfef7530c80018ff467801829e20a8e0f57e9e3cb64757d59bb55a95168a54"
+          "HORIZ_INTERP_BILINEAR_NEW_1D_": "3ab58f7b9ff3bfd690216ae69387e28ec2d4845f5d573c2e3bf19bffee69efb8"
         },
-        "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+        "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
         "compiler_flags": [
           "-O3",
           "-cpp",
+          "-ffree-line-length-none",
           "-fdefault-real-8",
           "-fdefault-double-8",
           "-fPIC",
@@ -35,26 +36,27 @@
         "-shared"
       ],
       "spectral_core": false,
-      "netcdf_version": "4.6.3",
+      "netcdf_version": "netCDF-Fortran 4.5.4",
       "adaptation": "Unchanged readers use netCDF-Fortran I/O adapters and unchanged FMS bilinear weights; a weighted sum applies those weights. FMS parallel I/O is not linked."
     },
     {
       "source_git_blob": "ca0b7c0774b1b23cafaee219062c3bffa3d0c4cc",
-      "compiled_source_sha256": "7e4f53db05fc93d38bb8cbd0a2030b2d2914dedd913f59ad473a47e4a6fdaff0",
+      "compiled_source_sha256": "76102022dfdfb23d14566f05cb30154e83e2bcd37801e16b09ecdc4a2271cc1e",
       "routine_sha256": {
         "read_teq": "f51133d31004373cd5709cd2779a16e9a730d9940c2c78f5d605c921710102ce",
         "read_teq_z": "feb9e5734192bd74ffcb233a622b7645feffc640a2c5d60e0e877a73547cf12c"
       },
       "weights": {
-        "source_git_blob": "89f1a0b2efb58e77bf47cbc121ae2d382ba32e13",
-        "compiled_source_sha256": "ef2978d32203f06cefb6e9bf5cd875277de2bddab9f401ff0187f9d836ee9d39",
+        "source_git_blob": "f998b823f73ab3f3d5ec662a49c893fc2f67006b",
+        "compiled_source_sha256": "b4d5c825fce36a21f2f34cfb2160055e43203918822c57f0c5ee4b46b3bdecd6",
         "routine_sha256": {
-          "HORIZ_INTERP_BILINEAR_NEW_1D_": "5bbfef7530c80018ff467801829e20a8e0f57e9e3cb64757d59bb55a95168a54"
+          "HORIZ_INTERP_BILINEAR_NEW_1D_": "3ab58f7b9ff3bfd690216ae69387e28ec2d4845f5d573c2e3bf19bffee69efb8"
         },
-        "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+        "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
         "compiler_flags": [
           "-O3",
           "-cpp",
+          "-ffree-line-length-none",
           "-fdefault-real-8",
           "-fdefault-double-8",
           "-fPIC",
@@ -72,7 +74,7 @@
         "-shared"
       ],
       "spectral_core": true,
-      "netcdf_version": "4.6.3",
+      "netcdf_version": "netCDF-Fortran 4.5.4",
       "adaptation": "Unchanged readers use netCDF-Fortran I/O adapters and unchanged FMS bilinear weights; a weighted sum applies those weights. FMS parallel I/O is not linked."
     }
   ],
@@ -84,10 +86,11 @@
       "newtonian_damping_z": "022debd6f5311ded11d56e34b38855262c64b254892a1847eef2edc9a58963a3",
       "newtonian_damping_anal": "0a37fc5c9b6adb18fd6c2543c65930661e7c0712f7b364c928c9523acf4ced36"
     },
-    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+    "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
     "compiler_flags": [
       "-O3",
       "-cpp",
+      "-ffree-line-length-none",
       "-fdefault-real-8",
       "-fdefault-double-8",
       "-fPIC",
@@ -112,7 +115,7 @@
       "spectral_core": false,
       "top_pressure_pa": 0.0,
       "height": false,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_temperature_error_k": 0.0
     },
     {
       "source_levels": 4,
@@ -121,7 +124,7 @@
       "spectral_core": false,
       "top_pressure_pa": 0.0,
       "height": true,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_temperature_error_k": 0.0
     },
     {
       "source_levels": 4,
@@ -130,7 +133,7 @@
       "spectral_core": false,
       "top_pressure_pa": 0.01,
       "height": false,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_temperature_error_k": 0.0
     },
     {
       "source_levels": 4,
@@ -139,7 +142,7 @@
       "spectral_core": false,
       "top_pressure_pa": 0.01,
       "height": true,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_temperature_error_k": 0.0
     },
     {
       "source_levels": 4,
@@ -148,7 +151,7 @@
       "spectral_core": false,
       "top_pressure_pa": 0.0,
       "height": false,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_temperature_error_k": 0.0
     },
     {
       "source_levels": 4,
@@ -157,7 +160,7 @@
       "spectral_core": false,
       "top_pressure_pa": 0.0,
       "height": true,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_temperature_error_k": 0.0
     },
     {
       "source_levels": 4,
@@ -166,7 +169,7 @@
       "spectral_core": false,
       "top_pressure_pa": 0.01,
       "height": false,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_temperature_error_k": 0.0
     },
     {
       "source_levels": 4,
@@ -175,7 +178,7 @@
       "spectral_core": false,
       "top_pressure_pa": 0.01,
       "height": true,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_temperature_error_k": 0.0
     },
     {
       "source_levels": 4,
@@ -184,7 +187,7 @@
       "spectral_core": false,
       "top_pressure_pa": 0.0,
       "height": false,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_temperature_error_k": 5.684341886080802e-14
     },
     {
       "source_levels": 4,
@@ -193,7 +196,7 @@
       "spectral_core": false,
       "top_pressure_pa": 0.01,
       "height": false,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_temperature_error_k": 5.684341886080802e-14
     },
     {
       "source_levels": 4,
@@ -202,7 +205,7 @@
       "spectral_core": false,
       "top_pressure_pa": 0.0,
       "height": false,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_temperature_error_k": 5.684341886080802e-14
     },
     {
       "source_levels": 4,
@@ -211,6 +214,15 @@
       "spectral_core": false,
       "top_pressure_pa": 0.01,
       "height": false,
+      "max_temperature_error_k": 5.684341886080802e-14
+    },
+    {
+      "source_levels": 7,
+      "levels": 4,
+      "time_axis": false,
+      "spectral_core": false,
+      "top_pressure_pa": 0.0,
+      "height": false,
       "max_temperature_error_k": 2.842170943040401e-14
     },
     {
@@ -218,18 +230,9 @@
       "levels": 4,
       "time_axis": false,
       "spectral_core": false,
-      "top_pressure_pa": 0.0,
-      "height": false,
-      "max_temperature_error_k": 5.684341886080802e-14
-    },
-    {
-      "source_levels": 7,
-      "levels": 4,
-      "time_axis": false,
-      "spectral_core": false,
       "top_pressure_pa": 0.01,
       "height": false,
-      "max_temperature_error_k": 5.684341886080802e-14
+      "max_temperature_error_k": 2.842170943040401e-14
     },
     {
       "source_levels": 7,
@@ -238,7 +241,7 @@
       "spectral_core": false,
       "top_pressure_pa": 0.0,
       "height": false,
-      "max_temperature_error_k": 5.684341886080802e-14
+      "max_temperature_error_k": 2.842170943040401e-14
     },
     {
       "source_levels": 7,
@@ -247,7 +250,7 @@
       "spectral_core": false,
       "top_pressure_pa": 0.01,
       "height": false,
-      "max_temperature_error_k": 5.684341886080802e-14
+      "max_temperature_error_k": 2.842170943040401e-14
     },
     {
       "source_levels": 4,
@@ -256,7 +259,7 @@
       "spectral_core": true,
       "top_pressure_pa": 0.0,
       "height": false,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_temperature_error_k": 0.0
     },
     {
       "source_levels": 4,
@@ -265,7 +268,7 @@
       "spectral_core": true,
       "top_pressure_pa": 0.0,
       "height": true,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_temperature_error_k": 0.0
     },
     {
       "source_levels": 4,
@@ -274,7 +277,7 @@
       "spectral_core": true,
       "top_pressure_pa": 0.01,
       "height": false,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_temperature_error_k": 0.0
     },
     {
       "source_levels": 4,
@@ -283,7 +286,7 @@
       "spectral_core": true,
       "top_pressure_pa": 0.01,
       "height": true,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_temperature_error_k": 0.0
     },
     {
       "source_levels": 4,
@@ -292,7 +295,7 @@
       "spectral_core": true,
       "top_pressure_pa": 0.0,
       "height": false,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_temperature_error_k": 0.0
     },
     {
       "source_levels": 4,
@@ -301,7 +304,7 @@
       "spectral_core": true,
       "top_pressure_pa": 0.0,
       "height": true,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_temperature_error_k": 0.0
     },
     {
       "source_levels": 4,
@@ -310,7 +313,7 @@
       "spectral_core": true,
       "top_pressure_pa": 0.01,
       "height": false,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_temperature_error_k": 0.0
     },
     {
       "source_levels": 4,
@@ -319,7 +322,7 @@
       "spectral_core": true,
       "top_pressure_pa": 0.01,
       "height": true,
-      "max_temperature_error_k": 2.842170943040401e-14
+      "max_temperature_error_k": 0.0
     },
     {
       "source_levels": 4,
@@ -396,9 +399,9 @@
   ],
   "sha256": {
     "scripts/validate_equilibrium_profiles.py": "e4840995754c7eaf9bc2237d6f3bf93816356185b5fc69a3a530fac3ed1ef142",
-    "scripts/validate_dust_scenario.py": "d98c5bf181e526065746bc5abab4b274bf37819d7f440decaef03213873d9695",
+    "scripts/validate_dust_scenario.py": "ff4ea4067574c400f7728fb1e7edb2b7628353c2859042d68563a9cdf018ff1b",
     "scripts/validate_thermal_relaxation.py": "0ca1df6b943180e497b9f28e0b7a31f217980ae07604289c7d0a5aa9f187edd2",
-    "scripts/native_reference.py": "2e3b0e2f65b685f86fcfdd1b4643b54c5582b81af36a0874a43d9eedc2675d76",
+    "scripts/native_reference.py": "eceabb32987f6cbb84c4ccc5f87a3994e6569c55b41b9fce82192571990755ef",
     "package/src/framework/physics/thermal_relaxation.py": "ead31b1babaf3e79d850ee9394eba32d343af55b0143ca87c51dbd3c919ec49c",
     "package/src/celestials/planets/mars/dust_scenario.py": "668466e8fb1ba6e55f54c5a0b9a46443ac3004f68e87a087bbb4e0069b7d0b3f"
   },

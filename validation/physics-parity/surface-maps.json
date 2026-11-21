@@ -28,26 +28,26 @@
       ],
       "fields": {
         "thermal_inertia": {
-          "source_area_mean": 201.3973233643164,
-          "remapped_area_mean": 201.39732336431632,
-          "final_min": 40.889286505760154,
-          "final_max": 1137.1507436328804
+          "source_area_mean": 201.39732336431638,
+          "remapped_area_mean": 201.39732336431626,
+          "final_min": 40.889286505760076,
+          "final_max": 1137.1507436328145
         },
         "albedo": {
-          "source_area_mean": 0.20391939843504808,
-          "remapped_area_mean": 0.20391939843504808,
-          "final_min": 0.10047838171846787,
-          "final_max": 0.31973276273133744
+          "source_area_mean": 0.20391939843504822,
+          "remapped_area_mean": 0.20391939843504803,
+          "final_min": 0.10047838171846735,
+          "final_max": 0.3197327627313377
         },
         "emissivity": {
-          "source_area_mean": 0.9750918863765228,
-          "remapped_area_mean": 0.9750918863765241,
-          "final_min": 0.92788871432568,
-          "final_max": 1.0006937295567868
+          "source_area_mean": 0.9750918863765234,
+          "remapped_area_mean": 0.975091886376524,
+          "final_min": 0.9278887143256801,
+          "final_max": 1.000693729556787
         },
         "grs_ice_latitude_deg": {
-          "source_area_mean": -1.4093517504495108,
-          "remapped_area_mean": -1.409351750449542,
+          "source_area_mean": -1.4093517504495263,
+          "remapped_area_mean": -1.4093517504495447,
           "final_min": -57.75138888888887,
           "final_max": 58.59652777777784
         }
@@ -67,31 +67,31 @@
       ],
       "fields": {
         "thermal_inertia": {
-          "source_area_mean": 201.3973233643164,
-          "remapped_area_mean": 201.39732336431632,
-          "final_min": 39.320391927286686,
+          "source_area_mean": 201.39732336431638,
+          "remapped_area_mean": 201.39732336431652,
+          "final_min": 39.32039192728672,
           "final_max": 1150.0000000000002
         },
         "albedo": {
-          "source_area_mean": 0.20391939843504808,
-          "remapped_area_mean": 0.20391939843504803,
+          "source_area_mean": 0.20391939843504822,
+          "remapped_area_mean": 0.2039193984350481,
           "final_min": 0.09597590104938121,
-          "final_max": 0.31999994455441844
+          "final_max": 0.3199999445544184
         },
         "emissivity": {
-          "source_area_mean": 0.9750918863765228,
+          "source_area_mean": 0.9750918863765234,
           "remapped_area_mean": 0.975091886376524,
-          "final_min": 0.9217857508289284,
+          "final_min": 0.9217857508289288,
           "final_max": 1.003644162211463
         },
         "grs_ice_latitude_deg": {
-          "source_area_mean": -1.4093517504495108,
-          "remapped_area_mean": -1.4093517504495345,
+          "source_area_mean": -1.4093517504495263,
+          "remapped_area_mean": -1.4093517504495172,
           "final_min": -57.99861111111114,
-          "final_max": 58.60625000000004
+          "final_max": 58.606250000000045
         }
       },
-      "emissivity_above_one_cells": 32,
+      "emissivity_above_one_cells": 36,
       "soil_diffusivity_shape": [
         15,
         128,
@@ -1172,7 +1172,7 @@
   "sha256": {
     "scripts/validate_surface_maps.py": "b474b91e1799ff8944b40ed891a8e09153e9e26503b8f926c02df901e1e1e3f5",
     "package/src/celestials/planets/mars/surface.py": "c53ba6bf10d7c0b79654b4b41399ff5076098126765dea1e9f4f19f9a98c4810",
-    "package/src/framework/physics/soil_frost.py": "056fc923b24e4597099c8b27801a0d549f3428e513552a8be8d6c171a3fea8e3"
+    "package/src/framework/physics/soil_frost.py": "9ec7f8c73ac5a7b973dd5708251ad98080650f1191c530392fa15a6e2500220e"
   },
   "limits": "Gaussian lat/lon conservative area remap; source emissivity above one is preserved; does not establish FV3/Dinosaur climate agreement"
 }

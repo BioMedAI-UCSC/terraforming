@@ -10,10 +10,11 @@
       "dust_distrib_fix": "67ec62bc280d50dc43606d34f2309dc69e034557ee7207a8550c1485fdad61f6",
       "dust_distrib_pulse": "524ee3d43dda9fdfc37a8063f54f52f9d9f5d28618fcb328073cae4fa5050ce4"
     },
-    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+    "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
     "compiler_flags": [
       "-O3",
       "-cpp",
+      "-ffree-line-length-none",
       "-fdefault-real-8",
       "-fdefault-double-8",
       "-fPIC",
@@ -50,7 +51,7 @@
       "latitude_rad": -1.2,
       "pulse_fraction": 0.2,
       "seasonal": false,
-      "max_error": 3.469446951953614e-18
+      "max_error": 8.673617379884035e-19
     },
     {
       "layers": 8,
@@ -59,7 +60,7 @@
       "latitude_rad": -1.2,
       "pulse_fraction": 0.2,
       "seasonal": true,
-      "max_error": 1.734723475976807e-18
+      "max_error": 8.673617379884035e-19
     },
     {
       "layers": 8,
@@ -95,7 +96,7 @@
       "latitude_rad": 0.4,
       "pulse_fraction": 0.2,
       "seasonal": true,
-      "max_error": 1.734723475976807e-18
+      "max_error": 2.7755575615628914e-17
     },
     {
       "layers": 8,
@@ -104,7 +105,7 @@
       "latitude_rad": -1.2,
       "pulse_fraction": 0.0,
       "seasonal": false,
-      "max_error": 2.168404344971009e-19
+      "max_error": 6.617444900424222e-24
     },
     {
       "layers": 8,
@@ -131,7 +132,7 @@
       "latitude_rad": -1.2,
       "pulse_fraction": 0.2,
       "seasonal": true,
-      "max_error": 4.336808689942018e-19
+      "max_error": 2.6469779601696886e-23
     },
     {
       "layers": 8,
@@ -176,7 +177,7 @@
       "latitude_rad": -1.2,
       "pulse_fraction": 0.0,
       "seasonal": false,
-      "max_error": 3.469446951953614e-18
+      "max_error": 0.0
     },
     {
       "layers": 8,
@@ -185,7 +186,7 @@
       "latitude_rad": -1.2,
       "pulse_fraction": 0.0,
       "seasonal": true,
-      "max_error": 2.7755575615628914e-17
+      "max_error": 3.469446951953614e-18
     },
     {
       "layers": 8,
@@ -194,7 +195,7 @@
       "latitude_rad": -1.2,
       "pulse_fraction": 0.2,
       "seasonal": false,
-      "max_error": 8.673617379884035e-19
+      "max_error": 3.469446951953614e-18
     },
     {
       "layers": 8,
@@ -212,7 +213,7 @@
       "latitude_rad": 0.4,
       "pulse_fraction": 0.0,
       "seasonal": false,
-      "max_error": 1.3877787807814457e-17
+      "max_error": 8.673617379884035e-19
     },
     {
       "layers": 8,
@@ -221,7 +222,7 @@
       "latitude_rad": 0.4,
       "pulse_fraction": 0.0,
       "seasonal": true,
-      "max_error": 2.7755575615628914e-17
+      "max_error": 3.469446951953614e-18
     },
     {
       "layers": 8,
@@ -230,7 +231,7 @@
       "latitude_rad": 0.4,
       "pulse_fraction": 0.2,
       "seasonal": false,
-      "max_error": 1.3877787807814457e-17
+      "max_error": 3.469446951953614e-18
     },
     {
       "layers": 8,
@@ -239,7 +240,7 @@
       "latitude_rad": 0.4,
       "pulse_fraction": 0.2,
       "seasonal": true,
-      "max_error": 8.673617379884035e-19
+      "max_error": 6.938893903907228e-18
     },
     {
       "layers": 8,
@@ -266,7 +267,7 @@
       "latitude_rad": -1.2,
       "pulse_fraction": 0.2,
       "seasonal": false,
-      "max_error": 4.235164736271502e-21
+      "max_error": 1.734723475976807e-18
     },
     {
       "layers": 8,
@@ -284,7 +285,7 @@
       "latitude_rad": 0.4,
       "pulse_fraction": 0.0,
       "seasonal": false,
-      "max_error": 3.469446951953614e-18
+      "max_error": 5.421010862427522e-20
     },
     {
       "layers": 8,
@@ -302,7 +303,7 @@
       "latitude_rad": 0.4,
       "pulse_fraction": 0.2,
       "seasonal": false,
-      "max_error": 1.0842021724855044e-19
+      "max_error": 5.421010862427522e-20
     },
     {
       "layers": 8,
@@ -320,7 +321,7 @@
       "latitude_rad": -1.2,
       "pulse_fraction": 0.0,
       "seasonal": false,
-      "max_error": 2.168404344971009e-19
+      "max_error": 6.617444900424222e-24
     },
     {
       "layers": 8,
@@ -347,7 +348,7 @@
       "latitude_rad": -1.2,
       "pulse_fraction": 0.2,
       "seasonal": true,
-      "max_error": 4.336808689942018e-19
+      "max_error": 2.6469779601696886e-23
     },
     {
       "layers": 8,
@@ -392,6 +393,15 @@
       "latitude_rad": -1.2,
       "pulse_fraction": 0.0,
       "seasonal": false,
+      "max_error": 0.0
+    },
+    {
+      "layers": 8,
+      "conrath_type": 1,
+      "cycle_scheme": 2,
+      "latitude_rad": -1.2,
+      "pulse_fraction": 0.0,
+      "seasonal": true,
       "max_error": 3.469446951953614e-18
     },
     {
@@ -399,18 +409,9 @@
       "conrath_type": 1,
       "cycle_scheme": 2,
       "latitude_rad": -1.2,
-      "pulse_fraction": 0.0,
-      "seasonal": true,
-      "max_error": 2.7755575615628914e-17
-    },
-    {
-      "layers": 8,
-      "conrath_type": 1,
-      "cycle_scheme": 2,
-      "latitude_rad": -1.2,
       "pulse_fraction": 0.2,
       "seasonal": false,
-      "max_error": 8.673617379884035e-19
+      "max_error": 3.469446951953614e-18
     },
     {
       "layers": 8,
@@ -428,7 +429,7 @@
       "latitude_rad": 0.4,
       "pulse_fraction": 0.0,
       "seasonal": false,
-      "max_error": 1.3877787807814457e-17
+      "max_error": 8.673617379884035e-19
     },
     {
       "layers": 8,
@@ -437,7 +438,7 @@
       "latitude_rad": 0.4,
       "pulse_fraction": 0.0,
       "seasonal": true,
-      "max_error": 2.7755575615628914e-17
+      "max_error": 3.469446951953614e-18
     },
     {
       "layers": 8,
@@ -446,7 +447,7 @@
       "latitude_rad": 0.4,
       "pulse_fraction": 0.2,
       "seasonal": false,
-      "max_error": 1.3877787807814457e-17
+      "max_error": 3.469446951953614e-18
     },
     {
       "layers": 8,
@@ -455,7 +456,7 @@
       "latitude_rad": 0.4,
       "pulse_fraction": 0.2,
       "seasonal": true,
-      "max_error": 8.673617379884035e-19
+      "max_error": 6.938893903907228e-18
     },
     {
       "layers": 12,
@@ -473,7 +474,7 @@
       "latitude_rad": -1.2,
       "pulse_fraction": 0.0,
       "seasonal": true,
-      "max_error": 8.673617379884035e-19
+      "max_error": 6.938893903907228e-18
     },
     {
       "layers": 12,
@@ -482,7 +483,7 @@
       "latitude_rad": -1.2,
       "pulse_fraction": 0.2,
       "seasonal": false,
-      "max_error": 1.734723475976807e-18
+      "max_error": 3.469446951953614e-18
     },
     {
       "layers": 12,
@@ -490,6 +491,24 @@
       "cycle_scheme": 0,
       "latitude_rad": -1.2,
       "pulse_fraction": 0.2,
+      "seasonal": true,
+      "max_error": 1.6940658945086007e-21
+    },
+    {
+      "layers": 12,
+      "conrath_type": 0,
+      "cycle_scheme": 0,
+      "latitude_rad": 0.4,
+      "pulse_fraction": 0.0,
+      "seasonal": false,
+      "max_error": 1.3877787807814457e-17
+    },
+    {
+      "layers": 12,
+      "conrath_type": 0,
+      "cycle_scheme": 0,
+      "latitude_rad": 0.4,
+      "pulse_fraction": 0.0,
       "seasonal": true,
       "max_error": 6.938893903907228e-18
     },
@@ -498,24 +517,6 @@
       "conrath_type": 0,
       "cycle_scheme": 0,
       "latitude_rad": 0.4,
-      "pulse_fraction": 0.0,
-      "seasonal": false,
-      "max_error": 1.3877787807814457e-17
-    },
-    {
-      "layers": 12,
-      "conrath_type": 0,
-      "cycle_scheme": 0,
-      "latitude_rad": 0.4,
-      "pulse_fraction": 0.0,
-      "seasonal": true,
-      "max_error": 8.673617379884035e-19
-    },
-    {
-      "layers": 12,
-      "conrath_type": 0,
-      "cycle_scheme": 0,
-      "latitude_rad": 0.4,
       "pulse_fraction": 0.2,
       "seasonal": false,
       "max_error": 1.3877787807814457e-17
@@ -527,15 +528,6 @@
       "latitude_rad": 0.4,
       "pulse_fraction": 0.2,
       "seasonal": true,
-      "max_error": 2.7755575615628914e-17
-    },
-    {
-      "layers": 12,
-      "conrath_type": 0,
-      "cycle_scheme": 1,
-      "latitude_rad": -1.2,
-      "pulse_fraction": 0.0,
-      "seasonal": false,
       "max_error": 6.938893903907228e-18
     },
     {
@@ -544,8 +536,17 @@
       "cycle_scheme": 1,
       "latitude_rad": -1.2,
       "pulse_fraction": 0.0,
+      "seasonal": false,
+      "max_error": 0.0
+    },
+    {
+      "layers": 12,
+      "conrath_type": 0,
+      "cycle_scheme": 1,
+      "latitude_rad": -1.2,
+      "pulse_fraction": 0.0,
       "seasonal": true,
-      "max_error": 1.3877787807814457e-17
+      "max_error": 0.0
     },
     {
       "layers": 12,
@@ -572,7 +573,7 @@
       "latitude_rad": 0.4,
       "pulse_fraction": 0.0,
       "seasonal": false,
-      "max_error": 1.3877787807814457e-17
+      "max_error": 0.0
     },
     {
       "layers": 12,
@@ -581,7 +582,7 @@
       "latitude_rad": 0.4,
       "pulse_fraction": 0.0,
       "seasonal": true,
-      "max_error": 1.3877787807814457e-17
+      "max_error": 0.0
     },
     {
       "layers": 12,
@@ -590,7 +591,7 @@
       "latitude_rad": 0.4,
       "pulse_fraction": 0.2,
       "seasonal": false,
-      "max_error": 2.0816681711721685e-17
+      "max_error": 1.3877787807814457e-17
     },
     {
       "layers": 12,
@@ -599,7 +600,7 @@
       "latitude_rad": 0.4,
       "pulse_fraction": 0.2,
       "seasonal": true,
-      "max_error": 2.7755575615628914e-17
+      "max_error": 4.336808689942018e-19
     },
     {
       "layers": 12,
@@ -608,7 +609,7 @@
       "latitude_rad": -1.2,
       "pulse_fraction": 0.0,
       "seasonal": false,
-      "max_error": 1.0842021724855044e-19
+      "max_error": 0.0
     },
     {
       "layers": 12,
@@ -635,7 +636,7 @@
       "latitude_rad": -1.2,
       "pulse_fraction": 0.2,
       "seasonal": true,
-      "max_error": 2.7755575615628914e-17
+      "max_error": 5.551115123125783e-17
     },
     {
       "layers": 12,
@@ -644,7 +645,7 @@
       "latitude_rad": 0.4,
       "pulse_fraction": 0.0,
       "seasonal": false,
-      "max_error": 5.421010862427522e-20
+      "max_error": 0.0
     },
     {
       "layers": 12,
@@ -679,6 +680,24 @@
       "cycle_scheme": 0,
       "latitude_rad": -1.2,
       "pulse_fraction": 0.0,
+      "seasonal": false,
+      "max_error": 0.0
+    },
+    {
+      "layers": 12,
+      "conrath_type": 1,
+      "cycle_scheme": 0,
+      "latitude_rad": -1.2,
+      "pulse_fraction": 0.0,
+      "seasonal": true,
+      "max_error": 6.938893903907228e-18
+    },
+    {
+      "layers": 12,
+      "conrath_type": 1,
+      "cycle_scheme": 0,
+      "latitude_rad": -1.2,
+      "pulse_fraction": 0.2,
       "seasonal": false,
       "max_error": 8.673617379884035e-19
     },
@@ -687,27 +706,9 @@
       "conrath_type": 1,
       "cycle_scheme": 0,
       "latitude_rad": -1.2,
-      "pulse_fraction": 0.0,
-      "seasonal": true,
-      "max_error": 6.938893903907228e-18
-    },
-    {
-      "layers": 12,
-      "conrath_type": 1,
-      "cycle_scheme": 0,
-      "latitude_rad": -1.2,
-      "pulse_fraction": 0.2,
-      "seasonal": false,
-      "max_error": 8.673617379884035e-19
-    },
-    {
-      "layers": 12,
-      "conrath_type": 1,
-      "cycle_scheme": 0,
-      "latitude_rad": -1.2,
       "pulse_fraction": 0.2,
       "seasonal": true,
-      "max_error": 3.3881317890172014e-20
+      "max_error": 2.0328790734103208e-20
     },
     {
       "layers": 12,
@@ -734,34 +735,34 @@
       "latitude_rad": 0.4,
       "pulse_fraction": 0.2,
       "seasonal": false,
-      "max_error": 2.7755575615628914e-17
-    },
-    {
-      "layers": 12,
-      "conrath_type": 1,
-      "cycle_scheme": 0,
-      "latitude_rad": 0.4,
-      "pulse_fraction": 0.2,
-      "seasonal": true,
-      "max_error": 2.168404344971009e-19
-    },
-    {
-      "layers": 12,
-      "conrath_type": 1,
-      "cycle_scheme": 1,
-      "latitude_rad": -1.2,
-      "pulse_fraction": 0.0,
-      "seasonal": false,
-      "max_error": 6.938893903907228e-18
-    },
-    {
-      "layers": 12,
-      "conrath_type": 1,
-      "cycle_scheme": 1,
-      "latitude_rad": -1.2,
-      "pulse_fraction": 0.0,
-      "seasonal": true,
       "max_error": 1.3877787807814457e-17
+    },
+    {
+      "layers": 12,
+      "conrath_type": 1,
+      "cycle_scheme": 0,
+      "latitude_rad": 0.4,
+      "pulse_fraction": 0.2,
+      "seasonal": true,
+      "max_error": 6.938893903907228e-18
+    },
+    {
+      "layers": 12,
+      "conrath_type": 1,
+      "cycle_scheme": 1,
+      "latitude_rad": -1.2,
+      "pulse_fraction": 0.0,
+      "seasonal": false,
+      "max_error": 0.0
+    },
+    {
+      "layers": 12,
+      "conrath_type": 1,
+      "cycle_scheme": 1,
+      "latitude_rad": -1.2,
+      "pulse_fraction": 0.0,
+      "seasonal": true,
+      "max_error": 0.0
     },
     {
       "layers": 12,
@@ -788,7 +789,7 @@
       "latitude_rad": 0.4,
       "pulse_fraction": 0.0,
       "seasonal": false,
-      "max_error": 1.3877787807814457e-17
+      "max_error": 0.0
     },
     {
       "layers": 12,
@@ -797,7 +798,7 @@
       "latitude_rad": 0.4,
       "pulse_fraction": 0.0,
       "seasonal": true,
-      "max_error": 1.3877787807814457e-17
+      "max_error": 0.0
     },
     {
       "layers": 12,
@@ -806,7 +807,7 @@
       "latitude_rad": 0.4,
       "pulse_fraction": 0.2,
       "seasonal": false,
-      "max_error": 2.0816681711721685e-17
+      "max_error": 1.3877787807814457e-17
     },
     {
       "layers": 12,
@@ -815,7 +816,7 @@
       "latitude_rad": 0.4,
       "pulse_fraction": 0.2,
       "seasonal": true,
-      "max_error": 2.7755575615628914e-17
+      "max_error": 4.336808689942018e-19
     },
     {
       "layers": 12,
@@ -824,7 +825,7 @@
       "latitude_rad": -1.2,
       "pulse_fraction": 0.0,
       "seasonal": false,
-      "max_error": 1.0842021724855044e-19
+      "max_error": 0.0
     },
     {
       "layers": 12,
@@ -851,7 +852,7 @@
       "latitude_rad": -1.2,
       "pulse_fraction": 0.2,
       "seasonal": true,
-      "max_error": 2.7755575615628914e-17
+      "max_error": 5.551115123125783e-17
     },
     {
       "layers": 12,
@@ -860,7 +861,7 @@
       "latitude_rad": 0.4,
       "pulse_fraction": 0.0,
       "seasonal": false,
-      "max_error": 5.421010862427522e-20
+      "max_error": 0.0
     },
     {
       "layers": 12,
@@ -1067,7 +1068,7 @@
       "latitude_rad": -1.2,
       "pulse_fraction": 0.2,
       "seasonal": true,
-      "max_error": 1.3877787807814457e-17
+      "max_error": 2.7755575615628914e-17
     },
     {
       "layers": 40,
@@ -1076,7 +1077,7 @@
       "latitude_rad": 0.4,
       "pulse_fraction": 0.0,
       "seasonal": false,
-      "max_error": 4.163336342344337e-17
+      "max_error": 1.3877787807814457e-17
     },
     {
       "layers": 40,
@@ -1094,7 +1095,7 @@
       "latitude_rad": 0.4,
       "pulse_fraction": 0.2,
       "seasonal": false,
-      "max_error": 1.3877787807814457e-17
+      "max_error": 6.938893903907228e-18
     },
     {
       "layers": 40,
@@ -1112,7 +1113,7 @@
       "latitude_rad": -1.2,
       "pulse_fraction": 0.0,
       "seasonal": false,
-      "max_error": 3.469446951953614e-18
+      "max_error": 2.0816681711721685e-17
     },
     {
       "layers": 40,
@@ -1121,7 +1122,7 @@
       "latitude_rad": -1.2,
       "pulse_fraction": 0.0,
       "seasonal": true,
-      "max_error": 1.3877787807814457e-17
+      "max_error": 2.7755575615628914e-17
     },
     {
       "layers": 40,
@@ -1139,7 +1140,7 @@
       "latitude_rad": -1.2,
       "pulse_fraction": 0.2,
       "seasonal": true,
-      "max_error": 2.7755575615628914e-17
+      "max_error": 1.3877787807814457e-17
     },
     {
       "layers": 40,
@@ -1157,7 +1158,7 @@
       "latitude_rad": 0.4,
       "pulse_fraction": 0.0,
       "seasonal": true,
-      "max_error": 1.3877787807814457e-17
+      "max_error": 2.7755575615628914e-17
     },
     {
       "layers": 40,
@@ -1283,7 +1284,7 @@
       "latitude_rad": -1.2,
       "pulse_fraction": 0.2,
       "seasonal": true,
-      "max_error": 1.3877787807814457e-17
+      "max_error": 2.7755575615628914e-17
     },
     {
       "layers": 40,
@@ -1292,7 +1293,7 @@
       "latitude_rad": 0.4,
       "pulse_fraction": 0.0,
       "seasonal": false,
-      "max_error": 4.163336342344337e-17
+      "max_error": 1.3877787807814457e-17
     },
     {
       "layers": 40,
@@ -1310,7 +1311,7 @@
       "latitude_rad": 0.4,
       "pulse_fraction": 0.2,
       "seasonal": false,
-      "max_error": 1.3877787807814457e-17
+      "max_error": 6.938893903907228e-18
     },
     {
       "layers": 40,
@@ -1353,7 +1354,7 @@
       "latitude_coefficient": 5.0,
       "amplitude": 0.4,
       "center_longitude_deg": 10.0,
-      "max_error": 3.469446951953614e-18
+      "max_error": 6.938893903907228e-18
     },
     {
       "solar_longitude_deg": 179.0,
@@ -1369,7 +1370,7 @@
       "latitude_coefficient": 5.0,
       "amplitude": 0.4,
       "center_longitude_deg": 200.0,
-      "max_error": 2.6020852139652106e-18
+      "max_error": 6.938893903907228e-18
     },
     {
       "solar_longitude_deg": 179.0,
@@ -1385,7 +1386,7 @@
       "latitude_coefficient": 5.0,
       "amplitude": 0.4,
       "center_longitude_deg": 200.0,
-      "max_error": 1.1926223897340549e-18
+      "max_error": 1.0842021724855044e-18
     },
     {
       "solar_longitude_deg": 180.0,
@@ -1417,7 +1418,7 @@
       "latitude_coefficient": 5.0,
       "amplitude": 0.4,
       "center_longitude_deg": 10.0,
-      "max_error": 1.3877787807814457e-17
+      "max_error": 2.7755575615628914e-17
     },
     {
       "solar_longitude_deg": 180.0,
@@ -1433,7 +1434,7 @@
       "latitude_coefficient": 5.0,
       "amplitude": 0.4,
       "center_longitude_deg": 200.0,
-      "max_error": 1.0408340855860843e-17
+      "max_error": 2.7755575615628914e-17
     },
     {
       "solar_longitude_deg": 180.0,
@@ -1449,7 +1450,7 @@
       "latitude_coefficient": 5.0,
       "amplitude": 0.4,
       "center_longitude_deg": 200.0,
-      "max_error": 4.7704895589362195e-18
+      "max_error": 4.336808689942018e-18
     },
     {
       "solar_longitude_deg": 181.0,
@@ -1481,7 +1482,7 @@
       "latitude_coefficient": 5.0,
       "amplitude": 0.4,
       "center_longitude_deg": 10.0,
-      "max_error": 2.7755575615628914e-17
+      "max_error": 5.551115123125783e-17
     },
     {
       "solar_longitude_deg": 181.0,
@@ -1497,7 +1498,7 @@
       "latitude_coefficient": 5.0,
       "amplitude": 0.4,
       "center_longitude_deg": 200.0,
-      "max_error": 2.0816681711721685e-17
+      "max_error": 5.551115123125783e-17
     },
     {
       "solar_longitude_deg": 181.0,
@@ -1513,7 +1514,7 @@
       "latitude_coefficient": 5.0,
       "amplitude": 0.4,
       "center_longitude_deg": 200.0,
-      "max_error": 8.673617379884035e-18
+      "max_error": 6.938893903907228e-18
     },
     {
       "case": "composed-profile",
@@ -1707,7 +1708,7 @@
       "pulse_fraction": 0.2,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
-      "max_error": 6.938893903907228e-18
+      "max_error": 1.0842021724855044e-19
     },
     {
       "layers": 8,
@@ -1743,7 +1744,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 0.0,
-      "max_error": 6.938893903907228e-18
+      "max_error": 8.673617379884035e-18
     },
     {
       "layers": 8,
@@ -1803,7 +1804,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 0.0,
-      "max_error": 6.938893903907228e-18
+      "max_error": 8.673617379884035e-18
     },
     {
       "layers": 8,
@@ -1815,7 +1816,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
-      "max_error": 6.938893903907228e-18
+      "max_error": 6.617444900424222e-24
     },
     {
       "layers": 8,
@@ -1827,7 +1828,7 @@
       "pulse_fraction": 0.2,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
-      "max_error": 6.938893903907228e-18
+      "max_error": 1.734723475976807e-18
     },
     {
       "layers": 8,
@@ -1839,7 +1840,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 1.3877787807814457e-17
+      "max_error": 3.469446951953614e-18
     },
     {
       "layers": 8,
@@ -1851,7 +1852,7 @@
       "pulse_fraction": 0.2,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 1.3877787807814457e-17
+      "max_error": 3.469446951953614e-18
     },
     {
       "layers": 8,
@@ -1875,7 +1876,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
-      "max_error": 1.734723475976807e-18
+      "max_error": 2.6469779601696886e-23
     },
     {
       "layers": 8,
@@ -1899,7 +1900,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 3.469446951953614e-18
+      "max_error": 5.293955920339377e-23
     },
     {
       "layers": 8,
@@ -1935,7 +1936,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
-      "max_error": 3.469446951953614e-18
+      "max_error": 1.3234889800848443e-23
     },
     {
       "layers": 8,
@@ -1959,7 +1960,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 6.938893903907228e-18
+      "max_error": 1.3877787807814457e-17
     },
     {
       "layers": 8,
@@ -1971,7 +1972,7 @@
       "pulse_fraction": 0.2,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 3.469446951953614e-18
+      "max_error": 6.938893903907228e-18
     },
     {
       "layers": 8,
@@ -1983,7 +1984,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 0.0,
-      "max_error": 6.938893903907228e-18
+      "max_error": 8.673617379884035e-18
     },
     {
       "layers": 8,
@@ -1995,7 +1996,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
-      "max_error": 1.734723475976807e-18
+      "max_error": 2.6469779601696886e-23
     },
     {
       "layers": 8,
@@ -2007,7 +2008,7 @@
       "pulse_fraction": 0.2,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
-      "max_error": 4.336808689942018e-19
+      "max_error": 2.6469779601696886e-23
     },
     {
       "layers": 8,
@@ -2019,7 +2020,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 8.673617379884035e-19
+      "max_error": 6.938893903907228e-18
     },
     {
       "layers": 8,
@@ -2043,6 +2044,30 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 0.0,
+      "max_error": 8.673617379884035e-18
+    },
+    {
+      "layers": 8,
+      "surface_pressure_pa": 400.0,
+      "conrath_type": 0,
+      "cycle_scheme": 2,
+      "latitude_rad": -1.2,
+      "seasonal": false,
+      "pulse_fraction": 0.0,
+      "pulse_opacity": 0.0,
+      "column_scale": 1.0,
+      "max_error": 1.734723475976807e-18
+    },
+    {
+      "layers": 8,
+      "surface_pressure_pa": 400.0,
+      "conrath_type": 0,
+      "cycle_scheme": 2,
+      "latitude_rad": -1.2,
+      "seasonal": false,
+      "pulse_fraction": 0.2,
+      "pulse_opacity": 0.0,
+      "column_scale": 1.0,
       "max_error": 6.938893903907228e-18
     },
     {
@@ -2052,6 +2077,42 @@
       "cycle_scheme": 2,
       "latitude_rad": -1.2,
       "seasonal": false,
+      "pulse_fraction": 0.0,
+      "pulse_opacity": 0.1,
+      "column_scale": 2.0,
+      "max_error": 6.938893903907228e-18
+    },
+    {
+      "layers": 8,
+      "surface_pressure_pa": 400.0,
+      "conrath_type": 0,
+      "cycle_scheme": 2,
+      "latitude_rad": -1.2,
+      "seasonal": false,
+      "pulse_fraction": 0.2,
+      "pulse_opacity": 0.1,
+      "column_scale": 2.0,
+      "max_error": 1.3877787807814457e-17
+    },
+    {
+      "layers": 8,
+      "surface_pressure_pa": 400.0,
+      "conrath_type": 0,
+      "cycle_scheme": 2,
+      "latitude_rad": -1.2,
+      "seasonal": false,
+      "pulse_fraction": 0.0,
+      "pulse_opacity": 0.1,
+      "column_scale": 0.0,
+      "max_error": 1.734723475976807e-18
+    },
+    {
+      "layers": 8,
+      "surface_pressure_pa": 400.0,
+      "conrath_type": 0,
+      "cycle_scheme": 2,
+      "latitude_rad": -1.2,
+      "seasonal": true,
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
@@ -2063,7 +2124,7 @@
       "conrath_type": 0,
       "cycle_scheme": 2,
       "latitude_rad": -1.2,
-      "seasonal": false,
+      "seasonal": true,
       "pulse_fraction": 0.2,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
@@ -2075,71 +2136,11 @@
       "conrath_type": 0,
       "cycle_scheme": 2,
       "latitude_rad": -1.2,
-      "seasonal": false,
+      "seasonal": true,
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
       "max_error": 3.469446951953614e-18
-    },
-    {
-      "layers": 8,
-      "surface_pressure_pa": 400.0,
-      "conrath_type": 0,
-      "cycle_scheme": 2,
-      "latitude_rad": -1.2,
-      "seasonal": false,
-      "pulse_fraction": 0.2,
-      "pulse_opacity": 0.1,
-      "column_scale": 2.0,
-      "max_error": 1.3877787807814457e-17
-    },
-    {
-      "layers": 8,
-      "surface_pressure_pa": 400.0,
-      "conrath_type": 0,
-      "cycle_scheme": 2,
-      "latitude_rad": -1.2,
-      "seasonal": false,
-      "pulse_fraction": 0.0,
-      "pulse_opacity": 0.1,
-      "column_scale": 0.0,
-      "max_error": 1.734723475976807e-18
-    },
-    {
-      "layers": 8,
-      "surface_pressure_pa": 400.0,
-      "conrath_type": 0,
-      "cycle_scheme": 2,
-      "latitude_rad": -1.2,
-      "seasonal": true,
-      "pulse_fraction": 0.0,
-      "pulse_opacity": 0.0,
-      "column_scale": 1.0,
-      "max_error": 6.938893903907228e-18
-    },
-    {
-      "layers": 8,
-      "surface_pressure_pa": 400.0,
-      "conrath_type": 0,
-      "cycle_scheme": 2,
-      "latitude_rad": -1.2,
-      "seasonal": true,
-      "pulse_fraction": 0.2,
-      "pulse_opacity": 0.0,
-      "column_scale": 1.0,
-      "max_error": 6.938893903907228e-18
-    },
-    {
-      "layers": 8,
-      "surface_pressure_pa": 400.0,
-      "conrath_type": 0,
-      "cycle_scheme": 2,
-      "latitude_rad": -1.2,
-      "seasonal": true,
-      "pulse_fraction": 0.0,
-      "pulse_opacity": 0.1,
-      "column_scale": 2.0,
-      "max_error": 1.3877787807814457e-17
     },
     {
       "layers": 8,
@@ -2175,7 +2176,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
-      "max_error": 3.469446951953614e-18
+      "max_error": 0.0
     },
     {
       "layers": 8,
@@ -2199,7 +2200,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 6.938893903907228e-18
+      "max_error": 1.3877787807814457e-17
     },
     {
       "layers": 8,
@@ -2223,7 +2224,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 0.0,
-      "max_error": 6.938893903907228e-18
+      "max_error": 8.673617379884035e-18
     },
     {
       "layers": 8,
@@ -2235,7 +2236,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
-      "max_error": 6.938893903907228e-18
+      "max_error": 1.0842021724855044e-19
     },
     {
       "layers": 8,
@@ -2247,7 +2248,7 @@
       "pulse_fraction": 0.2,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
-      "max_error": 3.469446951953614e-18
+      "max_error": 6.938893903907228e-18
     },
     {
       "layers": 8,
@@ -2271,7 +2272,7 @@
       "pulse_fraction": 0.2,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 8.835242138475332e-28
+      "max_error": 2.7755575615628914e-17
     },
     {
       "layers": 8,
@@ -2283,6 +2284,18 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 0.0,
+      "max_error": 8.673617379884035e-18
+    },
+    {
+      "layers": 8,
+      "surface_pressure_pa": 400.0,
+      "conrath_type": 1,
+      "cycle_scheme": 0,
+      "latitude_rad": -1.2,
+      "seasonal": false,
+      "pulse_fraction": 0.0,
+      "pulse_opacity": 0.0,
+      "column_scale": 1.0,
       "max_error": 6.938893903907228e-18
     },
     {
@@ -2292,18 +2305,6 @@
       "cycle_scheme": 0,
       "latitude_rad": -1.2,
       "seasonal": false,
-      "pulse_fraction": 0.0,
-      "pulse_opacity": 0.0,
-      "column_scale": 1.0,
-      "max_error": 8.673617379884035e-19
-    },
-    {
-      "layers": 8,
-      "surface_pressure_pa": 400.0,
-      "conrath_type": 1,
-      "cycle_scheme": 0,
-      "latitude_rad": -1.2,
-      "seasonal": false,
       "pulse_fraction": 0.2,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
@@ -2319,7 +2320,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 8.673617379884035e-19
+      "max_error": 1.3877787807814457e-17
     },
     {
       "layers": 8,
@@ -2331,7 +2332,7 @@
       "pulse_fraction": 0.2,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 8.673617379884035e-19
+      "max_error": 3.469446951953614e-18
     },
     {
       "layers": 8,
@@ -2463,7 +2464,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 0.0,
-      "max_error": 6.938893903907228e-18
+      "max_error": 8.673617379884035e-18
     },
     {
       "layers": 8,
@@ -2511,7 +2512,7 @@
       "pulse_fraction": 0.2,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 6.938893903907228e-18
+      "max_error": 8.673617379884035e-18
     },
     {
       "layers": 8,
@@ -2523,7 +2524,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 0.0,
-      "max_error": 6.938893903907228e-18
+      "max_error": 8.673617379884035e-18
     },
     {
       "layers": 8,
@@ -2535,7 +2536,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
-      "max_error": 6.938893903907228e-18
+      "max_error": 6.617444900424222e-24
     },
     {
       "layers": 8,
@@ -2547,7 +2548,7 @@
       "pulse_fraction": 0.2,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
-      "max_error": 6.938893903907228e-18
+      "max_error": 1.734723475976807e-18
     },
     {
       "layers": 8,
@@ -2559,7 +2560,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 1.3877787807814457e-17
+      "max_error": 3.469446951953614e-18
     },
     {
       "layers": 8,
@@ -2571,7 +2572,7 @@
       "pulse_fraction": 0.2,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 1.3877787807814457e-17
+      "max_error": 3.469446951953614e-18
     },
     {
       "layers": 8,
@@ -2595,7 +2596,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
-      "max_error": 1.734723475976807e-18
+      "max_error": 2.6469779601696886e-23
     },
     {
       "layers": 8,
@@ -2619,7 +2620,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 3.469446951953614e-18
+      "max_error": 5.293955920339377e-23
     },
     {
       "layers": 8,
@@ -2655,7 +2656,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
-      "max_error": 3.469446951953614e-18
+      "max_error": 1.3234889800848443e-23
     },
     {
       "layers": 8,
@@ -2679,7 +2680,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 6.938893903907228e-18
+      "max_error": 1.3877787807814457e-17
     },
     {
       "layers": 8,
@@ -2691,7 +2692,7 @@
       "pulse_fraction": 0.2,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 3.469446951953614e-18
+      "max_error": 6.938893903907228e-18
     },
     {
       "layers": 8,
@@ -2703,7 +2704,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 0.0,
-      "max_error": 6.938893903907228e-18
+      "max_error": 8.673617379884035e-18
     },
     {
       "layers": 8,
@@ -2715,7 +2716,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
-      "max_error": 1.734723475976807e-18
+      "max_error": 2.6469779601696886e-23
     },
     {
       "layers": 8,
@@ -2727,7 +2728,7 @@
       "pulse_fraction": 0.2,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
-      "max_error": 4.336808689942018e-19
+      "max_error": 2.6469779601696886e-23
     },
     {
       "layers": 8,
@@ -2739,7 +2740,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 8.673617379884035e-19
+      "max_error": 6.938893903907228e-18
     },
     {
       "layers": 8,
@@ -2763,6 +2764,30 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 0.0,
+      "max_error": 8.673617379884035e-18
+    },
+    {
+      "layers": 8,
+      "surface_pressure_pa": 400.0,
+      "conrath_type": 1,
+      "cycle_scheme": 2,
+      "latitude_rad": -1.2,
+      "seasonal": false,
+      "pulse_fraction": 0.0,
+      "pulse_opacity": 0.0,
+      "column_scale": 1.0,
+      "max_error": 1.734723475976807e-18
+    },
+    {
+      "layers": 8,
+      "surface_pressure_pa": 400.0,
+      "conrath_type": 1,
+      "cycle_scheme": 2,
+      "latitude_rad": -1.2,
+      "seasonal": false,
+      "pulse_fraction": 0.2,
+      "pulse_opacity": 0.0,
+      "column_scale": 1.0,
       "max_error": 6.938893903907228e-18
     },
     {
@@ -2772,6 +2797,42 @@
       "cycle_scheme": 2,
       "latitude_rad": -1.2,
       "seasonal": false,
+      "pulse_fraction": 0.0,
+      "pulse_opacity": 0.1,
+      "column_scale": 2.0,
+      "max_error": 6.938893903907228e-18
+    },
+    {
+      "layers": 8,
+      "surface_pressure_pa": 400.0,
+      "conrath_type": 1,
+      "cycle_scheme": 2,
+      "latitude_rad": -1.2,
+      "seasonal": false,
+      "pulse_fraction": 0.2,
+      "pulse_opacity": 0.1,
+      "column_scale": 2.0,
+      "max_error": 1.3877787807814457e-17
+    },
+    {
+      "layers": 8,
+      "surface_pressure_pa": 400.0,
+      "conrath_type": 1,
+      "cycle_scheme": 2,
+      "latitude_rad": -1.2,
+      "seasonal": false,
+      "pulse_fraction": 0.0,
+      "pulse_opacity": 0.1,
+      "column_scale": 0.0,
+      "max_error": 1.734723475976807e-18
+    },
+    {
+      "layers": 8,
+      "surface_pressure_pa": 400.0,
+      "conrath_type": 1,
+      "cycle_scheme": 2,
+      "latitude_rad": -1.2,
+      "seasonal": true,
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
@@ -2783,7 +2844,7 @@
       "conrath_type": 1,
       "cycle_scheme": 2,
       "latitude_rad": -1.2,
-      "seasonal": false,
+      "seasonal": true,
       "pulse_fraction": 0.2,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
@@ -2795,71 +2856,11 @@
       "conrath_type": 1,
       "cycle_scheme": 2,
       "latitude_rad": -1.2,
-      "seasonal": false,
+      "seasonal": true,
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
       "max_error": 3.469446951953614e-18
-    },
-    {
-      "layers": 8,
-      "surface_pressure_pa": 400.0,
-      "conrath_type": 1,
-      "cycle_scheme": 2,
-      "latitude_rad": -1.2,
-      "seasonal": false,
-      "pulse_fraction": 0.2,
-      "pulse_opacity": 0.1,
-      "column_scale": 2.0,
-      "max_error": 1.3877787807814457e-17
-    },
-    {
-      "layers": 8,
-      "surface_pressure_pa": 400.0,
-      "conrath_type": 1,
-      "cycle_scheme": 2,
-      "latitude_rad": -1.2,
-      "seasonal": false,
-      "pulse_fraction": 0.0,
-      "pulse_opacity": 0.1,
-      "column_scale": 0.0,
-      "max_error": 1.734723475976807e-18
-    },
-    {
-      "layers": 8,
-      "surface_pressure_pa": 400.0,
-      "conrath_type": 1,
-      "cycle_scheme": 2,
-      "latitude_rad": -1.2,
-      "seasonal": true,
-      "pulse_fraction": 0.0,
-      "pulse_opacity": 0.0,
-      "column_scale": 1.0,
-      "max_error": 6.938893903907228e-18
-    },
-    {
-      "layers": 8,
-      "surface_pressure_pa": 400.0,
-      "conrath_type": 1,
-      "cycle_scheme": 2,
-      "latitude_rad": -1.2,
-      "seasonal": true,
-      "pulse_fraction": 0.2,
-      "pulse_opacity": 0.0,
-      "column_scale": 1.0,
-      "max_error": 6.938893903907228e-18
-    },
-    {
-      "layers": 8,
-      "surface_pressure_pa": 400.0,
-      "conrath_type": 1,
-      "cycle_scheme": 2,
-      "latitude_rad": -1.2,
-      "seasonal": true,
-      "pulse_fraction": 0.0,
-      "pulse_opacity": 0.1,
-      "column_scale": 2.0,
-      "max_error": 1.3877787807814457e-17
     },
     {
       "layers": 8,
@@ -2895,7 +2896,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
-      "max_error": 3.469446951953614e-18
+      "max_error": 0.0
     },
     {
       "layers": 8,
@@ -2919,7 +2920,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 6.938893903907228e-18
+      "max_error": 1.3877787807814457e-17
     },
     {
       "layers": 8,
@@ -2943,7 +2944,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 0.0,
-      "max_error": 6.938893903907228e-18
+      "max_error": 8.673617379884035e-18
     },
     {
       "layers": 8,
@@ -2955,7 +2956,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
-      "max_error": 6.938893903907228e-18
+      "max_error": 1.0842021724855044e-19
     },
     {
       "layers": 8,
@@ -2967,7 +2968,7 @@
       "pulse_fraction": 0.2,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
-      "max_error": 3.469446951953614e-18
+      "max_error": 6.938893903907228e-18
     },
     {
       "layers": 8,
@@ -2991,7 +2992,7 @@
       "pulse_fraction": 0.2,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 8.835242138475332e-28
+      "max_error": 2.7755575615628914e-17
     },
     {
       "layers": 8,
@@ -3003,7 +3004,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 0.0,
-      "max_error": 6.938893903907228e-18
+      "max_error": 8.673617379884035e-18
     },
     {
       "layers": 40,
@@ -3015,7 +3016,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
-      "max_error": 1.3877787807814457e-17
+      "max_error": 6.938893903907228e-18
     },
     {
       "layers": 40,
@@ -3037,6 +3038,18 @@
       "latitude_rad": -1.2,
       "seasonal": false,
       "pulse_fraction": 0.0,
+      "pulse_opacity": 0.1,
+      "column_scale": 2.0,
+      "max_error": 1.3877787807814457e-17
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 0,
+      "cycle_scheme": 0,
+      "latitude_rad": -1.2,
+      "seasonal": false,
+      "pulse_fraction": 0.2,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
       "max_error": 2.0816681711721685e-17
@@ -3048,22 +3061,10 @@
       "cycle_scheme": 0,
       "latitude_rad": -1.2,
       "seasonal": false,
-      "pulse_fraction": 0.2,
-      "pulse_opacity": 0.1,
-      "column_scale": 2.0,
-      "max_error": 2.7755575615628914e-17
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 0,
-      "cycle_scheme": 0,
-      "latitude_rad": -1.2,
-      "seasonal": false,
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 0.0,
-      "max_error": 3.7633673846508564e-18
+      "max_error": 2.8833001524536384e-18
     },
     {
       "layers": 40,
@@ -3123,7 +3124,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 0.0,
-      "max_error": 3.7633673846508564e-18
+      "max_error": 2.8833001524536384e-18
     },
     {
       "layers": 40,
@@ -3133,6 +3134,18 @@
       "latitude_rad": 0.4,
       "seasonal": false,
       "pulse_fraction": 0.0,
+      "pulse_opacity": 0.0,
+      "column_scale": 1.0,
+      "max_error": 1.3877787807814457e-17
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 0,
+      "cycle_scheme": 0,
+      "latitude_rad": 0.4,
+      "seasonal": false,
+      "pulse_fraction": 0.2,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
       "max_error": 2.7755575615628914e-17
@@ -3144,22 +3157,10 @@
       "cycle_scheme": 0,
       "latitude_rad": 0.4,
       "seasonal": false,
-      "pulse_fraction": 0.2,
-      "pulse_opacity": 0.0,
-      "column_scale": 1.0,
-      "max_error": 5.551115123125783e-17
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 0,
-      "cycle_scheme": 0,
-      "latitude_rad": 0.4,
-      "seasonal": false,
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 5.551115123125783e-17
+      "max_error": 2.7755575615628914e-17
     },
     {
       "layers": 40,
@@ -3171,7 +3172,7 @@
       "pulse_fraction": 0.2,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 1.1102230246251565e-16
+      "max_error": 4.163336342344337e-17
     },
     {
       "layers": 40,
@@ -3183,7 +3184,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 0.0,
-      "max_error": 2.2690318591048197e-17
+      "max_error": 1.700842158086635e-17
     },
     {
       "layers": 40,
@@ -3243,7 +3244,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 0.0,
-      "max_error": 2.2690318591048197e-17
+      "max_error": 1.700842158086635e-17
     },
     {
       "layers": 40,
@@ -3255,7 +3256,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
-      "max_error": 1.3877787807814457e-17
+      "max_error": 6.938893903907228e-18
     },
     {
       "layers": 40,
@@ -3279,7 +3280,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 2.7755575615628914e-17
+      "max_error": 1.3877787807814457e-17
     },
     {
       "layers": 40,
@@ -3303,7 +3304,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 0.0,
-      "max_error": 3.7633673846508564e-18
+      "max_error": 2.8833001524536384e-18
     },
     {
       "layers": 40,
@@ -3363,7 +3364,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 0.0,
-      "max_error": 3.7633673846508564e-18
+      "max_error": 2.8833001524536384e-18
     },
     {
       "layers": 40,
@@ -3382,246 +3383,6 @@
       "surface_pressure_pa": 900.0,
       "conrath_type": 0,
       "cycle_scheme": 1,
-      "latitude_rad": 0.4,
-      "seasonal": false,
-      "pulse_fraction": 0.2,
-      "pulse_opacity": 0.0,
-      "column_scale": 1.0,
-      "max_error": 2.7755575615628914e-17
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 0,
-      "cycle_scheme": 1,
-      "latitude_rad": 0.4,
-      "seasonal": false,
-      "pulse_fraction": 0.0,
-      "pulse_opacity": 0.1,
-      "column_scale": 2.0,
-      "max_error": 8.326672684688674e-17
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 0,
-      "cycle_scheme": 1,
-      "latitude_rad": 0.4,
-      "seasonal": false,
-      "pulse_fraction": 0.2,
-      "pulse_opacity": 0.1,
-      "column_scale": 2.0,
-      "max_error": 8.326672684688674e-17
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 0,
-      "cycle_scheme": 1,
-      "latitude_rad": 0.4,
-      "seasonal": false,
-      "pulse_fraction": 0.0,
-      "pulse_opacity": 0.1,
-      "column_scale": 0.0,
-      "max_error": 2.2690318591048197e-17
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 0,
-      "cycle_scheme": 1,
-      "latitude_rad": 0.4,
-      "seasonal": true,
-      "pulse_fraction": 0.0,
-      "pulse_opacity": 0.0,
-      "column_scale": 1.0,
-      "max_error": 2.7755575615628914e-17
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 0,
-      "cycle_scheme": 1,
-      "latitude_rad": 0.4,
-      "seasonal": true,
-      "pulse_fraction": 0.2,
-      "pulse_opacity": 0.0,
-      "column_scale": 1.0,
-      "max_error": 5.551115123125783e-17
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 0,
-      "cycle_scheme": 1,
-      "latitude_rad": 0.4,
-      "seasonal": true,
-      "pulse_fraction": 0.0,
-      "pulse_opacity": 0.1,
-      "column_scale": 2.0,
-      "max_error": 6.938893903907228e-17
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 0,
-      "cycle_scheme": 1,
-      "latitude_rad": 0.4,
-      "seasonal": true,
-      "pulse_fraction": 0.2,
-      "pulse_opacity": 0.1,
-      "column_scale": 2.0,
-      "max_error": 8.326672684688674e-17
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 0,
-      "cycle_scheme": 1,
-      "latitude_rad": 0.4,
-      "seasonal": true,
-      "pulse_fraction": 0.0,
-      "pulse_opacity": 0.1,
-      "column_scale": 0.0,
-      "max_error": 2.2690318591048197e-17
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 0,
-      "cycle_scheme": 2,
-      "latitude_rad": -1.2,
-      "seasonal": false,
-      "pulse_fraction": 0.0,
-      "pulse_opacity": 0.0,
-      "column_scale": 1.0,
-      "max_error": 6.938893903907228e-18
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 0,
-      "cycle_scheme": 2,
-      "latitude_rad": -1.2,
-      "seasonal": false,
-      "pulse_fraction": 0.2,
-      "pulse_opacity": 0.0,
-      "column_scale": 1.0,
-      "max_error": 1.0408340855860843e-17
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 0,
-      "cycle_scheme": 2,
-      "latitude_rad": -1.2,
-      "seasonal": false,
-      "pulse_fraction": 0.0,
-      "pulse_opacity": 0.1,
-      "column_scale": 2.0,
-      "max_error": 1.3877787807814457e-17
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 0,
-      "cycle_scheme": 2,
-      "latitude_rad": -1.2,
-      "seasonal": false,
-      "pulse_fraction": 0.2,
-      "pulse_opacity": 0.1,
-      "column_scale": 2.0,
-      "max_error": 2.0816681711721685e-17
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 0,
-      "cycle_scheme": 2,
-      "latitude_rad": -1.2,
-      "seasonal": false,
-      "pulse_fraction": 0.0,
-      "pulse_opacity": 0.1,
-      "column_scale": 0.0,
-      "max_error": 3.7633673846508564e-18
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 0,
-      "cycle_scheme": 2,
-      "latitude_rad": -1.2,
-      "seasonal": true,
-      "pulse_fraction": 0.0,
-      "pulse_opacity": 0.0,
-      "column_scale": 1.0,
-      "max_error": 5.551115123125783e-17
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 0,
-      "cycle_scheme": 2,
-      "latitude_rad": -1.2,
-      "seasonal": true,
-      "pulse_fraction": 0.2,
-      "pulse_opacity": 0.0,
-      "column_scale": 1.0,
-      "max_error": 2.7755575615628914e-17
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 0,
-      "cycle_scheme": 2,
-      "latitude_rad": -1.2,
-      "seasonal": true,
-      "pulse_fraction": 0.0,
-      "pulse_opacity": 0.1,
-      "column_scale": 2.0,
-      "max_error": 1.1102230246251565e-16
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 0,
-      "cycle_scheme": 2,
-      "latitude_rad": -1.2,
-      "seasonal": true,
-      "pulse_fraction": 0.2,
-      "pulse_opacity": 0.1,
-      "column_scale": 2.0,
-      "max_error": 5.551115123125783e-17
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 0,
-      "cycle_scheme": 2,
-      "latitude_rad": -1.2,
-      "seasonal": true,
-      "pulse_fraction": 0.0,
-      "pulse_opacity": 0.1,
-      "column_scale": 0.0,
-      "max_error": 3.7633673846508564e-18
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 0,
-      "cycle_scheme": 2,
-      "latitude_rad": 0.4,
-      "seasonal": false,
-      "pulse_fraction": 0.0,
-      "pulse_opacity": 0.0,
-      "column_scale": 1.0,
-      "max_error": 1.3877787807814457e-17
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 0,
-      "cycle_scheme": 2,
       "latitude_rad": 0.4,
       "seasonal": false,
       "pulse_fraction": 0.2,
@@ -3633,19 +3394,19 @@
       "layers": 40,
       "surface_pressure_pa": 900.0,
       "conrath_type": 0,
-      "cycle_scheme": 2,
+      "cycle_scheme": 1,
       "latitude_rad": 0.4,
       "seasonal": false,
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 3.469446951953614e-17
+      "max_error": 5.551115123125783e-17
     },
     {
       "layers": 40,
       "surface_pressure_pa": 900.0,
       "conrath_type": 0,
-      "cycle_scheme": 2,
+      "cycle_scheme": 1,
       "latitude_rad": 0.4,
       "seasonal": false,
       "pulse_fraction": 0.2,
@@ -3657,31 +3418,31 @@
       "layers": 40,
       "surface_pressure_pa": 900.0,
       "conrath_type": 0,
-      "cycle_scheme": 2,
+      "cycle_scheme": 1,
       "latitude_rad": 0.4,
       "seasonal": false,
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 0.0,
-      "max_error": 2.2690318591048197e-17
+      "max_error": 1.700842158086635e-17
     },
     {
       "layers": 40,
       "surface_pressure_pa": 900.0,
       "conrath_type": 0,
-      "cycle_scheme": 2,
+      "cycle_scheme": 1,
       "latitude_rad": 0.4,
       "seasonal": true,
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
-      "max_error": 5.551115123125783e-17
+      "max_error": 2.7755575615628914e-17
     },
     {
       "layers": 40,
       "surface_pressure_pa": 900.0,
       "conrath_type": 0,
-      "cycle_scheme": 2,
+      "cycle_scheme": 1,
       "latitude_rad": 0.4,
       "seasonal": true,
       "pulse_fraction": 0.2,
@@ -3693,19 +3454,19 @@
       "layers": 40,
       "surface_pressure_pa": 900.0,
       "conrath_type": 0,
-      "cycle_scheme": 2,
+      "cycle_scheme": 1,
       "latitude_rad": 0.4,
       "seasonal": true,
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 8.326672684688674e-17
+      "max_error": 5.551115123125783e-17
     },
     {
       "layers": 40,
       "surface_pressure_pa": 900.0,
       "conrath_type": 0,
-      "cycle_scheme": 2,
+      "cycle_scheme": 1,
       "latitude_rad": 0.4,
       "seasonal": true,
       "pulse_fraction": 0.2,
@@ -3717,13 +3478,253 @@
       "layers": 40,
       "surface_pressure_pa": 900.0,
       "conrath_type": 0,
+      "cycle_scheme": 1,
+      "latitude_rad": 0.4,
+      "seasonal": true,
+      "pulse_fraction": 0.0,
+      "pulse_opacity": 0.1,
+      "column_scale": 0.0,
+      "max_error": 1.700842158086635e-17
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 0,
+      "cycle_scheme": 2,
+      "latitude_rad": -1.2,
+      "seasonal": false,
+      "pulse_fraction": 0.0,
+      "pulse_opacity": 0.0,
+      "column_scale": 1.0,
+      "max_error": 1.3877787807814457e-17
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 0,
+      "cycle_scheme": 2,
+      "latitude_rad": -1.2,
+      "seasonal": false,
+      "pulse_fraction": 0.2,
+      "pulse_opacity": 0.0,
+      "column_scale": 1.0,
+      "max_error": 1.3877787807814457e-17
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 0,
+      "cycle_scheme": 2,
+      "latitude_rad": -1.2,
+      "seasonal": false,
+      "pulse_fraction": 0.0,
+      "pulse_opacity": 0.1,
+      "column_scale": 2.0,
+      "max_error": 3.469446951953614e-17
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 0,
+      "cycle_scheme": 2,
+      "latitude_rad": -1.2,
+      "seasonal": false,
+      "pulse_fraction": 0.2,
+      "pulse_opacity": 0.1,
+      "column_scale": 2.0,
+      "max_error": 2.7755575615628914e-17
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 0,
+      "cycle_scheme": 2,
+      "latitude_rad": -1.2,
+      "seasonal": false,
+      "pulse_fraction": 0.0,
+      "pulse_opacity": 0.1,
+      "column_scale": 0.0,
+      "max_error": 2.8833001524536384e-18
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 0,
+      "cycle_scheme": 2,
+      "latitude_rad": -1.2,
+      "seasonal": true,
+      "pulse_fraction": 0.0,
+      "pulse_opacity": 0.0,
+      "column_scale": 1.0,
+      "max_error": 2.7755575615628914e-17
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 0,
+      "cycle_scheme": 2,
+      "latitude_rad": -1.2,
+      "seasonal": true,
+      "pulse_fraction": 0.2,
+      "pulse_opacity": 0.0,
+      "column_scale": 1.0,
+      "max_error": 8.326672684688674e-17
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 0,
+      "cycle_scheme": 2,
+      "latitude_rad": -1.2,
+      "seasonal": true,
+      "pulse_fraction": 0.0,
+      "pulse_opacity": 0.1,
+      "column_scale": 2.0,
+      "max_error": 5.551115123125783e-17
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 0,
+      "cycle_scheme": 2,
+      "latitude_rad": -1.2,
+      "seasonal": true,
+      "pulse_fraction": 0.2,
+      "pulse_opacity": 0.1,
+      "column_scale": 2.0,
+      "max_error": 1.6653345369377348e-16
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 0,
+      "cycle_scheme": 2,
+      "latitude_rad": -1.2,
+      "seasonal": true,
+      "pulse_fraction": 0.0,
+      "pulse_opacity": 0.1,
+      "column_scale": 0.0,
+      "max_error": 2.8833001524536384e-18
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 0,
+      "cycle_scheme": 2,
+      "latitude_rad": 0.4,
+      "seasonal": false,
+      "pulse_fraction": 0.0,
+      "pulse_opacity": 0.0,
+      "column_scale": 1.0,
+      "max_error": 1.3877787807814457e-17
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 0,
+      "cycle_scheme": 2,
+      "latitude_rad": 0.4,
+      "seasonal": false,
+      "pulse_fraction": 0.2,
+      "pulse_opacity": 0.0,
+      "column_scale": 1.0,
+      "max_error": 2.0816681711721685e-17
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 0,
+      "cycle_scheme": 2,
+      "latitude_rad": 0.4,
+      "seasonal": false,
+      "pulse_fraction": 0.0,
+      "pulse_opacity": 0.1,
+      "column_scale": 2.0,
+      "max_error": 4.163336342344337e-17
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 0,
+      "cycle_scheme": 2,
+      "latitude_rad": 0.4,
+      "seasonal": false,
+      "pulse_fraction": 0.2,
+      "pulse_opacity": 0.1,
+      "column_scale": 2.0,
+      "max_error": 4.85722573273506e-17
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 0,
+      "cycle_scheme": 2,
+      "latitude_rad": 0.4,
+      "seasonal": false,
+      "pulse_fraction": 0.0,
+      "pulse_opacity": 0.1,
+      "column_scale": 0.0,
+      "max_error": 1.700842158086635e-17
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 0,
+      "cycle_scheme": 2,
+      "latitude_rad": 0.4,
+      "seasonal": true,
+      "pulse_fraction": 0.0,
+      "pulse_opacity": 0.0,
+      "column_scale": 1.0,
+      "max_error": 2.7755575615628914e-17
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 0,
+      "cycle_scheme": 2,
+      "latitude_rad": 0.4,
+      "seasonal": true,
+      "pulse_fraction": 0.2,
+      "pulse_opacity": 0.0,
+      "column_scale": 1.0,
+      "max_error": 5.551115123125783e-17
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 0,
+      "cycle_scheme": 2,
+      "latitude_rad": 0.4,
+      "seasonal": true,
+      "pulse_fraction": 0.0,
+      "pulse_opacity": 0.1,
+      "column_scale": 2.0,
+      "max_error": 5.551115123125783e-17
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 0,
+      "cycle_scheme": 2,
+      "latitude_rad": 0.4,
+      "seasonal": true,
+      "pulse_fraction": 0.2,
+      "pulse_opacity": 0.1,
+      "column_scale": 2.0,
+      "max_error": 1.3877787807814457e-16
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 0,
       "cycle_scheme": 2,
       "latitude_rad": 0.4,
       "seasonal": true,
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 0.0,
-      "max_error": 2.2690318591048197e-17
+      "max_error": 1.700842158086635e-17
     },
     {
       "layers": 40,
@@ -3747,7 +3748,7 @@
       "pulse_fraction": 0.2,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
-      "max_error": 1.3877787807814457e-17
+      "max_error": 2.7755575615628914e-17
     },
     {
       "layers": 40,
@@ -3771,7 +3772,7 @@
       "pulse_fraction": 0.2,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 2.0816681711721685e-17
+      "max_error": 4.85722573273506e-17
     },
     {
       "layers": 40,
@@ -3783,7 +3784,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 0.0,
-      "max_error": 3.7633673846508564e-18
+      "max_error": 2.8833001524536384e-18
     },
     {
       "layers": 40,
@@ -3795,7 +3796,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
-      "max_error": 2.7755575615628914e-17
+      "max_error": 8.673617379884035e-19
     },
     {
       "layers": 40,
@@ -3819,7 +3820,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 5.551115123125783e-17
+      "max_error": 1.5178830414797062e-18
     },
     {
       "layers": 40,
@@ -3843,7 +3844,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 0.0,
-      "max_error": 3.7633673846508564e-18
+      "max_error": 2.8833001524536384e-18
     },
     {
       "layers": 40,
@@ -3855,7 +3856,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
-      "max_error": 6.938893903907228e-18
+      "max_error": 1.734723475976807e-18
     },
     {
       "layers": 40,
@@ -3879,7 +3880,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 2.7755575615628914e-17
+      "max_error": 1.3877787807814457e-17
     },
     {
       "layers": 40,
@@ -3891,7 +3892,7 @@
       "pulse_fraction": 0.2,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 5.551115123125783e-17
+      "max_error": 4.163336342344337e-17
     },
     {
       "layers": 40,
@@ -3903,7 +3904,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 0.0,
-      "max_error": 2.2690318591048197e-17
+      "max_error": 1.700842158086635e-17
     },
     {
       "layers": 40,
@@ -3915,7 +3916,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
-      "max_error": 2.7755575615628914e-17
+      "max_error": 8.673617379884035e-19
     },
     {
       "layers": 40,
@@ -3939,7 +3940,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 5.551115123125783e-17
+      "max_error": 2.7755575615628914e-17
     },
     {
       "layers": 40,
@@ -3963,7 +3964,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 0.0,
-      "max_error": 2.2690318591048197e-17
+      "max_error": 1.700842158086635e-17
     },
     {
       "layers": 40,
@@ -3975,7 +3976,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
-      "max_error": 1.3877787807814457e-17
+      "max_error": 6.938893903907228e-18
     },
     {
       "layers": 40,
@@ -3999,7 +4000,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 2.7755575615628914e-17
+      "max_error": 1.3877787807814457e-17
     },
     {
       "layers": 40,
@@ -4023,7 +4024,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 0.0,
-      "max_error": 3.7633673846508564e-18
+      "max_error": 2.8833001524536384e-18
     },
     {
       "layers": 40,
@@ -4083,7 +4084,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 0.0,
-      "max_error": 3.7633673846508564e-18
+      "max_error": 2.8833001524536384e-18
     },
     {
       "layers": 40,
@@ -4107,7 +4108,7 @@
       "pulse_fraction": 0.2,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
-      "max_error": 2.7755575615628914e-17
+      "max_error": 1.3877787807814457e-17
     },
     {
       "layers": 40,
@@ -4119,7 +4120,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 8.326672684688674e-17
+      "max_error": 5.551115123125783e-17
     },
     {
       "layers": 40,
@@ -4131,7 +4132,7 @@
       "pulse_fraction": 0.2,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 8.326672684688674e-17
+      "max_error": 3.469446951953614e-17
     },
     {
       "layers": 40,
@@ -4143,7 +4144,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 0.0,
-      "max_error": 2.2690318591048197e-17
+      "max_error": 1.700842158086635e-17
     },
     {
       "layers": 40,
@@ -4167,6 +4168,30 @@
       "pulse_fraction": 0.2,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
+      "max_error": 2.7755575615628914e-17
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 1,
+      "cycle_scheme": 1,
+      "latitude_rad": 0.4,
+      "seasonal": true,
+      "pulse_fraction": 0.0,
+      "pulse_opacity": 0.1,
+      "column_scale": 2.0,
+      "max_error": 5.551115123125783e-17
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 1,
+      "cycle_scheme": 1,
+      "latitude_rad": 0.4,
+      "seasonal": true,
+      "pulse_fraction": 0.2,
+      "pulse_opacity": 0.1,
+      "column_scale": 2.0,
       "max_error": 5.551115123125783e-17
     },
     {
@@ -4178,32 +4203,8 @@
       "seasonal": true,
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
-      "column_scale": 2.0,
-      "max_error": 6.938893903907228e-17
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 1,
-      "cycle_scheme": 1,
-      "latitude_rad": 0.4,
-      "seasonal": true,
-      "pulse_fraction": 0.2,
-      "pulse_opacity": 0.1,
-      "column_scale": 2.0,
-      "max_error": 8.326672684688674e-17
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 1,
-      "cycle_scheme": 1,
-      "latitude_rad": 0.4,
-      "seasonal": true,
-      "pulse_fraction": 0.0,
-      "pulse_opacity": 0.1,
       "column_scale": 0.0,
-      "max_error": 2.2690318591048197e-17
+      "max_error": 1.700842158086635e-17
     },
     {
       "layers": 40,
@@ -4215,30 +4216,6 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
-      "max_error": 6.938893903907228e-18
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 1,
-      "cycle_scheme": 2,
-      "latitude_rad": -1.2,
-      "seasonal": false,
-      "pulse_fraction": 0.2,
-      "pulse_opacity": 0.0,
-      "column_scale": 1.0,
-      "max_error": 1.0408340855860843e-17
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 1,
-      "cycle_scheme": 2,
-      "latitude_rad": -1.2,
-      "seasonal": false,
-      "pulse_fraction": 0.0,
-      "pulse_opacity": 0.1,
-      "column_scale": 2.0,
       "max_error": 1.3877787807814457e-17
     },
     {
@@ -4249,8 +4226,128 @@
       "latitude_rad": -1.2,
       "seasonal": false,
       "pulse_fraction": 0.2,
+      "pulse_opacity": 0.0,
+      "column_scale": 1.0,
+      "max_error": 1.3877787807814457e-17
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 1,
+      "cycle_scheme": 2,
+      "latitude_rad": -1.2,
+      "seasonal": false,
+      "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
+      "max_error": 3.469446951953614e-17
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 1,
+      "cycle_scheme": 2,
+      "latitude_rad": -1.2,
+      "seasonal": false,
+      "pulse_fraction": 0.2,
+      "pulse_opacity": 0.1,
+      "column_scale": 2.0,
+      "max_error": 2.7755575615628914e-17
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 1,
+      "cycle_scheme": 2,
+      "latitude_rad": -1.2,
+      "seasonal": false,
+      "pulse_fraction": 0.0,
+      "pulse_opacity": 0.1,
+      "column_scale": 0.0,
+      "max_error": 2.8833001524536384e-18
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 1,
+      "cycle_scheme": 2,
+      "latitude_rad": -1.2,
+      "seasonal": true,
+      "pulse_fraction": 0.0,
+      "pulse_opacity": 0.0,
+      "column_scale": 1.0,
+      "max_error": 2.7755575615628914e-17
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 1,
+      "cycle_scheme": 2,
+      "latitude_rad": -1.2,
+      "seasonal": true,
+      "pulse_fraction": 0.2,
+      "pulse_opacity": 0.0,
+      "column_scale": 1.0,
+      "max_error": 8.326672684688674e-17
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 1,
+      "cycle_scheme": 2,
+      "latitude_rad": -1.2,
+      "seasonal": true,
+      "pulse_fraction": 0.0,
+      "pulse_opacity": 0.1,
+      "column_scale": 2.0,
+      "max_error": 5.551115123125783e-17
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 1,
+      "cycle_scheme": 2,
+      "latitude_rad": -1.2,
+      "seasonal": true,
+      "pulse_fraction": 0.2,
+      "pulse_opacity": 0.1,
+      "column_scale": 2.0,
+      "max_error": 1.6653345369377348e-16
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 1,
+      "cycle_scheme": 2,
+      "latitude_rad": -1.2,
+      "seasonal": true,
+      "pulse_fraction": 0.0,
+      "pulse_opacity": 0.1,
+      "column_scale": 0.0,
+      "max_error": 2.8833001524536384e-18
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 1,
+      "cycle_scheme": 2,
+      "latitude_rad": 0.4,
+      "seasonal": false,
+      "pulse_fraction": 0.0,
+      "pulse_opacity": 0.0,
+      "column_scale": 1.0,
+      "max_error": 1.3877787807814457e-17
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 1,
+      "cycle_scheme": 2,
+      "latitude_rad": 0.4,
+      "seasonal": false,
+      "pulse_fraction": 0.2,
+      "pulse_opacity": 0.0,
+      "column_scale": 1.0,
       "max_error": 2.0816681711721685e-17
     },
     {
@@ -4258,108 +4355,12 @@
       "surface_pressure_pa": 900.0,
       "conrath_type": 1,
       "cycle_scheme": 2,
-      "latitude_rad": -1.2,
-      "seasonal": false,
-      "pulse_fraction": 0.0,
-      "pulse_opacity": 0.1,
-      "column_scale": 0.0,
-      "max_error": 3.7633673846508564e-18
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 1,
-      "cycle_scheme": 2,
-      "latitude_rad": -1.2,
-      "seasonal": true,
-      "pulse_fraction": 0.0,
-      "pulse_opacity": 0.0,
-      "column_scale": 1.0,
-      "max_error": 5.551115123125783e-17
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 1,
-      "cycle_scheme": 2,
-      "latitude_rad": -1.2,
-      "seasonal": true,
-      "pulse_fraction": 0.2,
-      "pulse_opacity": 0.0,
-      "column_scale": 1.0,
-      "max_error": 2.7755575615628914e-17
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 1,
-      "cycle_scheme": 2,
-      "latitude_rad": -1.2,
-      "seasonal": true,
-      "pulse_fraction": 0.0,
-      "pulse_opacity": 0.1,
-      "column_scale": 2.0,
-      "max_error": 1.1102230246251565e-16
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 1,
-      "cycle_scheme": 2,
-      "latitude_rad": -1.2,
-      "seasonal": true,
-      "pulse_fraction": 0.2,
-      "pulse_opacity": 0.1,
-      "column_scale": 2.0,
-      "max_error": 5.551115123125783e-17
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 1,
-      "cycle_scheme": 2,
-      "latitude_rad": -1.2,
-      "seasonal": true,
-      "pulse_fraction": 0.0,
-      "pulse_opacity": 0.1,
-      "column_scale": 0.0,
-      "max_error": 3.7633673846508564e-18
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 1,
-      "cycle_scheme": 2,
-      "latitude_rad": 0.4,
-      "seasonal": false,
-      "pulse_fraction": 0.0,
-      "pulse_opacity": 0.0,
-      "column_scale": 1.0,
-      "max_error": 1.3877787807814457e-17
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 1,
-      "cycle_scheme": 2,
-      "latitude_rad": 0.4,
-      "seasonal": false,
-      "pulse_fraction": 0.2,
-      "pulse_opacity": 0.0,
-      "column_scale": 1.0,
-      "max_error": 1.3877787807814457e-17
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 1,
-      "cycle_scheme": 2,
       "latitude_rad": 0.4,
       "seasonal": false,
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 3.469446951953614e-17
+      "max_error": 4.163336342344337e-17
     },
     {
       "layers": 40,
@@ -4371,7 +4372,7 @@
       "pulse_fraction": 0.2,
       "pulse_opacity": 0.1,
       "column_scale": 2.0,
-      "max_error": 3.469446951953614e-17
+      "max_error": 4.85722573273506e-17
     },
     {
       "layers": 40,
@@ -4383,7 +4384,7 @@
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
       "column_scale": 0.0,
-      "max_error": 2.2690318591048197e-17
+      "max_error": 1.700842158086635e-17
     },
     {
       "layers": 40,
@@ -4393,18 +4394,6 @@
       "latitude_rad": 0.4,
       "seasonal": true,
       "pulse_fraction": 0.0,
-      "pulse_opacity": 0.0,
-      "column_scale": 1.0,
-      "max_error": 5.551115123125783e-17
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 1,
-      "cycle_scheme": 2,
-      "latitude_rad": 0.4,
-      "seasonal": true,
-      "pulse_fraction": 0.2,
       "pulse_opacity": 0.0,
       "column_scale": 1.0,
       "max_error": 2.7755575615628914e-17
@@ -4416,21 +4405,9 @@
       "cycle_scheme": 2,
       "latitude_rad": 0.4,
       "seasonal": true,
-      "pulse_fraction": 0.0,
-      "pulse_opacity": 0.1,
-      "column_scale": 2.0,
-      "max_error": 8.326672684688674e-17
-    },
-    {
-      "layers": 40,
-      "surface_pressure_pa": 900.0,
-      "conrath_type": 1,
-      "cycle_scheme": 2,
-      "latitude_rad": 0.4,
-      "seasonal": true,
       "pulse_fraction": 0.2,
-      "pulse_opacity": 0.1,
-      "column_scale": 2.0,
+      "pulse_opacity": 0.0,
+      "column_scale": 1.0,
       "max_error": 5.551115123125783e-17
     },
     {
@@ -4442,13 +4419,37 @@
       "seasonal": true,
       "pulse_fraction": 0.0,
       "pulse_opacity": 0.1,
+      "column_scale": 2.0,
+      "max_error": 5.551115123125783e-17
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 1,
+      "cycle_scheme": 2,
+      "latitude_rad": 0.4,
+      "seasonal": true,
+      "pulse_fraction": 0.2,
+      "pulse_opacity": 0.1,
+      "column_scale": 2.0,
+      "max_error": 1.3877787807814457e-16
+    },
+    {
+      "layers": 40,
+      "surface_pressure_pa": 900.0,
+      "conrath_type": 1,
+      "cycle_scheme": 2,
+      "latitude_rad": 0.4,
+      "seasonal": true,
+      "pulse_fraction": 0.0,
+      "pulse_opacity": 0.1,
       "column_scale": 0.0,
-      "max_error": 2.2690318591048197e-17
+      "max_error": 1.700842158086635e-17
     }
   ],
   "sha256": {
     "scripts/validate_prescribed_dust.py": "d568afd0fb5c07dcf24da8cdc662dfb2a21daf3548f741b6ecfc6a59b914f888",
-    "package/src/framework/physics/prescribed_dust.py": "1ec309decbafffc5fdc1f0fd2c7e7acd9c9f4cae1e6289237ef9e0e5232196dc"
+    "package/src/framework/physics/prescribed_dust.py": "3989a164fdfe259be9f1663d41873042ee0cbbab8aae4bae895b4bb2e55bbc0d"
   },
   "limits": "Profile, fractional pulse and seasonal interpolation kernels plus unchanged prescribed-dust dispatch with additive pulse and column scaling. Storm checks compare unchanged equations with explicit supplied slope and c; the release leaves those locals undefined. Map sampling and optical properties have separate checks."
 }

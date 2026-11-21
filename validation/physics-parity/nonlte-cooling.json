@@ -7,10 +7,11 @@
       "simple_nltecool": "39dad099a42e46b06681ad0ccea76ff6f8ba6daa5923638ac2eeecc9fd704011",
       "interpnlte": "1930997f2c49ae2ad7f14d4da484de2a10203abce13ecd0f340c60bf118af724"
     },
-    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+    "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
     "compiler_flags": [
       "-O3",
       "-cpp",
+      "-ffree-line-length-none",
       "-fdefault-real-8",
       "-fdefault-double-8",
       "-fPIC",
@@ -28,7 +29,7 @@
       ],
       "temperature_k": 110.0,
       "oxygen_mass_fraction": 0.0,
-      "max_error_k_s": 1.0842021724855044e-19
+      "max_error_k_s": 1.6263032587282567e-19
     },
     {
       "layers": 4,
@@ -38,7 +39,7 @@
       ],
       "temperature_k": 110.0,
       "oxygen_mass_fraction": 0.01,
-      "max_error_k_s": 3.1848438816761693e-19
+      "max_error_k_s": 2.439454888092385e-19
     },
     {
       "layers": 4,
@@ -48,7 +49,7 @@
       ],
       "temperature_k": 110.0,
       "oxygen_mass_fraction": 0.3,
-      "max_error_k_s": 1.951563910473908e-18
+      "max_error_k_s": 1.5178830414797062e-18
     },
     {
       "layers": 4,
@@ -58,490 +59,130 @@
       ],
       "temperature_k": 180.0,
       "oxygen_mass_fraction": 0.0,
-      "max_error_k_s": 1.734723475976807e-18
-    },
-    {
-      "layers": 4,
-      "pressure_bounds_pa": [
-        1e-08,
-        4.0
-      ],
-      "temperature_k": 180.0,
-      "oxygen_mass_fraction": 0.01,
-      "max_error_k_s": 6.7220534694101275e-18
-    },
-    {
-      "layers": 4,
-      "pressure_bounds_pa": [
-        1e-08,
-        4.0
-      ],
-      "temperature_k": 180.0,
-      "oxygen_mass_fraction": 0.3,
-      "max_error_k_s": 5.204170427930421e-17
-    },
-    {
-      "layers": 4,
-      "pressure_bounds_pa": [
-        1e-08,
-        4.0
-      ],
-      "temperature_k": 350.0,
-      "oxygen_mass_fraction": 0.0,
-      "max_error_k_s": 1.3877787807814457e-17
-    },
-    {
-      "layers": 4,
-      "pressure_bounds_pa": [
-        1e-08,
-        4.0
-      ],
-      "temperature_k": 350.0,
-      "oxygen_mass_fraction": 0.01,
-      "max_error_k_s": 5.0306980803327406e-17
-    },
-    {
-      "layers": 4,
-      "pressure_bounds_pa": [
-        1e-08,
-        4.0
-      ],
-      "temperature_k": 350.0,
-      "oxygen_mass_fraction": 0.3,
-      "max_error_k_s": 4.996003610813204e-16
-    },
-    {
-      "layers": 4,
-      "pressure_bounds_pa": [
-        0.001,
-        610.0
-      ],
-      "temperature_k": 110.0,
-      "oxygen_mass_fraction": 0.0,
-      "max_error_k_s": 5.421010862427522e-20
-    },
-    {
-      "layers": 4,
-      "pressure_bounds_pa": [
-        0.001,
-        610.0
-      ],
-      "temperature_k": 110.0,
-      "oxygen_mass_fraction": 0.01,
-      "max_error_k_s": 1.0842021724855044e-19
-    },
-    {
-      "layers": 4,
-      "pressure_bounds_pa": [
-        0.001,
-        610.0
-      ],
-      "temperature_k": 110.0,
-      "oxygen_mass_fraction": 0.3,
-      "max_error_k_s": 2.168404344971009e-19
-    },
-    {
-      "layers": 4,
-      "pressure_bounds_pa": [
-        0.001,
-        610.0
-      ],
-      "temperature_k": 180.0,
-      "oxygen_mass_fraction": 0.0,
-      "max_error_k_s": 8.673617379884035e-19
-    },
-    {
-      "layers": 4,
-      "pressure_bounds_pa": [
-        0.001,
-        610.0
-      ],
-      "temperature_k": 180.0,
-      "oxygen_mass_fraction": 0.01,
-      "max_error_k_s": 1.734723475976807e-18
-    },
-    {
-      "layers": 4,
-      "pressure_bounds_pa": [
-        0.001,
-        610.0
-      ],
-      "temperature_k": 180.0,
-      "oxygen_mass_fraction": 0.3,
       "max_error_k_s": 3.469446951953614e-18
     },
     {
       "layers": 4,
       "pressure_bounds_pa": [
-        0.001,
-        610.0
+        1e-08,
+        4.0
       ],
-      "temperature_k": 350.0,
-      "oxygen_mass_fraction": 0.0,
-      "max_error_k_s": 6.938893903907228e-18
+      "temperature_k": 180.0,
+      "oxygen_mass_fraction": 0.01,
+      "max_error_k_s": 5.204170427930421e-18
     },
     {
       "layers": 4,
       "pressure_bounds_pa": [
-        0.001,
-        610.0
+        1e-08,
+        4.0
+      ],
+      "temperature_k": 180.0,
+      "oxygen_mass_fraction": 0.3,
+      "max_error_k_s": 4.163336342344337e-17
+    },
+    {
+      "layers": 4,
+      "pressure_bounds_pa": [
+        1e-08,
+        4.0
       ],
       "temperature_k": 350.0,
-      "oxygen_mass_fraction": 0.01,
+      "oxygen_mass_fraction": 0.0,
       "max_error_k_s": 2.7755575615628914e-17
     },
     {
       "layers": 4,
       "pressure_bounds_pa": [
-        0.001,
-        610.0
-      ],
-      "temperature_k": 350.0,
-      "oxygen_mass_fraction": 0.3,
-      "max_error_k_s": 2.7755575615628914e-17
-    },
-    {
-      "layers": 12,
-      "pressure_bounds_pa": [
-        1e-08,
-        4.0
-      ],
-      "temperature_k": 110.0,
-      "oxygen_mass_fraction": 0.0,
-      "max_error_k_s": 2.846030702774449e-19
-    },
-    {
-      "layers": 12,
-      "pressure_bounds_pa": [
-        1e-08,
-        4.0
-      ],
-      "temperature_k": 110.0,
-      "oxygen_mass_fraction": 0.01,
-      "max_error_k_s": 1.2468324983583301e-18
-    },
-    {
-      "layers": 12,
-      "pressure_bounds_pa": [
-        1e-08,
-        4.0
-      ],
-      "temperature_k": 110.0,
-      "oxygen_mass_fraction": 0.3,
-      "max_error_k_s": 2.4936649967166602e-18
-    },
-    {
-      "layers": 12,
-      "pressure_bounds_pa": [
-        1e-08,
-        4.0
-      ],
-      "temperature_k": 180.0,
-      "oxygen_mass_fraction": 0.0,
-      "max_error_k_s": 7.806255641895632e-18
-    },
-    {
-      "layers": 12,
-      "pressure_bounds_pa": [
-        1e-08,
-        4.0
-      ],
-      "temperature_k": 180.0,
-      "oxygen_mass_fraction": 0.01,
-      "max_error_k_s": 3.2959746043559335e-17
-    },
-    {
-      "layers": 12,
-      "pressure_bounds_pa": [
-        1e-08,
-        4.0
-      ],
-      "temperature_k": 180.0,
-      "oxygen_mass_fraction": 0.3,
-      "max_error_k_s": 6.591949208711867e-17
-    },
-    {
-      "layers": 12,
-      "pressure_bounds_pa": [
-        1e-08,
-        4.0
-      ],
-      "temperature_k": 350.0,
-      "oxygen_mass_fraction": 0.0,
-      "max_error_k_s": 1.1102230246251565e-16
-    },
-    {
-      "layers": 12,
-      "pressure_bounds_pa": [
         1e-08,
         4.0
       ],
       "temperature_k": 350.0,
       "oxygen_mass_fraction": 0.01,
+      "max_error_k_s": 4.163336342344337e-17
+    },
+    {
+      "layers": 4,
+      "pressure_bounds_pa": [
+        1e-08,
+        4.0
+      ],
+      "temperature_k": 350.0,
+      "oxygen_mass_fraction": 0.3,
       "max_error_k_s": 3.885780586188048e-16
     },
     {
-      "layers": 12,
-      "pressure_bounds_pa": [
-        1e-08,
-        4.0
-      ],
-      "temperature_k": 350.0,
-      "oxygen_mass_fraction": 0.3,
-      "max_error_k_s": 7.077671781985373e-16
-    },
-    {
-      "layers": 12,
+      "layers": 4,
       "pressure_bounds_pa": [
         0.001,
         610.0
-      ],
-      "temperature_k": 110.0,
-      "oxygen_mass_fraction": 0.0,
-      "max_error_k_s": 5.421010862427522e-20
-    },
-    {
-      "layers": 12,
-      "pressure_bounds_pa": [
-        0.001,
-        610.0
-      ],
-      "temperature_k": 110.0,
-      "oxygen_mass_fraction": 0.01,
-      "max_error_k_s": 1.0842021724855044e-19
-    },
-    {
-      "layers": 12,
-      "pressure_bounds_pa": [
-        0.001,
-        610.0
-      ],
-      "temperature_k": 110.0,
-      "oxygen_mass_fraction": 0.3,
-      "max_error_k_s": 2.168404344971009e-19
-    },
-    {
-      "layers": 12,
-      "pressure_bounds_pa": [
-        0.001,
-        610.0
-      ],
-      "temperature_k": 180.0,
-      "oxygen_mass_fraction": 0.0,
-      "max_error_k_s": 1.734723475976807e-18
-    },
-    {
-      "layers": 12,
-      "pressure_bounds_pa": [
-        0.001,
-        610.0
-      ],
-      "temperature_k": 180.0,
-      "oxygen_mass_fraction": 0.01,
-      "max_error_k_s": 3.469446951953614e-18
-    },
-    {
-      "layers": 12,
-      "pressure_bounds_pa": [
-        0.001,
-        610.0
-      ],
-      "temperature_k": 180.0,
-      "oxygen_mass_fraction": 0.3,
-      "max_error_k_s": 3.469446951953614e-18
-    },
-    {
-      "layers": 12,
-      "pressure_bounds_pa": [
-        0.001,
-        610.0
-      ],
-      "temperature_k": 350.0,
-      "oxygen_mass_fraction": 0.0,
-      "max_error_k_s": 2.7755575615628914e-17
-    },
-    {
-      "layers": 12,
-      "pressure_bounds_pa": [
-        0.001,
-        610.0
-      ],
-      "temperature_k": 350.0,
-      "oxygen_mass_fraction": 0.01,
-      "max_error_k_s": 2.7755575615628914e-17
-    },
-    {
-      "layers": 12,
-      "pressure_bounds_pa": [
-        0.001,
-        610.0
-      ],
-      "temperature_k": 350.0,
-      "oxygen_mass_fraction": 0.3,
-      "max_error_k_s": 5.551115123125783e-17
-    },
-    {
-      "layers": 40,
-      "pressure_bounds_pa": [
-        1e-08,
-        4.0
       ],
       "temperature_k": 110.0,
       "oxygen_mass_fraction": 0.0,
       "max_error_k_s": 1.8973538018496328e-19
     },
     {
-      "layers": 40,
+      "layers": 4,
       "pressure_bounds_pa": [
-        1e-08,
-        4.0
+        0.001,
+        610.0
       ],
       "temperature_k": 110.0,
       "oxygen_mass_fraction": 0.01,
-      "max_error_k_s": 8.131516293641283e-19
+      "max_error_k_s": 4.87890977618477e-19
     },
     {
-      "layers": 40,
+      "layers": 4,
       "pressure_bounds_pa": [
-        1e-08,
-        4.0
+        0.001,
+        610.0
       ],
       "temperature_k": 110.0,
       "oxygen_mass_fraction": 0.3,
-      "max_error_k_s": 2.4936649967166602e-18
+      "max_error_k_s": 6.505213034913027e-19
     },
     {
-      "layers": 40,
+      "layers": 4,
       "pressure_bounds_pa": [
-        1e-08,
-        4.0
+        0.001,
+        610.0
       ],
       "temperature_k": 180.0,
       "oxygen_mass_fraction": 0.0,
       "max_error_k_s": 5.204170427930421e-18
     },
     {
-      "layers": 40,
+      "layers": 4,
       "pressure_bounds_pa": [
-        1e-08,
-        4.0
+        0.001,
+        610.0
       ],
       "temperature_k": 180.0,
       "oxygen_mass_fraction": 0.01,
-      "max_error_k_s": 2.0816681711721685e-17
+      "max_error_k_s": 1.214306433183765e-17
     },
     {
-      "layers": 40,
+      "layers": 4,
       "pressure_bounds_pa": [
-        1e-08,
-        4.0
+        0.001,
+        610.0
       ],
       "temperature_k": 180.0,
       "oxygen_mass_fraction": 0.3,
-      "max_error_k_s": 6.245004513516506e-17
+      "max_error_k_s": 1.5612511283791264e-17
     },
     {
-      "layers": 40,
+      "layers": 4,
       "pressure_bounds_pa": [
-        1e-08,
-        4.0
+        0.001,
+        610.0
       ],
       "temperature_k": 350.0,
       "oxygen_mass_fraction": 0.0,
       "max_error_k_s": 6.245004513516506e-17
     },
     {
-      "layers": 40,
-      "pressure_bounds_pa": [
-        1e-08,
-        4.0
-      ],
-      "temperature_k": 350.0,
-      "oxygen_mass_fraction": 0.01,
-      "max_error_k_s": 2.220446049250313e-16
-    },
-    {
-      "layers": 40,
-      "pressure_bounds_pa": [
-        1e-08,
-        4.0
-      ],
-      "temperature_k": 350.0,
-      "oxygen_mass_fraction": 0.3,
-      "max_error_k_s": 6.661338147750939e-16
-    },
-    {
-      "layers": 40,
-      "pressure_bounds_pa": [
-        0.001,
-        610.0
-      ],
-      "temperature_k": 110.0,
-      "oxygen_mass_fraction": 0.0,
-      "max_error_k_s": 3.2526065174565133e-19
-    },
-    {
-      "layers": 40,
-      "pressure_bounds_pa": [
-        0.001,
-        610.0
-      ],
-      "temperature_k": 110.0,
-      "oxygen_mass_fraction": 0.01,
-      "max_error_k_s": 4.336808689942018e-19
-    },
-    {
-      "layers": 40,
-      "pressure_bounds_pa": [
-        0.001,
-        610.0
-      ],
-      "temperature_k": 110.0,
-      "oxygen_mass_fraction": 0.3,
-      "max_error_k_s": 4.336808689942018e-19
-    },
-    {
-      "layers": 40,
-      "pressure_bounds_pa": [
-        0.001,
-        610.0
-      ],
-      "temperature_k": 180.0,
-      "oxygen_mass_fraction": 0.0,
-      "max_error_k_s": 1.1275702593849246e-17
-    },
-    {
-      "layers": 40,
-      "pressure_bounds_pa": [
-        0.001,
-        610.0
-      ],
-      "temperature_k": 180.0,
-      "oxygen_mass_fraction": 0.01,
-      "max_error_k_s": 1.3877787807814457e-17
-    },
-    {
-      "layers": 40,
-      "pressure_bounds_pa": [
-        0.001,
-        610.0
-      ],
-      "temperature_k": 180.0,
-      "oxygen_mass_fraction": 0.3,
-      "max_error_k_s": 1.3877787807814457e-17
-    },
-    {
-      "layers": 40,
-      "pressure_bounds_pa": [
-        0.001,
-        610.0
-      ],
-      "temperature_k": 350.0,
-      "oxygen_mass_fraction": 0.0,
-      "max_error_k_s": 1.5265566588595902e-16
-    },
-    {
-      "layers": 40,
+      "layers": 4,
       "pressure_bounds_pa": [
         0.001,
         610.0
@@ -551,6 +192,366 @@
       "max_error_k_s": 1.6653345369377348e-16
     },
     {
+      "layers": 4,
+      "pressure_bounds_pa": [
+        0.001,
+        610.0
+      ],
+      "temperature_k": 350.0,
+      "oxygen_mass_fraction": 0.3,
+      "max_error_k_s": 1.942890293094024e-16
+    },
+    {
+      "layers": 12,
+      "pressure_bounds_pa": [
+        1e-08,
+        4.0
+      ],
+      "temperature_k": 110.0,
+      "oxygen_mass_fraction": 0.0,
+      "max_error_k_s": 2.710505431213761e-19
+    },
+    {
+      "layers": 12,
+      "pressure_bounds_pa": [
+        1e-08,
+        4.0
+      ],
+      "temperature_k": 110.0,
+      "oxygen_mass_fraction": 0.01,
+      "max_error_k_s": 1.1384122811097797e-18
+    },
+    {
+      "layers": 12,
+      "pressure_bounds_pa": [
+        1e-08,
+        4.0
+      ],
+      "temperature_k": 110.0,
+      "oxygen_mass_fraction": 0.3,
+      "max_error_k_s": 1.951563910473908e-18
+    },
+    {
+      "layers": 12,
+      "pressure_bounds_pa": [
+        1e-08,
+        4.0
+      ],
+      "temperature_k": 180.0,
+      "oxygen_mass_fraction": 0.0,
+      "max_error_k_s": 6.938893903907228e-18
+    },
+    {
+      "layers": 12,
+      "pressure_bounds_pa": [
+        1e-08,
+        4.0
+      ],
+      "temperature_k": 180.0,
+      "oxygen_mass_fraction": 0.01,
+      "max_error_k_s": 2.949029909160572e-17
+    },
+    {
+      "layers": 12,
+      "pressure_bounds_pa": [
+        1e-08,
+        4.0
+      ],
+      "temperature_k": 180.0,
+      "oxygen_mass_fraction": 0.3,
+      "max_error_k_s": 5.377642775528102e-17
+    },
+    {
+      "layers": 12,
+      "pressure_bounds_pa": [
+        1e-08,
+        4.0
+      ],
+      "temperature_k": 350.0,
+      "oxygen_mass_fraction": 0.0,
+      "max_error_k_s": 9.71445146547012e-17
+    },
+    {
+      "layers": 12,
+      "pressure_bounds_pa": [
+        1e-08,
+        4.0
+      ],
+      "temperature_k": 350.0,
+      "oxygen_mass_fraction": 0.01,
+      "max_error_k_s": 3.608224830031759e-16
+    },
+    {
+      "layers": 12,
+      "pressure_bounds_pa": [
+        1e-08,
+        4.0
+      ],
+      "temperature_k": 350.0,
+      "oxygen_mass_fraction": 0.3,
+      "max_error_k_s": 6.661338147750939e-16
+    },
+    {
+      "layers": 12,
+      "pressure_bounds_pa": [
+        0.001,
+        610.0
+      ],
+      "temperature_k": 110.0,
+      "oxygen_mass_fraction": 0.0,
+      "max_error_k_s": 1.8973538018496328e-19
+    },
+    {
+      "layers": 12,
+      "pressure_bounds_pa": [
+        0.001,
+        610.0
+      ],
+      "temperature_k": 110.0,
+      "oxygen_mass_fraction": 0.01,
+      "max_error_k_s": 4.87890977618477e-19
+    },
+    {
+      "layers": 12,
+      "pressure_bounds_pa": [
+        0.001,
+        610.0
+      ],
+      "temperature_k": 110.0,
+      "oxygen_mass_fraction": 0.3,
+      "max_error_k_s": 6.505213034913027e-19
+    },
+    {
+      "layers": 12,
+      "pressure_bounds_pa": [
+        0.001,
+        610.0
+      ],
+      "temperature_k": 180.0,
+      "oxygen_mass_fraction": 0.0,
+      "max_error_k_s": 5.204170427930421e-18
+    },
+    {
+      "layers": 12,
+      "pressure_bounds_pa": [
+        0.001,
+        610.0
+      ],
+      "temperature_k": 180.0,
+      "oxygen_mass_fraction": 0.01,
+      "max_error_k_s": 1.214306433183765e-17
+    },
+    {
+      "layers": 12,
+      "pressure_bounds_pa": [
+        0.001,
+        610.0
+      ],
+      "temperature_k": 180.0,
+      "oxygen_mass_fraction": 0.3,
+      "max_error_k_s": 1.5612511283791264e-17
+    },
+    {
+      "layers": 12,
+      "pressure_bounds_pa": [
+        0.001,
+        610.0
+      ],
+      "temperature_k": 350.0,
+      "oxygen_mass_fraction": 0.0,
+      "max_error_k_s": 6.245004513516506e-17
+    },
+    {
+      "layers": 12,
+      "pressure_bounds_pa": [
+        0.001,
+        610.0
+      ],
+      "temperature_k": 350.0,
+      "oxygen_mass_fraction": 0.01,
+      "max_error_k_s": 1.6653345369377348e-16
+    },
+    {
+      "layers": 12,
+      "pressure_bounds_pa": [
+        0.001,
+        610.0
+      ],
+      "temperature_k": 350.0,
+      "oxygen_mass_fraction": 0.3,
+      "max_error_k_s": 1.942890293094024e-16
+    },
+    {
+      "layers": 40,
+      "pressure_bounds_pa": [
+        1e-08,
+        4.0
+      ],
+      "temperature_k": 110.0,
+      "oxygen_mass_fraction": 0.0,
+      "max_error_k_s": 2.574980159653073e-19
+    },
+    {
+      "layers": 40,
+      "pressure_bounds_pa": [
+        1e-08,
+        4.0
+      ],
+      "temperature_k": 110.0,
+      "oxygen_mass_fraction": 0.01,
+      "max_error_k_s": 9.215718466126788e-19
+    },
+    {
+      "layers": 40,
+      "pressure_bounds_pa": [
+        1e-08,
+        4.0
+      ],
+      "temperature_k": 110.0,
+      "oxygen_mass_fraction": 0.3,
+      "max_error_k_s": 1.5178830414797062e-18
+    },
+    {
+      "layers": 40,
+      "pressure_bounds_pa": [
+        1e-08,
+        4.0
+      ],
+      "temperature_k": 180.0,
+      "oxygen_mass_fraction": 0.0,
+      "max_error_k_s": 7.37257477290143e-18
+    },
+    {
+      "layers": 40,
+      "pressure_bounds_pa": [
+        1e-08,
+        4.0
+      ],
+      "temperature_k": 180.0,
+      "oxygen_mass_fraction": 0.01,
+      "max_error_k_s": 2.2551405187698492e-17
+    },
+    {
+      "layers": 40,
+      "pressure_bounds_pa": [
+        1e-08,
+        4.0
+      ],
+      "temperature_k": 180.0,
+      "oxygen_mass_fraction": 0.3,
+      "max_error_k_s": 4.163336342344337e-17
+    },
+    {
+      "layers": 40,
+      "pressure_bounds_pa": [
+        1e-08,
+        4.0
+      ],
+      "temperature_k": 350.0,
+      "oxygen_mass_fraction": 0.0,
+      "max_error_k_s": 9.020562075079397e-17
+    },
+    {
+      "layers": 40,
+      "pressure_bounds_pa": [
+        1e-08,
+        4.0
+      ],
+      "temperature_k": 350.0,
+      "oxygen_mass_fraction": 0.01,
+      "max_error_k_s": 2.7755575615628914e-16
+    },
+    {
+      "layers": 40,
+      "pressure_bounds_pa": [
+        1e-08,
+        4.0
+      ],
+      "temperature_k": 350.0,
+      "oxygen_mass_fraction": 0.3,
+      "max_error_k_s": 3.885780586188048e-16
+    },
+    {
+      "layers": 40,
+      "pressure_bounds_pa": [
+        0.001,
+        610.0
+      ],
+      "temperature_k": 110.0,
+      "oxygen_mass_fraction": 0.0,
+      "max_error_k_s": 6.776263578034403e-19
+    },
+    {
+      "layers": 40,
+      "pressure_bounds_pa": [
+        0.001,
+        610.0
+      ],
+      "temperature_k": 110.0,
+      "oxygen_mass_fraction": 0.01,
+      "max_error_k_s": 8.131516293641283e-19
+    },
+    {
+      "layers": 40,
+      "pressure_bounds_pa": [
+        0.001,
+        610.0
+      ],
+      "temperature_k": 110.0,
+      "oxygen_mass_fraction": 0.3,
+      "max_error_k_s": 8.673617379884035e-19
+    },
+    {
+      "layers": 40,
+      "pressure_bounds_pa": [
+        0.001,
+        610.0
+      ],
+      "temperature_k": 180.0,
+      "oxygen_mass_fraction": 0.0,
+      "max_error_k_s": 2.168404344971009e-17
+    },
+    {
+      "layers": 40,
+      "pressure_bounds_pa": [
+        0.001,
+        610.0
+      ],
+      "temperature_k": 180.0,
+      "oxygen_mass_fraction": 0.01,
+      "max_error_k_s": 2.6020852139652106e-17
+    },
+    {
+      "layers": 40,
+      "pressure_bounds_pa": [
+        0.001,
+        610.0
+      ],
+      "temperature_k": 180.0,
+      "oxygen_mass_fraction": 0.3,
+      "max_error_k_s": 2.7755575615628914e-17
+    },
+    {
+      "layers": 40,
+      "pressure_bounds_pa": [
+        0.001,
+        610.0
+      ],
+      "temperature_k": 350.0,
+      "oxygen_mass_fraction": 0.0,
+      "max_error_k_s": 2.914335439641036e-16
+    },
+    {
+      "layers": 40,
+      "pressure_bounds_pa": [
+        0.001,
+        610.0
+      ],
+      "temperature_k": 350.0,
+      "oxygen_mass_fraction": 0.01,
+      "max_error_k_s": 3.3306690738754696e-16
+    },
+    {
       "layers": 40,
       "pressure_bounds_pa": [
         0.001,
@@ -558,7 +559,7 @@
       ],
       "temperature_k": 350.0,
       "oxygen_mass_fraction": 0.3,
-      "max_error_k_s": 2.0816681711721685e-16
+      "max_error_k_s": 3.7470027081099033e-16
     }
   ],
   "sha256": {

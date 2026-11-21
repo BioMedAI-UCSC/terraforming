@@ -11,10 +11,11 @@
       "sedimh2o": "1eb572839bb2f4f8903612a865047bb13e28f8d703e84dbd648369e63183559b",
       "fallvel": "9d83f2c19a8093b9a91f07dfb064c571f7343f77c06e7c59d629a8b836bec37b"
     },
-    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+    "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
     "compiler_flags": [
       "-O3",
       "-cpp",
+      "-ffree-line-length-none",
       "-fdefault-real-8",
       "-fdefault-double-8",
       "-fPIC",
@@ -134,8 +135,8 @@
       "pressure_pa": 610.0,
       "temperature_k": 320.0,
       "saturation_ratio": 2.0,
-      "native_root_error": 1.8088829045748156e-14,
-      "polished_root_error": 4.336808689942018e-19
+      "native_root_error": 1.808926272661715e-14,
+      "polished_root_error": 8.673617379884035e-19
     },
     {
       "pressure_pa": 50000.0,
@@ -190,8 +191,8 @@
       "pressure_pa": 50000.0,
       "temperature_k": 320.0,
       "saturation_ratio": 2.0,
-      "native_root_error": 2.3143763815125507e-11,
-      "polished_root_error": 8.239936510889834e-18
+      "native_root_error": 2.3143763381444638e-11,
+      "polished_root_error": 8.673617379884035e-18
     }
   ],
   "cases": [
@@ -237,8 +238,8 @@
       "dt_seconds": 300.0,
       "native_temperature_difference_k": 5.089191290608142e-10,
       "native_vapor_difference": 1.3367085216486885e-13,
-      "native_ice_difference": 1.1852936494786567e-13,
-      "native_deposition_difference_kg_m2": 1.0955375495669273e-11
+      "native_ice_difference": 1.1852936494952003e-13,
+      "native_deposition_difference_kg_m2": 1.0955403251244888e-11
     },
     {
       "layers": 2,
@@ -246,7 +247,7 @@
       "dt_seconds": 30000.0,
       "native_temperature_difference_k": 5.089191290608142e-10,
       "native_vapor_difference": 1.3367085216486885e-13,
-      "native_ice_difference": 3.882028760454484e-14,
+      "native_ice_difference": 3.882028760537202e-14,
       "native_deposition_difference_kg_m2": 5.448419493347956e-12
     },
     {
@@ -282,7 +283,7 @@
       "dt_seconds": 5.0,
       "native_temperature_difference_k": 4.773994533024961e-10,
       "native_vapor_difference": 1.254773734490635e-13,
-      "native_ice_difference": 2.367004876659057e-19,
+      "native_ice_difference": 1.824903790416305e-19,
       "native_deposition_difference_kg_m2": 1.0287784513174358e-11
     },
     {
@@ -291,7 +292,7 @@
       "dt_seconds": 300.0,
       "native_temperature_difference_k": 4.773994533024961e-10,
       "native_vapor_difference": 1.254773734490635e-13,
-      "native_ice_difference": 9.97045253268089e-20,
+      "native_ice_difference": 1.8101968826322173e-19,
       "native_deposition_difference_kg_m2": 1.0287784513174358e-11
     },
     {
@@ -300,7 +301,7 @@
       "dt_seconds": 30000.0,
       "native_temperature_difference_k": 4.773994533024961e-10,
       "native_vapor_difference": 1.254773734490635e-13,
-      "native_ice_difference": 1.8159592295744148e-19,
+      "native_ice_difference": 4.649416787038058e-20,
       "native_deposition_difference_kg_m2": 1.0287784513174358e-11
     },
     {
@@ -354,7 +355,7 @@
       "dt_seconds": 30000.0,
       "native_temperature_difference_k": 3.2406561984998916e-05,
       "native_vapor_difference": 8.51760187036511e-09,
-      "native_ice_difference": 2.178642288453663e-09,
+      "native_ice_difference": 2.1786422884540866e-09,
       "native_deposition_difference_kg_m2": 1.7560244758296761e-07
     },
     {
@@ -362,7 +363,7 @@
       "case": "evaporate",
       "dt_seconds": 5.0,
       "native_temperature_difference_k": 3.2913782803234426e-05,
-      "native_vapor_difference": 8.650917612579474e-09,
+      "native_vapor_difference": 8.65091761260658e-09,
       "native_ice_difference": 2.6176180276072866e-09,
       "native_deposition_difference_kg_m2": 2.0198953819272614e-07
     },
@@ -372,7 +373,7 @@
       "dt_seconds": 300.0,
       "native_temperature_difference_k": 3.2913782803234426e-05,
       "native_vapor_difference": 8.650917612579474e-09,
-      "native_ice_difference": 3.2039243059826805e-09,
+      "native_ice_difference": 3.2039243060911007e-09,
       "native_deposition_difference_kg_m2": 2.0198953819272614e-07
     },
     {
@@ -381,7 +382,7 @@
       "dt_seconds": 30000.0,
       "native_temperature_difference_k": 3.2913782803234426e-05,
       "native_vapor_difference": 8.65091761260658e-09,
-      "native_ice_difference": 3.6167045981347345e-09,
+      "native_ice_difference": 3.6167045990020963e-09,
       "native_deposition_difference_kg_m2": 2.0198953819272614e-07
     },
     {
@@ -399,7 +400,7 @@
       "dt_seconds": 300.0,
       "native_temperature_difference_k": 2.771894972397604e-05,
       "native_vapor_difference": 7.285529948726282e-09,
-      "native_ice_difference": 2.5762633562922965e-11,
+      "native_ice_difference": 2.576263334608253e-11,
       "native_deposition_difference_kg_m2": 7.736814044978502e-08
     },
     {
@@ -408,7 +409,7 @@
       "dt_seconds": 30000.0,
       "native_temperature_difference_k": 2.771894972397604e-05,
       "native_vapor_difference": 7.285529948726282e-09,
-      "native_ice_difference": 2.988328147760476e-11,
+      "native_ice_difference": 2.988328136918454e-11,
       "native_deposition_difference_kg_m2": 7.73681405885629e-08
     },
     {
@@ -462,8 +463,8 @@
       "dt_seconds": 30000.0,
       "native_temperature_difference_k": 2.8910246101077064e-05,
       "native_vapor_difference": 7.598645186809513e-09,
-      "native_ice_difference": 2.538683396956282e-09,
-      "native_deposition_difference_kg_m2": 1.609282146430857e-07
+      "native_ice_difference": 2.5386833969558583e-09,
+      "native_deposition_difference_kg_m2": 1.6092821458757456e-07
     },
     {
       "layers": 40,
@@ -471,7 +472,7 @@
       "dt_seconds": 5.0,
       "native_temperature_difference_k": 3.7480355359775785e-05,
       "native_vapor_difference": 9.851175974363307e-09,
-      "native_ice_difference": 3.5459919161683236e-09,
+      "native_ice_difference": 3.5459919162225337e-09,
       "native_deposition_difference_kg_m2": 1.2587807440844756e-07
     },
     {
@@ -489,7 +490,7 @@
       "dt_seconds": 30000.0,
       "native_temperature_difference_k": 3.7480355359775785e-05,
       "native_vapor_difference": 9.851175974363307e-09,
-      "native_ice_difference": 1.977038118824298e-07,
+      "native_ice_difference": 1.9770381188199612e-07,
       "native_deposition_difference_kg_m2": 1.2587807440844756e-07
     },
     {
@@ -498,7 +499,7 @@
       "dt_seconds": 5.0,
       "native_temperature_difference_k": 3.700678965401494e-05,
       "native_vapor_difference": 9.726705996760295e-09,
-      "native_ice_difference": 2.592082293062872e-09,
+      "native_ice_difference": 2.5920822931712923e-09,
       "native_deposition_difference_kg_m2": 9.101880790729489e-08
     },
     {
@@ -507,7 +508,7 @@
       "dt_seconds": 300.0,
       "native_temperature_difference_k": 3.700678965401494e-05,
       "native_vapor_difference": 9.726705996760295e-09,
-      "native_ice_difference": 2.5191082894801195e-09,
+      "native_ice_difference": 2.5191082893716993e-09,
       "native_deposition_difference_kg_m2": 9.101880790729489e-08
     },
     {
@@ -515,16 +516,16 @@
       "case": "mixed",
       "dt_seconds": 30000.0,
       "native_temperature_difference_k": 3.700678965401494e-05,
-      "native_vapor_difference": 9.7267059967604e-09,
-      "native_ice_difference": 2.1609529848691522e-07,
+      "native_vapor_difference": 9.726705996760295e-09,
+      "native_ice_difference": 2.160952984873489e-07,
       "native_deposition_difference_kg_m2": 9.101881834339132e-08
     }
   ],
   "sha256": {
     "scripts/validate_bulk_water.py": "ad603d43510c660b5a2af2b89dbbd22e007c18d0b47dd0c329309ccf7b60448d",
-    "package/src/framework/physics/water_bulk.py": "563b225222538936e923bbdb4f8e3de82c9f20434870545a53dc0f6fc71b8f61",
-    "package/src/framework/physics/co2_microphysics.py": "47c2afbd543305404aa3e6b3accff481a35991277eab3acbd4bc3ec9526a9dd2",
-    "scripts/native_reference.py": "2e3b0e2f65b685f86fcfdd1b4643b54c5582b81af36a0874a43d9eedc2675d76"
+    "package/src/framework/physics/water_bulk.py": "7c0076c50fa5981c570e099ab5d61da34362dc8b6b1ddbc3be3192909160e0c5",
+    "package/src/framework/physics/co2_microphysics.py": "d8a95348d3019735de1759c307acdcffb9ad16b3be8c21cbd275bfbecd817d42",
+    "scripts/native_reference.py": "eceabb32987f6cbb84c4ccc5f87a3994e6569c55b41b9fce82192571990755ef"
   },
   "limits": "Original root iteration matches Fortran; polished saturation roots match independent Brent solves. Settling and radii match unchanged native routines. Whole-driver stopping differences are reported. Surface exchange and moment microphysics require separate checks."
 }

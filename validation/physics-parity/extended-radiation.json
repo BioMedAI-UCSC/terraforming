@@ -9,10 +9,11 @@
           "tpindex15": "5c28d9fa469aed1d3246ece4f83656623faceb9812b8ae4156a04e48c785fb2b",
           "boxinterp": "c730f46a9887ddd91eb676a99384eb9e12abaef9d026f3de53e2326f50ab65a3"
         },
-        "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+        "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
         "compiler_flags": [
           "-O3",
           "-cpp",
+          "-ffree-line-length-none",
           "-fdefault-real-8",
           "-fdefault-double-8",
           "-fPIC",
@@ -33,10 +34,11 @@
           "dsolver": "89a0b9599cd1c639a160089b221a78eb889eb8b2e10760786e3cb6d8547dc3b4",
           "dtridgl": "d1075d42213408c12420612f5f79b35634d022de1b29a995934489e8aef1cc21"
         },
-        "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+        "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
         "compiler_flags": [
           "-O3",
           "-cpp",
+          "-ffree-line-length-none",
           "-fdefault-real-8",
           "-fdefault-double-8",
           "-fPIC",
@@ -54,10 +56,11 @@
           "tpindex15": "5c28d9fa469aed1d3246ece4f83656623faceb9812b8ae4156a04e48c785fb2b",
           "boxinterp": "c730f46a9887ddd91eb676a99384eb9e12abaef9d026f3de53e2326f50ab65a3"
         },
-        "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+        "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
         "compiler_flags": [
           "-O3",
           "-cpp",
+          "-ffree-line-length-none",
           "-fdefault-real-8",
           "-fdefault-double-8",
           "-fPIC",
@@ -78,10 +81,11 @@
           "dsolver": "89a0b9599cd1c639a160089b221a78eb889eb8b2e10760786e3cb6d8547dc3b4",
           "dtridgl": "d1075d42213408c12420612f5f79b35634d022de1b29a995934489e8aef1cc21"
         },
-        "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+        "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
         "compiler_flags": [
           "-O3",
           "-cpp",
+          "-ffree-line-length-none",
           "-fdefault-real-8",
           "-fdefault-double-8",
           "-fPIC",
@@ -108,7 +112,7 @@
       "kind": "ir",
       "case": "range-sweep",
       "lookup_points": 100,
-      "max_finite_coefficient_error": 4.930380657631324e-32,
+      "max_finite_coefficient_error": 1.1709654061874394e-31,
       "matching_nan_coefficients": 0,
       "matching_positive_infinite_coefficients": 0,
       "matching_nonfinite_coefficients": 0
@@ -138,7 +142,7 @@
       "kind": "sw",
       "case": "all-cell-centers",
       "lookup_points": 2880,
-      "max_finite_coefficient_error": 6.1136720154628415e-30,
+      "max_finite_coefficient_error": 5.7192415628523356e-30,
       "matching_nan_coefficients": 0,
       "matching_positive_infinite_coefficients": 0,
       "matching_nonfinite_coefficients": 0
@@ -148,7 +152,7 @@
       "kind": "ir",
       "case": "all-cell-centers",
       "lookup_points": 2880,
-      "max_finite_coefficient_error": 7.099748146989106e-30,
+      "max_finite_coefficient_error": 4.535950205020818e-30,
       "matching_nan_coefficients": 0,
       "matching_positive_infinite_coefficients": 0,
       "matching_nonfinite_coefficients": 0
@@ -159,8 +163,8 @@
       "layers": 2,
       "case": "merged",
       "max_flux_errors_w_m2": [
-        1.7337242752546445e-12,
-        6.252776074688882e-13,
+        1.7479351299698465e-12,
+        2.5579538487363607e-13,
         1.5916157281026244e-12
       ]
     },
@@ -170,8 +174,8 @@
       "layers": 2,
       "case": "merged",
       "max_flux_errors_w_m2": [
-        1.4210854715202004e-14,
-        1.3322676295501878e-15,
+        7.105427357601002e-15,
+        5.773159728050814e-15,
         1.4210854715202004e-14
       ]
     },
@@ -181,9 +185,9 @@
       "layers": 2,
       "case": "mixed",
       "max_flux_errors_w_m2": [
-        2.2026824808563106e-13,
-        2.2737367544323206e-13,
-        6.252776074688882e-13
+        6.394884621840902e-14,
+        1.9895196601282805e-13,
+        2.8421709430404007e-13
       ]
     },
     {
@@ -192,9 +196,9 @@
       "layers": 2,
       "case": "mixed",
       "max_flux_errors_w_m2": [
-        2.1316282072803006e-14,
+        7.105427357601002e-15,
         8.881784197001252e-15,
-        2.1316282072803006e-14
+        3.552713678800501e-14
       ]
     },
     {
@@ -203,9 +207,9 @@
       "layers": 2,
       "case": "absorbing",
       "max_flux_errors_w_m2": [
-        8.526512829121202e-14,
-        1.4210854715202004e-13,
-        0.0
+        1.0658141036401503e-13,
+        1.1368683772161603e-13,
+        5.684341886080802e-14
       ]
     },
     {
@@ -214,9 +218,9 @@
       "layers": 2,
       "case": "absorbing",
       "max_flux_errors_w_m2": [
-        1.4210854715202004e-14,
-        1.2434497875801753e-14,
-        2.1316282072803006e-14
+        7.105427357601002e-15,
+        1.0658141036401503e-14,
+        7.105427357601002e-15
       ]
     },
     {
@@ -225,9 +229,9 @@
       "layers": 5,
       "case": "merged",
       "max_flux_errors_w_m2": [
-        7.105427357601002e-14,
+        1.7053025658242404e-13,
         1.4210854715202004e-13,
-        2.2737367544323206e-13
+        2.8421709430404007e-13
       ]
     },
     {
@@ -236,9 +240,9 @@
       "layers": 5,
       "case": "merged",
       "max_flux_errors_w_m2": [
-        2.842170943040401e-14,
-        2.4868995751603507e-14,
-        1.4210854715202004e-14
+        4.263256414560601e-14,
+        1.0658141036401503e-14,
+        2.1316282072803006e-14
       ]
     },
     {
@@ -247,8 +251,8 @@
       "layers": 5,
       "case": "mixed",
       "max_flux_errors_w_m2": [
-        3.126388037344441e-13,
-        2.2737367544323206e-13,
+        3.055333763768431e-13,
+        1.4210854715202004e-13,
         2.8421709430404007e-13
       ]
     },
@@ -258,9 +262,9 @@
       "layers": 5,
       "case": "mixed",
       "max_flux_errors_w_m2": [
-        7.105427357601002e-14,
-        1.5987211554602254e-14,
-        8.526512829121202e-14
+        4.263256414560601e-14,
+        2.842170943040401e-14,
+        7.105427357601002e-15
       ]
     },
     {
@@ -269,9 +273,9 @@
       "layers": 5,
       "case": "absorbing",
       "max_flux_errors_w_m2": [
-        3.353761712787673e-12,
+        3.630873379734112e-12,
         6.252776074688882e-13,
-        6.764366844436154e-12
+        6.991740519879386e-12
       ]
     },
     {
@@ -282,7 +286,7 @@
       "max_flux_errors_w_m2": [
         5.684341886080802e-14,
         2.1316282072803006e-14,
-        7.105427357601002e-15
+        1.4210854715202004e-14
       ]
     },
     {
@@ -291,9 +295,9 @@
       "layers": 13,
       "case": "merged",
       "max_flux_errors_w_m2": [
-        2.2026824808563106e-13,
+        1.3145040611561853e-13,
         1.1368683772161603e-13,
-        3.410605131648481e-13
+        2.8421709430404007e-13
       ]
     },
     {
@@ -302,9 +306,9 @@
       "layers": 13,
       "case": "merged",
       "max_flux_errors_w_m2": [
+        1.1368683772161603e-13,
         2.2737367544323206e-13,
-        8.526512829121202e-14,
-        2.842170943040401e-14
+        5.684341886080802e-14
       ]
     },
     {
@@ -313,9 +317,9 @@
       "layers": 13,
       "case": "mixed",
       "max_flux_errors_w_m2": [
-        6.927791673660977e-13,
-        1.7053025658242404e-13,
-        3.410605131648481e-13
+        7.709388682997087e-13,
+        2.8421709430404007e-13,
+        2.8421709430404007e-13
       ]
     },
     {
@@ -324,8 +328,8 @@
       "layers": 13,
       "case": "mixed",
       "max_flux_errors_w_m2": [
-        1.9895196601282805e-13,
-        8.526512829121202e-14,
+        2.8421709430404007e-13,
+        1.4210854715202004e-13,
         2.842170943040401e-14
       ]
     },
@@ -335,9 +339,9 @@
       "layers": 13,
       "case": "absorbing",
       "max_flux_errors_w_m2": [
-        8.562039965909207e-13,
-        3.410605131648481e-13,
-        5.684341886080801e-13
+        9.592326932761353e-13,
+        2.8421709430404007e-13,
+        5.115907697472721e-13
       ]
     },
     {
@@ -347,8 +351,8 @@
       "case": "absorbing",
       "max_flux_errors_w_m2": [
         2.2737367544323206e-13,
-        8.526512829121202e-14,
-        4.263256414560601e-14
+        1.1368683772161603e-13,
+        2.842170943040401e-14
       ]
     },
     {
@@ -386,7 +390,7 @@
       "kind": "ir",
       "case": "all-table-nodes",
       "lookup_points": 4000,
-      "max_finite_coefficient_error": 6.162975822039155e-33,
+      "max_finite_coefficient_error": 1.6562997521730228e-32,
       "matching_nan_coefficients": 2998,
       "matching_positive_infinite_coefficients": 50,
       "matching_nonfinite_coefficients": 3048
@@ -406,7 +410,7 @@
       "kind": "ir",
       "case": "all-cell-centers",
       "lookup_points": 3600,
-      "max_finite_coefficient_error": 3.4512664603419266e-31,
+      "max_finite_coefficient_error": 3.389636702121535e-31,
       "matching_nan_coefficients": 2899,
       "matching_positive_infinite_coefficients": 0,
       "matching_nonfinite_coefficients": 2899
@@ -417,9 +421,9 @@
       "layers": 2,
       "case": "merged",
       "max_flux_errors_w_m2": [
-        8.526512829121202e-14,
-        5.684341886080802e-14,
-        1.7053025658242404e-13
+        3.552713678800501e-14,
+        2.842170943040401e-14,
+        5.684341886080802e-14
       ]
     },
     {
@@ -427,28 +431,6 @@
       "kind": "infrared",
       "layers": 2,
       "case": "merged",
-      "max_flux_errors_w_m2": [
-        0.0,
-        4.440892098500626e-15,
-        7.105427357601002e-15
-      ]
-    },
-    {
-      "mode": "extended",
-      "kind": "visible",
-      "layers": 2,
-      "case": "mixed",
-      "max_flux_errors_w_m2": [
-        1.6342482922482304e-13,
-        2.842170943040401e-14,
-        1.1368683772161603e-13
-      ]
-    },
-    {
-      "mode": "extended",
-      "kind": "infrared",
-      "layers": 2,
-      "case": "mixed",
       "max_flux_errors_w_m2": [
         7.105427357601002e-15,
         3.552713678800501e-15,
@@ -459,11 +441,33 @@
       "mode": "extended",
       "kind": "visible",
       "layers": 2,
+      "case": "mixed",
+      "max_flux_errors_w_m2": [
+        1.2789769243681803e-13,
+        5.684341886080802e-14,
+        1.1368683772161603e-13
+      ]
+    },
+    {
+      "mode": "extended",
+      "kind": "infrared",
+      "layers": 2,
+      "case": "mixed",
+      "max_flux_errors_w_m2": [
+        7.105427357601002e-15,
+        5.329070518200751e-15,
+        1.4210854715202004e-14
+      ]
+    },
+    {
+      "mode": "extended",
+      "kind": "visible",
+      "layers": 2,
       "case": "absorbing",
       "max_flux_errors_w_m2": [
-        8.526512829121202e-14,
+        1.4210854715202004e-13,
         1.1368683772161603e-13,
-        0.0
+        5.684341886080802e-14
       ]
     },
     {
@@ -472,8 +476,8 @@
       "layers": 2,
       "case": "absorbing",
       "max_flux_errors_w_m2": [
-        0.0,
-        2.6645352591003757e-15,
+        1.4210854715202004e-14,
+        3.552713678800501e-15,
         0.0
       ]
     },
@@ -483,8 +487,8 @@
       "layers": 5,
       "case": "merged",
       "max_flux_errors_w_m2": [
-        1.0480505352461478e-12,
-        1.1368683772161603e-13,
+        1.2398970739013748e-12,
+        1.7053025658242404e-13,
         8.526512829121202e-13
       ]
     },
@@ -494,41 +498,41 @@
       "layers": 5,
       "case": "merged",
       "max_flux_errors_w_m2": [
-        8.526512829121202e-14,
-        2.1316282072803006e-14,
-        5.684341886080802e-14
-      ]
-    },
-    {
-      "mode": "extended",
-      "kind": "visible",
-      "layers": 5,
-      "case": "mixed",
-      "max_flux_errors_w_m2": [
-        2.2737367544323206e-13,
-        1.1368683772161603e-13,
-        2.8421709430404007e-13
-      ]
-    },
-    {
-      "mode": "extended",
-      "kind": "infrared",
-      "layers": 5,
-      "case": "mixed",
-      "max_flux_errors_w_m2": [
-        2.842170943040401e-14,
-        3.552713678800501e-14,
-        7.105427357601002e-15
-      ]
-    },
-    {
-      "mode": "extended",
-      "kind": "visible",
-      "layers": 5,
-      "case": "absorbing",
-      "max_flux_errors_w_m2": [
+        7.105427357601002e-14,
         6.394884621840902e-14,
-        8.526512829121202e-14,
+        1.4210854715202004e-14
+      ]
+    },
+    {
+      "mode": "extended",
+      "kind": "visible",
+      "layers": 5,
+      "case": "mixed",
+      "max_flux_errors_w_m2": [
+        1.4921397450962104e-13,
+        1.7053025658242404e-13,
+        1.1368683772161603e-13
+      ]
+    },
+    {
+      "mode": "extended",
+      "kind": "infrared",
+      "layers": 5,
+      "case": "mixed",
+      "max_flux_errors_w_m2": [
+        2.842170943040401e-14,
+        4.263256414560601e-14,
+        2.842170943040401e-14
+      ]
+    },
+    {
+      "mode": "extended",
+      "kind": "visible",
+      "layers": 5,
+      "case": "absorbing",
+      "max_flux_errors_w_m2": [
+        1.0658141036401503e-13,
+        1.1368683772161603e-13,
         5.684341886080802e-14
       ]
     },
@@ -538,30 +542,8 @@
       "layers": 5,
       "case": "absorbing",
       "max_flux_errors_w_m2": [
-        2.842170943040401e-14,
-        1.0658141036401503e-14,
-        7.105427357601002e-15
-      ]
-    },
-    {
-      "mode": "extended",
-      "kind": "visible",
-      "layers": 13,
-      "case": "merged",
-      "max_flux_errors_w_m2": [
-        2.646771690706373e-13,
-        5.684341886080802e-14,
-        5.684341886080802e-14
-      ]
-    },
-    {
-      "mode": "extended",
-      "kind": "infrared",
-      "layers": 13,
-      "case": "merged",
-      "max_flux_errors_w_m2": [
-        1.1368683772161603e-13,
-        5.684341886080802e-14,
+        1.4210854715202004e-14,
+        1.4210854715202004e-14,
         0.0
       ]
     },
@@ -569,10 +551,32 @@
       "mode": "extended",
       "kind": "visible",
       "layers": 13,
+      "case": "merged",
+      "max_flux_errors_w_m2": [
+        2.469136006766348e-13,
+        1.4210854715202004e-13,
+        0.0
+      ]
+    },
+    {
+      "mode": "extended",
+      "kind": "infrared",
+      "layers": 13,
+      "case": "merged",
+      "max_flux_errors_w_m2": [
+        1.7053025658242404e-13,
+        8.526512829121202e-14,
+        2.842170943040401e-14
+      ]
+    },
+    {
+      "mode": "extended",
+      "kind": "visible",
+      "layers": 13,
       "case": "mixed",
       "max_flux_errors_w_m2": [
-        2.2737367544323206e-13,
-        8.526512829121202e-14,
+        2.7355895326763857e-13,
+        1.1368683772161603e-13,
         1.1368683772161603e-13
       ]
     },
@@ -583,7 +587,7 @@
       "case": "mixed",
       "max_flux_errors_w_m2": [
         1.1368683772161603e-13,
-        2.842170943040401e-14,
+        5.684341886080802e-14,
         0.0
       ]
     },
@@ -593,9 +597,9 @@
       "layers": 13,
       "case": "absorbing",
       "max_flux_errors_w_m2": [
-        1.4566126083082054e-13,
-        5.684341886080802e-14,
-        2.2737367544323206e-13
+        1.6342482922482304e-13,
+        1.1368683772161603e-13,
+        3.410605131648481e-13
       ]
     },
     {
@@ -604,9 +608,9 @@
       "layers": 13,
       "case": "absorbing",
       "max_flux_errors_w_m2": [
+        1.7053025658242404e-13,
         8.526512829121202e-14,
-        8.526512829121202e-14,
-        1.4210854715202004e-14
+        0.0
       ]
     }
   ],

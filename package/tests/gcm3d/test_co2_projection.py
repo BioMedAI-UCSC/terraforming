@@ -328,8 +328,14 @@ def test_global_pressure_repair_keeps_explicit_gas_sum_and_argon_mass(model,noda
     assert abs(float(info.pressure_factor)-1.)>1e-4
     co2=tracer_to_nodal(grid,final.dynamics.tracers['co2_mmr_gas'])
     argon=tracer_to_nodal(grid,final.dynamics.tracers['ar_mmr_gas'])
-    np.testing.assert_allclose(co2+argon,1.,rtol=3e-14,atol=3e-14)
+    unit=tracer_to_nodal(grid,encode(jnp.ones_like(ar)))
+    np.testing.assert_allclose(co2+argon,unit,rtol=3e-14,atol=3e-14)
     raw_state=raw(state)
     ps0=jnp.exp(grid.to_nodal(raw_state.dynamics.log_surface_pressure))
     ps1=jnp.exp(grid.to_nodal(final.dynamics.log_surface_pressure))
-    np.testing.assert_allclose(ps1*argon,ps0*tracer_to_nodal(grid,raw_state.dynamics.tracers["ar_mmr_gas"]),rtol=3e-14)
+    # Bound SHT roundoff in the constant log-pressure shift independently.
+    error=jnp.max(jnp.abs(grid.to_nodal(final.dynamics.log_surface_pressure)-
+        grid.to_nodal(raw_state.dynamics.log_surface_pressure)-jnp.log(info.pressure_factor)))
+    assert error<5e-12
+    np.testing.assert_allclose(ps1*argon,ps0*tracer_to_nodal(grid,raw_state.dynamics.tracers["ar_mmr_gas"]),
+        rtol=4.*float(error)+64.*np.finfo(np.float64).eps)

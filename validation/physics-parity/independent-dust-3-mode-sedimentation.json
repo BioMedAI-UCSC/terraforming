@@ -8,10 +8,11 @@
       "sedim": "86f4e12d6cd6769d720f22bbf356b28c5c50b34004fe9d7f3e3e6470c1e9412a",
       "fallvel": "8b39f40f5dc1bd680f468d5e20ba1914d2f41a07c6a87b043ca5f436130ef0d2"
     },
-    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+    "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
     "compiler_flags": [
       "-O3",
       "-cpp",
+      "-ffree-line-length-none",
       "-fdefault-real-8",
       "-fdefault-double-8",
       "-fPIC",
@@ -440,7 +441,7 @@
       "scavenging": false,
       "dust_modes": 3,
       "dust_only": true,
-      "max_mass_ratio_error": 6.776263578034403e-21,
+      "max_mass_ratio_error": 0.0,
       "implicit_species": 5
     },
     {
@@ -452,7 +453,7 @@
       "scavenging": true,
       "dust_modes": 3,
       "dust_only": true,
-      "max_mass_ratio_error": 6.776263578034403e-21,
+      "max_mass_ratio_error": 0.0,
       "implicit_species": 5
     },
     {
@@ -1712,7 +1713,7 @@
       "scavenging": false,
       "dust_modes": 3,
       "dust_only": true,
-      "max_mass_ratio_error": 8.470329472543003e-21,
+      "max_mass_ratio_error": 5.082197683525802e-21,
       "implicit_species": 11
     },
     {
@@ -1724,7 +1725,7 @@
       "scavenging": true,
       "dust_modes": 3,
       "dust_only": true,
-      "max_mass_ratio_error": 8.470329472543003e-21,
+      "max_mass_ratio_error": 5.082197683525802e-21,
       "implicit_species": 11
     },
     {
@@ -2912,7 +2913,7 @@
       "scavenging": false,
       "dust_modes": 3,
       "dust_only": true,
-      "max_mass_ratio_error": 6.776263578034403e-21,
+      "max_mass_ratio_error": 1.3552527156068805e-20,
       "implicit_species": 5
     },
     {
@@ -2924,6 +2925,42 @@
       "scavenging": true,
       "dust_modes": 3,
       "dust_only": true,
+      "max_mass_ratio_error": 1.3552527156068805e-20,
+      "implicit_species": 5
+    },
+    {
+      "layers": 12,
+      "pressure_pa": 610.0,
+      "mode": "uniform",
+      "dt_seconds": 300.0,
+      "mixing_m2_s": 0.001,
+      "scavenging": false,
+      "dust_modes": 3,
+      "dust_only": true,
+      "max_mass_ratio_error": 1.0164395367051604e-20,
+      "implicit_species": 5
+    },
+    {
+      "layers": 12,
+      "pressure_pa": 610.0,
+      "mode": "uniform",
+      "dt_seconds": 300.0,
+      "mixing_m2_s": 0.001,
+      "scavenging": true,
+      "dust_modes": 3,
+      "dust_only": true,
+      "max_mass_ratio_error": 1.0164395367051604e-20,
+      "implicit_species": 5
+    },
+    {
+      "layers": 12,
+      "pressure_pa": 610.0,
+      "mode": "uniform",
+      "dt_seconds": 300.0,
+      "mixing_m2_s": 100.0,
+      "scavenging": false,
+      "dust_modes": 3,
+      "dust_only": true,
       "max_mass_ratio_error": 6.776263578034403e-21,
       "implicit_species": 5
     },
@@ -2932,47 +2969,11 @@
       "pressure_pa": 610.0,
       "mode": "uniform",
       "dt_seconds": 300.0,
-      "mixing_m2_s": 0.001,
-      "scavenging": false,
-      "dust_modes": 3,
-      "dust_only": true,
-      "max_mass_ratio_error": 1.0164395367051604e-20,
-      "implicit_species": 5
-    },
-    {
-      "layers": 12,
-      "pressure_pa": 610.0,
-      "mode": "uniform",
-      "dt_seconds": 300.0,
-      "mixing_m2_s": 0.001,
-      "scavenging": true,
-      "dust_modes": 3,
-      "dust_only": true,
-      "max_mass_ratio_error": 1.0164395367051604e-20,
-      "implicit_species": 5
-    },
-    {
-      "layers": 12,
-      "pressure_pa": 610.0,
-      "mode": "uniform",
-      "dt_seconds": 300.0,
-      "mixing_m2_s": 100.0,
-      "scavenging": false,
-      "dust_modes": 3,
-      "dust_only": true,
-      "max_mass_ratio_error": 3.3881317890172014e-21,
-      "implicit_species": 5
-    },
-    {
-      "layers": 12,
-      "pressure_pa": 610.0,
-      "mode": "uniform",
-      "dt_seconds": 300.0,
       "mixing_m2_s": 100.0,
       "scavenging": true,
       "dust_modes": 3,
       "dust_only": true,
-      "max_mass_ratio_error": 3.3881317890172014e-21,
+      "max_mass_ratio_error": 6.776263578034403e-21,
       "implicit_species": 5
     },
     {
@@ -2984,7 +2985,7 @@
       "scavenging": false,
       "dust_modes": 3,
       "dust_only": true,
-      "max_mass_ratio_error": 5.082197683525802e-21,
+      "max_mass_ratio_error": 6.776263578034403e-21,
       "implicit_species": 11
     },
     {
@@ -2996,7 +2997,7 @@
       "scavenging": true,
       "dust_modes": 3,
       "dust_only": true,
-      "max_mass_ratio_error": 5.082197683525802e-21,
+      "max_mass_ratio_error": 6.776263578034403e-21,
       "implicit_species": 11
     },
     {
@@ -3584,7 +3585,7 @@
       "scavenging": false,
       "dust_modes": 3,
       "dust_only": true,
-      "max_mass_ratio_error": 6.776263578034403e-21,
+      "max_mass_ratio_error": 1.0164395367051604e-20,
       "implicit_species": 5
     },
     {
@@ -3596,7 +3597,7 @@
       "scavenging": true,
       "dust_modes": 3,
       "dust_only": true,
-      "max_mass_ratio_error": 6.776263578034403e-21,
+      "max_mass_ratio_error": 1.0164395367051604e-20,
       "implicit_species": 5
     },
     {
@@ -3656,7 +3657,7 @@
       "scavenging": false,
       "dust_modes": 3,
       "dust_only": true,
-      "max_mass_ratio_error": 5.082197683525802e-21,
+      "max_mass_ratio_error": 3.3881317890172014e-21,
       "implicit_species": 11
     },
     {
@@ -3668,7 +3669,7 @@
       "scavenging": true,
       "dust_modes": 3,
       "dust_only": true,
-      "max_mass_ratio_error": 5.082197683525802e-21,
+      "max_mass_ratio_error": 3.3881317890172014e-21,
       "implicit_species": 11
     },
     {
@@ -3680,7 +3681,7 @@
       "scavenging": false,
       "dust_modes": 3,
       "dust_only": true,
-      "max_mass_ratio_error": 6.776263578034403e-21,
+      "max_mass_ratio_error": 1.0164395367051604e-20,
       "implicit_species": 11
     },
     {
@@ -3692,7 +3693,7 @@
       "scavenging": true,
       "dust_modes": 3,
       "dust_only": true,
-      "max_mass_ratio_error": 6.776263578034403e-21,
+      "max_mass_ratio_error": 1.0164395367051604e-20,
       "implicit_species": 11
     },
     {
@@ -4496,7 +4497,7 @@
       "scavenging": false,
       "dust_modes": 3,
       "dust_only": true,
-      "max_mass_ratio_error": 2.710505431213761e-20,
+      "max_mass_ratio_error": 5.421010862427522e-20,
       "implicit_species": 11
     },
     {
@@ -4508,7 +4509,7 @@
       "scavenging": true,
       "dust_modes": 3,
       "dust_only": true,
-      "max_mass_ratio_error": 2.710505431213761e-20,
+      "max_mass_ratio_error": 5.421010862427522e-20,
       "implicit_species": 11
     },
     {
@@ -4544,7 +4545,7 @@
       "scavenging": false,
       "dust_modes": 3,
       "dust_only": true,
-      "max_mass_ratio_error": 5.421010862427522e-20,
+      "max_mass_ratio_error": 1.0842021724855044e-19,
       "implicit_species": 11
     },
     {
@@ -4556,7 +4557,7 @@
       "scavenging": true,
       "dust_modes": 3,
       "dust_only": true,
-      "max_mass_ratio_error": 5.421010862427522e-20,
+      "max_mass_ratio_error": 1.0842021724855044e-19,
       "implicit_species": 11
     },
     {
@@ -4856,7 +4857,7 @@
       "scavenging": false,
       "dust_modes": 3,
       "dust_only": true,
-      "max_mass_ratio_error": 1.3552527156068805e-20,
+      "max_mass_ratio_error": 1.0164395367051604e-20,
       "implicit_species": 8
     },
     {
@@ -4868,7 +4869,7 @@
       "scavenging": true,
       "dust_modes": 3,
       "dust_only": true,
-      "max_mass_ratio_error": 1.3552527156068805e-20,
+      "max_mass_ratio_error": 1.0164395367051604e-20,
       "implicit_species": 8
     },
     {
@@ -4976,7 +4977,7 @@
       "scavenging": false,
       "dust_modes": 3,
       "dust_only": true,
-      "max_mass_ratio_error": 6.776263578034403e-21,
+      "max_mass_ratio_error": 1.0164395367051604e-20,
       "implicit_species": 11
     },
     {
@@ -4988,7 +4989,7 @@
       "scavenging": true,
       "dust_modes": 3,
       "dust_only": true,
-      "max_mass_ratio_error": 6.776263578034403e-21,
+      "max_mass_ratio_error": 1.0164395367051604e-20,
       "implicit_species": 11
     },
     {
@@ -5000,7 +5001,7 @@
       "scavenging": false,
       "dust_modes": 3,
       "dust_only": true,
-      "max_mass_ratio_error": 5.421010862427522e-20,
+      "max_mass_ratio_error": 1.0842021724855044e-19,
       "implicit_species": 5
     },
     {
@@ -5012,7 +5013,7 @@
       "scavenging": true,
       "dust_modes": 3,
       "dust_only": true,
-      "max_mass_ratio_error": 5.421010862427522e-20,
+      "max_mass_ratio_error": 1.0842021724855044e-19,
       "implicit_species": 5
     },
     {
@@ -5192,7 +5193,7 @@
       "scavenging": false,
       "dust_modes": 3,
       "dust_only": true,
-      "max_mass_ratio_error": 5.421010862427522e-20,
+      "max_mass_ratio_error": 8.131516293641283e-20,
       "implicit_species": 11
     },
     {
@@ -5204,15 +5205,15 @@
       "scavenging": true,
       "dust_modes": 3,
       "dust_only": true,
-      "max_mass_ratio_error": 5.421010862427522e-20,
+      "max_mass_ratio_error": 8.131516293641283e-20,
       "implicit_species": 11
     }
   ],
   "sha256": {
     "scripts/validate_particle_sedimentation.py": "b4fb0b5945dcf8bb52e0fb0af6f89627a5f30ac25f08c5adc30f3553fdc8bf04",
-    "scripts/native_reference.py": "2e3b0e2f65b685f86fcfdd1b4643b54c5582b81af36a0874a43d9eedc2675d76",
-    "package/src/framework/physics/particle_sedimentation.py": "10f4ef6afe83f77f2b00292fe7b3010bf2ef542632bca6b7d7725bc527f6f290",
-    "package/src/framework/physics/co2_microphysics.py": "47c2afbd543305404aa3e6b3accff481a35991277eab3acbd4bc3ec9526a9dd2",
+    "scripts/native_reference.py": "eceabb32987f6cbb84c4ccc5f87a3994e6569c55b41b9fce82192571990755ef",
+    "package/src/framework/physics/particle_sedimentation.py": "52af7462a0eacb95bb8de11aae2151ba6e52f634dc150f183304661ad5f0e300",
+    "package/src/framework/physics/co2_microphysics.py": "d8a95348d3019735de1759c307acdcffb9ad16b3be8c21cbd275bfbecd817d42",
     "package/src/framework/physics/vertical_solve.py": "0d01f1d42fe7f086a887a2c0c51cb3b4385d26a3c944b72f81150b8a57ddd991"
   },
   "limits": "Physical dust mass/number/core populations and cloud moments, source density/radius and explicit/implicit transport. Tagged populations and lifting overrides require separate validation."

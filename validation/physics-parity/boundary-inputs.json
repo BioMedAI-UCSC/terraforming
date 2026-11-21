@@ -8,8 +8,8 @@
     {
       "truncation": "T21",
       "field": "npcflag",
-      "source_mean": 0.008892342893317919,
-      "mapped_mean": 0.008892342893317699,
+      "source_mean": 0.008892342893317922,
+      "mapped_mean": 0.008892342893317681,
       "mapped_min": 0.0,
       "mapped_max": 1.0000000000000009
     },
@@ -18,56 +18,56 @@
       "field": "SD24",
       "source_mean": 410.19260121004305,
       "mapped_mean": 410.1926012100431,
-      "mapped_min": 6.983287917604467,
-      "mapped_max": 4047.05947246566
+      "mapped_min": 6.983287917590694,
+      "mapped_max": 4047.0594724656657
     },
     {
       "truncation": "T21",
       "field": "SD48",
-      "source_mean": 291.9150026234458,
+      "source_mean": 291.91500262344584,
       "mapped_mean": 291.91500262344584,
-      "mapped_min": 10.545515522815654,
-      "mapped_max": 2412.656532738761
+      "mapped_min": 10.545515522815807,
+      "mapped_max": 2412.6565327387593
     },
     {
       "truncation": "T21",
       "field": "SD96",
       "source_mean": 198.6009807278631,
       "mapped_mean": 198.60098072786315,
-      "mapped_min": 6.261272267774949,
-      "mapped_max": 1431.9000845878074
+      "mapped_min": 6.261272267774858,
+      "mapped_max": 1431.900084587804
     },
     {
       "truncation": "T42",
       "field": "npcflag",
-      "source_mean": 0.008892342893317919,
-      "mapped_mean": 0.008892342893317732,
+      "source_mean": 0.008892342893317922,
+      "mapped_mean": 0.008892342893317978,
       "mapped_min": 0.0,
-      "mapped_max": 1.0000000000000007
+      "mapped_max": 1.0000000000000004
     },
     {
       "truncation": "T42",
       "field": "SD24",
       "source_mean": 410.19260121004305,
-      "mapped_mean": 410.1926012100431,
-      "mapped_min": -206.82412218501102,
-      "mapped_max": 5129.9820755042265
+      "mapped_mean": 410.192601210043,
+      "mapped_min": -206.82412218499954,
+      "mapped_max": 5129.982075504252
     },
     {
       "truncation": "T42",
       "field": "SD48",
-      "source_mean": 291.9150026234458,
-      "mapped_mean": 291.91500262344584,
-      "mapped_min": 0.4237893668854731,
-      "mapped_max": 3545.271774404375
+      "source_mean": 291.91500262344584,
+      "mapped_mean": 291.91500262344573,
+      "mapped_min": 0.4237893668853831,
+      "mapped_max": 3545.2717744043443
     },
     {
       "truncation": "T42",
       "field": "SD96",
       "source_mean": 198.6009807278631,
-      "mapped_mean": 198.60098072786315,
-      "mapped_min": 2.2814624014213227,
-      "mapped_max": 2551.6599741408736
+      "mapped_mean": 198.6009807278631,
+      "mapped_min": 2.28146240142085,
+      "mapped_max": 2551.659974140855
     }
   ],
   "sha256": {

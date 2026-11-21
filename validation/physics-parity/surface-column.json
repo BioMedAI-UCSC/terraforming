@@ -9,10 +9,11 @@
       "icedepth": "7c36d99c69d1c782b7602f4b983f6a057dbd2d9a3245690eab99f510cea8571e",
       "albedo_calc": "55e85f91ec407cd4e492c156e01bbe443a6b9d63fea959f89f1e50ec049eb2e4"
     },
-    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+    "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
     "compiler_flags": [
       "-O3",
       "-cpp",
+      "-ffree-line-length-none",
       "-fdefault-real-8",
       "-fdefault-double-8",
       "-fPIC",
@@ -867,10 +868,10 @@
       "case": "bare-warming",
       "max_soil_error_k": 2.842170943040401e-14,
       "ice_error_kg_m2": 0.0,
-      "final_surface_temperature_k": 203.28270929799092,
+      "final_surface_temperature_k": 203.2827092979909,
       "co2_phase_change_kg_m2": 0.0,
       "frost_retry": false,
-      "native_energy_change_j_m2": -165578.14259096468,
+      "native_energy_change_j_m2": -165578.14259096436,
       "energy_residual_j_m2": -2.9103830456733704e-11,
       "energy_roundoff_bound_j_m2": 1.3952262431486468e-07
     },
@@ -882,7 +883,7 @@
       "final_surface_temperature_k": 156.1185995050407,
       "co2_phase_change_kg_m2": 0.0,
       "frost_retry": false,
-      "native_energy_change_j_m2": -161984.88487275696,
+      "native_energy_change_j_m2": -161984.88487275675,
       "energy_residual_j_m2": 1.4551915228366852e-10,
       "energy_roundoff_bound_j_m2": 1.1119856132960483e-07
     },
@@ -925,12 +926,12 @@
     {
       "layers": 4,
       "case": "frost-exhausted",
-      "max_soil_error_k": 0.0,
+      "max_soil_error_k": 5.684341886080802e-14,
       "ice_error_kg_m2": 0.0,
-      "final_surface_temperature_k": 150.71203341387198,
+      "final_surface_temperature_k": 150.712033413872,
       "co2_phase_change_kg_m2": -0.001,
       "frost_retry": false,
-      "native_energy_change_j_m2": -120654.48002724872,
+      "native_energy_change_j_m2": -120654.48002724811,
       "energy_residual_j_m2": -5.820766091346741e-11,
       "energy_roundoff_bound_j_m2": 1.0327336383359056e-07
     },
@@ -954,7 +955,7 @@
       "final_surface_temperature_k": 205.23846920600258,
       "co2_phase_change_kg_m2": 0.0,
       "frost_retry": false,
-      "native_energy_change_j_m2": 23923.469942827385,
+      "native_energy_change_j_m2": 23923.469942827986,
       "energy_residual_j_m2": -2.0475822282151057e-07,
       "energy_roundoff_bound_j_m2": 0.00025591988664743246
     },
@@ -966,7 +967,7 @@
       "final_surface_temperature_k": 157.76188928657632,
       "co2_phase_change_kg_m2": 0.0,
       "frost_retry": false,
-      "native_energy_change_j_m2": -10355.490754476275,
+      "native_energy_change_j_m2": -10355.490754475739,
       "energy_residual_j_m2": -3.23571214266849e-08,
       "energy_roundoff_bound_j_m2": 0.00020473549017920685
     },
@@ -978,7 +979,7 @@
       "final_surface_temperature_k": 147.73982484905562,
       "co2_phase_change_kg_m2": 0.014165658263889895,
       "frost_retry": true,
-      "native_energy_change_j_m2": -9632.213354258245,
+      "native_energy_change_j_m2": -9632.213354258045,
       "energy_residual_j_m2": -7.782637112541124e-08,
       "energy_roundoff_bound_j_m2": 0.00018938056519833988
     },
@@ -990,7 +991,7 @@
       "final_surface_temperature_k": 147.73982484905562,
       "co2_phase_change_kg_m2": 0.012227953678007105,
       "frost_retry": false,
-      "native_energy_change_j_m2": -8488.967648587399,
+      "native_energy_change_j_m2": -8488.967648587199,
       "energy_residual_j_m2": -7.782637112541124e-08,
       "energy_roundoff_bound_j_m2": 0.00018938054895184124
     },
@@ -1002,7 +1003,7 @@
       "final_surface_temperature_k": 147.73982484905562,
       "co2_phase_change_kg_m2": -0.03861950394911154,
       "frost_retry": false,
-      "native_energy_change_j_m2": 21511.0323514126,
+      "native_energy_change_j_m2": 21511.032351412803,
       "energy_residual_j_m2": -7.78245521360077e-08,
       "energy_roundoff_bound_j_m2": 0.00018938077022926834
     },
@@ -1011,22 +1012,22 @@
       "case": "frost-exhausted",
       "max_soil_error_k": 2.842170943040401e-14,
       "ice_error_kg_m2": 0.0,
-      "final_surface_temperature_k": 152.24960422806635,
+      "final_surface_temperature_k": 152.24960422806637,
       "co2_phase_change_kg_m2": -0.001,
       "frost_retry": false,
-      "native_energy_change_j_m2": 20005.50710241524,
+      "native_energy_change_j_m2": 20005.507102415653,
       "energy_residual_j_m2": -7.456952744178125e-08,
       "energy_roundoff_bound_j_m2": 0.00018938074883446777
     },
     {
       "layers": 16,
       "case": "warm-precipitated-frost",
-      "max_soil_error_k": 5.684341886080802e-14,
+      "max_soil_error_k": 2.842170943040401e-14,
       "ice_error_kg_m2": 0.0,
       "final_surface_temperature_k": 147.73982484905562,
       "co2_phase_change_kg_m2": -0.025301065469288134,
       "frost_retry": false,
-      "native_energy_change_j_m2": -133174.2573003598,
+      "native_energy_change_j_m2": -133174.25730035914,
       "energy_residual_j_m2": -2.0943116396665573e-07,
       "energy_roundoff_bound_j_m2": 0.00023032569948700687
     },
@@ -1076,7 +1077,7 @@
       "latitude_rad": 1.3,
       "max_soil_error_k": 5.684341886080802e-14,
       "ice_error_kg_m2": 0.0,
-      "native_energy_change_j_m2": 7547373.197105374,
+      "native_energy_change_j_m2": 7547373.197105373,
       "energy_residual_j_m2": -2.1792948246002197e-07,
       "energy_roundoff_bound_j_m2": 0.00022959698626006436
     },
@@ -1176,7 +1177,7 @@
       "ice_case": 7,
       "latitude_rad": 1.3,
       "max_soil_error_k": 5.684341886080802e-14,
-      "native_energy_change_j_m2": 7547373.197105374,
+      "native_energy_change_j_m2": 7547373.197105373,
       "energy_residual_j_m2": -2.1792948246002197e-07,
       "energy_roundoff_bound_j_m2": 0.00022959698626006436
     },
@@ -1325,7 +1326,7 @@
       "gradient": false,
       "native_finite": true,
       "max_soil_error_k": 2.842170943040401e-14,
-      "native_energy_change_j_m2": -120677.0648609233,
+      "native_energy_change_j_m2": -120677.0648609231,
       "energy_residual_j_m2": -2.0372681319713593e-10,
       "energy_roundoff_bound_j_m2": 1.0327304288380045e-07
     },
@@ -1337,8 +1338,8 @@
       "snow_kg_m2": 0.0,
       "gradient": true,
       "native_finite": true,
-      "max_soil_error_k": 5.684341886080802e-14,
-      "native_energy_change_j_m2": -59033.38583323896,
+      "max_soil_error_k": 2.842170943040401e-14,
+      "native_energy_change_j_m2": -59033.38583323856,
       "energy_residual_j_m2": -2.0372681319713593e-10,
       "energy_roundoff_bound_j_m2": 1.1928245291651879e-07
     },
@@ -1436,7 +1437,7 @@
       "gradient": false,
       "native_finite": true,
       "max_soil_error_k": 2.842170943040401e-14,
-      "native_energy_change_j_m2": -120677.0648609233,
+      "native_energy_change_j_m2": -120677.0648609231,
       "energy_residual_j_m2": -2.0372681319713593e-10,
       "energy_roundoff_bound_j_m2": 1.0327304288380045e-07
     },
@@ -1448,8 +1449,8 @@
       "snow_kg_m2": 0.0,
       "gradient": true,
       "native_finite": true,
-      "max_soil_error_k": 5.684341886080802e-14,
-      "native_energy_change_j_m2": -59033.38583323896,
+      "max_soil_error_k": 2.842170943040401e-14,
+      "native_energy_change_j_m2": -59033.38583323856,
       "energy_residual_j_m2": -2.0372681319713593e-10,
       "energy_roundoff_bound_j_m2": 1.1928245291651879e-07
     },
@@ -1462,7 +1463,7 @@
       "gradient": true,
       "native_finite": true,
       "max_soil_error_k": 2.842170943040401e-14,
-      "native_energy_change_j_m2": -42325.821601237534,
+      "native_energy_change_j_m2": -42325.82160123733,
       "energy_residual_j_m2": -4.001776687800884e-11,
       "energy_roundoff_bound_j_m2": 1.1951988168446463e-07
     },
@@ -1475,9 +1476,9 @@
       "gradient": false,
       "native_finite": true,
       "max_soil_error_k": 2.842170943040401e-14,
-      "native_energy_change_j_m2": -236716.68132996038,
+      "native_energy_change_j_m2": -236716.68132995983,
       "energy_residual_j_m2": 5.820766091346741e-11,
-      "energy_roundoff_bound_j_m2": 1.0162402075295119e-07
+      "energy_roundoff_bound_j_m2": 1.016240207529512e-07
     },
     {
       "case": "soil-controls",
@@ -1550,7 +1551,7 @@
       "gradient": false,
       "native_finite": true,
       "max_soil_error_k": 2.842170943040401e-14,
-      "native_energy_change_j_m2": 19988.0820072177,
+      "native_energy_change_j_m2": 19988.08200721818,
       "energy_residual_j_m2": -7.818567837603041e-08,
       "energy_roundoff_bound_j_m2": 0.00018938074858684226
     },
@@ -1586,7 +1587,7 @@
       "gradient": false,
       "native_finite": true,
       "max_soil_error_k": 5.684341886080802e-14,
-      "native_energy_change_j_m2": 20204.185080203915,
+      "native_energy_change_j_m2": 20204.185080204155,
       "energy_residual_j_m2": -7.909193300292827e-10,
       "energy_roundoff_bound_j_m2": 0.0001893807516578517
     },
@@ -1661,7 +1662,7 @@
       "gradient": false,
       "native_finite": true,
       "max_soil_error_k": 2.842170943040401e-14,
-      "native_energy_change_j_m2": 19988.0820072177,
+      "native_energy_change_j_m2": 19988.08200721818,
       "energy_residual_j_m2": -7.818567837603041e-08,
       "energy_roundoff_bound_j_m2": 0.00018938074858684226
     },
@@ -1700,7 +1701,7 @@
       "gradient": false,
       "native_finite": true,
       "max_soil_error_k": 5.684341886080802e-14,
-      "native_energy_change_j_m2": 20204.185080203915,
+      "native_energy_change_j_m2": 20204.185080204155,
       "energy_residual_j_m2": -7.909193300292827e-10,
       "energy_roundoff_bound_j_m2": 0.0001893807516578517
     },
@@ -1732,8 +1733,8 @@
     }
   ],
   "source_sha256": "928540dd1fc7b28c2c308fc3440a263119c1c2276309dada19015b63f4441612",
-  "kernel_sha256": "056fc923b24e4597099c8b27801a0d549f3428e513552a8be8d6c171a3fea8e3",
-  "water_surface_sha256": "a9b6006b64953372871ee6f627fb8589eea6aaac19542b59a55266719a89e2c4",
+  "kernel_sha256": "9ec7f8c73ac5a7b973dd5708251ad98080650f1191c530392fa15a6e2500220e",
+  "water_surface_sha256": "a172442271da69fff10ca3afaf72b00a7163a3baf19abe919f098dd381babb1c",
   "vertical_solver_sha256": "0d01f1d42fe7f086a887a2c0c51cb3b4385d26a3c944b72f81150b8a57ddd991",
   "jax_version": "0.11.0",
   "devices": [

@@ -7,10 +7,11 @@
     "routine_sha256": {
       "pass2": "fc30b833f3374fa31fe31a241d43509d835983aa2849d9edd02983e0c573ded2"
     },
-    "compiler": "GNU Fortran (Homebrew GCC 16.1.0) 16.1.0",
+    "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
     "compiler_flags": [
       "-O3",
       "-cpp",
+      "-ffree-line-length-none",
       "-fdefault-real-8",
       "-fdefault-double-8",
       "-fPIC",
@@ -23,58 +24,58 @@
     {
       "case": "stable",
       "max_absolute_errors": {
-        "temperature_k": 2.842170943040401e-14,
-        "u_ms": 2.1316282072803006e-14,
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 1.4210854715202004e-14,
         "v_ms": 2.842170943040401e-14,
         "tracer_ratio": 2.168404344971009e-19
       },
-      "native_seconds": 0.000967143732123077,
-      "jax_seconds": 0.001003052038140595,
-      "native_over_jax_speed_ratio": 0.9642009540361605,
-      "first_jax_call_seconds": 0.11493787495419383
+      "native_seconds": 0.0019264655499995342,
+      "jax_seconds": 0.0017292901499999403,
+      "native_over_jax_speed_ratio": 1.1140210045142516,
+      "first_jax_call_seconds": 0.16540957299997672
     },
     {
       "case": "unstable",
       "max_absolute_errors": {
-        "temperature_k": 1.1368683772161603e-13,
+        "temperature_k": 2.2737367544323206e-13,
         "u_ms": 2.842170943040401e-14,
-        "v_ms": 3.197442310920451e-14,
-        "tracer_ratio": 2.710505431213761e-19
+        "v_ms": 2.842170943040401e-14,
+        "tracer_ratio": 3.2526065174565133e-19
       },
-      "native_seconds": 0.004845145833678543,
-      "jax_seconds": 0.0010787749895825982,
-      "native_over_jax_speed_ratio": 4.4913405302001275,
-      "first_jax_call_seconds": 0.0011565419845283031
+      "native_seconds": 0.002359104350000507,
+      "jax_seconds": 0.0016553375499995583,
+      "native_over_jax_speed_ratio": 1.4251500245379782,
+      "first_jax_call_seconds": 0.0018613839999943593
     },
     {
       "case": "mixed",
       "max_absolute_errors": {
-        "temperature_k": 8.526512829121202e-14,
+        "temperature_k": 1.4210854715202004e-13,
         "u_ms": 2.842170943040401e-14,
         "v_ms": 2.842170943040401e-14,
         "tracer_ratio": 3.2526065174565133e-19
       },
-      "native_seconds": 0.008281229133717715,
-      "jax_seconds": 0.0043569104047492145,
-      "native_over_jax_speed_ratio": 1.900711367553216,
-      "first_jax_call_seconds": 0.0018382919952273369
+      "native_seconds": 0.0024588930500001995,
+      "jax_seconds": 0.0021943763999999534,
+      "native_over_jax_speed_ratio": 1.120542970659114,
+      "first_jax_call_seconds": 0.0020536799999888444
     },
     {
       "case": "nonuniform",
       "max_absolute_errors": {
-        "temperature_k": 8.526512829121202e-14,
+        "temperature_k": 1.7053025658242404e-13,
         "u_ms": 2.842170943040401e-14,
         "v_ms": 2.842170943040401e-14,
         "tracer_ratio": 3.2526065174565133e-19
       },
-      "native_seconds": 0.005562854139134288,
-      "jax_seconds": 0.003653287491761148,
-      "native_over_jax_speed_ratio": 1.5226981593098197,
-      "first_jax_call_seconds": 0.004301541019231081
+      "native_seconds": 0.0024688014500000577,
+      "jax_seconds": 0.002234492950000799,
+      "native_over_jax_speed_ratio": 1.104859807232408,
+      "first_jax_call_seconds": 0.003957065000008697
     }
   ],
   "source_sha256": "31f30419734a27eea4fa50e89724f048579a8d6fb0302bab0cd674c302e83315",
-  "kernel_sha256": "11d8f2284b7e95cbb38064400c6e284913599f9a7cc9d3a349f7093f60ecf162",
+  "kernel_sha256": "61c52c300c12e19f0a055c8023c742c4717ce5ecd029c932019d791f78afedb1",
   "columns": 2048,
   "layers": 40,
   "repeats": 20,
@@ -92,7 +93,7 @@
     },
     "source": "Ames v3.2.1 patches/srcFMS.patch"
   },
-  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "platform": "Linux-7.0.0-1014-aws-x86_64-with-glibc2.39",
   "jax_version": "0.11.0",
   "devices": [
     "cpu:0"
