@@ -4,18 +4,19 @@ SPDX-License-Identifier: LGPL-3.0-only
 Derived from NOAA-GFDL atmos_phys revision 46817a1, moist_conv.F90.
 See licenses/MOIST-CONVECTION-NOTICE.txt.
 """
-from typing import NamedTuple
+from typing import NamedTuple,Any
+from jax import Array
 import numpy as np
 from src.framework.gcm._dinosaur import jax,jnp
 from src.framework.physics.saturation_pressure import vapor_pressure,specific_humidity
 
 
 class MoistResult(NamedTuple):
-    temperature_tendency: object
-    vapor_tendency: object
-    rain_kg_m2_s: object
-    snow_kg_m2_s: object
-    diagnostics: object
+    temperature_tendency: Array
+    vapor_tendency: Array
+    rain_kg_m2_s: Array
+    snow_kg_m2_s: Array
+    diagnostics: dict[str,Any]
 
 
 def _column(t,q,half,full,cold,*,humidity,tolerance_min,tolerance_max,iterations,

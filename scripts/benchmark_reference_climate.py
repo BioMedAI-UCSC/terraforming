@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare second-year Dinosaur seasonal windows with staged Ames MGCM output."""
+"""Compare available Dinosaur time means and seasonal windows with staged Ames MGCM output."""
 from __future__ import annotations
 
 import argparse
@@ -30,15 +30,18 @@ def main() -> int:
     parser.add_argument("model_samples", type=Path)
     parser.add_argument("native_reference", type=Path)
     parser.add_argument("--output-dir", type=Path, required=True)
-    parser.add_argument("--targets", default="45,135,225,315")
+    parser.add_argument("--targets", help="Comma-separated Ls centers; default is the common seasonal range")
     parser.add_argument("--half-width", type=float, default=5.0)
-    parser.add_argument("--evaluation-start-sol", type=float, default=668.0)
+    parser.add_argument("--evaluation-start-sol", type=float, default=0.0)
     args = parser.parse_args()
 
-    paths = sorted(args.model_samples.glob("sample_*.nc"))
+    paths = sorted(args.model_samples.rglob("mean_*.nc"))
+    averaged=bool(paths)
+    if not paths: paths=sorted(args.model_samples.rglob("sample_*.nc"))
     samples = []
     for path in paths:
         with xr.open_dataset(path) as opened:
+            if averaged and not opened.attrs.get("complete_window",False): continue
             if "surface_temperature" in opened:
                 sols = float(opened.time.isel(time=0))
                 ls = float(opened.solar_longitude.isel(time=0))
@@ -52,7 +55,7 @@ def main() -> int:
                         "co2_ice": opened.co2_frost.isel(time=0),
                     }
                 ).load()
-                insolation = "diurnal"
+                insolation = str(opened.attrs.get("temporal_sampling","instantaneous diurnal"))
             else:
                 sols = (
                     float(opened.attrs["n_steps"])
@@ -69,22 +72,24 @@ def main() -> int:
                 sample.attrs["insolation_sampling"] = insolation
                 samples.append(sample)
     if not samples:
-        parser.error("no model checkpoints exist in the evaluation year")
+        parser.error("no complete model windows exist after the evaluation start sol")
     model = xr.concat(samples, dim="sample")
     model_insolation = str(model.attrs.get("insolation_sampling", "unknown"))
     with xr.open_dataset(args.native_reference) as opened:
         ames = opened.load()
-    targets = [float(item) % 360.0 for item in args.targets.split(",")]
+    targets = ([float(item)%360. for item in args.targets.split(",")] if args.targets else
+        [float(target) for target in ames.ls.values if np.any(circular_distance(model.ls.values,target)<=args.half_width)])
+    if not targets: parser.error("model and native reference have no common seasonal windows")
     args.output_dir.mkdir(parents=True, exist_ok=True)
     report = {
         "status": "model_reference_comparison_not_observational_validation",
-        "model": "Dinosaur/JAX T21L12, second simulated Mars year",
+        "model": f"Dinosaur/JAX {model.sizes['lon']}x{model.sizes['lat']}; start sol {args.evaluation_start_sol:g}",
         "reference": ames.attrs.get("title", "NASA Ames MGCM"),
         "half_width_ls_deg": args.half_width,
         "seasons": {},
         "limitations": [
             (
-                "Model seasonal means average instantaneous checkpoints under "
+                "Model seasonal means combine available windows under "
                 f"{model_insolation} insolation; Ames fields are five-sol averages."
             ),
             "Wind compares each model's lowest layer; their effective heights are not identical.",
@@ -106,7 +111,7 @@ def main() -> int:
         model_mean.attrs.update(
             solar_longitude_deg=target,
             temporal_sampling=f"mean of {int(model_mask.sum())} checkpoints within +/-{args.half_width:g} deg Ls",
-            climate_status="second-year seasonal evaluation window",
+            climate_status="available common seasonal evaluation window",
         )
         regridded = interpolate_periodic(ames_mean[list(FIELDS)], model_mean)
         season_metrics = {}

@@ -5,6 +5,7 @@ import numpy as np
 import pytest
 
 pytest.importorskip("dinosaur")
+from src.framework.physics.tracer_transport import tracer_to_nodal
 import jax
 import jax.numpy as jnp
 
@@ -312,7 +313,7 @@ def test_finite_rate_ablation_forms_suspended_clouds_before_settling():
     forcing = dataclasses.replace(radiative_forcing(diurnal=False), sensible_heat_transfer_w_m2_k=0.)
     equation = physics.forced_co2_primitive_equations(coords, BODY, forcing, cf, specs=specs)
     tendency = equation.explicit_terms(state)
-    assert float(jnp.max(grid.to_nodal(tendency.dynamics.tracers[clouds.CO2_CLOUD_TRACER]))) > 0.
+    assert float(jnp.max(tracer_to_nodal(grid,tendency.dynamics.tracers[clouds.CO2_CLOUD_TRACER]))) > 0.
     # An atmosphere-to-cloud transfer does not deposit that mass immediately.
     dry_cf = dataclasses.replace(cf, atmospheric_condensation=False)
     dry = physics.forced_co2_primitive_equations(coords, BODY, forcing, dry_cf, specs=specs).explicit_terms(state)

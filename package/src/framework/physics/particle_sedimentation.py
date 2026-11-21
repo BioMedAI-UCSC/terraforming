@@ -3,17 +3,18 @@
 NASA-derived algorithms: Copyright 2023 United States Government as represented
 by NASA. NASA Open Source Agreement 1.3; see the repository's reference license.
 """
-from typing import NamedTuple
+from typing import NamedTuple,Any
+from jax import Array
 from src.framework.gcm._dinosaur import jnp
 from src.framework.physics.co2_microphysics import sedimentation
 
 
 class SedimentationResult(NamedTuple):
-    tracers: object
-    surface_deposit: object
-    particle_density: object
-    radius_m: object
-    diagnostics: object
+    tracers: Array
+    surface_deposit: Array
+    particle_density: Array
+    radius_m: Array
+    diagnostics: dict[str,Any]
 
 
 def dust_sedimentation_step(tracers,pressure_half,pressure_full,temperature,temperature_surface,

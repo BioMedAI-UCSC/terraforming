@@ -64,6 +64,10 @@ pl=p;tl=t;rho=1;tracer=0;mass=0;number=0
 tracer(4,:)=q;mass(4,:)=dm;number(4,:)=dn
 call nucleacond(1,real(dt,kind={kind}),pl,tl,rho,tracer,mass,number,modes>1,dh,dq,dqm,dqn,s,m)
 heat(1)=dh(4);out=dq(4,:);outm=dqm(4,:);outn=dqn(4,:);sat=s;contact=m
+! Single-mode driver rebuilds dust bins from tracer slots on the next call.
+if(modes==1) then
+  outm(1)=out(1);outn(1)=out(2)
+endif
 end subroutine
 subroutine nucleation(t,p,s,counts,radii,model,out,m) bind(C)
 real(c_double),value :: t,p,s
@@ -116,7 +120,8 @@ end module
     return native,dict(source_git_blob=blob,real_precision_bits=precision,compiler_flags=flags,
         routine_sha256={n:hashlib.sha256(r.encode()).hexdigest() for n,r in zip(names,routines,strict=True)},
         adapter_sha256=hashlib.sha256(bridge.read_bytes()).hexdigest(),
-        adaptation='unchanged original routine bodies; intended source precision or binary128; separate C conversions')
+        adaptation='unchanged original routine bodies; intended source precision or binary128; separate C conversions; '
+            'single-mode adapter synchronizes auxiliary dust tendencies with native tracer slots, as the driver does')
 
 
 def validate(source,compiler):

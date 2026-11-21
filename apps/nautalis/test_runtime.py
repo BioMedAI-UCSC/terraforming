@@ -1,4 +1,5 @@
 """Small real-process tests for generic source selection, outputs and download safety."""
+import hashlib
 import importlib.util
 import json
 import os
@@ -8,6 +9,7 @@ import sys
 import tempfile
 import time
 import signal
+import socket
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
@@ -123,21 +125,24 @@ class RuntimeTests(unittest.TestCase):
     def test_experiments_overlap_and_duplicate_folders_are_rejected(self):
         with tempfile.TemporaryDirectory() as temporary:
             root=Path(temporary);source=self.source(root);work=root/'work'
-            barrier='''import os,time
-from pathlib import Path
-root=Path(os.environ['EXPERIMENT_WORK_DIR']).parents[3]
-name=Path(__file__).parent.name
-(root/('ready-'+name)).touch()
-end=time.monotonic()+5
-while len(list(root.glob('ready-*')))<2 and time.monotonic()<end: time.sleep(.02)
-assert len(list(root.glob('ready-*')))==2, 'experiments did not overlap'
-'''
+            listener=socket.socket(socket.AF_UNIX);address=str(root/'barrier.sock')
+            listener.bind(address);listener.listen(2);listener.settimeout(30.)
+            barrier="import socket\ns=socket.socket(socket.AF_UNIX)\ns.connect("+repr(address)+")\nassert s.recv(1)==b'1'\n"
             (source/'sample/run.py').write_text(barrier)
             (source/'second').mkdir();(source/'second/run.py').write_text(barrier)
             options=[sys.executable,str(HERE/'run.py'),'--source',str(source),
                 '--work',str(work),'--run-id','test','--experiments']
-            result=subprocess.run([*options,'sample','second'],capture_output=True,text=True,timeout=15)
-            self.assertEqual(result.returncode,0,result.stderr+result.stdout)
+            process=subprocess.Popen([*options,'sample','second'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
+            connections=[]
+            try:
+                connections=[listener.accept()[0],listener.accept()[0]]
+                for connection in connections: connection.sendall(b'1')
+                stdout,stderr=process.communicate(timeout=30.)
+                self.assertEqual(process.returncode,0,stderr+stdout)
+            finally:
+                listener.close()
+                for connection in connections: connection.close()
+                if process.poll() is None: process.terminate();process.communicate(timeout=30.)
             self.assertEqual(len(list(work.glob('outputs/*/*/test/attempts/*/status.json'))),2)
             duplicate=subprocess.run([*options,'sample','./sample'],capture_output=True,text=True)
             self.assertNotEqual(duplicate.returncode,0)
@@ -146,24 +151,17 @@ assert len(list(root.glob('ready-*')))==2, 'experiments did not overlap'
     def test_shutdown_reaches_all_parallel_experiments_and_records_status(self):
         with tempfile.TemporaryDirectory() as temporary:
             root=Path(temporary);source=self.source(root);work=root/'work'
-            script='''import os,time
-from pathlib import Path
-(Path(os.environ['EXPERIMENT_OUTPUT_DIR'])/'ready').touch()
-while True: time.sleep(1)
-'''
+            listener=socket.socket(socket.AF_UNIX);address=str(root/'ready.sock')
+            listener.bind(address);listener.listen(2);listener.settimeout(30.)
+            script="import socket\ns=socket.socket(socket.AF_UNIX)\ns.connect("+repr(address)+")\ns.recv(1)\n"
             (source/'sample/run.py').write_text(script)
             (source/'second').mkdir();(source/'second/run.py').write_text(script)
             process=subprocess.Popen([sys.executable,str(HERE/'run.py'),'--source',str(source),
                 '--work',str(work),'--run-id','test','--experiments','sample','second'],
                 stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
+            connections=[]
             try:
-                end=time.monotonic()+10
-                while len(list(work.glob('outputs/*/*/test/attempts/*/outputs/ready')))<2 and time.monotonic()<end:
-                    time.sleep(.02)
-                ready=len(list(work.glob('outputs/*/*/test/attempts/*/outputs/ready')))
-                if ready!=2:
-                    process.terminate();stdout,stderr=process.communicate(timeout=10)
-                    self.fail(f'only {ready} workers started: {stderr}\n{stdout}')
+                connections=[listener.accept()[0],listener.accept()[0]]
                 process.send_signal(signal.SIGTERM)
                 stdout,stderr=process.communicate(timeout=10)
                 self.assertEqual(process.returncode,143,stderr+stdout)
@@ -171,18 +169,23 @@ while True: time.sleep(1)
                 self.assertEqual(len(statuses),2)
                 self.assertTrue(all(status['returncode']==-signal.SIGTERM for status in statuses))
             finally:
+                listener.close()
+                for connection in connections: connection.close()
                 if process.poll() is None:
                     process.terminate();process.communicate(timeout=10)
 
     def test_completed_job_download_uses_readonly_reader_and_cleans_it_up(self):
         with tempfile.TemporaryDirectory() as temporary:
             output=Path(temporary)/'snapshot';calls=[]
-            job={'spec':{'template':{'spec':{'containers':[{'volumeMounts':[{'name':'work','mountPath':'/work'}]}],
+            job={'spec':{'template':{'spec':{'containers':[{'image':'python:3.12-slim','volumeMounts':[{'name':'work','mountPath':'/work'}]}],
                 'volumes':[{'name':'work','persistentVolumeClaim':{'claimName':'saved-results'}}]}}}}
             pod={'metadata':{'name':'finished'},'spec':{'nodeName':'previous-node'},'status':{'phase':'Succeeded'}}
             def read(args,**kwargs):
-                if 'pod' in args:
-                    return json.dumps({'status':{'phase':'Running','conditions':[{'type':'Ready','status':'True'}]}})
+                if 'exec' in args:
+                    return json.dumps({'result.json':hashlib.sha256(b'{}').hexdigest()})
+                if 'pods' in args and any('experiment-download-' in arg for arg in args):
+                    return json.dumps({'items':[{'metadata':{'name':'reader'},'status':{'phase':'Running',
+                        'conditions':[{'type':'Ready','status':'True'}]}}]})
                 return json.dumps(job if 'job' in args else {'items':[pod]})
             def execute(args,**kwargs):
                 calls.append((args,kwargs))
@@ -194,13 +197,28 @@ while True: time.sleep(1)
                  patch.object(download.subprocess,'run',side_effect=execute):
                 download.main()
             reader=json.loads(next(kwargs['input'] for args,kwargs in calls if 'apply' in args))
-            self.assertTrue(reader['spec']['containers'][0]['volumeMounts'][0]['readOnly'])
+            self.assertEqual(reader['kind'],'Job')
+            spec=reader['spec']['template']['spec']
+            self.assertTrue(spec['containers'][0]['volumeMounts'][0]['readOnly'])
             self.assertNotIn('activeDeadlineSeconds',reader['spec'])
-            self.assertEqual(reader['spec']['containers'][0]['command'],['tail','-f','/dev/null'])
-            self.assertNotIn('fsGroup',reader['spec']['securityContext'])
+            self.assertNotIn('activeDeadlineSeconds',spec)
+            self.assertNotIn('nodeSelector',spec)
+            self.assertIn('/control/complete',spec['containers'][0]['command'][-1])
+            self.assertNotIn('fsGroup',spec['securityContext'])
             self.assertTrue(any('delete' in args for args,_ in calls))
             self.assertTrue((output/'pods/finished.log').exists())
             self.assertIn('runs/result.json',json.loads((output/'sha256.json').read_text()))
+            self.assertEqual(json.loads((output/'remote-sha256.json').read_text()),
+                {'result.json':hashlib.sha256(b'{}').hexdigest()})
+
+    def test_download_hashes_reject_symlinks_and_include_large_files(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary);data=b'large output'*100000
+            (root/'raw.bin').write_bytes(data)
+            self.assertEqual(download.hash_tree(root),{'raw.bin':hashlib.sha256(data).hexdigest()})
+            (root/'link').symlink_to(root/'raw.bin')
+            with self.assertRaisesRegex(ValueError,'symlinks'):
+                download.hash_tree(root)
 
     def test_downloader_refuses_to_overwrite_existing_snapshot(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -210,6 +228,13 @@ while True: time.sleep(1)
                 with self.assertRaises(SystemExit): download.main()
                 request.assert_not_called()
             self.assertEqual((output/'saved').read_text(),'keep')
+
+    def test_rebuttal_deployer_has_no_import_time_actions(self):
+        path=HERE.parents[1]/'experiments/rebuttal-54586/deploy.py'
+        spec=importlib.util.spec_from_file_location('rebuttal_deploy',path)
+        with patch.object(subprocess,'run') as run,patch.object(subprocess,'check_output') as read:
+            spec.loader.exec_module(importlib.util.module_from_spec(spec))
+        run.assert_not_called();read.assert_not_called()
 
     def test_checked_in_nautilus_manifests_have_no_deadline(self):
         root=HERE.parents[1]

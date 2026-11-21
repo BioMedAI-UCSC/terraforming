@@ -3,18 +3,19 @@
 NASA-derived algorithms: Copyright 2023 United States Government as represented
 by NASA. NASA Open Source Agreement 1.3; see the repository's reference license.
 """
+from src.framework.physics.tracer_transport import tracer_to_nodal
 from functools import lru_cache
 from pathlib import Path
-from typing import NamedTuple
+from typing import NamedTuple,Any
 
 import numpy as np
 from src.framework.gcm._dinosaur import jax,jnp
 
 
 class ParticleOptics(NamedTuple):
-    visible: object
-    infrared: object
-    diagnostics: object
+    visible: tuple[Any,...]
+    infrared: tuple[Any,...]
+    diagnostics: dict[str,Any]
 
 
 @lru_cache(maxsize=1)
@@ -180,7 +181,7 @@ def make_particle_provider(*,bands=12,dust_tracers=(),co2_cloud_tracer=None,
         raise ValueError('cloud condensation nuclei must be positive')
     def provider(state,coords,specs,body,forcing,grid):
         def tracer(name):
-            return coords.horizontal.to_nodal(state.dynamics.tracers[name])
+            return tracer_to_nodal(coords.horizontal,state.dynamics.tracers[name])
         species=[];options=dict(bands=bands,gravity=body.gravity_m_s2)
         if dust_tracers:
             species.append(dust_optics(jnp.stack([tracer(pair[0]) for pair in dust_tracers],axis=-1),

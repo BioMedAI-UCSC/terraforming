@@ -14,7 +14,7 @@ from src.celestials.planets.mars.dust_scenario import (_bilinear_weights,bilinea
     load_scenario_on_grid,INPUT_BLOBS)
 from native_reference import compile_routines,extract_routines
 
-FMS_BLOB='89f1a0b2efb58e77bf47cbc121ae2d382ba32e13'
+FMS_BLOB='f998b823f73ab3f3d5ec662a49c893fc2f67006b'
 DUST_BLOB='1e470cc1efb44c6627cbe3168c69c2d1f7640570'
 
 

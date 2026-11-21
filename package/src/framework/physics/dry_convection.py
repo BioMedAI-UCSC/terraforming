@@ -10,6 +10,7 @@ are the predicted physical state, after the other physics tendencies act.
 """
 from __future__ import annotations
 
+from src.framework.physics.tracer_transport import tracer_to_nodal,tracer_from_nodal
 import dataclasses
 import numpy as np
 
@@ -83,7 +84,7 @@ def adjust_state(state, coords, specs, body):
     half = jnp.asarray(np.asarray(coords.vertical.boundaries))[:, None, None] * ps
     full = jnp.asarray(np.asarray(coords.vertical.centers))[:, None, None] * ps
     names = tuple(dyn.tracers)
-    tracers = (jnp.stack([grid.to_nodal(dyn.tracers[name]) for name in names], axis=-1)
+    tracers = (jnp.stack([tracer_to_nodal(grid,dyn.tracers[name]) for name in names], axis=-1)
                if names else jnp.empty(temperature.shape + (0,), dtype=temperature.dtype))
     t, unew, vnew, r = pass2(temperature, u, v, tracers, half, full, body.kappa)
     vor, div = spherical_harmonic.uv_nodal_to_vor_div_modal(
@@ -91,7 +92,7 @@ def adjust_state(state, coords, specs, body):
     return state._replace(dynamics=dataclasses.replace(dyn,
         temperature_variation=dyn.temperature_variation + grid.to_modal(t-temperature),
         vorticity=dyn.vorticity + vor, divergence=dyn.divergence + div,
-        tracers={name:dyn.tracers[name] + grid.to_modal(r[..., i]-tracers[..., i])
+        tracers={name:tracer_from_nodal(grid,r[...,i],dyn.tracers[name])
                  for i, name in enumerate(names)}))
 
 

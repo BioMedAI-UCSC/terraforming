@@ -119,3 +119,12 @@ def test_physical_mode_names_preserve_primary_order_and_reject_invalid_count():
     for count in (0,-1,1.5,True):
         with pytest.raises(ValueError,match='positive integer'):
             moment_particle_tracers(count)
+
+
+def test_single_mode_evaporation_returns_cores_to_both_dust_states():
+    q=jnp.array([1e-5,1e8,1e-12,1e6,1e-8,0.])
+    result=nucleation_condensation(210.,610.,q,100.,dust_mass=q[0,None],dust_number=q[1,None])
+    updated=q+100.*result.tracer_tendency
+    assert updated[2]==0. and updated[3]==0. and updated[4]==0.
+    np.testing.assert_allclose(q[0]+100.*result.dust_mass_tendency[0],updated[0],rtol=1e-14)
+    np.testing.assert_allclose(q[1]+100.*result.dust_number_tendency[0],updated[1],rtol=1e-14)

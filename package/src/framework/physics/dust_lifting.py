@@ -3,7 +3,8 @@
 NASA-derived algorithms: Copyright 2023 United States Government as represented
 by NASA. NASA Open Source Agreement 1.3; see the repository's reference license.
 """
-from typing import NamedTuple
+from typing import NamedTuple,Any
+from jax import Array
 from src.framework.gcm._dinosaur import jax,jnp
 
 
@@ -63,10 +64,10 @@ def devil_flux(temperature_bottom,temperature_surface,pressure_bottom,pressure_p
 
 
 class LiftingResult(NamedTuple):
-    mass_ratio: object
-    number_ratio: object
-    surface_dust_kg_m2: object
-    diagnostics: object
+    mass_ratio: Array
+    number_ratio: Array
+    surface_dust_kg_m2: Array
+    diagnostics: dict[str,Any]
 
 
 def reference_efficiencies(effective_radius_m=2e-6,*,bands=12):

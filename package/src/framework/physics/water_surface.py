@@ -3,18 +3,19 @@
 NASA-derived algorithms: Copyright 2023 United States Government as represented
 by NASA. NASA Open Source Agreement 1.3; see the repository's reference license.
 """
-from typing import NamedTuple
+from typing import NamedTuple,Any
+from jax import Array
 from src.framework.gcm._dinosaur import jnp
 from src.framework.physics.water_bulk import saturation_ratio,LATENT_HEAT
 
 
 class WaterSurfaceResult(NamedTuple):
-    vapor_ratio: object
-    surface_water_kg_m2: object
-    upward_flux_kg_m2_s: object
-    latent_flux_w_m2: object
-    latent_derivative_w_m2_k: object
-    diagnostics: object
+    vapor_ratio: Array
+    surface_water_kg_m2: Array
+    upward_flux_kg_m2_s: Array
+    latent_flux_w_m2: Array
+    latent_derivative_w_m2_k: Array
+    diagnostics: dict[str,Any]
 
 
 def surface_exchange(vapor_ratio,pressure_half,surface_temperature,surface_water_kg_m2,
@@ -35,8 +36,8 @@ def surface_exchange(vapor_ratio,pressure_half,surface_temperature,surface_water
     n=q.shape[0]
     if p.shape!=(n+1,*q.shape[1:]):
         raise ValueError('water vapor and pressure interfaces must match')
-    valid=(top>=0)&(top<n)
     if not inject_through_pbl: top=jnp.full_like(top,n-1)
+    valid=(top>=0)&(top<n)
     levels=jnp.arange(n).reshape((n,)+(1,)*(q.ndim-1))
     selected=levels>=top
     layer_mass=jnp.diff(p,axis=0)/gravity

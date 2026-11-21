@@ -98,13 +98,6 @@ INTEGRATION_GROUPS = {
     ''',
 }
 SHARDS = {'coupled': len(INTEGRATION_GROUPS)}
-RADIATION = set('correlated_k scattering_transfer simple_radiation radiation_grid optical_depth '
-    'spectral_flux radiative_transfer collision_absorption nonlte_cooling particle_optics solar_geometry'.split())
-SURFACE = set('boundary_layer co2_condensation co2_microphysics co2_clouds soil_frost dry_convection '
-    'legacy_convection moist_convection nonorographic_drag rayleigh_drag saturation_pressure '
-    'terrain_drag thermal_relaxation hydrostatic_initialization'.split())
-PARTICLES = set('particle_sedimentation tracer_transport prescribed_dust dust_lifting dust_control '
-    'dust_coagulation water_bulk water_moments water_surface'.split())
 
 
 def test_files(root=ROOT):
@@ -145,18 +138,8 @@ def affected_suites(paths, files):
             continue
         elif path.startswith('cli/'):
             selected.add('cli')
-        elif path.startswith('package/src/framework/neural/') or path.startswith('examples/neural/'):
+        elif path.startswith('examples/neural/'):
             selected.update(('neural', 'calibration'))
-        elif path.startswith('package/src/framework/physics/'):
-            stem = Path(path).stem
-            if stem in RADIATION or Path(path).suffix == '.npz' and stem.startswith(('co2_', 'collision_', 'particle_optical', 'nonlte_')):
-                selected.update(('radiation', 'particles', 'coupled', 'neural', 'calibration', 'cli'))
-            elif stem in SURFACE:
-                selected.update(('surface', 'particles', 'coupled', 'calibration', 'cli'))
-            elif stem in PARTICLES:
-                selected.update(('particles', 'radiation', 'coupled', 'calibration', 'cli'))
-            else:
-                selected.update(numerical)
         elif path.startswith('package/src/'):
             selected.update(numerical)
         elif path.startswith(('apps/mars-calibration/', 'paper/arxiv-2610.04081/')):

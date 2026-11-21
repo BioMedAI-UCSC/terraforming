@@ -7,7 +7,6 @@ Kuroda et al. 2013, doi:10.1002/grl.50326, gives the Stokes/slip settling law
 and 1600 kg/m3 ice density. Particle radius is a model input, not an inferred
 microphysical size distribution. No ice optical properties are implied.
 """
-from __future__ import annotations
 
 import numpy as np
 

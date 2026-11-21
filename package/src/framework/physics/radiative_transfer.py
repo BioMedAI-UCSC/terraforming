@@ -3,6 +3,8 @@
 NASA-derived algorithms: Copyright 2023 United States Government as represented
 by NASA. NASA Open Source Agreement 1.3; see the repository's Ames reference.
 """
+from src.framework.physics.tracer_transport import tracer_to_nodal
+import numpy as np
 from src.framework.gcm._dinosaur import jnp,scales
 from src.framework.gcm.dynamics import reference_temperature
 from src.framework.physics.radiation_grid import radiation_grid
@@ -115,12 +117,11 @@ def make_radiation_component(particle_provider,*,radiation_interval_seconds=1848
         pressure=jnp.exp(grid.to_nodal(state.dynamics.log_surface_pressure))[0]*pressure_scale
         temperature=grid.to_nodal(state.dynamics.temperature_variation)+jnp.asarray(
             reference_temperature(coords,body))[:,None,None]
-        half=jnp.asarray(coords.vertical.boundaries)[:,None,None]*pressure
-        full=jnp.asarray(coords.vertical.centers)[:,None,None]*pressure
+        from src.framework.physics.vertical_grid import radiation_interfaces
+        half=radiation_interfaces(coords.vertical.boundaries,pressure)
+        full=.5*(half[:-1]+half[1:])
         surface=state.surface_temperature[0]
-        fields=state.auxiliary_fields
-        strat=(fields['radiation_stratosphere_k'][0] if fields is not None and
-            'radiation_stratosphere_k' in fields else jnp.full_like(surface,170.))
+        strat=temperature[0]
         rad_grid=radiation_grid(half,full,temperature,surface,strat)
         time=state.dynamics.sim_time*time_scale
         calendar,sols,fraction=radiation_clock(time,forcing.rotation_period_s,fixed_calendar_date)
@@ -137,7 +138,7 @@ def make_radiation_component(particle_provider,*,radiation_interval_seconds=1848
         else:
             _,mu,daylight=daylight_geometry(declination,latitude)
         solar=radiation_tables_jax(radiation_mode)['solar_weights']*solar_flux(calendar,forcing)
-        water=(None if water_vapor_tracer is None else grid.to_nodal(state.dynamics.tracers[water_vapor_tracer]))
+        water=(None if water_vapor_tracer is None else tracer_to_nodal(grid,state.dynamics.tracers[water_vapor_tracer]))
         flux=column_fluxes(temperature,surface,half,full,mu,solar,
             forcing.albedo,forcing.emissivity,body.gravity_m_s2,particle_optics=particles,
             daylight_fraction=daylight,radiation_mode=radiation_mode,water_mass_fraction=water,
@@ -154,9 +155,10 @@ def make_radiation_component(particle_provider,*,radiation_interval_seconds=1848
             ramp=shortwave_ramp(sols,shortwave_ramp_sols)
             correction=ramp*correction+(ramp-1.)*sw_heating
         if nonlte_tracers is not None:
-            co2,oxygen=(grid.to_nodal(state.dynamics.tracers[name]) for name in nonlte_tracers)
+            co2,oxygen=(tracer_to_nodal(grid,state.dynamics.tracers[name]) for name in nonlte_tracers)
             nonlte=cooling(temperature,full,co2,oxygen,radiation_pressure_pa=rad_grid.pressure)
             lw=jnp.diff(flux.longwave_up_w_m2-flux.longwave_down_w_m2,axis=0)/capacity
             correction=correction+infrared_blend(lw,nonlte,half[:-1])-lw
-        return flux._replace(nonlte_heating_k_s=correction,shortwave_scale=ramp)
+        dynamics_capacity=body.cp_j_kg_k*jnp.asarray(np.diff(coords.vertical.boundaries))[:,None,None]*pressure/body.gravity_m_s2
+        return flux._replace(nonlte_heating_k_s=correction*capacity/dynamics_capacity,shortwave_scale=ramp)
     return component

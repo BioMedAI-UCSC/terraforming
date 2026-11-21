@@ -147,8 +147,10 @@ hashes; they do not validate a later code revision merely because they are commi
 
 ## Remaining limitations
 
-- Prescribed dust opacity; no lifting, transport or interactive dust weather.
-- Dry convection and simplified surface/PBL closures; no water cycle or cloud radiation.
+- The reference backend includes interactive dust lifting, local tracer transport,
+  bulk or moment water clouds, cloud optics, and the Ames PBL. Native column
+  checks do not establish whole-model climate skill.
+- Alternative native diffusion branches are rejected until they are ported.
 - CO₂ clouds use a fixed particle size and share gas temperature and horizontal
   velocity. Phase change assumes CO₂ pressure equals total gas pressure.
 - Homogeneous regolith properties and zero-flux bottom boundary; slow soil spin-up.

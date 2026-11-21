@@ -38,9 +38,13 @@ must not be described as full LMD/JCM radiative fidelity. Requires the optional
 
 from __future__ import annotations
 
+from src.framework.physics.tracer_transport import tracer_to_nodal,tracer_from_nodal
+from src.framework.physics.co2_clouds import (CO2_CLOUD_TRACER,phase_exchange,
+    saturation_adjustment,settle,surface_exchange,column_budgets)
 import dataclasses
 import math
-from typing import Callable, NamedTuple
+from typing import Callable, NamedTuple, Any
+from jax import Array
 
 import numpy as np
 
@@ -390,12 +394,12 @@ class ColumnPhysicsState(NamedTuple):
     zero when the CO2 cycle is disabled.
     """
 
-    dynamics: object
-    surface_temperature: object
-    co2_ice: object
-    ground_temperature: object
-    surface_momentum: object = None
-    auxiliary_fields: object = None
+    dynamics: Any
+    surface_temperature: Array
+    co2_ice: Array
+    ground_temperature: Array
+    surface_momentum: Array | None = None
+    auxiliary_fields: dict[str,Array] | None = None
 
 
 class SurfaceEnergyDiagnostics(NamedTuple):
@@ -594,7 +598,6 @@ def initial_column_state(dyn_state, coords, surface_temperature_k: float, specs,
     ):
         raise ValueError("regolith layer skin-depth fractions must be finite and positive")
     ground = jnp.full((len(layer_fractions),) + shape[1:], ts_nd)
-    from src.framework.physics.co2_clouds import CO2_CLOUD_TRACER
     dyn_state = dataclasses.replace(dyn_state, tracers={
         CO2_CLOUD_TRACER: jnp.zeros_like(dyn_state.temperature_variation), **dyn_state.tracers})
     return ColumnPhysicsState(
@@ -1731,7 +1734,6 @@ def _co2_surface_tendencies(
 
 def _co2_atmospheric_tendencies(state, temperature_nodal, ps_pa, wind_nodal, coords, specs, body, cf):
     """Finite-rate phase change into a transported suspended-ice reservoir."""
-    from src.framework.physics.co2_clouds import CO2_CLOUD_TRACER, phase_exchange
     grid = coords.horizontal
     heat_zero = jnp.zeros_like(state.dynamics.temperature_variation)
     if not cf.atmospheric_condensation or cf.atmospheric_saturation_adjustment:
@@ -1741,7 +1743,7 @@ def _co2_atmospheric_tendencies(state, temperature_nodal, ps_pa, wind_nodal, coo
     sigma = np.asarray(coords.vertical.centers, dtype=float)
     dsigma = np.diff(np.asarray(coords.vertical.boundaries, dtype=float))
     temperature = temperature_nodal + jnp.asarray(reference_temperature(coords, body))[:, None, None]
-    ice_ratio = grid.to_nodal(state.dynamics.tracers[CO2_CLOUD_TRACER])
+    ice_ratio = tracer_to_nodal(grid,state.dynamics.tracers[CO2_CLOUD_TRACER])
     speed_scale = float(specs.dimensionalize(1., _u.meter / _u.second).magnitude)
     wind = jnp.stack(wind_nodal) * speed_scale
     frost = co2_frost_point_k(jnp.asarray(sigma)[:, None, None] * ps_pa[None])
@@ -1757,14 +1759,13 @@ def _co2_atmospheric_tendencies(state, temperature_nodal, ps_pa, wind_nodal, coo
 
 def adjust_co2_cloud_saturation(state, coords, specs, body, cf):
     """Apply Ames-style saturation after dynamics and existing-cloud settling."""
-    from src.framework.physics.co2_clouds import CO2_CLOUD_TRACER, saturation_adjustment
     grid = coords.horizontal
     reference = jnp.asarray(reference_temperature(coords, body))[:, None, None]
     pressure_scale = float(specs.dimensionalize(1., _u.pascal).magnitude)
     speed_scale = float(specs.dimensionalize(1., _u.meter / _u.second).magnitude)
     temperature = grid.to_nodal(state.dynamics.temperature_variation) + reference
     pressure = jnp.exp(grid.to_nodal(state.dynamics.log_surface_pressure))[0] * pressure_scale
-    cloud = grid.to_nodal(state.dynamics.tracers[CO2_CLOUD_TRACER])
+    cloud = tracer_to_nodal(grid,state.dynamics.tracers[CO2_CLOUD_TRACER])
     sigma = np.asarray(coords.vertical.centers, dtype=float)
     frost = co2_frost_point_k(jnp.asarray(sigma)[:, None, None] * pressure[None])
     needs_adjustment = jnp.any((temperature < frost - 1.e-8) | ((cloud > 1.e-14) & (temperature > frost + 1.e-8)))
@@ -1780,14 +1781,13 @@ def adjust_co2_cloud_saturation(state, coords, specs, body, cf):
             log_surface_pressure=state.dynamics.log_surface_pressure + grid.to_modal(jnp.log(ps[None] / pressure[None])),
             vorticity=state.dynamics.vorticity + vor, divergence=state.dynamics.divergence + div,
             tracers={**state.dynamics.tracers, CO2_CLOUD_TRACER:
-                state.dynamics.tracers[CO2_CLOUD_TRACER] + grid.to_modal(ice - cloud)}))
+                tracer_from_nodal(grid,ice,state.dynamics.tracers[CO2_CLOUD_TRACER])}))
         return project_co2_reservoirs(updated, coords, specs)
     return jax.lax.cond(needs_adjustment, adjust, lambda _: state, operand=None)
 
 
 def settle_co2_clouds(state, coords, specs, body, cf, dt_seconds):
     """Deposit cloud ice, sensible/kinetic/gravitational energy and momentum."""
-    from src.framework.physics.co2_clouds import CO2_CLOUD_TRACER, settle
     grid = coords.horizontal
     if state.surface_momentum is None:
         raise ValueError("cloud settling requires the surface momentum reservoir")
@@ -1798,7 +1798,7 @@ def settle_co2_clouds(state, coords, specs, body, cf, dt_seconds):
     reference = jnp.asarray(reference_temperature(coords, body))[:, None, None]
     temperature = grid.to_nodal(state.dynamics.temperature_variation) + reference
     pressure = jnp.exp(grid.to_nodal(state.dynamics.log_surface_pressure))[0] * pressure_scale
-    cloud = grid.to_nodal(state.dynamics.tracers[CO2_CLOUD_TRACER])
+    cloud = tracer_to_nodal(grid,state.dynamics.tracers[CO2_CLOUD_TRACER])
     wind = jnp.stack(spherical_harmonic.vor_div_to_uv_nodal(
         grid, state.dynamics.vorticity, state.dynamics.divergence)) * speed_scale
     new_temperature, new_cloud, new_wind, deposit, heat, impulse = settle(
@@ -1811,7 +1811,7 @@ def settle_co2_clouds(state, coords, specs, body, cf, dt_seconds):
         temperature_variation=state.dynamics.temperature_variation + grid.to_modal(new_temperature - temperature),
         vorticity=state.dynamics.vorticity + vor, divergence=state.dynamics.divergence + div,
         tracers={**state.dynamics.tracers, CO2_CLOUD_TRACER:
-            state.dynamics.tracers[CO2_CLOUD_TRACER] + grid.to_modal(new_cloud - cloud)})
+            tracer_from_nodal(grid,new_cloud,state.dynamics.tracers[CO2_CLOUD_TRACER])})
     frost_mass = state.co2_ice * pressure_scale / body.gravity_m_s2
     capacity = cf.thermal_inertia + (frost_mass[0] + deposit) * cf.cloud_ice_heat_capacity_j_kg_k
     return state._replace(dynamics=dynamics,
@@ -1821,13 +1821,12 @@ def settle_co2_clouds(state, coords, specs, body, cf, dt_seconds):
 
 
 def _co2_surface_transport(state, temperature_nodal, ps_pa, wind_nodal, dice, coords, specs, body, cf):
-    from src.framework.physics.co2_clouds import CO2_CLOUD_TRACER, surface_exchange
     grid = coords.horizontal
     time_scale = 1. / float(specs.nondimensionalize(1. * _u.second))
     speed_scale = float(specs.dimensionalize(1., _u.meter / _u.second).magnitude)
     pressure_scale = float(specs.dimensionalize(1., _u.pascal).magnitude)
     temperature = temperature_nodal + jnp.asarray(reference_temperature(coords, body))[:, None, None]
-    cloud = (grid.to_nodal(state.dynamics.tracers[CO2_CLOUD_TRACER])
+    cloud = (tracer_to_nodal(grid,state.dynamics.tracers[CO2_CLOUD_TRACER])
              if CO2_CLOUD_TRACER in state.dynamics.tracers else jnp.zeros_like(temperature))
     heat, ice, velocity, surface_heat, impulse = surface_exchange(
         temperature, ps_pa, cloud, jnp.stack(wind_nodal) * speed_scale,
@@ -1906,7 +1905,6 @@ def forced_co2_primitive_equations(
         atmospheric_heat, atmospheric_pressure, cloud_ice, cloud_vor, cloud_div = _co2_atmospheric_tendencies(
             state, temperature_nodal, ps_pa, wind_nodal, coords, specs, body, co2_forcing
         )
-        from src.framework.physics.co2_clouds import CO2_CLOUD_TRACER
         transport_heat, transport_ice, transport_vor, transport_div, dlatent_surface, ground_impulse = _co2_surface_transport(
             state, temperature_nodal, ps_pa, wind_nodal, dice, coords, specs, body, co2_forcing)
         frost_mass = specs.dimensionalize(state.co2_ice[0], _u.pascal).magnitude / body.gravity_m_s2
@@ -1942,11 +1940,10 @@ def forced_co2_primitive_equations(
 
 def cloud_pressure_equivalent(state, coords):
     """Suspended CO2 mass in the same nondimensional pressure units as frost."""
-    from src.framework.physics.co2_clouds import CO2_CLOUD_TRACER
     grid = coords.horizontal
     if CO2_CLOUD_TRACER not in state.dynamics.tracers:
         return jnp.zeros_like(state.co2_ice)
-    cloud = grid.to_nodal(state.dynamics.tracers[CO2_CLOUD_TRACER])
+    cloud = tracer_to_nodal(grid,state.dynamics.tracers[CO2_CLOUD_TRACER])
     dsigma = jnp.asarray(np.diff(coords.vertical.boundaries), dtype=cloud.dtype)[:, None, None]
     pressure = jnp.exp(grid.to_nodal(state.dynamics.log_surface_pressure))
     return pressure * jnp.sum(cloud * dsigma, axis=0, keepdims=True)
@@ -1976,20 +1973,20 @@ def project_co2_reservoirs(state: ColumnPhysicsState, coords, specs):
     )
     if dynamics.tracers:
         tracers={name:jax.lax.cond(jnp.any(deficit_pa>0.),
-            lambda value:grid.to_modal(grid.to_nodal(value)*ps_nd/(ps_pa/pressure_scale)),
+            lambda value:tracer_from_nodal(grid,tracer_to_nodal(grid,value)*ps_nd/(ps_pa/pressure_scale),value),
             lambda value:value,value) for name,value in dynamics.tracers.items()}
         dynamics=dataclasses.replace(dynamics,tracers=tracers)
-    from src.framework.physics.co2_clouds import CO2_CLOUD_TRACER
     if CO2_CLOUD_TRACER in dynamics.tracers:
         cloud = dynamics.tracers[CO2_CLOUD_TRACER]
-        nodal = grid.to_nodal(cloud)
+        nodal = tracer_to_nodal(grid,cloud)
         weights = jnp.asarray(grid.quadrature_weights) * ps_pa[0]
         mean = jnp.sum(nodal * weights, axis=(-2, -1), keepdims=True) / jnp.sum(weights)
         minimum = jnp.min(nodal, axis=(-2, -1), keepdims=True)
         denominator = jnp.where(minimum < 0., jnp.maximum(mean - minimum, 1.e-12), 1.)
         factor = jnp.where(minimum < 0., jnp.maximum(mean, 0.) / denominator, 1.)
         uniform = grid.to_modal(jnp.ones(coords.surface_nodal_shape))
-        cloud = cloud * factor + uniform * (jnp.maximum(mean, 0.) * (1. - factor))
+        cloud = (jnp.where(nodal>=0.,nodal,jnp.nan) if cloud.shape[-2:]==grid.nodal_shape else
+            cloud * factor + uniform * (jnp.maximum(mean, 0.) * (1. - factor)))
         dynamics = dataclasses.replace(dynamics, tracers={**dynamics.tracers, CO2_CLOUD_TRACER: cloud})
     return state._replace(
         dynamics=dynamics,
@@ -2044,14 +2041,13 @@ def co2_exchange_budgets(state, coords, specs, body, cf):
     Stage differences expose numerical repairs instead of relabelling them as
     physical heat or torque.
     """
-    from src.framework.physics.co2_clouds import CO2_CLOUD_TRACER, column_budgets
     grid = coords.horizontal
     scale = float(specs.dimensionalize(1., _u.pascal).magnitude)
     speed = float(specs.dimensionalize(1., _u.meter / _u.second).magnitude)
     pressure = jnp.exp(grid.to_nodal(state.dynamics.log_surface_pressure))[0] * scale
     reference = jnp.asarray(reference_temperature(coords, body))[:, None, None]
     temperature = grid.to_nodal(state.dynamics.temperature_variation) + reference
-    ratio = (grid.to_nodal(state.dynamics.tracers[CO2_CLOUD_TRACER])
+    ratio = (tracer_to_nodal(grid,state.dynamics.tracers[CO2_CLOUD_TRACER])
              if CO2_CLOUD_TRACER in state.dynamics.tracers else jnp.zeros_like(temperature))
     wind = jnp.stack(spherical_harmonic.vor_div_to_uv_nodal(
         grid, state.dynamics.vorticity, state.dynamics.divergence)) * speed
@@ -2215,7 +2211,10 @@ def positivity_preserving_co2_step(
         )
         if corrected.tracers:
             corrected = dataclasses.replace(corrected,
-                tracers={name:value/pressure_factor for name,value in corrected.tracers.items()})
+                tracers={name:(value+(pressure_factor-1.)*(
+                    jnp.ones_like(value) if value.shape[-2:]==grid.nodal_shape else uniform_log_pressure)
+                    if name=='co2_mmr_gas' else value)/pressure_factor
+                    for name,value in corrected.tracers.items()})
         final = projected._replace(dynamics=corrected)
         if not return_diagnostics:
             return final

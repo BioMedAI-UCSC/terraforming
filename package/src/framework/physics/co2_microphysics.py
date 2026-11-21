@@ -3,7 +3,8 @@
 NASA-derived algorithms: Copyright 2023 United States Government as represented
 by NASA. NASA Open Source Agreement 1.3; see the repository's reference license.
 """
-from typing import NamedTuple
+from typing import NamedTuple,Any
+from jax import Array
 
 from src.framework.gcm._dinosaur import jnp
 from src.framework.physics.vertical_solve import solve_tridiagonal
@@ -17,12 +18,12 @@ THERMAL_SPEED_SCALE = 3.*(1.38064852e-23/1.66054e-27)/44.
 
 
 class CloudResult(NamedTuple):
-    temperature: object
-    ice_ratio: object
-    gas_mass_loss_kg_m2: object
-    deposition_kg_m2: object
-    radius_m: object
-    diagnostics: object
+    temperature: Array
+    ice_ratio: Array
+    gas_mass_loss_kg_m2: Array
+    deposition_kg_m2: Array
+    radius_m: Array
+    diagnostics: dict[str,Any]
 
 
 def phase_change(temperature, pressure_full, ice_ratio):
@@ -64,7 +65,8 @@ def sedimentation(ice_ratio,pressure_half,pressure_full,temperature,temperature_
                   particle_density=ICE_DENSITY,density_temperature=None):
     """Original sedimco2 explicit/implicit flux switch and open-bottom deposit.
 
-    Temperature must be the pre-phase temperature, as in the released driver.
+    Temperature supplies pre-phase interface averages. The driver supplies
+    post-phase full-level density separately.
     Heat diffusivity has N-1 internal interfaces. The original fall-speed
     stencil samples the boundary below the lower cell, including at the ground.
     Return ice ratio, deposited mass and the transport coefficients used.
@@ -85,7 +87,7 @@ def _sediment(q,p,full,t,ts,r,k,dt,gas_constant,gravity,particle_density,density
     thickness=jnp.diff(p,axis=0)/gravity/density
     concentration=q*density
     boundary_t=jnp.concatenate([.5*(t[:-1]+t[1:]),.5*(ts+t[-1])[None]])
-    boundary_rho=jnp.concatenate([p[1:-1]/(gas_constant*boundary_t[:-1]),full[-1:]/(gas_constant*t[-1:])])
+    boundary_rho=jnp.concatenate([p[1:-1]/(gas_constant*boundary_t[:-1]),density[-1:]])
     w=-fall_velocity(r[1:],boundary_t[1:],boundary_rho[1:],gravity=gravity,particle_density=particle_density)
     spacing=.5*(thickness[:-1]+thickness[1:])
     active=k!=0.
@@ -156,8 +158,9 @@ def cloud_step(temperature,pressure_half,pressure_full,ice_ratio,temperature_sur
     t,p,full,q=map(jnp.asarray,(temperature,pressure_half,pressure_full,ice_ratio))
     adjusted,formed=phase_change(t,full,q)
     radius=particle_radius(formed,nuclei_per_kg)
-    # Source density and interface temperatures precede the phase adjustment.
+    # Interface temperatures precede phase change; full-level density follows it.
     settled,deposit,diagnostics=sedimentation(formed,p,full,t,temperature_surface,
-        radius,heat_diffusivity,dt_seconds,gas_constant=gas_constant,gravity=gravity)
+        radius,heat_diffusivity,dt_seconds,gas_constant=gas_constant,gravity=gravity,
+        density_temperature=adjusted)
     loss=(formed-jnp.maximum(q,0.))*jnp.diff(p,axis=0)/gravity
     return CloudResult(adjusted,settled,loss,deposit,radius,diagnostics)

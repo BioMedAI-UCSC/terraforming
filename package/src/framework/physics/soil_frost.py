@@ -3,6 +3,7 @@
 NASA-derived algorithms: Copyright 2023 United States Government as represented
 by NASA. NASA Open Source Agreement 1.3; see the repository's Ames reference.
 """
+from typing import Any
 import numpy as np
 from src.framework.gcm._dinosaur import jnp
 from src.framework.physics.vertical_solve import solve_tridiagonal
@@ -83,7 +84,7 @@ def surface_step(soil,thickness,diffusivity,volumetric_heat_capacity,pressure_pa
                  co2_ice_kg_m2,downward_flux_w_m2,sensible_flux_w_m2,
                  sensible_surface_derivative,emissivity,dt_seconds,*,
                  condensation=True,alpha=.5,latent_heat=5.9e5,stefan=5.6734e-8,
-                 bulk_latent_flux=0.,bulk_latent_derivative=0.):
+                 bulk_latent_flux: Any=0.,bulk_latent_derivative: Any=0.):
     """Ames progts on supplied soil properties and surface fluxes.
 
     Soil has levels first and a fixed deepest node. diffusivity covers the

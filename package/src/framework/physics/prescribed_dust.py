@@ -3,6 +3,7 @@
 NASA-derived algorithms: Copyright 2023 United States Government as represented
 by NASA. NASA Open Source Agreement 1.3; see the repository's reference license.
 """
+from src.framework.physics.tracer_transport import tracer_to_nodal
 from src.framework.gcm._dinosaur import jax,jnp
 from src.framework.physics.particle_optics import (load_tables,_distribution,_average,ParticleOptics)
 
@@ -195,7 +196,7 @@ def make_fixed_dust_provider(*,bands=12,effective_radius_m=1.5e-6,reference_pres
                     jnp.asarray(coords.horizontal.latitudes)[None,:],**storm_options)
             options.update(scenario_opacity=opacity,top_height_km=height)
         if aerosol_tracer is not None:
-            options['aerosol_ratio']=coords.horizontal.to_nodal(state.dynamics.tracers[aerosol_tracer])
+            options['aerosol_ratio']=tracer_to_nodal(coords.horizontal,state.dynamics.tracers[aerosol_tracer])
         tau=layer_opacities(grid.pressure[2::2],grid.pressure[3::2],
             forcing.dust_visible_optical_depth,reference_pressure_pa=reference_pressure_pa,
             latitude_rad=jnp.asarray(coords.horizontal.latitudes)[None,:],**options)

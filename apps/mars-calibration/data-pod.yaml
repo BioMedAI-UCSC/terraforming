@@ -20,7 +20,7 @@ spec:
   containers:
     - name: transfer
       image: busybox:1.37
-      command: ["sh", "-c", "mkdir -p /data/inputs /data/results && exec tail -f /dev/null"]
+      command: ["sh", "-c", "mkdir -p /data/inputs /data/results && while [ ! -f /control/complete ]; do sleep 1; done"]
       resources:
         requests:
           cpu: 100m
@@ -35,7 +35,9 @@ spec:
         capabilities:
           drop: [ALL]
       volumeMounts:
+        - {name: control, mountPath: /control}
         - {name: data, mountPath: /data}
   volumes:
+    - {name: control, emptyDir: {}}
     - name: data
       persistentVolumeClaim: {claimName: mars-calibration-data}

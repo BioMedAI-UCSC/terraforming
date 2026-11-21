@@ -70,3 +70,17 @@ def initialization_reference_interfaces(sigma,reference_pressure_pa):
         data=load_grids()
         return data[f'a{layers}']*reference/725.+data[f'b{layers}']*reference
     return sigma*reference
+
+
+def radiation_interfaces(sigma,surface_pressure_pa):
+    """Positive radiation top on the frozen reference-column sigma adaptation.
+
+    Dynamics retain their zero top. Radiation retains the released top pressure
+    fraction and uses arithmetic centers between these radiation interfaces.
+    """
+    fractions=initialization_reference_interfaces(sigma,1.)
+    if fractions[0]==0.:
+        data=load_grids()
+        fractions[0]=min(float(data['a56'][0]/725.+data['b56'][0]),fractions[1]/4.)
+    surface=jnp.asarray(surface_pressure_pa)
+    return jnp.asarray(fractions).reshape((len(fractions),)+(1,)*surface.ndim)*surface

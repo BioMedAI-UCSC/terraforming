@@ -153,8 +153,19 @@ lkcoef(k,:)=lcoef
                         actual=np.asarray(_interp_linear_k(data[f'log10_k_{kind}_mixtures_ames'],
                             data['temperature_k'],data['pressure_mbar_ames'],temperature,pressure,
                             data['water_mass_fractions'],water))
-                        np.testing.assert_allclose(actual,reference,rtol=3e-12,atol=1e-300,equal_nan=False,
-                            err_msg=f'{kind} T={temperature} p={pressure} q={water}')
+                        # Bound cancellation by the absolute weighted corner sum, not the near-zero result.
+                        table=10.**data[f'log10_k_{kind}_mixtures_ames']
+                        ta=data['temperature_k'];pa=np.log10(data['pressure_mbar_ames'])
+                        it=np.clip(np.searchsorted(ta,temperature,side='left')-1,0,len(ta)-2)
+                        ip=np.clip(np.searchsorted(pa,np.log10(pressure),side='left')-1,0,len(pa)-3)
+                        ft=(temperature-ta[it])/(ta[it+1]-ta[it])
+                        fp=(np.log10(pressure)-pa[ip])/(pa[ip+1]-pa[ip])
+                        scale=sum(abs(w)*np.max(table[t,p],axis=0) for w,t,p in
+                            (((1-fp)*(1-ft),it,ip),(fp*(1-ft),it,ip+1),
+                             (fp*ft,it+1,ip+1),((1-fp)*ft,it+1,ip)))
+                        bound=3e-12*np.abs(reference)+64*np.finfo(np.float64).eps*scale
+                        assert np.isfinite(actual).all() and np.all(np.abs(actual-reference)<=bound), \
+                            f'{kind} T={temperature} p={pressure} q={water}: interpolation roundoff bound exceeded'
                         linear_errors[kind]=max(linear_errors[kind],float(np.max(np.abs(actual-reference))))
                     linear_cases+=1
     return dict(status="pass",reference=provenance,max_log10_table_errors=table_errors,

@@ -115,6 +115,7 @@ kubectl -n YOUR_NAMESPACE apply -f apps/mars-calibration/pvc.yaml
 kubectl -n YOUR_NAMESPACE apply -f apps/mars-calibration/data-pod.yaml
 kubectl -n YOUR_NAMESPACE get pod mars-calibration-data
 kubectl -n YOUR_NAMESPACE cp outputs/nautilus-calibration-inputs/. mars-calibration-data:/data/inputs/
+kubectl -n YOUR_NAMESPACE exec mars-calibration-data -- touch /control/complete
 kubectl -n YOUR_NAMESPACE delete pod mars-calibration-data --wait=true
 kubectl -n YOUR_NAMESPACE apply -f apps/mars-calibration/job.yaml
 kubectl -n YOUR_NAMESPACE logs -f job/mars-short-calibration
@@ -139,6 +140,7 @@ kubectl -n YOUR_NAMESPACE delete job mars-short-calibration --wait=true
 kubectl -n YOUR_NAMESPACE apply -f apps/mars-calibration/data-pod.yaml
 kubectl -n YOUR_NAMESPACE get pod mars-calibration-data
 kubectl -n YOUR_NAMESPACE cp mars-calibration-data:/data/results outputs/nautilus-results
+kubectl -n YOUR_NAMESPACE exec mars-calibration-data -- touch /control/complete
 kubectl -n YOUR_NAMESPACE delete pod mars-calibration-data --wait=true
 ```
 

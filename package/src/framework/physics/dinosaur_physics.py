@@ -3,6 +3,7 @@
 The column kernels match the reference; sigma remapping, spectral projection
 and the Dinosaur dynamical core are separate numerical adaptations.
 """
+from typing import cast,Callable,Any
 import dataclasses
 import numpy as np
 
@@ -17,13 +18,14 @@ from src.framework.physics.water_moments import (moment_particle_tracers,dust_pa
     LATENT_HEAT as MOMENT_WATER_LATENT_HEAT)
 from src.framework.physics.particle_optics import dust_optics
 from src.framework.physics.radiation_grid import radiation_grid
+from src.framework.physics.vertical_grid import radiation_interfaces
 from src.framework.physics.terrain_drag import hydrostatic_heights
 from src.framework.physics.dust_lifting import reference_efficiencies
 from src.framework.physics.dust_control import (LocalTimeState,seasonal_sample,local_time_step,
     validate_local_time_scenario)
 from src.framework.physics.nonorographic_drag import DragState,initial_drag_state,source_parameters,schedule
-from src.framework.physics.tracer_transport import project_tracers
-from src.framework.physics.gcm import (ColumnPhysicsTendencies,column_primitive_equations,
+from src.framework.physics.tracer_transport import project_tracers,transport_tracers,tracer_to_nodal
+from src.framework.physics.gcm import (ColumnPhysicsState,CO2ProjectionDiagnostics,ColumnPhysicsTendencies,column_primitive_equations,
     initial_column_state,positivity_preserving_co2_step,surface_radiative_forcing,_true_anomaly)
 
 CO2_GAS_TRACER='co2_mmr_gas'
@@ -89,6 +91,8 @@ def initial_state(dynamics,coords,specs,temperature_k=170.,soil_layers=16,*,bulk
     if moist_convection_options is not None and not (bulk_water or moment_water):
         raise ValueError('moist convection requires initialized water vapor and a surface water reservoir')
     state=initial_column_state(dynamics,coords,temperature_k,specs)
+    state=state._replace(dynamics=dataclasses.replace(state.dynamics,
+        tracers={name:tracer_to_nodal(coords.horizontal,value) for name,value in state.dynamics.tracers.items()}))
     ground=jnp.broadcast_to(state.surface_temperature,(soil_layers-1,)+coords.horizontal.nodal_shape)
     if radiation_update_seconds is not None:
         if not np.isfinite(radiation_update_seconds) or radiation_update_seconds<=0.:
@@ -120,15 +124,15 @@ def initial_state(dynamics,coords,specs,temperature_k=170.,soil_layers=16,*,bulk
         profile=(len(coords.vertical.centers),)+coords.horizontal.nodal_shape
         tracers=dict(state.dynamics.tracers)
         for name,value in ((CO2_GAS_TRACER,ratio),(ARGON_GAS_TRACER,1.-ratio)):
-            tracers[name]=coords.horizontal.to_modal(jnp.broadcast_to(value,profile))
+            tracers[name]=jnp.broadcast_to(value,profile)
         state=state._replace(dynamics=dataclasses.replace(state.dynamics,tracers=tracers))
     water_cycle=bulk_water or moment_water
     if not (water_cycle or dust_active): return state._replace(ground_temperature=ground)
     tracers=dict(state.dynamics.tracers)
     if water_cycle:
-        tracers={WATER_VAPOR_TRACER:coords.horizontal.to_modal(jnp.broadcast_to(
-            jnp.asarray(initial_water_vapor_ratio),(len(coords.vertical.centers),)+coords.horizontal.nodal_shape)),
-            WATER_CLOUD_TRACER:jnp.zeros_like(dynamics.temperature_variation),**tracers}
+        tracers={WATER_VAPOR_TRACER:jnp.broadcast_to(
+            jnp.asarray(initial_water_vapor_ratio),(len(coords.vertical.centers),)+coords.horizontal.nodal_shape),
+            WATER_CLOUD_TRACER:jnp.zeros((len(coords.vertical.centers),*coords.horizontal.nodal_shape)),**tracers}
     if dust_active:
         profile=(len(coords.vertical.centers),)+coords.horizontal.nodal_shape
         mass=jnp.broadcast_to(jnp.asarray(initial_dust_mass_ratio),(*profile,dust_mode_count)) if dust_mode_count>1 else jnp.broadcast_to(jnp.asarray(initial_dust_mass_ratio),profile)[...,None]
@@ -139,8 +143,8 @@ def initial_state(dynamics,coords,specs,temperature_k=170.,soil_layers=16,*,bulk
             [value for mode in range(dust_mode_count) for value in (mass[...,mode],number[...,mode])])
         for name,value in zip(moment_names,values,strict=True):
             if name not in tracers:
-                tracers[name]=coords.horizontal.to_modal(jnp.broadcast_to(jnp.asarray(value),
-                    (len(coords.vertical.centers),)+coords.horizontal.nodal_shape))
+                tracers[name]=jnp.broadcast_to(jnp.asarray(value),
+                    (len(coords.vertical.centers),)+coords.horizontal.nodal_shape)
     shape=state.surface_temperature.shape
     fields=dict({} if state.auxiliary_fields is None else state.auxiliary_fields,
         water_surface_kg_m2=jnp.broadcast_to(jnp.asarray(initial_water_surface_kg_m2),shape))
@@ -177,7 +181,7 @@ def water_inventory(state,coords,specs,body):
     scale=float(specs.dimensionalize(1.,scales.units.pascal).magnitude)
     ps=jnp.exp(grid.to_nodal(state.dynamics.log_surface_pressure))[0]*scale
     gas=ps[None]*jnp.asarray(np.diff(coords.vertical.boundaries))[:,None,None]/body.gravity_m_s2
-    ratios=sum((grid.to_nodal(state.dynamics.tracers[name]) for name in
+    ratios=sum((tracer_to_nodal(grid,state.dynamics.tracers[name]) for name in
         (WATER_VAPOR_TRACER,WATER_CLOUD_TRACER) if name in state.dynamics.tracers),jnp.zeros_like(gas))
     water=jnp.sum(gas*ratios,axis=0)
     if state.auxiliary_fields is not None and 'water_surface_kg_m2' in state.auxiliary_fields:
@@ -201,7 +205,7 @@ def axial_angular_momentum(state,coords,specs,body):
     frost=state.co2_ice[0]*pressure_scale/body.gravity_m_s2
     u,_=spherical_harmonic.vor_div_to_uv_nodal(grid,state.dynamics.vorticity,state.dynamics.divergence)
     weights=jnp.asarray(np.diff(coords.vertical.boundaries))[:,None,None]
-    cloud=(grid.to_nodal(state.dynamics.tracers[CO2_CLOUD_TRACER])
+    cloud=(tracer_to_nodal(grid,state.dynamics.tracers[CO2_CLOUD_TRACER])
         if CO2_CLOUD_TRACER in state.dynamics.tracers else jnp.zeros_like(u))
     moving_mass=gas[None]*weights*(1.+cloud)
     relative=jnp.sum(moving_mass*u*speed_scale,axis=0)
@@ -237,11 +241,11 @@ def exchange_energy(state,coords,specs,body,*,soil_volumetric_heat_capacity=1500
     gas=pressure[None]*weights/body.gravity_m_s2
     energy=jnp.sum(gas*(body.cp_j_kg_k*temperature+.5*(u*u+v*v)*speed_scale**2),axis=0)
     if CO2_CLOUD_TRACER in state.dynamics.tracers:
-        cloud=gas*grid.to_nodal(state.dynamics.tracers[CO2_CLOUD_TRACER])
+        cloud=gas*tracer_to_nodal(grid,state.dynamics.tracers[CO2_CLOUD_TRACER])
         # The source bulk scheme neglects cloud sensible and potential energy.
         energy=energy+jnp.sum(cloud*(.5*(u*u+v*v)*speed_scale**2-CLOUD_LATENT_HEAT),axis=0)
     if water_vapor_tracer is not None:
-        vapor=grid.to_nodal(state.dynamics.tracers[water_vapor_tracer])
+        vapor=tracer_to_nodal(grid,state.dynamics.tracers[water_vapor_tracer])
         energy=energy+jnp.sum(gas*vapor*water_latent_heat_j_kg,axis=0)
     soil=jnp.concatenate([state.surface_temperature,state.ground_temperature],axis=0)
     capacity=jnp.asarray(soil_volumetric_heat_capacity)
@@ -283,6 +287,8 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
     those approximations. General-mixture thermodynamics is separate.
     """
     grid=coords.horizontal
+    if not no_forcing and do_vert_diff and (not do_mars_surface or not do_ames_pbl):
+        raise ValueError("vertical diffusion requires the Mars surface and Ames PBL; disable do_vert_diff for an unmixed column")
     if not do_mars_surface:
         if bulk_water or moment_water or moment_dust:
             raise ValueError('the released no-surface branch requires water/dust surface reservoirs to be disabled')
@@ -318,6 +324,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
         raise ValueError('dust coagulation requires initialized moment tracers')
     dust_control=dust_lifting_options is not None or dust_background_options is not None
     background_scenario=None;local_time_scenario=None;fixed_dust_provider=None;injection_fraction_scenario=None
+    background_segment=False
     if dust_background_options is not None:
         if dust_lifting_options is not None and dust_lifting_options.get('dual_mode',0)<=0:
             raise ValueError('combined interactive/background dust requires a positive dual mode')
@@ -389,6 +396,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
     pressure_scale=float(specs.dimensionalize(1.,scales.units.pascal).magnitude)
     velocity_scale=float(specs.dimensionalize(1.,scales.units.meter/scales.units.second).magnitude)
     time_scale=float(specs.dimensionalize(1.,scales.units.second).magnitude)
+    radiation_interval=1
     if radiation_update_seconds is not None:
         ratio=radiation_update_seconds/dt_seconds
         if not np.isfinite(ratio) or ratio<1. or not np.isclose(ratio,round(ratio),rtol=0.,atol=1e-10):
@@ -396,6 +404,8 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
         if not np.isclose(radiation_update_seconds,round(radiation_update_seconds),rtol=0.,atol=1e-10):
             raise ValueError('radiation update interval must use whole seconds')
         radiation_interval=round(radiation_update_seconds)
+        if round(body.solar_day_seconds)%radiation_interval or not np.isclose(dt_seconds,round(dt_seconds),rtol=0.,atol=1e-10):
+            raise ValueError("radiation interval must divide the model day and physics steps must use whole seconds")
     ref=jnp.asarray(reference_temperature(coords,body))[:,None,None]
     base=primitive_equations(coords,body,specs=specs,orography=orography)
 
@@ -476,17 +486,18 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                 'radiation_initialized','radiation_stratosphere_k'}
             if state.auxiliary_fields is None or required-set(state.auxiliary_fields):
                 raise ValueError('radiation schedule requires initialized heating and stratosphere state')
-        predicted=dry(state)
+        dry_input=state._replace(dynamics=dataclasses.replace(state.dynamics,tracers={}))
+        predicted=dry(dry_input)
+        transported,transport_diagnostics=transport_tracers(state.dynamics,predicted.dynamics,coords,
+            dt_seconds/time_scale)
+        predicted=predicted._replace(dynamics=transported)
         if no_forcing:
-            transported,transport_diagnostics=project_tracers(state.dynamics,predicted.dynamics,coords)
             transported=dataclasses.replace(transported,temperature_variation=jnp.where(
                 geometry_valid,transported.temperature_variation,jnp.nan))
             return predicted._replace(dynamics=transported),dict(
                 dynamics=physical_units(transport_diagnostics),physics_projection={}),None
         if not do_mars_surface:
             predicted=predicted._replace(surface_temperature=jnp.full_like(predicted.surface_temperature,170.))
-        transported,transport_diagnostics=project_tracers(state.dynamics,predicted.dynamics,coords)
-        predicted=predicted._replace(dynamics=transported)
         if predicted.ground_temperature.shape[0]!=soil_layers-1:
             raise ValueError("state soil nodes do not match the Ames backend configuration")
         if predicted.surface_momentum is None:
@@ -505,13 +516,14 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
         gas_names=tuple(name for name in names if name not in particles)
         if do_qmass and (CO2_GAS_TRACER not in gas_names or ARGON_GAS_TRACER not in gas_names):
             raise ValueError('gas-mass feedback requires initialized CO2 and argon gas tracers')
-        cloud_ratio=(grid.to_nodal(dyn.tracers[CO2_CLOUD_TRACER])
+        cloud_ratio=(tracer_to_nodal(grid,dyn.tracers[CO2_CLOUD_TRACER])
             if CO2_CLOUD_TRACER in names else None)
-        tracers=(jnp.stack([grid.to_nodal(dyn.tracers[name]) for name in names],axis=-1)
+        tracers=(jnp.stack([tracer_to_nodal(grid,dyn.tracers[name]) for name in names],axis=-1)
             if names else jnp.empty(temperature.shape+(0,),dtype=temperature.dtype))
-        gas_tracers=(jnp.stack([grid.to_nodal(dyn.tracers[name]) for name in gas_names],axis=-1)
+        gas_tracers=(jnp.stack([tracer_to_nodal(grid,dyn.tracers[name]) for name in gas_names],axis=-1)
             if gas_names else jnp.empty(temperature.shape+(0,),dtype=temperature.dtype))
-        local_forcing=surface_radiative_forcing(predicted,coords,specs,body,forcing)
+        radiation_state=predicted._replace(dynamics=dataclasses.replace(dyn,sim_time=state.dynamics.sim_time))
+        local_forcing=surface_radiative_forcing(radiation_state,coords,specs,body,forcing)
         layer_capacity=body.cp_j_kg_k*jnp.diff(half,axis=0)/body.gravity_m_s2
         # Recompute spectra in reverse mode instead of saving every band/channel.
         @jax.checkpoint
@@ -528,7 +540,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                 else:
                     heating=fixed_tendency(temperature,options['equilibrium'],**arguments)
                 return heating,jnp.zeros_like(pressure),jnp.zeros_like(pressure)
-            radiation=radiation_component(predicted,coords,specs,body,local_forcing)
+            radiation=radiation_component(radiation_state,coords,specs,body,local_forcing)
             heating=radiation.atmospheric_convergence_w_m2/layer_capacity
             if radiation.nonlte_heating_k_s is not None:
                 heating=heating+radiation.nonlte_heating_k_s
@@ -537,31 +549,29 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             strat_rate=body.gravity_m_s2/body.cp_j_kg_k/100.*radiation.stratosphere_flux_convergence_w_m2
             return heating,down,jnp.broadcast_to(strat_rate,pressure.shape)
         radiation_fields=None
+        refresh=jnp.asarray(True)
         if radiation_update_seconds is None:
             heating,down,_=evaluate(None)
         else:
             fields=predicted.auxiliary_fields
-            seconds=jnp.mod(jnp.rint(predicted.dynamics.sim_time*time_scale).astype(jnp.int64),
+            seconds=jnp.mod(jnp.rint(state.dynamics.sim_time*time_scale).astype(jnp.int64),
                 round(body.solar_day_seconds))
             refresh=jnp.all(fields['radiation_initialized']==0.)|(jnp.mod(seconds,radiation_interval)==0)
             def held(_):
                 return fields['radiation_heating_k_s'],fields['radiation_surface_down_w_m2'][0],jnp.zeros_like(pressure)
             heating,down,strat_rate=jax.lax.cond(refresh,evaluate,held,operand=None)
-            old_strat=fields['radiation_stratosphere_k'][0]
-            strat=old_strat+strat_rate*radiation_update_seconds
-            positive_top=half[0]>0.
-            frost=3182.48/(23.3494-jnp.log(jnp.where(positive_top,half[0]*.01,1.)))
-            floor=jnp.where(positive_top,frost,0.)
-            strat=jnp.where(refresh,jnp.maximum(strat,floor),old_strat)
+            strat=temperature[0]
             radiation_fields=dict(radiation_heating_k_s=heating,
                 radiation_surface_down_w_m2=down[None],radiation_initialized=jnp.ones_like(down[None]),
                 radiation_stratosphere_k=strat[None])
         dust_depth=None;fixed_dust_depth=None
         if dust_control:
+            radiation_half=radiation_interfaces(coords.vertical.boundaries,pressure)
+            radiation_full=.5*(radiation_half[:-1]+radiation_half[1:])
             def dust_diagnostic(_):
-                radgrid=radiation_grid(half,full,temperature,predicted.surface_temperature[0])
-                optics=dust_optics(jnp.stack([grid.to_nodal(dyn.tracers[name]) for name in dust_mass_names],axis=-1),
-                    jnp.stack([grid.to_nodal(dyn.tracers[name]) for name in dust_number_names],axis=-1),radgrid.pressure,
+                radgrid=radiation_grid(radiation_half,radiation_full,temperature,predicted.surface_temperature[0],temperature[0])
+                optics=dust_optics(jnp.stack([tracer_to_nodal(grid,dyn.tracers[name]) for name in dust_mass_names],axis=-1),
+                    jnp.stack([tracer_to_nodal(grid,dyn.tracers[name]) for name in dust_number_names],axis=-1),radgrid.pressure,
                     bands=dust_optical_bands,gravity=body.gravity_m_s2)
                 ir_index=3 if dust_optical_bands==12 else 6
                 return jnp.stack([jnp.sum(optics.visible[0][:,5],axis=0),
@@ -569,9 +579,10 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             dust_depth=(dust_diagnostic(None) if radiation_update_seconds is None else
                 jax.lax.cond(refresh,dust_diagnostic,lambda _:predicted.auxiliary_fields['dust_reference_opacity'],None))
             if fixed_dust_provider is not None:
+                provider=cast(Callable[...,tuple[Any,Any]],fixed_dust_provider)
                 def fixed_diagnostic(_):
-                    radgrid=radiation_grid(half,full,temperature,predicted.surface_temperature[0])
-                    visible,infrared=fixed_dust_provider(predicted,coords,specs,body,local_forcing,radgrid)
+                    radgrid=radiation_grid(radiation_half,radiation_full,temperature,predicted.surface_temperature[0],temperature[0])
+                    visible,infrared=provider(predicted,coords,specs,body,local_forcing,radgrid)
                     index=3 if dust_optical_bands==12 else 6
                     return jnp.stack([jnp.sum(visible[0][:,5],axis=0),
                         jnp.sum((infrared[0]-infrared[1])[:,index],axis=0)])
@@ -587,6 +598,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             ls=jnp.mod((_true_anomaly(predicted.dynamics.sim_time*time_scale,forcing)+
                 forcing.ls_perihelion_rad)*180./jnp.pi,360.)
             opacity,change,_,_=seasonal_sample(axis,maps,ls,segment=background_segment)
+            assert dust_background_options is not None
             background_options={**dust_background_options,'scenario_opacity':opacity,'scenario_change':change}
             if injection_fraction_scenario is not None:
                 fractions=seasonal_sample(injection_fraction_scenario['seasons'],
@@ -621,7 +633,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
         if water_cycle:
             fields=predicted.auxiliary_fields
             water_state=BulkWaterColumnState(gas_names.index(WATER_VAPOR_TRACER),
-                grid.to_nodal(dyn.tracers[WATER_CLOUD_TRACER]),fields['water_surface_kg_m2'][0],
+                tracer_to_nodal(grid,dyn.tracers[WATER_CLOUD_TRACER]),fields['water_surface_kg_m2'][0],
                 fields['water_exchange_coefficient_kg_m2_s'][0],fields['water_pbl_top_layer'][0])
         # Soil sees post-exchange water; radiation above sees the old reservoir.
         soil_forcing=surface_radiative_forcing(predicted,coords,specs,body,
@@ -648,7 +660,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             water_surface_options=water_surface_options,water_cloud_options=water_cloud_options,
             form_bulk_clouds=form_bulk_clouds,water_radiative_options=water_optics,
             terrain_drag_options=terrain_drag_options,
-            moment_particles=(jnp.stack([grid.to_nodal(dyn.tracers[name]) for name in
+            moment_particles=(jnp.stack([tracer_to_nodal(grid,dyn.tracers[name]) for name in
                 moment_names],axis=-1) if dust_active else None),
             moment_water=moment_water,dust_surface_water_kg_m2=(None if moment_water or not dust_active else
                 predicted.auxiliary_fields['water_surface_kg_m2'][0]),
@@ -667,13 +679,18 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                 predicted.auxiliary_fields['moist_bulk_surface_water_kg_m2'][0]
                 if moist_convection_options is not None and moment_water else None))
         columns={name:column.gas_tracers[...,i] for i,name in enumerate(gas_names)}
+        if suspended_co2_clouds:
+            assert column.suspended_co2_ice_ratio is not None
         if cloud_ratio is not None:
             columns[CO2_CLOUD_TRACER]=(column.suspended_co2_ice_ratio
-                if suspended_co2_clouds else cloud_ratio)
+                if column.suspended_co2_ice_ratio is not None else cloud_ratio)
+        if water_cycle:
+            assert column.bulk_water is not None
         if WATER_CLOUD_TRACER in names:
-            columns[WATER_CLOUD_TRACER]=(column.bulk_water.ice_ratio if water_cycle else
-                grid.to_nodal(dyn.tracers[WATER_CLOUD_TRACER]))
+            columns[WATER_CLOUD_TRACER]=(column.bulk_water.ice_ratio if column.bulk_water is not None else
+                tracer_to_nodal(grid,dyn.tracers[WATER_CLOUD_TRACER]))
         if dust_active:
+            assert column.moment_particles is not None
             columns.update({name:column.moment_particles[...,index]
                 for index,name in enumerate(moment_names)})
         material=(jnp.stack([columns[name] for name in names],axis=-1)
@@ -691,22 +708,22 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             impulse=column.diagnostics['co2_cloud']['ground_momentum_exchange_kg_m_s']
         vor,div=spherical_harmonic.uv_nodal_to_vor_div_modal(grid,
             (unew-u)/velocity_scale,(vnew-v)/velocity_scale)
-        unsupported_cloud=(jnp.any(grid.to_nodal(dyn.tracers[CO2_CLOUD_TRACER])!=0.)
+        unsupported_cloud=(jnp.any(tracer_to_nodal(grid,dyn.tracers[CO2_CLOUD_TRACER])!=0.)
             if CO2_CLOUD_TRACER in dyn.tracers and not suspended_co2_clouds else False)
         if WATER_CLOUD_TRACER in names and not water_cycle:
-            unsupported_cloud=unsupported_cloud|jnp.any(grid.to_nodal(dyn.tracers[WATER_CLOUD_TRACER])!=0.)
+            unsupported_cloud=unsupported_cloud|jnp.any(tracer_to_nodal(grid,dyn.tracers[WATER_CLOUD_TRACER])!=0.)
         invalid=jnp.any(column.diagnostics['co2_mass_guard'])|unsupported_cloud|~geometry_valid
         new_temperature=dyn.temperature_variation+grid.to_modal(t-temperature)
         new_temperature=jnp.where(invalid,jnp.nan,new_temperature)
         dynamics=dataclasses.replace(dyn,temperature_variation=new_temperature,
             vorticity=dyn.vorticity+vor,divergence=dyn.divergence+div,
             log_surface_pressure=dyn.log_surface_pressure+grid.to_modal(jnp.log(new_pressure/pressure)[None]),
-            tracers={name:dyn.tracers[name]+grid.to_modal(q[...,i]-tracers[...,i])
-                for i,name in enumerate(names)})
+            tracers={name:q[...,i] for i,name in enumerate(names)})
         auxiliary=predicted.auxiliary_fields
         if local_time_fields is not None:
             auxiliary={**auxiliary,**local_time_fields}
         if previous_effective and form_moment_clouds:
+            assert column.moment_history is not None
             auxiliary={**auxiliary,'moment_previous_temperature_k':column.moment_history.temperature,
                 'moment_previous_tracers':column.moment_history.tracers,'moment_previous_initialized':jnp.asarray(1.)}
             if dust_mode_count>1:
@@ -715,10 +732,12 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
         if radiation_fields is not None:
             auxiliary={**auxiliary,**radiation_fields}
         if water_cycle:
+            assert column.bulk_water is not None
             auxiliary={**auxiliary,'water_surface_kg_m2':column.bulk_water.surface_water_kg_m2[None],
                 'water_exchange_coefficient_kg_m2_s':column.bulk_water.previous_exchange_coefficient[None],
                 'water_pbl_top_layer':column.bulk_water.previous_pbl_top_layer[None]}
         if moist_convection_options is not None and moment_water:
+            assert column.moist_surface_water_kg_m2 is not None
             auxiliary={**auxiliary,'moist_bulk_surface_water_kg_m2':column.moist_surface_water_kg_m2[None]}
         if dust_active:
             auxiliary={**auxiliary,'dust_surface_kg_m2':column.diagnostics['dust']['dust_surface_kg_m2'][None]}
@@ -733,6 +752,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                     auxiliary['dust_coagulation_mass_change_kg_m2']+column_change[None]}
         if nonorographic_drag_options is not None:
             drag=column.nonorographic_state
+            assert drag is not None
             auxiliary={**({} if auxiliary is None else auxiliary),
                 'nonorographic_u_tendency_m_s2':drag.u_tendency,'nonorographic_v_tendency_m_s2':drag.v_tendency,
                 'nonorographic_alarm_seconds':drag.alarm_seconds,'nonorographic_frequency_seconds':drag.frequency_seconds}
@@ -766,8 +786,9 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
 
     def audited(state):
         raw,transport_diagnostics,moist_diagnostics=advance_with_transport(state)
-        final,diagnostics=positivity_preserving_co2_step(lambda _:raw,coords,specs,
-            body=body,return_diagnostics=True,inventory_projection=project_inventory,budget_fn=reference_budgets)(state)
+        final,diagnostics=cast(tuple[ColumnPhysicsState,CO2ProjectionDiagnostics],
+            positivity_preserving_co2_step(lambda _:raw,coords,specs,body=body,return_diagnostics=True,
+                inventory_projection=project_inventory,budget_fn=reference_budgets)(state))
         diagnostics=diagnostics._replace(
             tracer_transport=transport_diagnostics,moist_convection=moist_diagnostics)
         if water_cycle:

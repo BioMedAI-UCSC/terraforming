@@ -62,3 +62,13 @@ def test_custom_sigma_initialization_keeps_supplied_boundaries():
     ([0.,np.nan,1.],705.),([0.,1.],0.),([0.,1.],np.inf)])
 def test_initialization_selectors_reject_invalid_grid_or_reference(sigma,reference):
     with pytest.raises(ValueError): initialization_reference_interfaces(sigma,reference)
+
+
+@pytest.mark.parametrize('layers',supported_layers())
+def test_radiation_grid_retains_native_positive_top_and_order(layers):
+    from src.framework.physics.vertical_grid import radiation_interfaces
+    ps=jnp.array([100.,705.,1200.])
+    half=radiation_interfaces(sigma_boundaries(layers),ps)
+    assert np.all(half[0]>0.) and np.all(np.diff(half,axis=0)>0.)
+    np.testing.assert_allclose(half[:,1],pressure_interfaces(layers,705.,705.),rtol=2e-15)
+    np.testing.assert_array_equal(half[-1],ps)

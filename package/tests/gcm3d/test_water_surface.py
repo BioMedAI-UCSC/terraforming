@@ -59,3 +59,11 @@ def test_water_optics_keep_strict_frost_snow_and_temperature_boundaries(liquid):
         frost_threshold_m=.002,liquid_water=liquid))()
     np.testing.assert_allclose(a,[.25,.4,.4,.07 if liquid else .4,.25,.25])
     np.testing.assert_allclose(e,[.95,1.,1.,1.,.95,.95])
+
+
+def test_bottom_only_exchange_ignores_unused_pbl_index():
+    args=(jnp.zeros(2),jnp.array([0.,100.,610.]),200.,1.,.01)
+    actual=surface_exchange(*args,-1,300.,inject_through_pbl=False)
+    expected=surface_exchange(*args,1,300.,inject_through_pbl=False)
+    np.testing.assert_array_equal(actual.vapor_ratio,expected.vapor_ratio)
+    assert np.isfinite(actual.vapor_ratio).all()

@@ -8,6 +8,7 @@ stopped run resumes with ``--resume`` without reinitialising the soil column.
 
 from __future__ import annotations
 
+from src.framework.physics.tracer_transport import tracer_to_nodal
 import argparse
 import csv
 import dataclasses
@@ -253,7 +254,7 @@ def reference_configuration(grid,data_directory,dt_seconds,*,moment_water=True,d
     forcing=dataclasses.replace(reference_radiative_forcing(solar_constant_w_m2=solar_constant_w_m2),albedo=jnp.asarray(fields['albedo']),
         emissivity=jnp.asarray(fields['emissivity']),co2_frost_radiative_properties=True,
         water_frost_radiative_properties=True,diurnal=True)
-    radiation_interval=8*dt_seconds
+    radiation_interval=1848.
     radiation=make_radiation_component(make_particle_provider(bands=12,
         dust_tracers=(('dust_mass','dust_number'),),
         water_moment_tracers=(WATER_CLOUD_TRACER,'water_core_mass','water_ice_number') if moment_water else None),
@@ -301,7 +302,7 @@ def reference_rest_state(coords,specs,body,elevation_nodal_m,*,temperature_k=170
     top=coefficients(56,705.)[0][0]
     pressure=surface_pressure(body.gravity_m_s2*jnp.asarray(elevation_nodal_m),grid.quadrature_weights,
         temperature_k=temperature_k,gas_constant=body.gas_constant_j_kg_k,top_pressure_pa=top)
-    log_pressure=grid.clip_wavenumbers(grid.to_modal(jnp.log(pressure[None]/scale)))
+    log_pressure=grid.to_modal(jnp.log(pressure[None]/scale))
     resolved=jnp.exp(grid.to_nodal(log_pressure))[0]*scale
     half=jnp.asarray(coords.vertical.boundaries)[:,None,None]*resolved
     temperature=air_temperature(half,resolved,temperature_k=temperature_k,isothermal=isothermal,
@@ -495,6 +496,8 @@ def main() -> int:
     surface_controls={name:getattr(args,name) for name in ('do_mars_surface','do_vert_diff','do_ames_pbl')}
     if not reference and not all(surface_controls.values()):
         parser.error('surface process switches require --config reference')
+    if reference and args.do_vert_diff and (not args.do_mars_surface or not args.do_ames_pbl):
+        parser.error('vertical diffusion requires the Mars surface and Ames PBL; use --no-do-vert-diff to disable mixing')
     if not args.do_mars_surface and args.reference_radiation=='spectral':
         parser.error('the no-surface runner requires simple, fixed or height forcing without transported surface dust/water')
     thermal=args.reference_radiation in ('fixed','height')
@@ -595,6 +598,10 @@ def main() -> int:
         )
     steps_total = round(args.sols * base.rotation_period_s / args.dt)
     steps_chunk = max(1, round(args.chunk_sols * base.rotation_period_s / args.dt))
+    if reference:
+        reference_options["comparison_window_steps"]=round(5.*body.solar_day_seconds/args.dt)
+        if reference_options["comparison_window_steps"]%steps_chunk:
+            raise ValueError("reference checkpoint interval must divide the five-sol averaging window")
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     manifest = {"sols": args.sols, "dt_seconds": args.dt,
@@ -716,7 +723,7 @@ def main() -> int:
                     water_latent_heat_j_kg=LATENT_HEAT))
                 pressure=np.exp(np.asarray(grid.to_nodal(checkpoint_state.dynamics.log_surface_pressure)))[0]*float(
                     specs.dimensionalize(1.,scales.units.pascal).magnitude)
-                dust=sum((np.asarray(grid.to_nodal(checkpoint_state.dynamics.tracers[key]))
+                dust=sum((np.asarray(tracer_to_nodal(grid,checkpoint_state.dynamics.tracers[key]))
                     for key in ('dust_mass','water_core_mass') if key in checkpoint_state.dynamics.tracers),
                     np.zeros((args.layers,*grid.nodal_shape)))
                 dust=np.sum(dust*np.diff(coords.vertical.boundaries)[:,None,None]*pressure[None]/body.gravity_m_s2,axis=0)
@@ -805,6 +812,8 @@ def main() -> int:
                 from src.celestials.planets.mars.maps import save_comparison_netcdf
                 save_comparison_netcdf(checkpoint_state,coords,specs,body,forcing,
                     checkpoint_dir/f"state_{absolute_step:09d}.nc")
+                save_comparison_netcdf(checkpoint_state,coords,specs,body,forcing,
+                    checkpoint_dir/f"mean_{absolute_step:09d}.nc",average_dt_seconds=args.dt)
             progress_path.write_text(
                 json.dumps({"completed_steps": absolute_step}) + "\n"
             )
@@ -846,6 +855,7 @@ def main() -> int:
         simulated_sols = invocation_steps * args.dt / base.rotation_period_s
         manifest["runs"][name] = {
             "steps": completed, "restart": str(restart_path), "netcdf": str(nc),
+            "timing_scope": "shared-device throughput; concurrent experiments may contend",
             "plots": [str(path) for path in pngs], "physics": fields.physics,
             "checkpoint_diagnostics": str(diagnostics_path),
             "invocation_start_step": invocation_start_step,

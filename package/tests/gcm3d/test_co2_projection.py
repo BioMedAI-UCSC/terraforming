@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 
 pytest.importorskip("dinosaur")
+from src.framework.physics.tracer_transport import tracer_to_nodal
 import jax
 import jax.numpy as jnp
 
@@ -275,7 +276,7 @@ def test_pressure_repairs_preserve_passive_tracer_material(model, negative_frost
     result=jax.jit(positivity_preserving_co2_step(raw,coords,specs))(state)
     def material(s):
         pressure=jnp.exp(grid.to_nodal(s.dynamics.log_surface_pressure))
-        q=grid.to_nodal(s.dynamics.tracers["passive_gas"])
+        q=tracer_to_nodal(grid,s.dynamics.tracers["passive_gas"])
         dsigma=jnp.asarray(np.diff(coords.vertical.boundaries))[:,None,None]
         return jnp.sum(pressure*q*dsigma*grid.quadrature_weights)
     np.testing.assert_allclose(material(result),material(raw_state),rtol=2e-12)

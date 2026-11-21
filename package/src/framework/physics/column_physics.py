@@ -3,7 +3,8 @@
 Radiation inputs are supplied explicitly. Gas mass losses are returned for
 the dynamical core to transport; this column operator does not remap pressure.
 """
-from typing import NamedTuple
+from typing import NamedTuple,Any
+from jax import Array
 import numpy as np
 from src.framework.gcm._dinosaur import jnp
 from src.framework.physics.co2_condensation import simple_condensation
@@ -20,7 +21,7 @@ from src.framework.physics.dust_control import reference_opacity
 from src.framework.physics.dust_lifting import (interactive_step as dust_lifting_step,background_step,
     interactive_modes_step,background_modes_step)
 from src.framework.physics.dust_coagulation import coagulation_step
-from src.framework.physics.nonorographic_drag import driver_step as gravity_wave_step
+from src.framework.physics.nonorographic_drag import driver_step as gravity_wave_step,DragState
 from src.framework.physics.legacy_convection import adjust as legacy_convection
 from src.framework.physics.moist_convection import adjust as moist_convection
 from src.framework.physics.water_surface import (surface_exchange as water_surface_exchange,
@@ -28,38 +29,38 @@ from src.framework.physics.water_surface import (surface_exchange as water_surfa
 
 
 class BulkWaterColumnState(NamedTuple):
-    vapor_index: object
-    ice_ratio: object
-    surface_water_kg_m2: object
-    previous_exchange_coefficient: object
-    previous_pbl_top_layer: object
+    vapor_index: int
+    ice_ratio: Array
+    surface_water_kg_m2: Array
+    previous_exchange_coefficient: Array
+    previous_pbl_top_layer: Array
 
 
 class ColumnResult(NamedTuple):
-    temperature: object
-    u: object
-    v: object
-    gas_tracers: object
-    soil: object
-    co2_ice_kg_m2: object
-    gas_mass_loss_kg_m2: object
-    diagnostics: object
-    suspended_co2_ice_ratio: object = None
-    bulk_water: object = None
-    moment_particles: object = None
-    nonorographic_state: object = None
-    moment_history: object = None
-    moist_surface_water_kg_m2: object = None
+    temperature: Array
+    u: Array
+    v: Array
+    gas_tracers: Array
+    soil: Array
+    co2_ice_kg_m2: Array
+    gas_mass_loss_kg_m2: Array
+    diagnostics: dict[str,Any]
+    suspended_co2_ice_ratio: Array | None = None
+    bulk_water: BulkWaterColumnState | None = None
+    moment_particles: Array | None = None
+    nonorographic_state: DragState | None = None
+    moment_history: EffectiveState | None = None
+    moist_surface_water_kg_m2: Array | None = None
 
 
 def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
                    co2_ice_kg_m2,radiative_heating_k_s,downward_surface_flux_w_m2,
                    dt_seconds,body,*,soil_thickness,soil_diffusivity,
                    soil_volumetric_heat_capacity,emissivity,latent_heat=5.9e5,
-                   surface_exchange_start,latitude_rad=0.,rayleigh_options=None,
+                   surface_exchange_start,latitude_rad: Any=0.,rayleigh_options=None,
                    conserve_drag_energy=False,suspended_co2_ice_ratio=None,
                    cloud_nuclei_per_kg=1.e5,bulk_water=None,
-                   water_surface_options=None,water_cloud_options=None,form_bulk_clouds=True,
+                   water_surface_options: dict[str,Any] | None=None,water_cloud_options=None,form_bulk_clouds=True,
                    water_radiative_options=None,terrain_drag_options=None,
                    moment_particles=None,moment_cloud_options=None,moment_sedimentation=True,
                    dust_lifting_options=None,dust_lifting_opacity=None,surface_dust_kg_m2=None,
@@ -97,6 +98,8 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
         soil=jnp.asarray(soil).at[0].set(170.)
         emissivity=1.
         do_co2_condensation=False;do_co2_condensation_cycle=False
+    if do_vert_diff and (not do_mars_surface or not do_ames_pbl):
+        raise ValueError("vertical diffusion requires the Mars surface and Ames PBL; disable do_vert_diff for an unmixed column")
     initial_wind=(u,v)
     initial_tracers=gas_tracers
     initial_particles=moment_particles
@@ -104,6 +107,11 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
     if moment_particles is None and (dust_lifting_options is not None or coagulation_options is not None or dust_background_options is not None):
         raise ValueError('dust lifting and coagulation require physical moment particles')
     initial_moments=None
+    particle_count=0;dust_modes=0
+    dust_mass_indices=dust_number_indices=jnp.asarray([],dtype=int)
+    initial_dust_mass=initial_dust_number=None
+    lifted=background=coagulated=sediment=None
+    moments=dust_deposit=None
     if moment_water is None: moment_water=moment_particles is not None and bulk_water is not None
     if not moment_water and moment_particles is not None and bulk_water is not None:
         raise ValueError('the released model cannot combine bulk water with moment dust')
@@ -125,6 +133,7 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
         initial_dust_mass=moment_particles[...,dust_mass_indices]
         initial_dust_number=moment_particles[...,dust_number_indices]
         if moment_water:
+            assert bulk_water is not None
             initial_moments=jnp.stack([moment_particles[...,0],moment_particles[...,1],
                 bulk_water.ice_ratio,moment_particles[...,2],moment_particles[...,3],
                 gas_tracers[...,bulk_water.vapor_index]],axis=-1)
@@ -172,7 +181,7 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
             bulk_latent_derivative=0. if water_exchange is None else water_exchange.latent_derivative_w_m2_k)
     else:
         ground=soil;snow=co2_ice_kg_m2
-        surface=dict(co2_phase_change_kg_m2=jnp.zeros_like(soil[0]),
+        surface: dict[str,Any]=dict(co2_phase_change_kg_m2=jnp.zeros_like(soil[0]),
             frost_temperature_k=3182.48/(23.3494-jnp.log(pressure_half[-1]*.01)),
             frost_retry=jnp.zeros_like(soil[0],dtype=bool))
     surface['emissivity']=emissivity
@@ -248,6 +257,7 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
         tracer_column_change=jnp.sum(carrier[...,None]*(r-r_old),axis=0))
     moist=None;moist_precip=0.
     if moist_convection_options is not None:
+        assert bulk_water is not None
         moist=moist_convection(t,r[...,bulk_water.vapor_index],pressure_half,pressure_full,dt_seconds,
             gas_constant=body.gas_constant_j_kg_k,cp=body.cp_j_kg_k,gravity=body.gravity_m_s2,
             **moist_convection_options)
@@ -332,6 +342,7 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
         ice=r[...,gas_count+int(has_co2_cloud)]
         water_deposit=0.
         if moment_water:
+            assert moment_particles is not None
             moments=jnp.stack([moment_particles[...,0],moment_particles[...,1],ice,
                 moment_particles[...,2],moment_particles[...,3],r[...,bulk_water.vapor_index]],axis=-1)
             if form_moment_clouds:
@@ -376,6 +387,7 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
             water_deposit=water_result.deposition_kg_m2
         rho=pressure_half[-1]/(body.gas_constant_j_kg_k*temperature[-1])
         exchange_coefficient=rho*pbl['surface_heat_coefficient']*pbl['friction_velocity_ms']
+        assert water_exchange is not None
         bulk_water=BulkWaterColumnState(bulk_water.vapor_index,ice,
             water_exchange.surface_water_kg_m2+water_deposit+active_moist_precip,
             exchange_coefficient,pbl_top.astype(t.dtype))
@@ -386,6 +398,7 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
         if moment_water:
             water_diagnostics['moment_cloud']={} if moment_result is None else dict(moment_result._asdict())
             if moment_sedimentation:
+                assert sediment is not None and moments is not None
                 dust_deposit=sediment.surface_deposit[...,jnp.asarray([0]+list(range(6,moments.shape[-1],3)))]
         elif moment_sedimentation:
             sediment=dust_sedimentation_step(moment_particles,pressure_half,pressure_full,t,ground[0],
@@ -395,12 +408,16 @@ def column_physics(temperature,u,v,gas_tracers,soil,pressure_half,pressure_full,
             moment_particles=sediment.tracers
             dust_deposit=sediment.surface_deposit
         if dust_lifting_options is not None:
+            assert lifted is not None
             dust_diagnostics['dust_lifting']=lifted.diagnostics
         if dust_background_options is not None:
+            assert background is not None
             dust_diagnostics['dust_background']=background.diagnostics
         if coagulation_options is not None:
+            assert coagulated is not None
             dust_diagnostics['dust_coagulation']=coagulated.diagnostics
         if moment_sedimentation:
+            assert dust_deposit is not None and sediment is not None
             if dust_modes==1: dust_deposit=dust_deposit[...,0]
             dust_diagnostics['particle_sedimentation']=dict(sediment.diagnostics,dust_deposit_kg_m2=dust_deposit)
             if surface_dust_kg_m2 is not None: surface_dust_kg_m2=surface_dust_kg_m2+dust_deposit

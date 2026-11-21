@@ -34,7 +34,7 @@ def compile_routines(source, expected_blob, names, header, adapter, destination,
     code = destination/"reference.f90"
     code.write_text(header+"\n".join(routines)+adapter)
     library = destination/"reference.so"
-    flags = ["-O3","-cpp","-fdefault-real-8","-fdefault-double-8","-fPIC","-shared"]
+    flags = ["-O3","-cpp","-ffree-line-length-none","-fdefault-real-8","-fdefault-double-8","-fPIC","-shared"]
     result = subprocess.run([compiler,*flags,str(code),"-o",str(library)],cwd=destination,
         capture_output=True,text=True)
     if result.returncode:

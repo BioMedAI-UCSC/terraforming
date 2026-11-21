@@ -68,8 +68,8 @@ do l=1,n
   loss(l)=(qpi(k)-max(q(l),0.d0))*(half(l+1)-half(l))/grav
   radius(l)=(qpi(k)/1.d5*.75d0/pi/1620.d0)**(1.d0/3.d0)*exp(-.5d0*dev**2)
   radius(l)=max(radius(l),1.d-7)*exp(1.5d0*dev**2)
-  ! Restore pre-phase temperatures for the sedimentation stencil, as in driver.
-  tl(k)=t(l)
+  ! Native driver uses adjusted full-level density and saved interface temperatures.
+  rho(l)=full(l)/(rdgas*tl(k))
 enddo
 deposit=0.d0
 call sedimco2(dt,p,tl,rho,kd,qpi,radius,1620.d0,deposit(1),n)

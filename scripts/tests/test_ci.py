@@ -53,7 +53,7 @@ class SelectionTests(unittest.TestCase):
         ]:
             with self.subTest(module=module):
                 result = ci.plan([f'package/src/framework/physics/{module}.py'])
-                self.assertTrue(required <= set(result['selected']))
+                self.assertEqual(set(result['selected']),set(ci.SUITES)-{'runtime'})
                 self.assertNotIn('runtime', result['selected'])
 
     def test_shared_or_unknown_changes_run_every_python_suite(self):
@@ -130,3 +130,16 @@ class RunnerTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class NativeValidationTests(unittest.TestCase):
+    def test_native_matrix_covers_48_independent_cases(self):
+        import sys
+        with patch.dict(sys.modules):
+            sys.path.insert(0,str(ci.ROOT/'scripts'))
+            try:
+                from run_native_validation import cases
+                result=cases(ci.ROOT)
+            finally: sys.path.pop(0)
+        self.assertEqual(len(result),48)
+        self.assertEqual(len(set((name,tuple(args)) for name,args in result)),48)

@@ -100,7 +100,8 @@ def test_disabled_mass_feedback_skips_undefined_empty_co2_layer_weights():
 def test_inactive_surface_or_pbl_does_not_mix_air_or_apply_surface_drag(control):
     kwargs={**inputs(),'convection_scheme':'none','rayleigh_options':dict(timescale=0.),
         'do_co2_condensation':False}
-    result=column_physics(**kwargs,**{control:False})
+    result=column_physics(**kwargs,**{control:False,
+        **({"do_vert_diff":False} if control!="do_vert_diff" else {})})
     np.testing.assert_array_equal(result.temperature,kwargs['temperature']+
         kwargs['radiative_heating_k_s']*kwargs['dt_seconds'])
     np.testing.assert_array_equal(result.u,kwargs['u']);np.testing.assert_array_equal(result.v,kwargs['v'])
@@ -556,3 +557,9 @@ def test_disabled_surface_phase_change_rejects_singular_native_frost_state():
     result=column_physics(**inputs(),surface_condensation=False)
     assert not result.diagnostics['surface']['valid_condensation_state']
     assert np.isnan(result.soil).all()
+
+
+@pytest.mark.parametrize('flags',[dict(do_mars_surface=False),dict(do_ames_pbl=False)])
+def test_unsupported_vertical_diffusion_fails_explicitly(flags):
+    with pytest.raises(ValueError,match='vertical diffusion requires'):
+        column_physics(**inputs(),**flags)

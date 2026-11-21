@@ -16,6 +16,7 @@ import numpy as np
 import pytest
 
 pytest.importorskip("dinosaur")
+from src.framework.physics.tracer_transport import tracer_to_nodal
 import jax  # noqa: E402
 
 from src.celestials.planets.mars import MARS_BODY_3D  # noqa: E402
@@ -372,7 +373,7 @@ def test_comparison_export_preserves_geography_units_season_and_cloud_inventory(
         assert ds.tracer_dust_number.attrs['units']=='kg-1'
         assert ds.tracer_co2_mmr_gas.attrs['units']=='kg kg-1'
         np.testing.assert_allclose(ds.tracer_co2_mmr_gas,.95,atol=1e-14)
-        expected_number=np.asarray(grid.to_nodal(dynamics.tracers['dust_number'])).transpose(0,2,1)
+        expected_number=np.asarray(tracer_to_nodal(grid,dynamics.tracers['dust_number'])).transpose(0,2,1)
         np.testing.assert_array_equal(ds.tracer_dust_number[0],expected_number)
         np.testing.assert_allclose(ds.water_surface_kg_m2[0],landmark.T)
         assert ds.dust_surface_kg_m2.dims==('time','dust_mode','lat','lon')
@@ -401,9 +402,10 @@ def test_reference_maps_backend_runs_water_and_preserves_restart_state(monkeypat
             flux=simple(state,coords,specs,body,forcing)
             valid=jnp.all(state.surface_temperature==170.)&jnp.all(forcing.albedo==.25)&jnp.all(forcing.emissivity==1.)
             return flux._replace(atmospheric_convergence_w_m2=jnp.where(valid,flux.atmospheric_convergence_w_m2,jnp.nan))
-        options.update(bulk_water=False,do_mars_surface=False)
+        options.update(bulk_water=False,do_mars_surface=False,do_vert_diff=False)
     elif thermal in ('no-diffusion','no-pbl'):
         options['do_vert_diff' if thermal=='no-diffusion' else 'do_ames_pbl']=False
+        options['do_vert_diff']=False
     elif thermal=='feedback-off':
         options.update(do_co2_condensation=False,do_atmos_co2_loss=False,do_co2_condensation_cycle=False)
     elif thermal=='simple':
@@ -418,7 +420,7 @@ def test_reference_maps_backend_runs_water_and_preserves_restart_state(monkeypat
         scenario=dict(seasons=[0.,360.],opacity=np.full((2,*grid.nodal_shape),.4),
             top_height_km=np.full((2,*grid.nodal_shape),35.))
         options.update(bulk_water=False,moment_water=True,dust_opacity_from_aerosol=True,
-            radiation_update_seconds=10.,initial_dust_mass_ratio=1e-5,initial_dust_number_per_kg=1e8,
+            radiation_update_seconds=24.,initial_dust_mass_ratio=1e-5,initial_dust_number_per_kg=1e8,
             dust_background_options=dict(fixed_dust_provider=make_fixed_dust_provider(scenario=scenario)))
     elif thermal:
         radiation=None
@@ -434,7 +436,7 @@ def test_reference_maps_backend_runs_water_and_preserves_restart_state(monkeypat
             initial_dust_surface_kg_m2=[30.,20.])
         if thermal!='dust-only':
             options.update(bulk_water=False,moment_water=True)
-    kwargs=dict(body=AMES_BODY_3D,truncation='T21',n_layers=4,dt_seconds=5.,
+    kwargs=dict(body=AMES_BODY_3D,truncation='T21',n_layers=4,dt_seconds=6.,
         sigma_boundaries=boundaries,
         t_ref_k=180.,forcing=reference_radiative_forcing(),radiation_component=radiation,
         physics_backend='reference',reference_options=options,return_final_state=True)

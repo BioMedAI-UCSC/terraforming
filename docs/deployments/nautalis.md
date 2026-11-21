@@ -72,7 +72,7 @@ Bare pods receive a six-hour runtime limit, so use batch Jobs for experiments.
 The published image pinned by the job tool is:
 
 ```text
-samkash/terraforming-paper@sha256:a04422421dbe06a2073d55259ba9ae9d54e2f22488e4bc2552fdbb5bc3f24fd2
+samkash/terraforming-paper@sha256:40c9ea792caad0067d1628eb5fa03a4b053bb64879f5791926b5e13d6bbcea05
 ```
 
 ## Runtime contract

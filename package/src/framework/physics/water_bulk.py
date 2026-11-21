@@ -3,7 +3,8 @@
 NASA-derived algorithms: Copyright 2023 United States Government as represented
 by NASA. NASA Open Source Agreement 1.3; see the repository's reference license.
 """
-from typing import NamedTuple
+from typing import NamedTuple,Any
+from jax import Array
 from src.framework.gcm._dinosaur import jax,jnp
 from src.framework.physics.co2_microphysics import sedimentation
 
@@ -14,12 +15,12 @@ WATER_CLOUD_TRACER='water_cloud_ice'
 
 
 class WaterResult(NamedTuple):
-    temperature: object
-    vapor_ratio: object
-    ice_ratio: object
-    deposition_kg_m2: object
-    radius_m: object
-    diagnostics: object
+    temperature: Array
+    vapor_ratio: Array
+    ice_ratio: Array
+    deposition_kg_m2: Array
+    radius_m: Array
+    diagnostics: dict[str,Any]
 
 
 def saturation_ratio(temperature,pressure):

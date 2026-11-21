@@ -4,7 +4,8 @@ NASA-derived algorithms: Copyright 2023 United States Government as represented
 by NASA. NASA Open Source Agreement 1.3; see the repository's reference license.
 """
 from functools import lru_cache
-from typing import NamedTuple
+from typing import NamedTuple,Any
+from jax import Array
 import numpy as np
 from src.framework.gcm._dinosaur import jax,jnp
 
@@ -108,9 +109,9 @@ def _fractions():
 
 
 class CoagulationResult(NamedTuple):
-    mass_tendency: object
-    number_tendency: object
-    diagnostics: object
+    mass_tendency: Array
+    number_tendency: Array
+    diagnostics: dict[str,Any]
 
 
 def coagulation_step(temperature,pressure,mass_ratios,number_ratios,dt_seconds,*,

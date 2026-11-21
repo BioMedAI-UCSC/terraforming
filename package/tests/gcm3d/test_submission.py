@@ -75,7 +75,7 @@ def test_reference_cold_start_keeps_native_log_weighted_pressure_correction():
     np.testing.assert_allclose(hydrostatic,705.*expected,rtol=2e-15)
     base=.8*hydrostatic
     expected=base+(705.-np.sum(base*weights)/np.sum(np.broadcast_to(weights,base.shape)))*np.log(base)/np.log(705.)
-    expected=np.exp(np.asarray(grid.to_nodal(grid.clip_wavenumbers(grid.to_modal(np.log(expected[None]/scale))))))[0]*scale
+    expected=np.exp(np.asarray(grid.to_nodal(grid.to_modal(np.log(expected[None]/scale)))))[0]*scale
     np.testing.assert_allclose(pressure,expected,rtol=2e-13)
     assert np.sum(pressure*weights)/np.sum(np.broadcast_to(weights,pressure.shape))<705.
     from src.framework.gcm.dynamics import reference_temperature
@@ -470,3 +470,31 @@ def test_release_namelist_inventory_ignores_comments_inside_continuations(monkey
     assert audit.namelist_controls(text,'dust')==['a','b','c']
     assert audit.namelist_controls('namelist /dust/ a,b\nreal :: other','dust')==['a','b']
     with pytest.raises(AssertionError): audit.namelist_controls(text,'absent')
+
+
+def test_reference_comparator_reads_first_year_means_on_the_supplied_grid(tmp_path,monkeypatch):
+    import json
+    import sys
+    benchmark=_script('benchmark_reference_climate')
+    lat=np.degrees(np.arcsin(np.polynomial.legendre.leggauss(4)[0]));lon=np.arange(8)*45.
+    coords=dict(time=[5.],sigma=[.5,.9],lat=lat,lon=lon)
+    surface=np.ones((1,4,8));air=np.zeros((1,2,4,8))
+    data=xr.Dataset(dict(surface_pressure=(('time','lat','lon'),surface*600.),
+        surface_temperature=(('time','lat','lon'),surface*180.),
+        eastward_wind=(('time','sigma','lat','lon'),air),northward_wind=(('time','sigma','lat','lon'),air),
+        wind_speed=(('time','sigma','lat','lon'),air),co2_frost=(('time','lat','lon'),surface*0.),
+        solar_longitude=('time',[45.])),coords=coords,
+        attrs=dict(complete_window=1,temporal_sampling='step mean'))
+    samples=tmp_path/'model/checkpoints';samples.mkdir(parents=True)
+    data.to_netcdf(samples/'mean_000001920.nc')
+    native=xr.Dataset({name:(('ls','lat','lon'),np.full((1,4,8),value)) for name,value in
+        [('surface_pressure',600.),('temperature',180.),('wind_speed',0.),('co2_ice',0.)]},
+        coords=dict(ls=[45.],lat=lat,lon=lon))
+    native['average_duration_days']=('ls',[5.]);reference=tmp_path/'native.nc';native.to_netcdf(reference)
+    output=tmp_path/'comparison'
+    monkeypatch.setattr(sys,'argv',['benchmark',str(tmp_path/'model'),str(reference),'--output-dir',str(output)])
+    assert benchmark.main()==0
+    report=json.loads((output/'benchmark.json').read_text())
+    assert '8x4' in report['model']
+    assert report['seasons']['ls045']['model_sample_count']==1
+    assert report['seasons']['ls045']['metrics']['temperature']['rmse']<1e-10

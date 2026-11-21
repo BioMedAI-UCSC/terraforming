@@ -4,7 +4,8 @@ NASA-derived algorithms: Copyright 2023 United States Government as represented
 by NASA. NASA Open Source Agreement 1.3; see the repository's reference license.
 """
 import numpy as np
-from typing import NamedTuple
+from typing import NamedTuple,Any
+from jax import Array
 from src.framework.gcm._dinosaur import jax,jnp
 from src.framework.physics.water_bulk import saturation_ratio,find_condensed_mass
 
@@ -110,12 +111,12 @@ def growth_coefficient(temperature,pressure_pa,saturation_pressure_pa,equilibriu
 
 
 class MomentResult(NamedTuple):
-    temperature_tendency: object
-    tracer_tendency: object
-    dust_mass_tendency: object
-    dust_number_tendency: object
-    saturation_ratio: object
-    contact_parameter: object
+    temperature_tendency: Array
+    tracer_tendency: Array
+    dust_mass_tendency: Array
+    dust_number_tendency: Array
+    saturation_ratio: Array
+    contact_parameter: Array
 
 
 def _distribution(mass,number):
@@ -212,6 +213,8 @@ def nucleation_condensation(temperature,pressure_pa,tracers,dt_seconds,*,
     else:
         updated=updated.at[...,0].add(jnp.where(cleared,updated[...,4],0.))
         updated=updated.at[...,1].add(jnp.where(cleared,updated[...,3],0.))
+        new_dm=updated[...,0,None]
+        new_dn=updated[...,1,None]
     updated=updated.at[...,2].set(jnp.where(cleared,0.,ice))
     updated=updated.at[...,4].set(jnp.where(cleared,0.,updated[...,4]))
     updated=updated.at[...,3].set(jnp.where(cleared,0.,updated[...,3]))
@@ -222,11 +225,11 @@ def nucleation_condensation(temperature,pressure_pa,tracers,dt_seconds,*,
 
 
 class EffectiveState(NamedTuple):
-    temperature: object
-    tracers: object
-    dust_mass: object
-    dust_number: object
-    initialized: object = True
+    temperature: Array
+    tracers: Array
+    dust_mass: Array
+    dust_number: Array
+    initialized: Array | bool = True
 
 
 def subcycled_cloud_step(initial_temperature,temperature,pressure_pa,initial_tracers,tracers,

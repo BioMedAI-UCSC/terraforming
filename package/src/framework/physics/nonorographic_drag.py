@@ -5,29 +5,30 @@ Adapted from NOAA-GFDL atmos_phys cg_drag, revision 46817a1. Mars parameters
 follow NASA's Apache-2.0 patch. See licenses/NONOROGRAPHIC-DRAG-NOTICE.txt.
 """
 from functools import lru_cache
-from typing import NamedTuple
+from typing import NamedTuple,Any
+from jax import Array
 import numpy as np
 from src.framework.gcm._dinosaur import jax,jnp
 
 
 class WaveResult(NamedTuple):
-    wind_tendency: object
-    eddy_diffusivity: object
-    diagnostics: object
+    wind_tendency: Array
+    eddy_diffusivity: Array
+    diagnostics: dict[str,Any]
 
 
 class DragResult(NamedTuple):
-    u_tendency: object
-    v_tendency: object
-    heating_k_s: object
-    diagnostics: object
+    u_tendency: Array
+    v_tendency: Array
+    heating_k_s: Array
+    diagnostics: dict[str,Any]
 
 
 class DragState(NamedTuple):
-    u_tendency: object
-    v_tendency: object
-    alarm_seconds: object
-    frequency_seconds: object
+    u_tendency: Array
+    v_tendency: Array
+    alarm_seconds: Array
+    frequency_seconds: Array
 
 
 def schedule(update_seconds=0,offset_seconds=0):

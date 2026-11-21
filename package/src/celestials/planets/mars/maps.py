@@ -366,6 +366,7 @@ def run_maps(
                 not np.array_equal(np.asarray(saved),np.asarray(coords.vertical.boundaries))):
                 raise ValueError('reference restart sigma boundaries differ or are missing')
         options=dict(reference_options)
+        comparison_window=options.pop("comparison_window_steps",None)
         initial_water=options.pop('initial_water_surface_kg_m2',0.)
         initial_vapor=options.pop('initial_water_vapor_ratio',0.)
         initial_dust_mass=options.pop('initial_dust_mass_ratio',0.)
@@ -399,6 +400,9 @@ def run_maps(
         step=build_step(coords,specs,body,forcing,dt_seconds,orography=orography,
             radiation_component=radiation_component,
             hyperdiffusion_tau_seconds=hyperdiffusion_tau_seconds,**options)
+        if comparison_window is not None:
+            from src.framework.gcm.comparison_averaging import averaging_step
+            state0,step=averaging_step(step,state0,coords,specs,body,comparison_window,dt_seconds)
         physics_label='Dinosaur dynamics + reference column physics'
     elif forcing is None:
         equation = build_primitive_equations(coords, body, specs=specs, orography=orography)
@@ -682,6 +686,7 @@ def state_to_comparison_dataset(state, coords, specs, body, forcing):
         return values.T[None, ...]
 
     from src.framework.physics.co2_clouds import CO2_CLOUD_TRACER
+    from src.framework.physics.tracer_transport import tracer_to_nodal
     from src.framework.physics.water_bulk import WATER_VAPOR_TRACER,WATER_CLOUD_TRACER
     tracer_variables={}
     for name,value in dyn.tracers.items():
@@ -692,7 +697,7 @@ def state_to_comparison_dataset(state, coords, specs, body, forcing):
                       'co2_mmr_gas','ar_mmr_gas') or name.startswith(('dust_mass_','dust_core_mass_')):
             attributes['units']='kg kg-1'
         tracer_variables['tracer_'+name]=(('time','sigma','lat','lon'),
-            level_field(np.asarray(grid.to_nodal(value))),attributes)
+            level_field(np.asarray(tracer_to_nodal(grid,value))),attributes)
     reservoirs={};extra_coordinates={}
     auxiliary={} if state.auxiliary_fields is None else state.auxiliary_fields
     for name in ('water_surface_kg_m2','dust_surface_kg_m2','moist_bulk_surface_water_kg_m2'):
@@ -748,11 +753,14 @@ def state_to_comparison_dataset(state, coords, specs, body, forcing):
     )
 
 
-def save_comparison_netcdf(state, coords, specs, body, forcing, path) -> Path:
+def save_comparison_netcdf(state, coords, specs, body, forcing, path, *, average_dt_seconds=None) -> Path:
     """Write a compressed full-state comparison dataset."""
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     dataset = state_to_comparison_dataset(state, coords, specs, body, forcing)
+    if average_dt_seconds is not None:
+        from src.framework.gcm.comparison_averaging import apply_means
+        dataset=apply_means(dataset,state,body,average_dt_seconds)
     encoding = {
         name: {"zlib": True, "complevel": 4, "shuffle": True}
         for name in dataset.data_vars

@@ -84,6 +84,9 @@ jobs:
       - name: Install locked numerical dependencies
         if: matrix.suite != 'runtime'
         run: uv sync --frozen --dev --all-packages --extra gcm3d
+      - name: Type check hot column coupling modules
+        if: matrix.suite == 'surface'
+        run: uv run --no-sync pyright package/src/framework/physics/dinosaur_physics.py package/src/framework/physics/column_physics.py package/src/framework/physics/tracer_transport.py
       - name: Stage verified terrain for map stability tests
         if: matrix.suite == 'dynamics'
         run: uv run --no-sync python scripts/stage_mola.py
