@@ -35,9 +35,12 @@ def main():
     parser.add_argument('--native',type=Path,help='directory containing C24/C48-first-average.npz')
     parser.add_argument('--reference-physics',action='store_true',help='also compare held and refreshed radiation')
     parser.add_argument('--damping-matrix',action='store_true',help='compare native/balanced cold starts and coupled D2 off/on')
+    parser.add_argument('--uniform-tracer-probe',action='store_true',help='only run flat-world constant-tracer splitting controls')
     parser.add_argument('--assert-mean-ratio',type=float,help='fail if archived mean u RMS exceeds this times both native means')
     parser.add_argument('--output',type=Path,required=True)
     args=parser.parse_args()
+    if args.uniform_tracer_probe and (args.reference_physics or args.damping_matrix or args.assert_mean_ratio is not None):
+        parser.error('uniform tracer controls run separately from physics, damping-matrix and mean-ratio checks')
     if args.assert_mean_ratio is not None and (args.native is None or not np.isfinite(args.assert_mean_ratio) or args.assert_mean_ratio<=0.):
         parser.error('--assert-mean-ratio requires --native and a finite positive ratio')
     config=json.loads((args.run/'config.json').read_text())
@@ -87,6 +90,54 @@ def main():
         hyperdiffusion_tau_seconds=tau,orography=orography)
     diffusivity=config.get('native_top_divergence_damping',{}).get('diffusivity_m2_s')
     if diffusivity is not None: common['divergence_diffusivity_m2_s']=diffusivity
+    if args.uniform_tracer_probe:
+        from run_gcm3d_ablation import reference_rest_state,reference_divergence_diffusivity
+        profile,metadata=reference_divergence_diffusivity(config['truncation'],config['layers'])
+        decay=np.exp(config['dt']*np.asarray(profile)[:,None,None]*np.asarray(
+            grid.laplacian_eigenvalues)[None,None,:]/BODY.radius_m**2)
+        probe=dict(metadata=metadata,initial_ratio=1.e-4,initial_top_vector_rms_m_s=20.,cases={})
+        report['uniform_tracer_probe']=probe
+        ds=jnp.asarray(np.diff(coords.vertical.boundaries))[:,None,None]
+        def uniform_inventory(value):
+            gas=jnp.exp(grid.to_nodal(value.dynamics.log_surface_pressure))*ds
+            return float(jnp.sum(gas*value.dynamics.tracers['uniform']*weights))
+        for vertical in ('top_two','all_layers'):
+            dynamics=reference_rest_state(coords,specs,BODY,np.zeros(grid.nodal_shape),pressure_scheme='sigma-balanced')
+            divergence=jnp.zeros_like(dynamics.divergence).at[:2 if vertical=='top_two' else config['layers'],0,3].set(1.)
+            u,v=spherical_harmonic.vor_div_to_uv_nodal(grid,jnp.zeros_like(divergence),divergence)
+            divergence=divergence*20./rms(jnp.hypot(u[0],v[0])*speed)
+            start=initial_state(dataclasses.replace(dynamics,divergence=divergence),coords,specs,temperature_k=170.)
+            start=start._replace(dynamics=dataclasses.replace(start.dynamics,
+                tracers={'uniform':jnp.full((config['layers'],*grid.nodal_shape),1.e-4)}))
+            target=uniform_inventory(start);records={};snapshots={}
+            for placement in ('off','before_transport','after_transport'):
+                base=build_step(coords,specs,BODY,reference_radiative_forcing(),config['dt'],**(common|dict(
+                    orography=None,divergence_diffusivity_m2_s=profile if placement=='before_transport' else None)))
+                def advance(value):
+                    final=base(value)
+                    if placement=='after_transport':
+                        final=final._replace(dynamics=dataclasses.replace(final.dynamics,
+                            divergence=final.dynamics.divergence*jnp.asarray(decay,dtype=final.dynamics.divergence.dtype)))
+                    return final
+                tick=jax.jit(advance);value=start;series={}
+                for count in range(1,33):
+                    value=tick(value)
+                    if count in (1,8,32):
+                        q=np.asarray(value.dynamics.tracers['uniform'])
+                        assert np.isfinite(q).all() and np.all(q>=0.),placement
+                        series[str(count)]=dict(maximum_relative_uniformity_error=float(abs(q/1.e-4-1.).max()),
+                            top_relative_uniformity_error=float(abs(q[0]/1.e-4-1.).max()),
+                            inventory_relative_error=(uniform_inventory(value)-target)/target,**stats(value))
+                        snapshots[placement,count]=q.copy()
+                        assert abs(series[str(count)]['inventory_relative_error'])<1.e-10,series
+                records[placement]=series
+            records['placement_relative_difference']={str(n):float(abs((snapshots['before_transport',n]-
+                snapshots['after_transport',n])/1.e-4).max()) for n in (1,8,32)}
+            probe['cases'][vertical]=records
+        args.output.parent.mkdir(parents=True,exist_ok=True)
+        args.output.write_text(json.dumps(report,indent=2,allow_nan=False)+'\n')
+        print(json.dumps(report,indent=2,allow_nan=False))
+        return
     controls={'dry_terrain':{},'dry_flat':dict(orography=None),
         'dry_no_hyperdiffusion':dict(hyperdiffusion_tau_seconds=None)}
     baseline=None

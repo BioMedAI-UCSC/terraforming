@@ -99,6 +99,35 @@ from 231 to 132 to 66 seconds gives top vector RMS 89.8871, 89.8830 and 89.8779 
 Short-window time refinement does not remove this motion. It does not establish
 long-run T42 stability.
 
+## Transport splitting limit
+
+The [constant-tracer probe](../validation/pr123-uniform-tracer-probe.json) uses
+flat terrain, 170 K, uniform pressure and mixing ratio 1e-4, with a degree-three
+divergent wind of 20 m/s top RMS. It uses the actual C24 diffusivities and no
+forcing. It compares the production filter before transport with an external
+filter after transport. The latter changes no transport code and produces the
+same wind and temperature trajectory, so the concentration difference isolates
+the split.
+
+| Wind profile, after 32 steps | D2 off: maximum relative uniformity error | D2 before transport | D2 after transport | Maximum before/after concentration difference |
+| --- | ---: | ---: | ---: | ---: |
+| First two layers | 0.00482795 | 0.00301231 | 0.00304381 | 0.00005907 |
+| All layers | 0.00584639 | 0.00584632 | 0.00584638 | 0.00015604 |
+
+The existing finite-volume tracer flux and spectral carrier update do not
+preserve a uniform mixing ratio exactly. The added placement difference is at
+most 0.016% here after 7,392 seconds, while total inventory error stays below
+3e-14 and concentrations stay nonnegative. Moving the filter after transport
+does not improve uniformity in these cases. This supports keeping the current
+placement; it does not establish native tracer-transport fidelity. The source
+applies damping within its dynamics substeps, while this adaptation splits it
+at a full Dinosaur step. Longer tracer-profile and substep-convergence checks
+remain necessary.
+
+Reproduce this separate probe by replacing `--damping-matrix` in the command
+above with `--uniform-tracer-probe` and selecting a new output path. This probe
+does not compare native time means.
+
 ## Checks and remaining work
 
 Tests through public `build_step` check independently known mode-decay factors,
@@ -106,6 +135,10 @@ decreasing divergent kinetic norm, angular momentum, material inventories,
 nonnegative tracers, untouched nonfiltered fields, invalid profile rejection,
 derivatives and exact save/load continuation. Existing hyperdiffusion behavior
 and the balanced one-sol rest check also pass.
+The decay factor is cast to the dry output dtype, so the new filter cannot
+promote that field in a mixed-precision scan. The current public Mars core
+already promotes float32 input to float64 under enabled x64; no dedicated
+float32-output regression is claimed at that interface.
 
 The controls support this source-derived treatment; they do not establish a
 matched climate. Five-sol T21/T42 comparisons, native pressure-aware means,
