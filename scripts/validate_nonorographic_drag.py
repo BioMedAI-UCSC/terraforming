@@ -34,7 +34,7 @@ def compile_reference(source,mars_source,destination,compiler):
     patched.parent.mkdir(parents=True)
     patched.write_text(raw)
     section=patch.decode().split('diff --git a/atmos_param/cg_drag/cg_drag.F90',1)[1].split('\ndiff --git ',1)[0]
-    subprocess.run(['patch','--batch','-p1'],input='diff --git a/atmos_param/cg_drag/cg_drag.F90'+section,
+    subprocess.run(['git','apply','--whitespace=nowarn'],input='diff --git a/atmos_param/cg_drag/cg_drag.F90'+section,
         cwd=destination,text=True,capture_output=True,check=True)
     patched_routines,_=extract_routines(patched,'c8d71f86aba6dbe0b008825cfc5109e112c4349a',names[:-1])
     assert patched_routines==routines[:-1], 'NASA patch changed a validated forcing routine'
