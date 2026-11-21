@@ -1507,8 +1507,8 @@ def test_water_latent_energy_is_explicit_differentiable_and_used_at_all_repair_s
         assert np.isfinite(getattr(diagnostics,stage+'_axial_angular_momentum_kg_m2_s'))
 
 
-@pytest.mark.parametrize('isothermal',[False,True])
-def test_native_cold_atmosphere_keeps_three_step_gradient_and_exact_restart(tmp_path,isothermal):
+@pytest.mark.parametrize('isothermal,pressure_scheme',[(False,'native'),(True,'native'),(True,'sigma-balanced')])
+def test_native_cold_atmosphere_keeps_three_step_gradient_and_exact_restart(tmp_path,isothermal,pressure_scheme):
     import importlib.util
     from pathlib import Path
     from src.framework.gcm.coordinates import coordinate_system
@@ -1521,7 +1521,7 @@ def test_native_cold_atmosphere_keeps_three_step_gradient_and_exact_restart(tmp_
     baseline,step,grid=backend_case(temperature_k=170.,surface_temperature_k=180.)
     def start(temperature):
         dynamics=driver.reference_rest_state(coords,specs,BODY,jnp.zeros(grid.nodal_shape),
-            temperature_k=temperature,isothermal=isothermal)
+            temperature_k=temperature,isothermal=isothermal,pressure_scheme=pressure_scheme)
         dynamics=dataclasses.replace(dynamics,tracers=baseline.dynamics.tracers,sim_time=0.)
         return baseline._replace(dynamics=dynamics)
     def objective(temperature):

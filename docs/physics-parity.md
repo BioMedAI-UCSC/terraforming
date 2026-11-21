@@ -512,6 +512,17 @@ matches 184 latitude samples, including the southern branch transition.
 The shared map initializer now uses an explicit temperature for both the air
 and hydrostatic pressure; it previously changed pressure alone.
 
+`--initial-pressure-scheme sigma-balanced` explicitly adapts the isothermal
+cold start to Dinosaur. It balances exponential pressure against the same
+truncated terrain as the core, then preserves the area-mean gas pressure of
+the native projected initialization. It rejects non-isothermal atmospheres.
+The default `native` scheme and unchanged `hydro_eq` kernel retain the source
+log-weighted correction. The selected scheme is part of restart identity;
+old native runs cannot resume as balanced runs. The
+[upper-atmosphere diagnosis](pr123-upper-diagnosis.md) isolates the false dry
+waves and records controls. A matched five-sol treatment must still establish
+its effect on climate means before changing the reference default.
+
 Use the released `mars_topo_mola16.nc` for matched comparisons. Its units and
 global cell-center axes are checked, then its cell-area integral is retained
 on the Gaussian grid. Orientation, the longitude seam and invalid input checks
