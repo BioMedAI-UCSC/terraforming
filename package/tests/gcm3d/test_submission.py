@@ -85,6 +85,20 @@ def test_checkpoint_history_rejects_reversed_time(tmp_path):
         )
 
 
+@pytest.mark.parametrize('truncation,first,second',[
+    ('T21',553244779.2207792,110648955.84415585),
+    ('T42',273915711.16883117,54783142.233766235)])
+def test_reference_divergence_diffusivity_retains_native_physical_rate(truncation,first,second):
+    driver=_script('run_gcm3d_ablation')
+    profile,metadata=driver.reference_divergence_diffusivity(truncation,56)
+    np.testing.assert_allclose(profile[:2],[first,second],rtol=2.e-15)
+    assert profile[2:]==[0.]*54
+    assert metadata['diffusivity_m2_s']==profile
+    assert metadata['area_printed_significant_digits']==8
+    with pytest.raises(ValueError,match='requires T21 or T42'):
+        driver.reference_divergence_diffusivity('T85',56)
+
+
 def test_reference_cold_start_keeps_native_log_weighted_pressure_correction():
     pytest.importorskip('dinosaur')
     from src.framework.gcm.coordinates import coordinate_system
@@ -131,7 +145,8 @@ def test_sigma_balanced_reference_cold_start_stays_at_rest_for_one_sol(tmp_path)
     balanced=driver.reference_rest_state(coords,specs,body,elevation,pressure_scheme='sigma-balanced')
     weights=jnp.asarray(grid.quadrature_weights)
     mean=lambda dyn:jnp.sum(jnp.exp(grid.to_nodal(dyn.log_surface_pressure))*weights)
-    np.testing.assert_allclose(mean(balanced),mean(native),rtol=2e-14)
+    # Spectral transforms of large nondimensional pressures add platform roundoff.
+    np.testing.assert_allclose(mean(balanced),mean(native),rtol=1e-12)
     state=initial_state(balanced,coords,specs,temperature_k=170.)
     step=build_step(coords,specs,body,reference_radiative_forcing(),231.,radiation_component=None,
         soil_diffusivity=1.e-7,no_forcing=True,hyperdiffusion_tau_seconds=.1*body.solar_day_seconds,
@@ -236,6 +251,7 @@ def test_alternate_reference_cli_rejects_unsupported_combinations(monkeypatch):
                       ['--config','reference','--co2-exchange-ratio-pole','0'],
                       ['--config','reference','--no-mars-surface'],
                       ['--initial-pressure-scheme','sigma-balanced'],
+                      ['--native-top-divergence-damping'],
                       ['--config','reference','--initial-pressure-scheme','sigma-balanced','--no-isothermal-atmosphere'],
                       ['--config','reference','--reference-radiation','height']):
         monkeypatch.setattr(sys,'argv',['run_gcm3d_ablation.py','unused-surface',*arguments])

@@ -120,7 +120,8 @@ def horizontal_hyperdiffusion_filter(coords, dt_seconds: float, specs,
 
 
 def stepper(equation, dt_seconds: float, specs, *, coords=None,
-            hyperdiffusion_tau_seconds: float | None = None):
+            hyperdiffusion_tau_seconds: float | None = None,
+            divergence_diffusivity_m2_s=None):
     """Semi-implicit (IMEX-RK-SIL3) time-step function for ``equation``.
 
     ``dt_seconds`` is physical; it is nondimensionalised with ``specs`` before
@@ -128,6 +129,10 @@ def stepper(equation, dt_seconds: float, specs, *, coords=None,
     ``hyperdiffusion_tau_seconds`` to damp unresolved-scale wind/temperature
     noise after each step. Low-level dynamics benchmarks retain the explicit
     opt-in; the user-facing Mars map runner enables damping by default.
+    An optional nonnegative diffusivity profile integrates horizontal Laplacian
+    diffusion of divergence exactly in spectral space. It leaves other fields
+    unchanged directly. This numerical filter can remove kinetic energy; it does
+    not return heat.
     """
     if not np.isfinite(dt_seconds) or dt_seconds <= 0:
         raise ValueError(f"dt_seconds must be finite and > 0, got {dt_seconds}")
@@ -140,6 +145,22 @@ def stepper(equation, dt_seconds: float, specs, *, coords=None,
             coords, dt_seconds, specs, hyperdiffusion_tau_seconds
         )
         step = time_integration.step_with_filters(step, [diffusion])
+    if divergence_diffusivity_m2_s is not None:
+        if coords is None:
+            raise ValueError('coords is required for divergence diffusion')
+        profile=np.asarray(divergence_diffusivity_m2_s,dtype=float)
+        if profile.shape!=(coords.vertical.layers,) or not np.all(np.isfinite(profile)) or np.any(profile<0.):
+            raise ValueError('divergence diffusivity must be a finite nonnegative per-layer profile')
+        length=float(specs.dimensionalize(1.,_u.meter).magnitude)
+        decay=np.exp(dt_seconds*profile[:,None,None]*np.asarray(
+            coords.horizontal.laplacian_eigenvalues)[None,None,:]/length**2)
+        def divergence_diffusion(previous,next_state):
+            column=hasattr(next_state,'dynamics')
+            dynamics=next_state.dynamics if column else next_state
+            dynamics=dataclasses.replace(dynamics,divergence=dynamics.divergence*jax.numpy.asarray(
+                decay,dtype=dynamics.divergence.dtype))
+            return next_state._replace(dynamics=dynamics) if column else dynamics
+        step=time_integration.step_with_filters(step,[divergence_diffusion])
     return step
 
 
