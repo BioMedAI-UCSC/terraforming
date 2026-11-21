@@ -7,6 +7,10 @@ exponential pressure field built from its resolved terrain. The runner now
 offers this explicit `sigma-balanced` adaptation and retains native pressure
 initialization as its default. No physical damping coefficient changed.
 
+The [follow-up damping diagnosis](pr123-upper-damping.md) uses verified native
+startup cell areas and substeps to add an explicit divergence-diffusion control.
+It leaves both initialization and damping defaults unchanged.
+
 ## Reproduce
 
 From a checkout with the archived outputs and released Ames inputs:
@@ -108,13 +112,14 @@ damping, divergence and the dynamics substep. It then adds the result to the
 kinetic-energy potential used by the momentum update. Thus 0.2 is not a
 Rayleigh decay time or a per-physics-step wind multiplier.
 
-Dinosaur currently applies fourth-power Laplacian diffusion (eighth order) at
+Dinosaur by default applies fourth-power Laplacian diffusion (eighth order) at
 every layer after the time step. The missing native second-order top treatment
 is a confirmed scheme difference. Selecting a spectral coefficient requires
 an explicit mapping of native substeps and cell areas to spectral resolution,
 then convergence and energy checks. Copying 0.2 into a spectral decay factor
-would not preserve the native operation. This diagnosis does not make that
-conversion or claim that damping alone explains the five-sol temperature bias.
+would not preserve the native operation. The follow-up uses verified runtime
+areas and substeps for the leading diffusion equation; it does not claim exact
+discrete-core equivalence or a complete correction of the temperature bias.
 
 ## Pressure coordinates
 

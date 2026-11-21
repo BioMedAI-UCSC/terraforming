@@ -109,7 +109,8 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
                  freeze_tracer_fields=False,no_forcing=False,gust_factor=0.,recalculate_heat_flux=False,
                  particle_scavenging=True,form_moment_clouds=True,lifting_suppresses_settling=False,
                  dust_opacity_from_aerosol=False,radiation_update_seconds=None,dust_optical_bands=15,
-                 dust_opacity_channel=1,surface_condensation=True,soil_alpha=.5,reference_pressure_pa=None):
+                 dust_opacity_channel=1,surface_condensation=True,soil_alpha=.5,reference_pressure_pa=None,
+                 divergence_diffusivity_m2_s=None):
     from src.framework.gcm.coordinates import coordinate_system
     from src.framework.gcm.specs import physics_specs
     from src.framework.gcm._dinosaur import primitive_equations,scales
@@ -162,6 +163,7 @@ def backend_case(temperature_k=140.,surface_temperature_k=148.,return_diagnostic
         form_moment_clouds=form_moment_clouds,
         do_co2_condensation_cycle=do_co2_condensation_cycle,
         surface_condensation=surface_condensation,soil_alpha=soil_alpha,reference_pressure_pa=reference_pressure_pa,
+        divergence_diffusivity_m2_s=divergence_diffusivity_m2_s,
         do_mars_surface=do_mars_surface,do_vert_diff=do_vert_diff,do_ames_pbl=do_ames_pbl,moment_dust=moment_dust)
     return state,step,grid
 
@@ -354,6 +356,89 @@ def test_no_forcing_advances_dynamics_without_radiation_or_surface_updates(tmp_p
     assert np.isfinite(automatic) and abs(float(automatic))>0.
     for epsilon in (1e-4,5e-5):
         np.testing.assert_allclose(automatic,(objective(1.+epsilon)-objective(1.-epsilon))/(2.*epsilon),rtol=1e-7)
+
+
+def test_layer_divergence_diffusion_preserves_material_and_other_fields(tmp_path):
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.framework.gcm.specs import physics_specs
+    from src.framework.gcm.restart import save_restart,load_restart
+    from src.celestials.planets.mars.reference_constants import reference_radiative_forcing
+    coords=coordinate_system('T21',4);specs=physics_specs(BODY)
+    state,plain,grid=backend_case(no_forcing=True,moment_water=True,
+        initial_water_vapor_ratio=1.e-4,initial_water_surface_kg_m2=1.)
+    state=state._replace(dynamics=dataclasses.replace(state.dynamics,
+        divergence=state.dynamics.divergence.at[:,0,3].set(1.e-3)))
+    coefficient=BODY.radius_m**2/(5.*12.)
+    step=jax.jit(build_step(coords,specs,BODY,reference_radiative_forcing(),5.,
+        radiation_component=None,soil_diffusivity=1.e-7,no_forcing=True,moment_water=True,
+        divergence_diffusivity_m2_s=[coefficient,coefficient/2.,0.,0.]))
+    baseline=jax.jit(plain)(state);final=step(state)
+    np.testing.assert_allclose(final.dynamics.divergence[:,0,3]/baseline.dynamics.divergence[:,0,3],
+        [.36787944117144233,.6065306597126334,1.,1.],rtol=3.e-14)
+    untouched=final._replace(dynamics=dataclasses.replace(final.dynamics,
+        divergence=baseline.dynamics.divergence,tracers=baseline.dynamics.tracers))
+    for a,b in zip(jax.tree.leaves(untouched),jax.tree.leaves(baseline),strict=True):
+        np.testing.assert_array_equal(a,b)
+    from src.framework.gcm._dinosaur import spherical_harmonic
+    def divergent_energy(value):
+        u,v=spherical_harmonic.vor_div_to_uv_nodal(grid,jnp.zeros_like(value.dynamics.vorticity),
+            value.dynamics.divergence)
+        return jnp.sum((u*u+v*v)*jnp.asarray(grid.quadrature_weights))
+    assert divergent_energy(final)<divergent_energy(baseline)
+    np.testing.assert_allclose(axial_angular_momentum(final,coords,specs,BODY),
+        axial_angular_momentum(baseline,coords,specs,BODY),rtol=1.e-12)
+    assert all(np.asarray(value).min()>=0. for value in final.dynamics.tracers.values())
+    gas=lambda value:jnp.exp(grid.to_nodal(value.dynamics.log_surface_pressure))[0]*jnp.asarray(
+        np.diff(coords.vertical.boundaries))[:,None,None]
+    weights=jnp.asarray(grid.quadrature_weights)
+    for name in state.dynamics.tracers:
+        np.testing.assert_allclose(jnp.sum(gas(final)*final.dynamics.tracers[name]*weights),
+            jnp.sum(gas(state)*state.dynamics.tracers[name]*weights),rtol=1.e-12,atol=1.e-20)
+    resumed=step(load_restart(save_restart(final,tmp_path/'divergence-diffusion.npz')))
+    for a,b in zip(jax.tree.leaves(resumed),jax.tree.leaves(step(final)),strict=True):
+        np.testing.assert_array_equal(a,b)
+    def objective(scale):
+        value=state._replace(dynamics=dataclasses.replace(state.dynamics,
+            divergence=state.dynamics.divergence*scale))
+        return step(value).dynamics.divergence[0,0,3]
+    derivative=jax.jit(jax.grad(objective))(1.)
+    finite=(objective(1.001)-objective(.999))/.002
+    np.testing.assert_allclose(derivative,finite,rtol=1.e-6,atol=1.e-12)
+
+
+@pytest.mark.parametrize('profile',[[-1.,0.,0.,0.],[np.nan,0.,0.,0.],[np.inf,0.,0.,0.],[0.,0.]])
+def test_layer_divergence_diffusion_rejects_invalid_profile(profile):
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.framework.gcm.specs import physics_specs
+    from src.celestials.planets.mars.reference_constants import reference_radiative_forcing
+    with pytest.raises(ValueError,match='finite nonnegative per-layer'):
+        build_step(coordinate_system('T21',4),physics_specs(BODY),BODY,reference_radiative_forcing(),5.,
+            radiation_component=None,soil_diffusivity=1.e-7,no_forcing=True,
+            divergence_diffusivity_m2_s=profile)
+
+
+def test_layer_divergence_diffusion_keeps_full_physics_gradient_and_restart(tmp_path):
+    from src.framework.gcm.restart import save_restart,load_restart
+    state,step,_=backend_case(temperature_k=170.,surface_temperature_k=180.,wind_speed=40.,
+        divergence_diffusivity_m2_s=[553244779.2207792,110648955.84415585,0.,0.])
+    state=state._replace(dynamics=dataclasses.replace(state.dynamics,
+        divergence=state.dynamics.divergence.at[:,0,3].set(1.e-3)))
+    def objective(scale):
+        value=state._replace(dynamics=dataclasses.replace(state.dynamics,
+            divergence=state.dynamics.divergence*scale))
+        for _ in range(3): value=step(value)
+        return value.dynamics.divergence[0,0,3]
+    derivative=jax.jit(jax.grad(objective))(1.)
+    assert np.isfinite(derivative) and abs(float(derivative))>1.e-6
+    forward=jax.jit(objective)
+    for epsilon in (1.e-3,1.e-4):
+        np.testing.assert_allclose(derivative,(forward(1.+epsilon)-forward(1.-epsilon))/(2.*epsilon),
+            rtol=3.e-5,atol=1.e-9)
+    tick=jax.jit(step);first=tick(state)
+    resumed=tick(load_restart(save_restart(first,tmp_path/'full-divergence-diffusion.npz')))
+    for a,b in zip(jax.tree.leaves(resumed),jax.tree.leaves(tick(first)),strict=True):
+        assert np.isfinite(np.asarray(a)).all()
+        np.testing.assert_array_equal(a,b)
 
 
 def test_frozen_dust_retains_dry_transport_but_keeps_surface_sources_and_restart(tmp_path):

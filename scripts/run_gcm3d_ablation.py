@@ -291,6 +291,22 @@ def reference_configuration(grid,data_directory,dt_seconds,*,moment_water=True,d
     return AMES_BODY_3D,forcing,radiation,options,hashes
 
 
+def reference_divergence_diffusivity(truncation,layers):
+    """Recorded native background D2 divided by its advective substep."""
+    presets={'T21':('C24',.26624905e11,9.625,24),'T42':('C48',.65910968e10,4.8125,48)}
+    if truncation not in presets or layers<2:
+        raise ValueError('native top divergence damping requires T21 or T42 and at least two layers')
+    native,area,substep_seconds,substeps=presets[truncation]
+    profile=[.2*area/substep_seconds,.04*area/substep_seconds]+[0.]*(layers-2)
+    metadata=dict(native_grid=native,minimum_corner_area_m2=area,area_printed_significant_digits=8,
+        native_physics_step_seconds=231.,native_advective_substeps=substeps,native_advective_substep_seconds=substep_seconds,
+        background_d2_coefficients=[.2,.04],diffusivity_m2_s=profile,
+        operator='spectral-exponential-divergence-after-dynamics',
+        source_commit='29654ea167575fa73b65f7f2ceb85f1682884ddd',
+        native_metadata_sha256='fca173f9388d6bc69cff30d1d41884b726412fe2e4aa6e6dc615630aa8cbc79b')
+    return profile,metadata
+
+
 def reference_rest_state(coords,specs,body,elevation_nodal_m,*,temperature_k=170.,isothermal=True,
                          pressure_scheme='native'):
     """Released hydro_eq pressure, or explicit isothermal sigma balance at its mass."""
@@ -417,6 +433,8 @@ def main() -> int:
         help='native do_isothermal cold start; disable for its frost-limited lapse profile')
     parser.add_argument('--initial-pressure-scheme',choices=('native','sigma-balanced'),default='native',
         help='retain source pressure, or balance isothermal pressure to core terrain at the same gas mass')
+    parser.add_argument('--native-top-divergence-damping',action='store_true',
+        help='adapt recorded native C24/C48 top-layer background D2 to spectral divergence diffusion')
     parser.add_argument('--north-inertia',type=float,default=-900.,help='replace thermal inertia north of the cap latitude when positive')
     parser.add_argument('--north-inertia-latitude',type=float,default=65.,help='north thermal-inertia boundary in degrees')
     parser.add_argument('--north-inertia-maximum',type=float,default=800.,help='thermal-inertia cap north of the boundary')
@@ -478,6 +496,8 @@ def main() -> int:
         parser.error('initial atmosphere controls require --config reference')
     if args.initial_pressure_scheme!='native' and (not reference or not args.isothermal_atmosphere):
         parser.error('sigma-balanced pressure requires --config reference and an isothermal atmosphere')
+    if args.native_top_divergence_damping and not reference:
+        parser.error('native top divergence damping requires --config reference')
     if not np.isfinite(args.soil_alpha): parser.error('soil alpha must be finite')
     soil_controls={}
     if not args.surface_condensation: soil_controls['surface_condensation']=False
@@ -541,6 +561,8 @@ def main() -> int:
         args.cooldown_seconds = max(args.cooldown_seconds, 15.0)
     if args.cooldown_seconds < 0:
         parser.error("--cooldown-seconds must be non-negative")
+    if args.native_top_divergence_damping and args.truncation not in ('T21','T42'):
+        parser.error('native top divergence damping requires T21 or T42')
     for key in ("sols", "chunk_sols", "dt", "hyperdiffusion_tau_sols"):
         if not np.isfinite(getattr(args, key)) or getattr(args, key) <= 0:
             parser.error(f"--{key.replace('_', '-')} must be finite and positive")
@@ -568,6 +590,7 @@ def main() -> int:
     coords = coordinate_system(args.truncation, args.layers,sigma_boundaries=sigma)
     grid = coords.horizontal
     body=MARS_BODY_3D;radiation=None;reference_options=None;input_hashes={};alternate_radiation_metadata={}
+    divergence_metadata=None
     if reference:
         body,base,radiation,reference_options,input_hashes=reference_configuration(
             grid,args.surface_properties,args.dt,moment_water=args.moment_water,
@@ -579,6 +602,9 @@ def main() -> int:
         reference_options.update(surface_controls)
         reference_options.update(soil_controls)
         reference_options.update(process_controls)
+        if args.native_top_divergence_damping:
+            profile,divergence_metadata=reference_divergence_diffusivity(args.truncation,args.layers)
+            reference_options['divergence_diffusivity_m2_s']=profile
         if not args.do_mars_surface:
             reference_options.update(moment_water=False,moment_dust=False,dust_background_options=None,moment_cloud_options=None)
         input_hashes['mola']=hashlib.sha256(args.mola_path.read_bytes()).hexdigest()
@@ -675,6 +701,7 @@ def main() -> int:
                 initial_surface_profile='released-equilibrated-latitude',
                 sigma_boundaries=sigma.tolist())
             config.update(alternate_radiation_metadata)
+            if divergence_metadata is not None: config['native_top_divergence_damping']=divergence_metadata
             if args.scale_surface_ir_flux: config['reference_radiation_controls']=dict(scale_surface_flux=True)
             if solar_constant is not None:
                 config.setdefault('reference_radiation_controls',{})['solar_constant_w_m2']=solar_constant
