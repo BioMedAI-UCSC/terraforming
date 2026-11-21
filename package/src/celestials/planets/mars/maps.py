@@ -528,6 +528,9 @@ def run_maps(
             if stop_requested is not None and stop_requested():
                 raise InterruptedError("simulation stopped by user")
             count = min(progress_chunk_steps, n_steps - completed)
+            if physics_backend=="reference" and comparison_window is not None:
+                pending=int(final.auxiliary_fields["comparison_count"])%comparison_window
+                count=min(count,comparison_window-pending)
             final = (advance_chunk(final) if count == progress_chunk_steps
                      else _integrate(step, final, count))
             # Synchronise here: without it JAX dispatch would make UI progress

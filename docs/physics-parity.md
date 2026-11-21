@@ -60,7 +60,7 @@ No complete-model equivalence or speed claim has passed yet.
 | Water state/restarts | `dinosaur_physics`, restart format 4 | Independent global water inventories, full cloud-feedback restart and three-step reverse derivatives | Surface water and lagged PBL state persist across restarts. Versions 2 and 3 remain readable; trace-water thermodynamics follows the source approximation |
 | Coupled gas column | `column_physics.column_physics` | Original Rayleigh, PBL, surface, CO2 and convection routines in reference order; 24 clear/winter/thaw/convective cases at 4/12/40 layers, with immediate deposition or suspended clouds; temperature errors below 2e-13 K | Radiation heating and downward surface flux are prescribed inputs |
 | Dinosaur adaptation | `dinosaur_physics.build_step` and `remap_gas` | Cold global smoke, gas inventory, remap energy/momentum/passive material checks, and three-step reverse derivatives checked against finite differences | Ground impulse is recorded; raw/corrected angular momentum and exchange-energy ledgers expose numerical repair changes; whole-model validation remains pending |
-| Positive spectral tracers | `tracer_transport.project_tracers` | Independent species inventories, grid positivity, physical-source retention, invalid-inventory rejection and reverse derivatives | Dinosaur numerical adaptation, separate from reference FV3 transport. Dynamics retains each species inventory. The post-physics projection retains physical sources and sinks. Per-species correction and redistribution are reported |
+| Positive grid-space reference tracers | `tracer_transport.project_tracers` | Independent species inventories, grid positivity, physical-source retention, invalid-inventory rejection and reverse derivatives | Dinosaur numerical adaptation, separate from reference FV3 transport. Dynamics retains each species inventory. The post-physics projection retains physical sources and sinks. Per-species correction and redistribution are reported |
 
 The optional `nonorographic_drag_options={"top_pressure_pa": .03}` enables
 non-orographic gravity-wave drag. Supply the same options to `initial_state`
@@ -884,18 +884,18 @@ Earlier Dinosaur benchmark revisions through `a9a10cf` used a dust target
 3.67 times too low for this visible setup. Those runs do not establish matched
 forcing; corrected runs need a new immutable revision and output directory.
 
-The reference backend projects transported species after dynamics and after
-column physics. The dynamics projection restores each previous global species
-inventory. The physics projection keeps each current inventory, so injection,
-condensation and settling remain physical sources and sinks. Negative spectral
-values are removed by a convex blend with the mass-weighted global mean. The
-blend stays in the existing spectral space; clipping and transforming nodal
-values can otherwise create new negative lobes. Negative total inventory is
-invalid and returns NaNs. `diagnostics.tracer_transport` reports raw and target
-mass, corrected mass, redistributed mass, and minimum values for both stages.
-This projection can smooth sharp tracer fronts. Long runs must measure its
-size and check resolution convergence. It does not reproduce FV3's local flux
-limiter or establish matched transport accuracy.
+The reference backend keeps physical tracers on Gaussian cells. Conservative
+local donor-cell fluxes move material between adjacent cells and layers. CFL
+substeps keep that transport positive. Scalar inventory corrections remove
+roundoff drift and preserve zeros; they do not blend distant cells. Material
+negative values fail with NaNs and `valid=false`, and the runner rejects the
+failed state before saving a restart. Static invalid configurations raise errors.
+`diagnostics.tracer_transport` reports raw and target mass, corrected mass,
+redistributed mass, and minima. The T21/L56 polar-plume check uses a 231-second
+step and bounds remote leakage and the redistribution ratio independently.
+This first-order transport can diffuse fronts locally. It is a numerical
+adaptation, not FV3's higher-order tracer limiter; resolution convergence and
+long coupled comparisons remain required.
 
 | Area | Remaining implementation and acceptance check |
 | --- | --- |

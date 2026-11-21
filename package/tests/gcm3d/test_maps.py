@@ -501,3 +501,26 @@ def test_reference_maps_rejects_bulk_water_with_moment_dust(monkeypatch):
             forcing=reference_radiative_forcing(),physics_backend='reference',
             radiation_component=make_radiation_component(lambda *args:None),
             reference_options=dict(soil_diffusivity=1e-8,bulk_water=True,moment_dust=True))
+
+
+def test_reference_checkpoints_finish_averaging_window_after_partial_restart(monkeypatch):
+    import dataclasses
+    from src.framework.physics import dinosaur_physics
+    from src.celestials.planets.mars.reference_constants import AMES_BODY_3D as body,reference_radiative_forcing
+    from src.framework.gcm._dinosaur import scales
+    monkeypatch.setattr(maps,'regrid_to_nodal',lambda coords,mola_path=None:np.zeros(coords.horizontal.nodal_shape))
+    def factory(coords,specs,*args,**kwargs):
+        tick=float(specs.nondimensionalize(231.*scales.units.second))
+        return lambda state:state._replace(surface_temperature=state.surface_temperature+1.,
+            dynamics=dataclasses.replace(state.dynamics,sim_time=state.dynamics.sim_time+tick))
+    monkeypatch.setattr(dinosaur_physics,'build_step',factory)
+    options=dict(body=body,truncation='T21',n_layers=4,dt_seconds=231.,
+        forcing=reference_radiative_forcing(),radiation_component=lambda *args:None,
+        physics_backend='reference',reference_options=dict(soil_diffusivity=1e-7,comparison_window_steps=4),
+        return_final_state=True)
+    _,partial=maps.run_maps(**options,n_steps=3)
+    seen=[]
+    _,final=maps.run_maps(**options,n_steps=5,initial_state=partial,progress_chunk_steps=4,
+        diagnostic_callback=lambda done,total,state,*args:seen.append((done,int(state.auxiliary_fields['comparison_count']))))
+    assert seen==[(1,4),(5,4)]
+    np.testing.assert_allclose(final.auxiliary_fields['comparison_sum_surface_temperature']/4.,206.5,rtol=2e-14)

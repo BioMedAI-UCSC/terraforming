@@ -404,7 +404,7 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
         if not np.isclose(radiation_update_seconds,round(radiation_update_seconds),rtol=0.,atol=1e-10):
             raise ValueError('radiation update interval must use whole seconds')
         radiation_interval=round(radiation_update_seconds)
-        if round(body.solar_day_seconds)%radiation_interval or not np.isclose(dt_seconds,round(dt_seconds),rtol=0.,atol=1e-10):
+        if not np.isclose(body.solar_day_seconds/radiation_interval,round(body.solar_day_seconds/radiation_interval),rtol=0.,atol=1e-10) or not np.isclose(dt_seconds,round(dt_seconds),rtol=0.,atol=1e-10):
             raise ValueError("radiation interval must divide the model day and physics steps must use whole seconds")
     ref=jnp.asarray(reference_temperature(coords,body))[:,None,None]
     base=primitive_equations(coords,body,specs=specs,orography=orography)

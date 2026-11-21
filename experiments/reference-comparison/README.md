@@ -11,7 +11,9 @@ surface/soil temperatures, 56 atmospheric levels and 231-second physics steps.
 Shared inputs have fixed SHA-256 checks. The native C48 case doubles its inner
 dynamics remapping frequency as required by the released resolution rule.
 Dinosaur retains its sigma grid, arithmetic centers, spectral filtering and
-zero-pressure top. Native FV3 retains hybrid interfaces and a finite top.
+zero-pressure dynamics top. Radiation alone retains a positive top pressure
+fraction and uses the current top-layer temperature. Native FV3 retains hybrid
+interfaces and a finite top.
 These numerical differences must appear in the comparison report.
 Atmospheric pressure now follows the released `hydro_eq` correction with
 `drym=705 Pa`. That parameter is not an exact global mean. The native C24 cold
@@ -72,6 +74,14 @@ Compute jobs recheck input hashes, native sources/executable or installed
 framework source before running. Each resolution writes separate logs, source
 identity, runtime records and outputs. Failed attempts remain available.
 Jobs have no time limits or automatic timed deletion.
+
+Reference outputs now include restartable five-sol step means and three-hour
+local-solar-time surface bins. Instantaneous full states remain separate. The
+mean files contain averaged fields only, with numeric time bounds and sample
+counts. `scripts/benchmark_reference_climate.py` accepts these files from the
+first simulated year, any exported grid size, and the common seasonal range.
+Concurrent T21/T42 wall times measure shared-device throughput and must not be
+used as isolated speed measurements.
 
 Monitor actual GPU memory and utilization. Each JAX process has preallocation
 disabled and an allocator fraction of 0.45. Record initialization, compilation,
