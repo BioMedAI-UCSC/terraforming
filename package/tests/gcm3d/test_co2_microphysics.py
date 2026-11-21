@@ -92,3 +92,10 @@ def test_cloud_grid_and_nuclei_validation():
         cloud_step(frost,half,p,jnp.zeros(4),150.,jnp.zeros(3),5.,nuclei_per_kg=0.)
     with pytest.raises(ValueError,match='diffusivity'):
         cloud_step(frost,half,p,jnp.zeros(4),150.,jnp.zeros(4),5.)
+
+
+def test_cloud_density_uses_post_phase_temperature():
+    half,p,frost=case()
+    result=cloud_step(frost-5.,half,p,jnp.full(4,.001),150.,jnp.zeros(3),231.)
+    np.testing.assert_allclose(result.diagnostics['density_kg_m3'],p/(189.02*result.temperature),rtol=2e-15)
+    assert np.max(np.abs(result.temperature-(frost-5.)))>1.

@@ -66,3 +66,34 @@ def test_radiation_factory_rejects_nonfinite_ramp_duration(duration):
 def test_radiation_factory_requires_integer_fixed_date(date):
     with pytest.raises(ValueError,match='calendar date must be an integer'):
         make_radiation_component(lambda *args:None,fixed_calendar_date=date)
+
+
+def test_reference_callback_uses_positive_native_top_and_current_top_temperature(monkeypatch):
+    from src.celestials.planets.mars.reference_constants import AMES_BODY_3D as body,reference_radiative_forcing
+    from src.celestials.planets.mars.maps import initial_rest_state
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.framework.gcm.specs import physics_specs
+    from src.framework.physics.vertical_grid import sigma_boundaries,coefficients
+    from src.framework.physics.dinosaur_physics import initial_state
+    from src.framework.physics import radiative_transfer as module
+    from src.framework.physics.gcm import RadiativeFluxDiagnostics
+    coords=coordinate_system('T21',56,sigma_boundaries=sigma_boundaries(56));specs=physics_specs(body)
+    dyn=initial_rest_state(coords,specs,body,np.zeros(coords.horizontal.nodal_shape),t_ref_k=195.,p0_pa=705.)
+    import dataclasses
+    dyn=dataclasses.replace(dyn,sim_time=0.)
+    state=initial_state(dyn,coords,specs,195.,radiation_update_seconds=1848.)
+    captured={}
+    def flux(temperature,surface,half,full,*args,**kwargs):
+        captured.update(half=np.asarray(half),full=np.asarray(full),strat=np.asarray(kwargs['stratosphere_temperature']))
+        interfaces=jnp.zeros_like(half);ground=jnp.zeros_like(surface)
+        return RadiativeFluxDiagnostics(interfaces,interfaces,interfaces,interfaces,jnp.zeros_like(temperature),ground,ground)
+    monkeypatch.setattr(module,'column_fluxes',flux)
+    make_radiation_component(lambda *args:None,solar_nonlte=False)(state,coords,specs,body,reference_radiative_forcing())
+    top=float(coefficients(56,705.)[0][0])
+    from src.framework.gcm._dinosaur import scales
+    pressure_scale=float(specs.dimensionalize(1.,scales.units.pascal).magnitude)
+    resolved=np.exp(np.asarray(coords.horizontal.to_nodal(dyn.log_surface_pressure)))[0]*pressure_scale
+    np.testing.assert_allclose(captured['half'][0]/resolved,top/705.,rtol=3e-14)
+    np.testing.assert_allclose(captured['strat'],195.,rtol=3e-14)
+    assert np.min(captured['half'][0])>0. and coords.vertical.boundaries[0]==0.
+    np.testing.assert_allclose(captured['full'],.5*(captured['half'][:-1]+captured['half'][1:]),rtol=2e-15)

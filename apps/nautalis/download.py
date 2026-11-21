@@ -12,6 +12,7 @@ import uuid
 
 def hash_tree(root):
     root=Path(root)
+    if root.is_symlink(): raise ValueError('output symlinks are not supported')
     if not root.is_dir(): raise ValueError('output directory does not exist')
     hashes={}
     for path in sorted(root.rglob('*')):
@@ -19,6 +20,7 @@ def hash_tree(root):
         if path.is_file():
             with path.open('rb') as handle:
                 hashes[str(path.relative_to(root))]=hashlib.file_digest(handle,'sha256').hexdigest()
+        elif not path.is_dir(): raise ValueError(f'unsupported output file: {path}')
     return hashes
 
 

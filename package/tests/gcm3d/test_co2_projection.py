@@ -313,3 +313,23 @@ def test_model_specific_budgets_measure_each_repair_without_changing_state(model
     invalid=positivity_preserving_co2_step(raw,coords,specs,**options,
         budget_fn=lambda state:(jnp.ones(2),jnp.asarray(1.)))
     with pytest.raises(ValueError,match='scalar global budgets'): invalid(initial)
+
+
+@pytest.mark.parametrize('nodal',[False,True])
+def test_global_pressure_repair_keeps_explicit_gas_sum_and_argon_mass(model,nodal):
+    coords,specs,state=model;grid=coords.horizontal
+    ar=jnp.broadcast_to(.04+.01*jnp.cos(jnp.asarray(grid.longitudes))[None,:,None],(4,*grid.nodal_shape))
+    encode=lambda q:q if nodal else grid.to_modal(q)
+    state=state._replace(dynamics=dataclasses.replace(state.dynamics,
+        tracers={'co2_mmr_gas':encode(1.-ar),'ar_mmr_gas':encode(ar)}))
+    raw=source_step(model,lambda *_:0.,pressure_error_pa=1.)
+    step=positivity_preserving_co2_step(raw,coords,specs,body=BODY,return_diagnostics=True)
+    final,info=jax.jit(step)(state)
+    assert abs(float(info.pressure_factor)-1.)>1e-4
+    co2=tracer_to_nodal(grid,final.dynamics.tracers['co2_mmr_gas'])
+    argon=tracer_to_nodal(grid,final.dynamics.tracers['ar_mmr_gas'])
+    np.testing.assert_allclose(co2+argon,1.,rtol=3e-14,atol=3e-14)
+    raw_state=raw(state)
+    ps0=jnp.exp(grid.to_nodal(raw_state.dynamics.log_surface_pressure))
+    ps1=jnp.exp(grid.to_nodal(final.dynamics.log_surface_pressure))
+    np.testing.assert_allclose(ps1*argon,ps0*tracer_to_nodal(grid,raw_state.dynamics.tracers["ar_mmr_gas"]),rtol=3e-14)

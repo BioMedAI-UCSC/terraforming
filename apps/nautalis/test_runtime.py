@@ -220,6 +220,28 @@ class RuntimeTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'symlinks'):
                 download.hash_tree(root)
 
+    def test_downloader_rejects_changed_remote_or_corrupt_local_copy(self):
+        for mutation in ('remote','local'):
+            with self.subTest(mutation=mutation),tempfile.TemporaryDirectory() as temporary:
+                output=Path(temporary)/'snapshot'
+                expected={'raw.bin':hashlib.sha256(b'raw').hexdigest()};remote_calls=0
+                def read(args,**kwargs):
+                    nonlocal remote_calls
+                    if 'exec' in args:
+                        remote_calls+=1
+                        return json.dumps({'raw.bin':'changed'} if mutation=='remote' and remote_calls==2 else expected)
+                    if 'pods' in args:return json.dumps({'items':[{'metadata':{'name':'running'},'status':{'phase':'Running'}}]})
+                    return '{}'
+                def execute(args,**kwargs):
+                    if 'cp' in args:
+                        target=Path(args[-1]);target.mkdir();(target/'raw.bin').write_bytes(b'bad' if mutation=='local' else b'raw')
+                    return SimpleNamespace(stdout='',stderr='',returncode=0)
+                with patch.object(sys,'argv',['download','--job','custom','--output',str(output)]), \
+                     patch.object(download.subprocess,'check_output',side_effect=read), \
+                     patch.object(download.subprocess,'run',side_effect=execute):
+                    with self.assertRaisesRegex(RuntimeError,'unverified'):download.main()
+                self.assertFalse((output/'sha256.json').exists())
+
     def test_downloader_refuses_to_overwrite_existing_snapshot(self):
         with tempfile.TemporaryDirectory() as temporary:
             output=Path(temporary);(output/'saved').write_text('keep')

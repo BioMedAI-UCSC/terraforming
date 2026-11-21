@@ -1297,15 +1297,18 @@ def test_nonlte_callback_keeps_interface_fluxes_and_reports_heating_separately()
     corrected=jax.jit(lambda state:callback(state,coords,specs,BODY,forcing))(state)
     for actual,expected in zip(corrected[:7],base[:7],strict=True):
         np.testing.assert_allclose(actual,expected,rtol=3e-13,atol=1e-11)
-    half=jnp.asarray(coords.vertical.boundaries,dtype=jnp.float64)[:,None,None]*610.
-    full=jnp.asarray(coords.vertical.centers,dtype=jnp.float64)[:,None,None]*610.
+    from src.framework.physics.vertical_grid import radiation_interfaces
+    half=radiation_interfaces(coords.vertical.boundaries,jnp.asarray(610.))[:,None,None]
+    full=.5*(half[:-1]+half[1:])
     t=jnp.full(shape,180.);radgrid=radiation_grid(half+jnp.zeros_like(t[:1]),
-        full+jnp.zeros_like(t),t,jnp.full(grid.nodal_shape,200.))
+        full+jnp.zeros_like(t),t,jnp.full(grid.nodal_shape,200.),t[0])
     capacity=BODY.cp_j_kg_k*jnp.diff(half,axis=0)/BODY.gravity_m_s2
     sw=jnp.diff(base.shortwave_up_w_m2-base.shortwave_down_w_m2,axis=0)/capacity
     lw=jnp.diff(base.longwave_up_w_m2-base.longwave_down_w_m2,axis=0)/capacity
     nlte=cooling(t,full,.9,.01,radiation_pressure_pa=radgrid.pressure)
     expected=(solar_heating_factor(full)-1.)*sw+infrared_blend(lw,nlte,half[:-1])-lw
+    dynamics_capacity=BODY.cp_j_kg_k*jnp.asarray(np.diff(coords.vertical.boundaries),dtype=jnp.float64)[:,None,None]*610./BODY.gravity_m_s2
+    expected=expected*capacity/dynamics_capacity
     np.testing.assert_allclose(corrected.nonlte_heating_k_s,expected,rtol=2e-11,atol=2e-14)
 
 

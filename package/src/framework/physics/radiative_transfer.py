@@ -159,6 +159,6 @@ def make_radiation_component(particle_provider,*,radiation_interval_seconds=1848
             nonlte=cooling(temperature,full,co2,oxygen,radiation_pressure_pa=rad_grid.pressure)
             lw=jnp.diff(flux.longwave_up_w_m2-flux.longwave_down_w_m2,axis=0)/capacity
             correction=correction+infrared_blend(lw,nonlte,half[:-1])-lw
-        dynamics_capacity=body.cp_j_kg_k*jnp.asarray(np.diff(coords.vertical.boundaries))[:,None,None]*pressure/body.gravity_m_s2
+        dynamics_capacity=body.cp_j_kg_k*jnp.asarray(np.diff(coords.vertical.boundaries),dtype=pressure.dtype)[:,None,None]*pressure/body.gravity_m_s2
         return flux._replace(nonlte_heating_k_s=correction*capacity/dynamics_capacity,shortwave_scale=ramp)
     return component
