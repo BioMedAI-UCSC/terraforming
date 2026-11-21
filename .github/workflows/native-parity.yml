@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
-      - run: sudo apt-get update && sudo apt-get install -y gfortran
+      - run: sudo apt-get update && sudo apt-get install -y gfortran libnetcdf-dev libnetcdff-dev
       - run: uv sync --frozen --dev --all-packages --extra gcm3d
       - run: uv run --no-sync python scripts/run_native_validation.py --sources /tmp/native-sources --output native-results --shard ${{ matrix.shard }} --shards 4
       - uses: actions/upload-artifact@v4

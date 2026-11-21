@@ -99,3 +99,13 @@ def test_cloud_density_uses_post_phase_temperature():
     result=cloud_step(frost-5.,half,p,jnp.full(4,.001),150.,jnp.zeros(3),231.)
     np.testing.assert_allclose(result.diagnostics['density_kg_m3'],p/(189.02*result.temperature),rtol=2e-15)
     assert np.max(np.abs(result.temperature-(frost-5.)))>1.
+
+
+def test_bottom_boundary_density_change_is_explicit_for_shared_water_solver():
+    from src.framework.physics.co2_microphysics import sedimentation
+    half,p,frost=case();t=frost-5.;post=frost
+    args=(jnp.full(4,.001),half,p,t,150.,jnp.full(4,1e-6),jnp.zeros(3),231.)
+    water=sedimentation(*args,density_temperature=post)
+    co2=sedimentation(*args,density_temperature=post,bottom_density_temperature=post[-1])
+    np.testing.assert_array_equal(water[2]['density_kg_m3'],co2[2]['density_kg_m3'])
+    assert abs(float(water[1]-co2[1]))>1e-12
