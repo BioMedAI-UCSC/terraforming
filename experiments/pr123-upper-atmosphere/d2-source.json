@@ -1,0 +1,146 @@
+{
+  "apiVersion": "v1",
+  "kind": "List",
+  "items": [
+    {
+      "apiVersion": "v1",
+      "kind": "ConfigMap",
+      "metadata": {
+        "name": "pr123-09e8c10-source",
+        "namespace": "razvanlab"
+      },
+      "immutable": true,
+      "data": {
+        "source.py": "import hashlib,json,subprocess,tarfile\nfrom pathlib import Path\nrevision='09e8c10500072fa06b51596bc50350d535ac6c5f';source=Path('/tmp/source');source.mkdir()\nfor command in (['git','init',str(source)],['git','-C',str(source),'fetch','--depth=1','https://github.com/BioMedAI-UCSC/terraforming.git',revision],['git','-C',str(source),'checkout','--detach','FETCH_HEAD']):subprocess.run(command,check=True)\nassert subprocess.check_output(['git','-C',str(source),'rev-parse','HEAD'],text=True).strip()==revision\nfor name in ('uv.lock','apps/mars-calibration/constraints.txt'):\n assert (source/name).read_bytes()==(Path('/work/source')/name).read_bytes(),name\noutput=Path('/work/pr123')/revision;output.mkdir(exist_ok=True)\narchive=output/'source.tar.gz'\nwith tarfile.open(archive,'w:gz',compresslevel=1) as handle:handle.add(source,arcname='source')\nwith archive.open('rb') as stream:digest=hashlib.file_digest(stream,'sha256').hexdigest()\nrecord=dict(revision=revision,archive=str(archive),sha256=digest)\n(output/'source.json').write_text(json.dumps(record,indent=2));print(json.dumps(record),flush=True)\n"
+      }
+    },
+    {
+      "apiVersion": "batch/v1",
+      "kind": "Job",
+      "metadata": {
+        "name": "pr123-09e8c10-source",
+        "namespace": "razvanlab",
+        "labels": {
+          "campaign": "pr123-09e8c10-source"
+        },
+        "finalizers": [
+          "terraforming/retain-validation-results"
+        ]
+      },
+      "spec": {
+        "backoffLimit": 0,
+        "template": {
+          "metadata": {
+            "labels": {
+              "campaign": "pr123-09e8c10-source"
+            }
+          },
+          "spec": {
+            "restartPolicy": "Never",
+            "automountServiceAccountToken": false,
+            "terminationGracePeriodSeconds": 120,
+            "securityContext": {
+              "runAsNonRoot": true,
+              "runAsUser": 10001,
+              "runAsGroup": 10001,
+              "fsGroup": 10001,
+              "fsGroupChangePolicy": "OnRootMismatch",
+              "seccompProfile": {
+                "type": "RuntimeDefault"
+              }
+            },
+            "affinity": {
+              "nodeAffinity": {
+                "requiredDuringSchedulingIgnoredDuringExecution": {
+                  "nodeSelectorTerms": [
+                    {
+                      "matchExpressions": [
+                        {
+                          "key": "topology.kubernetes.io/region",
+                          "operator": "In",
+                          "values": [
+                            "us-west"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            "containers": [
+              {
+                "name": "experiment",
+                "image": "samkash/terraforming-paper@sha256:40c9ea792caad0067d1628eb5fa03a4b053bb64879f5791926b5e13d6bbcea05",
+                "imagePullPolicy": "IfNotPresent",
+                "resources": {
+                  "requests": {
+                    "cpu": "2",
+                    "memory": "2Gi",
+                    "ephemeral-storage": "4Gi"
+                  },
+                  "limits": {
+                    "cpu": "2",
+                    "memory": "2Gi",
+                    "ephemeral-storage": "8Gi"
+                  }
+                },
+                "securityContext": {
+                  "allowPrivilegeEscalation": false,
+                  "readOnlyRootFilesystem": true,
+                  "capabilities": {
+                    "drop": [
+                      "ALL"
+                    ]
+                  }
+                },
+                "volumeMounts": [
+                  {
+                    "name": "work",
+                    "mountPath": "/work"
+                  },
+                  {
+                    "name": "tmp",
+                    "mountPath": "/tmp"
+                  },
+                  {
+                    "name": "prepare",
+                    "mountPath": "/prepare",
+                    "readOnly": true
+                  }
+                ],
+                "command": [
+                  "python3",
+                  "/prepare/source.py"
+                ],
+                "env": []
+              }
+            ],
+            "volumes": [
+              {
+                "name": "work",
+                "persistentVolumeClaim": {
+                  "claimName": "mars-merge-bdc152a-1120"
+                }
+              },
+              {
+                "name": "tmp",
+                "emptyDir": {
+                  "sizeLimit": "8Gi"
+                }
+              },
+              {
+                "name": "prepare",
+                "configMap": {
+                  "name": "pr123-09e8c10-source"
+                }
+              }
+            ]
+          }
+        },
+        "completions": 1,
+        "parallelism": 1
+      }
+    }
+  ]
+}

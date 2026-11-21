@@ -93,3 +93,62 @@ maximum as a time mean. Native layer heights come from saved mean thickness;
 the Dinosaur height coordinate is an isothermal reference approximation.
 Interpolation of mean fields differs from time-averaging fields interpolated
 at each step. These five-sol runs do not establish climate convergence.
+
+## Completed GPU controls
+
+All entries below use the public runner, 56 layers, 231-second steps and
+1,920 steps. The quantities are spatial RMS of the five-sol mean zonal wind
+and the area mean of the five-sol mean top temperature.
+
+| Resolution | Initial pressure | Native top D2 | Wind RMS (m/s) | Temperature (K) |
+| --- | --- | --- | ---: | ---: |
+| T21 | native | off | 12.526755 | 155.957801 |
+| T21 | balanced | off | 10.674408 | 159.642904 |
+| T21 | native | on | 4.390471 | 170.405967 |
+| T21 | balanced | on | 4.354305 | 170.466290 |
+| T42 | native | on | 6.093892 | 170.551098 |
+| T42 | balanced | on | 5.240840 | 170.687820 |
+
+Native C24 gives 3.964194 m/s and 168.960053 K. Native C48 gives
+4.361770 m/s and 169.236322 K. T42 with native pressure and no D2 first
+fails at step 21. The separate pressure-only CPU matrix is still running;
+it does not supply a completed T42 value here.
+
+Source pins are `69d6587cef02e5b17a82e28422b67aa3d5be55ad` for baseline,
+`43fc88bf8f6654ddca5b7e5400a0186a46156e9d` for pressure-only and
+`09e8c10500072fa06b51596bc50350d535ac6c5f` for D2 controls. The D2 option
+uses native startup area and acoustic step to set the two top coefficients.
+The spectral operator differs from the FV3 operator. These controls do not
+change the default runner physics.
+
+`validation/pr123-five-sol-d2-native.json` and
+`validation/pr123-five-sol-d2-balanced.json` contain the full two-resolution
+reports, inventories and common-pressure profiles. For example, native-pressure
+T42 D2 gives 156.128 K at 0.03 Pa, compared with native C48 at 161.246 K.
+The large top cold bias is removed, but a colder layer remains below it.
+
+The CPU baseline and GPU native-pressure D2 T21 cases pass exact equality of
+all 59 final restart arrays. The pressure-only GPU pair and balanced-D2 GPU
+case fail their strict independent full-run/restarted-run comparison. They
+already differ at step 384, before the restart is loaded. The failure thus
+does not isolate the save/load operation. The failed assertions and the
+pre-reload comparisons are preserved; tolerances were not relaxed.
+
+`replay_t42_failure.py` uses the public `build_step` entrypoint. It verifies
+saved step 19 to 20, then reproduces step 21 as the first nonfinite step.
+`validation/pr123-t42-first-invalid.json` preserves the last finite extrema,
+the first bad fields and coordinates, and source/input hashes. Field order
+does not identify a causal kernel after global spectral propagation.
+
+The native-pressure T42 D2 job peaks at 18,126 MiB on a 24,576 MiB GPU and
+5,482,639,360 bytes of host memory. GPU utilization reaches 100%; the mean
+of 473 one-second samples is 46.24%, including compilation and output I/O.
+These samples exclude runtime extraction. T21 pairs use two processes;
+T42 uses one process per GPU. Launcher metadata records affinity and CPU quota.
+
+Only unbound jobs were replaced after fresh node/container checks. Their
+Jobs and ConfigMaps remain archived with the suspension reason. Replacement
+init containers copy prepared archives to local scratch, verify the same hashes,
+extract locally, then remove only their own cached tar after successful extraction.
+The final T42 balanced job requests four CPUs and 16 GiB with eight-CPU/64-GiB
+limits, based on measured GPU host memory. Assigned cases were left unchanged.

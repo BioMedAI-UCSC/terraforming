@@ -56,6 +56,7 @@ def analyse(runs, native, coordinates):
         root = runs / case / 'reference'
         config = json.loads(record(root / 'config.json').read_text())
         context = dict(initial_pressure_scheme=config['initial_pressure_scheme'],
+            native_top_divergence_damping=config.get('native_top_divergence_damping'),
             truncation=config['truncation'], layers=config['layers'], dt_seconds=config['dt'],
             runtime=[json.loads(record(path).read_text()) for path in sorted((runs / case).glob('runtime-*.json'))])
         rows = list(csv.DictReader(record(root / 'checkpoint_diagnostics.csv').open()))
