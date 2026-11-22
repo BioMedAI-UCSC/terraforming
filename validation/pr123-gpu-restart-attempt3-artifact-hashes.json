@@ -1,0 +1,12 @@
+{
+  "native-d2.log": "b5e0fb3428753648e5bece040e39a99dc1c8116ac050db369fd2b1c941dfcf5a",
+  "balanced-d2.log": "b5e0fb3428753648e5bece040e39a99dc1c8116ac050db369fd2b1c941dfcf5a",
+  "device.json": "a7a5cf4d76dca59ed90caa658b022a468ec3a9195ee9718b1205efaac5e4d783",
+  "gpu.csv": "7c3d9f77d87a3af7c6ca032ad60959e7fc4e8ea635b850c621811f684405d011",
+  "summary.json": "4979ad1c90e91cd00fe161b31c0c3562140517bbded78e5d7b9e234aee94a9b4",
+  "resources.jsonl": "0409b9531325556172f0feb3f4d3081c42b8c1c1c1379e801a59beb2b4b72340",
+  "native-d2/input-roundtrip.npz": "fe2ff3967afaa0035bc31d4663928763d8bc2076061db23e4a47df06d1efa159",
+  "native-d2/step768.npz": "c2bdc38873d37d9f390d23b2a6fc7498a0c70de980bee431a44bad5297b6f910",
+  "balanced-d2/input-roundtrip.npz": "3852ce8989ca0019eb9ae672edc2910d1f185363ce9039861fee647cdad7b8e5",
+  "balanced-d2/step768.npz": "26137a0b515997d03b0f91aca06db0e280744b80c9b2b230525e57f8c1a59b27"
+}
