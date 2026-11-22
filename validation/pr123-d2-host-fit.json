@@ -1,0 +1,16 @@
+{
+  "old_job": "pr123-09e8c10-d2-t42-balanced-local",
+  "new_job": "pr123-09e8c10-d2-t42-balanced-fit",
+  "pod_uid": "e503cc53-bae3-44fa-9edd-a3a0131ed56b",
+  "prior_phase": "Pending",
+  "prior_node": null,
+  "old_memory_request": "32Gi",
+  "memory_request": "16Gi",
+  "memory_limit": "64Gi",
+  "cpu_request": 4,
+  "cpu_limit": 8,
+  "measured_single_t42_gpu_host_peak_bytes": 4464123904,
+  "measured_two_t21_gpu_host_peak_bytes": 5449461760,
+  "unique_output_root": "/work/pr123/09e8c10500072fa06b51596bc50350d535ac6c5f/d2-fit-T42-balanced-d2",
+  "reason": "replace only the needed unassigned case using measured GPU-host memory; preserve all assigned cases and previous Job/ConfigMap audit"
+}

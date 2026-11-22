@@ -1,0 +1,1461 @@
+{
+  "status": "completed",
+  "source_revision": "09e8c10500072fa06b51596bc50350d535ac6c5f",
+  "job": "pr123-09e8c10-d2-t42-native",
+  "truncation": "T42",
+  "layers": 56,
+  "dt_seconds": 231,
+  "sols": 5,
+  "steps": 1920,
+  "initial_pressure_scheme": "released-hydro-eq",
+  "native_top_divergence_damping": {
+    "native_grid": "C48",
+    "minimum_corner_area_m2": 6591096800.0,
+    "area_printed_significant_digits": 8,
+    "native_physics_step_seconds": 231.0,
+    "native_advective_substeps": 48,
+    "native_advective_substep_seconds": 4.8125,
+    "background_d2_coefficients": [
+      0.2,
+      0.04
+    ],
+    "diffusivity_m2_s": [
+      273915711.16883117,
+      54783142.233766235,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "operator": "spectral-exponential-divergence-after-dynamics",
+    "source_commit": "29654ea167575fa73b65f7f2ceb85f1682884ddd",
+    "native_metadata_sha256": "fca173f9388d6bc69cff30d1d41884b726412fe2e4aa6e6dc615630aa8cbc79b"
+  },
+  "metrics": {
+    "top_zonal_wind_m_s": {
+      "mean": -2.873784259333151,
+      "rms": 6.093892034829049,
+      "minimum": -18.270704446833445,
+      "maximum": 14.347337692746049
+    },
+    "top_temperature_k": {
+      "mean": 170.55109834630878,
+      "rms": 170.55948054712132,
+      "minimum": 150.76903590642138,
+      "maximum": 174.0543097008363
+    },
+    "pressure_pa": [
+      {
+        "mean": 0.003251726368662342,
+        "rms": 0.0033756825869888096,
+        "minimum": 0.0006281008388355654,
+        "maximum": 0.005958362587874386
+      },
+      {
+        "mean": 0.015005767018570076,
+        "rms": 0.015577788745439783,
+        "minimum": 0.0028985018366142943,
+        "maximum": 0.027496102275846694
+      },
+      {
+        "mean": 0.04064254929498401,
+        "rms": 0.04219184838801492,
+        "minimum": 0.007850481993383882,
+        "maximum": 0.07447214732729542
+      },
+      {
+        "mean": 0.0780382757796741,
+        "rms": 0.08101310467167146,
+        "minimum": 0.015073810315305863,
+        "maximum": 0.14299491719505056
+      },
+      {
+        "mean": 0.13073261619125065,
+        "rms": 0.13571615997007708,
+        "minimum": 0.025252206546109653,
+        "maximum": 0.23955039293460775
+      },
+      {
+        "mean": 0.2139451145021232,
+        "rms": 0.2221007291868901,
+        "minimum": 0.0413254655061379,
+        "maximum": 0.3920263950845132
+      },
+      {
+        "mean": 0.3426007800660383,
+        "rms": 0.35566076491038234,
+        "minimum": 0.06617648994669845,
+        "maximum": 0.6277710480792412
+      },
+      {
+        "mean": 0.5376128056573825,
+        "rms": 0.5581066734549319,
+        "minimum": 0.10384485529176081,
+        "maximum": 0.9851050380075077
+      },
+      {
+        "mean": 0.827735989031525,
+        "rms": 0.8592893890844557,
+        "minimum": 0.15988481504947738,
+        "maximum": 1.5167177648196433
+      },
+      {
+        "mean": 1.2515789964468955,
+        "rms": 1.2992893452731447,
+        "minimum": 0.241753988008731,
+        "maximum": 2.293354551621229
+      },
+      {
+        "mean": 1.880498285464384,
+        "rms": 1.9521831167226371,
+        "minimum": 0.3632355298748299,
+        "maximum": 3.4457667590530296
+      },
+      {
+        "mean": 2.818810320288135,
+        "rms": 2.926263724378306,
+        "minimum": 0.5444791246133215,
+        "maximum": 5.165100642102361
+      },
+      {
+        "mean": 4.164757086656641,
+        "rms": 4.3235181508364295,
+        "minimum": 0.8044611148359003,
+        "maximum": 7.631371769737138
+      },
+      {
+        "mean": 6.0155270935159235,
+        "rms": 6.244839743232937,
+        "minimum": 1.161954354427959,
+        "maximum": 11.022665352710654
+      },
+      {
+        "mean": 8.488284452268992,
+        "rms": 8.811858923639857,
+        "minimum": 1.6395901685104743,
+        "maximum": 15.553669276434501
+      },
+      {
+        "mean": 11.71727836839922,
+        "rms": 12.163942494145687,
+        "minimum": 2.2633000251767488,
+        "maximum": 21.470377623040825
+      },
+      {
+        "mean": 15.850355452311259,
+        "rms": 16.45457299654671,
+        "minimum": 3.061641856271569,
+        "maximum": 29.043699937892608
+      },
+      {
+        "mean": 21.044638237330467,
+        "rms": 21.846862494908812,
+        "minimum": 4.064965323418592,
+        "maximum": 38.56154267994044
+      },
+      {
+        "mean": 27.461332829505743,
+        "rms": 28.508162292327462,
+        "minimum": 5.3044088678503085,
+        "maximum": 50.31929492019456
+      },
+      {
+        "mean": 35.259779463302195,
+        "rms": 36.60388669305479,
+        "minimum": 6.810750520551213,
+        "maximum": 64.60892676442086
+      },
+      {
+        "mean": 44.59097138013479,
+        "rms": 46.290784819867426,
+        "minimum": 8.613156014070398,
+        "maximum": 81.70711354709368
+      },
+      {
+        "mean": 55.59084297291071,
+        "rms": 57.709972901834334,
+        "minimum": 10.737882325942767,
+        "maximum": 101.86293723553642
+      },
+      {
+        "mean": 68.37366893640268,
+        "rms": 70.98008179947175,
+        "minimum": 13.207002663906872,
+        "maximum": 125.28579123770504
+      },
+      {
+        "mean": 83.02592415818147,
+        "rms": 86.19088283394544,
+        "minimum": 16.037220447397036,
+        "maximum": 152.1341294566886
+      },
+      {
+        "mean": 99.60093276795507,
+        "rms": 103.39773285749745,
+        "minimum": 19.23883572223585,
+        "maximum": 182.50566137460874
+      },
+      {
+        "mean": 118.11458924583079,
+        "rms": 122.61713224981675,
+        "minimum": 22.814918653362316,
+        "maximum": 216.4295115440532
+      },
+      {
+        "mean": 138.54237088690965,
+        "rms": 143.823623497408,
+        "minimum": 26.760732454906,
+        "maximum": 253.8607453208183
+      },
+      {
+        "mean": 160.81778612100274,
+        "rms": 166.94818036306026,
+        "minimum": 31.06343366887683,
+        "maximum": 294.67752561306236
+      },
+      {
+        "mean": 184.83232385504166,
+        "rms": 191.87815529718384,
+        "minimum": 35.70206238018598,
+        "maximum": 338.68102005790917
+      },
+      {
+        "mean": 210.43689104239573,
+        "rms": 218.45877180745066,
+        "minimum": 40.64781989637404,
+        "maximum": 385.5980351788972
+      },
+      {
+        "mean": 237.44465429199997,
+        "rms": 246.49607439041975,
+        "minimum": 45.86461763053489,
+        "maximum": 435.0862232624502
+      },
+      {
+        "mean": 265.6351402242767,
+        "rms": 275.7611851935426,
+        "minimum": 51.309869122753504,
+        "maximum": 486.74159572294855
+      },
+      {
+        "mean": 294.75940095593467,
+        "rms": 305.9956664088925,
+        "minimum": 56.935487800977405,
+        "maximum": 540.1079881769347
+      },
+      {
+        "mean": 324.5460167978887,
+        "rms": 336.91775179468476,
+        "minimum": 62.689046457298275,
+        "maximum": 594.6880596006857
+      },
+      {
+        "mean": 354.70768833461466,
+        "rms": 368.2291900455257,
+        "minimum": 68.51505056867546,
+        "maximum": 649.9553714520555
+      },
+      {
+        "mean": 384.9481636017348,
+        "rms": 399.6224360348789,
+        "minimum": 74.35627634496299,
+        "maximum": 705.3670808159253
+      },
+      {
+        "mean": 414.96925184072705,
+        "rms": 430.7879319349874,
+        "minimum": 80.15512550010406,
+        "maximum": 760.376792190893
+      },
+      {
+        "mean": 444.47769166399326,
+        "rms": 461.42123719725754,
+        "minimum": 85.85495190134787,
+        "maximum": 814.447142502017
+      },
+      {
+        "mean": 473.1916660106064,
+        "rms": 491.22979185893996,
+        "minimum": 91.40131999283948,
+        "maximum": 867.0617389037508
+      },
+      {
+        "mean": 500.8467871255338,
+        "rms": 519.939129670513,
+        "minimum": 96.74316084937213,
+        "maximum": 917.7361254703252
+      },
+      {
+        "mean": 527.2014099640423,
+        "rms": 547.298394047733,
+        "minimum": 101.8337985092905,
+        "maximum": 966.0275193132536
+      },
+      {
+        "mean": 552.0411697639652,
+        "rms": 573.0850486167268,
+        "minimum": 106.63182644828454,
+        "maximum": 1011.5431250880813
+      },
+      {
+        "mean": 575.1826776186787,
+        "rms": 597.1087136626749,
+        "minimum": 111.10182141328052,
+        "maximum": 1053.9469066477354
+      },
+      {
+        "mean": 596.4763454567499,
+        "rms": 619.2140987980391,
+        "minimum": 115.21488909322811,
+        "maximum": 1092.9647634476544
+      },
+      {
+        "mean": 615.8083477733114,
+        "rms": 639.2830394753846,
+        "minimum": 118.94904304554805,
+        "maximum": 1128.3881251615387
+      },
+      {
+        "mean": 633.1017615759188,
+        "rms": 657.2356803881155,
+        "minimum": 122.28942488715316,
+        "maximum": 1160.0760404828004
+      },
+      {
+        "mean": 648.3169583551062,
+        "rms": 673.030882382999,
+        "minimum": 125.22838000716439,
+        "maximum": 1187.955895359258
+      },
+      {
+        "mean": 661.4513535658373,
+        "rms": 686.6659623918171,
+        "minimum": 127.7654091769502,
+        "maximum": 1212.0229539507134
+      },
+      {
+        "mean": 672.5386525609858,
+        "rms": 698.1759106197358,
+        "minimum": 129.90702289524666,
+        "maximum": 1232.3389769008384
+      },
+      {
+        "mean": 681.6477723528974,
+        "rms": 707.6322712042829,
+        "minimum": 131.66653311649168,
+        "maximum": 1249.030245606489
+      },
+      {
+        "mean": 688.8816769082993,
+        "rms": 715.1419331115528,
+        "minimum": 133.0638282773306,
+        "maximum": 1262.2854280482054
+      },
+      {
+        "mean": 694.3764644392782,
+        "rms": 720.8461826346021,
+        "minimum": 134.12519699847883,
+        "maximum": 1272.353906370498
+      },
+      {
+        "mean": 698.3012509458551,
+        "rms": 724.9205824966515,
+        "minimum": 134.88330558989932,
+        "maximum": 1279.545563488868
+      },
+      {
+        "mean": 700.8598937256502,
+        "rms": 727.5767610611573,
+        "minimum": 135.3775309625376,
+        "maximum": 1284.2339411954883
+      },
+      {
+        "mean": 702.2971352651981,
+        "rms": 729.0687904290356,
+        "minimum": 135.65514737740546,
+        "maximum": 1286.8674980351752
+      },
+      {
+        "mean": 702.9196897331008,
+        "rms": 729.7150767515886,
+        "minimum": 135.77539949556612,
+        "maximum": 1288.0082475417187
+      }
+    ],
+    "height_above_surface_m": [
+      {
+        "mean": 124834.76776636194,
+        "rms": 124834.76776636194,
+        "minimum": 124834.76776636195,
+        "maximum": 124834.76776636195
+      },
+      {
+        "mean": 109293.98492673211,
+        "rms": 109293.98492673211,
+        "minimum": 109293.98492673211,
+        "maximum": 109293.98492673211
+      },
+      {
+        "mean": 99168.39759797967,
+        "rms": 99168.39759797968,
+        "minimum": 99168.39759797968,
+        "maximum": 99168.39759797968
+      },
+      {
+        "mean": 92538.63398728544,
+        "rms": 92538.63398728544,
+        "minimum": 92538.63398728546,
+        "maximum": 92538.63398728546
+      },
+      {
+        "mean": 87295.31351341534,
+        "rms": 87295.31351341533,
+        "minimum": 87295.31351341534,
+        "maximum": 87295.31351341534
+      },
+      {
+        "mean": 82289.68416317065,
+        "rms": 82289.68416317065,
+        "minimum": 82289.68416317065,
+        "maximum": 82289.68416317065
+      },
+      {
+        "mean": 77504.77136679002,
+        "rms": 77504.77136679002,
+        "minimum": 77504.77136679002,
+        "maximum": 77504.77136679002
+      },
+      {
+        "mean": 72925.88639454052,
+        "rms": 72925.88639454052,
+        "minimum": 72925.88639454052,
+        "maximum": 72925.88639454052
+      },
+      {
+        "mean": 68540.26020029596,
+        "rms": 68540.26020029598,
+        "minimum": 68540.26020029598,
+        "maximum": 68540.26020029598
+      },
+      {
+        "mean": 64338.4575836943,
+        "rms": 64338.457583694304,
+        "minimum": 64338.457583694304,
+        "maximum": 64338.457583694304
+      },
+      {
+        "mean": 60201.045186012816,
+        "rms": 60201.045186012816,
+        "minimum": 60201.04518601282,
+        "maximum": 60201.04518601282
+      },
+      {
+        "mean": 56087.541779339095,
+        "rms": 56087.541779339095,
+        "minimum": 56087.541779339095,
+        "maximum": 56087.541779339095
+      },
+      {
+        "mean": 52120.73322592133,
+        "rms": 52120.733225921336,
+        "minimum": 52120.733225921336,
+        "maximum": 52120.733225921336
+      },
+      {
+        "mean": 48384.17342672328,
+        "rms": 48384.173426723275,
+        "minimum": 48384.173426723275,
+        "maximum": 48384.173426723275
+      },
+      {
+        "mean": 44884.83460599219,
+        "rms": 44884.8346059922,
+        "minimum": 44884.8346059922,
+        "maximum": 44884.8346059922
+      },
+      {
+        "mean": 41608.71534237124,
+        "rms": 41608.71534237124,
+        "minimum": 41608.71534237124,
+        "maximum": 41608.71534237124
+      },
+      {
+        "mean": 38538.38634971011,
+        "rms": 38538.38634971011,
+        "minimum": 38538.38634971011,
+        "maximum": 38538.38634971011
+      },
+      {
+        "mean": 35657.82433155595,
+        "rms": 35657.82433155596,
+        "minimum": 35657.82433155596,
+        "maximum": 35657.82433155596
+      },
+      {
+        "mean": 32953.28222773664,
+        "rms": 32953.28222773664,
+        "minimum": 32953.28222773664,
+        "maximum": 32953.28222773664
+      },
+      {
+        "mean": 30413.05681655516,
+        "rms": 30413.056816555163,
+        "minimum": 30413.056816555163,
+        "maximum": 30413.056816555163
+      },
+      {
+        "mean": 28027.050438566224,
+        "rms": 28027.050438566224,
+        "minimum": 28027.050438566228,
+        "maximum": 28027.050438566228
+      },
+      {
+        "mean": 25786.380023318685,
+        "rms": 25786.380023318685,
+        "minimum": 25786.380023318685,
+        "maximum": 25786.380023318685
+      },
+      {
+        "mean": 23683.08232562141,
+        "rms": 23683.082325621406,
+        "minimum": 23683.08232562141,
+        "maximum": 23683.08232562141
+      },
+      {
+        "mean": 21709.90554513841,
+        "rms": 21709.90554513841,
+        "minimum": 21709.905545138412,
+        "maximum": 21709.905545138412
+      },
+      {
+        "mean": 19860.165668377624,
+        "rms": 19860.165668377624,
+        "minimum": 19860.165668377624,
+        "maximum": 19860.165668377624
+      },
+      {
+        "mean": 18127.64778979392,
+        "rms": 18127.647789793922,
+        "minimum": 18127.647789793922,
+        "maximum": 18127.647789793922
+      },
+      {
+        "mean": 16506.53750261516,
+        "rms": 16506.537502615163,
+        "minimum": 16506.537502615163,
+        "maximum": 16506.537502615163
+      },
+      {
+        "mean": 14991.371932071184,
+        "rms": 14991.371932071186,
+        "minimum": 14991.371932071186,
+        "maximum": 14991.371932071186
+      },
+      {
+        "mean": 13577.003403472383,
+        "rms": 13577.003403472383,
+        "minimum": 13577.003403472383,
+        "maximum": 13577.003403472383
+      },
+      {
+        "mean": 12258.571153884459,
+        "rms": 12258.571153884457,
+        "minimum": 12258.571153884459,
+        "maximum": 12258.571153884459
+      },
+      {
+        "mean": 11031.47812417968,
+        "rms": 11031.478124179683,
+        "minimum": 11031.478124179683,
+        "maximum": 11031.478124179683
+      },
+      {
+        "mean": 9891.370944600807,
+        "rms": 9891.370944600805,
+        "minimum": 9891.370944600807,
+        "maximum": 9891.370944600807
+      },
+      {
+        "mean": 8834.121926714924,
+        "rms": 8834.121926714924,
+        "minimum": 8834.121926714924,
+        "maximum": 8834.121926714924
+      },
+      {
+        "mean": 7855.812323877813,
+        "rms": 7855.812323877813,
+        "minimum": 7855.812323877813,
+        "maximum": 7855.812323877813
+      },
+      {
+        "mean": 6952.716401748192,
+        "rms": 6952.716401748192,
+        "minimum": 6952.716401748192,
+        "maximum": 6952.716401748192
+      },
+      {
+        "mean": 6121.286037178518,
+        "rms": 6121.286037178518,
+        "minimum": 6121.286037178518,
+        "maximum": 6121.286037178518
+      },
+      {
+        "mean": 5358.135669810054,
+        "rms": 5358.135669810054,
+        "minimum": 5358.135669810054,
+        "maximum": 5358.135669810054
+      },
+      {
+        "mean": 4660.027487195854,
+        "rms": 4660.0274871958545,
+        "minimum": 4660.0274871958545,
+        "maximum": 4660.0274871958545
+      },
+      {
+        "mean": 4023.856757464568,
+        "rms": 4023.8567574645685,
+        "minimum": 4023.8567574645685,
+        "maximum": 4023.8567574645685
+      },
+      {
+        "mean": 3446.63723504567,
+        "rms": 3446.6372350456695,
+        "minimum": 3446.63723504567,
+        "maximum": 3446.63723504567
+      },
+      {
+        "mean": 2925.486560712916,
+        "rms": 2925.486560712916,
+        "minimum": 2925.486560712916,
+        "maximum": 2925.486560712916
+      },
+      {
+        "mean": 2457.6115661711037,
+        "rms": 2457.611566171104,
+        "minimum": 2457.611566171104,
+        "maximum": 2457.611566171104
+      },
+      {
+        "mean": 2040.293371284628,
+        "rms": 2040.293371284628,
+        "minimum": 2040.2933712846282,
+        "maximum": 2040.2933712846282
+      },
+      {
+        "mean": 1670.8721280020236,
+        "rms": 1670.8721280020236,
+        "minimum": 1670.8721280020236,
+        "maximum": 1670.8721280020236
+      },
+      {
+        "mean": 1346.7312197098533,
+        "rms": 1346.7312197098533,
+        "minimum": 1346.7312197098536,
+        "maximum": 1346.7312197098536
+      },
+      {
+        "mean": 1065.2806569088134,
+        "rms": 1065.2806569088134,
+        "minimum": 1065.2806569088134,
+        "maximum": 1065.2806569088134
+      },
+      {
+        "mean": 823.9393109366151,
+        "rms": 823.9393109366152,
+        "minimum": 823.9393109366152,
+        "maximum": 823.9393109366152
+      },
+      {
+        "mean": 620.1154755257843,
+        "rms": 620.1154755257844,
+        "minimum": 620.1154755257844,
+        "maximum": 620.1154755257844
+      },
+      {
+        "mean": 451.18500400478547,
+        "rms": 451.1850040047855,
+        "minimum": 451.1850040047855,
+        "maximum": 451.1850040047855
+      },
+      {
+        "mean": 314.46586390644035,
+        "rms": 314.46586390644035,
+        "minimum": 314.46586390644035,
+        "maximum": 314.46586390644035
+      },
+      {
+        "mean": 207.18722721154307,
+        "rms": 207.1872272115431,
+        "minimum": 207.1872272115431,
+        "maximum": 207.1872272115431
+      },
+      {
+        "mean": 126.4498264600598,
+        "rms": 126.4498264600598,
+        "minimum": 126.4498264600598,
+        "maximum": 126.4498264600598
+      },
+      {
+        "mean": 69.17136138902573,
+        "rms": 69.17136138902575,
+        "minimum": 69.17136138902575,
+        "maximum": 69.17136138902575
+      },
+      {
+        "mean": 32.00353060736863,
+        "rms": 32.003530607368624,
+        "minimum": 32.00353060736863,
+        "maximum": 32.00353060736863
+      },
+      {
+        "mean": 11.185077969136152,
+        "rms": 11.185077969136152,
+        "minimum": 11.185077969136152,
+        "maximum": 11.185077969136152
+      },
+      {
+        "mean": 2.1805935297820414,
+        "rms": 2.1805935297820414,
+        "minimum": 2.1805935297820414,
+        "maximum": 2.1805935297820414
+      }
+    ],
+    "common_pressure": [
+      {
+        "pressure_pa": 0.01,
+        "area_fraction": 1.0000000000000002,
+        "zonal_wind_m_s": {
+          "mean": -2.9389439164846793,
+          "rms": 7.061510059573272,
+          "minimum": -20.47056507273344,
+          "maximum": 14.695854415640783
+        },
+        "temperature_k": {
+          "mean": 167.5192125876713,
+          "rms": 167.52623481544245,
+          "minimum": 154.54202904267643,
+          "maximum": 173.7398552978021
+        }
+      },
+      {
+        "pressure_pa": 0.03,
+        "area_fraction": 1.0000000000000002,
+        "zonal_wind_m_s": {
+          "mean": 0.3076033774366763,
+          "rms": 7.063117881874978,
+          "minimum": -16.48558334099064,
+          "maximum": 19.305843484023782
+        },
+        "temperature_k": {
+          "mean": 156.12813611486294,
+          "rms": 156.16945401346564,
+          "minimum": 148.4933979458664,
+          "maximum": 166.97408086501306
+        }
+      },
+      {
+        "pressure_pa": 0.1,
+        "area_fraction": 1.0000000000000002,
+        "zonal_wind_m_s": {
+          "mean": 3.6040438601184324,
+          "rms": 7.467374442339665,
+          "minimum": -19.074065558660575,
+          "maximum": 21.803470563465893
+        },
+        "temperature_k": {
+          "mean": 149.98304002483312,
+          "rms": 149.991448511148,
+          "minimum": 145.50580380070366,
+          "maximum": 155.7574049978074
+        }
+      },
+      {
+        "pressure_pa": 0.3,
+        "area_fraction": 1.0000000000000002,
+        "zonal_wind_m_s": {
+          "mean": 6.058574771838655,
+          "rms": 9.087992378214448,
+          "minimum": -13.672582972620281,
+          "maximum": 26.493791905963608
+        },
+        "temperature_k": {
+          "mean": 146.15919830260276,
+          "rms": 146.17133815387368,
+          "minimum": 140.1033191395692,
+          "maximum": 152.94987498866826
+        }
+      },
+      {
+        "pressure_pa": 1.0,
+        "area_fraction": 1.0000000000000002,
+        "zonal_wind_m_s": {
+          "mean": 8.010445049930686,
+          "rms": 10.423285508783692,
+          "minimum": -11.191786206053985,
+          "maximum": 25.224018651717532
+        },
+        "temperature_k": {
+          "mean": 146.9702049256126,
+          "rms": 146.97995642013083,
+          "minimum": 143.0689701106735,
+          "maximum": 152.14313424862786
+        }
+      },
+      {
+        "pressure_pa": 3.0,
+        "area_fraction": 1.0000000000000002,
+        "zonal_wind_m_s": {
+          "mean": 8.791428081700769,
+          "rms": 12.322332210004149,
+          "minimum": -11.141350156367945,
+          "maximum": 27.035150015325854
+        },
+        "temperature_k": {
+          "mean": 148.1404492790175,
+          "rms": 148.1567977705641,
+          "minimum": 144.49814745263635,
+          "maximum": 155.13068714086552
+        }
+      },
+      {
+        "pressure_pa": 10.0,
+        "area_fraction": 1.0000000000000002,
+        "zonal_wind_m_s": {
+          "mean": 8.511612343506918,
+          "rms": 16.2242405647148,
+          "minimum": -20.49537717655126,
+          "maximum": 37.190741317617615
+        },
+        "temperature_k": {
+          "mean": 149.78327908491536,
+          "rms": 149.8042531914845,
+          "minimum": 145.27971855909337,
+          "maximum": 156.58815534221623
+        }
+      },
+      {
+        "pressure_pa": 30.0,
+        "area_fraction": 1.0000000000000002,
+        "zonal_wind_m_s": {
+          "mean": 11.51979926837605,
+          "rms": 18.738913128758846,
+          "minimum": -25.314026062253223,
+          "maximum": 42.3937268208747
+        },
+        "temperature_k": {
+          "mean": 155.98203715656558,
+          "rms": 155.99625040970565,
+          "minimum": 152.0107410253609,
+          "maximum": 163.05347028629544
+        }
+      },
+      {
+        "pressure_pa": 100.0,
+        "area_fraction": 1.0000000000000002,
+        "zonal_wind_m_s": {
+          "mean": 14.399475514736938,
+          "rms": 19.20964649366118,
+          "minimum": -19.66532364434042,
+          "maximum": 46.78398719866374
+        },
+        "temperature_k": {
+          "mean": 169.94514106754906,
+          "rms": 169.97242310607294,
+          "minimum": 161.34783715971201,
+          "maximum": 177.6800885639021
+        }
+      }
+    ],
+    "tracer_minimum": {
+      "tracer_co2_cloud_ice": 0.0,
+      "tracer_dust_mass": 3.5179292815713633e-19,
+      "tracer_dust_number": 12.430844225572791,
+      "tracer_water_cloud_ice": 3.409394505507912e-220,
+      "tracer_water_core_mass": 4.605066477408656e-219,
+      "tracer_water_ice_number": 6.048292138913517e-198,
+      "tracer_water_vapor": 1.5053776724348024e-26
+    },
+    "relative_inventory_change": {
+      "total_co2_mass_kg": -2.7422508708241367e-13,
+      "total_water_mass_kg": 2.8199664825478976e-13,
+      "total_dust_mass_kg": -1.0887402090986598e-11
+    },
+    "maximum_checkpoint_wind_m_s": 240.71077796565993
+  },
+  "source_sha256": {
+    "package/src/__init__.py": "b29da4fb16e7ef0dd91a4a319be1ac209b2fd2e4d12565e976c464f7c6719eb2",
+    "package/src/celestials/__init__.py": "29c2fd48e346e559c402fefa1f3ed1cc9c6188813eb2a2aec4dbb3decdc9ea63",
+    "package/src/celestials/planets/__init__.py": "84e079788db2f414b3d394f38c5ee4e91311959f37e7385c1006c3be04846e8c",
+    "package/src/celestials/planets/mars/__init__.py": "97a2a9aec311bd23f337e3bcb46c922dfcd0d761458b8961a6c7350b0e2a7e3c",
+    "package/src/celestials/planets/mars/boundary_inputs.py": "e75949935d263d0f58a93ac0c509d5d87ac4e6de2ca07ad4cb761027e9f55a6c",
+    "package/src/celestials/planets/mars/dust.py": "6167ffa94c8505e5dc52217ed1f4b0d1f68e79de5a00dfe0af7ec9432a514263",
+    "package/src/celestials/planets/mars/dust_scenario.py": "668466e8fb1ba6e55f54c5a0b9a46443ac3004f68e87a087bbb4e0069b7d0b3f",
+    "package/src/celestials/planets/mars/gcm.py": "cef0f443da965b2f554e5f79894bf4c07bc9ef5480af22b4e1274b8fbd88e2fc",
+    "package/src/celestials/planets/mars/maps.py": "f0e65e1c1387c2245dccc6186365f28cada141dbf7d3264a86796fd1cdb974b9",
+    "package/src/celestials/planets/mars/mcd.py": "fc7fd83b0515af6302cf68d4239fac038eb81443d336b3d295e24450db469df0",
+    "package/src/celestials/planets/mars/planet.py": "47d3cf668f9f8b4d36b8bfb99904cf4f92e1c52bb46e2dca8639cd9a6c41348b",
+    "package/src/celestials/planets/mars/reference_constants.py": "3823b68ef06e3b7abcba4db1ed9a73b209cce87bedbd125dc64fd765a314d710",
+    "package/src/celestials/planets/mars/seasonal.py": "608b567647de09c3550f6c3072e0b9c741270f7d11aa7fc38437ef7ef7c3c815",
+    "package/src/celestials/planets/mars/surface.py": "c53ba6bf10d7c0b79654b4b41399ff5076098126765dea1e9f4f19f9a98c4810",
+    "package/src/celestials/planets/mars/topography.py": "16f2286b60b654debfa9b3f03c87253dcf115a6b559e3174fcd35e574306702c",
+    "package/src/constants/__init__.py": "8a6fa8cb471cf45a5ed4a1127defe4f080740547290cd69e04710a3141e98043",
+    "package/src/engine/__init__.py": "d91e7bb01689149254a4002e7c7e539f732894534e265ae9f836a6a89b039d7d",
+    "package/src/engine/batched_controller.py": "9ee922c568e9a0fce0dbdf4899b5986d4dabf5bc5dda2216fdceb0ae295c1955",
+    "package/src/engine/diagnostics.py": "1f85db1dc3a74f171618942b2598310dabd32d801b24d1b74b6b68413332bd6b",
+    "package/src/engine/time_controller.py": "3e954de77930878e8f5819676cb9aac0c7e595bad312ec152294aaf06fc12807",
+    "package/src/framework/__init__.py": "4bf8a80fcc054cddc8fa4f62ae17d29c71bfd6ff7aa98d0ed0a59ffdde1fa186",
+    "package/src/framework/atmosphere.py": "404bf854eb1485154d5d2bbd4c969aa0fcde8bdad01c96db8fd585051ad5183e",
+    "package/src/framework/gcm/__init__.py": "f4b352ba4c1ecc9e5b8754bd624e55ab975829036f1807c97ede55b64dd8999b",
+    "package/src/framework/gcm/_dinosaur.py": "b921798f40d367595ec4f4fa496feb2a14f8c4c6ac187d3aad6d743ae66677fa",
+    "package/src/framework/gcm/benchmarks.py": "6ec122821477f99ebba6d5638c6f44f265db6045378d0c539594d7dad88fe65e",
+    "package/src/framework/gcm/body.py": "0621ec7fae7c761ab63524d82ac63c6eeefb344da01029a34b7fd57f22ced22d",
+    "package/src/framework/gcm/comparison_averaging.py": "3bbb413ebec86dbcde82ff0bf015203ca70a6cbc970e329198070ce01ee4f513",
+    "package/src/framework/gcm/coordinates.py": "23cf9642c16eba721bea7c849cbf00b3a2336c28534811b25de1867651aa2bb9",
+    "package/src/framework/gcm/dynamics.py": "2f9ca48e2fadd866b59a2c57f6f6a6a02102d433b9b563f239e3847c380a3ff8",
+    "package/src/framework/gcm/learning.py": "171a402dfc4c1ab85aa6e181b1ef6f89683b6876844e037ae57b81cad13b6f65",
+    "package/src/framework/gcm/restart.py": "7c8efd3c9934d89b47920bc3f9b68875b0a9e06810dc0fc0d9cd93c1dc3075db",
+    "package/src/framework/gcm/specs.py": "0fcbb0581ed66b9da3840517947dde1aee4f5b0f293d0ca5a98504500fbbb23b",
+    "package/src/framework/intrinsic.py": "fbbfccdf74ecea7ecd79ceae17c7c28e5fa0370fdb38c9cbc4339db607828f13",
+    "package/src/framework/magnetic.py": "9d29057390d5492426b17e11facf590c613160c0e52b603fe8a5dec8c8962730",
+    "package/src/framework/neural/__init__.py": "2d4b98ec72ad9017856ce2aa5a5def59f9d3800294e9393c8b5a74feb051ce17",
+    "package/src/framework/neural/checkpoints.py": "0bd023bbfc8c6d4db787ae2bf57ade7da7b6cfa5e324e387eb2e51214066284d",
+    "package/src/framework/neural/columns.py": "242539d36a418204c11a37fffbc7883629d75df619d005dba5214ee18d5a21e1",
+    "package/src/framework/neural/models.py": "9ae49e1c19014c94f5fbfd253a0f259ed2534e54400b9896673feeb01e5c7eda",
+    "package/src/framework/neural/radiation.py": "e77eca0f8312ff3bb135e5e98e30bfe262613b9339a5f5fb461c9e43e2fa934c",
+    "package/src/framework/neural/tendency.py": "f518112bee1cd39830d1233aeadbd9405538d3a2f34516b51fe2aa8c131065d8",
+    "package/src/framework/neural/training.py": "8891170a38ab9957df3ffff60974e9974fe4653e15350a8bff804e032902a06f",
+    "package/src/framework/orbital.py": "be19edc7951c4366c40311321ff28230d5754064f3df056104bd0ec274be4390",
+    "package/src/framework/physics/__init__.py": "62b61692fed54cebab4ecc448648f24af87fd16b2eed5934a478fcbd7b1c2476",
+    "package/src/framework/physics/boundary_layer.py": "b5643a7db16a8c7e38107c977bf32f565ae54051b96da4189b97000584095e1e",
+    "package/src/framework/physics/co2_clouds.py": "dc6deda4e254042dc02eb2aad40f81a41d639c02bcb144655f2f737ab32f42c5",
+    "package/src/framework/physics/co2_condensation.py": "232b5679f26a795c6e09c24aaa302b65bd5489ac4048c1c684a0fc4305756752",
+    "package/src/framework/physics/co2_microphysics.py": "d8a95348d3019735de1759c307acdcffb9ad16b3be8c21cbd275bfbecd817d42",
+    "package/src/framework/physics/collision_absorption.py": "9917895e8a70dfea4bef2ffcbda417d20e11fbe30db85ba21ba8878de6a1a34f",
+    "package/src/framework/physics/column_physics.py": "1273fc270fcc1fa0d54e5bd0894c5019f26ecd2cb69149a868251ec5dbc4fb78",
+    "package/src/framework/physics/correlated_k.py": "803e33cfc1d14f46fb4251f2fd49c7a64bd55529574132cc9a04c2635240d13e",
+    "package/src/framework/physics/dinosaur_physics.py": "4c101086bc5ccb9c8bca7bc622c0a7290c5520749c1c4e8ae1e251f82f1541e2",
+    "package/src/framework/physics/dry_convection.py": "61c52c300c12e19f0a055c8023c742c4717ce5ecd029c932019d791f78afedb1",
+    "package/src/framework/physics/dust_coagulation.py": "d681f5b5cac9a07da6ae5d967f358e38d29b2d4c0dc0f26d94cd00188102c508",
+    "package/src/framework/physics/dust_control.py": "bb0749684b3b4078548dff5def298178620f388bf303b1898b20ef95136e3815",
+    "package/src/framework/physics/dust_lifting.py": "d18f83515f11dd582a407026383946a08e514bbb16dd50ed579385f3badac56f",
+    "package/src/framework/physics/gcm.py": "c517d00f8ae20c3012b084c3a18cf26c3c7124b2099b6e2298d6b276d41b56ef",
+    "package/src/framework/physics/hydrostatic_initialization.py": "b65d7d8d23bb608c781e323f15ba3f5218220762a1f97587da9253a7074e8310",
+    "package/src/framework/physics/legacy_convection.py": "3b5502f055e45cfc2601809aeec5237142427d7b8356058bfc12ddcb89388df3",
+    "package/src/framework/physics/moist_convection.py": "aeb549fd12c57c73447adab45c5ab20c2ec94f4b5c4a401843b779921a2c2d96",
+    "package/src/framework/physics/nonlte_cooling.py": "b2c863ffa3ce3429f9bf76b7118f3bcdf444d7b77803c593876b8ff9d5723147",
+    "package/src/framework/physics/nonorographic_drag.py": "834511938621c958a53109cfe812d638523c29c766b198d010d1a68a170270b8",
+    "package/src/framework/physics/optical_depth.py": "1687ece03cb05e7f68645c0763ead3f89595c4305c2a684f219d0d2767f4d435",
+    "package/src/framework/physics/particle_optics.py": "0a8540d1d9b8db33539a194428fbdeedda122dc329c6d0e5827fe2bd2caa8c59",
+    "package/src/framework/physics/particle_sedimentation.py": "52af7462a0eacb95bb8de11aae2151ba6e52f634dc150f183304661ad5f0e300",
+    "package/src/framework/physics/prescribed_dust.py": "3989a164fdfe259be9f1663d41873042ee0cbbab8aae4bae895b4bb2e55bbc0d",
+    "package/src/framework/physics/radiation_grid.py": "7c0cd095eb863e6ec612a79f90f9ad7c2d17a00584eb4d3d46f7aba0a56d424f",
+    "package/src/framework/physics/radiative_transfer.py": "04ecff1b231b64e2d27bae15999994ef12e01d27ebd53c717f1ea6116bc72077",
+    "package/src/framework/physics/rayleigh_drag.py": "3efd1d81aadeeb3e92c8fe8e8a3affe15ac03164d9404af4e220a4f32741f145",
+    "package/src/framework/physics/saturation_pressure.py": "909ddc6134eb31e356417b805f8d0f1eb99a36f2d9036ea3009a5956b1d7e86b",
+    "package/src/framework/physics/scattering_transfer.py": "33ff375bdd4ba6b7b08eaaf861c821d569da2f9d113decdc257984d81f8f0229",
+    "package/src/framework/physics/simple_radiation.py": "d34833bafeb3c2dc78772b104f95bd6ac34a011ee91856ed2f9cf142104f9532",
+    "package/src/framework/physics/soil_frost.py": "9ec7f8c73ac5a7b973dd5708251ad98080650f1191c530392fa15a6e2500220e",
+    "package/src/framework/physics/solar_geometry.py": "40ba8eb1d68b516ad435672e1654a410cb408329932b53feccbb4fa93140c029",
+    "package/src/framework/physics/spectral_flux.py": "3b1d1fcbc7eb78cf435cb45e388432909d1ee15bef5ed9716429c2b97efec766",
+    "package/src/framework/physics/terrain_drag.py": "6b0a6c769d9d40abed95d2e9aaa51b14abdb0f22cb5fd73f5811bcad2c863ead",
+    "package/src/framework/physics/thermal_relaxation.py": "ead31b1babaf3e79d850ee9394eba32d343af55b0143ca87c51dbd3c919ec49c",
+    "package/src/framework/physics/tracer_transport.py": "89360a5f4f9277dba7bd9bceb125c40bbfc7960161d6e6b32920806451a23a98",
+    "package/src/framework/physics/vertical_grid.py": "76a6c1d7fb4aa5aff60831de1f96f13bdf75420b242b8f8db10dbbfef04e16e0",
+    "package/src/framework/physics/vertical_solve.py": "0d01f1d42fe7f086a887a2c0c51cb3b4385d26a3c944b72f81150b8a57ddd991",
+    "package/src/framework/physics/water_bulk.py": "7c0076c50fa5981c570e099ab5d61da34362dc8b6b1ddbc3be3192909160e0c5",
+    "package/src/framework/physics/water_moments.py": "c5747515301fdc437a7117420ae9e98e103a765d5133e9bf104fe6ac29e84080",
+    "package/src/framework/physics/water_surface.py": "a172442271da69fff10ca3afaf72b00a7163a3baf19abe919f098dd381babb1c",
+    "package/src/framework/planet.py": "23454eea3b6c1d8e5f7d0f9b27d78a5319ac91a28bf2c455ca2e452d21cbf93c",
+    "package/src/framework/radiation.py": "34cc7a3d0df54a7e42c6c3c8efe824a1f33e0840eb37db9e95b8bde53bbc8138",
+    "package/src/framework/thermal.py": "2759be7e81672a86023ab1c73fae211b600d3cbbf67e967346827737493fafa1",
+    "package/src/framework/water.py": "23b1460cb36efa435a74842b2272cbf34821e9b56fa2a349f853a74b93602ad2",
+    "package/src/interventions/__init__.py": "95200729f58fcd67f602596a9e2315fc35ecd7e0385c858c2ef7667cc383365e",
+    "package/src/interventions/compounds.py": "21f056e2c398e2c58e30cd9d908991eb7a435d6a64fc714ec13ef6b34f1936bc",
+    "package/src/interventions/controller.py": "9fa159ee436c9b83334dea4f50aa8f0a4dbee842d4f1f7e69d7a13b9071a78b3",
+    "package/src/interventions/forcing.py": "00738da7182de0ce7240083249636f8230ea96cc1a399077acd63c13f79ab062",
+    "package/src/interventions/magneticfield.py": "830b2004adefae1cec7dd228102826d33d98b839509c800107f800d6f25d0e10",
+    "package/src/interventions/state.py": "d7200bd5da34667868399f7d531b2947d7c91bb38a31a6f59510844d5294d030",
+    "package/src/framework/physics/co2_12band_tables.npz": "0c48a86efd4618d3fdc0e52cd2bc5ca063fc7ac006ebfee09a46bee01d159d6c",
+    "package/src/framework/physics/co2_15band_tables.npz": "411d78441b1c69ce204ec71cf59ccea5af28b1c98ca6500b31b79cb44aac4a5d",
+    "package/src/framework/physics/co2_extended_tables.npz": "447e8df845f0a1f667d56460026cae8d71f6f275aa9e7f797fea4df1442cc968",
+    "package/src/framework/physics/collision_absorption_tables.npz": "44c41b39ae9e1be221d121b1cb9c50322b76d369d8916b70c70a6595a2678dc6",
+    "package/src/framework/physics/nonlte_reference.npz": "b09c4b2dccfdec09c540094e1140670800cfcfc0a8c42226783ab74b687fc9de",
+    "package/src/framework/physics/particle_optical_tables.npz": "ae3328d6cabec02bf75f60e749a35985a397ca537e05536573cfc781117c330f",
+    "package/src/framework/physics/saturation_tables.npz": "912d3525a7e51e22e3d86ab87e140d4ed2d10bf8936caf36cad554daa33ea513",
+    "package/src/framework/physics/vertical_grid_coefficients.npz": "c9bcbba2ee02c01ec796d4b4b11da58a2325f78e43ba4f6dc6b7cd6a0e07d71d",
+    "package/src/framework/physics/licenses/Apache-2.0.txt": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "package/src/framework/physics/licenses/GPL-3.0.txt": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+    "package/src/framework/physics/licenses/LGPL-3.0.txt": "1e950a32358912876fcd3ea0bdd975c9ea8a7822eddc3cda662817c3abe99b1c",
+    "package/src/framework/physics/licenses/MOIST-CONVECTION-NOTICE.txt": "119de9d63bf7c0f9a78ee803c4226593bd7e5cd53a0ece096b381ccc7a78a02d",
+    "package/src/framework/physics/licenses/NONOROGRAPHIC-DRAG-NOTICE.txt": "4877cb25b1083fb6e403d5f557aee8bd915afc91c400217f16da9638b20379c2",
+    "package/src/framework/physics/licenses/SATURATION-PRESSURE-NOTICE.txt": "67c75cb5dee4376ef9d6aed5e4ccfcee0a9e2d1860bce71d4c9b401f7d9cb096",
+    "package/src/framework/physics/licenses/VERTICAL-GRID-NOTICE.txt": "ea83572e71efd60f7ae7a827ee9027820095594a20e0ab1c52ccd759ae2bbf2c",
+    "scripts/run_gcm3d_ablation.py": "cfc1a77d0f8a169b2e99252a2e6b7181c7f74d68b069df4ebdc514a6bb348c35"
+  },
+  "input_sha256": {
+    "mars_thermal_inertia8_2011.nc": "43756c80ff8052a9123b71530942ed267b8c8af24e137bc3ba27b47b69c53476",
+    "mars_TES_albedo8_new.nc": "4e4cc150a58be27bef0c3713d432789154b94e64c804ddeaf07eee7119e34fd7",
+    "mars_sfc_emissivity8.nc": "23b53ed48a530679606f6fdf7b6fafbd0d92d022c507eb94dadb109b74dbab5d",
+    "GRS_interp16.nc": "7c718ccec796fe1937b37f9ee9606cbf7720703c17eb0031076e9ef4fbda576f",
+    "npcflag8.nc": "8acd88316770617d5f720dc8f57b96e845937ae1135fa4b84aa817f5d4711c7c",
+    "DustScenario_MY30.nc": "1fefe32b06c8ae0b550a2aae0da44a83643b6cdcee377f15f5f53f4ed8177421",
+    "mola": "59873fba00f78cc96a62c9f26127c789dccb1107504ad4d3fe6adb79e9e458f8"
+  },
+  "device": "name, uuid, driver_version, memory.total [MiB]\nNVIDIA GeForce RTX 3090, GPU-89a7a055-ce8b-ba7c-84d3-5492301f2673, 615.71.10, 24576 MiB\n",
+  "launcher": {
+    "source_revision": "09e8c10500072fa06b51596bc50350d535ac6c5f",
+    "resolution": "T42",
+    "cases": [
+      "native-d2"
+    ],
+    "concurrency": 1,
+    "original_affinity": [
+      0,
+      1,
+      2,
+      3,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      39,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71
+    ],
+    "cpu_affinity": [
+      0,
+      1,
+      2,
+      3,
+      19,
+      20,
+      21,
+      22
+    ],
+    "os_cpu_count": 72,
+    "cpu_quota": "800000 100000\n"
+  },
+  "resource_summary": {
+    "sampled_gpu_peak_mib": 18126.0,
+    "max_sampled_gpu_utilization_percent": 100.0,
+    "mean_sampled_gpu_utilization_percent": 46.243128964059196,
+    "gpu_samples": 473,
+    "host_cgroup_peak_bytes": 5482639360,
+    "scope": "Main experiment container after archive extraction; includes compilation and callback I/O; not isolated throughput"
+  },
+  "local_remote_hashes_equal": true,
+  "verified_files": 35,
+  "artifact_manifest_sha256": "05131d0b527f7b5694d14f49ca6d72b96f474059a3b2e227080483661c93fb06",
+  "native_comparison": {
+    "C24": {
+      "top_zonal_wind_m_s": {
+        "mean": 1.286968752454785,
+        "rms": 3.964193608434431,
+        "minimum": -6.206998825073242,
+        "maximum": 10.269132614135742
+      },
+      "top_temperature_k": {
+        "mean": 168.96005336501264,
+        "rms": 168.96483087777798,
+        "minimum": 165.7608184814453,
+        "maximum": 170.69625854492188
+      },
+      "common_pressure": [
+        {
+          "pressure_pa": 0.01,
+          "area_fraction": 0.9999999999999998,
+          "zonal_wind_m_s": {
+            "mean": 0.9677085034516367,
+            "rms": 5.251364621380355,
+            "minimum": -8.637681778368455,
+            "maximum": 15.834646836655155
+          },
+          "temperature_k": {
+            "mean": 167.76597065825308,
+            "rms": 167.7665864897967,
+            "minimum": 166.67499778294453,
+            "maximum": 170.00754088569937
+          }
+        },
+        {
+          "pressure_pa": 0.03,
+          "area_fraction": 0.9999999999999998,
+          "zonal_wind_m_s": {
+            "mean": 2.700060171385133,
+            "rms": 8.0241968956481,
+            "minimum": -13.935338993795519,
+            "maximum": 21.903809042143166
+          },
+          "temperature_k": {
+            "mean": 161.39322396880368,
+            "rms": 161.39707424439572,
+            "minimum": 158.42802279058728,
+            "maximum": 163.97716188908524
+          }
+        },
+        {
+          "pressure_pa": 0.1,
+          "area_fraction": 0.9999999999999998,
+          "zonal_wind_m_s": {
+            "mean": 5.395020810365146,
+            "rms": 8.367927436982232,
+            "minimum": -8.834381696150976,
+            "maximum": 24.793902641428403
+          },
+          "temperature_k": {
+            "mean": 152.97120638295826,
+            "rms": 152.9777718474407,
+            "minimum": 148.8923695934982,
+            "maximum": 156.42092155724188
+          }
+        },
+        {
+          "pressure_pa": 0.3,
+          "area_fraction": 0.9999999999999998,
+          "zonal_wind_m_s": {
+            "mean": 7.7178749636600905,
+            "rms": 9.806491366822568,
+            "minimum": -5.720693355807035,
+            "maximum": 23.54162152165669
+          },
+          "temperature_k": {
+            "mean": 148.0247184969136,
+            "rms": 148.03094441665627,
+            "minimum": 143.90452671977184,
+            "maximum": 152.2308494868922
+          }
+        },
+        {
+          "pressure_pa": 1.0,
+          "area_fraction": 0.9999999999999998,
+          "zonal_wind_m_s": {
+            "mean": 6.907822002510793,
+            "rms": 9.445909474468516,
+            "minimum": -5.371796853959838,
+            "maximum": 23.11110680791217
+          },
+          "temperature_k": {
+            "mean": 147.88966734051206,
+            "rms": 147.89256229719416,
+            "minimum": 145.15286286426397,
+            "maximum": 150.74854587331683
+          }
+        },
+        {
+          "pressure_pa": 3.0,
+          "area_fraction": 0.9999999999999998,
+          "zonal_wind_m_s": {
+            "mean": 6.734553979747468,
+            "rms": 9.661022455454626,
+            "minimum": -7.419880600802521,
+            "maximum": 23.662234898480392
+          },
+          "temperature_k": {
+            "mean": 148.36749299359494,
+            "rms": 148.3727147241361,
+            "minimum": 145.64335385207858,
+            "maximum": 152.2645474198995
+          }
+        },
+        {
+          "pressure_pa": 10.0,
+          "area_fraction": 0.9999999999999998,
+          "zonal_wind_m_s": {
+            "mean": 6.554645224414521,
+            "rms": 12.571587215885254,
+            "minimum": -15.560106911770385,
+            "maximum": 29.060274727159044
+          },
+          "temperature_k": {
+            "mean": 148.82142725672418,
+            "rms": 148.83383466045302,
+            "minimum": 143.75445121255103,
+            "maximum": 153.86511921610852
+          }
+        },
+        {
+          "pressure_pa": 30.0,
+          "area_fraction": 0.9999999999999998,
+          "zonal_wind_m_s": {
+            "mean": 8.814388225954177,
+            "rms": 15.28841305226831,
+            "minimum": -24.862596423115324,
+            "maximum": 35.01264273858329
+          },
+          "temperature_k": {
+            "mean": 153.68104017556954,
+            "rms": 153.69586928527585,
+            "minimum": 149.1872978423907,
+            "maximum": 160.03085609073378
+          }
+        },
+        {
+          "pressure_pa": 100.0,
+          "area_fraction": 0.9999999999999998,
+          "zonal_wind_m_s": {
+            "mean": 11.86951689788864,
+            "rms": 16.466843094488745,
+            "minimum": -20.743943157968715,
+            "maximum": 39.911398024543004
+          },
+          "temperature_k": {
+            "mean": 167.11682589825838,
+            "rms": 167.13390233359112,
+            "minimum": 160.9429510543553,
+            "maximum": 173.99490723015623
+          }
+        }
+      ]
+    },
+    "C48": {
+      "top_zonal_wind_m_s": {
+        "mean": 0.06775549232122668,
+        "rms": 4.361770012634819,
+        "minimum": -8.211958885192871,
+        "maximum": 10.572386741638184
+      },
+      "top_temperature_k": {
+        "mean": 169.23632196033697,
+        "rms": 169.24063222111417,
+        "minimum": 166.14483642578125,
+        "maximum": 170.9295654296875
+      },
+      "common_pressure": [
+        {
+          "pressure_pa": 0.01,
+          "area_fraction": 1.0,
+          "zonal_wind_m_s": {
+            "mean": 0.6545036164028719,
+            "rms": 5.71683979307183,
+            "minimum": -11.253198652896566,
+            "maximum": 16.307662465555808
+          },
+          "temperature_k": {
+            "mean": 167.19349106824936,
+            "rms": 167.19465406476678,
+            "minimum": 165.553953983771,
+            "maximum": 169.5919996475252
+          }
+        },
+        {
+          "pressure_pa": 0.03,
+          "area_fraction": 1.0,
+          "zonal_wind_m_s": {
+            "mean": 2.6278210164977303,
+            "rms": 7.822945899940644,
+            "minimum": -14.064637336098395,
+            "maximum": 21.01019353075966
+          },
+          "temperature_k": {
+            "mean": 161.2458589623012,
+            "rms": 161.25071304018977,
+            "minimum": 157.79647321754123,
+            "maximum": 164.50196147410767
+          }
+        },
+        {
+          "pressure_pa": 0.1,
+          "area_fraction": 1.0,
+          "zonal_wind_m_s": {
+            "mean": 5.784442550521209,
+            "rms": 8.21282552016313,
+            "minimum": -9.310009994001614,
+            "maximum": 23.342071055856984
+          },
+          "temperature_k": {
+            "mean": 153.32065087357262,
+            "rms": 153.32668894161992,
+            "minimum": 148.99664673988647,
+            "maximum": 157.0978648733694
+          }
+        },
+        {
+          "pressure_pa": 0.3,
+          "area_fraction": 1.0,
+          "zonal_wind_m_s": {
+            "mean": 8.045798059906872,
+            "rms": 9.861898469843695,
+            "minimum": -6.3248104689020375,
+            "maximum": 22.554324015975073
+          },
+          "temperature_k": {
+            "mean": 148.06872623947038,
+            "rms": 148.0747368083049,
+            "minimum": 144.47640058124068,
+            "maximum": 152.50530852422116
+          }
+        },
+        {
+          "pressure_pa": 1.0,
+          "area_fraction": 1.0,
+          "zonal_wind_m_s": {
+            "mean": 7.288092425854421,
+            "rms": 9.547954611174777,
+            "minimum": -5.126964919943911,
+            "maximum": 22.706125272998904
+          },
+          "temperature_k": {
+            "mean": 147.89983621611782,
+            "rms": 147.9027764601365,
+            "minimum": 145.18482200239728,
+            "maximum": 150.7689329116383
+          }
+        },
+        {
+          "pressure_pa": 3.0,
+          "area_fraction": 1.0,
+          "zonal_wind_m_s": {
+            "mean": 7.241977098531519,
+            "rms": 9.902895599039478,
+            "minimum": -6.149683515694752,
+            "maximum": 23.83188899562022
+          },
+          "temperature_k": {
+            "mean": 148.44295492088133,
+            "rms": 148.44885860372582,
+            "minimum": 145.82359698329196,
+            "maximum": 152.62139757815143
+          }
+        },
+        {
+          "pressure_pa": 10.0,
+          "area_fraction": 1.0,
+          "zonal_wind_m_s": {
+            "mean": 7.24280015927863,
+            "rms": 12.790820621174706,
+            "minimum": -14.234262246360766,
+            "maximum": 29.48430441528084
+          },
+          "temperature_k": {
+            "mean": 148.89581623586838,
+            "rms": 148.90940136367993,
+            "minimum": 143.42270140386663,
+            "maximum": 153.93890536698387
+          }
+        },
+        {
+          "pressure_pa": 30.0,
+          "area_fraction": 1.0,
+          "zonal_wind_m_s": {
+            "mean": 9.686447584800538,
+            "rms": 15.605230653121945,
+            "minimum": -22.918034412581804,
+            "maximum": 36.06579315774612
+          },
+          "temperature_k": {
+            "mean": 153.78599248131047,
+            "rms": 153.80066016730296,
+            "minimum": 149.13853984913268,
+            "maximum": 160.38662655300615
+          }
+        },
+        {
+          "pressure_pa": 100.0,
+          "area_fraction": 0.9998627938946161,
+          "zonal_wind_m_s": {
+            "mean": 12.508015431065889,
+            "rms": 16.861120899271192,
+            "minimum": -18.2739930833537,
+            "maximum": 41.31593861516268
+          },
+          "temperature_k": {
+            "mean": 167.2419359935285,
+            "rms": 167.2593319429413,
+            "minimum": 160.81481475439742,
+            "maximum": 174.31986898759686
+          }
+        }
+      ]
+    }
+  },
+  "analysis_source_sha256": "0c0216565e1e894d9630d779574a552ddd3b75f614ea0bded0094f2587a850a4",
+  "limitations": [
+    "Wind RMS is the spatial RMS of the time-mean zonal component.",
+    "Common-pressure fields use column log-pressure interpolation of five-sol means, without extrapolation or horizontal remapping.",
+    "Dinosaur pressure uses mean surface pressure; native pressure uses saved mean delp. This is not the mean of fields interpolated at each model step.",
+    "Native geometric midpoint heights and Dinosaur isothermal reference heights have different definitions.",
+    "Five-sol transient cases do not establish climate convergence or isolated device throughput.",
+    "D2 is a source-derived spectral exponential adaptation; it is not the FV3 discrete substep operator.",
+    "T42 restart equality was not checked in this single-case job."
+  ]
+}

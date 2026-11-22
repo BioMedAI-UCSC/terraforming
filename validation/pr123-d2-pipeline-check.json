@@ -1,0 +1,18 @@
+{
+  "status": "pass",
+  "interface": "experiments/pr123-upper-atmosphere/analyse.py public output",
+  "cases": ["native D2 T21", "native D2 T42", "balanced D2 T21", "balanced D2 T42"],
+  "checks": [
+    "Re-generated both reports from actual mean NetCDF files; full JSON equality with archived reports.",
+    "Verified top wind RMS against separately recorded completed-case values with relative tolerance 1e-12.",
+    "All completed D2 inventory changes are less than 2e-11 relative.",
+    "The report entrypoint passed its weighted known-field mean 2.5 and RMS sqrt(7) check.",
+    "Verified all 333 local GPU/replay artifacts against remote SHA-256 values.",
+    "Parsed all archived Python files and all 14 manifests; no deadline or automatic deletion keys."
+  ],
+  "restart_checks": {
+    "native_D2_T21": "Exact equality passed for all 59 final arrays.",
+    "balanced_D2_T21": "Strict independent comparison failed; 384-step states already differ before reload.",
+    "pressure_only_GPU_T21": "Strict independent comparison failed; 384-step states already differ before reload."
+  }
+}
