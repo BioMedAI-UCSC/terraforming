@@ -1,0 +1,16 @@
+{
+  "native-d2.log": "a99c56fb071c346ef1ccf308911b2024e719df14b1bacdb244d6e313b3a1df3a",
+  "balanced-d2.log": "b2dc3bfb295dd4116535ee818b5484830eda4915b84a4ee3b61dc2b482a4c645",
+  "device.json": "5481c87e28063da9a6e42ee5cc377eb5ee592b77924a1cf929b6ac001d7a93ce",
+  "gpu.csv": "c1fa5f6316b3767c7ff544c6921ccdf047d84193408a244297ea0cac9cd941a5",
+  "summary.json": "d52015e106e034e3e4ff142972fe5a9c18c8e3882fb9c4e48aef2434505812af",
+  "resources.jsonl": "705e598fa9e19e7f37251a89ae3364703a0db4ea8ab98e78133d2f5f0afc4fb4",
+  "native-d2/input-roundtrip.npz": "fe2ff3967afaa0035bc31d4663928763d8bc2076061db23e4a47df06d1efa159",
+  "native-d2/summary.json": "3b9657ec05843c4bdc40b05091d4ce8ada18b9be2117864377e81b2f7647695b",
+  "native-d2/step768.npz": "5c9fde2079440e7940816fcdd8ab64c18e31f07972816bc81127cdcaf238266b",
+  "native-d2/step1152.npz": "a9ee55b9bec0c51d2aeb37572032f444e988a5338f39d95d2da2cf5bc1d4f89b",
+  "balanced-d2/input-roundtrip.npz": "3852ce8989ca0019eb9ae672edc2910d1f185363ce9039861fee647cdad7b8e5",
+  "balanced-d2/summary.json": "bc5f4eb7ff9796f52162693e991b82a808e72a699ec8c3c2eb8292d08f2f354f",
+  "balanced-d2/step768.npz": "eded32191b753c6c0a989be67a0c540f5b915470638f4d2167ed03478f3b20d7",
+  "balanced-d2/step1152.npz": "725d14451fdcca128373653649d6e2be2ac2b59e4c4a3d14bcfcbcbafcf4a514"
+}

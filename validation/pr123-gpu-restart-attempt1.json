@@ -1,0 +1,35 @@
+{
+  "status": "failed_probe_setup",
+  "job": "pr123-09e8c10-gpu-common-checkpoint",
+  "source_revision": "09e8c10500072fa06b51596bc50350d535ac6c5f",
+  "cases": [
+    "native-d2",
+    "balanced-d2"
+  ],
+  "public_save_load_input_equality": "passed before averaging setup",
+  "failure": "The strict dtype guard failed after public averaging setup was applied only to the original input. The setup rewrites comparison_window_steps; the restored input had not received the same setup.",
+  "model_advances_executed": 0,
+  "correction": "Apply identical public averaging setup to both inputs before compiling and comparing.",
+  "preserved": [
+    "immutable ConfigMap",
+    "failed Job",
+    "worker logs",
+    "input roundtrip files",
+    "GPU and host resource samples"
+  ],
+  "verified_downloaded_files": 7,
+  "artifact_hashes": "validation/pr123-gpu-restart-attempt1-artifact-hashes.json",
+  "roundtrip_files": {
+    "native-d2": {
+      "original_sha256": "fe2ff3967afaa0035bc31d4663928763d8bc2076061db23e4a47df06d1efa159",
+      "roundtrip_sha256": "fe2ff3967afaa0035bc31d4663928763d8bc2076061db23e4a47df06d1efa159",
+      "whole_npz_byte_equal": true
+    },
+    "balanced-d2": {
+      "original_sha256": "3852ce8989ca0019eb9ae672edc2910d1f185363ce9039861fee647cdad7b8e5",
+      "roundtrip_sha256": "3852ce8989ca0019eb9ae672edc2910d1f185363ce9039861fee647cdad7b8e5",
+      "whole_npz_byte_equal": true
+    }
+  },
+  "probe_script_sha256": "7ad21040cb14d543f168014addd88c07d690507867445700f71a43aa41998e3a"
+}

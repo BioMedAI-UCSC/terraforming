@@ -171,3 +171,41 @@ The archived GPU recipes are `paired-t21-gpu.json`, `d2-t21.json`,
 source preparation. Use new Job, ConfigMap and output names before a rerun.
 Actual downloaded files remain under `outputs/pr123-validation` in the main
 workspace; tracked `validation/pr123-*-artifact-hashes.json` files identify them.
+
+`gpu-common-checkpoint.json` runs `gpu_restart.py` for native-D2 and balanced-D2
+T21 states from saved step 384. Each worker builds one 384-step executable
+through public `build_step`. It compares repeat execution from the same input,
+execution after public save/load, and continuation from a saved step-768 state
+to step 1,152. A changed-temperature negative control checks that the exact
+comparator rejects changed state. These checks isolate serialization and repeat
+execution within one compiled executable. Independent cold starts and separate
+compilations remain distinct checks.
+
+The first probe attempt failed its setup dtype guard before any model advance:
+averaging setup had been applied only to one input. Both save/load roundtrip
+files were already byte-identical to the original checkpoint, including metadata.
+The failed Job, ConfigMap, logs and seven hash-verified files remain preserved.
+The inherited 24-GB requirement was widened to 16 GB after a fresh unbound-job check;
+the measured full T21 pair peaked at 9,606 MiB.
+
+The next executed attempt passes same-executable repeat, loaded-input advance,
+and midpoint roundtrip for both cases. Its extra continuation stops before
+execution because setup makes the counter an integer, while the completed state
+stores a float. The function was compiled for integer input and rejects float
+input. All ten files and the failed aggregate Job remain preserved in
+`validation/pr123-gpu-restart-extended-attempt3.json`. The final probe obtains
+the public averaging wrapper without replacing the existing checkpoint state.
+This keeps the saved counter dtype unchanged across all compiled calls.
+
+The final Job completed successfully for both cases. All five comparisons pass
+exactly for 58 numeric state leaves, and the changed-temperature negative control
+is detected. Each saved NPZ has 59 arrays, including JSON metadata; the input
+roundtrip files are byte-identical to their original checkpoints. All 14 final
+files match remote hashes. `validation/pr123-gpu-common-checkpoint.json` records
+the checks, source/input hashes, runtime versions and limits of the result.
+
+The final probe used a Tesla V100-SXM2-32GB. Its 146 resource samples record
+9,176 MiB peak GPU memory, 92% maximum GPU utilization and 4,828,659,712 bytes
+peak host memory. Samples cover compilation and the checks, and exclude archive
+staging. The earlier independent cold-run comparison failures remain recorded;
+this test establishes save/load continuity with one common executable.

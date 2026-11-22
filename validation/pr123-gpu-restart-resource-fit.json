@@ -1,0 +1,29 @@
+{
+  "pod": "pr123-09e8c10-gpu-common-checkpoint-v2-l79t9",
+  "uid": "3b805ebd-56b5-4bd3-a7ac-b1e84f613f30",
+  "node": null,
+  "states": [],
+  "reason": "T21 pair measured peak9606MiB; replace inherited T42 >24GB affinity with >16000MiB while unbound",
+  "conditions": [
+    {
+      "lastProbeTime": null,
+      "lastTransitionTime": "2026-11-22T17:40:09Z",
+      "message": "0/536 nodes are available: 197 node(s) didn't match Pod's node affinity/selector, 21 Insufficient memory, 22 node(s) were unschedulable, 225 node(s) had untolerated taint(s), 37 Insufficient cpu, 92 Insufficient nvidia.com/gpu. no new claims to deallocate, preemption: 0/536 nodes are available: 11 Insufficient nvidia.com/gpu, 40 No preemption victims found for incoming pod, 485 Preemption is not helpful for scheduling.",
+      "observedGeneration": 1,
+      "reason": "Unschedulable",
+      "status": "False",
+      "type": "PodScheduled"
+    }
+  ],
+  "action": "suspended before scheduling",
+  "suspended_job": "pr123-09e8c10-gpu-common-checkpoint-v2",
+  "replacement_job": "pr123-09e8c10-gpu-common-checkpoint-v3",
+  "measured_D2_T21_pair_peak_mib": 9606,
+  "measured_single_T21_peak_mib": 4456,
+  "minimum_gpu_memory_label_mib": 16000,
+  "worker_memory_fraction": 0.45,
+  "host_request_cpu": 4,
+  "host_request_memory_gib": 16,
+  "limits_cpu": 8,
+  "limits_memory_gib": 64
+}

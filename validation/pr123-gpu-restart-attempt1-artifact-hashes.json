@@ -1,0 +1,9 @@
+{
+  "native-d2.log": "58fc7651beaa8896081082139f2247db0c7c08bbc80f66f76b126cc9452b6c83",
+  "balanced-d2.log": "58fc7651beaa8896081082139f2247db0c7c08bbc80f66f76b126cc9452b6c83",
+  "gpu.csv": "70811154bfb6a446819c2f56464a99d929fe31c69dd5a9f784ca4a07594cfa06",
+  "summary.json": "4979ad1c90e91cd00fe161b31c0c3562140517bbded78e5d7b9e234aee94a9b4",
+  "resources.jsonl": "b347b26811c169b666b058104cee91eaa8f3820575c4ef7215a71bed4439116a",
+  "native-d2/input-roundtrip.npz": "fe2ff3967afaa0035bc31d4663928763d8bc2076061db23e4a47df06d1efa159",
+  "balanced-d2/input-roundtrip.npz": "3852ce8989ca0019eb9ae672edc2910d1f185363ce9039861fee647cdad7b8e5"
+}
