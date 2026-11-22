@@ -112,8 +112,20 @@ and the area mean of the five-sol mean top temperature.
 
 Native C24 gives 3.964194 m/s and 168.960053 K. Native C48 gives
 4.361770 m/s and 169.236322 K. T42 with native pressure and no D2 first
-fails at step 21. The separate pressure-only CPU matrix is still running;
-it does not supply a completed T42 value here.
+fails at step 21. The separate pressure-only CPU matrix also completed both
+resolutions. It gives T21 10.678014 m/s and 159.646625 K, and T42 9.145087 m/s
+and 156.131333 K. Pressure balance alone avoids the observed early T42 failure,
+but leaves the large cold bias. T42 pressure-only uses CPU; the D2 controls
+use GPU, so that T42 comparison also changes execution backend. The matched
+T21 pressure-only CPU/GPU means differ by 0.00361 m/s and 0.00372 K.
+
+`validation/pr123-five-sol-pressure-only.json` records the full CPU profiles,
+budgets, source and input hashes. All 95 downloaded files match remote SHA-256
+values in `validation/pr123-pressure-only-artifact-hashes.json`. The exact
+T21 full/resumed comparison passes all 59 saved arrays. The host cgroup peak
+was 43,808,333,824 bytes, including concurrent cases, compilation and file cache;
+the 353 resource samples cover part of the job. This CPU run predates the
+eight-core affinity bound used for later GPU launchers.
 
 Source pins are `69d6587cef02e5b17a82e28422b67aa3d5be55ad` for baseline,
 `43fc88bf8f6654ddca5b7e5400a0186a46156e9d` for pressure-only and
