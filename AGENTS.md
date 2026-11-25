@@ -5,6 +5,16 @@ before editing. Make the smallest complete change. Preserve validation, error
 handling and data safety. Add a focused check for non-trivial logic. Report work
 that was not checked and any material risk.
 
+## Clean Code before pushing
+
+- Push only changes that pass a Clean Code review of the full outgoing diff.
+  Use clear domain names, focused functions with one responsibility, simple
+  control flow and existing conventions. Remove dead code, avoidable duplication
+  and speculative abstractions. Fix review findings before pushing.
+- Pass the applicable tests, lint and formatting checks before pushing.
+- Commit reusable code, tests, fixtures and documentation. Keep one-off experiment
+  manifests, scripts, generated results and logs in CI artifacts or PR summaries.
+
 ## Nautilus deployments
 
 - Run independent experiments in parallel. Use concurrent experiments or an
