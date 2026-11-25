@@ -1,4 +1,4 @@
-name: Linux native parity
+name: Ames Fortran vs JAX physics parity
 on:
   schedule:
     - cron: '17 8 * * 1'
@@ -9,12 +9,17 @@ permissions:
   contents: read
 jobs:
   native:
+    name: Ames/JAX physics parity (group ${{ matrix.group }} of 4)
     if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'native-parity')
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
-        shard: [0, 1, 2, 3]
+        include:
+          - {shard: 0, group: 1}
+          - {shard: 1, group: 2}
+          - {shard: 2, group: 3}
+          - {shard: 3, group: 4}
     env:
       PYTHONPATH: package:.:scripts
       JAX_PLATFORMS: cpu

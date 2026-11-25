@@ -16,8 +16,7 @@ Seven archived reports were copied from that run because their recorded source
 files changed: coupled-column, CO2 controls, gas mass, initial conditions,
 radiative driver, release interfaces and surface controls. The other 41 reports
 retain their `71be0ef` results for unchanged source files. All 285 repository and
-asset file hash checks match the current implementation. The
-[freshness record](../validation/pr123-native-freshness.json) records this audit.
+asset file hash checks match the current implementation.
 The [repeat at `97b356d`](https://github.com/BioMedAI-UCSC/terraforming/actions/runs/44956786121)
 also passed all four native shards.
 The validators also verify the pinned native bodies and compiled adapters.
@@ -524,10 +523,35 @@ truncated terrain as the core, then preserves the area-mean gas pressure of
 the native projected initialization. It rejects non-isothermal atmospheres.
 The default `native` scheme and unchanged `hydro_eq` kernel retain the source
 log-weighted correction. The selected scheme is part of restart identity;
-old native runs cannot resume as balanced runs. The
-[upper-atmosphere diagnosis](pr123-upper-diagnosis.md) isolates the false dry
-waves and records controls. A matched five-sol treatment must still establish
-its effect on climate means before changing the reference default.
+old native runs cannot resume as balanced runs. This is a sigma-core adaptation;
+it does not reproduce native hybrid pressure interfaces.
+
+`--native-top-divergence-damping` adds explicit top-layer divergence diffusion.
+T21 uses the native C24 preset and T42 uses C48; other resolutions reject this
+preset. In pinned FV3 revision `29654ea167575fa73b65f7f2ceb85f1682884ddd`,
+[`dyn_core.F90`](https://github.com/NOAA-GFDL/GFDL_atmos_cubed_sphere/blob/29654ea167575fa73b65f7f2ceb85f1682884ddd/model/dyn_core.F90#L695)
+retains the first two background coefficients, 0.2 and 0.04, when `n_sponge=0`.
+[`sw_core.F90`](https://github.com/NOAA-GFDL/GFDL_atmos_cubed_sphere/blob/29654ea167575fa73b65f7f2ceb85f1682884ddd/model/sw_core.F90#L1286)
+applies the minimum corner area. The physical diffusivity is the coefficient
+times that area divided by the native advective substep.
+
+| Preset | Native corner area (m²) | Native advective substep (s) |
+| --- | ---: | ---: |
+| T21 / C24 | 26,624,905,000 | 9.625 |
+| T42 / C48 | 6,591,096,800 | 4.8125 |
+
+The areas come from native startup output at eight printed significant digits.
+The preset records their provenance hash in restart identity. The generic
+`build_step` interface accepts a finite, nonnegative per-layer diffusivity in
+m²/s. It multiplies degree `l` divergence by `exp(-nu*dt*l*(l+1)/radius²)` after
+dry dynamics and before tracer transport. It leaves vorticity, temperature and
+pressure unfiltered. Changed winds affect subsequent tracer fluxes. No heat is
+added, matching the native configuration's disabled dissipative heating.
+
+The spectral operator differs from FV3's finite-volume substep operator. This
+adaptation does not make their dynamical cores equivalent. Rates stay fixed in
+physical units when the model time step changes. Both new controls remain
+disabled by default; their selected values enter restart identity.
 
 Use the released `mars_topo_mola16.nc` for matched comparisons. Its units and
 global cell-center axes are checked, then its cell-area integral is retained
