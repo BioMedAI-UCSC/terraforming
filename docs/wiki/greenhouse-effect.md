@@ -70,7 +70,12 @@ $$
 \Delta F = \eta \cdot C
 $$
 
-where $\eta$ is the **radiative forcing efficiency** (W m⁻² ppb⁻¹). This is the quantity tabulated by [Marinova et al. (2005)](https://doi.org/10.1029/2004JD005027) for Mars-specific conditions (where the absence of water-vapour overlap bands and the thinner CO₂ column make $\eta$ differ significantly from Earth IPCC values).
+where $\eta$ is the **radiative forcing efficiency** (W m⁻² ppb⁻¹). The
+deprecated intervention registry uses Earth-reference trace-gas values from
+[IPCC AR6 WG1 Table 7.SM.7](https://www.ipcc.ch/report/ar6/wg1/downloads/report/IPCC_AR6_WGI_Chapter07_SM.pdf).
+Their transfer to Mars is not validated. [Marinova et al. (2005)](https://doi.org/10.1029/2004JE002306)
+instead supplies spectral data, modeled temperature responses and bounded gray
+approximations; Table 2 gives optimized mixture percentages.
 
 The total forcing from a mixture of gases is the sum over all species:
 

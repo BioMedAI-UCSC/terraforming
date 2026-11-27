@@ -32,7 +32,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("restart", type=Path)
     parser.add_argument("surface_properties", type=Path)
-    parser.add_argument("ames_reference", type=Path)
+    parser.add_argument("native_reference", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--truncation", default="T21")
     parser.add_argument("--layers", type=int, default=12)
@@ -57,7 +57,7 @@ def main() -> int:
         forcing, grid, args.surface_properties
     )
     dust_ls, visible, longwave = _ames_dust_climatology(
-        args.ames_reference, grid
+        args.native_reference, grid
     )
     forcing = dataclasses.replace(
         forcing,

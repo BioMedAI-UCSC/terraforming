@@ -8,7 +8,6 @@ metadata:
 spec:
   # Retry node/preemption failures. Each pod writes to its own result directory.
   backoffLimit: 2
-  activeDeadlineSeconds: 86400
   podFailurePolicy:
     rules:
       # Exit 10 means the experiment completed but missed its declared

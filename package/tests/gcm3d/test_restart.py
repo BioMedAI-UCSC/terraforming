@@ -6,6 +6,8 @@ import pytest
 pytest.importorskip("dinosaur")
 import jax
 
+jax.config.update("jax_enable_x64",True)
+
 from src.celestials.planets.mars import MARS_BODY_3D  # noqa: E402
 from src.framework.gcm.coordinates import coordinate_system  # noqa: E402
 from src.framework.gcm.dynamics import integrate, stepper  # noqa: E402
@@ -38,7 +40,9 @@ def _model():
         log_surface_pressure=grid.to_modal(
             jnp.full((1,) + grid.nodal_shape, np.log(ps))
         ),
-        tracers={"marker": grid.to_modal(jnp.ones((4,) + grid.nodal_shape))},
+        tracers={"marker": grid.to_modal(jnp.broadcast_to(
+            (1.+.1*jnp.cos(jnp.asarray(grid.longitudes))[:,None])*
+            jnp.arange(1.,5.)[:,None,None],(4,)+grid.nodal_shape))},
         sim_time=0.0,
     )
     state = initial_column_state(dyn, coords, 200.0, specs)
@@ -76,3 +80,71 @@ def test_spinup_and_averaging_window_matches_manual_samples():
     assert np.array_equal(np.asarray(final.surface_temperature),
                           np.asarray(manual.surface_temperature))
     assert float(mean) == pytest.approx(float(jnp.mean(jnp.asarray(values))))
+
+
+def test_auxiliary_reservoirs_and_lagged_exchange_restart_bitwise(tmp_path):
+    state,advance=_model()
+    shape=state.surface_temperature.shape
+    state=state._replace(auxiliary_fields={
+        'water_surface_kg_m2':jnp.full(shape,100.),
+        'water_exchange_coefficient_kg_m2_s':jnp.full(shape,.001),
+        'water_pbl_top_layer':jnp.full(shape,2.),
+    })
+    continuous=integrate(advance,state,6)
+    first=integrate(advance,state,2)
+    restored=load_restart(save_restart(first,tmp_path/'water.npz'))
+    restarted=integrate(advance,restored,4)
+    for expected,actual in zip(jax.tree.leaves(continuous),jax.tree.leaves(restarted),strict=True):
+        np.testing.assert_array_equal(expected,actual)
+    for name,value in state.auxiliary_fields.items():
+        np.testing.assert_allclose(continuous.auxiliary_fields[name],value,rtol=2e-14,atol=1e-14)
+
+
+def test_version_three_restart_still_loads_without_auxiliary_fields(tmp_path):
+    import json
+    state,_=_model();path=save_restart(state,tmp_path/'old.npz')
+    with np.load(path,allow_pickle=False) as data:
+        arrays={name:data[name] for name in data.files}
+    metadata=json.loads(str(arrays['metadata']))
+    metadata['format_version']=3
+    metadata.pop('auxiliary_fields_is_none');metadata.pop('auxiliary_field_names')
+    arrays['metadata']=np.asarray(json.dumps(metadata))
+    np.savez_compressed(path,**arrays)
+    restored=load_restart(path)
+    assert restored.auxiliary_fields is None
+    for expected,actual in zip(jax.tree.leaves(state),jax.tree.leaves(restored),strict=True):
+        np.testing.assert_array_equal(expected,actual)
+
+
+def test_comparison_means_and_local_time_counts_restart_inside_window(tmp_path):
+    import dataclasses
+    from src.framework.gcm.comparison_averaging import averaging_step,apply_means
+    from src.celestials.planets.mars.maps import state_to_comparison_dataset
+    coords=coordinate_system('T21',4);specs=physics_specs(MARS_BODY_3D)
+    initial,_=_model()
+    dt=MARS_BODY_3D.solar_day_seconds/8.
+    unit=float(specs.dimensionalize(1.,scales.units.second).magnitude)
+    def change(state):
+        dyn=dataclasses.replace(state.dynamics,sim_time=state.dynamics.sim_time+dt/unit,
+            tracers={name:value*.99 for name,value in state.dynamics.tracers.items()})
+        return state._replace(dynamics=dyn,surface_temperature=state.surface_temperature+1.)
+    initial,step=averaging_step(change,initial,coords,specs,MARS_BODY_3D,8,dt)
+    step=jax.jit(step)
+    continuous=integrate(step,initial,8)
+    partial=integrate(step,initial,3)
+    restored=load_restart(save_restart(partial,tmp_path/'average.npz'))
+    restarted=integrate(step,restored,5)
+    for a,b in zip(jax.tree.leaves(continuous),jax.tree.leaves(restarted),strict=True):
+        np.testing.assert_array_equal(a,b)
+    counts=continuous.auxiliary_fields['comparison_bin_count']
+    np.testing.assert_array_equal(counts.sum(axis=0),8.)
+    assert np.min(counts)==1. and np.max(counts)==1.
+    raw=state_to_comparison_dataset(continuous,coords,specs,MARS_BODY_3D,radiative_forcing())
+    means=apply_means(raw,continuous,MARS_BODY_3D,dt)
+    np.testing.assert_allclose(means.surface_temperature,204.5,rtol=2e-14)
+    assert means.attrs['complete_window']==1
+    assert means.diurnal_surface_temperature.shape==(8,32,64)
+    np.testing.assert_allclose(means.time_bounds.values,[[0.,1.]],atol=2e-15)
+    next_step=step(continuous)
+    assert next_step.auxiliary_fields['comparison_count']==1
+    np.testing.assert_allclose(next_step.auxiliary_fields['comparison_sum_surface_temperature'],209.)

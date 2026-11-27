@@ -1,0 +1,15 @@
+moist_convection.py is derived from NOAA-GFDL atmos_phys,
+atmos_param/moist_conv/moist_conv.F90, revision 46817a1,
+Git blob e7f2641002c2d2c76b0966aaf585d49e72af0ebf.
+https://github.com/NOAA-GFDL/atmos_phys/tree/46817a1
+
+The upstream library is licensed under GNU LGPL version 3. The adapted Python
+library module is supplied in source form and can be modified separately.
+See LGPL-3.0.txt and GPL-3.0.txt in this directory.
+
+Mars water constants follow NASA Ames GCM v3.2.1's Apache-2.0 patch.
+Copyright 2023 United States Government, as represented by the Administrator
+of the National Aeronautics and Space Administration. See Apache-2.0.txt.
+
+The adaptation preserves the released Mars caller's path without optional
+stratiform cloud fields. Its validation records source control-flow quirks.

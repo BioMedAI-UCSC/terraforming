@@ -224,7 +224,7 @@ prognostic soil-layer temperature so future long spin-ups remain continuous.
     surface equals the TOA budget to roundoff. This compact band model remains as
     the ablation fallback.
   - [x] Integrate the bundled NASA Ames 12-band correlated-k CO₂ tables
-    (`ames_co2_12band.npz`, staged by `scripts/stage_ames_co2_radiation.py`):
+    (`co2_12band_tables.npz`, staged by `scripts/stage_co2_radiation_tables.py`):
     SW/LW optical depths bilinearly interpolated in temperature and log-pressure,
     split-Gaussian channel weights, Planck-band-fraction thermal emission, and
     spectral Ames/Wolff dust optics. Enabled by default

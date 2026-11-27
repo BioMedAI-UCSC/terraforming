@@ -1,0 +1,349 @@
+{
+  "status": "pass",
+  "reference": {
+    "source_git_blob": "ca0b7c0774b1b23cafaee219062c3bffa3d0c4cc",
+    "compiled_source_sha256": "bf32d1539d902fbf607a584e0b81f142d6e3564bdb1ec7fb38723e6539e7c791",
+    "routine_sha256": {
+      "rayleigh_damping": "69199c71add1e1027ef960d4a360a39b6cf26253994b189cd3e96fe93bb19002"
+    },
+    "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "compiler_flags": [
+      "-O3",
+      "-cpp",
+      "-ffree-line-length-none",
+      "-fdefault-real-8",
+      "-fdefault-double-8",
+      "-fPIC",
+      "-shared"
+    ],
+    "real_precision_bits": 64,
+    "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged"
+  },
+  "cases": [
+    {
+      "layers": 4,
+      "model_top": false,
+      "tropical": false,
+      "timescale": 0.0,
+      "max_errors_m_s2": [
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 4,
+      "model_top": false,
+      "tropical": false,
+      "timescale": -1.0,
+      "max_errors_m_s2": [
+        8.673617379884035e-19,
+        2.168404344971009e-19
+      ]
+    },
+    {
+      "layers": 4,
+      "model_top": false,
+      "tropical": false,
+      "timescale": 86400.0,
+      "max_errors_m_s2": [
+        8.673617379884035e-19,
+        2.168404344971009e-19
+      ]
+    },
+    {
+      "layers": 4,
+      "model_top": false,
+      "tropical": false,
+      "timescale": -4000000000.0,
+      "max_errors_m_s2": [
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 4,
+      "model_top": true,
+      "tropical": false,
+      "timescale": 0.0,
+      "max_errors_m_s2": [
+        4.336808689942018e-19,
+        1.1564823173641512e-19
+      ]
+    },
+    {
+      "layers": 4,
+      "model_top": true,
+      "tropical": false,
+      "timescale": -1.0,
+      "max_errors_m_s2": [
+        4.336808689942018e-19,
+        2.168404344971009e-19
+      ]
+    },
+    {
+      "layers": 4,
+      "model_top": true,
+      "tropical": false,
+      "timescale": 86400.0,
+      "max_errors_m_s2": [
+        4.336808689942018e-19,
+        2.168404344971009e-19
+      ]
+    },
+    {
+      "layers": 4,
+      "model_top": true,
+      "tropical": false,
+      "timescale": -4000000000.0,
+      "max_errors_m_s2": [
+        4.336808689942018e-19,
+        1.1564823170486069e-19
+      ]
+    },
+    {
+      "layers": 4,
+      "model_top": false,
+      "tropical": true,
+      "timescale": 0.0,
+      "max_errors_m_s2": [
+        1.9274714479526885e-19,
+        5.782411241930768e-20
+      ]
+    },
+    {
+      "layers": 4,
+      "model_top": false,
+      "tropical": true,
+      "timescale": -1.0,
+      "max_errors_m_s2": [
+        8.673617379884035e-19,
+        2.168404344971009e-19
+      ]
+    },
+    {
+      "layers": 4,
+      "model_top": false,
+      "tropical": true,
+      "timescale": 86400.0,
+      "max_errors_m_s2": [
+        8.673617379884035e-19,
+        2.168404344971009e-19
+      ]
+    },
+    {
+      "layers": 4,
+      "model_top": false,
+      "tropical": true,
+      "timescale": -4000000000.0,
+      "max_errors_m_s2": [
+        1.9274714479526885e-19,
+        5.782411241930768e-20
+      ]
+    },
+    {
+      "layers": 4,
+      "model_top": true,
+      "tropical": true,
+      "timescale": 0.0,
+      "max_errors_m_s2": [
+        8.673617379884035e-19,
+        1.1564827653740365e-19
+      ]
+    },
+    {
+      "layers": 4,
+      "model_top": true,
+      "tropical": true,
+      "timescale": -1.0,
+      "max_errors_m_s2": [
+        8.673617379884035e-19,
+        2.168404344971009e-19
+      ]
+    },
+    {
+      "layers": 4,
+      "model_top": true,
+      "tropical": true,
+      "timescale": 86400.0,
+      "max_errors_m_s2": [
+        8.673617379884035e-19,
+        2.168404344971009e-19
+      ]
+    },
+    {
+      "layers": 4,
+      "model_top": true,
+      "tropical": true,
+      "timescale": -4000000000.0,
+      "max_errors_m_s2": [
+        8.673617379884035e-19,
+        1.156482506880095e-19
+      ]
+    },
+    {
+      "layers": 40,
+      "model_top": false,
+      "tropical": false,
+      "timescale": 0.0,
+      "max_errors_m_s2": [
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "model_top": false,
+      "tropical": false,
+      "timescale": -1.0,
+      "max_errors_m_s2": [
+        8.673617379884035e-19,
+        2.168404344971009e-19
+      ]
+    },
+    {
+      "layers": 40,
+      "model_top": false,
+      "tropical": false,
+      "timescale": 86400.0,
+      "max_errors_m_s2": [
+        8.673617379884035e-19,
+        2.168404344971009e-19
+      ]
+    },
+    {
+      "layers": 40,
+      "model_top": false,
+      "tropical": false,
+      "timescale": -4000000000.0,
+      "max_errors_m_s2": [
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layers": 40,
+      "model_top": true,
+      "tropical": false,
+      "timescale": 0.0,
+      "max_errors_m_s2": [
+        8.673617379884035e-19,
+        2.168404344971009e-19
+      ]
+    },
+    {
+      "layers": 40,
+      "model_top": true,
+      "tropical": false,
+      "timescale": -1.0,
+      "max_errors_m_s2": [
+        8.673617379884035e-19,
+        2.168404344971009e-19
+      ]
+    },
+    {
+      "layers": 40,
+      "model_top": true,
+      "tropical": false,
+      "timescale": 86400.0,
+      "max_errors_m_s2": [
+        8.673617379884035e-19,
+        2.168404344971009e-19
+      ]
+    },
+    {
+      "layers": 40,
+      "model_top": true,
+      "tropical": false,
+      "timescale": -4000000000.0,
+      "max_errors_m_s2": [
+        8.673617379884035e-19,
+        2.168404344971009e-19
+      ]
+    },
+    {
+      "layers": 40,
+      "model_top": false,
+      "tropical": true,
+      "timescale": 0.0,
+      "max_errors_m_s2": [
+        2.168404344971009e-19,
+        5.782411241930768e-20
+      ]
+    },
+    {
+      "layers": 40,
+      "model_top": false,
+      "tropical": true,
+      "timescale": -1.0,
+      "max_errors_m_s2": [
+        8.673617379884035e-19,
+        2.168404344971009e-19
+      ]
+    },
+    {
+      "layers": 40,
+      "model_top": false,
+      "tropical": true,
+      "timescale": 86400.0,
+      "max_errors_m_s2": [
+        8.673617379884035e-19,
+        2.168404344971009e-19
+      ]
+    },
+    {
+      "layers": 40,
+      "model_top": false,
+      "tropical": true,
+      "timescale": -4000000000.0,
+      "max_errors_m_s2": [
+        2.168404344971009e-19,
+        5.782411241930768e-20
+      ]
+    },
+    {
+      "layers": 40,
+      "model_top": true,
+      "tropical": true,
+      "timescale": 0.0,
+      "max_errors_m_s2": [
+        8.673617379884035e-19,
+        2.168404344971009e-19
+      ]
+    },
+    {
+      "layers": 40,
+      "model_top": true,
+      "tropical": true,
+      "timescale": -1.0,
+      "max_errors_m_s2": [
+        8.673617379884035e-19,
+        2.168404344971009e-19
+      ]
+    },
+    {
+      "layers": 40,
+      "model_top": true,
+      "tropical": true,
+      "timescale": 86400.0,
+      "max_errors_m_s2": [
+        8.673617379884035e-19,
+        2.168404344971009e-19
+      ]
+    },
+    {
+      "layers": 40,
+      "model_top": true,
+      "tropical": true,
+      "timescale": -4000000000.0,
+      "max_errors_m_s2": [
+        8.673617379884035e-19,
+        2.168404344971009e-19
+      ]
+    }
+  ],
+  "sha256": {
+    "scripts/validate_rayleigh_drag.py": "2384d6957df24d0f668b1eaf74f41bb1dadc8152358d5dc6f15cf2f990538abd",
+    "package/src/framework/physics/rayleigh_drag.py": "3efd1d81aadeeb3e92c8fe8e8a3affe15ac03164d9404af4e220a4f32741f145"
+  },
+  "limits": "Rayleigh damping and its top/tropical switches; gravity-wave schemes are separate processes"
+}

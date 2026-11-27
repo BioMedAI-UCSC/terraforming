@@ -1,0 +1,1542 @@
+{
+  "status": "pass",
+  "reference": {
+    "patch_git_blob": "4116b38b088d4f39a5d8c1da76acc1ffb07847db",
+    "grid_header_sha256": "96f9cb41490145c0f6feb795475dad240e06a3e99b035cecc9f4b9cb697dfc0b",
+    "routine_sha256": "95c36bd74ab247fe3be457db867741ed467b2d905c2838373d405d80fba63dc0",
+    "compiled_source_sha256": "9328d3e06dfda79fc86fb292ff42dc78038ceb90e6142c24ecd342eaff582c90",
+    "compiler_flags": [
+      "-O3",
+      "-cpp",
+      "-DMARS_GCM",
+      "-I.",
+      "-fdefault-real-8",
+      "-fdefault-double-8",
+      "-fPIC",
+      "-shared"
+    ],
+    "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "adaptation": "unchanged added set_eta and fv_eta_mars.h; module declarations and C adapter"
+  },
+  "cases": [
+    {
+      "layers": 24,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 30.5,
+      "pure_pressure_layers": 0,
+      "native_top_pressure_pa": 6.731034482758621e-06,
+      "max_pressure_error_pa": 0.0,
+      "sigma_adaptation_max_pressure_error_pa": 6.731034482758621e-06
+    },
+    {
+      "layers": 24,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 61.0,
+      "pure_pressure_layers": 0,
+      "native_top_pressure_pa": 6.731034482758621e-06,
+      "max_pressure_error_pa": 0.0,
+      "sigma_adaptation_max_pressure_error_pa": 6.731034482758621e-06
+    },
+    {
+      "layers": 24,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 91.5,
+      "pure_pressure_layers": 0,
+      "native_top_pressure_pa": 6.731034482758621e-06,
+      "max_pressure_error_pa": 0.0,
+      "sigma_adaptation_max_pressure_error_pa": 6.731034482758621e-06
+    },
+    {
+      "layers": 24,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 352.5,
+      "pure_pressure_layers": 0,
+      "native_top_pressure_pa": 7.779310344827587e-05,
+      "max_pressure_error_pa": 0.0,
+      "sigma_adaptation_max_pressure_error_pa": 7.779310344827587e-05
+    },
+    {
+      "layers": 24,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 705.0,
+      "pure_pressure_layers": 0,
+      "native_top_pressure_pa": 7.779310344827587e-05,
+      "max_pressure_error_pa": 0.0,
+      "sigma_adaptation_max_pressure_error_pa": 7.779310344827587e-05
+    },
+    {
+      "layers": 24,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 1057.5,
+      "pure_pressure_layers": 0,
+      "native_top_pressure_pa": 7.779310344827587e-05,
+      "max_pressure_error_pa": 0.0,
+      "sigma_adaptation_max_pressure_error_pa": 7.779310344827587e-05
+    },
+    {
+      "layers": 24,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 362.5,
+      "pure_pressure_layers": 0,
+      "native_top_pressure_pa": 8e-05,
+      "max_pressure_error_pa": 1.3552527156068805e-20,
+      "sigma_adaptation_max_pressure_error_pa": 8e-05
+    },
+    {
+      "layers": 24,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 725.0,
+      "pure_pressure_layers": 0,
+      "native_top_pressure_pa": 8e-05,
+      "max_pressure_error_pa": 1.3552527156068805e-20,
+      "sigma_adaptation_max_pressure_error_pa": 8e-05
+    },
+    {
+      "layers": 24,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 1087.5,
+      "pure_pressure_layers": 0,
+      "native_top_pressure_pa": 8e-05,
+      "max_pressure_error_pa": 1.3552527156068805e-20,
+      "sigma_adaptation_max_pressure_error_pa": 8e-05
+    },
+    {
+      "layers": 24,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 25000.0,
+      "pure_pressure_layers": 0,
+      "native_top_pressure_pa": 0.005517241379310344,
+      "max_pressure_error_pa": 0.0,
+      "sigma_adaptation_max_pressure_error_pa": 0.005517241379310344
+    },
+    {
+      "layers": 24,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 50000.0,
+      "pure_pressure_layers": 0,
+      "native_top_pressure_pa": 0.005517241379310344,
+      "max_pressure_error_pa": 0.0,
+      "sigma_adaptation_max_pressure_error_pa": 0.005517241379310344
+    },
+    {
+      "layers": 24,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 75000.0,
+      "pure_pressure_layers": 0,
+      "native_top_pressure_pa": 0.005517241379310344,
+      "max_pressure_error_pa": 0.0,
+      "sigma_adaptation_max_pressure_error_pa": 0.005517241379310344
+    },
+    {
+      "layers": 28,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 30.5,
+      "pure_pressure_layers": 4,
+      "native_top_pressure_pa": 0.0016827586206896552,
+      "max_pressure_error_pa": 2.220446049250313e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.12272454537931043
+    },
+    {
+      "layers": 28,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 61.0,
+      "pure_pressure_layers": 4,
+      "native_top_pressure_pa": 0.0016827586206896552,
+      "max_pressure_error_pa": 8.673617379884035e-19,
+      "sigma_adaptation_max_pressure_error_pa": 0.0016827586206896552
+    },
+    {
+      "layers": 28,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 91.5,
+      "pure_pressure_layers": 4,
+      "native_top_pressure_pa": 0.0016827586206896552,
+      "max_pressure_error_pa": 8.881784197001252e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.12272454537931043
+    },
+    {
+      "layers": 28,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 352.5,
+      "pure_pressure_layers": 4,
+      "native_top_pressure_pa": 0.019448275862068966,
+      "max_pressure_error_pa": 3.552713678800501e-15,
+      "sigma_adaptation_max_pressure_error_pa": 1.4183738441379319
+    },
+    {
+      "layers": 28,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 705.0,
+      "pure_pressure_layers": 4,
+      "native_top_pressure_pa": 0.019448275862068966,
+      "max_pressure_error_pa": 1.7763568394002505e-15,
+      "sigma_adaptation_max_pressure_error_pa": 0.019448275862068966
+    },
+    {
+      "layers": 28,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 1057.5,
+      "pure_pressure_layers": 4,
+      "native_top_pressure_pa": 0.019448275862068966,
+      "max_pressure_error_pa": 2.220446049250313e-16,
+      "sigma_adaptation_max_pressure_error_pa": 1.4183738441379319
+    },
+    {
+      "layers": 28,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 362.5,
+      "pure_pressure_layers": 4,
+      "native_top_pressure_pa": 0.02,
+      "max_pressure_error_pa": 1.7763568394002505e-15,
+      "sigma_adaptation_max_pressure_error_pa": 1.4586114000000006
+    },
+    {
+      "layers": 28,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 725.0,
+      "pure_pressure_layers": 4,
+      "native_top_pressure_pa": 0.02,
+      "max_pressure_error_pa": 4.440892098500626e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.02
+    },
+    {
+      "layers": 28,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 1087.5,
+      "pure_pressure_layers": 4,
+      "native_top_pressure_pa": 0.02,
+      "max_pressure_error_pa": 2.220446049250313e-16,
+      "sigma_adaptation_max_pressure_error_pa": 1.4586114000000023
+    },
+    {
+      "layers": 28,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 25000.0,
+      "pure_pressure_layers": 4,
+      "native_top_pressure_pa": 1.3793103448275863,
+      "max_pressure_error_pa": 2.842170943040401e-14,
+      "sigma_adaptation_max_pressure_error_pa": 100.59388965517246
+    },
+    {
+      "layers": 28,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 50000.0,
+      "pure_pressure_layers": 4,
+      "native_top_pressure_pa": 1.3793103448275863,
+      "max_pressure_error_pa": 1.7763568394002505e-15,
+      "sigma_adaptation_max_pressure_error_pa": 1.3793103448275863
+    },
+    {
+      "layers": 28,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 75000.0,
+      "pure_pressure_layers": 4,
+      "native_top_pressure_pa": 1.3793103448275863,
+      "max_pressure_error_pa": 5.684341886080802e-14,
+      "sigma_adaptation_max_pressure_error_pa": 100.59388965517246
+    },
+    {
+      "layers": 30,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 30.5,
+      "pure_pressure_layers": 4,
+      "native_top_pressure_pa": 0.0016827586206896552,
+      "max_pressure_error_pa": 2.220446049250313e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.12272454537931043
+    },
+    {
+      "layers": 30,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 61.0,
+      "pure_pressure_layers": 4,
+      "native_top_pressure_pa": 0.0016827586206896552,
+      "max_pressure_error_pa": 8.673617379884035e-19,
+      "sigma_adaptation_max_pressure_error_pa": 0.0016827586206896552
+    },
+    {
+      "layers": 30,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 91.5,
+      "pure_pressure_layers": 4,
+      "native_top_pressure_pa": 0.0016827586206896552,
+      "max_pressure_error_pa": 8.881784197001252e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.12272454537931043
+    },
+    {
+      "layers": 30,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 352.5,
+      "pure_pressure_layers": 4,
+      "native_top_pressure_pa": 0.019448275862068966,
+      "max_pressure_error_pa": 3.552713678800501e-15,
+      "sigma_adaptation_max_pressure_error_pa": 1.4183738441379319
+    },
+    {
+      "layers": 30,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 705.0,
+      "pure_pressure_layers": 4,
+      "native_top_pressure_pa": 0.019448275862068966,
+      "max_pressure_error_pa": 1.7763568394002505e-15,
+      "sigma_adaptation_max_pressure_error_pa": 0.019448275862068966
+    },
+    {
+      "layers": 30,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 1057.5,
+      "pure_pressure_layers": 4,
+      "native_top_pressure_pa": 0.019448275862068966,
+      "max_pressure_error_pa": 2.220446049250313e-16,
+      "sigma_adaptation_max_pressure_error_pa": 1.4183738441379319
+    },
+    {
+      "layers": 30,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 362.5,
+      "pure_pressure_layers": 4,
+      "native_top_pressure_pa": 0.02,
+      "max_pressure_error_pa": 1.7763568394002505e-15,
+      "sigma_adaptation_max_pressure_error_pa": 1.4586114000000006
+    },
+    {
+      "layers": 30,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 725.0,
+      "pure_pressure_layers": 4,
+      "native_top_pressure_pa": 0.02,
+      "max_pressure_error_pa": 4.440892098500626e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.02
+    },
+    {
+      "layers": 30,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 1087.5,
+      "pure_pressure_layers": 4,
+      "native_top_pressure_pa": 0.02,
+      "max_pressure_error_pa": 2.220446049250313e-16,
+      "sigma_adaptation_max_pressure_error_pa": 1.4586114000000023
+    },
+    {
+      "layers": 30,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 25000.0,
+      "pure_pressure_layers": 4,
+      "native_top_pressure_pa": 1.3793103448275863,
+      "max_pressure_error_pa": 2.842170943040401e-14,
+      "sigma_adaptation_max_pressure_error_pa": 100.59388965517246
+    },
+    {
+      "layers": 30,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 50000.0,
+      "pure_pressure_layers": 4,
+      "native_top_pressure_pa": 1.3793103448275863,
+      "max_pressure_error_pa": 1.7763568394002505e-15,
+      "sigma_adaptation_max_pressure_error_pa": 1.3793103448275863
+    },
+    {
+      "layers": 30,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 75000.0,
+      "pure_pressure_layers": 4,
+      "native_top_pressure_pa": 1.3793103448275863,
+      "max_pressure_error_pa": 5.684341886080802e-14,
+      "sigma_adaptation_max_pressure_error_pa": 100.59388965517246
+    },
+    {
+      "layers": 36,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 30.5,
+      "pure_pressure_layers": 10,
+      "native_top_pressure_pa": 0.0001682758620689655,
+      "max_pressure_error_pa": 4.440892098500626e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.11304004132255163
+    },
+    {
+      "layers": 36,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 61.0,
+      "pure_pressure_layers": 10,
+      "native_top_pressure_pa": 0.0001682758620689655,
+      "max_pressure_error_pa": 2.7755575615628914e-17,
+      "sigma_adaptation_max_pressure_error_pa": 0.0001682758620689655
+    },
+    {
+      "layers": 36,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 91.5,
+      "pure_pressure_layers": 10,
+      "native_top_pressure_pa": 0.0001682758620689655,
+      "max_pressure_error_pa": 2.220446049250313e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.11304004132255185
+    },
+    {
+      "layers": 36,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 352.5,
+      "pure_pressure_layers": 10,
+      "native_top_pressure_pa": 0.0019448275862068965,
+      "max_pressure_error_pa": 3.552713678800501e-15,
+      "sigma_adaptation_max_pressure_error_pa": 1.3064463792196541
+    },
+    {
+      "layers": 36,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 705.0,
+      "pure_pressure_layers": 10,
+      "native_top_pressure_pa": 0.0019448275862068965,
+      "max_pressure_error_pa": 3.552713678800501e-15,
+      "sigma_adaptation_max_pressure_error_pa": 0.0019448275862068965
+    },
+    {
+      "layers": 36,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 1057.5,
+      "pure_pressure_layers": 10,
+      "native_top_pressure_pa": 0.0019448275862068965,
+      "max_pressure_error_pa": 2.220446049250313e-16,
+      "sigma_adaptation_max_pressure_error_pa": 1.3064463792196506
+    },
+    {
+      "layers": 36,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 362.5,
+      "pure_pressure_layers": 10,
+      "native_top_pressure_pa": 0.002,
+      "max_pressure_error_pa": 2.220446049250313e-16,
+      "sigma_adaptation_max_pressure_error_pa": 1.3435086878500009
+    },
+    {
+      "layers": 36,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 725.0,
+      "pure_pressure_layers": 10,
+      "native_top_pressure_pa": 0.002,
+      "max_pressure_error_pa": 7.105427357601002e-15,
+      "sigma_adaptation_max_pressure_error_pa": 0.002
+    },
+    {
+      "layers": 36,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 1087.5,
+      "pure_pressure_layers": 10,
+      "native_top_pressure_pa": 0.002,
+      "max_pressure_error_pa": 7.105427357601002e-15,
+      "sigma_adaptation_max_pressure_error_pa": 1.3435086878499973
+    },
+    {
+      "layers": 36,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 25000.0,
+      "pure_pressure_layers": 10,
+      "native_top_pressure_pa": 0.13793103448275862,
+      "max_pressure_error_pa": 5.684341886080802e-14,
+      "sigma_adaptation_max_pressure_error_pa": 92.65577157586199
+    },
+    {
+      "layers": 36,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 50000.0,
+      "pure_pressure_layers": 10,
+      "native_top_pressure_pa": 0.13793103448275862,
+      "max_pressure_error_pa": 2.842170943040401e-14,
+      "sigma_adaptation_max_pressure_error_pa": 0.13793103448275862
+    },
+    {
+      "layers": 36,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 75000.0,
+      "pure_pressure_layers": 10,
+      "native_top_pressure_pa": 0.13793103448275862,
+      "max_pressure_error_pa": 2.842170943040401e-14,
+      "sigma_adaptation_max_pressure_error_pa": 92.65577157586222
+    },
+    {
+      "layers": 37,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 30.5,
+      "pure_pressure_layers": 9,
+      "native_top_pressure_pa": 0.0001682758620689655,
+      "max_pressure_error_pa": 4.440892098500626e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.11304004132255163
+    },
+    {
+      "layers": 37,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 61.0,
+      "pure_pressure_layers": 9,
+      "native_top_pressure_pa": 0.0001682758620689655,
+      "max_pressure_error_pa": 2.7755575615628914e-17,
+      "sigma_adaptation_max_pressure_error_pa": 0.0001682758620689655
+    },
+    {
+      "layers": 37,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 91.5,
+      "pure_pressure_layers": 9,
+      "native_top_pressure_pa": 0.0001682758620689655,
+      "max_pressure_error_pa": 2.220446049250313e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.11304004132255185
+    },
+    {
+      "layers": 37,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 352.5,
+      "pure_pressure_layers": 9,
+      "native_top_pressure_pa": 0.0019448275862068965,
+      "max_pressure_error_pa": 3.552713678800501e-15,
+      "sigma_adaptation_max_pressure_error_pa": 1.3064463792196541
+    },
+    {
+      "layers": 37,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 705.0,
+      "pure_pressure_layers": 9,
+      "native_top_pressure_pa": 0.0019448275862068965,
+      "max_pressure_error_pa": 3.552713678800501e-15,
+      "sigma_adaptation_max_pressure_error_pa": 0.0019448275862068965
+    },
+    {
+      "layers": 37,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 1057.5,
+      "pure_pressure_layers": 9,
+      "native_top_pressure_pa": 0.0019448275862068965,
+      "max_pressure_error_pa": 2.220446049250313e-16,
+      "sigma_adaptation_max_pressure_error_pa": 1.3064463792196506
+    },
+    {
+      "layers": 37,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 362.5,
+      "pure_pressure_layers": 9,
+      "native_top_pressure_pa": 0.002,
+      "max_pressure_error_pa": 2.220446049250313e-16,
+      "sigma_adaptation_max_pressure_error_pa": 1.3435086878500009
+    },
+    {
+      "layers": 37,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 725.0,
+      "pure_pressure_layers": 9,
+      "native_top_pressure_pa": 0.002,
+      "max_pressure_error_pa": 7.105427357601002e-15,
+      "sigma_adaptation_max_pressure_error_pa": 0.002
+    },
+    {
+      "layers": 37,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 1087.5,
+      "pure_pressure_layers": 9,
+      "native_top_pressure_pa": 0.002,
+      "max_pressure_error_pa": 7.105427357601002e-15,
+      "sigma_adaptation_max_pressure_error_pa": 1.3435086878499973
+    },
+    {
+      "layers": 37,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 25000.0,
+      "pure_pressure_layers": 9,
+      "native_top_pressure_pa": 0.13793103448275862,
+      "max_pressure_error_pa": 5.684341886080802e-14,
+      "sigma_adaptation_max_pressure_error_pa": 92.65577157586199
+    },
+    {
+      "layers": 37,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 50000.0,
+      "pure_pressure_layers": 9,
+      "native_top_pressure_pa": 0.13793103448275862,
+      "max_pressure_error_pa": 2.842170943040401e-14,
+      "sigma_adaptation_max_pressure_error_pa": 0.13793103448275862
+    },
+    {
+      "layers": 37,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 75000.0,
+      "pure_pressure_layers": 9,
+      "native_top_pressure_pa": 0.13793103448275862,
+      "max_pressure_error_pa": 2.842170943040401e-14,
+      "sigma_adaptation_max_pressure_error_pa": 92.65577157586222
+    },
+    {
+      "layers": 38,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 30.5,
+      "pure_pressure_layers": 12,
+      "native_top_pressure_pa": 6.310344827586206e-05,
+      "max_pressure_error_pa": 4.440892098500626e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.11304004132255163
+    },
+    {
+      "layers": 38,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 61.0,
+      "pure_pressure_layers": 12,
+      "native_top_pressure_pa": 6.310344827586206e-05,
+      "max_pressure_error_pa": 2.7755575615628914e-17,
+      "sigma_adaptation_max_pressure_error_pa": 6.310344827586206e-05
+    },
+    {
+      "layers": 38,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 91.5,
+      "pure_pressure_layers": 12,
+      "native_top_pressure_pa": 6.310344827586206e-05,
+      "max_pressure_error_pa": 2.220446049250313e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.11304004132255185
+    },
+    {
+      "layers": 38,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 352.5,
+      "pure_pressure_layers": 12,
+      "native_top_pressure_pa": 0.0007293103448275862,
+      "max_pressure_error_pa": 3.552713678800501e-15,
+      "sigma_adaptation_max_pressure_error_pa": 1.3064463792196541
+    },
+    {
+      "layers": 38,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 705.0,
+      "pure_pressure_layers": 12,
+      "native_top_pressure_pa": 0.0007293103448275862,
+      "max_pressure_error_pa": 3.552713678800501e-15,
+      "sigma_adaptation_max_pressure_error_pa": 0.0007293103448275862
+    },
+    {
+      "layers": 38,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 1057.5,
+      "pure_pressure_layers": 12,
+      "native_top_pressure_pa": 0.0007293103448275862,
+      "max_pressure_error_pa": 2.220446049250313e-16,
+      "sigma_adaptation_max_pressure_error_pa": 1.3064463792196506
+    },
+    {
+      "layers": 38,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 362.5,
+      "pure_pressure_layers": 12,
+      "native_top_pressure_pa": 0.0007500000000000001,
+      "max_pressure_error_pa": 2.220446049250313e-16,
+      "sigma_adaptation_max_pressure_error_pa": 1.3435086878500009
+    },
+    {
+      "layers": 38,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 725.0,
+      "pure_pressure_layers": 12,
+      "native_top_pressure_pa": 0.0007500000000000001,
+      "max_pressure_error_pa": 7.105427357601002e-15,
+      "sigma_adaptation_max_pressure_error_pa": 0.0007500000000000001
+    },
+    {
+      "layers": 38,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 1087.5,
+      "pure_pressure_layers": 12,
+      "native_top_pressure_pa": 0.0007500000000000001,
+      "max_pressure_error_pa": 7.105427357601002e-15,
+      "sigma_adaptation_max_pressure_error_pa": 1.3435086878499973
+    },
+    {
+      "layers": 38,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 25000.0,
+      "pure_pressure_layers": 12,
+      "native_top_pressure_pa": 0.05172413793103448,
+      "max_pressure_error_pa": 5.684341886080802e-14,
+      "sigma_adaptation_max_pressure_error_pa": 92.65577157586199
+    },
+    {
+      "layers": 38,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 50000.0,
+      "pure_pressure_layers": 12,
+      "native_top_pressure_pa": 0.05172413793103448,
+      "max_pressure_error_pa": 2.842170943040401e-14,
+      "sigma_adaptation_max_pressure_error_pa": 0.05172413793103448
+    },
+    {
+      "layers": 38,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 75000.0,
+      "pure_pressure_layers": 12,
+      "native_top_pressure_pa": 0.05172413793103448,
+      "max_pressure_error_pa": 2.842170943040401e-14,
+      "sigma_adaptation_max_pressure_error_pa": 92.65577157586222
+    },
+    {
+      "layers": 40,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 30.5,
+      "pure_pressure_layers": 14,
+      "native_top_pressure_pa": 1.2620689655172411e-05,
+      "max_pressure_error_pa": 4.440892098500626e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.11304004132255163
+    },
+    {
+      "layers": 40,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 61.0,
+      "pure_pressure_layers": 14,
+      "native_top_pressure_pa": 1.2620689655172411e-05,
+      "max_pressure_error_pa": 2.7755575615628914e-17,
+      "sigma_adaptation_max_pressure_error_pa": 1.2620689655172411e-05
+    },
+    {
+      "layers": 40,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 91.5,
+      "pure_pressure_layers": 14,
+      "native_top_pressure_pa": 1.2620689655172411e-05,
+      "max_pressure_error_pa": 2.220446049250313e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.11304004132255185
+    },
+    {
+      "layers": 40,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 352.5,
+      "pure_pressure_layers": 14,
+      "native_top_pressure_pa": 0.00014586206896551724,
+      "max_pressure_error_pa": 3.552713678800501e-15,
+      "sigma_adaptation_max_pressure_error_pa": 1.3064463792196541
+    },
+    {
+      "layers": 40,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 705.0,
+      "pure_pressure_layers": 14,
+      "native_top_pressure_pa": 0.00014586206896551724,
+      "max_pressure_error_pa": 3.552713678800501e-15,
+      "sigma_adaptation_max_pressure_error_pa": 0.00014586206896551724
+    },
+    {
+      "layers": 40,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 1057.5,
+      "pure_pressure_layers": 14,
+      "native_top_pressure_pa": 0.00014586206896551724,
+      "max_pressure_error_pa": 2.220446049250313e-16,
+      "sigma_adaptation_max_pressure_error_pa": 1.3064463792196506
+    },
+    {
+      "layers": 40,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 362.5,
+      "pure_pressure_layers": 14,
+      "native_top_pressure_pa": 0.00015,
+      "max_pressure_error_pa": 2.220446049250313e-16,
+      "sigma_adaptation_max_pressure_error_pa": 1.3435086878500009
+    },
+    {
+      "layers": 40,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 725.0,
+      "pure_pressure_layers": 14,
+      "native_top_pressure_pa": 0.00015,
+      "max_pressure_error_pa": 7.105427357601002e-15,
+      "sigma_adaptation_max_pressure_error_pa": 0.00015
+    },
+    {
+      "layers": 40,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 1087.5,
+      "pure_pressure_layers": 14,
+      "native_top_pressure_pa": 0.00015,
+      "max_pressure_error_pa": 7.105427357601002e-15,
+      "sigma_adaptation_max_pressure_error_pa": 1.3435086878499973
+    },
+    {
+      "layers": 40,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 25000.0,
+      "pure_pressure_layers": 14,
+      "native_top_pressure_pa": 0.010344827586206895,
+      "max_pressure_error_pa": 5.684341886080802e-14,
+      "sigma_adaptation_max_pressure_error_pa": 92.65577157586199
+    },
+    {
+      "layers": 40,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 50000.0,
+      "pure_pressure_layers": 14,
+      "native_top_pressure_pa": 0.010344827586206895,
+      "max_pressure_error_pa": 2.842170943040401e-14,
+      "sigma_adaptation_max_pressure_error_pa": 0.010344827586206895
+    },
+    {
+      "layers": 40,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 75000.0,
+      "pure_pressure_layers": 14,
+      "native_top_pressure_pa": 0.010344827586206895,
+      "max_pressure_error_pa": 2.842170943040401e-14,
+      "sigma_adaptation_max_pressure_error_pa": 92.65577157586222
+    },
+    {
+      "layers": 42,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 30.5,
+      "pure_pressure_layers": 16,
+      "native_top_pressure_pa": 1.6827586206896553e-06,
+      "max_pressure_error_pa": 4.440892098500626e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.11304004132255163
+    },
+    {
+      "layers": 42,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 61.0,
+      "pure_pressure_layers": 16,
+      "native_top_pressure_pa": 1.6827586206896553e-06,
+      "max_pressure_error_pa": 2.7755575615628914e-17,
+      "sigma_adaptation_max_pressure_error_pa": 1.6827586206896553e-06
+    },
+    {
+      "layers": 42,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 91.5,
+      "pure_pressure_layers": 16,
+      "native_top_pressure_pa": 1.6827586206896553e-06,
+      "max_pressure_error_pa": 2.220446049250313e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.11304004132255185
+    },
+    {
+      "layers": 42,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 352.5,
+      "pure_pressure_layers": 16,
+      "native_top_pressure_pa": 1.9448275862068968e-05,
+      "max_pressure_error_pa": 3.552713678800501e-15,
+      "sigma_adaptation_max_pressure_error_pa": 1.3064463792196541
+    },
+    {
+      "layers": 42,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 705.0,
+      "pure_pressure_layers": 16,
+      "native_top_pressure_pa": 1.9448275862068968e-05,
+      "max_pressure_error_pa": 3.552713678800501e-15,
+      "sigma_adaptation_max_pressure_error_pa": 1.9448275862068968e-05
+    },
+    {
+      "layers": 42,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 1057.5,
+      "pure_pressure_layers": 16,
+      "native_top_pressure_pa": 1.9448275862068968e-05,
+      "max_pressure_error_pa": 2.220446049250313e-16,
+      "sigma_adaptation_max_pressure_error_pa": 1.3064463792196506
+    },
+    {
+      "layers": 42,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 362.5,
+      "pure_pressure_layers": 16,
+      "native_top_pressure_pa": 2e-05,
+      "max_pressure_error_pa": 2.220446049250313e-16,
+      "sigma_adaptation_max_pressure_error_pa": 1.3435086878500009
+    },
+    {
+      "layers": 42,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 725.0,
+      "pure_pressure_layers": 16,
+      "native_top_pressure_pa": 2e-05,
+      "max_pressure_error_pa": 7.105427357601002e-15,
+      "sigma_adaptation_max_pressure_error_pa": 2e-05
+    },
+    {
+      "layers": 42,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 1087.5,
+      "pure_pressure_layers": 16,
+      "native_top_pressure_pa": 2e-05,
+      "max_pressure_error_pa": 7.105427357601002e-15,
+      "sigma_adaptation_max_pressure_error_pa": 1.3435086878499973
+    },
+    {
+      "layers": 42,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 25000.0,
+      "pure_pressure_layers": 16,
+      "native_top_pressure_pa": 0.001379310344827586,
+      "max_pressure_error_pa": 5.684341886080802e-14,
+      "sigma_adaptation_max_pressure_error_pa": 92.65577157586199
+    },
+    {
+      "layers": 42,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 50000.0,
+      "pure_pressure_layers": 16,
+      "native_top_pressure_pa": 0.001379310344827586,
+      "max_pressure_error_pa": 2.842170943040401e-14,
+      "sigma_adaptation_max_pressure_error_pa": 0.001379310344827586
+    },
+    {
+      "layers": 42,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 75000.0,
+      "pure_pressure_layers": 16,
+      "native_top_pressure_pa": 0.001379310344827586,
+      "max_pressure_error_pa": 2.842170943040401e-14,
+      "sigma_adaptation_max_pressure_error_pa": 92.65577157586222
+    },
+    {
+      "layers": 46,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 30.5,
+      "pure_pressure_layers": 7,
+      "native_top_pressure_pa": 0.0016827586206896552,
+      "max_pressure_error_pa": 2.220446049250313e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.2646708891413103
+    },
+    {
+      "layers": 46,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 61.0,
+      "pure_pressure_layers": 7,
+      "native_top_pressure_pa": 0.0016827586206896552,
+      "max_pressure_error_pa": 8.881784197001252e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.0016827586206896552
+    },
+    {
+      "layers": 46,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 91.5,
+      "pure_pressure_layers": 7,
+      "native_top_pressure_pa": 0.0016827586206896552,
+      "max_pressure_error_pa": 8.881784197001252e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.26467088914131054
+    },
+    {
+      "layers": 46,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 352.5,
+      "pure_pressure_layers": 7,
+      "native_top_pressure_pa": 0.019448275862068966,
+      "max_pressure_error_pa": 3.552713678800501e-15,
+      "sigma_adaptation_max_pressure_error_pa": 3.058901259747934
+    },
+    {
+      "layers": 46,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 705.0,
+      "pure_pressure_layers": 7,
+      "native_top_pressure_pa": 0.019448275862068966,
+      "max_pressure_error_pa": 1.7763568394002505e-15,
+      "sigma_adaptation_max_pressure_error_pa": 0.019448275862068966
+    },
+    {
+      "layers": 46,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 1057.5,
+      "pure_pressure_layers": 7,
+      "native_top_pressure_pa": 0.019448275862068966,
+      "max_pressure_error_pa": 8.881784197001252e-16,
+      "sigma_adaptation_max_pressure_error_pa": 3.058901259747934
+    },
+    {
+      "layers": 46,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 362.5,
+      "pure_pressure_layers": 7,
+      "native_top_pressure_pa": 0.02,
+      "max_pressure_error_pa": 7.105427357601002e-15,
+      "sigma_adaptation_max_pressure_error_pa": 3.1456786004499975
+    },
+    {
+      "layers": 46,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 725.0,
+      "pure_pressure_layers": 7,
+      "native_top_pressure_pa": 0.02,
+      "max_pressure_error_pa": 7.105427357601002e-15,
+      "sigma_adaptation_max_pressure_error_pa": 0.02
+    },
+    {
+      "layers": 46,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 1087.5,
+      "pure_pressure_layers": 7,
+      "native_top_pressure_pa": 0.02,
+      "max_pressure_error_pa": 4.440892098500626e-16,
+      "sigma_adaptation_max_pressure_error_pa": 3.1456786004499975
+    },
+    {
+      "layers": 46,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 25000.0,
+      "pure_pressure_layers": 7,
+      "native_top_pressure_pa": 1.3793103448275863,
+      "max_pressure_error_pa": 1.1368683772161603e-13,
+      "sigma_adaptation_max_pressure_error_pa": 216.94335175517267
+    },
+    {
+      "layers": 46,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 50000.0,
+      "pure_pressure_layers": 7,
+      "native_top_pressure_pa": 1.3793103448275863,
+      "max_pressure_error_pa": 2.842170943040401e-14,
+      "sigma_adaptation_max_pressure_error_pa": 1.3793103448275863
+    },
+    {
+      "layers": 46,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 75000.0,
+      "pure_pressure_layers": 7,
+      "native_top_pressure_pa": 1.3793103448275863,
+      "max_pressure_error_pa": 2.2737367544323206e-13,
+      "sigma_adaptation_max_pressure_error_pa": 216.94335175517244
+    },
+    {
+      "layers": 56,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 30.5,
+      "pure_pressure_layers": 10,
+      "native_top_pressure_pa": 0.0001141164319715862,
+      "max_pressure_error_pa": 2.220446049250313e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.12168441457324142
+    },
+    {
+      "layers": 56,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 61.0,
+      "pure_pressure_layers": 10,
+      "native_top_pressure_pa": 0.0001141164319715862,
+      "max_pressure_error_pa": 4.440892098500626e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.0001141164319715862
+    },
+    {
+      "layers": 56,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 91.5,
+      "pure_pressure_layers": 10,
+      "native_top_pressure_pa": 0.0001141164319715862,
+      "max_pressure_error_pa": 4.440892098500626e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.12168441457324075
+    },
+    {
+      "layers": 56,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 352.5,
+      "pure_pressure_layers": 10,
+      "native_top_pressure_pa": 0.0013188866318027586,
+      "max_pressure_error_pa": 1.7763568394002505e-15,
+      "sigma_adaptation_max_pressure_error_pa": 1.4063526602317253
+    },
+    {
+      "layers": 56,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 705.0,
+      "pure_pressure_layers": 10,
+      "native_top_pressure_pa": 0.0013188866318027586,
+      "max_pressure_error_pa": 8.881784197001252e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.0013188866318027586
+    },
+    {
+      "layers": 56,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 1057.5,
+      "pure_pressure_layers": 10,
+      "native_top_pressure_pa": 0.0013188866318027586,
+      "max_pressure_error_pa": 8.881784197001252e-16,
+      "sigma_adaptation_max_pressure_error_pa": 1.4063526602317182
+    },
+    {
+      "layers": 56,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 362.5,
+      "pure_pressure_layers": 10,
+      "native_top_pressure_pa": 0.0013563018554,
+      "max_pressure_error_pa": 4.440892098500626e-16,
+      "sigma_adaptation_max_pressure_error_pa": 1.4462491895999996
+    },
+    {
+      "layers": 56,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 725.0,
+      "pure_pressure_layers": 10,
+      "native_top_pressure_pa": 0.0013563018554,
+      "max_pressure_error_pa": 2.220446049250313e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.0013563018554
+    },
+    {
+      "layers": 56,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 1087.5,
+      "pure_pressure_layers": 10,
+      "native_top_pressure_pa": 0.0013563018554,
+      "max_pressure_error_pa": 3.552713678800501e-15,
+      "sigma_adaptation_max_pressure_error_pa": 1.4462491896000031
+    },
+    {
+      "layers": 56,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 25000.0,
+      "pure_pressure_layers": 10,
+      "native_top_pressure_pa": 0.09353805899310345,
+      "max_pressure_error_pa": 2.2737367544323206e-13,
+      "sigma_adaptation_max_pressure_error_pa": 99.74132342068981
+    },
+    {
+      "layers": 56,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 50000.0,
+      "pure_pressure_layers": 10,
+      "native_top_pressure_pa": 0.09353805899310345,
+      "max_pressure_error_pa": 1.1368683772161603e-13,
+      "sigma_adaptation_max_pressure_error_pa": 0.09353805899310345
+    },
+    {
+      "layers": 56,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 75000.0,
+      "pure_pressure_layers": 10,
+      "native_top_pressure_pa": 0.09353805899310345,
+      "max_pressure_error_pa": 9.094947017729282e-13,
+      "sigma_adaptation_max_pressure_error_pa": 99.7413234206897
+    },
+    {
+      "layers": 65,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 30.5,
+      "pure_pressure_layers": 19,
+      "native_top_pressure_pa": 8.075105229986208e-07,
+      "max_pressure_error_pa": 2.220446049250313e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.12168441457324142
+    },
+    {
+      "layers": 65,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 61.0,
+      "pure_pressure_layers": 19,
+      "native_top_pressure_pa": 8.075105229986208e-07,
+      "max_pressure_error_pa": 4.440892098500626e-16,
+      "sigma_adaptation_max_pressure_error_pa": 8.075105229986208e-07
+    },
+    {
+      "layers": 65,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 91.5,
+      "pure_pressure_layers": 19,
+      "native_top_pressure_pa": 8.075105229986208e-07,
+      "max_pressure_error_pa": 4.440892098500626e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.12168441457324075
+    },
+    {
+      "layers": 65,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 352.5,
+      "pure_pressure_layers": 19,
+      "native_top_pressure_pa": 9.332703585475862e-06,
+      "max_pressure_error_pa": 1.7763568394002505e-15,
+      "sigma_adaptation_max_pressure_error_pa": 1.4063526602317253
+    },
+    {
+      "layers": 65,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 705.0,
+      "pure_pressure_layers": 19,
+      "native_top_pressure_pa": 9.332703585475862e-06,
+      "max_pressure_error_pa": 8.881784197001252e-16,
+      "sigma_adaptation_max_pressure_error_pa": 9.332703585475862e-06
+    },
+    {
+      "layers": 65,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 1057.5,
+      "pure_pressure_layers": 19,
+      "native_top_pressure_pa": 9.332703585475862e-06,
+      "max_pressure_error_pa": 8.881784197001252e-16,
+      "sigma_adaptation_max_pressure_error_pa": 1.4063526602317182
+    },
+    {
+      "layers": 65,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 362.5,
+      "pure_pressure_layers": 19,
+      "native_top_pressure_pa": 9.597461134e-06,
+      "max_pressure_error_pa": 4.440892098500626e-16,
+      "sigma_adaptation_max_pressure_error_pa": 1.4462491895999996
+    },
+    {
+      "layers": 65,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 725.0,
+      "pure_pressure_layers": 19,
+      "native_top_pressure_pa": 9.597461134e-06,
+      "max_pressure_error_pa": 2.220446049250313e-16,
+      "sigma_adaptation_max_pressure_error_pa": 9.597461134e-06
+    },
+    {
+      "layers": 65,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 1087.5,
+      "pure_pressure_layers": 19,
+      "native_top_pressure_pa": 9.597461134e-06,
+      "max_pressure_error_pa": 3.552713678800501e-15,
+      "sigma_adaptation_max_pressure_error_pa": 1.4462491896000031
+    },
+    {
+      "layers": 65,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 25000.0,
+      "pure_pressure_layers": 19,
+      "native_top_pressure_pa": 0.0006618938713103448,
+      "max_pressure_error_pa": 2.2737367544323206e-13,
+      "sigma_adaptation_max_pressure_error_pa": 99.74132342068981
+    },
+    {
+      "layers": 65,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 50000.0,
+      "pure_pressure_layers": 19,
+      "native_top_pressure_pa": 0.0006618938713103448,
+      "max_pressure_error_pa": 1.1368683772161603e-13,
+      "sigma_adaptation_max_pressure_error_pa": 0.0006618938713103448
+    },
+    {
+      "layers": 65,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 75000.0,
+      "pure_pressure_layers": 19,
+      "native_top_pressure_pa": 0.0006618938713103448,
+      "max_pressure_error_pa": 9.094947017729282e-13,
+      "sigma_adaptation_max_pressure_error_pa": 99.7413234206897
+    },
+    {
+      "layers": 71,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 30.5,
+      "pure_pressure_layers": 25,
+      "native_top_pressure_pa": 6.900562191118621e-08,
+      "max_pressure_error_pa": 2.220446049250313e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.12168441457324142
+    },
+    {
+      "layers": 71,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 61.0,
+      "pure_pressure_layers": 25,
+      "native_top_pressure_pa": 6.900562191118621e-08,
+      "max_pressure_error_pa": 4.440892098500626e-16,
+      "sigma_adaptation_max_pressure_error_pa": 6.900562191118621e-08
+    },
+    {
+      "layers": 71,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 91.5,
+      "pure_pressure_layers": 25,
+      "native_top_pressure_pa": 6.900562191118621e-08,
+      "max_pressure_error_pa": 4.440892098500626e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.12168441457324075
+    },
+    {
+      "layers": 71,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 352.5,
+      "pure_pressure_layers": 25,
+      "native_top_pressure_pa": 7.975239909407587e-07,
+      "max_pressure_error_pa": 1.7763568394002505e-15,
+      "sigma_adaptation_max_pressure_error_pa": 1.4063526602317253
+    },
+    {
+      "layers": 71,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 705.0,
+      "pure_pressure_layers": 25,
+      "native_top_pressure_pa": 7.975239909407587e-07,
+      "max_pressure_error_pa": 8.881784197001252e-16,
+      "sigma_adaptation_max_pressure_error_pa": 7.975239909407587e-07
+    },
+    {
+      "layers": 71,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 1057.5,
+      "pure_pressure_layers": 25,
+      "native_top_pressure_pa": 7.975239909407587e-07,
+      "max_pressure_error_pa": 8.881784197001252e-16,
+      "sigma_adaptation_max_pressure_error_pa": 1.4063526602317182
+    },
+    {
+      "layers": 71,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 362.5,
+      "pure_pressure_layers": 25,
+      "native_top_pressure_pa": 8.2014878501e-07,
+      "max_pressure_error_pa": 4.440892098500626e-16,
+      "sigma_adaptation_max_pressure_error_pa": 1.4462491895999996
+    },
+    {
+      "layers": 71,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 725.0,
+      "pure_pressure_layers": 25,
+      "native_top_pressure_pa": 8.2014878501e-07,
+      "max_pressure_error_pa": 2.220446049250313e-16,
+      "sigma_adaptation_max_pressure_error_pa": 8.2014878501e-07
+    },
+    {
+      "layers": 71,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 1087.5,
+      "pure_pressure_layers": 25,
+      "native_top_pressure_pa": 8.2014878501e-07,
+      "max_pressure_error_pa": 3.552713678800501e-15,
+      "sigma_adaptation_max_pressure_error_pa": 1.4462491896000031
+    },
+    {
+      "layers": 71,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 25000.0,
+      "pure_pressure_layers": 25,
+      "native_top_pressure_pa": 5.656198517310345e-05,
+      "max_pressure_error_pa": 2.2737367544323206e-13,
+      "sigma_adaptation_max_pressure_error_pa": 99.74132342068981
+    },
+    {
+      "layers": 71,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 50000.0,
+      "pure_pressure_layers": 25,
+      "native_top_pressure_pa": 5.656198517310345e-05,
+      "max_pressure_error_pa": 1.1368683772161603e-13,
+      "sigma_adaptation_max_pressure_error_pa": 5.656198517310345e-05
+    },
+    {
+      "layers": 71,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 75000.0,
+      "pure_pressure_layers": 25,
+      "native_top_pressure_pa": 5.656198517310345e-05,
+      "max_pressure_error_pa": 9.094947017729282e-13,
+      "sigma_adaptation_max_pressure_error_pa": 99.7413234206897
+    },
+    {
+      "layers": 76,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 30.5,
+      "pure_pressure_layers": 21,
+      "native_top_pressure_pa": 5.072325186531034e-05,
+      "max_pressure_error_pa": 1.1102230246251565e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.10806007029882769
+    },
+    {
+      "layers": 76,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 61.0,
+      "pure_pressure_layers": 21,
+      "native_top_pressure_pa": 5.072325186531034e-05,
+      "max_pressure_error_pa": 4.440892098500626e-16,
+      "sigma_adaptation_max_pressure_error_pa": 5.072325186531034e-05
+    },
+    {
+      "layers": 76,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 91.5,
+      "pure_pressure_layers": 21,
+      "native_top_pressure_pa": 5.072325186531034e-05,
+      "max_pressure_error_pa": 2.220446049250313e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.10806007029882725
+    },
+    {
+      "layers": 76,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 352.5,
+      "pure_pressure_layers": 21,
+      "native_top_pressure_pa": 0.000586227746967931,
+      "max_pressure_error_pa": 8.881784197001252e-16,
+      "sigma_adaptation_max_pressure_error_pa": 1.2488909764044838
+    },
+    {
+      "layers": 76,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 705.0,
+      "pure_pressure_layers": 21,
+      "native_top_pressure_pa": 0.000586227746967931,
+      "max_pressure_error_pa": 4.440892098500626e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.000586227746967931
+    },
+    {
+      "layers": 76,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 1057.5,
+      "pure_pressure_layers": 21,
+      "native_top_pressure_pa": 0.000586227746967931,
+      "max_pressure_error_pa": 2.842170943040401e-14,
+      "sigma_adaptation_max_pressure_error_pa": 1.248890976404482
+    },
+    {
+      "layers": 76,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 362.5,
+      "pure_pressure_layers": 21,
+      "native_top_pressure_pa": 0.00060285832135,
+      "max_pressure_error_pa": 2.220446049250313e-16,
+      "sigma_adaptation_max_pressure_error_pa": 1.284320507650003
+    },
+    {
+      "layers": 76,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 725.0,
+      "pure_pressure_layers": 21,
+      "native_top_pressure_pa": 0.00060285832135,
+      "max_pressure_error_pa": 2.220446049250313e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.00060285832135
+    },
+    {
+      "layers": 76,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 1087.5,
+      "pure_pressure_layers": 21,
+      "native_top_pressure_pa": 0.00060285832135,
+      "max_pressure_error_pa": 4.440892098500626e-16,
+      "sigma_adaptation_max_pressure_error_pa": 1.2843205076500013
+    },
+    {
+      "layers": 76,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 25000.0,
+      "pure_pressure_layers": 21,
+      "native_top_pressure_pa": 0.04157643595517241,
+      "max_pressure_error_pa": 1.1368683772161603e-13,
+      "sigma_adaptation_max_pressure_error_pa": 88.57382811379318
+    },
+    {
+      "layers": 76,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 50000.0,
+      "pure_pressure_layers": 21,
+      "native_top_pressure_pa": 0.04157643595517241,
+      "max_pressure_error_pa": 4.547473508864641e-13,
+      "sigma_adaptation_max_pressure_error_pa": 0.04157643595517241
+    },
+    {
+      "layers": 76,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 75000.0,
+      "pure_pressure_layers": 21,
+      "native_top_pressure_pa": 0.04157643595517241,
+      "max_pressure_error_pa": 5.684341886080802e-14,
+      "sigma_adaptation_max_pressure_error_pa": 88.57382811379284
+    },
+    {
+      "layers": 87,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 30.5,
+      "pure_pressure_layers": 41,
+      "native_top_pressure_pa": 1.920989226806897e-09,
+      "max_pressure_error_pa": 2.220446049250313e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.12168441457324142
+    },
+    {
+      "layers": 87,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 61.0,
+      "pure_pressure_layers": 41,
+      "native_top_pressure_pa": 1.920989226806897e-09,
+      "max_pressure_error_pa": 4.440892098500626e-16,
+      "sigma_adaptation_max_pressure_error_pa": 1.920989226806897e-09
+    },
+    {
+      "layers": 87,
+      "reference_pressure_pa": 61.0,
+      "surface_pressure_pa": 91.5,
+      "pure_pressure_layers": 41,
+      "native_top_pressure_pa": 1.920989226806897e-09,
+      "max_pressure_error_pa": 4.440892098500626e-16,
+      "sigma_adaptation_max_pressure_error_pa": 0.12168441457324075
+    },
+    {
+      "layers": 87,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 352.5,
+      "pure_pressure_layers": 41,
+      "native_top_pressure_pa": 2.220159680162069e-08,
+      "max_pressure_error_pa": 1.7763568394002505e-15,
+      "sigma_adaptation_max_pressure_error_pa": 1.4063526602317253
+    },
+    {
+      "layers": 87,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 705.0,
+      "pure_pressure_layers": 41,
+      "native_top_pressure_pa": 2.220159680162069e-08,
+      "max_pressure_error_pa": 8.881784197001252e-16,
+      "sigma_adaptation_max_pressure_error_pa": 2.220159680162069e-08
+    },
+    {
+      "layers": 87,
+      "reference_pressure_pa": 705.0,
+      "surface_pressure_pa": 1057.5,
+      "pure_pressure_layers": 41,
+      "native_top_pressure_pa": 2.220159680162069e-08,
+      "max_pressure_error_pa": 8.881784197001252e-16,
+      "sigma_adaptation_max_pressure_error_pa": 1.4063526602317182
+    },
+    {
+      "layers": 87,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 362.5,
+      "pure_pressure_layers": 41,
+      "native_top_pressure_pa": 2.2831429335e-08,
+      "max_pressure_error_pa": 4.440892098500626e-16,
+      "sigma_adaptation_max_pressure_error_pa": 1.4462491895999996
+    },
+    {
+      "layers": 87,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 725.0,
+      "pure_pressure_layers": 41,
+      "native_top_pressure_pa": 2.2831429335e-08,
+      "max_pressure_error_pa": 2.220446049250313e-16,
+      "sigma_adaptation_max_pressure_error_pa": 2.2831429335e-08
+    },
+    {
+      "layers": 87,
+      "reference_pressure_pa": 725.0,
+      "surface_pressure_pa": 1087.5,
+      "pure_pressure_layers": 41,
+      "native_top_pressure_pa": 2.2831429335e-08,
+      "max_pressure_error_pa": 3.552713678800501e-15,
+      "sigma_adaptation_max_pressure_error_pa": 1.4462491896000031
+    },
+    {
+      "layers": 87,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 25000.0,
+      "pure_pressure_layers": 41,
+      "native_top_pressure_pa": 1.574581333448276e-06,
+      "max_pressure_error_pa": 2.2737367544323206e-13,
+      "sigma_adaptation_max_pressure_error_pa": 99.74132342068981
+    },
+    {
+      "layers": 87,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 50000.0,
+      "pure_pressure_layers": 41,
+      "native_top_pressure_pa": 1.574581333448276e-06,
+      "max_pressure_error_pa": 1.1368683772161603e-13,
+      "sigma_adaptation_max_pressure_error_pa": 1.574581333448276e-06
+    },
+    {
+      "layers": 87,
+      "reference_pressure_pa": 50000.0,
+      "surface_pressure_pa": 75000.0,
+      "pure_pressure_layers": 41,
+      "native_top_pressure_pa": 1.574581333448276e-06,
+      "max_pressure_error_pa": 9.094947017729282e-13,
+      "sigma_adaptation_max_pressure_error_pa": 99.7413234206897
+    }
+  ],
+  "sha256": {
+    "scripts/validate_vertical_grid.py": "5c1c1cfed4f5d1e896907a7faabe8cb77db4a05c8624f4010a0cb88d25de54b9",
+    "scripts/stage_vertical_grids.py": "be154d678ccf8e42d255cdc3afe59df473ce9b2d27f77f61a8817642aac01fa1",
+    "package/src/framework/physics/vertical_grid.py": "76a6c1d7fb4aa5aff60831de1f96f13bdf75420b242b8f8db10dbbfef04e16e0",
+    "package/src/framework/physics/vertical_grid_coefficients.npz": "c9bcbba2ee02c01ec796d4b4b11da58a2325f78e43ba4f6dc6b7cd6a0e07d71d"
+  },
+  "limits": "Hybrid equations match native. Dinosaur freezes reference-column fractions and uses a zero top and arithmetic centers; terrain and full-level discretization differences remain explicit."
+}

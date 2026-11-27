@@ -2,11 +2,20 @@
 
 The `nautalis` runtime deploys application and experiment folders independently
 of their protocols or source revisions. The small Linux/amd64 image provides Python 3.12, Git, CA
-certificates, tar and pinned uv 0.10.9; experiment folders own their setup and
-execution.
+certificates, tar, GNU Fortran/C/C++, OpenMPI, netCDF Fortran/C headers and
+libraries, Make, Perl, pkg-config and pinned uv 0.10.9. Experiment folders own
+their setup and execution. Scientific packages and framework sources are
+installed into persistent work storage at runtime. CUDA libraries can be
+installed there with the framework's pinned GPU wheels; the cluster supplies
+the GPU driver. The image does not contain a framework checkout or its Python
+environment.
 
 Published image (the default pinned by `jobs.py`):
-`samkash/terraforming-paper@sha256:a04422421dbe06a2073d55259ba9ae9d54e2f22488e4bc2552fdbb5bc3f24fd2`.
+`samkash/terraforming-paper@sha256:40c9ea792caad0067d1628eb5fa03a4b053bb64879f5791926b5e13d6bbcea05`.
+Compressed registry layers total 262,495,471 bytes; the unpacked image is
+1,036,419,349 bytes. A two-rank Fortran MPI program linked against netCDF passes
+in the unchanged compiler base. Seventeen runtime/comparison checks passed in
+the final image. The launcher uses one parent to supervise concurrent processes.
 
 ## Run folders from a GitHub branch
 
@@ -28,7 +37,8 @@ python3 apps/nautalis/jobs.py --name climate-study \
 
 `--ref` accepts a branch, tag or immutable commit. The pod resolves and archives
 the actual commit before execution. `--repository` can select another Git
-repository. Use `--experiments folder_a folder_b` for sequential execution;
+repository. Use `--experiments folder_a folder_b` to run experiments in parallel;
+`--parallel N` limits concurrent experiments to measured memory capacity.
 arguments after `--` are passed unchanged to each selected entry point.
 Without `--submit`, `jobs.py` only renders JSON for review/server dry-run.
 
@@ -36,7 +46,7 @@ Context `nautilus` and namespace `razvanlab` are explicit defaults; neither tool
 changes your current context. Override them with `--context`/`--namespace`.
 The default job requests 8 CPUs, 64 GiB RAM and a 500 GiB RWO PVC named after
 the job. `--gpu` additionally requests one A100; CPU, memory, storage, PVC name
-and GPU resource type can be set explicitly. The job has a seven-day deadline,
+and GPU resource type can be set explicitly. Jobs have no elapsed-time limit,
 two retries, non-root execution, no service-account token and a read-only root
 filesystem. Concurrent writers to the same PVC are rejected by a file lock.
 
@@ -45,7 +55,7 @@ filesystem. Concurrent writers to the same PVC are rejected by a file lock.
 ```sh
 docker run --rm --platform linux/amd64 \
   -v /ABSOLUTE/SOURCE:/source:ro -v /WRITABLE/WORK:/work \
-  samkash/terraforming-paper:nautalis-v1 \
+  samkash/terraforming-paper:nautalis-fortran-parallel-20261115-v2 \
   --source /source --experiments my_experiment --run-id local-1 -- arg1
 ```
 
@@ -72,7 +82,7 @@ Do not write generated files into the checkout. Generic retries always create a
 new attempt and keep earlier outputs. An experiment that resumes checkpoints
 must validate their identity and use `EXPERIMENT_RUN_DIR`/`EXPERIMENT_WORK_DIR`;
 the launcher does not guess how to resume arbitrary science code. SIGTERM and
-SIGINT are forwarded to the experiment process group for graceful checkpointing.
+SIGINT are forwarded to every active experiment process group for graceful checkpointing.
 
 Output layout on the PVC:
 

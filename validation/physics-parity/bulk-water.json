@@ -1,0 +1,531 @@
+{
+  "status": "pass",
+  "reference": {
+    "source_git_blob": "92667ec8575160bc8e6a68e88cd0a93397d3d450",
+    "compiled_source_sha256": "5fb8707e44e3cb7d98b410ee862a94cc17408a73291543242d1f1b7a7cf69841",
+    "routine_sha256": {
+      "blkh2o_driver": "2c147929c8086bd5b09274ffb7a1a4c44ac9d91dda6746b6f3d6992776b6d211",
+      "findq": "832a66e2cbd1ef1d0f61d2ac706c00bcf05f277d66c2ae90215a80742715e445",
+      "newton": "8624978ef45396bb56bae7495415656aa4dc6d9e96e4c7a5c6bf0cd3e7a21c33",
+      "watsat": "ba01ca9379ed5ac45cc13ccd21297d236d01b1cc30f4f0da04031447ec0b0705",
+      "sedimh2o": "1eb572839bb2f4f8903612a865047bb13e28f8d703e84dbd648369e63183559b",
+      "fallvel": "9d83f2c19a8093b9a91f07dfb064c571f7343f77c06e7c59d629a8b836bec37b"
+    },
+    "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "compiler_flags": [
+      "-O3",
+      "-cpp",
+      "-ffree-line-length-none",
+      "-fdefault-real-8",
+      "-fdefault-double-8",
+      "-fPIC",
+      "-shared"
+    ],
+    "real_precision_bits": 64,
+    "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged",
+    "solver_git_blob": "40d8879c3735bbec6cabc63817cad5220f281532"
+  },
+  "roots": [
+    {
+      "pressure_pa": 30.0,
+      "temperature_k": 140.0,
+      "saturation_ratio": 0.2,
+      "native_root_error": 4.2319015366945727e-10,
+      "polished_root_error": 4.943603571892542e-20
+    },
+    {
+      "pressure_pa": 30.0,
+      "temperature_k": 140.0,
+      "saturation_ratio": 2.0,
+      "native_root_error": 1.0682781605340212e-14,
+      "polished_root_error": 5.146386899059917e-20
+    },
+    {
+      "pressure_pa": 30.0,
+      "temperature_k": 200.0,
+      "saturation_ratio": 0.2,
+      "native_root_error": 2.4631439625574444e-09,
+      "polished_root_error": 3.0357660829594124e-18
+    },
+    {
+      "pressure_pa": 30.0,
+      "temperature_k": 200.0,
+      "saturation_ratio": 2.0,
+      "native_root_error": 1.8121199441174796e-09,
+      "polished_root_error": 1.4094628242311558e-18
+    },
+    {
+      "pressure_pa": 30.0,
+      "temperature_k": 270.0,
+      "saturation_ratio": 0.2,
+      "native_root_error": 5.422745585903499e-14,
+      "polished_root_error": 5.204170427930421e-18
+    },
+    {
+      "pressure_pa": 30.0,
+      "temperature_k": 270.0,
+      "saturation_ratio": 2.0,
+      "native_root_error": 7.221393621970051e-13,
+      "polished_root_error": 9.540979117872439e-18
+    },
+    {
+      "pressure_pa": 30.0,
+      "temperature_k": 320.0,
+      "saturation_ratio": 0.2,
+      "native_root_error": 6.028276836045343e-13,
+      "polished_root_error": 5.204170427930421e-18
+    },
+    {
+      "pressure_pa": 30.0,
+      "temperature_k": 320.0,
+      "saturation_ratio": 2.0,
+      "native_root_error": 2.0383000842727483e-17,
+      "polished_root_error": 2.168404344971009e-18
+    },
+    {
+      "pressure_pa": 610.0,
+      "temperature_k": 140.0,
+      "saturation_ratio": 0.2,
+      "native_root_error": 2.0812270841979787e-11,
+      "polished_root_error": 5.324975193310116e-24
+    },
+    {
+      "pressure_pa": 610.0,
+      "temperature_k": 140.0,
+      "saturation_ratio": 2.0,
+      "native_root_error": 2.5838502189867535e-17,
+      "polished_root_error": 6.126306411720861e-24
+    },
+    {
+      "pressure_pa": 610.0,
+      "temperature_k": 200.0,
+      "saturation_ratio": 0.2,
+      "native_root_error": 4.667146886625992e-09,
+      "polished_root_error": 7.6029677345546e-18
+    },
+    {
+      "pressure_pa": 610.0,
+      "temperature_k": 200.0,
+      "saturation_ratio": 2.0,
+      "native_root_error": 4.691979813370114e-09,
+      "polished_root_error": 5.421010862427522e-20
+    },
+    {
+      "pressure_pa": 610.0,
+      "temperature_k": 270.0,
+      "saturation_ratio": 0.2,
+      "native_root_error": 4.155259990257232e-11,
+      "polished_root_error": 1.3877787807814457e-17
+    },
+    {
+      "pressure_pa": 610.0,
+      "temperature_k": 270.0,
+      "saturation_ratio": 2.0,
+      "native_root_error": 5.033442846552605e-12,
+      "polished_root_error": 8.673617379884035e-19
+    },
+    {
+      "pressure_pa": 610.0,
+      "temperature_k": 320.0,
+      "saturation_ratio": 0.2,
+      "native_root_error": 1.4989572083567992e-13,
+      "polished_root_error": 6.938893903907228e-18
+    },
+    {
+      "pressure_pa": 610.0,
+      "temperature_k": 320.0,
+      "saturation_ratio": 2.0,
+      "native_root_error": 1.808926272661715e-14,
+      "polished_root_error": 8.673617379884035e-19
+    },
+    {
+      "pressure_pa": 50000.0,
+      "temperature_k": 140.0,
+      "saturation_ratio": 0.2,
+      "native_root_error": 2.539094800758789e-13,
+      "polished_root_error": 1.0501316370302109e-26
+    },
+    {
+      "pressure_pa": 50000.0,
+      "temperature_k": 140.0,
+      "saturation_ratio": 2.0,
+      "native_root_error": 3.845794100615956e-21,
+      "polished_root_error": 1.3732490638087374e-26
+    },
+    {
+      "pressure_pa": 50000.0,
+      "temperature_k": 200.0,
+      "saturation_ratio": 0.2,
+      "native_root_error": 8.334515949732875e-09,
+      "polished_root_error": 7.962109704190423e-20
+    },
+    {
+      "pressure_pa": 50000.0,
+      "temperature_k": 200.0,
+      "saturation_ratio": 2.0,
+      "native_root_error": 5.180079311793482e-10,
+      "polished_root_error": 2.117582368135751e-22
+    },
+    {
+      "pressure_pa": 50000.0,
+      "temperature_k": 270.0,
+      "saturation_ratio": 0.2,
+      "native_root_error": 4.431986867781124e-09,
+      "polished_root_error": 4.119968255444917e-18
+    },
+    {
+      "pressure_pa": 50000.0,
+      "temperature_k": 270.0,
+      "saturation_ratio": 2.0,
+      "native_root_error": 2.6056268995731935e-09,
+      "polished_root_error": 2.168404344971009e-18
+    },
+    {
+      "pressure_pa": 50000.0,
+      "temperature_k": 320.0,
+      "saturation_ratio": 0.2,
+      "native_root_error": 8.496012157688249e-10,
+      "polished_root_error": 1.734723475976807e-18
+    },
+    {
+      "pressure_pa": 50000.0,
+      "temperature_k": 320.0,
+      "saturation_ratio": 2.0,
+      "native_root_error": 2.3143763381444638e-11,
+      "polished_root_error": 8.673617379884035e-18
+    }
+  ],
+  "cases": [
+    {
+      "layers": 2,
+      "case": "clear",
+      "dt_seconds": 5.0,
+      "native_temperature_difference_k": 0.0,
+      "native_vapor_difference": 0.0,
+      "native_ice_difference": 0.0,
+      "native_deposition_difference_kg_m2": 0.0
+    },
+    {
+      "layers": 2,
+      "case": "clear",
+      "dt_seconds": 300.0,
+      "native_temperature_difference_k": 0.0,
+      "native_vapor_difference": 0.0,
+      "native_ice_difference": 0.0,
+      "native_deposition_difference_kg_m2": 0.0
+    },
+    {
+      "layers": 2,
+      "case": "clear",
+      "dt_seconds": 30000.0,
+      "native_temperature_difference_k": 0.0,
+      "native_vapor_difference": 0.0,
+      "native_ice_difference": 0.0,
+      "native_deposition_difference_kg_m2": 0.0
+    },
+    {
+      "layers": 2,
+      "case": "condense",
+      "dt_seconds": 5.0,
+      "native_temperature_difference_k": 5.089191290608142e-10,
+      "native_vapor_difference": 1.3367085216486885e-13,
+      "native_ice_difference": 1.253579999973111e-13,
+      "native_deposition_difference_kg_m2": 1.0967435293274264e-11
+    },
+    {
+      "layers": 2,
+      "case": "condense",
+      "dt_seconds": 300.0,
+      "native_temperature_difference_k": 5.089191290608142e-10,
+      "native_vapor_difference": 1.3367085216486885e-13,
+      "native_ice_difference": 1.1852936494952003e-13,
+      "native_deposition_difference_kg_m2": 1.0955403251244888e-11
+    },
+    {
+      "layers": 2,
+      "case": "condense",
+      "dt_seconds": 30000.0,
+      "native_temperature_difference_k": 5.089191290608142e-10,
+      "native_vapor_difference": 1.3367085216486885e-13,
+      "native_ice_difference": 3.882028760537202e-14,
+      "native_deposition_difference_kg_m2": 5.448419493347956e-12
+    },
+    {
+      "layers": 2,
+      "case": "evaporate",
+      "dt_seconds": 5.0,
+      "native_temperature_difference_k": 9.370639361350186e-06,
+      "native_vapor_difference": 2.4629386848422682e-09,
+      "native_ice_difference": 6.505213034913027e-19,
+      "native_deposition_difference_kg_m2": 2.0193448893590649e-07
+    },
+    {
+      "layers": 2,
+      "case": "evaporate",
+      "dt_seconds": 300.0,
+      "native_temperature_difference_k": 9.370639361350186e-06,
+      "native_vapor_difference": 2.4629386848422682e-09,
+      "native_ice_difference": 2.45029690981724e-17,
+      "native_deposition_difference_kg_m2": 2.0193448893590649e-07
+    },
+    {
+      "layers": 2,
+      "case": "evaporate",
+      "dt_seconds": 30000.0,
+      "native_temperature_difference_k": 9.370639361350186e-06,
+      "native_vapor_difference": 2.4629386848422682e-09,
+      "native_ice_difference": 2.4236255363740966e-15,
+      "native_deposition_difference_kg_m2": 2.0193448893590649e-07
+    },
+    {
+      "layers": 2,
+      "case": "mixed",
+      "dt_seconds": 5.0,
+      "native_temperature_difference_k": 4.773994533024961e-10,
+      "native_vapor_difference": 1.254773734490635e-13,
+      "native_ice_difference": 1.824903790416305e-19,
+      "native_deposition_difference_kg_m2": 1.0287784513174358e-11
+    },
+    {
+      "layers": 2,
+      "case": "mixed",
+      "dt_seconds": 300.0,
+      "native_temperature_difference_k": 4.773994533024961e-10,
+      "native_vapor_difference": 1.254773734490635e-13,
+      "native_ice_difference": 1.8101968826322173e-19,
+      "native_deposition_difference_kg_m2": 1.0287784513174358e-11
+    },
+    {
+      "layers": 2,
+      "case": "mixed",
+      "dt_seconds": 30000.0,
+      "native_temperature_difference_k": 4.773994533024961e-10,
+      "native_vapor_difference": 1.254773734490635e-13,
+      "native_ice_difference": 4.649416787038058e-20,
+      "native_deposition_difference_kg_m2": 1.0287784513174358e-11
+    },
+    {
+      "layers": 12,
+      "case": "clear",
+      "dt_seconds": 5.0,
+      "native_temperature_difference_k": 0.0,
+      "native_vapor_difference": 0.0,
+      "native_ice_difference": 0.0,
+      "native_deposition_difference_kg_m2": 0.0
+    },
+    {
+      "layers": 12,
+      "case": "clear",
+      "dt_seconds": 300.0,
+      "native_temperature_difference_k": 0.0,
+      "native_vapor_difference": 0.0,
+      "native_ice_difference": 0.0,
+      "native_deposition_difference_kg_m2": 0.0
+    },
+    {
+      "layers": 12,
+      "case": "clear",
+      "dt_seconds": 30000.0,
+      "native_temperature_difference_k": 0.0,
+      "native_vapor_difference": 0.0,
+      "native_ice_difference": 0.0,
+      "native_deposition_difference_kg_m2": 0.0
+    },
+    {
+      "layers": 12,
+      "case": "condense",
+      "dt_seconds": 5.0,
+      "native_temperature_difference_k": 3.2406561984998916e-05,
+      "native_vapor_difference": 8.51760187036511e-09,
+      "native_ice_difference": 8.506509238777533e-09,
+      "native_deposition_difference_kg_m2": 2.175860111530703e-08
+    },
+    {
+      "layers": 12,
+      "case": "condense",
+      "dt_seconds": 300.0,
+      "native_temperature_difference_k": 3.2406561984998916e-05,
+      "native_vapor_difference": 8.51760187036511e-09,
+      "native_ice_difference": 7.878879821880832e-09,
+      "native_deposition_difference_kg_m2": 2.1758558677031914e-08
+    },
+    {
+      "layers": 12,
+      "case": "condense",
+      "dt_seconds": 30000.0,
+      "native_temperature_difference_k": 3.2406561984998916e-05,
+      "native_vapor_difference": 8.51760187036511e-09,
+      "native_ice_difference": 2.1786422884540866e-09,
+      "native_deposition_difference_kg_m2": 1.7560244758296761e-07
+    },
+    {
+      "layers": 12,
+      "case": "evaporate",
+      "dt_seconds": 5.0,
+      "native_temperature_difference_k": 3.2913782803234426e-05,
+      "native_vapor_difference": 8.65091761260658e-09,
+      "native_ice_difference": 2.6176180276072866e-09,
+      "native_deposition_difference_kg_m2": 2.0198953819272614e-07
+    },
+    {
+      "layers": 12,
+      "case": "evaporate",
+      "dt_seconds": 300.0,
+      "native_temperature_difference_k": 3.2913782803234426e-05,
+      "native_vapor_difference": 8.650917612579474e-09,
+      "native_ice_difference": 3.2039243060911007e-09,
+      "native_deposition_difference_kg_m2": 2.0198953819272614e-07
+    },
+    {
+      "layers": 12,
+      "case": "evaporate",
+      "dt_seconds": 30000.0,
+      "native_temperature_difference_k": 3.2913782803234426e-05,
+      "native_vapor_difference": 8.65091761260658e-09,
+      "native_ice_difference": 3.6167045990020963e-09,
+      "native_deposition_difference_kg_m2": 2.0198953819272614e-07
+    },
+    {
+      "layers": 12,
+      "case": "mixed",
+      "dt_seconds": 5.0,
+      "native_temperature_difference_k": 2.771894972397604e-05,
+      "native_vapor_difference": 7.285529948726282e-09,
+      "native_ice_difference": 3.6495372696121464e-13,
+      "native_deposition_difference_kg_m2": 7.736814044978502e-08
+    },
+    {
+      "layers": 12,
+      "case": "mixed",
+      "dt_seconds": 300.0,
+      "native_temperature_difference_k": 2.771894972397604e-05,
+      "native_vapor_difference": 7.285529948726282e-09,
+      "native_ice_difference": 2.576263334608253e-11,
+      "native_deposition_difference_kg_m2": 7.736814044978502e-08
+    },
+    {
+      "layers": 12,
+      "case": "mixed",
+      "dt_seconds": 30000.0,
+      "native_temperature_difference_k": 2.771894972397604e-05,
+      "native_vapor_difference": 7.285529948726282e-09,
+      "native_ice_difference": 2.988328136918454e-11,
+      "native_deposition_difference_kg_m2": 7.73681405885629e-08
+    },
+    {
+      "layers": 40,
+      "case": "clear",
+      "dt_seconds": 5.0,
+      "native_temperature_difference_k": 0.0,
+      "native_vapor_difference": 0.0,
+      "native_ice_difference": 0.0,
+      "native_deposition_difference_kg_m2": 0.0
+    },
+    {
+      "layers": 40,
+      "case": "clear",
+      "dt_seconds": 300.0,
+      "native_temperature_difference_k": 0.0,
+      "native_vapor_difference": 0.0,
+      "native_ice_difference": 0.0,
+      "native_deposition_difference_kg_m2": 0.0
+    },
+    {
+      "layers": 40,
+      "case": "clear",
+      "dt_seconds": 30000.0,
+      "native_temperature_difference_k": 0.0,
+      "native_vapor_difference": 0.0,
+      "native_ice_difference": 0.0,
+      "native_deposition_difference_kg_m2": 0.0
+    },
+    {
+      "layers": 40,
+      "case": "condense",
+      "dt_seconds": 5.0,
+      "native_temperature_difference_k": 2.8910246101077064e-05,
+      "native_vapor_difference": 7.598645186809513e-09,
+      "native_ice_difference": 7.590455093484843e-09,
+      "native_deposition_difference_kg_m2": 1.2755726461199934e-08
+    },
+    {
+      "layers": 40,
+      "case": "condense",
+      "dt_seconds": 300.0,
+      "native_temperature_difference_k": 2.8910246101077064e-05,
+      "native_vapor_difference": 7.598645186809513e-09,
+      "native_ice_difference": 7.373611010308618e-09,
+      "native_deposition_difference_kg_m2": 1.2755699441147073e-08
+    },
+    {
+      "layers": 40,
+      "case": "condense",
+      "dt_seconds": 30000.0,
+      "native_temperature_difference_k": 2.8910246101077064e-05,
+      "native_vapor_difference": 7.598645186809513e-09,
+      "native_ice_difference": 2.5386833969558583e-09,
+      "native_deposition_difference_kg_m2": 1.6092821458757456e-07
+    },
+    {
+      "layers": 40,
+      "case": "evaporate",
+      "dt_seconds": 5.0,
+      "native_temperature_difference_k": 3.7480355359775785e-05,
+      "native_vapor_difference": 9.851175974363307e-09,
+      "native_ice_difference": 3.5459919162225337e-09,
+      "native_deposition_difference_kg_m2": 1.2587807440844756e-07
+    },
+    {
+      "layers": 40,
+      "case": "evaporate",
+      "dt_seconds": 300.0,
+      "native_temperature_difference_k": 3.7480355359775785e-05,
+      "native_vapor_difference": 9.851175974363307e-09,
+      "native_ice_difference": 5.633350452782793e-09,
+      "native_deposition_difference_kg_m2": 1.2587807440844756e-07
+    },
+    {
+      "layers": 40,
+      "case": "evaporate",
+      "dt_seconds": 30000.0,
+      "native_temperature_difference_k": 3.7480355359775785e-05,
+      "native_vapor_difference": 9.851175974363307e-09,
+      "native_ice_difference": 1.9770381188199612e-07,
+      "native_deposition_difference_kg_m2": 1.2587807440844756e-07
+    },
+    {
+      "layers": 40,
+      "case": "mixed",
+      "dt_seconds": 5.0,
+      "native_temperature_difference_k": 3.700678965401494e-05,
+      "native_vapor_difference": 9.726705996760295e-09,
+      "native_ice_difference": 2.5920822931712923e-09,
+      "native_deposition_difference_kg_m2": 9.101880790729489e-08
+    },
+    {
+      "layers": 40,
+      "case": "mixed",
+      "dt_seconds": 300.0,
+      "native_temperature_difference_k": 3.700678965401494e-05,
+      "native_vapor_difference": 9.726705996760295e-09,
+      "native_ice_difference": 2.5191082893716993e-09,
+      "native_deposition_difference_kg_m2": 9.101880790729489e-08
+    },
+    {
+      "layers": 40,
+      "case": "mixed",
+      "dt_seconds": 30000.0,
+      "native_temperature_difference_k": 3.700678965401494e-05,
+      "native_vapor_difference": 9.726705996760295e-09,
+      "native_ice_difference": 2.160952984873489e-07,
+      "native_deposition_difference_kg_m2": 9.101881834339132e-08
+    }
+  ],
+  "sha256": {
+    "scripts/validate_bulk_water.py": "ad603d43510c660b5a2af2b89dbbd22e007c18d0b47dd0c329309ccf7b60448d",
+    "package/src/framework/physics/water_bulk.py": "7c0076c50fa5981c570e099ab5d61da34362dc8b6b1ddbc3be3192909160e0c5",
+    "package/src/framework/physics/co2_microphysics.py": "d8a95348d3019735de1759c307acdcffb9ad16b3be8c21cbd275bfbecd817d42",
+    "scripts/native_reference.py": "eceabb32987f6cbb84c4ccc5f87a3994e6569c55b41b9fce82192571990755ef"
+  },
+  "limits": "Original root iteration matches Fortran; polished saturation roots match independent Brent solves. Settling and radii match unchanged native routines. Whole-driver stopping differences are reported. Surface exchange and moment microphysics require separate checks."
+}

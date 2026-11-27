@@ -115,8 +115,8 @@ After releasing the GPU allocation:
 
 ```bash
 env CUDA_VISIBLE_DEVICES= JAX_PLATFORMS=cpu .venv/bin/python scripts/train_neural_temp.py --run-dir outputs/neural_temp/temp_only_v1
-rtk read outputs/neural_temp/temp_only_v1/frozen_models.json
-rtk read outputs/neural_temp/temp_only_v1/validation_report.md
+cat outputs/neural_temp/temp_only_v1/frozen_models.json
+cat outputs/neural_temp/temp_only_v1/validation_report.md
 ```
 
 Expected: both 32/32 GELU models, training-only normalizers, constant and ridge
@@ -151,8 +151,8 @@ Generate the final report and verify all artifacts on CPU:
 ```bash
 env CUDA_VISIBLE_DEVICES= JAX_PLATFORMS=cpu .venv/bin/python scripts/run_neural_temp.py --run-dir outputs/neural_temp/temp_only_v1 --stage report
 .venv/bin/python scripts/run_neural_temp.py --run-dir outputs/neural_temp/temp_only_v1 --verify
-rtk read outputs/neural_temp/temp_only_v1/report.md
-rtk read outputs/neural_temp/temp_only_v1/test_report.json
+cat outputs/neural_temp/temp_only_v1/report.md
+cat outputs/neural_temp/temp_only_v1/test_report.json
 ```
 
 The last command applies only when test was evaluated. Expected verification

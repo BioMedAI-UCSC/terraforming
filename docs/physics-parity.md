@@ -1,0 +1,1291 @@
+# Ames physics on Dinosaur
+
+Original work branch: `feat/ames-physics-parity`, from `experimenal` at `9013f42`.
+Reference: NASA Ames GCM v3.2.1, commit
+`ba47cada5f9eb89c75c4f10d06dbae6e7f9ecb26`.
+
+Keep the Dinosaur dynamical core and JAX differentiation. Match the Ames
+physical equations, process switches and boundary conditions. Adapt array
+layout and integration interfaces as needed for Dinosaur. Kernel agreement,
+global climate agreement, gradient accuracy and speed are separate checks.
+No complete-model equivalence or speed claim has passed yet.
+
+All 48 validators passed on Ubuntu 24.04 with gfortran 13 at `09e8c105` in the
+[Linux parity run](https://github.com/BioMedAI-UCSC/terraforming/actions/runs/44956196319).
+Seven archived reports were copied from that run because their recorded source
+files changed: coupled-column, CO2 controls, gas mass, initial conditions,
+radiative driver, release interfaces and surface controls. The other 41 reports
+retain their `71be0ef` results for unchanged source files. All 285 repository and
+asset file hash checks match the current implementation.
+The [repeat at `97b356d`](https://github.com/BioMedAI-UCSC/terraforming/actions/runs/44956786121)
+also passed all four native shards.
+The validators also verify the pinned native bodies and compiled adapters.
+Full-model transport, restart and climate checks have separate evidence.
+
+The PR #123 five-sol check passes finite-state and material-budget checks, but
+upper-atmosphere climate agreement remains open. T21/L56 at 231 seconds gives a
+five-sol mean top zonal-wind RMS of 12.49 m/s and mean top temperature of 156.01 K.
+The native C24/C48 first five-sol means give 3.96/4.36 m/s and 168.96/169.24 K.
+These wind statistics use time-mean components on each model's own top layer.
+Instantaneous Dinosaur checkpoint winds still reach 339 m/s. The radiation-top
+fix does not establish matched upper dynamics; FV3's top divergence damping and
+the different pressure coordinates still need a controlled comparison.
+Vapour and cloud top-five/bottom-five ratios are 3.31e-11 and 1.10e-115, and
+relative CO2, water and dust inventory changes are below 8e-13. This checks the
+local transport fix without claiming the climates agree.
+The five-sol result is from the local CPU. The Nautilus T21/T42 two-step runs
+and exact restart check pass. These results exclude the longer Nautilus GPU matrix.
+The [review validation record](../validation/pr123-review.json) stores source,
+input and output hashes, native statistics and the verified Nautilus results.
+
+## Verified ports
+
+| Process | Implementation | Native comparison | Coupled status |
+| --- | --- | --- | --- |
+| Vertical pressure grids | `vertical_grid` | Unchanged `set_eta` and released header; 168 cases across all 14 grids | Reference-column sigma adaptation, saved geometry, map continuation and reverse gradients; fixed-pressure terrain interfaces and full-level discretization differ from FV3 |
+| Explicit gas-mass feedback | `dinosaur_physics.remap_gas` and `column_physics` | Unchanged gas-update loops; 108 condensation/sublimation cases | Optional CO2/argon state, initial-CO2-weighted surface exchange, independent species budgets, restart and reverse derivative |
+| Dry convection | `dry_convection.pass2` | Compiled original `pass2`; four 40-layer cases with 2,048 columns, temperature errors below 2e-13 K | `adjust_state` and `build_step` support Dinosaur; explicit reference backend selection is available in the map runner |
+| Legacy dry convection | `legacy_convection.adjust` | Unchanged `legacy_convect` and `potemp1`; 40 strict full-field cases and 8 neutral temperature/wind cases | Optional `convection_scheme="legacy"`; default `"fv3"` retains pass2 and `"none"` disables adjustment. Column budgets, global restart continuation and a three-step gradient pass. Exact neutral nonuniform tracer mixing has a floating-point branch limit |
+| Saturation pressure for moist adjustment | `saturation_pressure` | Unchanged FMS table generators, quadratic lookups and `compute_qs`; 36 cases with 1,815 points each | Both Smithsonian and simple tables, three water/ice phase choices, native humidity caps and explicit temperature derivatives. NASA extended bounds and water constants are retained; nine unit/gradient checks pass |
+| Moist convective adjustment | `moist_convection.adjust` | Unchanged GFDL `moist_conv`, `CONV_DETR` and FMS saturation kernels; 80 column cases | Connected after dry convection and before lifting/cloud microphysics. Five kernel checks, independent latent/material budgets, bulk/moment global water inventories, exact restarts and a three-step reverse derivative pass |
+| PBL surface exchange | `boundary_layer.surface_exchange` | Compiled original `bndcond`, stable/unstable/zero-wind cases | Used by the new column driver |
+| PBL turbulent mixing | `boundary_layer.eddy_coefficients` | Compiled original `eddycoef`, 4/12/40 layers | Used by the new column driver |
+| PBL gas-column driver | `boundary_layer.column_step` | Compiled original `pbl_driver`, `newpbl`, matrix, scaling and solve routines; 18 column cases with both heat-flux choices, both heat derivatives and exchange coefficients; temperature errors below 1e-13 K | Connected to soil/frost and Dinosaur; optional solved-temperature heat flux, restart and three-step gradient checks pass. Gas species mix separately from cloud and moment particle tracers |
+| Radiation pressure-table staging | `stage_co2_radiation_tables.ames_pressure_interpolation` | Original `laginterp` and `lagrange`; all ten gas mixtures checked against the original routines | Enabled in the existing correlated-k kernel |
+| Radiation table lookup | `correlated_k._interp2_log_table` and `_interp_linear_k` | Original `tpindex15`/`boxinterp` at 100 points; original `tpindex` and unchanged linear-k blocks at 210 mixed-water/extrapolation points | Default log-k lookup and optional `--linear-k-interpolation` |
+| Two-stream flux kernels | `scattering_transfer.visible_fluxes` and `infrared_fluxes` | Original `gfluxv`, `gfluxi`, `dsolver`, `dtridgl`; 1/4/12/40-layer thin/moderate/thick columns | Visible keeps the original solve. IR solves the same hemispheric equations with stable layer adding; the composed check uses unchanged Fortran routines at binary128 without relaxing flux tolerances |
+| Radiation pressure/temperature grid | `radiation_grid.radiation_grid` | Original `fillpt`; all output arrays agree exactly in the recorded 1/4/12/40-layer cases, with positive and zero top pressure | The reference callback uses a positive radiation-only top; the kernel still checks the zero-top limit |
+| Spectral flux integration | `spectral_flux.visible_spectrum` and `infrared_spectrum` | Original `sfluxv`, `sfluxi`, `getdetau` and flux solvers; 27 cases with weak/mixed/strong gas opacity and both surface-emission scaling settings | Connected to optical aggregation; the special bottom IR sample uses its full, possibly floored, depth |
+| Optical-depth aggregation | `optical_depth.gas_subgrid` and `aggregate_optics` | Original `optcv15`, `optci15`, `tpindex15`, `boxinterp`; 16 clear/dust cases at 1/4/12/40 layers, positive and zero top pressure | Gas absorption, supplied particle scattering/moments and Rayleigh scattering are connected |
+| Composed radiation | `radiative_transfer.column_fluxes` and `make_radiation_component` | Composed original grid, optics and spectral solvers; 192 day/night and clear/dust cases at 4/12/56 layers, both interpolation and surface-normalization choices, with 170/200 K stratospheres; unchanged interface-flux gates | Connected to Dinosaur; a three-step reverse derivative passes with full radiation |
+| Absolute Planck means | `correlated_k.planck_band_intensities` | Original `setspi`; 50--900 K at 0.1 K nodes | Continuous interpolation preserves temperature derivatives; original integer indexing does not |
+| Soil/surface frost column | `soil_frost.surface_step` and `subsurface_diffusivity` | Original `progts`, `trdslv`, `albedo_calc`; uniform soil plus case-7 subsurface ice at five northern/southern/equatorial latitudes | Connected to PBL; native TES inertia and GRS ice-boundary maps can supply the interfaces |
+| Surface maps | `surface.reference_surface_fields_on_grid` | Four input files match pinned Git blobs; T21/T42 conservative area integrals pass; orientation, longitude seam and northern inertia-cap tests pass | Uses Gaussian cell areas and retains the native cap north of 65 degrees |
+| Orbital setup | `reference_constants.reference_radiative_forcing` | Compiled original `mars_calender`, 37 cases over three model years | 668 model sols/year, 88704 s/sol, reference epoch/equinox and unscaled 1356.1 W/m2 solar bands |
+| Solar geometry | `solar_geometry.daylight_geometry` and `averaged_zenith` | Compiled original `sol88`/`zenith`, 27 cases including poles, sunrise/sunset and integration windows | Connected to radiation; the averaging interval is explicit |
+| Immediate CO2 deposition | `co2_condensation.simple_condensation` | Original `co2_condense`, followed by original `pass2` in the coupled column check | Enabled in the experimental backend; suspended-cloud mode remains separate |
+| Rayleigh drag | `rayleigh_drag.rayleigh_tendencies` | Original `rayleigh_damping`; 32 cases with surface, top and tropical switches, masks and timescale units | Connected before PBL; optional dissipative reheating remains off by default, as in the source |
+| Suspended CO2 clouds | `co2_microphysics.cloud_step` | Original `co2condsub`, `sedimco2`, `fallvel` and `dtridgl`; 288 cases at 2/4/12/40 layers, at 610 Pa and 500 mbar | Optional column and Dinosaur mode; formation, size, settling, deposition and 15-band cloud optical feedback are connected. A three-step rollout derivative passes finite differences |
+| Particle optical properties | `particle_optics` | Original `opt_dst`, `calc_opts`, `opt_co2cld`, `opt_cld_blk`, `opt_cld`; 96 cases, both band configurations, including prescribed fixed-radius dust and 2/12/40 layers | Fourteen size-dependent tables and the brightness correction retain pinned input blobs and source REAL*4 precision; dust populations, lognormal distributions, coated ice and bulk ice/liquid switching are implemented |
+| Extended gas radiation | `correlated_k`, `spectral_flux` | Original `tpindex15`, `boxinterp`, `sfluxv`, `sfluxi` and transfer solvers; 40 lookup/spectral cases | Both released 15-band options are connected: 32 Gaussian points to 350 K, or 16 points to 800 K. All ten water mixtures are available; source mixture selection remains discrete |
+| Collision-induced absorption | `collision_absorption` | Original `optci15` and `kinter`; 81 cases at 610 Pa, 500 mbar and 10 bar | CO2/CO2 and CO2/H2 infrared continuum is connected, including the source temperature clamp before density/path calculation and zero ghost-layer absorption |
+| Prescribed dust | `prescribed_dust`, `dust_scenario` | Original `dust_distrib_fixed2`, `dust_distrib_pulse2`, `season_table` and `ini_optdst`; 144 profile cases, 32 storm cases with explicit undefined-local inputs, fixed-size optics, 10 FMS map comparisons | Both Conrath formulas, tracer-height/profile modes, fractional/elevated pulses, reference-pressure scaling, storm equations and size optics are connected to the radiation callback. All six pinned scenario files load; map sampling follows FMS bilinear weights on T21/T42/T85/T170, including polar rows and the seam |
+| Bulk water cloud kernels | `water_bulk` | Original `blkh2o_driver`, `findq`, `sedimh2o` and `fallvel`; 24 roots and 36 columns | Phase change, precipitation threshold, settling and rain/snow accounting are implemented. The original root iteration is checked separately; three Newton corrections remove its stopping noise. Surface exchange, lagged PBL exchange history, cloud optical feedback and global water inventory checks are connected |
+| Moment water nucleation/growth | `water_moments` | Original `nuclea`, `growthrate2`, `fshape2`, `scrit_tdep`, `nucleacond`; 187 kinetic, coupled and native-substep cases | One or two physical dust modes are checked in the kernel. The one-mode Dinosaur path connects surface exchange, convection, subcycling, latent heat, saved effective input and coated-cloud optics. Material, restarts and a three-step reverse derivative are checked |
+| Dust/cloud moment settling | `particle_sedimentation` | Original `init_sedim`, `sedim`, `fallvel`, `dtridgl`; 432 columns with 2/4/12/40 levels, 610 Pa or 500 mbar, explicit/implicit transport and core scavenging on/off | Reuses the checked continuity solver. Dust and core enter the surface dust reservoir; ice enters surface water. Particle-number loss and the source lifting-override budget imbalance are exposed |
+| Independent moment dust | `dust_sedimentation_step`, `column_physics`, `dinosaur_physics` | 432 unchanged native settling cases for each of one, two and three physical dust modes, with inactive water/core slots zero | Dust transport, lifting, seasonal control, coagulation, settling and optics work without moment-water physics. One/two-mode global material, restart and three-step gradient checks pass; the native bulk/moment mode restrictions are enforced |
+| Interactive dust lifting | `dust_lifting` | Unchanged `flux_stress` and contiguous interactive source block; 250 cases | All five stress formulas, three dust-devil options, PBL/fixed-layer injection and reservoir-dependent thresholds are checked. One-mode global coupling uses the current PBL, source drag coefficient and held radiation-time reference opacity |
+| Seasonal dust control | `dust_lifting.background_step` | Unchanged background source block on defined branches, plus original size optics; 132 cases | All seven injection scalings, PBL/fixed-layer injection, seasonal cuts, cap/temperature masks, uniform and bottom removal are implemented. Native comparisons cover defined injection/uniform-sink cases. Independent material and gradient checks cover explicit sink repairs; global cloud feedback and restarts pass |
+| Combined/local-time dust control | `dust_lifting`, `dust_control` | Unchanged interactive/background, current-opacity and local-time blocks; 72 combined cases, 420 local-time cases and two pressure-scaling/floor cases | Source opacity gates and process order are implemented. Map and aerosol target branches, mapped local-time fractions and saved opacity/bin history are connected to Dinosaur and restarts |
+| Dust coagulation | `dust_coagulation` | Original `coagul_main`, collision kernels, table setup and interpolation; 152 cases with four columns each, table or `FULLCOAG`, one or two physical modes | Brownian, gravitational and diffusion-enhanced collisions are implemented. Equal sizes have exact zero differential settling. Source interpolation quirks, number reconstruction, small mass regularization and inactive-column mass loss remain visible |
+| Radiation holding/stratosphere | `dinosaur_physics`, `radiative_transfer` | Source first-call/modulo-day schedule, cold/warm native stratosphere fluxes and two focused schedule/gradient tests | Optional `radiation_update_seconds` requires matching initial cache fields. K/s rates stay fixed when pressure changes. Held radiation survives restarts; the reference callback reads the current top-layer temperature |
+| Surface water exchange | `water_surface` | Original `update_water`, `update_water_fv3`, `update_water_blk`; 216 cases | Bulk/bin/moment surface kernels, liquid saturation and latent diagnostics are checked. Bulk mode is connected before PBL using saved exchange coefficients; cloud formation is a separate switch |
+| Surface water optics | `water_surface.optical_properties` | Original `albedo_calc`; 120 threshold/temperature/snow cases | Radiation uses old water; soil uses water after surface exchange. Bare map values are restored when frost falls below the threshold |
+| Legacy soil materials | `soil_frost.subsurface_properties` | Original `progts`; 20 modern/legacy and uniform/case-7 cases | Returns diffusivity and heat capacity. Distinct legacy northern/southern ice inertia and the fixed deep node are retained |
+| Terrain gravity-wave drag | `terrain_drag` | Original `palmer_drag` and `IR_damping`; 90 columns and 40 damping pressures | Connected before convection. Calm wind and zero shear use finite limits. Original early exits and force imbalance are retained and reported. Zero-top grids require an explicit finite diagnostic top pressure for drag heights |
+| Non-orographic gravity-wave drag | `nonorographic_drag` | Unchanged GFDL forcing/timer/spectrum routines at pinned revision `46817a1` and NASA-patched source selection; 580 cases | Reference-interface source pressure, spectrum and latitude amplitude. Connected after terrain drag and before convection. Held tendencies, current-wind reheating, exact restart continuation and three-step reverse derivatives are checked |
+| Non-LTE heating | `nonlte_cooling` | Original `simple_nltecool` and `interpnlte`; 54 columns and interpolation-history cases | Pinned MGITM atmosphere is staged. Solar attenuation is connected; optional longwave cooling requires explicit CO2/atomic-oxygen tracers. The longwave option is excluded by the original RELEASE flag. Heating corrections are separate from interface fluxes |
+| Water state/restarts | `dinosaur_physics`, restart format 4 | Independent global water inventories, full cloud-feedback restart and three-step reverse derivatives | Surface water and lagged PBL state persist across restarts. Versions 2 and 3 remain readable; trace-water thermodynamics follows the source approximation |
+| Coupled gas column | `column_physics.column_physics` | Original Rayleigh, PBL, surface, CO2 and convection routines in reference order; 24 clear/winter/thaw/convective cases at 4/12/40 layers, with immediate deposition or suspended clouds; temperature errors below 2e-13 K | Radiation heating and downward surface flux are prescribed inputs |
+| Dinosaur adaptation | `dinosaur_physics.build_step` and `remap_gas` | Cold global smoke, gas inventory, remap energy/momentum/passive material checks, and three-step reverse derivatives checked against finite differences | Ground impulse is recorded; raw/corrected angular momentum and exchange-energy ledgers expose numerical repair changes; whole-model validation remains pending |
+| Positive grid-space reference tracers | `tracer_transport.project_tracers` | Independent species inventories, grid positivity, physical-source retention, invalid-inventory rejection and reverse derivatives | Dinosaur numerical adaptation, separate from reference FV3 transport. Dynamics retains each species inventory. The post-physics projection retains physical sources and sinks. Per-species correction and redistribution are reported |
+
+The optional `nonorographic_drag_options={"top_pressure_pa": .03}` enables
+non-orographic gravity-wave drag. Supply the same options to `initial_state`
+and `build_step`. The finite top pressure is used for diagnostic heights only.
+The default calculation frequency is zero, as in the released Mars setup.
+`update_seconds` and `offset_seconds` use the complete GFDL timer sequence:
+decrement the integer alarm, compute or hold forcing, then add the frequency
+once when the alarm expires. The released Mars caller omits the timer helper
+calls, so its nonzero-frequency behavior is not a parity claim.
+Saved tendencies and the integer-valued alarm survive restarts. Keep the offset
+unchanged across a restart; changing only the offset requires reinitializing
+the timer. Optional `conserve_energy=True` computes heating from current winds,
+including on steps that hold the forcing.
+
+The native Mars driver passes N+1 reference pressure interfaces to initialization.
+Source selection searches the first N interfaces for pressure strictly above
+150 Pa. Its one-based result also indexes the extended forcing array, whose
+top ghost has index zero. The result is capped at N-1, as in the source.
+The backend uses the same interfaces and indices. The reference preset passes
+705 Pa explicitly; other callers default to the body's reference pressure.
+Released grids retain their positive native top for these static selectors.
+Custom sigma grids retain their supplied top. Native checks include source
+selection across all 14 released grids and three reference pressures.
+Index 1 has a finite extension that copies input
+winds before ghost extrapolation; the original reads an uninitialized wind.
+Native comparisons use indices at least 2. Separate IEEE64 spectrum operations
+keep the zero phase speed exact; native compilation disables FP contraction.
+Top flux dumping retains the source's last-relative-speed diffusion rule.
+The port's LGPLv3 and NASA patch Apache-2.0 notices ship with the package.
+
+The optional `moment_water=True` path uses six physical moments: dust mass and
+number, cloud ice mass and number, embedded dust mass, and water vapor mass.
+The four particle tracers bypass gas-only PBL mixing. Convection mixes all six.
+Cloud formation follows the source `subeffmode=0` order. Other physics adds its
+positive tracer changes across the microsteps; negative changes act at once.
+The default `microtimestep=-1` gives one step, as in the source. Set
+`moment_cloud_options={"microtimestep": 60., "latent_heat": True}` to enable
+subcycling and latent heating. Moment settling follows cloud formation;
+`moment_sedimentation=False` disables it. Dust surface mass starts at the source
+30 kg/m2 default and persists in restarts.
+
+Set `lifting_suppresses_settling=True` (CLI
+`--lifting-suppresses-settling`) for native `lifting_nosed`. A positive net
+bottom-layer dust mass source, after interactive/background lifting and before
+coagulation, marks both free-dust mass and number. Settling then retains their
+bottom-layer values and sets their routed deposits to zero. It still updates
+upper layers and settles cloud ice and cores. This reproduces the source's
+possible dust-budget imbalance; the settling ledger reports that imbalance.
+The released benchmark leaves this option off. The native guard check covers
+positive, zero and negative mass tendencies independently of number tendencies.
+
+Set `dust_opacity_from_aerosol=True` for native `opac_from_aerosol`. Interactive
+lifting then uses the current physical optical depth without the 610 Pa
+pressure normalization. Background lifting also needs
+`dust_background_options['fixed_dust_provider']`, built with
+`prescribed_dust.make_fixed_dust_provider`. It takes its target from the
+provider's visible extinction or infrared absorption at the source reference
+band. Both target channels are held on the radiation schedule and saved in
+restarts. The target's seasonal difference is zero in this source branch;
+local-time fractions still update their history and injection scaling.
+
+The CLI option `--dust-opacity-from-aerosol` uses the released MY30 map,
+1.5 micrometer fixed particles and zero additive background opacity. The
+released default leaves this switch off. Native dust-control checks cover
+the current-opacity normalization and both local-time branches. Coupled tests
+cover the fixed-target cache, missing configuration, map continuation and
+reverse derivatives with visible/infrared control and 12/15 optical bands.
+
+`prescribed_dust.make_fixed_dust_provider` accepts `storm_options` when it
+uses a seasonal scenario. The source adds two longitude images of a spatial
+anomaly and applies its solar-longitude ramp before normalizing the column.
+The port preserves that image rule and the original cross coefficient.
+Both public source revisions leave the local variables `slope` and `c`
+uninitialized. Storm callers must supply `slope_deg` and
+`latitude_coefficient` (inverse radians squared). These inputs define a
+deterministic extension of those undefined source fields. The native validator
+compiles the unchanged numerical block with the same explicit inputs; this
+does not establish agreement with the raw routine's uninitialized values.
+Other storm parameters retain their source defaults. The released benchmark
+leaves the storm switch off.
+
+Set `moment_cloud_options={"effective_input_mode": 1}` on initialization and
+the step builder to use saved effective inputs. The first call uses the fields
+before physics. Later calls use saved temperature after clouds and saved
+tracers before clouds, as the source assignments specify. Positive changes
+enter over the substeps; negative changes enter at once. History is saved
+before settling and sigma remapping and survives restarts. The released source
+allocates but never fills `qpi_dmprev` and `qpi_dnprev`. The port fills those
+dust histories from the pre-cloud state. Seeded native substeps check the
+defined calculations; no agreement is claimed with uninitialized memory.
+
+The moment kernel retains the source's second weighting of multiple dust modes,
+its small-core particle-count history, and its distinct 2.8343 and 2.8 MJ/kg
+latent constants. Empty bins get zero weight and dry vapor uses the direct
+saturation pressure. These finite limits replace source divisions by zero.
+The embryo geometry uses equivalent factored terms to avoid cancellation.
+Its native check uses unchanged binary128 routines and also records original
+FP64 errors. Contact case 1 can activate below saturation and produce NaNs;
+those cases are recorded as source undefined, with matching classifications.
+The shared saturation root removes the native 1e-8 stopping noise and uses an
+implicit derivative. Coupled native checks record a separate bound for that
+change. No matched-climate claim follows from these short tests.
+
+Set `dust_lifting_options={}` to enable one-mode interactive lifting. Use
+`dust_optical_bands=15` with either 15-band radiation mode. The default is the
+original 12-band configuration. `dust_opacity_channel=1` selects visible opacity;
+2 selects infrared absorption. These diagnostics refresh with radiation and
+persist across restarts. The source scales them by 610 Pa divided by the current
+bottom full-level pressure before it applies the lifting cutoff.
+
+Set `coagulation_options={}` to enable coagulation after lifting and before
+cloud formation. `direct=True` within this mapping selects the source
+`FULLCOAG` kernels. The default uses its temperature/path or pressure tables.
+The source swaps the middle interpolation corners and uses pressure index 15
+when pressure exceeds its 25-point table. Both rules are retained. The source
+also removes an unresolved distribution below its particle-number threshold.
+Its floor repair can select a different branch after a one-ulp arithmetic
+change. Native checks report that exact floor bound separately from active
+collision checks. The cumulative `dust_coagulation_mass_change_kg_m2` field
+records the resulting mass change. It is not hidden as surface deposition.
+The source turbulent-inertia kernel has an uninitialized dissipation rate;
+there is no defined rate to port for that switch.
+
+Set `dust_background_options={"scenario": mapped_scenario}` for seasonal dust
+control. Supply maps on the Dinosaur grid, in the selected visible or infrared
+channel. `load_scenario_on_grid(..., map_scale=3.67)` gives the source visible
+scaling; use `map_scale=1.` for infrared. The driver interpolates opacity and
+retains the difference between the bounding seasonal maps. `segment=True`
+selects the upper map. Fixed-radius injection coefficients come from the pinned
+optical tables. `remove_excess=True` enables the optional sink;
+`bottom_sink=True` removes material from the ground upward.
+
+The original bottom sink clears a cell before adding its contents to the removed
+amount. It can then read below the column. Its surface-deposit calculation also
+uses loop indices after those loops have ended. The port counts material before
+clearing a cell and uses the local column. It caps removal at available mass and
+number, replacing the source's extra 1e-32 allowance for negative tracers.
+`negative_sink_repair_kg_m2` records that mass correction. These branches have
+independent mass checks; no native agreement is claimed where the source reads
+out of bounds.
+
+Combine interactive lifting and background control with
+`dust_lifting_options={"dual_mode": 1}` and the background options above.
+Modes 1 and 21 suppress both interactive sources only when current opacity
+exceeds `dual_scale * scenario_opacity`. Mode 2 allows both sources. All use
+the same old diagnostic opacity for lifting and background injection, as in
+the reference. Background injection follows interactive lifting.
+
+Optional `local_time_scenario` in the background options contains `seasons`,
+`bins_hours` and `fractions`. Fractions have shape `(season, longitude,
+latitude, bin)` on the Dinosaur grid. The seasonal axis must match the opacity
+axis; this makes the source's shared-index initialization explicit. Hour-bin
+edges must run from 0 to 24. Pass these options to `initial_state` as well.
+The driver keeps the source longitude/sol clock, strict hour bins, opacity
+clamps and update-after-evaluation history. Interactive gates use the target
+before local-time changes. The saved history survives restarts so continuation
+matches an uninterrupted run. No local-time fraction dataset is included in
+the released reference data; supply measured or configured fractions explicitly.
+
+Reverse derivatives are checked within the source gas-mixture bins. Crossing a
+bin can change the forward radiation result abruptly. A dust perturbation in
+the initial global fixture crossed three such cells on step three. The updated
+derivative fixture stays within a bin and checks two finite-difference sizes.
+The bulk-water derivative fixture also starts within a bin. At the exact
+`1e-6` boundary, the conservative transport correction moved hundreds of cells
+between source gas-mixture bins on the second step. Direct radiation-provider
+instrumentation confirmed those switches. The replacement `1.1e-6` probe has
+no bin changes at any of its checked perturbation sizes. Table selection and
+the derivative tolerances are unchanged.
+
+The convection sweep mixes heat, winds and tracers. It makes one bottom-to-top
+pass, as the reference does. It does not replace this pass with a global neutral
+column projection. Its JAX scan carries only the adjacent changing layer.
+
+The optional legacy sweep runs from top to bottom and retains the source's
+inner-loop continuation above stable pairs. Its returned winds are unchanged,
+despite the source momentum-mixing flag. Unreturned top-ghost/interfacial
+diagnostics are omitted; they do not affect the returned full-level fields.
+At exact neutral potential temperature, native `pow` and XLA power roundoff
+can select different tracer-mixing branches. Eight neutral cases record tracer
+differences explicitly; they have strict temperature/wind gates only. Forty
+other cases retain strict gates for every field, including both sides at
+1e-8 K potential-temperature offsets. Column diagnostics report enthalpy,
+kinetic energy, momentum and species-integral changes for all three switches.
+
+Set `moist_convection_options={}` to enable the released AM4 adjustment.
+Initialize bulk or moment water first. The default relative humidity is 1,
+the initial tolerance is 0.02 K, and the source uses 30 iterations at each
+of 0.02, 0.04 and 0.08 K. `unconverged` reports the source maximum-iteration
+warning; output is retained as in the source. Global validation checks that
+the default warm test columns finish without this warning. `simple_adjustment`
+and `saturation_model` are separate source switches. The latter selects the
+Smithsonian tables or the simple exponential tables. Saturation tables use
+nearest-node quadratic interpolation, with their supplied temperature
+derivatives. Invalid indices return NaNs and a validity flag; FMS raises FATAL.
+
+The port retains the original initial lapse calculation without humidity
+scaling, later lapse calculations with scaling, whole-column exit on a failed
+block search, and skipped flag refresh at the last iteration of each tolerance.
+Cold columns use 2.834 MJ/kg and snow when the pre-adjustment bottom air is
+below 273.15 K. Warm columns use 2.5 MJ/kg and rain. The simple adjustment
+always uses rain. Optional stratiform cloud fields are absent in the Mars
+caller; the original routine returns zero changes for all other tracers.
+
+Moist-convection rain and snow enter the bulk surface reservoir in the source,
+even when moment clouds are active. The moment adapter therefore keeps a
+separate `moist_bulk_surface_water_kg_m2` bank, includes it in water inventory,
+and saves it in restarts. It does not feed active moment frost or surface
+exchange. Set `initial_moist_bulk_surface_water_kg_m2` explicitly to match the
+reference initial bank; the default is zero. `polar_water_on_grid` supplies
+the pinned 500 kg/m2 polar-cap map for both source banks when matching a cold
+start. With bulk clouds, precipitation enters the active bulk water bank.
+
+The warm global derivative fixture starts at 250.037 K, inside a Planck-table
+interval. At exactly 250.0 K, automatic differentiation uses the right-hand
+slope while a centered difference averages the two slopes at the table knot.
+Forward- and reverse-mode derivatives agree. Moving the probe inside the
+interval removes the finite-difference discrepancy without changing physics,
+interpolation or tolerances. Direct Planck derivative tests cover all three
+radiation configurations.
+
+The PBL port retains the reference's fixed exponent 0.25684, 150 m asymptotic
+mixing length, diffusivity minimum 0.001 m2/s, stability functions, implicit solve,
+ice roughness and hard-coded disabled internal water sublimation. The outer Ames
+interface resets the shear history each call. The low-level coefficient routine
+can accept history, but the matched column driver resets it. Atmospheric ice
+must not be silently treated as one of the gas tracers mixed by this driver.
+
+The radiation path formerly interpolated directly from eleven pressure points.
+Ames first uses four-point cubic interpolation of log(k) to prepare 51 pressure
+points, then performs its runtime lookup. The corrected asset retains the raw
+source slices and adds all ten mixtures on the refined grid. Staging all mixtures
+does not implement a water cycle.
+
+The new backend keeps Dinosaur dynamics, spectral transforms and JAX arrays.
+It applies the coupled column after the dynamical step. It then remaps the
+changed layer masses onto Dinosaur's sigma grid. The remap conserves donor gas
+enthalpy plus kinetic energy, horizontal momentum and passive tracer material.
+Suspended mode also carries cloud momentum and kinetic energy through the remap.
+The shared pressure repair now preserves all tracer material when it changes
+the gas carrier mass. This also fixes existing callers that carry passive gases.
+
+The ground momentum reservoir receives the opposite of the gas-column impulse
+from PBL and mass transfer. A rotating-wind test checks gas/ground axial momentum;
+the diagnostic path separately records raw and pressure-corrected angular momentum.
+These checks do not establish a conservation theorem for arbitrary global climates.
+The exchange-energy ledger counts gas enthalpy/kinetic energy, evolving soil-node
+sensible energy and frost enthalpy cp*T-L. All five numerical repair stages use
+the same energy and axial momentum definitions. When water is active, vapor adds
+latent energy relative to ice: 2.8e6 J/kg for bulk water and 2.8343e6 J/kg for
+moment water. These are the constants used by the respective source schemes.
+Counting stored latent energy does not enable latent heating; the matched moment
+benchmark keeps that heating off. Source passive water has no separate sensible
+or kinetic heat capacity in this ledger.
+The fixed deep node is an external reservoir. The reference defaults omit some
+drag/convection dissipative reheating; those losses must not be hidden as repairs.
+The soil column reports sensible-minus-CO2-latent storage, the linearized surface
+heat input, deep heat flux, and separate work from the native deep-row equation,
+material interfaces and frost approximation. Their residual measures accounting
+closure. A small residual does not mean that those source terms conserve energy.
+The backend requires an explicit radiation callback and soil diffusivity. The
+initial cold smoke uses the existing radiation callback; the multi-step gradient
+test also exercises the new full-radiation callback. Nonzero suspended CO2 clouds are
+rejected in immediate-deposition mode. Set `suspended_co2_clouds=True` in
+`build_step` to use the source bulk cloud scheme. Its cloud tracer must be present
+in the initial state; `initial_state` supplies it. Ice bypasses gas PBL mixing
+and joins all tracers in dry convection. Cloud mass survives gas pressure changes.
+The default radiation remains explicitly clear unless its particle provider
+supplies cloud optics; enabling microphysics alone does not enable cloud opacity.
+Use `make_particle_provider(bands=15, co2_cloud_tracer=CO2_CLOUD_TRACER)` with
+`make_radiation_component(..., radiation_mode='extended')` for the released
+high-pressure gas tables and CO2 cloud feedback. `radiation_mode='15band'`
+selects the separate 32-point, 350 K tables. The default remains `12band`.
+
+The bulk cloud source uses post-phase full-level density and pre-phase interface
+temperatures for settling, a 590200 J/kg latent heat, mass-derived lognormal radii and a
+concentration-dependent explicit/implicit transport switch. The port preserves
+these details, including the unusual below-cell fall-speed stencil. Its ground
+momentum accounting excludes gas-to-cloud phase transfer and includes deposited
+particle momentum. The local unresolved momentum source is reported separately
+in `co2_cloud.unresolved_momentum_source_kg_m_s`; it is not assigned to the ground.
+The source omits cloud thermal inertia and two-way momentum
+feedback. The energy ledger includes cloud latent/kinetic energy, and angular
+momentum includes suspended mass; neither ledger claims that the source
+approximations conserve total energy or momentum. Native comparisons and gradient
+checks are separate from long global validation.
+
+Native surface input files are sampled with conservative area overlaps. Latitude
+cells integrate Dinosaur's Gaussian weights; longitude wraps at the seam. The
+source TES emissivity map includes some values above one, which the source model
+retains. The loader preserves and reports that input behavior. Physical bounds
+must be considered explicitly when defining a new calibrated surface dataset.
+
+Radiation is evaluated at each Dinosaur step. The source's averaging interval is
+explicit, including its midnight phase and daylight fraction. Matched performance
+runs must also match the radiation evaluation schedule; Ames normally holds
+radiative tendencies between its configured radiation updates.
+
+The IR layer solver uses stable exponential remainders and boundary adding.
+It retains the source hemispheric equations, linear Planck profile and exponent
+cap. This avoids subtracting large terms proportional to `1/tau` in thin layers.
+The original FP64 composed solver loses about 5e-7 W/m2 in one recorded case.
+The binary128 native comparison retains the same strict interface-flux gates;
+FP64 cancellation is recorded separately. Thin-layer formal-integral tests and
+forward/reverse derivative checks pass without enlarging their tolerances.
+
+The released 800 K IR input contains 2,941 positive infinite coefficients in
+some water-mixture cells. The loader retains them. Native comparison checks
+matching nonfinite results separately from finite coefficient errors. These
+input regions cannot be called validated finite climate states. Gas-only and
+tested cloudy rollouts use finite cells; water-cycle coupling must enforce and
+audit its actual thermodynamic states. No replacement coefficients are invented.
+The extended validator now checks every temperature/pressure node and every cell
+center for all ten water mixtures in both 15-band options. All 13,930 lookup
+states match unchanged Fortran, including separate NaN and signed-infinity masks.
+The 800 K IR option gives 3,048 nonfinite coefficients at the tested nodes and
+2,899 at the cell centers; these counts are lookup results, not raw table counts.
+The source uses fixed `grav/cp_air` for heating and `cmk=3.51e22` molecules per
+millibar for gas paths. Water selects opacity mixtures; it does not update these
+thermodynamic constants. CIA uses separately supplied CO2/H2 molar fractions.
+The port retains these approximations. Composition-dependent heat capacity or
+gas-path conversion would change the released model.
+
+Bulk water uses the original bracketed Newton/bisection iteration, including
+its unusual derivative and absolute `1e-8` step tolerance. Three corrections
+then solve the same saturation equation to roundoff. The smooth objective and
+implicit derivative are checked against an independent Brent solve and actual
+forward finite differences. The original iteration still matches Fortran;
+whole-driver differences due to its stopping tolerance are recorded explicitly.
+
+The source CO2 mass guard is retained and reported. It can break the latent heat
+ledger in extreme states because the original routine limits removed mass while
+retaining the full temperature adjustment. The backend rejects such states;
+the recorded matched column cases do not activate this guard.
+
+Gradients are piecewise derivatives of the retained physical switches. They are
+not smooth at frost onset, branch boundaries, remap donor changes or table knots.
+Finite-difference checks use points away from these boundaries. Continuous Planck
+interpolation is the explicit change that replaces the source's integer indexing.
+
+The infrared solver uses one exponent cap for each whole layer, including
+samples inside very thick layers. Capping each sample segment on its own changes
+the reference solution. Nine analytic thick-layer cases and the expanded native
+cold-stratosphere cases check this limit without changing flux tolerances.
+
+The MY24/MY30/MY31/MGS dust files end at Ls 359.74185 instead of 360 degrees.
+The native lookup reads outside its array after that last sample. Staging keeps
+all original samples and appends the first sample at 360 degrees to close the
+periodic boundary. The manifest records this extension; native agreement is
+claimed only where the original lookup is defined.
+
+## Multiple physical dust populations
+
+Set `dust_mode_count` in both initialization and the step builder, or in the map
+runner's `reference_options`. The default is one population. With more than one,
+initial dust mass, number and surface reservoir inputs can be scalar or have a
+last axis with one entry per population. Surface reservoirs keep that last axis
+in checkpoints. Extra tracers are `dust_mass_2`, `dust_number_2`,
+`dust_core_mass_2`, and so on. They are particles in PBL mixing and retain the
+source's mass/number/core order. Radiation providers must select every active
+mass/number pair explicitly.
+
+Lifting uses the first population's surface reservoir to set all populations'
+thresholds, as in the source. Background `effective_radius_m`,
+`extinction_efficiency` and `opacity_fraction` can each have one entry per
+population. Fractions that do not sum to one reset to `[1, 0, ...]`, as in source
+initialization. Coagulation and cloud formation use all physical populations.
+The source transfers nucleated core mass into the primary cloud core; the extra
+core-tag update is excluded by its preprocessor. Existing extra cores still mix
+and settle with the cloud size. Each population has its own dust size and dust
+surface deposit. Total dust includes all dust mass and all core mass.
+
+The unchanged native lifting block passes 250 two-population cases. Native
+settling passes 432 cases each for two and three populations. Independent
+checks cover separate material reservoirs, size, number loss and derivatives.
+The two-population global case combines local-time control, lifting,
+coagulation, cloud feedback and saved effective inputs. Its material budget,
+exact restart continuation and three-step reverse derivative pass. The map
+runner also checks two-population continuation. These short tests do not
+establish climate accuracy or long-run transport convergence.
+
+The preceding moist-convection checkpoint passed the full package, CLI and
+calibration suite: 953 passed, 4 skipped, including slow tests. Later multimode
+changes have focused checks; their wider backend regression is recorded
+separately.
+
+The three-step warm moist global reverse pass originally required
+27,506,267,400 temporary bytes and exceeded CI memory. Recomputing radiation
+and each moist iteration during reverse mode reduces the compiled requirement
+to 5,633,589,656 bytes on the local CPU. The same three-step derivative test now
+checks an 8 GiB temporary-memory ceiling. It still checks the original equations
+against centered differences. Recomputing saves memory and adds reverse-pass
+work; this is not a measured forward speedup.
+
+The combined two-population reverse pass initially required 14,049,478,256
+temporary bytes. Recomputing each coagulation bin update reduces this to
+5,652,882,496 bytes on the local CPU. That test also enforces the 8 GiB ceiling
+and retains its two finite-difference probes. Native coagulation equations and
+the number of bins are unchanged.
+
+## Run the released present-Mars cloud configuration
+
+The production runner now has an explicit `reference` configuration. It uses
+the released `build_run/fms_mars_clouds_v3.2` cloud switches: transported moment
+dust, MY30 background dust, moment water clouds with contact parameter 0.95,
+30-second cloud substeps without latent reheating, 12-band radiation, and the
+top Rayleigh sponge. Radiation refreshes every eight physics steps. The surface
+and soil use the four released TES/GRS maps; polar water uses the pinned cap map.
+The cold start uses the source `drym=705 Pa` parameter. Native `hydro_eq` starts
+from 80% of that pressure, evaluates terrain pressure, then adds a correction
+weighted by log pressure. It does not reach an exact 705 Pa global mean. The
+native C24 mean is 703.263153 Pa. The previous exact global rescale was incorrect
+and is replaced by the source equation. On the same native terrain and weights,
+all 3,456 corrected pressures match within 2.6e-12 Pa.
+On those same native cells, the previous pressure law had 19.53 Pa area-weighted
+RMSE and 67.72 Pa maximum error before any backend spectral projection.
+Air starts at the released 170 K isothermal default. `--initial-air-temperature`
+sets source `isotemp`; `--no-isothermal-atmosphere` selects its frost-limited
+lapse profile. Both controls are saved in restart identity. Seventy-two unchanged
+native atmospheric configurations check pressure, layer thickness and both
+temperature branches. Kernel and global-state derivatives also pass. The
+non-isothermal profile uses Dinosaur's actual sigma interfaces; native uses its
+hybrid interfaces. The surface and all soil
+nodes start from the released latitude profile. An unchanged native initializer
+matches 184 latitude samples, including the southern branch transition.
+The shared map initializer now uses an explicit temperature for both the air
+and hydrostatic pressure; it previously changed pressure alone.
+
+`--initial-pressure-scheme sigma-balanced` explicitly adapts the isothermal
+cold start to Dinosaur. It balances exponential pressure against the same
+truncated terrain as the core, then preserves the area-mean gas pressure of
+the native projected initialization. It rejects non-isothermal atmospheres.
+The default `native` scheme and unchanged `hydro_eq` kernel retain the source
+log-weighted correction. The selected scheme is part of restart identity;
+old native runs cannot resume as balanced runs. This is a sigma-core adaptation;
+it does not reproduce native hybrid pressure interfaces.
+
+`--native-top-divergence-damping` adds explicit top-layer divergence diffusion.
+T21 uses the native C24 preset and T42 uses C48; other resolutions reject this
+preset. In pinned FV3 revision `29654ea167575fa73b65f7f2ceb85f1682884ddd`,
+[`dyn_core.F90`](https://github.com/NOAA-GFDL/GFDL_atmos_cubed_sphere/blob/29654ea167575fa73b65f7f2ceb85f1682884ddd/model/dyn_core.F90#L695)
+retains the first two background coefficients, 0.2 and 0.04, when `n_sponge=0`.
+[`sw_core.F90`](https://github.com/NOAA-GFDL/GFDL_atmos_cubed_sphere/blob/29654ea167575fa73b65f7f2ceb85f1682884ddd/model/sw_core.F90#L1286)
+applies the minimum corner area. The physical diffusivity is the coefficient
+times that area divided by the native advective substep.
+
+| Preset | Native corner area (m²) | Native advective substep (s) |
+| --- | ---: | ---: |
+| T21 / C24 | 26,624,905,000 | 9.625 |
+| T42 / C48 | 6,591,096,800 | 4.8125 |
+
+The areas come from native startup output at eight printed significant digits.
+The preset records their provenance hash in restart identity. The generic
+`build_step` interface accepts a finite, nonnegative per-layer diffusivity in
+m²/s. It multiplies degree `l` divergence by `exp(-nu*dt*l*(l+1)/radius²)` after
+dry dynamics and before tracer transport. It leaves vorticity, temperature and
+pressure unfiltered. Changed winds affect subsequent tracer fluxes. No heat is
+added, matching the native configuration's disabled dissipative heating.
+
+The spectral operator differs from FV3's finite-volume substep operator. This
+adaptation does not make their dynamical cores equivalent. Rates stay fixed in
+physical units when the model time step changes. Both new controls remain
+disabled by default; their selected values enter restart identity.
+
+Use the released `mars_topo_mola16.nc` for matched comparisons. Its units and
+global cell-center axes are checked, then its cell-area integral is retained
+on the Gaussian grid. Orientation, the longitude seam and invalid input checks
+have independent tests. The original 4-pixels-per-degree MEGDR image remains
+available for existing map runs.
+
+The reference runner defaults to the released 56-level grid. All 14 released
+grid sizes (24 through 87 levels) are available. The unchanged native `set_eta`
+matches 168 pressure-grid cases. Dinosaur freezes each grid's reference-column
+pressure fractions, sets the top boundary to zero, and uses arithmetic centers.
+Its sigma coordinates cannot retain FV3's fixed-pressure hybrid interfaces
+over changing terrain. Saved restarts include the selected boundaries and reject
+different vertical geometry.
+
+Log pressure is projected into the spectral space of the dynamical core.
+The generic, uncorrected hydrostatic initializer's MOLA dry check reduced false wind after five seconds from
+0.225396 m/s to 1.30e-12 m/s. Independent high-mode terrain tests cover uniform
+and stretched grids. The released log-weighted correction is retained even
+though it changes exact isothermal balance.
+
+```sh
+env PYTHONPATH=package:. python scripts/run_gcm3d_ablation.py /path/to/AmesGCM/data \
+  --config reference --mola-path /path/to/AmesGCM/data/mars_topo_mola16.nc \
+  --truncation T42 --layers 56 --dt 231 --sols 668 --chunk-sols 5 \
+  --cooldown-seconds 0 --output-dir outputs/reference-climate
+```
+
+Use `--resume` with the same source and inputs. The runner rejects changed
+physics or input hashes. Each checkpoint stores the full restart, a NetCDF with
+all atmospheric levels and physical coordinates, and CO2/water/dust inventories.
+The source archive captures the imported package, including installed wheels,
+its data assets and license notices. Separate runtime records identify the
+devices, JAX/NumPy/Python versions and image package list. Wind-height metadata
+uses the selected body's constants and reference temperature.
+
+The two-step production smoke check is finite. Relative CO2, water and dust
+inventory changes are below 5e-14. A separate 56-level run completed ten
+231-second steps, including radiation cache refresh, with finite outputs;
+relative total CO2 drift was below 5e-15. This checks the runner and its bookkeeping;
+it does not measure a climate gain. Dinosaur still uses its spectral dynamics
+and sigma grid. Whole-model comparison needs a matched native run, resolution
+checks and climate statistics.
+
+The corrected initial state and source MOLA16 file completed another ten steps
+with finite outputs. The composed native radiation check now includes the
+released 56-level grids, with positive and zero top pressure: 48 cases pass.
+The top boundary matters. In a clear 170 K night column, the first-cell cooling
+rate is about -0.000802 K/s with the native 0.001319 Pa top, and -0.0400 K/s
+with the Dinosaur zero top. Lower cells agree closely in that check. The
+native top pressure is about 1.87e-6 of 705 Pa. The reference callback now
+retains that positive pressure fraction in radiation alone and reads the current
+top-layer temperature. Dynamics still use a zero top. The radiation interfaces
+remain a frozen reference-column sigma adaptation, rather than the native hybrid
+coordinate. Top-wind and long climate comparisons must check that difference.
+
+The reusable Fortran/MPI runtime and parallel 100-sol preparation/compute
+protocol are described in [the comparison experiment](../experiments/reference-comparison/README.md).
+The frozen native C24 run completed 100 sols with exit code zero in 78,461 seconds
+on six MPI ranks while C48 ran concurrently. Its final logged surface pressure is
+675.477 Pa. The [completion record](../iclr-results/03-benchmarks/reference-comparison/native-c24-100sol.json)
+records the binary/input hashes and final printed diagnostics. NetCDF climate and
+paired performance analysis remain pending; this timing is not an isolated
+hardware benchmark.
+Saved C24 surface pressure and temperature pass finite/fill-value checks at all
+1,200 saved times on six faces (8,294,400 values). Its original static coordinate
+and map exports were zero. A separate FMS I/O probe identifies an undefined
+dynamic output-time gate on static fields; bypassing that gate restores the
+exports and keeps all 44 restart files byte-identical at both C24 and C48.
+The benchmark's frozen binary, inputs and outputs remain unchanged. Future
+native builds apply this diagnostic-only guard. The source-checked coordinate
+sidecars cover the sphere to roundoff and match 36,312 independently exported
+native coordinates within their FP32 storage/FP64 angular roundoff bound.
+See the [metadata recovery instructions](../experiments/reference-comparison/README.md#recover-frozen-grid-metadata)
+and [probe evidence](../iclr-results/03-benchmarks/reference-comparison/native-static-output-probe.json).
+
+## Explicit CO2 and argon mass
+
+Explicit gas-mass feedback is available with `do_qmass=True` and
+`initial_co2_gas_ratio` in map `reference_options`. Direct initialization takes
+the initial ratio, and `build_step` takes the switch. Initialization assigns the
+remaining fraction to the source's argon tracer. Surface phase exchange uses
+each layer's initial CO2 mass; atmospheric condensation removes CO2 material
+while retaining argon and passive material. The sigma remap then conserves those
+updated inventories. Missing required gas tracers raise an error; removing more
+CO2 than a layer contains returns invalid output. The source uses fixed CO2 gas
+and heat constants and total-pressure condensation even in this mode; the port
+retains those approximations.
+
+The source chooses one surface exchange depth for its entire MPI domain using
+`ANY(abs(latitude)>45 degrees)`. Dinosaur's global domain therefore uses the
+polar depth in this mode. This preserves that domain rule, but cannot reproduce
+the spatial patchwork produced by a different FV3 MPI partition. The default
+released cloud protocol leaves gas-mass feedback off.
+
+The unchanged native gas-update loops pass 108 cases, including condensation,
+sublimation, three pressures and up to 56 levels. Multilevel comparisons check
+species inventories after the separate sigma remap; one-level comparisons also
+check the normalized ratios. Independent checks cover CO2/argon closure,
+initial-layer surface weighting, invalid depletion, global species budgets,
+exact restarts and a three-step reverse derivative.
+
+```sh
+env PYTHONPATH=package:. python scripts/validate_gas_mass.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/gas-mass.json
+env PYTHONPATH=package:. python scripts/validate_vertical_grid.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/vertical-grid.json
+```
+
+## Supported release scope
+
+The port targets supported configurations in the released v3.2.1 model.
+The NASA user guide (Table B.1, PDF page 189) and the pinned cloud runscript
+explicitly mark bin-dust radiation mode 2 as "not supported". Its retained
+compatibility paths are excluded from the required port. The source's bin-cloud
+and binned-dust microphysics drivers are fatal placeholders and remain excluded.
+Moment dust (mode 1), prescribed dust (mode 3), moment water clouds and the
+documented early-Mars bulk-cloud scheme remain in scope. The older fixed-radius
+bin-cloud optical routine is retained in the source, but has no verified
+deprecation notice and is unused by the matched cloud setup. It is optional
+compatibility work, not an acceptance gate for that benchmark.
+
+## Surface infrared normalization
+
+`--config reference --scale-surface-ir-flux` forwards the supported
+`do_irflux_scale` switch through the production callback to the spectral solver.
+The default is false, as in the pinned source. Enabled runs record the switch
+in restart identity. Changing it requires a new output directory.
+
+The original normalization uses `5.67e-8*T_surface**4` and `3.14159`.
+The transfer solver uses full pi, so the emitted integrated flux is
+`5.67e-8*T_surface**4*pi/3.14159`. This source constant difference is retained.
+The scaling cancels emissivity from the emitted term; reflected downward
+radiation still depends on surface reflectivity. Ninety-six composed native
+columns cover both settings, day/night, particles, top pressure and 4/12/56
+layers. Budget and reverse derivative checks cover both settings. A coupled
+three-step derivative and exact restart check also pass. A real-input T21/56-level
+smoke completed and resumed to two steps. Disabling the switch rejects resume
+and preserves the checkpoint.
+
+## Solar-constant normalization
+
+`--config reference --solar-constant 589` enables the supported
+`scale_by_scon` behavior. NASA defines this solar constant in W/m2 at mean
+orbital distance, rather than at 1 AU. The runner converts it to the existing
+1-AU forcing field by multiplying by `1.524**2`. The existing Kepler orbit
+then gives `solar_constant/rorbit**2`, as in `radiation_driver.F90`.
+The native interface uses `rsdist=1356.1/rsolar`; its spectral input is
+`SOL/rsdist`. The conversion preserves both equations without a second orbit
+implementation. For spectral radiation, omitting the option retains the unscaled
+1356.1-W/m2 spectrum. Simple radiation always uses the source mean-distance
+constant: 589 W/m2 by default, or the explicit `--solar-constant` value. The
+effective simple-mode constant is saved in restart identity.
+
+The unchanged native interface block passes 148 normalization cases across
+37 orbital times, with scaling disabled or constants 400, 589 and 800 W/m2.
+The source blob is verified against the pinned NASA revision. Reverse
+derivatives through orbital time and invalid-value checks pass. The CLI
+rejects nonpositive or nonfinite constants and incompatible radiation modes.
+Explicit constants are included in restart identity. A real-input T21/56-level
+smoke with both normalization options enabled completed and resumed to two
+steps. Removing or changing the solar constant rejects resume and preserves
+the checkpoint.
+
+## Alternate 12-band interpolation
+
+`--config reference --linear-k-interpolation` selects the supported
+`use_boxinterp12=false` equations. It uses linear absorption coefficients,
+interpolates water content, and extrapolates in temperature and log pressure.
+The native upper pressure-index rule is retained. This option requires
+12-band spectral radiation and is saved in restart identity. It remains off
+in the frozen matched benchmark.
+
+The comparison compiles unchanged `optcv`, `optci` and `tpindex` routines.
+Another 210 direct coefficient cases use the unchanged source interpolation
+blocks and include both sides of the temperature/pressure bounds. Ninety-six
+optical cases cover both interpolation settings, three water contents,
+1/4/12/40 layers, particles and both top-pressure choices. Native unused optical
+channels have undefined values; only dispatched channels are compared for those
+fields. Cumulative optical depths and gas columns are checked in full.
+The 192 composed-flux cases check both paths with unchanged interface gates.
+
+Two explicit adaptations are required. Dinosaur supplies zero pressure at its
+top, where native linear extrapolation has no finite value. Only exactly zero
+lookup pressures use the first table pressure; physical pressure intervals and
+gas mass stay unchanged. Positive-pressure extrapolation matches the native
+source. At the last water bin, the source reads past the table with zero weight.
+JAX uses the last valid entry for that zero-weight term. Native comparisons
+stay below that invalid read; unit checks cover the defined endpoint behavior.
+
+Energy-balance and reverse derivative checks pass for both interpolation
+settings. The coupled surface-normalization test retains three time steps and
+exact restart continuation under each setting. Bulk and moment-water global
+checks close raw water budgets and preserve exact restart continuation with
+linear-k optics. A moist three-step reverse derivative also passes. A real-input
+T21/56-level run with all three radiation controls enabled completed and resumed
+to two steps. Removing linear interpolation rejects resume and preserves the
+checkpoint.
+
+## Spectral shortwave startup ramp
+
+`--config reference --shortwave-ramp-sols 5` selects the released
+`radiation_driver_nml/rampup_rad` cosine ramp. The default is disabled.
+Nonpositive durations disable it. Positive durations and their input identity
+are saved with restarts. Nonfinite durations and incompatible radiation modes
+are rejected before input loading.
+
+The source scales atmospheric shortwave heating and the shortwave flux passed
+to the soil. It keeps the interface flux diagnostics and stratospheric heating
+unscaled. The callback retains that split. `nonlte_heating_k_s` carries the
+additive atmospheric driver correction; `shortwave_scale` tells Dinosaur how
+to scale the applied surface shortwave flux. Longwave forcing stays unchanged.
+Energy audits must use the applied forcing, including this factor.
+
+Forty cases compare the unchanged native ramp block at disabled, intermediate
+and completed durations. Callback checks cover solar non-LTE corrections on
+and off, unchanged interface/stratosphere diagnostics, and start/end times.
+A prescribed-flux backend check proves that a zero ramp gives exactly the same
+air and soil update as zero solar input. Four coupled cases retain three-step
+reverse derivatives and exact restarts across both interpolation modes and
+ramp enabled/disabled. All existing numerical gates are retained. A real-input T21/56-level smoke
+completed and resumed to two steps. Disabling or changing the duration rejects
+resume and preserves the checkpoint.
+
+The pinned radiation driver has ten namelist controls. Four have no numerical
+references (`use_forget_swheat`, `use_dust_lwheat`, `use_newton_damping`,
+`nchan_swx`). Radiation holding, daily averaging and the startup ramp are
+connected. Fixed-date forcing is connected for spectral and simple radiation. Disabling
+`use_ames_sw_rad` or `use_ames_lw_rad` leaves local flux arrays uninitialized in
+`ames_rt_driver`, before unconditional stratospheric calculations and returned
+fluxes. These off paths have no deterministic native target. The audit records
+this source defect; the port keeps both channels enabled. This is a source
+limitation, not a deprecation claim.
+
+
+
+
+
+
+## Seasonal injected-dust shares and optional files
+
+The optional source `radius_scenario.nc` supplies `radNN` fields for each
+physical dust population. Its active equations change the injected opacity
+share, despite the filename. Particle radii keep the tracer's prescribed
+values. Removal keeps the static `tau_frac` shares. The port now preserves
+this split with `background_step.injection_fraction`, mapped mode fields and
+Dinosaur seasonal sampling. Mapped shares are used as supplied; they do not
+pass through the static tracer-share fallback.
+
+`load_injection_fractions_on_grid` reads the file's bin order, seasonal axis
+and `radNN` names. `load_local_time_fractions_on_grid` reads `ltfracHH` fields
+using the start hour of each local-time bin. Both reuse the native-checked FMS
+bilinear map, including seam and polar behavior. The reference runner loads
+these optional files when present and saves their byte hashes with the other
+inputs. The local-time scheme retains its existing saved history and requires
+its seasonal nodes to match the opacity scenario, as assumed by the source.
+No new restart state is needed for the seasonal injection shares. A real-input
+T21/56-level run with both optional files completes and resumes to two steps.
+Changing either file rejects resume and preserves the checkpoint.
+
+The unchanged native fraction-selection block and injection/removal branches
+pass 18 added cases, including unnormalized mapped shares. The full background
+report has 150 cases. Tests check source radii, independent removal shares,
+per-mode material budgets, field orientation, bin order and input rejection.
+The 135 reader, lifting and runner checks pass. One- and two-population global cases preserve three-step reverse derivatives,
+material inventories and exact restart continuation.
+
+The prescribed-dust validation also compiles the full unchanged
+`dust_distrib_fix` dispatch and elevated-pulse routine. Another 240 composed
+cases check seasonal/tracer profiles, both Conrath forms, both pulse types,
+column scaling, two latitudes and two surface pressures. This verifies that
+column scaling precedes addition of the elevated pulse.
+
+The source's optional `sources.nc` and `inidust.nc` feed tagging calls. Release
+preprocessing removes those calls. The audit checks that the seasonal source
+field has only a declaration and assignment after preprocessing. These inputs
+supply no additional active non-tagged lifting equation in this build.
+
+## Soil solver and surface phase controls
+
+`--soil-alpha` selects the released implicit diffusion weighting. Its default
+is 0.5. It is passed through Dinosaur and the shared column to `surface_step`.
+`--no-surface-condensation` disables the separate surface CO2 phase adjustment.
+It is independent of the atmospheric `--no-co2-condensation` switch. Both soil
+controls are saved in restart identity, including the false-valued switch.
+Nonfinite alpha values and controls outside reference mode are rejected.
+
+Thirty-six additional cases compile unchanged `progts` and `trdslv` with both
+surface-condensation settings, alpha 0/0.5/1, bare and frosted soil, uniform and
+varying soil profiles, and 4/16 solver entries. Every defined native soil,
+frost and phase output is compared. The native disabled-condensation branch
+has a singular zero matrix row when frost is already present. That is not a
+finite native physical solution. The port marks `valid_condensation_state`
+false and returns a nonfinite soil profile for that state. It does not remove
+the frost or replace the native equations to force a finite answer.
+
+The controls pass 143 column/runner checks and two three-step Dinosaur reverse
+derivative and exact-restart cases. A real-input T21/56-level run with both
+surface and atmospheric condensation disabled and alpha 0.75 completes two
+steps with restart continuation. The false-valued switch and alpha are saved
+in configuration; changing either rejects resume without changing its checkpoint.
+
+## Surface-map and initial-temperature controls
+
+The released regional thermal-inertia controls are connected through
+`reference_surface_fields_on_grid`, the shared `surface_thermal_inertia`
+equations and the runner. `--north-inertia` replaces values strictly north of
+`--north-inertia-latitude` when positive. `--north-inertia-maximum` then caps
+that region. A positive `--regional-inertia-scale` multiplies values strictly
+between -50 and +30 degrees, after the northern operations. The source name
+`rescale_sh_ti` covers this exact region, including its northern part.
+Defaults retain the existing 800-unit cap north of 65 degrees. Map loading
+uses NumPy to preserve input precision; the shared JAX equations retain reverse
+derivatives through inertia and active controls.
+
+Ninety-six cases compile the unchanged native adjustment block. They check
+strict boundaries, nearby representable coordinates, overlapping regions,
+inactive controls and operation order. Both NumPy and compiled JAX agree with
+the native outputs. T21/T42 conservative area checks still pass. At zero
+latitude the JAX CPU comparison uses the closest normal floating-point values;
+its hardware flushes smaller subnormal values to zero.
+
+`--no-equilibrated-surface --soil-temperature 180` selects uniform initial soil
+instead of the released latitude profile. The air still starts at 170 K.
+Twelve unchanged native initialization configurations cover uniform and latitude
+profiles, three uniform temperatures and the optional source extra-node reset.
+All active soil entries match. Non-default map and initialization controls are
+saved in restart identity; invalid controls are rejected before input loading.
+A real-input T21/56-level run with all four map controls and a uniform 180 K
+soil completes two steps with restart continuation. Changing the northern
+value, regional scale, profile selection or soil temperature rejects resume
+without modifying the checkpoint.
+
+The source's `edit_subsfc_temp` writes a 17th entry poleward of 70 degrees, but
+`progts` declares 16 input and output soil entries. The caller adds the returned
+tendency to all 17 entries, leaving its extra tendency unwritten. The port
+retains the 16 defined solver entries. It does not apply that extra-entry reset
+to the active deepest node. The initial-condition audit pins both source files,
+checks these declarations and compiles the original reset block.
+
+## User-supplied prescribed dust optics
+
+`prescribed_dust.fixed_optics(..., optical_properties=(visible, infrared))`
+and `make_fixed_dust_provider` implement the supported `user_fixed_dust_opts`
+branch. Each array has three rows: extinction, scattering and asymmetry.
+There are seven visible bands and five or eight infrared bands. The caller
+supplies the six source coefficient arrays explicitly. This option replaces
+size averaging and its scattering cap. It preserves the native reference-band
+normalization, pressure splitting and zero size-distribution diagnostic.
+The default still uses the size tables.
+
+Eight additional cases compile unchanged `ini_optdst` and compare all six
+optical outputs, with zero and nonzero dust in both spectral band layouts.
+They include uncapped coefficients. Shape checks, provider routing, reverse
+derivatives through the coefficients and a three-step Dinosaur/radiation
+reverse derivative pass. This callback option has no separate CLI selector.
+
+## Fixed radiation calendar
+
+`--config reference --fixed-radiation-date 100` selects the released
+`fixed_calender_date` control in spectral or simple radiation. A nonnegative
+integer holds the orbital date while retaining the actual fraction of the sol.
+Negative values keep the evolving date. The source uses integer truncation;
+the shared clock retains that rule, including negative elapsed times.
+
+The selected calendar drives declination, solar distance and prescribed particle
+optics. The particle provider receives a shallow state copy with that clock;
+physical tracer arrays, dynamics and other state fields remain unchanged.
+Solar zenith uses the actual within-sol fraction, avoiding loss of precision
+from adding a large fixed date. Startup ramps use elapsed model time.
+The active date is part of restart identity in both radiation modes.
+The independent prescribed-opacity diagnostic used by dust lifting also
+receives the selected date, including its initial cache. A combined real-input
+T21/56-level run with `--dust-opacity-from-aerosol` completes two steps with
+resume. Changing the date rejects resume and preserves its checkpoint.
+
+Forty-two cases compare the unchanged native clock-selection block and calendar.
+Tests check the provider clock, physical-array identity, geometry, solar flux,
+startup ramp and invalid options. A coupled spectral test checks three-step
+reverse derivatives and exact restart continuation with linear interpolation.
+Real-input T21/56-level spectral and simple runs each complete two steps with
+restart continuation. Removing or changing the date, or changing solar flux,
+rejects resume without modifying either checkpoint.
+
+## Required remaining work
+
+The released cloud benchmark uses visible dust (`dgdm_type=1`) with
+`dust_map_scale=3.67`. The reference runner now maps the scenario with the
+native conversion `3.67/2.75`, visible channel 1 and 12 optical bands. The
+generic infrared scenario loader retains its default scale of 1. Ten native
+map cases and 20 unchanged native scaling-block cases check both channels,
+zero/unit/released scales, all four supported grids, the seam and poles.
+Earlier Dinosaur benchmark revisions through `a9a10cf` used a dust target
+3.67 times too low for this visible setup. Those runs do not establish matched
+forcing; corrected runs need a new immutable revision and output directory.
+
+The reference backend keeps physical tracers on Gaussian cells. Conservative
+local donor-cell fluxes move material between adjacent cells and layers. CFL
+substeps keep that transport positive. Scalar inventory corrections remove
+roundoff drift and preserve zeros; they do not blend distant cells. Material
+negative values fail with NaNs and `valid=false`, and the runner rejects the
+failed state before saving a restart. Static invalid configurations raise errors.
+`diagnostics.tracer_transport` reports raw and target mass, corrected mass,
+redistributed mass, and minima. The T21/L56 polar-plume check uses a 231-second
+step and bounds remote leakage and the redistribution ratio independently.
+This first-order transport can diffuse fronts locally. It is a numerical
+adaptation, not FV3's higher-order tracer limiter; resolution convergence and
+long coupled comparisons remain required.
+
+| Area | Remaining implementation and acceptance check |
+| --- | --- |
+| Thermal relaxation | Fixed-profile, evolving-height and analytic Held--Suarez kernels match 36 unchanged native cases, including the original FMS interpolation. Fixed and height forcing connect to the Dinosaur step and command-line runner, replace radiation on every step, and retain profile hashes/timescales in restart identity. NetCDF readers preserve the source equal-level-count bypass and reuse the native-checked bilinear map. Analytic forcing remains an explicit kernel because the released dispatch does not call it. Thirty-two native NetCDF reader/composed-damping cases also pass, including pressure interpolation, equal-count bypass, poles, seam and singleton time axes. NetCDF-Fortran I/O adapters replace FMS parallel I/O. Long climate comparisons remain. |
+| Simple radiation | `simple_radiation` implements the released fixed-dust profile, `ecoeffs`/`scatter_calc`, `swheat`, `lwheat` and five-sol SW ramp. Twenty-four native columns and 24 independent scattering cases pass. The callback, map/restart path and three-step reverse derivative are connected. CLI selection is `--config reference --reference-radiation simple`. The source's unused emissivity argument and surface-only IR suppression are preserved; SPEC_CORE-only modulation is excluded by the release flags. |
+| Global budgets | Momentum exchange and consistent five-stage repair ledgers are connected, including bulk/moment water-vapor latent storage. Native soil storage and surface/deep/material/phase work close within roundoff in 69 valid columns; 35 soil tests also check derivatives. Extend process exchange accounting across dissipation and long global runs. |
+| Radiation schedule | Optional integer-second source schedule now holds heating in K/s and surface fluxes, uses the current top-layer temperature as the radiation stratosphere, and persists caches in restarts. Match the configured interval and callback averaging window in whole-model comparisons. |
+| Dust and cloud opacity | Size-dependent dust and all three cloud optical kernels are implemented. CO2 optical feedback is connected; prescribed dust, moment clouds, interactive lifting and seasonal control pass three-step global gradient checks. Multiple physical populations now connect lifting, coagulation, clouds, settling, opacity diagnostics, surface reservoirs and saved effective inputs. Matched climatology remains. |
+| Soil and frost | Mapped TES/GRS inputs and default case-7 profiles are implemented and checked. Compare diurnal/seasonal response in global runs; modern and legacy material profiles now pass native checks. |
+| CO2 modes | Immediate deposition and optional bulk suspended-cloud phase/settling match native routines and coupled columns. Cloud optical feedback passes a three-step gradient check. Full two-way exchange auditing and long global validation remain pending. The older conservative finite-settling scheme remains a separate model. |
+| CO2 switches | Atmospheric condensation, atmospheric loss and gas-mass feedback are independent source controls. Ninety-six unchanged native control-block cases check all combinations and initial-CO2-weighted surface exchange. Another 3,000 unchanged initialization cases check configurable exchange depths on interface grids, including all 14 released grids, and strict pressure/latitude boundaries. Column tests retain condensation heating when precipitation loss is disabled, and retain surface snow when mass feedback is disabled. Held suspended clouds still mix as tracers when their phase driver is off. Global tests check disabled-feedback behavior, exact restart continuation and three-step reverse derivatives. |
+| Surface/diffusion controls | Active Ames PBL mixing is connected. `do_vert_diff=false` disables mixing explicitly. Configurations that request vertical diffusion without the Mars surface or Ames PBL now raise an error; the alternative native mixing paths are not ported. Surface-dependent water/dust modes require their initialized reservoirs. |
+| Process controls | `freeze_tracer_fields`, `no_forcing` and the released `gust_fact` correction are connected to Dinosaur and the runner. Native blocks check tracer freezing, no-forcing early return and gust stress; column/global checks retain surface/history changes under freezing and skip all physical updates under no forcing. The released tracer-source/sink helper has no caller. Alternate gust/turbulence drivers are excluded by build flags. |
+| Module controls | Surface IR normalization is connected and checked. Solar normalization (`scale_by_scon`) reuses the existing orbit and is native-checked. The supported alternate 12-band interpolation (`use_boxinterp12=false`) is connected through `--linear-k-interpolation`, with native lookup, optical and composed-flux comparisons. It interpolates linear k across water, temperature and log pressure, retaining source extrapolation and indexing. The default keeps log-k interpolation and a selected water bin. The optional spectral startup ramp is connected and matches 40 unchanged native block cases. The ten radiation-driver, 33 spectral-module and 21 simple-driver entries are inventoried; user fixed-dust coefficients and fixed-date spectral/simple forcing are connected, and channel-off paths have undefined native outputs. PBL `htflux_recalc`, settling `scaveng` and moment-cloud `makeclouds` are connected through the column, Dinosaur and runner. Seeded-cloud tests cover retained cores, independent water settling/surface exchange, exact restarts and three-step derivatives. The audit also records the seven moment-cloud namelist entries, including its unused module-local `facsubl`. The aerosol/dust and surface module controls are also inventoried; continue the numerical branch and input-trigger audit. |
+| Interactive dust | Lifting, advection, sedimentation, surface reservoirs, coagulation and material budgets are connected independently of moment water. Matched climate validation remains. |
+| Water | Bulk and moment phase/growth/settling paths, surface exchange, saved effective inputs, state/restarts and optical feedback are connected. Two physical dust modes pass combined global material, restart and three-step derivative checks. Long climate validation remains. Bin cloud microphysics is unavailable in the public release. |
+| Drag | Rayleigh, Palmer terrain drag and non-orographic gravity-wave drag are implemented and checked. Polar water and terrain maps pass pinned-blob and T21/T42 area checks. Long momentum/energy audits remain. Gravity-wave schemes are off in the default Ames present-Mars setup. |
+| Extended atmosphere | Both 15-band options and CIA are implemented and checked. Non-LTE cooling and explicit CO2/argon gas-mass feedback are implemented. Source mixture thermodynamic approximations and infinite-table regions still need auditing. |
+| Other release interfaces | Pinned build/preprocessor audit verifies that bin clouds, photochemistry and legacy binned dust sources use fatal placeholders. Tagging imports are excluded by RELEASE. These equations are unavailable in v3.2.1; they are not implemented physics. |
+| Whole-model validation | Matched inputs, switches, grids, resolution studies, spin-up, conservation, held-out observations and native-output comparisons. Dinosaur and FV3 require climate/statistical comparison as well as kernel tests. |
+| Performance | Matched physical workloads and precision; record hardware, threads, compilation, transfers, steady-state timings and derivatives separately. |
+
+The release interface audit checks pinned `compile.bash`, `mars_physics.F90`
+and `null_physics_mod.F90`, then runs the actual release preprocessor. It extracts
+all three build definitions from `compile.bash`. A second preprocessing pass
+with `fv3_turb` proves that seven alternate surface-flux and turbulence driver
+calls are excluded from the pinned build. Those alternate schemes are not
+implemented or validated here. Each of
+the five audited placeholder routines calls only `error_mesg(..., FATAL)`.
+This result does not supply bin-cloud or chemistry equations. The public
+release's real moment/bulk modules are checked separately. Alternate diffusion/radiation
+branches also need explicit coverage before claiming every source switch.
+
+The release-interface report also lists all 54 entries in `mars_physics_nml`.
+Each has an implementation path or an explicit inactive, excluded or diagnostic
+status. The inventory rejects missing and duplicate entries. The unused passive
+tracer source/sink helper has no caller. The release preprocessor removes the
+alternate diffusion smoothing branch. `checkcons` is represented by material
+ledgers and validation checks; native FMS debug-abort behavior is not copied.
+This driver inventory does not establish coverage of every branch in the
+separate radiation, dust and cloud modules.
+The report also inventories 22 controls in the sedimentation, PBL, moment/bulk/CO2
+cloud, coagulation and terrain-drag modules. The release preprocessor proves
+that coagulation `kernel_ti` has no numerical use in the table path. Its
+optional `FULLCOAG` turbulent-inertia path uses an uninitialized `eps`; the
+port retains the defined Brownian, gravitational and diffusion-enhancement
+kernels. Another ten controls are inventoried in the spectral
+radiation driver, with explicit inactive and source-undefined statuses.
+It now also covers all 33 entries in `ames_rtmod_nml` and all 21 entries in
+`simple_rad_driver_nml`. Six spectral entries have only declarations and
+namelist membership: `tmom`, `do_fv3_dust_opt`, `fv3_gfac`, `fv3_sscat`,
+`do_dust_ir_scale` and `fv3_ir_scale`. Source occurrence checks prove they have
+no numerical effect. Simple-driver `day_zero` and `tdamp` are similarly unused;
+the five modulation/wavenumber controls are excluded by the release flags.
+The report also covers all 32 surface namelist entries. It records the
+explicit-map and fixed-shape restart adaptations, the extra-node source defect
+and the independent solver controls. `drag_cnst` is unused; the loaded roughness
+map reaches an unused local `zo` and diagnostic output. The audit also covers all 99 aerosol, aerosol-optics, aerosol-utility and
+dust-update entries. Its parser now skips comments inside continued namelists;
+`Qext_dt` is commented out in `dust_update_nml` and is not counted. Inactive
+entries have source occurrence checks. Binned optics remain explicitly outside
+the supported release scope. These inventories do not replace numerical comparisons.
+The ramp block has separate numerical checks. Pinned source guards show that `makeclouds=False` leaves
+microphysics tendencies at zero and does not advance cloud history.
+The module-local `microphys_nml/facsubl` appears only in its declaration and
+namelist. It has no numerical effect. The separate
+`mars_physics_nml/facsubl` still controls surface water exchange.
+
+Use `--config reference --no-moment-water` for independent moment dust in the
+production runner. It keeps the released polar frost map as a fixed boundary
+for dust lifting and surface optics. It does not create water vapor, cloud
+moments or water exchange history. The persistent dust tracers contain only
+mass/number pairs. The settling adapter supplies zero inactive cloud/core slots
+locally because the unchanged native routine uses fixed tracer indices.
+The native release rejects bulk water combined with moment dust or moment
+water. Initialization, step construction, standalone columns and map runs now
+enforce that rule. The obsolete mixed-mode frost field has been removed.
+The Python moment-water option includes the dust populations required by
+the source; independent moment dust remains available without water physics.
+The real-input 56-level T21 dust-only smoke completed one step, then resumed to
+two steps. This checks startup and continuation, not climate stability.
+
+The process controls are available as `--freeze-tracer-fields`, `--no-forcing`
+and `--gust-factor`. Tracer freezing restores atmospheric gas, ice and particle
+fields after microphysics and settling. Heating, winds, surface reservoirs and
+saved histories still update. Gas-mass feedback and remapping still follow.
+This source option can change total material inventory; the global inventory
+repair is disabled so it cannot undo that behavior. No-forcing mode advances
+dry dynamics and conservative tracer transport, while radiation and surface
+physics stay inactive. The gust factor adds `gust_factor * gust**2` to squared
+surface wind for dust lifting. The released build initializes `gust=1` and
+does not call the alternate gust drivers. The drag coefficient stays unchanged.
+Source-invalid negative squared wind remains nonfinite.
+Non-default controls are recorded in restart identity. The 56-level T21
+freeze/gust and no-forcing smoke runs each completed and resumed to two steps.
+
+CO2 surface exchange accepts `co2_exchange_ratio_pole` and
+`co2_exchange_ratio_trop` in backend options. Defaults are 0.92 and 0.991.
+The runner exposes `--co2-exchange-ratio-pole` and `--co2-exchange-ratio-trop`.
+The source uses the polar ratio when gas-mass feedback is explicit and any
+latitude in its local domain is strictly beyond 45 degrees. Otherwise it uses
+the tropical ratio. Dinosaur applies this rule to its single global domain.
+The pressure comparison is also strict. Two additional exchange layers are
+retained, bounded by the first model layer on coarse Dinosaur grids.
+Initialization receives N+1 interfaces; the runtime has N layers. The backend
+uses that distinction when it converts the native depth to a zero-based layer.
+At 56 levels, both 0.991 and 0.995 select start index 49. The previous midpoint
+selection gave index 50 for 0.995. The default benchmark depth stays unchanged.
+The selected depth is an initialization choice. Custom ratios are saved in
+restart identity. A 56-level run with custom ratios completed and resumed to
+two steps; changing a ratio correctly rejected the saved restart.
+
+The PBL option `recalculate_heat_flux=True` selects the released `htflux_recalc`
+branch. The runner uses `--recalculate-heat-flux`. It computes sensible heat
+flux from the solved bottom-air temperature and leaves the already solved PBL
+temperature, wind and tracer fields unchanged. Soil sees the revised flux.
+The default keeps the original old-state flux. Both choices use the native
+air-temperature heat-flux derivative, whose pressure factor is the surface
+Exner factor (one), not the bottom full-level factor. Earlier validation checked
+surface flux and its surface derivative but missed this air derivative; the
+native comparison now checks both derivatives and all exposed coefficients.
+
+Use `particle_scavenging=False` or `--no-particle-scavenging` to retain dust
+cores in the atmosphere during settling. Free dust and water ice still settle.
+Use `form_moment_clouds=False` or `--no-moment-clouds` to disable moment-cloud
+nucleation and growth. Water surface exchange, existing cloud settling and
+radiation remain active. Cloud effective-input history stays unchanged.
+The shared column selects the moment surface-water routine whenever moment
+water is active, so standalone calls use the same path as Dinosaur calls.
+Non-default options are recorded even when their value is false. Changing
+either option rejects an incompatible restart. A 56-level run with both
+options disabled completed and resumed to two steps. These controls use the
+existing native-checked kernels; long climate validation remains separate.
+
+## Reproduce the native checks
+
+Install a Fortran compiler and the normal locked JAX environment.
+The equilibrium-profile validator also needs netCDF-Fortran and netCDF-C,
+with `nf-config` and `nc-config` on PATH. Supply the
+unchanged Ames source and its radiation input data. The scripts check the Git
+blob identity before compiling the original routines. Small module declarations
+and C adapters replace unused FMS infrastructure; the routine bodies stay intact.
+The compiler uses double precision, as the Ames GNU build template does.
+
+Thermal relaxation also needs the pinned FMS checkout used by the native build.
+Its height interpolation rejects out-of-range columns. The JAX kernel returns
+nonfinite values for those columns. It does not extend endpoint temperatures.
+Height forcing requires an explicit diagnostic top pressure for the Dinosaur
+zero-pressure upper boundary, as in the existing terrain-height adaptation.
+
+```sh
+env PYTHONPATH=package:. python scripts/validate_thermal_relaxation.py \
+  --ames-source /path/to/AmesGCM --fms-source /path/to/FMS \
+  --output outputs/physics-parity/thermal-relaxation.json
+env PYTHONPATH=package:. python scripts/validate_equilibrium_profiles.py \
+  --ames-source /path/to/AmesGCM --fms-source /path/to/FMS \
+  --fms-bilinear-source /path/to/FMS/horiz_interp/include/horiz_interp_bilinear.inc \
+  --output outputs/physics-parity/equilibrium-profiles.json
+env PYTHONPATH=package:. python scripts/validate_simple_radiation.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/simple-radiation.json
+```
+
+The production runner accepts `--reference-radiation fixed` or `height` with
+`--equilibrium-profile /path/to/profile.nc`. `--thermal-timescale -4` means four
+86400-second days, as in the source. A positive value is in seconds; zero
+disables relaxation. These choices and the profile content hash are checked
+when a run resumes. The spectral default keeps its existing restart metadata.
+
+Simple scattering divides the layer equations by the growing exponential.
+This preserves the finite source equations and keeps thick-layer evaluation
+finite after the original algebra overflows. The source singularities at
+exact conservative scattering or `lambda*zenith=1` are not hidden by clipping.
+The optional near-infrared CO2 term is exactly zero at night; its inactive
+square root uses a finite reverse-mode branch. The surface-only infrared
+suppression does not recompute atmospheric heating, matching the source's
+non-conservative diagnostic behavior for that optional switch.
+
+The reference runner also accepts `--no-co2-condensation`,
+`--no-atmos-co2-loss` and `--no-co2-mass-feedback`. The defaults keep all three
+source switches enabled. Disabled atmospheric loss keeps condensation heating
+but removes its precipitation deposit and gas loss. Disabled mass feedback
+keeps phase heating and surface snow but resets the whole gas-mass tendency.
+Those settings can deliberately break the source's gas-plus-ice inventory.
+For these non-conservative modes the Dinosaur wrapper disables its closed-CO2
+inventory repair, including pressure rescaling. Otherwise the repair would
+silently restore the pressure response that the switch disables. Diagnostics
+retain the closed inventory as a reference so the intended source imbalance
+remains visible. Numerical drift and positivity without that repair still need
+long-run checks. These are source experiment controls, not conservation fixes.
+Non-default controls are saved in restart identity.
+
+Use `--no-vertical-diffusion` or `--no-reference-pbl` to disable the released
+PBL exchange. The alternative FV3 turbulence drivers are not compiled into
+the pinned release. The source leaves several exchange/history values unset
+on these inactive paths. The port uses zero heat/stress coefficients and zero
+eddy diffusivity, and diagnoses the bottom cell as the inactive PBL top. This
+is an explicit deterministic extension of undefined source fields. The soil
+solver remains active when Mars surface physics is enabled.
+
+`--no-mars-surface` fixes the radiative boundary at the source's 170 K,
+albedo 0.25 and emissivity 1. The command-line preset requires simple or thermal
+forcing and disables transported surface dust/water, whose reservoirs the
+native no-surface initialization does not allocate. The map API can also use
+an explicitly supplied spectral component with valid atmospheric inputs.
+Unused soil storage is frozen; CO2 surface/atmospheric phase exchange is skipped.
+Rayleigh/gravity-wave drag and convection retain their configured behavior.
+The initial fixed boundary and non-default switches are recorded for restarts.
+
+The CO2-control native check compiles the unchanged released routing block.
+It seeds phase-driver outputs whose equations have separate native validators.
+This isolates switch behavior from already checked phase and PBL kernels; it
+does not claim a new whole-native-model comparison.
+
+```sh
+env PYTHONPATH=package:. python scripts/validate_co2_controls.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/co2-controls.json
+env PYTHONPATH=package:. python scripts/validate_surface_controls.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/surface-controls.json
+```
+
+```sh
+env PYTHONPATH=package:. python scripts/validate_dry_convection.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/convection.json
+env PYTHONPATH=package:. python scripts/validate_legacy_convection.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/legacy-convection.json
+env PYTHONPATH=package:. python scripts/validate_saturation_pressure.py \
+  --fms-source /path/to/FMS --ames-source /path/to/AmesGCM \
+  --output outputs/physics-parity/saturation-pressure.json
+env PYTHONPATH=package:. python scripts/validate_moist_convection.py \
+  --gfdl-source /path/to/atmos_phys --fms-source /path/to/FMS \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/moist-convection.json
+env PYTHONPATH=package:. python scripts/validate_boundary_layer.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/pbl.json
+env PYTHONPATH=package:. python scripts/validate_correlated_k_tables.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/radiation-tables.json
+env PYTHONPATH=package:. python scripts/validate_scattering_transfer.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/two-stream.json
+env PYTHONPATH=package:. python scripts/validate_spectral_flux.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/spectral.json
+env PYTHONPATH=package:. python scripts/validate_optical_depth.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/optics.json
+env PYTHONPATH=package:. python scripts/validate_radiative_transfer.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/radiative-driver.json
+env PYTHONPATH=package:. python scripts/validate_solar_geometry.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/solar-geometry.json
+env PYTHONPATH=package:. python scripts/validate_surface_maps.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/surface-maps.json
+env PYTHONPATH=package:. python scripts/validate_soil_frost.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/surface.json
+env PYTHONPATH=package:. python scripts/validate_rayleigh_drag.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/rayleigh-drag.json
+env PYTHONPATH=package:. python scripts/validate_co2_microphysics.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/co2-clouds.json
+env PYTHONPATH=package:. python scripts/validate_column_physics.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/column.json
+env PYTHONPATH=package:. python scripts/validate_particle_optics.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/particle-optics.json
+env PYTHONPATH=package:. python scripts/validate_extended_radiation.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/extended-radiation.json
+env PYTHONPATH=package:. python scripts/validate_collision_absorption.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/collision-absorption.json
+env PYTHONPATH=package:. python scripts/validate_bulk_water.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/bulk-water.json
+env PYTHONPATH=package:. python scripts/validate_water_moments.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/water-moments.json
+env PYTHONPATH=package:. python scripts/validate_particle_sedimentation.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/particle-sedimentation.json
+env PYTHONPATH=package:. python scripts/validate_dust_lifting.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/dust-lifting.json
+env PYTHONPATH=package:. python scripts/validate_particle_sedimentation.py \
+  --ames-source /path/to/AmesGCM --dust-modes 2 \
+  --output outputs/physics-parity/multimode-sedimentation.json
+env PYTHONPATH=package:. python scripts/validate_particle_sedimentation.py \
+  --ames-source /path/to/AmesGCM --dust-modes 3 \
+  --output outputs/physics-parity/three-mode-sedimentation.json
+env PYTHONPATH=package:. python scripts/validate_particle_sedimentation.py \
+  --ames-source /path/to/AmesGCM --dust-only \
+  --output outputs/physics-parity/independent-dust-sedimentation.json
+env PYTHONPATH=package:. python scripts/validate_particle_sedimentation.py \
+  --ames-source /path/to/AmesGCM --dust-only --dust-modes 2 \
+  --output outputs/physics-parity/independent-dust-2-mode-sedimentation.json
+env PYTHONPATH=package:. python scripts/validate_particle_sedimentation.py \
+  --ames-source /path/to/AmesGCM --dust-only --dust-modes 3 \
+  --output outputs/physics-parity/independent-dust-3-mode-sedimentation.json
+env PYTHONPATH=package:. python scripts/validate_dust_lifting.py \
+  --ames-source /path/to/AmesGCM --dust-modes 2 \
+  --output outputs/physics-parity/multimode-dust-lifting.json
+env PYTHONPATH=package:. python scripts/validate_dust_control.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/dust-control.json
+env PYTHONPATH=package:. python scripts/validate_nonorographic_drag.py \
+  --gfdl-source /path/to/atmos_phys --ames-source /path/to/AmesGCM \
+  --output outputs/physics-parity/nonorographic-drag.json
+env PYTHONPATH=package:. python scripts/validate_release_interfaces.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/release-interfaces.json
+env PYTHONPATH=package:. python scripts/validate_dust_coagulation.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/dust-coagulation.json
+env PYTHONPATH=package:. python scripts/validate_dust_background.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/dust-background.json
+env PYTHONPATH=package:. python scripts/validate_water_surface.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/water-surface.json
+env PYTHONPATH=package:. python scripts/validate_terrain_drag.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/terrain-drag.json
+env PYTHONPATH=package:. python scripts/validate_nonlte_cooling.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/nonlte-cooling.json
+env PYTHONPATH=package:. python scripts/validate_prescribed_dust.py \
+  --ames-source /path/to/AmesGCM --output outputs/physics-parity/prescribed-dust.json
+env PYTHONPATH=package:. python scripts/validate_dust_scenario.py \
+  --ames-source /path/to/AmesGCM --fms-bilinear-source /path/to/horiz_interp_bilinear.inc \
+  --output outputs/physics-parity/dust-scenario.json
+```
+
+Small recorded reports are in `validation/physics-parity/`. Local CPU timing is
+kernel evidence only. It does not establish GPU or whole-model performance.
+
+The broad Python regression run passed 758 tests with 4 skips, including the
+slow group. Later water, terrain, soil and non-LTE work has additional focused
+checks. The refreshed broad run passed 787 tests with 4 skips and 11 slow
+tests deselected. Its one callback-test failure was fixed in the test inputs
+and passed a focused rerun. Final Dinosaur, map-runner and non-LTE checks
+passed all 44 tests. Terrain drag passed five further focused checks. The later radiation schedule,
+stratosphere, restart and backend run passed 50 focused tests, and 17 infrared
+solver tests passed. Package-directory test collection also passes. Recorded reference reports carry source and
+asset hashes. Kernel checks do not establish held-out climate accuracy or a
+whole-model speedup. Those experiments remain required.
+
+NASA-derived algorithms remain subject to the [NASA Open Source Agreement
+1.3](../iclr-results/06-co2-physics/ames-reference/NOSA.pdf). The source notices
+and pinned reference must accompany these ports. The solar geometry derived from
+the FMS patch uses that patch's Apache License 2.0, as its file header states.

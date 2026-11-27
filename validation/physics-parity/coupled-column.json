@@ -1,0 +1,543 @@
+{
+  "status": "pass",
+  "reference": {
+    "rayleigh": {
+      "source_git_blob": "ca0b7c0774b1b23cafaee219062c3bffa3d0c4cc",
+      "compiled_source_sha256": "bf32d1539d902fbf607a584e0b81f142d6e3564bdb1ec7fb38723e6539e7c791",
+      "routine_sha256": {
+        "rayleigh_damping": "69199c71add1e1027ef960d4a360a39b6cf26253994b189cd3e96fe93bb19002"
+      },
+      "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+      "compiler_flags": [
+        "-O3",
+        "-cpp",
+        "-ffree-line-length-none",
+        "-fdefault-real-8",
+        "-fdefault-double-8",
+        "-fPIC",
+        "-shared"
+      ],
+      "real_precision_bits": 64,
+      "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged"
+    },
+    "pbl": {
+      "source_git_blob": "38b3f41e4d07f9a2e3c9d7a689e50577cac7858c",
+      "compiled_source_sha256": "c3e75c6fd976e883475b78f8d272607c8856552de32dd1d48c71bb58298eb86f",
+      "routine_sha256": {
+        "initpbl": "31e60ac5530e6d4e38a83f6fc68b63c14a88cb0da765a121f292303c66197488",
+        "pbl_driver": "faef75218c885ce40c983744b7d6ace60b8cc70930533ff1f04b7f75e181e51f",
+        "newpbl": "2bcff80158ef4bdbbdd376b900dab9826f12430d93d873e88eab38e1f465ec0e",
+        "eddycoef": "91d022aacaa59977aef018487336a0aa72618783c951b372ab216284b2da6145",
+        "bndcond": "726026b09a043adbc4402a0d90ec8537334a0d92bb6eca0c63c113c8a620b11f",
+        "scldef": "de17eb292fffc040056902829841494a1f6521f69e1c48552c30adcc306265a6",
+        "watsat_pbl": "ef07728d5d1063881acc8076f1a225d7c45f5e8e94e8a627919332f904d563a9",
+        "matrix": "eee81dd7fc3f9dc73cbcd1d5e9be894d5ae877a785a500842219cc1ce935de74",
+        "solve": "6e49a3a2348edb3b9234d8aa5f13a14fadc6839d87bbd736f051851fcaf74d26",
+        "descale": "1b979e879dab393128a1b9fdef024455c43a6a2235939c85abcc04326895bb6f",
+        "solve_unstable": "2a4bac92fbc032932548d64aa66fa411104eac886d03ac318853274e75f33c25",
+        "fh": "de6254a4d67cf1734656d09ccae634b75461b82a05794b09658af38ba5477f22",
+        "fhprime": "ad0104f62bc408891150b1fdb0acef26563925a7b6cce2d0af77e733fb1234f1",
+        "fm": "bd86444cf2d640e8c457f72b68c929f4fb4dbe640e2339782b4ae76f56861ef3",
+        "fmprime": "017ab4d645c70b08919d9e2bbd1131eba6e6e8c21890e29e11458602a133ba25"
+      },
+      "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+      "compiler_flags": [
+        "-O3",
+        "-cpp",
+        "-ffree-line-length-none",
+        "-fdefault-real-8",
+        "-fdefault-double-8",
+        "-fPIC",
+        "-shared"
+      ],
+      "real_precision_bits": 64,
+      "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged"
+    },
+    "surface": {
+      "source_git_blob": "aca56974025103ab408ecf866cc78b25779fc469",
+      "compiled_source_sha256": "0ced47592a059167b5cd18984616c29d109f238628f45b126233ceb4f3149304",
+      "routine_sha256": {
+        "progts": "7e601fd57399c056f315d17e18a856a7030a0c25e4cb67e8342851a985817510",
+        "trdslv": "d07cc6aa1fa368a7f5592c75df9f3ba2a102ab0b1066d0efbe1d4e833b5130a0",
+        "icedepth": "7c36d99c69d1c782b7602f4b983f6a057dbd2d9a3245690eab99f510cea8571e",
+        "albedo_calc": "55e85f91ec407cd4e492c156e01bbe443a6b9d63fea959f89f1e50ec049eb2e4"
+      },
+      "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+      "compiler_flags": [
+        "-O3",
+        "-cpp",
+        "-ffree-line-length-none",
+        "-fdefault-real-8",
+        "-fdefault-double-8",
+        "-fPIC",
+        "-shared"
+      ],
+      "real_precision_bits": 64,
+      "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged"
+    },
+    "tail": {
+      "source_git_blob": "d0351317dfb6edd4c83c01c67d9ad3a39bff3b2d",
+      "compiled_source_sha256": "bec02d85ada629167bdf74c4fdea7fd60965fb3babe75df7c362624979b77b6e",
+      "routine_sha256": {
+        "co2_condense": "af9b916ff4b7907671ebc8d3a3d59345b16ef8394e9a816ddc99c18808d27c5c",
+        "pass2": "fc30b833f3374fa31fe31a241d43509d835983aa2849d9edd02983e0c573ded2"
+      },
+      "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+      "compiler_flags": [
+        "-O3",
+        "-cpp",
+        "-ffree-line-length-none",
+        "-fdefault-real-8",
+        "-fdefault-double-8",
+        "-fPIC",
+        "-shared"
+      ],
+      "real_precision_bits": 64,
+      "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged"
+    },
+    "clouds": {
+      "source_git_blob": "aa566e12d6e01afa346162385055f41d8d2bc18f",
+      "compiled_source_sha256": "9271a06a7aeee1cd6910c8895bcc6fd08d15bf155d963622a1cd9c807fabc33e",
+      "routine_sha256": {
+        "co2condsub": "0ec7c8fb8c1b0a3a84059933e5de42a062b96647d9d885adc6873854e1be2036",
+        "sedimco2": "aaa5bbc18993e3e0094e7e4c4eb9055c83c13620c153693232b5befc1c9a76bd",
+        "fallvel": "d4a2f97df52ef934d7d9493ecb3b0ef8b536a63a746ca888296ca8aea2f55ec2"
+      },
+      "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+      "compiler_flags": [
+        "-O3",
+        "-cpp",
+        "-ffree-line-length-none",
+        "-fdefault-real-8",
+        "-fdefault-double-8",
+        "-fPIC",
+        "-shared"
+      ],
+      "real_precision_bits": 64,
+      "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged",
+      "solver_source_git_blob": "40d8879c3735bbec6cabc63817cad5220f281532",
+      "solver_routine_sha256": "d1075d42213408c12420612f5f79b35634d022de1b29a995934489e8aef1cc21"
+    }
+  },
+  "cases": [
+    {
+      "layers": 4,
+      "case": "clear",
+      "suspended_clouds": false,
+      "max_absolute_errors": {
+        "temperature_k": 2.842170943040401e-14,
+        "u_ms": 3.552713678800501e-15,
+        "v_ms": 1.7763568394002505e-15,
+        "tracer_ratio": 1.3552527156068805e-20,
+        "soil_k": 5.684341886080802e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 0.0
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 4,
+      "case": "clear",
+      "suspended_clouds": true,
+      "max_absolute_errors": {
+        "temperature_k": 2.842170943040401e-14,
+        "u_ms": 3.552713678800501e-15,
+        "v_ms": 1.7763568394002505e-15,
+        "tracer_ratio": 1.3552527156068805e-20,
+        "soil_k": 5.684341886080802e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 2.7755575615628914e-17
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 4,
+      "case": "winter",
+      "suspended_clouds": false,
+      "max_absolute_errors": {
+        "temperature_k": 2.842170943040401e-14,
+        "u_ms": 7.105427357601002e-15,
+        "v_ms": 1.7763568394002505e-15,
+        "tracer_ratio": 2.710505431213761e-20,
+        "soil_k": 2.842170943040401e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 1.4432899320127035e-15
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 4,
+      "case": "winter",
+      "suspended_clouds": true,
+      "max_absolute_errors": {
+        "temperature_k": 0.0,
+        "u_ms": 7.105427357601002e-15,
+        "v_ms": 1.7763568394002505e-15,
+        "tracer_ratio": 2.710505431213761e-20,
+        "soil_k": 2.842170943040401e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 1.5543122344752192e-15
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 4,
+      "case": "thaw",
+      "suspended_clouds": false,
+      "max_absolute_errors": {
+        "temperature_k": 0.0,
+        "u_ms": 1.7763568394002505e-15,
+        "v_ms": 8.881784197001252e-16,
+        "tracer_ratio": 1.3552527156068805e-20,
+        "soil_k": 2.842170943040401e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 0.0
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 4,
+      "case": "thaw",
+      "suspended_clouds": true,
+      "max_absolute_errors": {
+        "temperature_k": 0.0,
+        "u_ms": 1.7763568394002505e-15,
+        "v_ms": 8.881784197001252e-16,
+        "tracer_ratio": 1.3552527156068805e-20,
+        "soil_k": 2.842170943040401e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 2.7755575615628914e-17
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 4,
+      "case": "convective",
+      "suspended_clouds": false,
+      "max_absolute_errors": {
+        "temperature_k": 0.0,
+        "u_ms": 1.7763568394002505e-15,
+        "v_ms": 8.881784197001252e-16,
+        "tracer_ratio": 0.0,
+        "soil_k": 5.684341886080802e-14,
+        "co2_ice_kg_m2": 1.3322676295501878e-15,
+        "gas_mass_loss_kg_m2": 1.3322676295501878e-15
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 4,
+      "case": "convective",
+      "suspended_clouds": true,
+      "max_absolute_errors": {
+        "temperature_k": 0.0,
+        "u_ms": 1.7763568394002505e-15,
+        "v_ms": 8.881784197001252e-16,
+        "tracer_ratio": 0.0,
+        "soil_k": 5.684341886080802e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 1.9984014443252818e-15
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 12,
+      "case": "clear",
+      "suspended_clouds": false,
+      "max_absolute_errors": {
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 7.105427357601002e-15,
+        "v_ms": 1.7763568394002505e-15,
+        "tracer_ratio": 1.3552527156068805e-20,
+        "soil_k": 5.684341886080802e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 0.0
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 12,
+      "case": "clear",
+      "suspended_clouds": true,
+      "max_absolute_errors": {
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 7.105427357601002e-15,
+        "v_ms": 1.7763568394002505e-15,
+        "tracer_ratio": 1.3552527156068805e-20,
+        "soil_k": 5.684341886080802e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 1.3877787807814457e-17
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 12,
+      "case": "winter",
+      "suspended_clouds": false,
+      "max_absolute_errors": {
+        "temperature_k": 2.842170943040401e-14,
+        "u_ms": 3.552713678800501e-15,
+        "v_ms": 8.881784197001252e-16,
+        "tracer_ratio": 1.3552527156068805e-20,
+        "soil_k": 2.842170943040401e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 9.43689570931383e-16
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 12,
+      "case": "winter",
+      "suspended_clouds": true,
+      "max_absolute_errors": {
+        "temperature_k": 0.0,
+        "u_ms": 3.552713678800501e-15,
+        "v_ms": 8.881784197001252e-16,
+        "tracer_ratio": 1.3552527156068805e-20,
+        "soil_k": 2.842170943040401e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 9.992007221626409e-16
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 12,
+      "case": "thaw",
+      "suspended_clouds": false,
+      "max_absolute_errors": {
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 3.552713678800501e-15,
+        "v_ms": 1.7763568394002505e-15,
+        "tracer_ratio": 1.3552527156068805e-20,
+        "soil_k": 2.842170943040401e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 5.421010862427522e-20
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 12,
+      "case": "thaw",
+      "suspended_clouds": true,
+      "max_absolute_errors": {
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 3.552713678800501e-15,
+        "v_ms": 1.7763568394002505e-15,
+        "tracer_ratio": 1.3552527156068805e-20,
+        "soil_k": 2.842170943040401e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 1.3877787807814457e-17
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 12,
+      "case": "convective",
+      "suspended_clouds": false,
+      "max_absolute_errors": {
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 3.552713678800501e-15,
+        "v_ms": 8.881784197001252e-16,
+        "tracer_ratio": 2.710505431213761e-20,
+        "soil_k": 5.684341886080802e-14,
+        "co2_ice_kg_m2": 1.5543122344752192e-15,
+        "gas_mass_loss_kg_m2": 9.71445146547012e-16
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 12,
+      "case": "convective",
+      "suspended_clouds": true,
+      "max_absolute_errors": {
+        "temperature_k": 8.526512829121202e-14,
+        "u_ms": 3.552713678800501e-15,
+        "v_ms": 8.881784197001252e-16,
+        "tracer_ratio": 2.710505431213761e-20,
+        "soil_k": 5.684341886080802e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 9.645062526431047e-16
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 40,
+      "case": "clear",
+      "suspended_clouds": false,
+      "max_absolute_errors": {
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 3.552713678800501e-15,
+        "v_ms": 1.7763568394002505e-15,
+        "tracer_ratio": 2.710505431213761e-20,
+        "soil_k": 5.684341886080802e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 0.0
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 40,
+      "case": "clear",
+      "suspended_clouds": true,
+      "max_absolute_errors": {
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 3.552713678800501e-15,
+        "v_ms": 1.7763568394002505e-15,
+        "tracer_ratio": 2.710505431213761e-20,
+        "soil_k": 5.684341886080802e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 3.469446951953614e-18
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 40,
+      "case": "winter",
+      "suspended_clouds": false,
+      "max_absolute_errors": {
+        "temperature_k": 2.842170943040401e-14,
+        "u_ms": 7.105427357601002e-15,
+        "v_ms": 1.7763568394002505e-15,
+        "tracer_ratio": 1.3552527156068805e-20,
+        "soil_k": 2.842170943040401e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 2.896988204881268e-16
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 40,
+      "case": "winter",
+      "suspended_clouds": true,
+      "max_absolute_errors": {
+        "temperature_k": 0.0,
+        "u_ms": 7.105427357601002e-15,
+        "v_ms": 1.7763568394002505e-15,
+        "tracer_ratio": 1.3552527156068805e-20,
+        "soil_k": 2.842170943040401e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 2.8275992658421956e-16
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 40,
+      "case": "thaw",
+      "suspended_clouds": false,
+      "max_absolute_errors": {
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 3.552713678800501e-15,
+        "v_ms": 1.7763568394002505e-15,
+        "tracer_ratio": 2.710505431213761e-20,
+        "soil_k": 2.842170943040401e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 0.0
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 40,
+      "case": "thaw",
+      "suspended_clouds": true,
+      "max_absolute_errors": {
+        "temperature_k": 5.684341886080802e-14,
+        "u_ms": 3.552713678800501e-15,
+        "v_ms": 1.7763568394002505e-15,
+        "tracer_ratio": 2.710505431213761e-20,
+        "soil_k": 2.842170943040401e-14,
+        "co2_ice_kg_m2": 0.0,
+        "gas_mass_loss_kg_m2": 3.469446951953614e-18
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 40,
+      "case": "convective",
+      "suspended_clouds": false,
+      "max_absolute_errors": {
+        "temperature_k": 1.7053025658242404e-13,
+        "u_ms": 7.105427357601002e-15,
+        "v_ms": 1.7763568394002505e-15,
+        "tracer_ratio": 5.421010862427522e-20,
+        "soil_k": 5.684341886080802e-14,
+        "co2_ice_kg_m2": 4.440892098500626e-16,
+        "gas_mass_loss_kg_m2": 1.6653345369377348e-16
+      },
+      "co2_mass_guard": false
+    },
+    {
+      "layers": 40,
+      "case": "convective",
+      "suspended_clouds": true,
+      "max_absolute_errors": {
+        "temperature_k": 1.4210854715202004e-13,
+        "u_ms": 7.105427357601002e-15,
+        "v_ms": 1.7763568394002505e-15,
+        "tracer_ratio": 5.421010862427522e-20,
+        "soil_k": 5.684341886080802e-14,
+        "co2_ice_kg_m2": 7.703719777548943e-34,
+        "gas_mass_loss_kg_m2": 1.6653345369377348e-16
+      },
+      "co2_mass_guard": false
+    }
+  ],
+  "source_sha256": "999e6a912996bfcaaf65fbf51d6c23f2c39efba167d03b36da08056f04626a1f",
+  "body": {
+    "name": "Mars",
+    "radius_m": 3386000.0,
+    "gravity_m_s2": 3.72,
+    "rotation_period_s": 88642.88969244076,
+    "gas_constant_j_kg_k": 189.02,
+    "cp_j_kg_k": 735.94,
+    "reference_temperature_k": 200.0,
+    "reference_surface_pressure_pa": 610.0,
+    "solar_day_s": 88704.0
+  },
+  "physics_sha256": {
+    "thermal_relaxation.py": "ead31b1babaf3e79d850ee9394eba32d343af55b0143ca87c51dbd3c919ec49c",
+    "particle_optics.py": "0a8540d1d9b8db33539a194428fbdeedda122dc329c6d0e5827fe2bd2caa8c59",
+    "radiation_grid.py": "7c0cd095eb863e6ec612a79f90f9ad7c2d17a00584eb4d3d46f7aba0a56d424f",
+    "optical_depth.py": "1687ece03cb05e7f68645c0763ead3f89595c4305c2a684f219d0d2767f4d435",
+    "water_surface.py": "a172442271da69fff10ca3afaf72b00a7163a3baf19abe919f098dd381babb1c",
+    "tracer_transport.py": "89360a5f4f9277dba7bd9bceb125c40bbfc7960161d6e6b32920806451a23a98",
+    "soil_frost.py": "9ec7f8c73ac5a7b973dd5708251ad98080650f1191c530392fa15a6e2500220e",
+    "correlated_k.py": "803e33cfc1d14f46fb4251f2fd49c7a64bd55529574132cc9a04c2635240d13e",
+    "boundary_layer.py": "b5643a7db16a8c7e38107c977bf32f565ae54051b96da4189b97000584095e1e",
+    "radiative_transfer.py": "04ecff1b231b64e2d27bae15999994ef12e01d27ebd53c717f1ea6116bc72077",
+    "rayleigh_drag.py": "3efd1d81aadeeb3e92c8fe8e8a3affe15ac03164d9404af4e220a4f32741f145",
+    "dry_convection.py": "61c52c300c12e19f0a055c8023c742c4717ce5ecd029c932019d791f78afedb1",
+    "spectral_flux.py": "3b1d1fcbc7eb78cf435cb45e388432909d1ee15bef5ed9716429c2b97efec766",
+    "dinosaur_physics.py": "4c101086bc5ccb9c8bca7bc622c0a7290c5520749c1c4e8ae1e251f82f1541e2",
+    "dust_lifting.py": "d18f83515f11dd582a407026383946a08e514bbb16dd50ed579385f3badac56f",
+    "simple_radiation.py": "d34833bafeb3c2dc78772b104f95bd6ac34a011ee91856ed2f9cf142104f9532",
+    "saturation_pressure.py": "909ddc6134eb31e356417b805f8d0f1eb99a36f2d9036ea3009a5956b1d7e86b",
+    "co2_condensation.py": "232b5679f26a795c6e09c24aaa302b65bd5489ac4048c1c684a0fc4305756752",
+    "co2_microphysics.py": "d8a95348d3019735de1759c307acdcffb9ad16b3be8c21cbd275bfbecd817d42",
+    "co2_clouds.py": "dc6deda4e254042dc02eb2aad40f81a41d639c02bcb144655f2f737ab32f42c5",
+    "column_physics.py": "1273fc270fcc1fa0d54e5bd0894c5019f26ecd2cb69149a868251ec5dbc4fb78",
+    "gcm.py": "c517d00f8ae20c3012b084c3a18cf26c3c7124b2099b6e2298d6b276d41b56ef",
+    "collision_absorption.py": "9917895e8a70dfea4bef2ffcbda417d20e11fbe30db85ba21ba8878de6a1a34f",
+    "water_moments.py": "c5747515301fdc437a7117420ae9e98e103a765d5133e9bf104fe6ac29e84080",
+    "legacy_convection.py": "3b5502f055e45cfc2601809aeec5237142427d7b8356058bfc12ddcb89388df3",
+    "particle_sedimentation.py": "52af7462a0eacb95bb8de11aae2151ba6e52f634dc150f183304661ad5f0e300",
+    "nonorographic_drag.py": "834511938621c958a53109cfe812d638523c29c766b198d010d1a68a170270b8",
+    "prescribed_dust.py": "3989a164fdfe259be9f1663d41873042ee0cbbab8aae4bae895b4bb2e55bbc0d",
+    "terrain_drag.py": "6b0a6c769d9d40abed95d2e9aaa51b14abdb0f22cb5fd73f5811bcad2c863ead",
+    "moist_convection.py": "aeb549fd12c57c73447adab45c5ab20c2ec94f4b5c4a401843b779921a2c2d96",
+    "__init__.py": "62b61692fed54cebab4ecc448648f24af87fd16b2eed5934a478fcbd7b1c2476",
+    "scattering_transfer.py": "33ff375bdd4ba6b7b08eaaf861c821d569da2f9d113decdc257984d81f8f0229",
+    "dust_coagulation.py": "d681f5b5cac9a07da6ae5d967f358e38d29b2d4c0dc0f26d94cd00188102c508",
+    "hydrostatic_initialization.py": "b65d7d8d23bb608c781e323f15ba3f5218220762a1f97587da9253a7074e8310",
+    "water_bulk.py": "7c0076c50fa5981c570e099ab5d61da34362dc8b6b1ddbc3be3192909160e0c5",
+    "vertical_grid.py": "76a6c1d7fb4aa5aff60831de1f96f13bdf75420b242b8f8db10dbbfef04e16e0",
+    "solar_geometry.py": "40ba8eb1d68b516ad435672e1654a410cb408329932b53feccbb4fa93140c029",
+    "nonlte_cooling.py": "b2c863ffa3ce3429f9bf76b7118f3bcdf444d7b77803c593876b8ff9d5723147",
+    "vertical_solve.py": "0d01f1d42fe7f086a887a2c0c51cb3b4385d26a3c944b72f81150b8a57ddd991",
+    "dust_control.py": "bb0749684b3b4078548dff5def298178620f388bf303b1898b20ef95136e3815"
+  },
+  "jax_version": "0.11.0",
+  "devices": [
+    "cpu:0"
+  ],
+  "limits": "coupled column with prescribed radiative heating/downward flux; Dinosaur gas-mass remap and full radiation/global validation remain pending"
+}

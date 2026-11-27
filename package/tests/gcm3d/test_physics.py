@@ -745,14 +745,16 @@ def _co2_state():
     return coords, specs, grid, f, cf, state
 
 
-def _column_masses(grid, state):
-    """Global atmospheric and frost mass via proper spherical quadrature weights.
+def _column_masses(coords, state):
+    """Global atmospheric and condensed mass via spherical quadrature weights.
 
     Uses the grid's Gaussian ``quadrature_weights`` (which integrate exactly over
     the sphere, sum = 4*pi) rather than a raw cos(lat) approximation, so the
     conservation residual reflects the physics, not the integration rule.
     """
+    grid = coords.horizontal
     dyn, ice = state.dynamics, state.co2_ice
+    ice = ice + physics.cloud_pressure_equivalent(state, coords)
     w = np.asarray(grid.quadrature_weights)  # (n_lon, n_lat)
     ps = np.asarray(np.exp(grid.to_nodal(dyn.log_surface_pressure)))[0]
     return float((ps * w).sum()), float((np.asarray(ice)[0] * w).sum())
@@ -780,9 +782,9 @@ class TestCO2Cycle:
         coords, specs, grid, _, _, state = _co2_state()
         pressure_scale = float(specs.dimensionalize(1.0, _u.pascal).magnitude)
         state = state._replace(co2_ice=jnp.full_like(state.co2_ice, -2.0 / pressure_scale))
-        before = sum(_column_masses(grid, state))
+        before = sum(_column_masses(coords, state))
         projected = physics.project_co2_reservoirs(state, coords, specs)
-        after = sum(_column_masses(grid, projected))
+        after = sum(_column_masses(coords, projected))
         assert np.min(np.asarray(projected.co2_ice)) >= 0.0
         assert after == pytest.approx(before, rel=1e-7)
 
@@ -800,9 +802,9 @@ class TestCO2Cycle:
             co2_forcing=cf,
             dt_seconds=600.0,
         )
-        total0 = sum(_column_masses(grid, state))
+        total0 = sum(_column_masses(coords, state))
         final = integrate(advance, state, 200)
-        total1 = sum(_column_masses(grid, final))
+        total1 = sum(_column_masses(coords, final))
         assert np.min(np.asarray(final.co2_ice)) >= 0.0
         assert total1 == pytest.approx(total0, rel=2e-10)
 
@@ -838,9 +840,9 @@ class TestCO2Cycle:
             co2_forcing=cf,
             dt_seconds=dt_seconds,
         )
-        total0 = sum(_column_masses(grid, state))
+        total0 = sum(_column_masses(coords, state))
         final = integrate(advance, state, steps)
-        total1 = sum(_column_masses(grid, final))
+        total1 = sum(_column_masses(coords, final))
         pressure_scale = float(specs.dimensionalize(1.0, _u.pascal).magnitude)
         expected_loss = (
             cf.escape_rate_kg_s
@@ -862,10 +864,10 @@ class TestCO2Cycle:
             coords, MARS_BODY_3D, f, cf, specs=specs
         )
         step = jax.jit(stepper(eq, 600.0, specs))
-        a0, i0 = _column_masses(grid, state)
+        a0, i0 = _column_masses(coords, state)
         for _ in range(200):
             state = step(state)
-        a1, i1 = _column_masses(grid, state)
+        a1, i1 = _column_masses(coords, state)
         assert i0 == pytest.approx(0.0)
         assert i1 > 0.0  # frost formed at the winter pole
         assert a1 < a0   # atmosphere lost the condensed mass

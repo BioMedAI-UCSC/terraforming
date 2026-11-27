@@ -58,14 +58,21 @@ archives the resolved source.
 | `--submit` | Off | Apply the rendered Job and PVC to Kubernetes. |
 
 The defaults request one 500 GiB RWO volume, eight CPUs and 64 GiB RAM. Jobs run
-as uid/gid 10001, with a read-only root filesystem, no service-account token, a
-seven-day deadline and two retries. A file lock rejects concurrent writers to
-the same work volume. Resource requests do not guarantee cluster capacity.
+as uid/gid 10001, with a read-only root filesystem, no service-account token,
+no runtime deadline, and two retries. A file lock protects each runtime root
+(`--work`). Independent campaigns need separate roots or volumes. RWO volumes
+shared by active pods must stay on one node. Resource requests do not guarantee
+cluster capacity.
+
+Submitted manifests omit automatic deletion. Current Nautilus admission adds
+post-completion Job cleanup and reinserts it after removal requests. Results
+remain on the persistent volume; archive the Job and pod logs when a run ends.
+Bare pods receive a six-hour runtime limit, so use batch Jobs for experiments.
 
 The published image pinned by the job tool is:
 
 ```text
-samkash/terraforming-paper@sha256:a04422421dbe06a2073d55259ba9ae9d54e2f22488e4bc2552fdbb5bc3f24fd2
+samkash/terraforming-paper@sha256:40c9ea792caad0067d1628eb5fa03a4b053bb64879f5791926b5e13d6bbcea05
 ```
 
 ## Runtime contract

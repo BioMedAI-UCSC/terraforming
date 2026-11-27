@@ -76,7 +76,9 @@ def dry_conserved_quantities(state, coords, specs, body, reference_temperature_k
     cancels from all relative-drift diagnostics.
     """
     grid = coords.horizontal
-    aux = dinosaur_pe.compute_diagnostic_state_sigma(state, coords)
+    aux = dinosaur_pe.compute_diagnostic_state_sigma(
+        dataclasses.replace(state, tracers={}), coords
+    )
     temp = (jnp.asarray(reference_temperature_k)[:, None, None]
             + aux.temperature_variation)
     cos_lat = jnp.asarray(grid.cos_lat)

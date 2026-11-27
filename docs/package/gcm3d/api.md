@@ -73,11 +73,29 @@ drives phase change off the surface-energy residual (no tunable relaxation rate)
 `use_pressure_frost` uses the Clausius–Clapeyron frost point; `escape_rate_kg_s`
 is a uniform non-thermal mass sink.
 
+`atmospheric_condensation=True` adds layer condensation, latent heating and a
+transported `co2_cloud_ice` tracer (kg ice/kg gas). The default
+`atmospheric_saturation_adjustment=True` applies conservative saturation after
+the predicted dynamics and existing-cloud settling. Set it to False for the
+finite-rate ablation, with a 3600 s relaxation time. Cloud ice can sublimate or settle to surface frost;
+the fixed particle radius is 50 µm. Cloud radiation and particle growth are absent.
+Integrate this cycle with `positivity_preserving_co2_step`, passing `body`,
+`co2_forcing` and `dt_seconds` so settling and saturation run after each step.
+See `docs/co2-saturation.md` for the mass, energy and momentum contract.
+
+The Mars radiative factory enables `co2_frost_radiative_properties`. Above
+2 kg/m² of surface CO₂ frost, albedo/emissivity become 0.65/0.81 in the north
+and 0.43/0.88 in the south. These are the defaults in Ames
+`mars_surface.F90:albedo_calc`. The threshold is a hard branch; derivatives at
+the threshold are not defined. Set the flag to False for a paired ablation.
+Both direct radiation diagnostics and the surface-energy equation use the same
+properties. Thermal radiation includes reflected downward infrared at the ground.
+
 The Mars factory defaults to `energy_limited=True`; the generic dataclass defaults
 to False. These defaults are distinct.
 
 ### State & tendency containers
-- `ColumnPhysicsState(dynamics, surface_temperature, co2_ice, ground_temperature)` — JAX pytree.
+- `ColumnPhysicsState(dynamics, surface_temperature, co2_ice, ground_temperature, surface_momentum=None)` — JAX pytree. The last field stores the ground impulse from settling, in kg/(m s).
 - `ColumnPhysicsTendencies(vorticity, divergence, temperature_variation, log_surface_pressure, surface_temperature, co2_ice, ground_temperature, tracers)`.
 - `SurfaceEnergyDiagnostics`, `RadiativeFluxDiagnostics` — NamedTuples of diagnostic fields.
 
@@ -100,7 +118,8 @@ to False. These defaults are distinct.
   co2_forcing=None, dt_seconds=None, external_co2_mass_change_kg=None,
   return_diagnostics=False)` — restore global CO₂ inventory including declared
   external CO₂ changes, less configured escape. `body` and positive finite
-  `dt_seconds` are required for external sources/sinks or nonzero escape.
+  `dt_seconds` are required for atmospheric cloud settling, external sources/sinks
+  or nonzero escape. Total CO₂ includes gas, surface frost and suspended ice.
 
 `external_co2_mass_change_kg(state_before, dt_seconds)` is a pure JAX-compatible
 callback returning one global scalar **mass for the whole step**, in kg, with
@@ -128,7 +147,7 @@ mixture thermodynamics remain separate work.
 - `cos_zenith_nodal(t_s, lat_rad, lon_rad, f)` — cos(zenith) on the `(n_lon, n_lat)` grid; diurnal terminator or daily-mean.
 - `orbital_distance(t_s, f)`, `mean_anomaly_for_ls(ls_rad, f)`, `co2_frost_point_k(pressure_pa)`.
 
-## Correlated-k radiation — `framework/physics/ames_radiation.py`
+## Correlated-k radiation — `framework/physics/correlated_k.py`
 - `load_ames_co2_tables()` / `load_ames_co2_tables_jax()` — the bundled 12-band correlated-k asset.
 - `correlated_k_optical_depths(temperature_k, pressure_mid_pa, delta_pressure_pa) -> (sw_tau, lw_tau)`.
 - `channel_weights(clear_fraction)`, `planck_band_fractions(temperature_k)`.
@@ -148,6 +167,8 @@ mixture thermodynamics remain separate work.
   retains separate visible/IR fields throughout evolving seasons.
 - `state_to_comparison_dataset` and `save_comparison_netcdf` export full-state
   comparison fields, coordinates and forcing provenance.
+  `co2_frost` is surface ice and `co2_cloud_column` is suspended ice. Both use
+  pressure-equivalent Pa; neither field includes the other reservoir.
 
 Map metadata includes `temperature_kind`, `insolation_sampling` and solar
 longitude; full-state comparison exports also retain forcing controls.

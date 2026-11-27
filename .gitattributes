@@ -1,0 +1,7 @@
+# Frozen evidence and original vendor files must survive checkout byte-for-byte.
+/paper/arxiv-2610.04081/evidence/** -text -whitespace
+/paper/arxiv-2610.04081/v1-source.tar.gz -text
+/paper/arxiv-2610.04081/revision/*.sty -text -whitespace
+/paper/arxiv-2610.04081/revision/*.bst -text -whitespace
+# Preserve archived source bytes, checkpoints, and numerical records.
+iclr-results/07-review-completion/** -text

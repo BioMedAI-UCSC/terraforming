@@ -60,12 +60,12 @@ class TestCompoundProperties:
     def test_cf4_rf_efficiency_marinova(self):
         """CF4 radiative forcing efficiency matches Marinova (2005) value."""
         props = get_compound("CF4")
-        assert abs(props.rf_efficiency_W_m2_ppb - 0.0880) < 1e-4
+        assert abs(props.rf_efficiency_W_m2_ppb - 0.0990) < 1e-4
 
     def test_sf6_rf_efficiency_marinova(self):
         """SF6 radiative forcing efficiency matches Marinova (2005) value."""
         props = get_compound("SF6")
-        assert abs(props.rf_efficiency_W_m2_ppb - 0.5700) < 1e-4
+        assert abs(props.rf_efficiency_W_m2_ppb - 0.5670) < 1e-4
 
 
 class TestGetCompound:

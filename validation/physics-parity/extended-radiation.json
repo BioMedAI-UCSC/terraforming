@@ -1,0 +1,654 @@
+{
+  "status": "pass",
+  "reference": {
+    "15band": {
+      "lookup": {
+        "source_git_blob": "40d8879c3735bbec6cabc63817cad5220f281532",
+        "compiled_source_sha256": "99180bb72d042abf43ed1db6cf1774b3de73458060ab2f1537b69ffaa4327902",
+        "routine_sha256": {
+          "tpindex15": "5c28d9fa469aed1d3246ece4f83656623faceb9812b8ae4156a04e48c785fb2b",
+          "boxinterp": "c730f46a9887ddd91eb676a99384eb9e12abaef9d026f3de53e2326f50ab65a3"
+        },
+        "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+        "compiler_flags": [
+          "-O3",
+          "-cpp",
+          "-ffree-line-length-none",
+          "-fdefault-real-8",
+          "-fdefault-double-8",
+          "-fPIC",
+          "-shared"
+        ],
+        "real_precision_bits": 64,
+        "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged"
+      },
+      "spectra": {
+        "source_git_blob": "40d8879c3735bbec6cabc63817cad5220f281532",
+        "compiled_source_sha256": "edcfef10df3e046dfcbf1709af7234f9a2d112014caf5b7d2cdcda945980e755",
+        "routine_sha256": {
+          "sfluxv": "36c5ef99ee192213762445a476c913c183e61b04906bcbef4a0724d8c10a8895",
+          "sfluxi": "1d97b41ac639ac0b9adc9aef3339882978cace5cc3d80052097458621fc2edaf",
+          "getdetau": "9b2147439435b3abf64cd0f045ef5e88d149a7dfbb9c1f1d7037fc60403ff924",
+          "gfluxv": "8c4339adf78c246b66dcfb5936b7c6cde04ff610c05ea34879eaf4d61ebecb5f",
+          "gfluxi": "80a6a23ae64878b9b18751443e4ce10585e391c24945fb1d88cdc9ba08f1162d",
+          "dsolver": "89a0b9599cd1c639a160089b221a78eb889eb8b2e10760786e3cb6d8547dc3b4",
+          "dtridgl": "d1075d42213408c12420612f5f79b35634d022de1b29a995934489e8aef1cc21"
+        },
+        "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+        "compiler_flags": [
+          "-O3",
+          "-cpp",
+          "-ffree-line-length-none",
+          "-fdefault-real-8",
+          "-fdefault-double-8",
+          "-fPIC",
+          "-shared"
+        ],
+        "real_precision_bits": 64,
+        "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged"
+      }
+    },
+    "extended": {
+      "lookup": {
+        "source_git_blob": "40d8879c3735bbec6cabc63817cad5220f281532",
+        "compiled_source_sha256": "8f83fe5ba99a34a1138f6fb405ca3579978bf4616e8f022ba2c1f5e79ad31422",
+        "routine_sha256": {
+          "tpindex15": "5c28d9fa469aed1d3246ece4f83656623faceb9812b8ae4156a04e48c785fb2b",
+          "boxinterp": "c730f46a9887ddd91eb676a99384eb9e12abaef9d026f3de53e2326f50ab65a3"
+        },
+        "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+        "compiler_flags": [
+          "-O3",
+          "-cpp",
+          "-ffree-line-length-none",
+          "-fdefault-real-8",
+          "-fdefault-double-8",
+          "-fPIC",
+          "-shared"
+        ],
+        "real_precision_bits": 64,
+        "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged"
+      },
+      "spectra": {
+        "source_git_blob": "40d8879c3735bbec6cabc63817cad5220f281532",
+        "compiled_source_sha256": "0cba1b7b7264129d86e65f9b4e6a1ca9f9518581d693968719983cc8f6cfa617",
+        "routine_sha256": {
+          "sfluxv": "36c5ef99ee192213762445a476c913c183e61b04906bcbef4a0724d8c10a8895",
+          "sfluxi": "1d97b41ac639ac0b9adc9aef3339882978cace5cc3d80052097458621fc2edaf",
+          "getdetau": "9b2147439435b3abf64cd0f045ef5e88d149a7dfbb9c1f1d7037fc60403ff924",
+          "gfluxv": "8c4339adf78c246b66dcfb5936b7c6cde04ff610c05ea34879eaf4d61ebecb5f",
+          "gfluxi": "80a6a23ae64878b9b18751443e4ce10585e391c24945fb1d88cdc9ba08f1162d",
+          "dsolver": "89a0b9599cd1c639a160089b221a78eb889eb8b2e10760786e3cb6d8547dc3b4",
+          "dtridgl": "d1075d42213408c12420612f5f79b35634d022de1b29a995934489e8aef1cc21"
+        },
+        "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+        "compiler_flags": [
+          "-O3",
+          "-cpp",
+          "-ffree-line-length-none",
+          "-fdefault-real-8",
+          "-fdefault-double-8",
+          "-fPIC",
+          "-shared"
+        ],
+        "real_precision_bits": 64,
+        "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged"
+      }
+    }
+  },
+  "cases": [
+    {
+      "mode": "15band",
+      "kind": "sw",
+      "case": "range-sweep",
+      "lookup_points": 100,
+      "max_finite_coefficient_error": 9.860761315262648e-32,
+      "matching_nan_coefficients": 0,
+      "matching_positive_infinite_coefficients": 0,
+      "matching_nonfinite_coefficients": 0
+    },
+    {
+      "mode": "15band",
+      "kind": "ir",
+      "case": "range-sweep",
+      "lookup_points": 100,
+      "max_finite_coefficient_error": 1.1709654061874394e-31,
+      "matching_nan_coefficients": 0,
+      "matching_positive_infinite_coefficients": 0,
+      "matching_nonfinite_coefficients": 0
+    },
+    {
+      "mode": "15band",
+      "kind": "sw",
+      "case": "all-table-nodes",
+      "lookup_points": 3250,
+      "max_finite_coefficient_error": 3.944304526105059e-31,
+      "matching_nan_coefficients": 0,
+      "matching_positive_infinite_coefficients": 0,
+      "matching_nonfinite_coefficients": 0
+    },
+    {
+      "mode": "15band",
+      "kind": "ir",
+      "case": "all-table-nodes",
+      "lookup_points": 3250,
+      "max_finite_coefficient_error": 1.9721522630525295e-31,
+      "matching_nan_coefficients": 0,
+      "matching_positive_infinite_coefficients": 0,
+      "matching_nonfinite_coefficients": 0
+    },
+    {
+      "mode": "15band",
+      "kind": "sw",
+      "case": "all-cell-centers",
+      "lookup_points": 2880,
+      "max_finite_coefficient_error": 5.7192415628523356e-30,
+      "matching_nan_coefficients": 0,
+      "matching_positive_infinite_coefficients": 0,
+      "matching_nonfinite_coefficients": 0
+    },
+    {
+      "mode": "15band",
+      "kind": "ir",
+      "case": "all-cell-centers",
+      "lookup_points": 2880,
+      "max_finite_coefficient_error": 4.535950205020818e-30,
+      "matching_nan_coefficients": 0,
+      "matching_positive_infinite_coefficients": 0,
+      "matching_nonfinite_coefficients": 0
+    },
+    {
+      "mode": "15band",
+      "kind": "visible",
+      "layers": 2,
+      "case": "merged",
+      "max_flux_errors_w_m2": [
+        1.7479351299698465e-12,
+        2.5579538487363607e-13,
+        1.5916157281026244e-12
+      ]
+    },
+    {
+      "mode": "15band",
+      "kind": "infrared",
+      "layers": 2,
+      "case": "merged",
+      "max_flux_errors_w_m2": [
+        7.105427357601002e-15,
+        5.773159728050814e-15,
+        1.4210854715202004e-14
+      ]
+    },
+    {
+      "mode": "15band",
+      "kind": "visible",
+      "layers": 2,
+      "case": "mixed",
+      "max_flux_errors_w_m2": [
+        6.394884621840902e-14,
+        1.9895196601282805e-13,
+        2.8421709430404007e-13
+      ]
+    },
+    {
+      "mode": "15band",
+      "kind": "infrared",
+      "layers": 2,
+      "case": "mixed",
+      "max_flux_errors_w_m2": [
+        7.105427357601002e-15,
+        8.881784197001252e-15,
+        3.552713678800501e-14
+      ]
+    },
+    {
+      "mode": "15band",
+      "kind": "visible",
+      "layers": 2,
+      "case": "absorbing",
+      "max_flux_errors_w_m2": [
+        1.0658141036401503e-13,
+        1.1368683772161603e-13,
+        5.684341886080802e-14
+      ]
+    },
+    {
+      "mode": "15band",
+      "kind": "infrared",
+      "layers": 2,
+      "case": "absorbing",
+      "max_flux_errors_w_m2": [
+        7.105427357601002e-15,
+        1.0658141036401503e-14,
+        7.105427357601002e-15
+      ]
+    },
+    {
+      "mode": "15band",
+      "kind": "visible",
+      "layers": 5,
+      "case": "merged",
+      "max_flux_errors_w_m2": [
+        1.7053025658242404e-13,
+        1.4210854715202004e-13,
+        2.8421709430404007e-13
+      ]
+    },
+    {
+      "mode": "15band",
+      "kind": "infrared",
+      "layers": 5,
+      "case": "merged",
+      "max_flux_errors_w_m2": [
+        4.263256414560601e-14,
+        1.0658141036401503e-14,
+        2.1316282072803006e-14
+      ]
+    },
+    {
+      "mode": "15band",
+      "kind": "visible",
+      "layers": 5,
+      "case": "mixed",
+      "max_flux_errors_w_m2": [
+        3.055333763768431e-13,
+        1.4210854715202004e-13,
+        2.8421709430404007e-13
+      ]
+    },
+    {
+      "mode": "15band",
+      "kind": "infrared",
+      "layers": 5,
+      "case": "mixed",
+      "max_flux_errors_w_m2": [
+        4.263256414560601e-14,
+        2.842170943040401e-14,
+        7.105427357601002e-15
+      ]
+    },
+    {
+      "mode": "15band",
+      "kind": "visible",
+      "layers": 5,
+      "case": "absorbing",
+      "max_flux_errors_w_m2": [
+        3.630873379734112e-12,
+        6.252776074688882e-13,
+        6.991740519879386e-12
+      ]
+    },
+    {
+      "mode": "15band",
+      "kind": "infrared",
+      "layers": 5,
+      "case": "absorbing",
+      "max_flux_errors_w_m2": [
+        5.684341886080802e-14,
+        2.1316282072803006e-14,
+        1.4210854715202004e-14
+      ]
+    },
+    {
+      "mode": "15band",
+      "kind": "visible",
+      "layers": 13,
+      "case": "merged",
+      "max_flux_errors_w_m2": [
+        1.3145040611561853e-13,
+        1.1368683772161603e-13,
+        2.8421709430404007e-13
+      ]
+    },
+    {
+      "mode": "15band",
+      "kind": "infrared",
+      "layers": 13,
+      "case": "merged",
+      "max_flux_errors_w_m2": [
+        1.1368683772161603e-13,
+        2.2737367544323206e-13,
+        5.684341886080802e-14
+      ]
+    },
+    {
+      "mode": "15band",
+      "kind": "visible",
+      "layers": 13,
+      "case": "mixed",
+      "max_flux_errors_w_m2": [
+        7.709388682997087e-13,
+        2.8421709430404007e-13,
+        2.8421709430404007e-13
+      ]
+    },
+    {
+      "mode": "15band",
+      "kind": "infrared",
+      "layers": 13,
+      "case": "mixed",
+      "max_flux_errors_w_m2": [
+        2.8421709430404007e-13,
+        1.4210854715202004e-13,
+        2.842170943040401e-14
+      ]
+    },
+    {
+      "mode": "15band",
+      "kind": "visible",
+      "layers": 13,
+      "case": "absorbing",
+      "max_flux_errors_w_m2": [
+        9.592326932761353e-13,
+        2.8421709430404007e-13,
+        5.115907697472721e-13
+      ]
+    },
+    {
+      "mode": "15band",
+      "kind": "infrared",
+      "layers": 13,
+      "case": "absorbing",
+      "max_flux_errors_w_m2": [
+        2.2737367544323206e-13,
+        1.1368683772161603e-13,
+        2.842170943040401e-14
+      ]
+    },
+    {
+      "mode": "extended",
+      "kind": "sw",
+      "case": "range-sweep",
+      "lookup_points": 100,
+      "max_finite_coefficient_error": 6.933347799794049e-33,
+      "matching_nan_coefficients": 0,
+      "matching_positive_infinite_coefficients": 0,
+      "matching_nonfinite_coefficients": 0
+    },
+    {
+      "mode": "extended",
+      "kind": "ir",
+      "case": "range-sweep",
+      "lookup_points": 100,
+      "max_finite_coefficient_error": 8.281498760865114e-33,
+      "matching_nan_coefficients": 116,
+      "matching_positive_infinite_coefficients": 4,
+      "matching_nonfinite_coefficients": 120
+    },
+    {
+      "mode": "extended",
+      "kind": "sw",
+      "case": "all-table-nodes",
+      "lookup_points": 4000,
+      "max_finite_coefficient_error": 3.0814879110195774e-33,
+      "matching_nan_coefficients": 0,
+      "matching_positive_infinite_coefficients": 0,
+      "matching_nonfinite_coefficients": 0
+    },
+    {
+      "mode": "extended",
+      "kind": "ir",
+      "case": "all-table-nodes",
+      "lookup_points": 4000,
+      "max_finite_coefficient_error": 1.6562997521730228e-32,
+      "matching_nan_coefficients": 2998,
+      "matching_positive_infinite_coefficients": 50,
+      "matching_nonfinite_coefficients": 3048
+    },
+    {
+      "mode": "extended",
+      "kind": "sw",
+      "case": "all-cell-centers",
+      "lookup_points": 3600,
+      "max_finite_coefficient_error": 1.4791141972893971e-31,
+      "matching_nan_coefficients": 0,
+      "matching_positive_infinite_coefficients": 0,
+      "matching_nonfinite_coefficients": 0
+    },
+    {
+      "mode": "extended",
+      "kind": "ir",
+      "case": "all-cell-centers",
+      "lookup_points": 3600,
+      "max_finite_coefficient_error": 3.389636702121535e-31,
+      "matching_nan_coefficients": 2899,
+      "matching_positive_infinite_coefficients": 0,
+      "matching_nonfinite_coefficients": 2899
+    },
+    {
+      "mode": "extended",
+      "kind": "visible",
+      "layers": 2,
+      "case": "merged",
+      "max_flux_errors_w_m2": [
+        3.552713678800501e-14,
+        2.842170943040401e-14,
+        5.684341886080802e-14
+      ]
+    },
+    {
+      "mode": "extended",
+      "kind": "infrared",
+      "layers": 2,
+      "case": "merged",
+      "max_flux_errors_w_m2": [
+        7.105427357601002e-15,
+        3.552713678800501e-15,
+        0.0
+      ]
+    },
+    {
+      "mode": "extended",
+      "kind": "visible",
+      "layers": 2,
+      "case": "mixed",
+      "max_flux_errors_w_m2": [
+        1.2789769243681803e-13,
+        5.684341886080802e-14,
+        1.1368683772161603e-13
+      ]
+    },
+    {
+      "mode": "extended",
+      "kind": "infrared",
+      "layers": 2,
+      "case": "mixed",
+      "max_flux_errors_w_m2": [
+        7.105427357601002e-15,
+        5.329070518200751e-15,
+        1.4210854715202004e-14
+      ]
+    },
+    {
+      "mode": "extended",
+      "kind": "visible",
+      "layers": 2,
+      "case": "absorbing",
+      "max_flux_errors_w_m2": [
+        1.4210854715202004e-13,
+        1.1368683772161603e-13,
+        5.684341886080802e-14
+      ]
+    },
+    {
+      "mode": "extended",
+      "kind": "infrared",
+      "layers": 2,
+      "case": "absorbing",
+      "max_flux_errors_w_m2": [
+        1.4210854715202004e-14,
+        3.552713678800501e-15,
+        0.0
+      ]
+    },
+    {
+      "mode": "extended",
+      "kind": "visible",
+      "layers": 5,
+      "case": "merged",
+      "max_flux_errors_w_m2": [
+        1.2398970739013748e-12,
+        1.7053025658242404e-13,
+        8.526512829121202e-13
+      ]
+    },
+    {
+      "mode": "extended",
+      "kind": "infrared",
+      "layers": 5,
+      "case": "merged",
+      "max_flux_errors_w_m2": [
+        7.105427357601002e-14,
+        6.394884621840902e-14,
+        1.4210854715202004e-14
+      ]
+    },
+    {
+      "mode": "extended",
+      "kind": "visible",
+      "layers": 5,
+      "case": "mixed",
+      "max_flux_errors_w_m2": [
+        1.4921397450962104e-13,
+        1.7053025658242404e-13,
+        1.1368683772161603e-13
+      ]
+    },
+    {
+      "mode": "extended",
+      "kind": "infrared",
+      "layers": 5,
+      "case": "mixed",
+      "max_flux_errors_w_m2": [
+        2.842170943040401e-14,
+        4.263256414560601e-14,
+        2.842170943040401e-14
+      ]
+    },
+    {
+      "mode": "extended",
+      "kind": "visible",
+      "layers": 5,
+      "case": "absorbing",
+      "max_flux_errors_w_m2": [
+        1.0658141036401503e-13,
+        1.1368683772161603e-13,
+        5.684341886080802e-14
+      ]
+    },
+    {
+      "mode": "extended",
+      "kind": "infrared",
+      "layers": 5,
+      "case": "absorbing",
+      "max_flux_errors_w_m2": [
+        1.4210854715202004e-14,
+        1.4210854715202004e-14,
+        0.0
+      ]
+    },
+    {
+      "mode": "extended",
+      "kind": "visible",
+      "layers": 13,
+      "case": "merged",
+      "max_flux_errors_w_m2": [
+        2.469136006766348e-13,
+        1.4210854715202004e-13,
+        0.0
+      ]
+    },
+    {
+      "mode": "extended",
+      "kind": "infrared",
+      "layers": 13,
+      "case": "merged",
+      "max_flux_errors_w_m2": [
+        1.7053025658242404e-13,
+        8.526512829121202e-14,
+        2.842170943040401e-14
+      ]
+    },
+    {
+      "mode": "extended",
+      "kind": "visible",
+      "layers": 13,
+      "case": "mixed",
+      "max_flux_errors_w_m2": [
+        2.7355895326763857e-13,
+        1.1368683772161603e-13,
+        1.1368683772161603e-13
+      ]
+    },
+    {
+      "mode": "extended",
+      "kind": "infrared",
+      "layers": 13,
+      "case": "mixed",
+      "max_flux_errors_w_m2": [
+        1.1368683772161603e-13,
+        5.684341886080802e-14,
+        0.0
+      ]
+    },
+    {
+      "mode": "extended",
+      "kind": "visible",
+      "layers": 13,
+      "case": "absorbing",
+      "max_flux_errors_w_m2": [
+        1.6342482922482304e-13,
+        1.1368683772161603e-13,
+        3.410605131648481e-13
+      ]
+    },
+    {
+      "mode": "extended",
+      "kind": "infrared",
+      "layers": 13,
+      "case": "absorbing",
+      "max_flux_errors_w_m2": [
+        1.7053025658242404e-13,
+        8.526512829121202e-14,
+        0.0
+      ]
+    }
+  ],
+  "gas_inputs": {
+    "15band": {
+      "CO2H2O_IR_2013_32": {
+        "git_blob": "78f5d69db47ef799f9ea58e2e1cb03c2c2b785c1",
+        "nonfinite_source_coefficients": 0,
+        "sha256": "7ecbef193410d1cc8bdef9a1f729dd685dcd9681f87ba22026c752b1c1f7e578"
+      },
+      "CO2H2O_V_2013_32": {
+        "git_blob": "b310353edc48bcdeb66f981349ff3a21e7068cee",
+        "nonfinite_source_coefficients": 0,
+        "sha256": "703fa0fd686b8c4d1dd5b97c95969e34cf4f7902e3c7dbd0c58a24b643318cfe"
+      }
+    },
+    "extended": {
+      "CO2H2O_IR_15B_800K_v4": {
+        "git_blob": "ba2f16b20fd9d0c2273c7676b553d512fc8c6f38",
+        "nonfinite_source_coefficients": 2941,
+        "sha256": "bf529f68310e91df962afcbb8ef90ecce3c92aa92ebfaf0784e31f099b0d976b"
+      },
+      "CO2H2O_V_15B_800K_v4": {
+        "git_blob": "2659dc073452eb2a9176cd7a6272cdf7fd1c89a9",
+        "nonfinite_source_coefficients": 0,
+        "sha256": "bb7becdf8a78d2dc5458fd9e6020f350fbb16fe603c5f4bc23321a8bcd4f45d2"
+      }
+    }
+  },
+  "sha256": {
+    "scripts/validate_extended_radiation.py": "32edfac3a2d4a305bf0708e50a192baaf34f3e0f830ea6782a1a2580d2c5f3fa",
+    "scripts/stage_extended_radiation_tables.py": "0cbd94082f35c97ab039dbdf058ed5d6eafbcf169a90a6aedaeecc95adea407d",
+    "scripts/validate_spectral_flux.py": "5368b4de0eaefb3492af65f00ea0167519b75200e9557f7c8ef986e5cedf3cce",
+    "package/src/framework/physics/correlated_k.py": "803e33cfc1d14f46fb4251f2fd49c7a64bd55529574132cc9a04c2635240d13e",
+    "package/src/framework/physics/spectral_flux.py": "3b1d1fcbc7eb78cf435cb45e388432909d1ee15bef5ed9716429c2b97efec766",
+    "package/src/framework/physics/scattering_transfer.py": "33ff375bdd4ba6b7b08eaaf861c821d569da2f9d113decdc257984d81f8f0229",
+    "package/src/framework/physics/co2_15band_tables.npz": "411d78441b1c69ce204ec71cf59ccea5af28b1c98ca6500b31b79cb44aac4a5d",
+    "package/src/framework/physics/co2_extended_tables.npz": "447e8df845f0a1f667d56460026cae8d71f6f275aa9e7f797fea4df1442cc968"
+  },
+  "limits": "Gas lookup and spectral integration. Positive infinite coefficients in released extended IR tables and resulting invalid lookups are reported, not silently replaced. CIA and fully composed particle feedback require their own checks"
+}

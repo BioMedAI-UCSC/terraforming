@@ -44,7 +44,7 @@ proof of climate equilibrium. See [validation and limitations](validation.md).
 - [`dinosaur-backbone-prototype.md`](../../ideas/dinosaur-backbone-prototype.md) — the 0-D ODE-on-dinosaur proof of concept.
 - [`dinosaur-mars-maps.md`](../../ideas/dinosaur-mars-maps.md) — the dry-dynamics maps and physics-coupling walkthrough.
 - [`gcm3d-physics-limitations.md`](../../ideas/gcm3d-physics-limitations.md) — the honest ledger: what is verified / approximated / absent.
-- [`amesgcm-comparison.md`](../../ideas/amesgcm-comparison.md) — mapping to the NASA Ames MGCM physics chain.
+- [`reference-gcm-comparison.md`](../../ideas/reference-gcm-comparison.md) — mapping to the NASA Ames MGCM physics chain.
 
 ## Install
 

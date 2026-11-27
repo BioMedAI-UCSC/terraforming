@@ -1,0 +1,55 @@
+{
+  "status": "pass",
+  "reference": {
+    "source_git_blob": "40d8879c3735bbec6cabc63817cad5220f281532",
+    "compiled_source_sha256": "4af66c67415d2a46dbfab90247cd2ffc763464f781e09157b8c25b880c56e05a",
+    "routine_sha256": {
+      "laginterp": "aefc9d2c78030d6f8f0c37de694cd07774083a13e3f0e36d2a56bcec29ad5b05",
+      "lagrange": "7703124f363db0955e4e3417e57389b3d0ab442bb8f6ae7183a8f708ad640131",
+      "tpindex": "51ee2c6070c5c6a71d0a50ee971d4b77a0efcdd8be96ef47cba3501e7c3d2800",
+      "tpindex15": "5c28d9fa469aed1d3246ece4f83656623faceb9812b8ae4156a04e48c785fb2b",
+      "boxinterp": "c730f46a9887ddd91eb676a99384eb9e12abaef9d026f3de53e2326f50ab65a3",
+      "setspi": "a36e8af053c8b4a2ea5d28cd592e7bac4f7d0e41168a5d41fb2d8b228d210d8b"
+    },
+    "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "compiler_flags": [
+      "-O3",
+      "-cpp",
+      "-ffree-line-length-none",
+      "-fdefault-real-8",
+      "-fdefault-double-8",
+      "-fPIC",
+      "-shared"
+    ],
+    "real_precision_bits": 64,
+    "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged",
+    "linear_interpolation_block_sha256": {
+      "sw": "2b703d39165f8e4e9c2e0f600ed8f84e57d56c3551c451e0e0420c8c2f22d813",
+      "ir": "dba64aa1b63a838d684ade9010d4d9ff849f811885e24781522c18803ca91eb2"
+    }
+  },
+  "max_log10_table_errors": {
+    "ir": 2.1316282072803006e-14,
+    "sw": 2.1316282072803006e-14
+  },
+  "max_log10_lookup_errors": {
+    "ir": 1.4210854715202004e-14,
+    "sw": 2.1316282072803006e-14
+  },
+  "lookup_cases": 100,
+  "linear_lookup_cases": 210,
+  "max_linear_k_errors": {
+    "ir": 8.874685183736383e-31,
+    "sw": 1.553069907153867e-30
+  },
+  "max_planck_intensity_error": 1.7763568394002505e-15,
+  "source_sha256": "2f7f4ec8a352670c9533986b38aaef8ce6b34e158908ae220a8d1c6d70df350c",
+  "stage_sha256": "b42c8a46862d569355e0de8594bfe6c8dade535a31f908bb05622953df3f8030",
+  "kernel_sha256": "803e33cfc1d14f46fb4251f2fd49c7a64bd55529574132cc9a04c2635240d13e",
+  "asset_sha256": "0c48a86efd4618d3fdc0e52cd2bc5ca063fc7ac006ebfee09a46bee01d159d6c",
+  "jax_version": "0.11.0",
+  "devices": [
+    "cpu:0"
+  ],
+  "limits": "Both 12-band interpolation paths, including unchanged linear-k blocks, T/log-pressure extrapolation and mixed water below the source's out-of-bounds last-bin read. Planck interpolation is continuous for derivatives; coupled radiation and cloud feedback need separate validation"
+}

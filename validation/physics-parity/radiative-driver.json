@@ -1,0 +1,4020 @@
+{
+  "status": "pass",
+  "reference": {
+    "grid": {
+      "source_git_blob": "40d8879c3735bbec6cabc63817cad5220f281532",
+      "compiled_source_sha256": "f48f4901cca2fa12a2473710c361c2290c2e5b91ecfdbf49a990682c57195bf3",
+      "routine_sha256": {
+        "fillpt": "92f19bb77d974a418d4cf255cd1ce21a099dd3c88741efd2fda6d292b261f0b0",
+        "dsolver": "89a0b9599cd1c639a160089b221a78eb889eb8b2e10760786e3cb6d8547dc3b4",
+        "dtridgl": "d1075d42213408c12420612f5f79b35634d022de1b29a995934489e8aef1cc21",
+        "gfluxv": "8c4339adf78c246b66dcfb5936b7c6cde04ff610c05ea34879eaf4d61ebecb5f",
+        "gfluxi": "80a6a23ae64878b9b18751443e4ce10585e391c24945fb1d88cdc9ba08f1162d"
+      },
+      "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+      "compiler_flags": [
+        "-O3",
+        "-cpp",
+        "-ffree-line-length-none",
+        "-fdefault-real-8",
+        "-fdefault-double-8",
+        "-fPIC",
+        "-shared"
+      ],
+      "real_precision_bits": 64,
+      "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged"
+    },
+    "optics": [
+      {
+        "source_git_blob": "40d8879c3735bbec6cabc63817cad5220f281532",
+        "compiled_source_sha256": "a2b1d5a9cc63c6a99d5c304c51fb8369f31a76d325e308e93726c248ba515dcf",
+        "routine_sha256": {
+          "optcv15": "6ea07e5df780a2146b41404bc80c246ad90601a823e93abe44ca7a9bd8d02917",
+          "optci15": "f025b920a4f972de80853e40f4e9be13d668838625c441d4b51eff67d42f3df6",
+          "optcv": "7672153e08dbfe2ff409136eced37a17acefb9d3189bb547331a4c38daaab9dc",
+          "optci": "d079b4a149ef1c4c6eb8143b62f18b50c722695ce938280705a2ac7b8dfd3b09",
+          "tpindex": "51ee2c6070c5c6a71d0a50ee971d4b77a0efcdd8be96ef47cba3501e7c3d2800",
+          "tpindex15": "5c28d9fa469aed1d3246ece4f83656623faceb9812b8ae4156a04e48c785fb2b",
+          "boxinterp": "c730f46a9887ddd91eb676a99384eb9e12abaef9d026f3de53e2326f50ab65a3",
+          "kinter": "6c30b1f4e075ded23c51ce6f07a595a8806eab074c0194875fe2d08b1a6b3e7f"
+        },
+        "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+        "compiler_flags": [
+          "-O3",
+          "-cpp",
+          "-ffree-line-length-none",
+          "-fdefault-real-8",
+          "-fdefault-double-8",
+          "-fPIC",
+          "-shared"
+        ],
+        "real_precision_bits": 64,
+        "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged"
+      },
+      {
+        "source_git_blob": "40d8879c3735bbec6cabc63817cad5220f281532",
+        "compiled_source_sha256": "d96fd407f44b96594e550500e591b91c55e7b206b82e4cdc5dba1fec2442a4d9",
+        "routine_sha256": {
+          "optcv15": "6ea07e5df780a2146b41404bc80c246ad90601a823e93abe44ca7a9bd8d02917",
+          "optci15": "f025b920a4f972de80853e40f4e9be13d668838625c441d4b51eff67d42f3df6",
+          "optcv": "7672153e08dbfe2ff409136eced37a17acefb9d3189bb547331a4c38daaab9dc",
+          "optci": "d079b4a149ef1c4c6eb8143b62f18b50c722695ce938280705a2ac7b8dfd3b09",
+          "tpindex": "51ee2c6070c5c6a71d0a50ee971d4b77a0efcdd8be96ef47cba3501e7c3d2800",
+          "tpindex15": "5c28d9fa469aed1d3246ece4f83656623faceb9812b8ae4156a04e48c785fb2b",
+          "boxinterp": "c730f46a9887ddd91eb676a99384eb9e12abaef9d026f3de53e2326f50ab65a3",
+          "kinter": "6c30b1f4e075ded23c51ce6f07a595a8806eab074c0194875fe2d08b1a6b3e7f"
+        },
+        "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+        "compiler_flags": [
+          "-O3",
+          "-cpp",
+          "-ffree-line-length-none",
+          "-fdefault-real-8",
+          "-fdefault-double-8",
+          "-fPIC",
+          "-shared"
+        ],
+        "real_precision_bits": 64,
+        "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged",
+        "zero_pressure_adaptation": "Zero lookup pressures use the first table pressure; pressure intervals and gas mass are unchanged. This finite extension is required by Dinosaur zero top. FV3 supplies positive top pressure; original routine bodies unchanged."
+      }
+    ],
+    "spectral": {
+      "source_git_blob": "40d8879c3735bbec6cabc63817cad5220f281532",
+      "compiled_source_sha256": "2a3109f13e2f6d15f85298137d32e42984e98ddcdde702cfabeb9996bcd1a8bb",
+      "routine_sha256": {
+        "sfluxv": "36c5ef99ee192213762445a476c913c183e61b04906bcbef4a0724d8c10a8895",
+        "sfluxi": "1d97b41ac639ac0b9adc9aef3339882978cace5cc3d80052097458621fc2edaf",
+        "getdetau": "9b2147439435b3abf64cd0f045ef5e88d149a7dfbb9c1f1d7037fc60403ff924",
+        "gfluxv": "8c4339adf78c246b66dcfb5936b7c6cde04ff610c05ea34879eaf4d61ebecb5f",
+        "gfluxi": "80a6a23ae64878b9b18751443e4ce10585e391c24945fb1d88cdc9ba08f1162d",
+        "dsolver": "89a0b9599cd1c639a160089b221a78eb889eb8b2e10760786e3cb6d8547dc3b4",
+        "dtridgl": "d1075d42213408c12420612f5f79b35634d022de1b29a995934489e8aef1cc21"
+      },
+      "compiler": "GNU Fortran (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+      "compiler_flags": [
+        "-O3",
+        "-cpp",
+        "-ffree-line-length-none",
+        "-fdefault-real-8",
+        "-fdefault-double-8",
+        "-fPIC",
+        "-shared"
+      ],
+      "real_precision_bits": 64,
+      "adaptation": "module dependency declarations and C array adapters; routine bodies unchanged"
+    },
+    "infrared_quadruple": {
+      "source_git_blob": "40d8879c3735bbec6cabc63817cad5220f281532",
+      "routine_sha256": {
+        "sfluxi": "1d97b41ac639ac0b9adc9aef3339882978cace5cc3d80052097458621fc2edaf",
+        "gfluxi": "80a6a23ae64878b9b18751443e4ce10585e391c24945fb1d88cdc9ba08f1162d",
+        "dsolver": "89a0b9599cd1c639a160089b221a78eb889eb8b2e10760786e3cb6d8547dc3b4",
+        "dtridgl": "d1075d42213408c12420612f5f79b35634d022de1b29a995934489e8aef1cc21"
+      },
+      "real_precision_bits": 128,
+      "source_sha256": "14091d88f7079b06a03c63b1e67cb4b48b09dc801602dbb9db30ac6923e05862",
+      "adapter_sha256": "a8083ccd3e98f893113e5954db2974a0e22b02e1ba2e00b5388728b5714bd246",
+      "compiler_flags": [
+        "-O3",
+        "-fPIC",
+        "-cpp",
+        "-fdefault-real-8",
+        "-fdefault-double-8",
+        "-freal-8-real-16"
+      ],
+      "adaptation": "unchanged routine bodies; compiler promotes REAL*8 to IEEE binary128; separate C adapter converts FP64 input/output"
+    }
+  },
+  "cases": [
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        4.547473508864641e-13,
+        3.979039320256561e-13,
+        2.842170943040401e-14,
+        1.7763568394002505e-15,
+        4.831690603168681e-13,
+        3.410605131648481e-13,
+        5.684341886080802e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 2.7421704373864486e-06
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        2.842170943040401e-14,
+        1.7763568394002505e-15,
+        5.684341886080802e-14,
+        1.4210854715202004e-14,
+        2.842170943040401e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 2.7421704373864486e-06
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        4.547473508864641e-13,
+        3.979039320256561e-13,
+        4.263256414560601e-14,
+        1.7763568394002505e-15,
+        4.547473508864641e-13,
+        3.410605131648481e-13,
+        0.0
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 0.0005375333165602569
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        4.263256414560601e-14,
+        1.7763568394002505e-15,
+        7.105427357601002e-14,
+        1.4210854715202004e-14,
+        2.842170943040401e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 0.0005375333165602569
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        1.7053025658242404e-13,
+        1.5226362393150339e-09,
+        5.684341886080802e-14,
+        1.4210854715202004e-14,
+        1.522579395896173e-09,
+        1.1368683772161603e-13,
+        5.684341886080802e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 1.112571752059921e-06
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        5.684341886080802e-14,
+        1.4210854715202004e-14,
+        7.105427357601002e-14,
+        0.0,
+        0.0
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 1.112571752059921e-06
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        1.7053025658242404e-13,
+        1.5226362393150339e-09,
+        4.263256414560601e-14,
+        3.552713678800501e-15,
+        1.5226220284603187e-09,
+        1.5631940186722204e-13,
+        5.684341886080802e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 0.00038436621856874353
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        4.263256414560601e-14,
+        3.552713678800501e-15,
+        2.842170943040401e-14,
+        4.263256414560601e-14,
+        0.0
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 0.00038436621856874353
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        4.547473508864641e-13,
+        3.979039320256561e-13,
+        1.4210854715202004e-14,
+        2.6645352591003757e-15,
+        4.547473508864641e-13,
+        3.126388037344441e-13,
+        8.526512829121202e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 4.263256414560601e-14
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        1.4210854715202004e-14,
+        2.6645352591003757e-15,
+        2.842170943040401e-14,
+        1.4210854715202004e-14,
+        1.4210854715202004e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 4.263256414560601e-14
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        4.547473508864641e-13,
+        3.979039320256561e-13,
+        4.263256414560601e-14,
+        2.6645352591003757e-15,
+        5.400124791776761e-13,
+        3.694822225952521e-13,
+        8.526512829121202e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 0.0005377027412407642
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        4.263256414560601e-14,
+        2.6645352591003757e-15,
+        5.684341886080802e-14,
+        4.263256414560601e-14,
+        1.4210854715202004e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 0.0005377027412407642
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        1.7053025658242404e-13,
+        1.5226362393150339e-09,
+        7.105427357601002e-14,
+        7.105427357601002e-15,
+        1.5226362393150339e-09,
+        1.1368683772161603e-13,
+        1.4210854715202004e-13
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 4.982687187293777e-07
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        7.105427357601002e-14,
+        7.105427357601002e-15,
+        7.815970093361102e-14,
+        2.1316282072803006e-14,
+        2.842170943040401e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 4.982687187293777e-07
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        1.7053025658242404e-13,
+        1.5226362393150339e-09,
+        2.842170943040401e-14,
+        7.105427357601002e-15,
+        1.5226362393150339e-09,
+        1.4210854715202004e-13,
+        1.4210854715202004e-13
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 0.0003843662185545327
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        2.842170943040401e-14,
+        7.105427357601002e-15,
+        2.1316282072803006e-14,
+        7.105427357601002e-15,
+        1.4210854715202004e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 0.0003843662185545327
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        1.7053025658242404e-13,
+        2.2737367544323206e-13,
+        2.842170943040401e-14,
+        5.329070518200751e-15,
+        2.5579538487363607e-13,
+        5.684341886080802e-14,
+        2.842170943040401e-14
+      ],
+      "stratosphere_flux_error_w_m2": 1.488947853900413e-13,
+      "native_fp64_ir_cancellation_error_w_m2": 2.352855929643738e-06
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        2.842170943040401e-14,
+        5.329070518200751e-15,
+        5.684341886080802e-14,
+        2.842170943040401e-14,
+        0.0
+      ],
+      "stratosphere_flux_error_w_m2": 4.263256414560601e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 2.352855929643738e-06
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        1.7053025658242404e-13,
+        2.2737367544323206e-13,
+        4.263256414560601e-14,
+        5.329070518200751e-15,
+        2.5579538487363607e-13,
+        0.0,
+        0.0
+      ],
+      "stratosphere_flux_error_w_m2": 1.062622212444353e-13,
+      "native_fp64_ir_cancellation_error_w_m2": 0.0005375526998534497
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        4.263256414560601e-14,
+        5.329070518200751e-15,
+        2.842170943040401e-14,
+        0.0,
+        2.842170943040401e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 0.0005375526998534497
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        1.1368683772161603e-13,
+        1.5226362393150339e-09,
+        2.842170943040401e-14,
+        7.105427357601002e-15,
+        1.5226220284603187e-09,
+        4.263256414560601e-14,
+        5.31770183442859e-11
+      ],
+      "stratosphere_flux_error_w_m2": 4.962169564137753e-11,
+      "native_fp64_ir_cancellation_error_w_m2": 1.1125725194460756e-06
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        2.842170943040401e-14,
+        7.105427357601002e-15,
+        2.842170943040401e-14,
+        7.105427357601002e-15,
+        2.842170943040401e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 1.1125725194460756e-06
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        1.1368683772161603e-13,
+        1.5226362393150339e-09,
+        4.263256414560601e-14,
+        7.105427357601002e-15,
+        1.5225936067508883e-09,
+        4.263256414560601e-14,
+        5.31770183442859e-11
+      ],
+      "stratosphere_flux_error_w_m2": 4.9593273931947124e-11,
+      "native_fp64_ir_cancellation_error_w_m2": 0.00038436621836979157
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        4.263256414560601e-14,
+        7.105427357601002e-15,
+        2.842170943040401e-14,
+        2.1316282072803006e-14,
+        4.263256414560601e-14
+      ],
+      "stratosphere_flux_error_w_m2": 2.842170943040401e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 0.00038436621836979157
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        1.7053025658242404e-13,
+        2.1316282072803006e-13,
+        5.684341886080802e-14,
+        3.774758283725532e-15,
+        2.2737367544323206e-13,
+        5.684341886080802e-14,
+        5.684341886080802e-14
+      ],
+      "stratosphere_flux_error_w_m2": 2.656347364293765e-13,
+      "native_fp64_ir_cancellation_error_w_m2": 4.263256414560601e-14
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        5.684341886080802e-14,
+        3.774758283725532e-15,
+        4.263256414560601e-14,
+        0.0,
+        4.263256414560601e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 4.263256414560601e-14
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        1.7053025658242404e-13,
+        2.1316282072803006e-13,
+        2.842170943040401e-14,
+        3.774758283725532e-15,
+        2.8421709430404007e-13,
+        5.684341886080802e-14,
+        1.1368683772161603e-13
+      ],
+      "stratosphere_flux_error_w_m2": 2.514238817141745e-13,
+      "native_fp64_ir_cancellation_error_w_m2": 0.0005377027412265534
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        2.842170943040401e-14,
+        3.774758283725532e-15,
+        2.842170943040401e-14,
+        1.4210854715202004e-14,
+        2.842170943040401e-14
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 0.0005377027412265534
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        1.1368683772161603e-13,
+        1.5226362393150339e-09,
+        5.684341886080802e-14,
+        7.105427357601002e-15,
+        1.5225509741867427e-09,
+        0.0,
+        1.1368683772161603e-13
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 4.982687329402324e-07
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        5.684341886080802e-14,
+        7.105427357601002e-15,
+        6.394884621840902e-14,
+        7.105427357601002e-15,
+        2.842170943040401e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 4.982687329402324e-07
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        1.1368683772161603e-13,
+        1.5226362393150339e-09,
+        2.842170943040401e-14,
+        7.105427357601002e-15,
+        1.5226362393150339e-09,
+        1.4210854715202004e-14,
+        8.526512829121202e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 0.0003843662185545327
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        2.842170943040401e-14,
+        7.105427357601002e-15,
+        3.552713678800501e-14,
+        2.1316282072803006e-14,
+        2.842170943040401e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 0.0003843662185545327
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        1.0800249583553523e-12,
+        2.5295321393059567e-12,
+        5.684341886080802e-14,
+        5.329070518200751e-15,
+        1.2789769243681803e-12,
+        6.536993168992922e-13,
+        2.3874235921539366e-12
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 3.363781649667885e-06
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        5.684341886080802e-14,
+        5.329070518200751e-15,
+        4.263256414560601e-14,
+        1.4210854715202004e-14,
+        5.684341886080802e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 3.363781649667885e-06
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        1.0800249583553523e-12,
+        2.5295321393059567e-12,
+        5.684341886080802e-14,
+        5.329070518200751e-15,
+        1.2789769243681803e-12,
+        6.821210263296962e-13,
+        2.3021584638627246e-12
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 2.7266860911367985e-06
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        5.684341886080802e-14,
+        5.329070518200751e-15,
+        4.263256414560601e-14,
+        4.263256414560601e-14,
+        1.4210854715202004e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 2.7266860911367985e-06
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        1.7053025658242404e-13,
+        1.1368683772161603e-13,
+        8.526512829121202e-14,
+        7.105427357601002e-15,
+        2.2737367544323206e-13,
+        5.684341886080802e-14,
+        8.526512829121202e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 4.450288841439942e-06
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        8.526512829121202e-14,
+        7.105427357601002e-15,
+        5.684341886080802e-14,
+        1.4210854715202004e-14,
+        2.842170943040401e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 4.450288841439942e-06
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        1.7053025658242404e-13,
+        1.1368683772161603e-13,
+        5.684341886080802e-14,
+        1.4210854715202004e-14,
+        2.2737367544323206e-13,
+        0.0,
+        1.1368683772161603e-13
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 4.450285501889084e-06
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        5.684341886080802e-14,
+        1.4210854715202004e-14,
+        5.684341886080802e-14,
+        4.263256414560601e-14,
+        4.263256414560601e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 4.450285501889084e-06
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        1.1368683772161603e-12,
+        2.5437429940211587e-12,
+        8.526512829121202e-14,
+        3.552713678800501e-15,
+        1.2789769243681803e-12,
+        6.252776074688882e-13,
+        2.4442670110147446e-12
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 5.684341886080802e-14
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        8.526512829121202e-14,
+        3.552713678800501e-15,
+        4.263256414560601e-14,
+        1.4210854715202004e-14,
+        8.526512829121202e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 5.684341886080802e-14
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        1.1368683772161603e-12,
+        2.5437429940211587e-12,
+        7.105427357601002e-14,
+        3.552713678800501e-15,
+        1.2221335055073723e-12,
+        6.252776074688882e-13,
+        2.4442670110147446e-12
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 6.927791673660977e-14
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        7.105427357601002e-14,
+        3.552713678800501e-15,
+        4.263256414560601e-14,
+        0.0,
+        7.105427357601002e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 6.927791673660977e-14
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        1.7053025658242404e-13,
+        1.1368683772161603e-13,
+        7.105427357601002e-14,
+        7.105427357601002e-15,
+        1.7053025658242404e-13,
+        1.4210854715202004e-14,
+        1.7053025658242404e-13
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 5.684341886080802e-14
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        7.105427357601002e-14,
+        7.105427357601002e-15,
+        2.842170943040401e-14,
+        2.1316282072803006e-14,
+        5.684341886080802e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 5.684341886080802e-14
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        1.7053025658242404e-13,
+        1.1368683772161603e-13,
+        4.263256414560601e-14,
+        7.105427357601002e-15,
+        1.9895196601282805e-13,
+        4.263256414560601e-14,
+        1.4210854715202004e-13
+      ],
+      "stratosphere_flux_error_w_m2": 2.842170943040401e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 5.684341886080802e-14
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        4.263256414560601e-14,
+        7.105427357601002e-15,
+        2.842170943040401e-14,
+        2.1316282072803006e-14,
+        2.842170943040401e-14
+      ],
+      "stratosphere_flux_error_w_m2": 2.842170943040401e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 5.684341886080802e-14
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        1.1368683772161603e-12,
+        2.1600499167107046e-12,
+        7.105427357601002e-14,
+        5.329070518200751e-15,
+        4.831690603168681e-13,
+        1.9895196601282805e-13,
+        1.4495071809506044e-12
+      ],
+      "stratosphere_flux_error_w_m2": 1.0624834345662748e-13,
+      "native_fp64_ir_cancellation_error_w_m2": 3.2042602526871633e-06
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        7.105427357601002e-14,
+        5.329070518200751e-15,
+        4.263256414560601e-14,
+        4.263256414560601e-14,
+        7.105427357601002e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 3.2042602526871633e-06
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        1.1368683772161603e-12,
+        2.1600499167107046e-12,
+        5.684341886080802e-14,
+        5.329070518200751e-15,
+        5.400124791776761e-13,
+        2.2737367544323206e-13,
+        1.3926637620897964e-12
+      ],
+      "stratosphere_flux_error_w_m2": 1.346700528870315e-13,
+      "native_fp64_ir_cancellation_error_w_m2": 3.2284212494460007e-06
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        5.684341886080802e-14,
+        5.329070518200751e-15,
+        7.105427357601002e-14,
+        2.842170943040401e-14,
+        2.842170943040401e-14
+      ],
+      "stratosphere_flux_error_w_m2": 2.842170943040401e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 3.2284212494460007e-06
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        3.410605131648481e-13,
+        6.799766083531722e-09,
+        5.684341886080802e-14,
+        1.4210854715202004e-14,
+        6.799751872677007e-09,
+        5.684341886080802e-14,
+        6.799893981224159e-09
+      ],
+      "stratosphere_flux_error_w_m2": 6.355190831919266e-09,
+      "native_fp64_ir_cancellation_error_w_m2": 4.450293758395674e-06
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        5.684341886080802e-14,
+        1.4210854715202004e-14,
+        4.263256414560601e-14,
+        2.842170943040401e-14,
+        2.842170943040401e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 4.450293758395674e-06
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        3.410605131648481e-13,
+        6.799766083531722e-09,
+        4.263256414560601e-14,
+        1.4210854715202004e-14,
+        6.799723450967576e-09,
+        2.842170943040401e-14,
+        6.799893981224159e-09
+      ],
+      "stratosphere_flux_error_w_m2": 6.3552050427739815e-09,
+      "native_fp64_ir_cancellation_error_w_m2": 4.450293772606528e-06
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        4.263256414560601e-14,
+        1.4210854715202004e-14,
+        4.263256414560601e-14,
+        0.0,
+        4.263256414560601e-14
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 4.450293772606528e-06
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        1.1368683772161603e-12,
+        2.1458390619955026e-12,
+        8.526512829121202e-14,
+        5.329070518200751e-15,
+        6.252776074688882e-13,
+        2.8421709430404007e-13,
+        1.3642420526593924e-12
+      ],
+      "stratosphere_flux_error_w_m2": 1.2045919817182948e-13,
+      "native_fp64_ir_cancellation_error_w_m2": 5.684341886080802e-14
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        8.526512829121202e-14,
+        5.329070518200751e-15,
+        5.684341886080802e-14,
+        1.4210854715202004e-14,
+        5.684341886080802e-14
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 5.684341886080802e-14
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        1.1368683772161603e-12,
+        2.1458390619955026e-12,
+        5.684341886080802e-14,
+        5.329070518200751e-15,
+        6.536993168992922e-13,
+        2.2737367544323206e-13,
+        1.3358203432289883e-12
+      ],
+      "stratosphere_flux_error_w_m2": 1.0624834345662748e-13,
+      "native_fp64_ir_cancellation_error_w_m2": 7.105427357601002e-14
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        5.684341886080802e-14,
+        5.329070518200751e-15,
+        4.263256414560601e-14,
+        4.263256414560601e-14,
+        4.263256414560601e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 7.105427357601002e-14
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        3.410605131648481e-13,
+        6.799780294386437e-09,
+        4.263256414560601e-14,
+        3.552713678800501e-15,
+        6.799723450967576e-09,
+        0.0,
+        6.799893981224159e-09
+      ],
+      "stratosphere_flux_error_w_m2": 6.355229745236279e-09,
+      "native_fp64_ir_cancellation_error_w_m2": 5.684341886080802e-14
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        4.263256414560601e-14,
+        3.552713678800501e-15,
+        4.263256414560601e-14,
+        1.4210854715202004e-14,
+        2.842170943040401e-14
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 5.684341886080802e-14
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        3.410605131648481e-13,
+        6.799780294386437e-09,
+        7.105427357601002e-14,
+        1.4210854715202004e-14,
+        6.799723450967576e-09,
+        5.684341886080802e-14,
+        6.799893981224159e-09
+      ],
+      "stratosphere_flux_error_w_m2": 6.3552439560909946e-09,
+      "native_fp64_ir_cancellation_error_w_m2": 7.105427357601002e-14
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        7.105427357601002e-14,
+        1.4210854715202004e-14,
+        1.1368683772161603e-13,
+        1.4210854715202004e-14,
+        4.263256414560601e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 7.105427357601002e-14
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        2.6716406864579767e-12,
+        7.602807272633072e-12,
+        4.263256414560601e-13,
+        5.329070518200751e-15,
+        1.3073986337985843e-12,
+        1.8189894035458565e-12,
+        7.474909580196254e-12
+      ],
+      "stratosphere_flux_error_w_m2": 2.842170943040401e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 2.6648926002015294e-06
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        4.263256414560601e-13,
+        5.329070518200751e-15,
+        4.263256414560601e-14,
+        0.0,
+        4.263256414560601e-13
+      ],
+      "stratosphere_flux_error_w_m2": 2.842170943040401e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 2.6648926002015294e-06
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        2.6716406864579767e-12,
+        7.602807272633072e-12,
+        3.126388037344441e-13,
+        5.329070518200751e-15,
+        1.2789769243681803e-12,
+        1.8189894035458565e-12,
+        7.361222742474638e-12
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 3.965352786031162e-06
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        3.126388037344441e-13,
+        5.329070518200751e-15,
+        4.263256414560601e-14,
+        1.4210854715202004e-14,
+        3.126388037344441e-13
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 3.965352786031162e-06
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        4.263256414560601e-13,
+        4.902744876744691e-13,
+        9.947598300641403e-14,
+        3.552713678800501e-14,
+        3.410605131648481e-13,
+        2.7000623958883807e-13,
+        5.968558980384842e-13
+      ],
+      "stratosphere_flux_error_w_m2": 5.684341886080802e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 4.042949364180259e-09
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        9.947598300641403e-14,
+        3.552713678800501e-14,
+        2.842170943040401e-14,
+        3.552713678800501e-14,
+        9.947598300641403e-14
+      ],
+      "stratosphere_flux_error_w_m2": 5.684341886080802e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 4.042949364180259e-09
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        4.263256414560601e-13,
+        4.902744876744691e-13,
+        1.4210854715202004e-13,
+        3.552713678800501e-14,
+        3.979039320256561e-13,
+        3.126388037344441e-13,
+        6.536993168992922e-13
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 1.5485637633316784e-09
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        1.4210854715202004e-13,
+        3.552713678800501e-14,
+        4.973799150320701e-14,
+        0.0,
+        1.2789769243681803e-13
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 1.5485637633316784e-09
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        2.7284841053187847e-12,
+        7.574385563202668e-12,
+        4.263256414560601e-13,
+        3.552713678800501e-15,
+        1.2221335055073723e-12,
+        1.8189894035458565e-12,
+        7.474909580196254e-12
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 1.0835776720341528e-13
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        4.263256414560601e-13,
+        3.552713678800501e-15,
+        2.842170943040401e-14,
+        1.4210854715202004e-14,
+        4.263256414560601e-13
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 1.0835776720341528e-13
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        2.7284841053187847e-12,
+        7.574385563202668e-12,
+        3.268496584496461e-13,
+        3.552713678800501e-15,
+        1.2221335055073723e-12,
+        1.7905676941154525e-12,
+        7.389644451905042e-12
+      ],
+      "stratosphere_flux_error_w_m2": 2.842170943040401e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 2.220446049250313e-13
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        3.268496584496461e-13,
+        3.552713678800501e-15,
+        2.842170943040401e-14,
+        2.842170943040401e-14,
+        3.268496584496461e-13
+      ],
+      "stratosphere_flux_error_w_m2": 2.842170943040401e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 2.220446049250313e-13
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        4.263256414560601e-13,
+        5.542233338928781e-13,
+        1.1368683772161603e-13,
+        3.552713678800501e-14,
+        6.821210263296962e-13,
+        2.5579538487363607e-13,
+        6.536993168992922e-13
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 2.4158453015843406e-13
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        1.1368683772161603e-13,
+        3.552713678800501e-14,
+        4.263256414560601e-14,
+        3.552713678800501e-14,
+        8.526512829121202e-14
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 2.4158453015843406e-13
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        4.263256414560601e-13,
+        5.542233338928781e-13,
+        1.4210854715202004e-13,
+        4.263256414560601e-14,
+        6.821210263296962e-13,
+        2.5579538487363607e-13,
+        6.821210263296962e-13
+      ],
+      "stratosphere_flux_error_w_m2": 2.842170943040401e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 2.5579538487363607e-13
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        1.4210854715202004e-13,
+        4.263256414560601e-14,
+        3.552713678800501e-14,
+        2.842170943040401e-14,
+        1.1368683772161603e-13
+      ],
+      "stratosphere_flux_error_w_m2": 2.842170943040401e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 2.5579538487363607e-13
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0013188866318027586,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        2.9558577807620168e-12,
+        7.815970093361102e-12,
+        4.121147867408581e-13,
+        5.329070518200751e-15,
+        1.1937117960769683e-12,
+        1.5916157281026244e-12,
+        7.986500349943526e-12
+      ],
+      "stratosphere_flux_error_w_m2": 2.1605547212422138e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 1.8000593637879092e-06
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0013188866318027586,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        4.121147867408581e-13,
+        5.329070518200751e-15,
+        4.263256414560601e-14,
+        1.4210854715202004e-14,
+        4.121147867408581e-13
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 1.8000593637879092e-06
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0013188866318027586,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        2.9558577807620168e-12,
+        7.815970093361102e-12,
+        3.268496584496461e-13,
+        5.329070518200751e-15,
+        1.1937117960769683e-12,
+        1.5631940186722204e-12,
+        7.901235221652314e-12
+      ],
+      "stratosphere_flux_error_w_m2": 2.1605547212422138e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 4.169695252187466e-06
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0013188866318027586,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        3.268496584496461e-13,
+        5.329070518200751e-15,
+        4.263256414560601e-14,
+        2.842170943040401e-14,
+        3.268496584496461e-13
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 4.169695252187466e-06
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0013188866318027586,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        4.263256414560601e-13,
+        5.897504706808832e-13,
+        1.1368683772161603e-13,
+        3.552713678800501e-14,
+        5.968558980384842e-13,
+        2.5579538487363607e-13,
+        6.821210263296962e-13
+      ],
+      "stratosphere_flux_error_w_m2": 1.93421667571414e-16,
+      "native_fp64_ir_cancellation_error_w_m2": 2.5328724395645708e-09
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0013188866318027586,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        1.1368683772161603e-13,
+        3.552713678800501e-14,
+        5.684341886080802e-14,
+        3.552713678800501e-14,
+        7.105427357601002e-14
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 2.5328724395645708e-09
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0013188866318027586,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        4.263256414560601e-13,
+        5.897504706808832e-13,
+        1.2789769243681803e-13,
+        4.263256414560601e-14,
+        5.684341886080801e-13,
+        2.5579538487363607e-13,
+        7.389644451905042e-13
+      ],
+      "stratosphere_flux_error_w_m2": 1.4404276382773418e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 2.2138498326218503e-09
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0013188866318027586,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        1.2789769243681803e-13,
+        4.263256414560601e-14,
+        4.263256414560601e-14,
+        2.842170943040401e-14,
+        1.1368683772161603e-13
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 2.2138498326218503e-09
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0013188866318027586,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        3.069544618483633e-12,
+        7.830180948076304e-12,
+        4.263256414560601e-13,
+        5.329070518200751e-15,
+        1.3358203432289883e-12,
+        1.4779288903810084e-12,
+        7.929656931082718e-12
+      ],
+      "stratosphere_flux_error_w_m2": 1.929879867024198e-16,
+      "native_fp64_ir_cancellation_error_w_m2": 1.1368683772161603e-13
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0013188866318027586,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        4.263256414560601e-13,
+        5.329070518200751e-15,
+        2.842170943040401e-14,
+        1.4210854715202004e-14,
+        4.263256414560601e-13
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 1.1368683772161603e-13
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0013188866318027586,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        3.069544618483633e-12,
+        7.830180948076304e-12,
+        3.268496584496461e-13,
+        5.329070518200751e-15,
+        1.3073986337985843e-12,
+        1.5063505998114124e-12,
+        7.815970093361102e-12
+      ],
+      "stratosphere_flux_error_w_m2": 1.4403842701904424e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 1.723066134218243e-13
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0013188866318027586,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        3.268496584496461e-13,
+        5.329070518200751e-15,
+        2.842170943040401e-14,
+        0.0,
+        3.268496584496461e-13
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 1.723066134218243e-13
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0013188866318027586,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        3.979039320256561e-13,
+        4.405364961712621e-13,
+        1.1368683772161603e-13,
+        3.552713678800501e-14,
+        6.536993168992922e-13,
+        2.2737367544323206e-13,
+        5.684341886080801e-13
+      ],
+      "stratosphere_flux_error_w_m2": 7.124726156271244e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 2.2737367544323206e-13
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0013188866318027586,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        1.1368683772161603e-13,
+        3.552713678800501e-14,
+        4.263256414560601e-14,
+        2.1316282072803006e-14,
+        9.947598300641403e-14
+      ],
+      "stratosphere_flux_error_w_m2": 5.684341886080802e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 2.2737367544323206e-13
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0013188866318027586,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        3.979039320256561e-13,
+        4.405364961712621e-13,
+        1.4210854715202004e-13,
+        3.552713678800501e-14,
+        5.968558980384842e-13,
+        2.2737367544323206e-13,
+        5.684341886080801e-13
+      ],
+      "stratosphere_flux_error_w_m2": 1.929879867024198e-16,
+      "native_fp64_ir_cancellation_error_w_m2": 2.7000623958883807e-13
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0013188866318027586,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": false,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        1.4210854715202004e-13,
+        3.552713678800501e-14,
+        4.973799150320701e-14,
+        1.4210854715202004e-14,
+        1.1368683772161603e-13
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 2.7000623958883807e-13
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        2.2737367544323206e-13,
+        3.694822225952521e-13,
+        4.263256414560601e-14,
+        1.7763568394002505e-15,
+        1.1368683772161603e-13,
+        5.684341886080802e-14,
+        5.684341886080802e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 2.227341511229497e-06
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        4.263256414560601e-14,
+        1.7763568394002505e-15,
+        5.684341886080802e-14,
+        0.0,
+        4.263256414560601e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 2.227341511229497e-06
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        2.2737367544323206e-13,
+        3.694822225952521e-13,
+        2.842170943040401e-14,
+        1.7763568394002505e-15,
+        1.4210854715202004e-13,
+        5.684341886080802e-14,
+        2.842170943040401e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 0.0008145456637151938
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        2.842170943040401e-14,
+        1.7763568394002505e-15,
+        5.684341886080802e-14,
+        1.4210854715202004e-14,
+        2.842170943040401e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 0.0008145456637151938
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        1.7053025658242404e-13,
+        1.1013412404281553e-12,
+        4.263256414560601e-14,
+        7.105427357601002e-15,
+        1.1084466677857563e-12,
+        1.1368683772161603e-13,
+        8.526512829121202e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 5.6274984672199935e-12
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        4.263256414560601e-14,
+        7.105427357601002e-15,
+        3.552713678800501e-14,
+        2.1316282072803006e-14,
+        4.263256414560601e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 5.6274984672199935e-12
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        1.7053025658242404e-13,
+        1.1013412404281553e-12,
+        4.263256414560601e-14,
+        7.105427357601002e-15,
+        1.0800249583553523e-12,
+        1.8474111129762605e-13,
+        8.526512829121202e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 0.0003518061895562141
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        4.263256414560601e-14,
+        7.105427357601002e-15,
+        4.973799150320701e-14,
+        4.973799150320701e-14,
+        1.4210854715202004e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 0.0003518061895562141
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        2.8421709430404007e-13,
+        3.836930773104541e-13,
+        2.842170943040401e-14,
+        1.7763568394002505e-15,
+        1.7053025658242404e-13,
+        2.842170943040401e-14,
+        5.684341886080802e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 5.684341886080802e-14
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        2.842170943040401e-14,
+        1.7763568394002505e-15,
+        4.263256414560601e-14,
+        1.4210854715202004e-14,
+        0.0
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 5.684341886080802e-14
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        2.8421709430404007e-13,
+        3.836930773104541e-13,
+        4.263256414560601e-14,
+        1.7763568394002505e-15,
+        2.2737367544323206e-13,
+        5.684341886080802e-14,
+        8.526512829121202e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 0.0008143833053679828
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        4.263256414560601e-14,
+        1.7763568394002505e-15,
+        5.684341886080802e-14,
+        1.4210854715202004e-14,
+        1.4210854715202004e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 0.0008143833053679828
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        2.2737367544323206e-13,
+        1.0942358130705543e-12,
+        2.842170943040401e-14,
+        1.7763568394002505e-15,
+        1.1937117960769683e-12,
+        1.1368683772161603e-13,
+        5.684341886080802e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 2.842170943040401e-14
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        2.842170943040401e-14,
+        1.7763568394002505e-15,
+        4.263256414560601e-14,
+        2.842170943040401e-14,
+        1.4210854715202004e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 2.842170943040401e-14
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        2.2737367544323206e-13,
+        1.0942358130705543e-12,
+        2.842170943040401e-14,
+        7.105427357601002e-15,
+        1.1652900866465643e-12,
+        9.947598300641403e-14,
+        8.526512829121202e-14
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 0.0003518061896841118
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        2.842170943040401e-14,
+        7.105427357601002e-15,
+        3.552713678800501e-14,
+        7.105427357601002e-15,
+        1.4210854715202004e-14
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 0.0003518061896841118
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        3.410605131648481e-13,
+        1.8474111129762605e-13,
+        2.842170943040401e-14,
+        1.7763568394002505e-15,
+        3.410605131648481e-13,
+        3.979039320256561e-13,
+        2.842170943040401e-14
+      ],
+      "stratosphere_flux_error_w_m2": 1.7359724768795104e-13,
+      "native_fp64_ir_cancellation_error_w_m2": 2.1985076809616366e-06
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        2.842170943040401e-14,
+        1.7763568394002505e-15,
+        2.842170943040401e-14,
+        0.0,
+        1.4210854715202004e-14
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 2.1985076809616366e-06
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        3.410605131648481e-13,
+        1.8474111129762605e-13,
+        2.842170943040401e-14,
+        1.7763568394002505e-15,
+        3.410605131648481e-13,
+        3.694822225952521e-13,
+        5.684341886080802e-14
+      ],
+      "stratosphere_flux_error_w_m2": 1.8780810240315304e-13,
+      "native_fp64_ir_cancellation_error_w_m2": 0.0008145452052303881
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        2.842170943040401e-14,
+        1.7763568394002505e-15,
+        2.842170943040401e-14,
+        2.842170943040401e-14,
+        2.842170943040401e-14
+      ],
+      "stratosphere_flux_error_w_m2": 2.842170943040401e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 0.0008145452052303881
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        1.1368683772161603e-13,
+        6.799673712976073e-09,
+        5.684341886080802e-14,
+        7.105427357601002e-15,
+        6.799439233873272e-09,
+        0.0,
+        6.799609764129855e-09
+      ],
+      "stratosphere_flux_error_w_m2": 6.355098780552737e-09,
+      "native_fp64_ir_cancellation_error_w_m2": 4.1711902554197877e-07
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        5.684341886080802e-14,
+        7.105427357601002e-15,
+        8.526512829121202e-14,
+        7.105427357601002e-15,
+        4.263256414560601e-14
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 4.1711902554197877e-07
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        1.1368683772161603e-13,
+        6.799673712976073e-09,
+        7.105427357601002e-14,
+        1.7763568394002505e-15,
+        6.799467655582703e-09,
+        2.842170943040401e-14,
+        6.799609764129855e-09
+      ],
+      "stratosphere_flux_error_w_m2": 6.3551272022621674e-09,
+      "native_fp64_ir_cancellation_error_w_m2": 0.0003518061896841118
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        7.105427357601002e-14,
+        1.7763568394002505e-15,
+        5.684341886080802e-14,
+        2.842170943040401e-14,
+        7.105427357601002e-14
+      ],
+      "stratosphere_flux_error_w_m2": 4.263256414560601e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 0.0003518061896841118
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        2.8421709430404007e-13,
+        1.9895196601282805e-13,
+        1.4210854715202004e-14,
+        5.329070518200751e-15,
+        3.694822225952521e-13,
+        3.410605131648481e-13,
+        2.2737367544323206e-13
+      ],
+      "stratosphere_flux_error_w_m2": 3.471944953759021e-13,
+      "native_fp64_ir_cancellation_error_w_m2": 7.105427357601002e-14
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        1.4210854715202004e-14,
+        5.329070518200751e-15,
+        1.4210854715202004e-14,
+        1.4210854715202004e-14,
+        1.4210854715202004e-14
+      ],
+      "stratosphere_flux_error_w_m2": 2.842170943040401e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 7.105427357601002e-14
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        2.8421709430404007e-13,
+        1.9895196601282805e-13,
+        1.4210854715202004e-14,
+        5.329070518200751e-15,
+        3.694822225952521e-13,
+        3.694822225952521e-13,
+        2.2737367544323206e-13
+      ],
+      "stratosphere_flux_error_w_m2": 3.0456193123029607e-13,
+      "native_fp64_ir_cancellation_error_w_m2": 0.0008143833053821936
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        1.4210854715202004e-14,
+        5.329070518200751e-15,
+        1.4210854715202004e-14,
+        0.0,
+        0.0
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 0.0008143833053821936
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        1.1368683772161603e-13,
+        5.324096719050431e-11,
+        4.263256414560601e-14,
+        1.4210854715202004e-14,
+        5.3091753215994686e-11,
+        0.0,
+        5.32054400537163e-11
+      ],
+      "stratosphere_flux_error_w_m2": 4.963592037388054e-11,
+      "native_fp64_ir_cancellation_error_w_m2": 4.263256414560601e-14
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        4.263256414560601e-14,
+        1.4210854715202004e-14,
+        4.263256414560601e-14,
+        0.0,
+        4.263256414560601e-14
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 4.263256414560601e-14
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        1.1368683772161603e-13,
+        5.324096719050431e-11,
+        7.105427357601002e-14,
+        7.105427357601002e-15,
+        5.303490979713388e-11,
+        1.4210854715202004e-14,
+        5.32054400537163e-11
+      ],
+      "stratosphere_flux_error_w_m2": 4.966434208331094e-11,
+      "native_fp64_ir_cancellation_error_w_m2": 0.00035180618969832267
+    },
+    {
+      "layers": 4,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        7.105427357601002e-14,
+        7.105427357601002e-15,
+        4.263256414560601e-14,
+        2.1316282072803006e-14,
+        7.105427357601002e-14
+      ],
+      "stratosphere_flux_error_w_m2": 4.263256414560601e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 0.00035180618969832267
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        1.1368683772161603e-12,
+        2.5295321393059567e-12,
+        8.526512829121202e-14,
+        1.7763568394002505e-15,
+        1.1084466677857563e-12,
+        8.810729923425242e-13,
+        2.4158453015843406e-12
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 3.886536349140268e-06
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        8.526512829121202e-14,
+        1.7763568394002505e-15,
+        5.684341886080802e-14,
+        1.4210854715202004e-14,
+        8.526512829121202e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 3.886536349140268e-06
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        1.1368683772161603e-12,
+        2.5295321393059567e-12,
+        7.105427357601002e-14,
+        1.7763568394002505e-15,
+        1.0516032489249483e-12,
+        8.810729923425242e-13,
+        2.3874235921539366e-12
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 3.5617497786688546e-06
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        7.105427357601002e-14,
+        1.7763568394002505e-15,
+        4.263256414560601e-14,
+        2.842170943040401e-14,
+        7.105427357601002e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 3.5617497786688546e-06
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        1.7053025658242404e-13,
+        1.1368683772161603e-13,
+        7.105427357601002e-14,
+        7.105427357601002e-15,
+        1.9895196601282805e-13,
+        8.526512829121202e-14,
+        1.1368683772161603e-13
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 5.989875262457645e-11
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        7.105427357601002e-14,
+        7.105427357601002e-15,
+        5.684341886080802e-14,
+        2.1316282072803006e-14,
+        4.263256414560601e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 5.989875262457645e-11
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        1.7053025658242404e-13,
+        1.1368683772161603e-13,
+        7.105427357601002e-14,
+        7.105427357601002e-15,
+        1.7053025658242404e-13,
+        7.105427357601002e-14,
+        1.1368683772161603e-13
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 1.6122214674396673e-11
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        7.105427357601002e-14,
+        7.105427357601002e-15,
+        7.105427357601002e-14,
+        7.105427357601002e-15,
+        2.842170943040401e-14
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 1.6122214674396673e-11
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        1.1368683772161603e-12,
+        2.5437429940211587e-12,
+        7.105427357601002e-14,
+        1.7763568394002505e-15,
+        1.2505552149377763e-12,
+        9.094947017729282e-13,
+        2.4442670110147446e-12
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 8.526512829121202e-14
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        7.105427357601002e-14,
+        1.7763568394002505e-15,
+        5.684341886080802e-14,
+        1.4210854715202004e-14,
+        7.105427357601002e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 8.526512829121202e-14
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        1.1368683772161603e-12,
+        2.5437429940211587e-12,
+        5.684341886080802e-14,
+        1.7763568394002505e-15,
+        1.3073986337985843e-12,
+        9.094947017729282e-13,
+        2.4442670110147446e-12
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 8.526512829121202e-14
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        5.684341886080802e-14,
+        1.7763568394002505e-15,
+        5.684341886080802e-14,
+        0.0,
+        5.684341886080802e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 8.526512829121202e-14
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        1.7053025658242404e-13,
+        1.0658141036401503e-13,
+        7.105427357601002e-14,
+        2.1316282072803006e-14,
+        1.7053025658242404e-13,
+        8.526512829121202e-14,
+        1.1368683772161603e-13
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 4.263256414560601e-14
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        7.105427357601002e-14,
+        2.1316282072803006e-14,
+        9.237055564881302e-14,
+        6.394884621840902e-14,
+        7.105427357601002e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 4.263256414560601e-14
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        1.7053025658242404e-13,
+        1.0658141036401503e-13,
+        7.105427357601002e-14,
+        3.552713678800501e-15,
+        1.9895196601282805e-13,
+        2.842170943040401e-14,
+        5.684341886080802e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 7.105427357601002e-14
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        7.105427357601002e-14,
+        3.552713678800501e-15,
+        5.684341886080802e-14,
+        1.4210854715202004e-14,
+        0.0
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 7.105427357601002e-14
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        1.1368683772161603e-12,
+        2.1316282072803006e-12,
+        8.526512829121202e-14,
+        3.552713678800501e-15,
+        5.400124791776761e-13,
+        4.831690603168681e-13,
+        1.3926637620897964e-12
+      ],
+      "stratosphere_flux_error_w_m2": 7.784051181403129e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 4.590836397255771e-06
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        8.526512829121202e-14,
+        3.552713678800501e-15,
+        5.684341886080802e-14,
+        2.842170943040401e-14,
+        8.526512829121202e-14
+      ],
+      "stratosphere_flux_error_w_m2": 2.842170943040401e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 4.590836397255771e-06
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        1.1368683772161603e-12,
+        2.1316282072803006e-12,
+        5.684341886080802e-14,
+        3.552713678800501e-15,
+        5.115907697472721e-13,
+        4.547473508864641e-13,
+        1.3642420526593924e-12
+      ],
+      "stratosphere_flux_error_w_m2": 6.362965709882928e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 4.153602745304852e-06
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        5.684341886080802e-14,
+        3.552713678800501e-15,
+        7.105427357601002e-14,
+        7.105427357601002e-14,
+        5.684341886080802e-14
+      ],
+      "stratosphere_flux_error_w_m2": 4.263256414560601e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 4.153602745304852e-06
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        2.8421709430404007e-13,
+        2.2737367544323206e-13,
+        7.105427357601002e-14,
+        1.4210854715202004e-14,
+        1.9895196601282805e-13,
+        2.842170943040401e-14,
+        2.5579538487363607e-13
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 1.7910032426016187e-06
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        7.105427357601002e-14,
+        1.4210854715202004e-14,
+        7.105427357601002e-14,
+        2.842170943040401e-14,
+        1.4210854715202004e-14
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 1.7910032426016187e-06
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        2.8421709430404007e-13,
+        2.2737367544323206e-13,
+        4.263256414560601e-14,
+        1.4210854715202004e-14,
+        1.7053025658242404e-13,
+        1.4210854715202004e-14,
+        2.2737367544323206e-13
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 1.7909978708985363e-06
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        4.263256414560601e-14,
+        1.4210854715202004e-14,
+        5.684341886080802e-14,
+        1.4210854715202004e-14,
+        2.842170943040401e-14
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 1.7909978708985363e-06
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        1.1368683772161603e-12,
+        2.1316282072803006e-12,
+        7.105427357601002e-14,
+        1.7763568394002505e-15,
+        4.831690603168681e-13,
+        5.115907697472721e-13,
+        1.4210854715202004e-12
+      ],
+      "stratosphere_flux_error_w_m2": 3.8913317013111737e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 5.684341886080802e-14
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        7.105427357601002e-14,
+        1.7763568394002505e-15,
+        4.263256414560601e-14,
+        1.4210854715202004e-14,
+        5.684341886080802e-14
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 5.684341886080802e-14
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        1.1368683772161603e-12,
+        2.1316282072803006e-12,
+        5.684341886080802e-14,
+        1.7763568394002505e-15,
+        4.547473508864641e-13,
+        5.115907697472721e-13,
+        1.4210854715202004e-12
+      ],
+      "stratosphere_flux_error_w_m2": 3.8913317013111737e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 7.105427357601002e-14
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        5.684341886080802e-14,
+        1.7763568394002505e-15,
+        5.684341886080802e-14,
+        1.4210854715202004e-14,
+        5.684341886080802e-14
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 7.105427357601002e-14
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        3.410605131648481e-13,
+        6.799766083531722e-09,
+        7.105427357601002e-14,
+        7.105427357601002e-15,
+        6.7995244990015635e-09,
+        4.263256414560601e-14,
+        6.7998087160958676e-09
+      ],
+      "stratosphere_flux_error_w_m2": 6.35511977764569e-09,
+      "native_fp64_ir_cancellation_error_w_m2": 5.684341886080802e-14
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        7.105427357601002e-14,
+        7.105427357601002e-15,
+        8.526512829121202e-14,
+        2.1316282072803006e-14,
+        1.4210854715202004e-14
+      ],
+      "stratosphere_flux_error_w_m2": 7.105427357601002e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 5.684341886080802e-14
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        3.410605131648481e-13,
+        6.799766083531722e-09,
+        4.263256414560601e-14,
+        1.4210854715202004e-14,
+        6.799581342420424e-09,
+        7.105427357601002e-14,
+        6.799837137805298e-09
+      ],
+      "stratosphere_flux_error_w_m2": 6.355105566790975e-09,
+      "native_fp64_ir_cancellation_error_w_m2": 5.684341886080802e-14
+    },
+    {
+      "layers": 12,
+      "top_pressure_pa": 0.13,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        4.263256414560601e-14,
+        1.4210854715202004e-14,
+        5.684341886080802e-14,
+        1.4210854715202004e-14,
+        1.4210854715202004e-14
+      ],
+      "stratosphere_flux_error_w_m2": 8.526512829121202e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 5.684341886080802e-14
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        2.7284841053187847e-12,
+        7.574385563202668e-12,
+        4.263256414560601e-13,
+        3.552713678800501e-15,
+        1.2505552149377763e-12,
+        1.8189894035458565e-12,
+        7.44648787076585e-12
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 2.5484925778584966e-06
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        4.263256414560601e-13,
+        3.552713678800501e-15,
+        2.842170943040401e-14,
+        0.0,
+        4.263256414560601e-13
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 2.5484925778584966e-06
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        2.7284841053187847e-12,
+        7.574385563202668e-12,
+        3.126388037344441e-13,
+        3.552713678800501e-15,
+        1.3073986337985843e-12,
+        1.7905676941154525e-12,
+        7.275957614183426e-12
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 3.492164644569584e-06
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        3.126388037344441e-13,
+        3.552713678800501e-15,
+        4.263256414560601e-14,
+        2.842170943040401e-14,
+        3.126388037344441e-13
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 3.492164644569584e-06
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        4.547473508864641e-13,
+        2.4158453015843406e-13,
+        1.1368683772161603e-13,
+        3.552713678800501e-14,
+        5.968558980384842e-13,
+        2.7000623958883807e-13,
+        1.9895196601282805e-13
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 3.4212056937432678e-09
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        1.1368683772161603e-13,
+        3.552713678800501e-14,
+        4.973799150320701e-14,
+        4.263256414560601e-14,
+        8.526512829121202e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 3.4212056937432678e-09
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        4.547473508864641e-13,
+        2.4158453015843406e-13,
+        1.5631940186722204e-13,
+        3.552713678800501e-14,
+        5.400124791776761e-13,
+        3.126388037344441e-13,
+        2.2737367544323206e-13
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 1.2640252594620094e-09
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        1.5631940186722204e-13,
+        3.552713678800501e-14,
+        2.842170943040401e-14,
+        7.105427357601002e-15,
+        1.4210854715202004e-13
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 1.2640252594620094e-09
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        2.7853275241795927e-12,
+        7.631228982063476e-12,
+        4.263256414560601e-13,
+        3.552713678800501e-15,
+        1.2221335055073723e-12,
+        1.9326762412674725e-12,
+        7.531752999057062e-12
+      ],
+      "stratosphere_flux_error_w_m2": 2.842170943040401e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 9.592326932761353e-14
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        4.263256414560601e-13,
+        3.552713678800501e-15,
+        4.263256414560601e-14,
+        1.4210854715202004e-14,
+        4.263256414560601e-13
+      ],
+      "stratosphere_flux_error_w_m2": 2.842170943040401e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 9.592326932761353e-14
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        2.7853275241795927e-12,
+        7.631228982063476e-12,
+        3.268496584496461e-13,
+        3.552713678800501e-15,
+        1.2505552149377763e-12,
+        1.9326762412674725e-12,
+        7.44648787076585e-12
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 2.184918912462308e-13
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        3.268496584496461e-13,
+        3.552713678800501e-15,
+        2.842170943040401e-14,
+        2.842170943040401e-14,
+        3.268496584496461e-13
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 2.184918912462308e-13
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        5.115907697472721e-13,
+        2.4868995751603507e-13,
+        9.947598300641403e-14,
+        3.552713678800501e-14,
+        4.547473508864641e-13,
+        2.5579538487363607e-13,
+        3.126388037344441e-13
+      ],
+      "stratosphere_flux_error_w_m2": 2.842170943040401e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 2.5579538487363607e-13
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        9.947598300641403e-14,
+        3.552713678800501e-14,
+        4.263256414560601e-14,
+        2.842170943040401e-14,
+        9.947598300641403e-14
+      ],
+      "stratosphere_flux_error_w_m2": 2.842170943040401e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 2.5579538487363607e-13
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        5.115907697472721e-13,
+        2.4868995751603507e-13,
+        1.4210854715202004e-13,
+        4.973799150320701e-14,
+        4.547473508864641e-13,
+        2.4158453015843406e-13,
+        3.410605131648481e-13
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 2.4158453015843406e-13
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        1.4210854715202004e-13,
+        4.973799150320701e-14,
+        4.973799150320701e-14,
+        3.552713678800501e-14,
+        1.2789769243681803e-13
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 2.4158453015843406e-13
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0013188866318027586,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        3.069544618483633e-12,
+        7.787548383930698e-12,
+        4.263256414560601e-13,
+        3.552713678800501e-15,
+        1.3073986337985843e-12,
+        1.7621459846850485e-12,
+        7.844391802791506e-12
+      ],
+      "stratosphere_flux_error_w_m2": 2.8228721443701588e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 2.5313478904109843e-06
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0013188866318027586,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        4.263256414560601e-13,
+        3.552713678800501e-15,
+        2.842170943040401e-14,
+        0.0,
+        4.263256414560601e-13
+      ],
+      "stratosphere_flux_error_w_m2": 4.263256414560601e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 2.5313478904109843e-06
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0013188866318027586,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        3.069544618483633e-12,
+        7.787548383930698e-12,
+        3.268496584496461e-13,
+        3.552713678800501e-15,
+        1.3073986337985843e-12,
+        1.7621459846850485e-12,
+        7.759126674500294e-12
+      ],
+      "stratosphere_flux_error_w_m2": 1.929879867024198e-16,
+      "native_fp64_ir_cancellation_error_w_m2": 4.161091132104389e-06
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0013188866318027586,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        3.268496584496461e-13,
+        3.552713678800501e-15,
+        2.842170943040401e-14,
+        1.4210854715202004e-14,
+        3.126388037344441e-13
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 4.161091132104389e-06
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0013188866318027586,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        4.547473508864641e-13,
+        2.4868995751603507e-13,
+        1.1368683772161603e-13,
+        3.552713678800501e-14,
+        2.2737367544323206e-13,
+        2.4158453015843406e-13,
+        2.842170943040401e-14
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 2.4698239425857693e-09
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0013188866318027586,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        1.1368683772161603e-13,
+        3.552713678800501e-14,
+        4.263256414560601e-14,
+        2.1316282072803006e-14,
+        8.526512829121202e-14
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 2.4698239425857693e-09
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0013188866318027586,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        4.547473508864641e-13,
+        2.4868995751603507e-13,
+        1.4210854715202004e-13,
+        4.263256414560601e-14,
+        2.5579538487363607e-13,
+        2.4158453015843406e-13,
+        0.0
+      ],
+      "stratosphere_flux_error_w_m2": 2.842170943040401e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 2.3896689071989385e-09
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0013188866318027586,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 170.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        1.4210854715202004e-13,
+        4.263256414560601e-14,
+        5.684341886080802e-14,
+        1.4210854715202004e-14,
+        1.2789769243681803e-13
+      ],
+      "stratosphere_flux_error_w_m2": 2.842170943040401e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 2.3896689071989385e-09
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0013188866318027586,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        3.0127011996228248e-12,
+        7.915446076367516e-12,
+        4.405364961712621e-13,
+        3.552713678800501e-15,
+        1.1937117960769683e-12,
+        1.6484591469634324e-12,
+        8.071765478234738e-12
+      ],
+      "stratosphere_flux_error_w_m2": 2.1605547212422138e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 1.1723955140041653e-13
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0013188866318027586,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        4.405364961712621e-13,
+        3.552713678800501e-15,
+        4.263256414560601e-14,
+        1.4210854715202004e-14,
+        4.405364961712621e-13
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 1.1723955140041653e-13
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0013188866318027586,
+      "particle_loading": 0.0,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        3.0127011996228248e-12,
+        7.915446076367516e-12,
+        3.268496584496461e-13,
+        3.552713678800501e-15,
+        1.1937117960769683e-12,
+        1.6200374375330284e-12,
+        7.929656931082718e-12
+      ],
+      "stratosphere_flux_error_w_m2": 2.1605547212422138e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 1.7053025658242404e-13
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0013188866318027586,
+      "particle_loading": 0.0,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        3.268496584496461e-13,
+        3.552713678800501e-15,
+        4.263256414560601e-14,
+        1.4210854715202004e-14,
+        3.268496584496461e-13
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 1.7053025658242404e-13
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0013188866318027586,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        5.684341886080801e-13,
+        2.4868995751603507e-13,
+        1.1368683772161603e-13,
+        3.552713678800501e-14,
+        3.979039320256561e-13,
+        2.1316282072803006e-13,
+        2.5579538487363607e-13
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 2.4158453015843406e-13
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0013188866318027586,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": false,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        1.1368683772161603e-13,
+        3.552713678800501e-14,
+        5.684341886080802e-14,
+        2.1316282072803006e-14,
+        9.947598300641403e-14
+      ],
+      "stratosphere_flux_error_w_m2": 0.0,
+      "native_fp64_ir_cancellation_error_w_m2": 2.4158453015843406e-13
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0013188866318027586,
+      "particle_loading": 0.05,
+      "mu0": 0.6,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        5.684341886080801e-13,
+        2.4868995751603507e-13,
+        1.4210854715202004e-13,
+        3.552713678800501e-14,
+        4.263256414560601e-13,
+        2.2737367544323206e-13,
+        3.126388037344441e-13
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 2.2737367544323206e-13
+    },
+    {
+      "layers": 56,
+      "top_pressure_pa": 0.0013188866318027586,
+      "particle_loading": 0.05,
+      "mu0": 0.0,
+      "scale_surface_flux": true,
+      "linear_k_interpolation": true,
+      "stratosphere_temperature_k": 200.0,
+      "max_flux_errors_w_m2": [
+        0.0,
+        0.0,
+        1.4210854715202004e-13,
+        3.552713678800501e-14,
+        5.684341886080802e-14,
+        0.0,
+        1.4210854715202004e-13
+      ],
+      "stratosphere_flux_error_w_m2": 1.4210854715202004e-14,
+      "native_fp64_ir_cancellation_error_w_m2": 2.2737367544323206e-13
+    }
+  ],
+  "sha256": {
+    "scripts/validate_radiative_transfer.py": "4a26ebb81b55d040b3819cd08f3f04124e19a7d61e908f25556e854a2e6ea1b5",
+    "scripts/validate_optical_depth.py": "1b0b8bb2fc932d086320b36d5aead59db7a1b29e9cb6efb8039ddb73a6ddb7d5",
+    "scripts/validate_spectral_flux.py": "5368b4de0eaefb3492af65f00ea0167519b75200e9557f7c8ef986e5cedf3cce",
+    "scripts/validate_scattering_transfer.py": "44f6726344236f17681edc7b4bec06ab8e7116cbdfeae3eb8ba961b6b0a2b7de",
+    "scripts/validate_infrared_precision.py": "08b3ae018b0062cb96d2f078897172d0161b4388f0d34c867a80098e1c1b66ac",
+    "package/src/framework/physics/thermal_relaxation.py": "ead31b1babaf3e79d850ee9394eba32d343af55b0143ca87c51dbd3c919ec49c",
+    "package/src/framework/physics/particle_optics.py": "0a8540d1d9b8db33539a194428fbdeedda122dc329c6d0e5827fe2bd2caa8c59",
+    "package/src/framework/physics/radiation_grid.py": "7c0cd095eb863e6ec612a79f90f9ad7c2d17a00584eb4d3d46f7aba0a56d424f",
+    "package/src/framework/physics/optical_depth.py": "1687ece03cb05e7f68645c0763ead3f89595c4305c2a684f219d0d2767f4d435",
+    "package/src/framework/physics/water_surface.py": "a172442271da69fff10ca3afaf72b00a7163a3baf19abe919f098dd381babb1c",
+    "package/src/framework/physics/tracer_transport.py": "89360a5f4f9277dba7bd9bceb125c40bbfc7960161d6e6b32920806451a23a98",
+    "package/src/framework/physics/soil_frost.py": "9ec7f8c73ac5a7b973dd5708251ad98080650f1191c530392fa15a6e2500220e",
+    "package/src/framework/physics/correlated_k.py": "803e33cfc1d14f46fb4251f2fd49c7a64bd55529574132cc9a04c2635240d13e",
+    "package/src/framework/physics/boundary_layer.py": "b5643a7db16a8c7e38107c977bf32f565ae54051b96da4189b97000584095e1e",
+    "package/src/framework/physics/radiative_transfer.py": "04ecff1b231b64e2d27bae15999994ef12e01d27ebd53c717f1ea6116bc72077",
+    "package/src/framework/physics/rayleigh_drag.py": "3efd1d81aadeeb3e92c8fe8e8a3affe15ac03164d9404af4e220a4f32741f145",
+    "package/src/framework/physics/dry_convection.py": "61c52c300c12e19f0a055c8023c742c4717ce5ecd029c932019d791f78afedb1",
+    "package/src/framework/physics/spectral_flux.py": "3b1d1fcbc7eb78cf435cb45e388432909d1ee15bef5ed9716429c2b97efec766",
+    "package/src/framework/physics/dinosaur_physics.py": "4c101086bc5ccb9c8bca7bc622c0a7290c5520749c1c4e8ae1e251f82f1541e2",
+    "package/src/framework/physics/dust_lifting.py": "d18f83515f11dd582a407026383946a08e514bbb16dd50ed579385f3badac56f",
+    "package/src/framework/physics/simple_radiation.py": "d34833bafeb3c2dc78772b104f95bd6ac34a011ee91856ed2f9cf142104f9532",
+    "package/src/framework/physics/saturation_pressure.py": "909ddc6134eb31e356417b805f8d0f1eb99a36f2d9036ea3009a5956b1d7e86b",
+    "package/src/framework/physics/co2_condensation.py": "232b5679f26a795c6e09c24aaa302b65bd5489ac4048c1c684a0fc4305756752",
+    "package/src/framework/physics/co2_microphysics.py": "d8a95348d3019735de1759c307acdcffb9ad16b3be8c21cbd275bfbecd817d42",
+    "package/src/framework/physics/co2_clouds.py": "dc6deda4e254042dc02eb2aad40f81a41d639c02bcb144655f2f737ab32f42c5",
+    "package/src/framework/physics/column_physics.py": "1273fc270fcc1fa0d54e5bd0894c5019f26ecd2cb69149a868251ec5dbc4fb78",
+    "package/src/framework/physics/gcm.py": "c517d00f8ae20c3012b084c3a18cf26c3c7124b2099b6e2298d6b276d41b56ef",
+    "package/src/framework/physics/collision_absorption.py": "9917895e8a70dfea4bef2ffcbda417d20e11fbe30db85ba21ba8878de6a1a34f",
+    "package/src/framework/physics/water_moments.py": "c5747515301fdc437a7117420ae9e98e103a765d5133e9bf104fe6ac29e84080",
+    "package/src/framework/physics/legacy_convection.py": "3b5502f055e45cfc2601809aeec5237142427d7b8356058bfc12ddcb89388df3",
+    "package/src/framework/physics/particle_sedimentation.py": "52af7462a0eacb95bb8de11aae2151ba6e52f634dc150f183304661ad5f0e300",
+    "package/src/framework/physics/nonorographic_drag.py": "834511938621c958a53109cfe812d638523c29c766b198d010d1a68a170270b8",
+    "package/src/framework/physics/prescribed_dust.py": "3989a164fdfe259be9f1663d41873042ee0cbbab8aae4bae895b4bb2e55bbc0d",
+    "package/src/framework/physics/terrain_drag.py": "6b0a6c769d9d40abed95d2e9aaa51b14abdb0f22cb5fd73f5811bcad2c863ead",
+    "package/src/framework/physics/moist_convection.py": "aeb549fd12c57c73447adab45c5ab20c2ec94f4b5c4a401843b779921a2c2d96",
+    "package/src/framework/physics/__init__.py": "62b61692fed54cebab4ecc448648f24af87fd16b2eed5934a478fcbd7b1c2476",
+    "package/src/framework/physics/scattering_transfer.py": "33ff375bdd4ba6b7b08eaaf861c821d569da2f9d113decdc257984d81f8f0229",
+    "package/src/framework/physics/dust_coagulation.py": "d681f5b5cac9a07da6ae5d967f358e38d29b2d4c0dc0f26d94cd00188102c508",
+    "package/src/framework/physics/hydrostatic_initialization.py": "b65d7d8d23bb608c781e323f15ba3f5218220762a1f97587da9253a7074e8310",
+    "package/src/framework/physics/water_bulk.py": "7c0076c50fa5981c570e099ab5d61da34362dc8b6b1ddbc3be3192909160e0c5",
+    "package/src/framework/physics/vertical_grid.py": "76a6c1d7fb4aa5aff60831de1f96f13bdf75420b242b8f8db10dbbfef04e16e0",
+    "package/src/framework/physics/solar_geometry.py": "40ba8eb1d68b516ad435672e1654a410cb408329932b53feccbb4fa93140c029",
+    "package/src/framework/physics/nonlte_cooling.py": "b2c863ffa3ce3429f9bf76b7118f3bcdf444d7b77803c593876b8ff9d5723147",
+    "package/src/framework/physics/vertical_solve.py": "0d01f1d42fe7f086a887a2c0c51cb3b4385d26a3c944b72f81150b8a57ddd991",
+    "package/src/framework/physics/dust_control.py": "bb0749684b3b4078548dff5def298178620f388bf303b1898b20ef95136e3815",
+    "package/src/framework/physics/co2_12band_tables.npz": "0c48a86efd4618d3fdc0e52cd2bc5ca063fc7ac006ebfee09a46bee01d159d6c"
+  },
+  "limits": "Composed 12-band radiation with both supported k-interpolation paths with prescribed particle cross sections. Original IR routines run at binary128 with unchanged interface-flux gates; FP64 cancellation error is recorded separately. Planck temperatures are at reference nodes; microphysics and global climate validation are separate"
+}

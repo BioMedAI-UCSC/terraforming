@@ -35,7 +35,7 @@ where = ["."]
 include = ["src*"]
 
 [tool.setuptools.package-data]
-"src.framework.physics" = ["*.npz"]
+"src.framework.physics" = ["*.npz", "licenses/*.txt"]
 
 [tool.pytest.ini_options]
 markers = [

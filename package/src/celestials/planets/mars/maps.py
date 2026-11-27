@@ -159,10 +159,9 @@ def hydrostatic_surface_pressure_pa(elevation_m, body, t_ref_k=None, p0_pa=None)
 def initial_rest_state(coords, specs, body, elevation_nodal_m, t_ref_k=None, p0_pa=None):
     """A rest, isothermal Mars state with surface pressure balanced to the terrain.
 
-    Winds are zero and the temperature is the reference profile (temperature
-    variation zero); only the surface pressure carries the topography, via
-    :func:`hydrostatic_surface_pressure_pa`. Running the dycore from here lets
-    the terrain-driven pressure gradients spin up the circulation.
+    Winds are zero. The selected isothermal temperature sets both the air and
+    hydrostatic pressure. Log pressure uses the same spectral cutoff as the terrain
+    lower boundary, so unresolved terrain modes do not launch false winds.
     """
     grid = coords.horizontal
     # Surface pressure on the (1, n_lon, n_lat) surface nodal grid.
@@ -170,13 +169,19 @@ def initial_rest_state(coords, specs, body, elevation_nodal_m, t_ref_k=None, p0_
         np.asarray(elevation_nodal_m), body, t_ref_k, p0_pa
     ).reshape(coords.surface_nodal_shape)
     ps_nd = np.asarray(specs.nondimensionalize(ps_pa * _u.pascal))
-    log_sp = grid.to_modal(jnp.asarray(np.log(ps_nd)))
+    log_sp = grid.clip_wavenumbers(grid.to_modal(jnp.asarray(np.log(ps_nd))))
 
     zeros_modal = jnp.zeros((coords.vertical.layers,) + grid.modal_shape)
+    temperature_variation=zeros_modal
+    if t_ref_k is not None:
+        selected=float(specs.nondimensionalize(t_ref_k*_u.kelvin))
+        offset=selected-jnp.asarray(reference_temperature(coords,body))
+        temperature_variation=grid.to_modal(jnp.broadcast_to(offset[:,None,None],
+            (coords.vertical.layers,)+grid.nodal_shape))
     return primitive_equations.State(
         vorticity=zeros_modal,
         divergence=zeros_modal,
-        temperature_variation=zeros_modal,
+        temperature_variation=temperature_variation,
         log_surface_pressure=log_sp,
     )
 
@@ -210,6 +215,8 @@ class MarsMapFields:
     insolation_sampling: str = "none"
     temperature_kind: str = "lowest_layer_air"
     hyperdiffusion_tau_seconds: float | None = None
+    reference_scale_height_m: float | None = None
+    wind_sigma: float | None = None
 
     @property
     def wind_speed_ms(self) -> np.ndarray:
@@ -229,14 +236,14 @@ class MarsMapFields:
     @property
     def wind_level_sigma(self) -> float:
         """Sigma midpoint represented by the exported lowest-layer wind."""
-        return 1.0 - 0.5 / self.n_layers
+        return self.wind_sigma if self.wind_sigma is not None else 1.0 - 0.5 / self.n_layers
 
     @property
     def approximate_wind_height_m(self) -> float:
         """Hydrostatic reference height of the exported lowest-layer midpoint."""
         from src.celestials.planets.mars import MARS_BODY_3D
 
-        scale_height = (
+        scale_height = self.reference_scale_height_m if self.reference_scale_height_m is not None else (
             MARS_BODY_3D.gas_constant_j_kg_k
             * MARS_BODY_3D.reference_temperature_k
             / MARS_BODY_3D.gravity_m_s2
@@ -265,6 +272,9 @@ def run_maps(
     hyperdiffusion_tau_seconds: float | Literal["auto"] | None = "auto",
     radiation_component=None,
     neural_tendency=None,
+    physics_backend: Literal["standard", "reference"] = "standard",
+    reference_options=None,
+    sigma_boundaries=None,
 ) -> MarsMapFields | tuple[MarsMapFields, object]:
     """Run the Mars dycore over MOLA terrain and return lat/lon map fields.
 
@@ -281,12 +291,25 @@ def run_maps(
     ``radiation_component`` optionally replaces the radiative flux callable when
     forcing.co2_radiation_enabled is true. Use the lower-level parameterized
     rollout API for training; map conversion and reporting are host operations.
+    The reference backend requires an explicit radiation callback and soil
+    options for dinosaur_physics.build_step. It owns its CO2 cycle. Initial
+    water inventory options apply only to a new run; restarts retain theirs.
 
     Hyperdiffusion defaults to a shortest-mode e-folding time of 0.1 rotations
     at T42, scaled by 42/truncation for finer/coarser grids. This numerical
     default is not a climate calibration. Pass a positive time in seconds to
     override it or ``None`` to explicitly disable it for comparison runs.
     """
+    if physics_backend not in ('standard','reference'):
+        raise ValueError('physics_backend must be standard or reference')
+    if reference_options is not None and physics_backend!='reference':
+        raise ValueError('reference_options require the reference physics backend')
+    if physics_backend=='reference':
+        thermal=(reference_options is not None and reference_options.get('thermal_relaxation_options') is not None)
+        if forcing is None or reference_options is None or (radiation_component is None and not thermal):
+            raise ValueError('reference backend requires explicit forcing, radiation or thermal relaxation, and soil options')
+        if co2_forcing is not None or neural_tendency is not None:
+            raise ValueError('reference backend uses its own CO2 column; separate CO2/neural forcing is unsupported')
     if body is None:
         from src.celestials.planets.mars import MARS_BODY_3D
 
@@ -319,7 +342,7 @@ def run_maps(
             "by the radiatively-forced surface temperature)."
         )
 
-    coords = coordinate_system(truncation=truncation, n_layers=n_layers)
+    coords = coordinate_system(truncation=truncation, n_layers=n_layers,sigma_boundaries=sigma_boundaries)
     specs = physics_specs(body)
     grid = coords.horizontal
 
@@ -335,7 +358,57 @@ def run_maps(
 
     state0 = (initial_rest_state(coords, specs, body, elevation_nodal_m, t_ref_k, p0_pa)
               if initial_state is None else initial_state)
-    if forcing is None:
+    if physics_backend=='reference':
+        from src.framework.physics.dinosaur_physics import build_step,initial_state as reference_initial_state
+        if initial_state is not None:
+            saved=({} if state0.auxiliary_fields is None else state0.auxiliary_fields).get('vertical_sigma_boundaries')
+            if (saved is None and sigma_boundaries is not None) or (saved is not None and
+                not np.array_equal(np.asarray(saved),np.asarray(coords.vertical.boundaries))):
+                raise ValueError('reference restart sigma boundaries differ or are missing')
+        if initial_state is not None:
+            from src.framework.physics.tracer_transport import tracer_to_nodal
+            state0=state0._replace(dynamics=dataclasses.replace(state0.dynamics,tracers={
+                name:tracer_to_nodal(grid,value) for name,value in state0.dynamics.tracers.items()}))
+        options=dict(reference_options)
+        comparison_window=options.pop("comparison_window_steps",None)
+        initial_water=options.pop('initial_water_surface_kg_m2',0.)
+        initial_vapor=options.pop('initial_water_vapor_ratio',0.)
+        initial_dust_mass=options.pop('initial_dust_mass_ratio',0.)
+        initial_dust_number=options.pop('initial_dust_number_per_kg',0.)
+        initial_dust_surface=options.pop('initial_dust_surface_kg_m2',30.)
+        initial_moist_surface=options.pop('initial_moist_bulk_surface_water_kg_m2',0.)
+        initial_co2_gas=options.pop('initial_co2_gas_ratio',None)
+        if 'return_diagnostics' in options:
+            raise ValueError('map runner diagnostics use diagnostic_callback')
+        if initial_state is None:
+            state0=dataclasses.replace(state0,sim_time=0.)
+            state0=reference_initial_state(state0,coords,specs,
+                temperature_k=t_ref_k or body.reference_temperature_k,
+                soil_layers=options.get('soil_layers',16),bulk_water=options.get('bulk_water',False),
+                radiation_update_seconds=options.get('radiation_update_seconds'),
+                initial_water_surface_kg_m2=initial_water,initial_water_vapor_ratio=initial_vapor,
+                moment_water=options.get('moment_water',False),
+                moment_dust=options.get('moment_dust',False),
+                dust_mode_count=options.get('dust_mode_count',1),
+                nonorographic_drag_options=options.get('nonorographic_drag_options'),
+                dust_background_options=options.get('dust_background_options'),
+                moment_cloud_options=options.get('moment_cloud_options'),
+                moist_convection_options=options.get('moist_convection_options'),
+                initial_moist_bulk_surface_water_kg_m2=initial_moist_surface,
+                initial_co2_gas_ratio=initial_co2_gas,
+                initial_dust_mass_ratio=initial_dust_mass,initial_dust_number_per_kg=initial_dust_number,
+                initial_dust_surface_kg_m2=initial_dust_surface)
+            if not options.get('do_mars_surface',True):
+                state0=state0._replace(surface_temperature=jnp.full_like(state0.surface_temperature,170.),
+                    ground_temperature=jnp.full_like(state0.ground_temperature,170.))
+        step=build_step(coords,specs,body,forcing,dt_seconds,orography=orography,
+            radiation_component=radiation_component,
+            hyperdiffusion_tau_seconds=hyperdiffusion_tau_seconds,**options)
+        if comparison_window is not None:
+            from src.framework.gcm.comparison_averaging import averaging_step
+            state0,step=averaging_step(step,state0,coords,specs,body,comparison_window,dt_seconds)
+        physics_label='Dinosaur dynamics + reference column physics'
+    elif forcing is None:
         equation = build_primitive_equations(coords, body, specs=specs, orography=orography)
         physics_label = "dry dynamics; no radiation/CO2/dust"
     else:
@@ -400,35 +473,35 @@ def run_maps(
         if surface_components:
             physics_label += " + " + " + ".join(surface_components)
 
-        # Diurnal-terminator CFL: the subsolar point sweeps 360° per rotation, so
-        # the day/night terminator crosses one longitude cell in
-        # rotation_period/n_lon seconds. The sharp terminator is not band-limited,
-        # and with the nonlinear T^4 feedback a step that lets it jump more than
-        # ~half a cell aliases and diverges to NaN (verified: T42 needs
-        # dt<=~350s, T21 <=~700s). Require >=2 steps per cell and refuse a step
-        # too coarse rather than emit silently-NaN maps.
-        if getattr(forcing, "diurnal", False):
-            n_lon = len(grid.longitudes)
-            max_stable_dt = forcing.rotation_period_s / (2.0 * n_lon)
-            if dt_seconds > max_stable_dt:
-                raise ValueError(
-                    f"dt_seconds={dt_seconds:g} is too coarse for the diurnal "
-                    f"forcing at {truncation} (n_lon={n_lon}); the moving "
-                    f"terminator aliases and the run diverges. Use dt_seconds "
-                    f"<= {max_stable_dt:g}, coarsen the truncation, or pass a "
-                    f"forcing with diurnal=False (daily-mean insolation)."
-                )
-
-    step = stepper(
-        equation, dt_seconds, specs, coords=coords,
-        hyperdiffusion_tau_seconds=hyperdiffusion_tau_seconds,
-    )
+    # Diurnal-terminator CFL: the subsolar point sweeps 360° per rotation, so
+    # the day/night terminator crosses one longitude cell in
+    # rotation_period/n_lon seconds. The sharp terminator is not band-limited,
+    # and with the nonlinear T^4 feedback a step that lets it jump more than
+    # ~half a cell aliases and diverges to NaN (verified: T42 needs
+    # dt<=~350s, T21 <=~700s). Require >=2 steps per cell and refuse a step
+    # too coarse rather than emit silently-NaN maps.
+    if getattr(forcing, "diurnal", False):
+        n_lon = len(grid.longitudes)
+        max_stable_dt = forcing.rotation_period_s / (2.0 * n_lon)
+        if dt_seconds > max_stable_dt:
+            raise ValueError(
+                f"dt_seconds={dt_seconds:g} is too coarse for the diurnal "
+                f"forcing at {truncation} (n_lon={n_lon}); the moving "
+                f"terminator aliases and the run diverges. Use dt_seconds "
+                f"<= {max_stable_dt:g}, coarsen the truncation, or pass a "
+                f"forcing with diurnal=False (daily-mean insolation)."
+            )
+    if physics_backend!='reference':
+        step = stepper(
+            equation, dt_seconds, specs, coords=coords,
+            hyperdiffusion_tau_seconds=hyperdiffusion_tau_seconds,
+        )
     if hyperdiffusion_tau_seconds is not None:
         physics_label += (
             " + eighth-order wind/temperature hyperdiffusion "
             f"(tau={hyperdiffusion_tau_seconds:g} s)"
         )
-    if co2_forcing is not None and co2_forcing.energy_limited:
+    if co2_forcing is not None and (co2_forcing.energy_limited or co2_forcing.atmospheric_condensation):
         from src.framework.physics.gcm import positivity_preserving_co2_step
         step = positivity_preserving_co2_step(
             step,
@@ -455,6 +528,9 @@ def run_maps(
             if stop_requested is not None and stop_requested():
                 raise InterruptedError("simulation stopped by user")
             count = min(progress_chunk_steps, n_steps - completed)
+            if physics_backend=="reference" and comparison_window is not None:
+                pending=int(final.auxiliary_fields["comparison_count"])%comparison_window
+                count=min(count,comparison_window-pending)
             final = (advance_chunk(final) if count == progress_chunk_steps
                      else _integrate(step, final, count))
             # Synchronise here: without it JAX dispatch would make UI progress
@@ -484,7 +560,7 @@ def run_maps(
         surface_temperature_map = np.asarray(
             specs.dimensionalize(column_final.surface_temperature, _u.kelvin).magnitude
         )[0].T
-    if co2_forcing is not None:
+    if co2_forcing is not None or physics_backend=='reference':
         co2_ice = column_final.co2_ice
         ice_pa = np.asarray(
             specs.dimensionalize(jnp.asarray(co2_ice), _u.pascal).magnitude
@@ -553,6 +629,8 @@ def run_maps(
         dt_seconds=dt_seconds,
         physics=physics_label,
         hyperdiffusion_tau_seconds=hyperdiffusion_tau_seconds,
+        reference_scale_height_m=body.gas_constant_j_kg_k*(t_ref_k or body.reference_temperature_k)/body.gravity_m_s2,
+        wind_sigma=float(coords.vertical.centers[-1]),
         co2_ice_pa=co2_ice_map,
         rotation_period_s=body.solar_day_seconds,
         sidereal_rotation_period_s=body.rotation_period_s,
@@ -568,7 +646,7 @@ def run_maps(
 def state_to_comparison_dataset(state, coords, specs, body, forcing):
     """Convert a prognostic state to the full Mars-reference schema."""
     import xarray as xr
-    from src.framework.physics.gcm import _true_anomaly
+    from src.framework.physics.gcm import _true_anomaly, cloud_pressure_equivalent
 
     grid = coords.horizontal
     dyn = state.dynamics
@@ -598,6 +676,7 @@ def state_to_comparison_dataset(state, coords, specs, body, forcing):
     v_ms = np.asarray(v_nd) * velocity_scale
     surface_temperature = np.asarray(state.surface_temperature)[0] * temperature_scale
     co2_ice = np.asarray(state.co2_ice)[0] * pressure_scale
+    cloud_column = np.asarray(cloud_pressure_equivalent(state, coords))[0] * pressure_scale
     ground_temperature = np.asarray(state.ground_temperature) * temperature_scale
     ls_deg = float(np.degrees(
         float(_true_anomaly(elapsed_seconds, forcing)) + forcing.ls_perihelion_rad
@@ -613,8 +692,34 @@ def state_to_comparison_dataset(state, coords, specs, body, forcing):
     def surface_field(values):
         return values.T[None, ...]
 
+    from src.framework.physics.co2_clouds import CO2_CLOUD_TRACER
+    from src.framework.physics.tracer_transport import tracer_to_nodal
+    from src.framework.physics.water_bulk import WATER_VAPOR_TRACER,WATER_CLOUD_TRACER
+    tracer_variables={}
+    for name,value in dyn.tracers.items():
+        attributes=dict(model_tracer_name=name)
+        if name in ('dust_number','water_ice_number') or name.startswith('dust_number_'):
+            attributes['units']='kg-1'
+        elif name in (CO2_CLOUD_TRACER,WATER_VAPOR_TRACER,WATER_CLOUD_TRACER,'dust_mass','water_core_mass',
+                      'co2_mmr_gas','ar_mmr_gas') or name.startswith(('dust_mass_','dust_core_mass_')):
+            attributes['units']='kg kg-1'
+        tracer_variables['tracer_'+name]=(('time','sigma','lat','lon'),
+            level_field(np.asarray(tracer_to_nodal(grid,value))),attributes)
+    reservoirs={};extra_coordinates={}
+    auxiliary={} if state.auxiliary_fields is None else state.auxiliary_fields
+    for name in ('water_surface_kg_m2','dust_surface_kg_m2','moist_bulk_surface_water_kg_m2'):
+        if name not in auxiliary: continue
+        value=np.asarray(auxiliary[name])
+        if name=='dust_surface_kg_m2' and value.ndim==4:
+            dimensions=('time','dust_mode','lat','lon');value=value.transpose(0,3,2,1)
+            extra_coordinates['dust_mode']=np.arange(1,value.shape[1]+1)
+        else:
+            dimensions=('time','lat','lon');value=surface_field(value[0])
+        attributes={'units':'kg m-2'}
+        reservoirs[name]=(dimensions,value,attributes)
     return xr.Dataset(
         data_vars={
+            **tracer_variables,**reservoirs,
             "surface_pressure": (("time", "lat", "lon"), surface_field(surface_pressure), {"units": "Pa"}),
             "surface_temperature": (("time", "lat", "lon"), surface_field(surface_temperature), {"units": "K"}),
             "air_temperature": (("time", "sigma", "lat", "lon"), level_field(air_temperature), {"units": "K"}),
@@ -627,6 +732,8 @@ def state_to_comparison_dataset(state, coords, specs, body, forcing):
                 {"units": "Pa", "description": "sigma midpoint times surface pressure"},
             ),
             "co2_frost": (("time", "lat", "lon"), surface_field(co2_ice), {"units": "Pa-equivalent"}),
+            "co2_cloud_column": (("time", "lat", "lon"), surface_field(cloud_column),
+                                 {"units": "Pa-equivalent", "long_name": "Suspended CO2 ice column; excludes surface frost"}),
             "soil_temperature": (
                 ("time", "soil_layer", "lat", "lon"),
                 ground_temperature.transpose(0, 2, 1)[None, ...], {"units": "K"},
@@ -635,6 +742,7 @@ def state_to_comparison_dataset(state, coords, specs, body, forcing):
             "solar_longitude": (("time",), [ls_deg], {"units": "degree"}),
         },
         coords={
+            **extra_coordinates,
             "time": ("time", [elapsed_sols], {"units": "sol"}),
             "sigma": ("sigma", sigma, {"units": "1", "positive": "down"}),
             "soil_layer": np.arange(ground_temperature.shape[0]),
@@ -652,11 +760,14 @@ def state_to_comparison_dataset(state, coords, specs, body, forcing):
     )
 
 
-def save_comparison_netcdf(state, coords, specs, body, forcing, path) -> Path:
+def save_comparison_netcdf(state, coords, specs, body, forcing, path, *, average_dt_seconds=None) -> Path:
     """Write a compressed full-state comparison dataset."""
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     dataset = state_to_comparison_dataset(state, coords, specs, body, forcing)
+    if average_dt_seconds is not None:
+        from src.framework.gcm.comparison_averaging import apply_means
+        dataset=apply_means(dataset,state,body,average_dt_seconds)
     encoding = {
         name: {"zlib": True, "complevel": 4, "shuffle": True}
         for name in dataset.data_vars

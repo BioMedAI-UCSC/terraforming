@@ -2,8 +2,19 @@ name: Tests
 
 on:
   pull_request:
-    branches: [main]
+  push:
+    branches: [main, dev]
   workflow_dispatch:
+    inputs:
+      suite:
+        description: Module to run (coupled runs all five integration groups)
+        type: choice
+        default: all
+        options: [all, dynamics, radiation, surface, particles, neural, coupled, legacy, cli, calibration, runtime]
+      slow:
+        description: Include tests marked slow
+        type: boolean
+        default: false
 
 concurrency:
   group: tests-${{ github.ref }}
@@ -12,29 +23,137 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  PYTHONPATH: package:.:scripts:apps/nautalis
+  PYTHONDONTWRITEBYTECODE: '1'
+  JAX_ENABLE_COMPILATION_CACHE: 'false'
+  JAX_PLATFORMS: cpu
+  MPLBACKEND: Agg
+
 jobs:
-  tests:
+  plan:
+    name: Select test modules
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      run_tests: ${{ steps.plan.outputs.run_tests }}
+      ui: ${{ steps.plan.outputs.ui }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test selection and runner contracts
+        run: python -m unittest discover -s scripts/tests -p test_ci.py -v
+      - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
+      - name: Check locked experiment constraints
+        run: |
+          uv export --frozen --all-packages --extra gcm3d --no-dev --no-emit-workspace --no-hashes --no-annotate --no-header --output-file /tmp/reference-constraints.txt
+          diff -u apps/mars-calibration/constraints.txt /tmp/reference-constraints.txt
+      - name: Select modules from changed files
+        id: plan
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          SUITE: ${{ inputs.suite || 'all' }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+            python scripts/ci.py --plan --base "$BASE_SHA" --head "$HEAD_SHA"
+          else
+            python scripts/ci.py --plan --full --suite "$SUITE"
+          fi
 
-      - name: Install dependencies
-        # GCM regressions use importorskip; installing the extra is essential
-        # so the scientific/numerical tests actually execute on pull requests.
-        run: uv sync --dev --all-packages --extra gcm3d
+  modules:
+    name: ${{ matrix.name }}
+    needs: plan
+    if: needs.plan.outputs.run_tests == 'true'
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Install locked numerical dependencies
+        if: matrix.suite != 'runtime'
+        run: uv sync --frozen --dev --all-packages --extra gcm3d
+      - name: Type check hot column coupling modules
+        if: matrix.suite == 'surface'
+        run: uv run --no-sync pyright package/src/framework/physics/dinosaur_physics.py package/src/framework/physics/column_physics.py package/src/framework/physics/tracer_transport.py
+      - name: Stage verified terrain for map stability tests
+        if: matrix.suite == 'dynamics'
+        run: uv run --no-sync python scripts/stage_mola.py
+      - name: Run module tests
+        env:
+          SUITE: ${{ matrix.suite }}
+          SHARD: ${{ matrix.shard }}
+          SHARDS: ${{ matrix.shards }}
+          INCLUDE_SLOW: ${{ inputs.slow || false }}
+        run: |
+          extra=()
+          if [ "$INCLUDE_SLOW" = true ]; then extra+=(--slow); fi
+          if [ "$SUITE" = runtime ]; then
+            uv run --no-project --python 3.12 --with pytest==9.0.3 python scripts/ci.py --suite "$SUITE"
+          else
+            uv run --no-sync python scripts/ci.py --suite "$SUITE" --shard "$SHARD" --shards "$SHARDS" "${extra[@]}"
+          fi
+      - name: Save test results and timings
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tests-${{ matrix.suite }}-${{ matrix.shard }}
+          path: test-results/*.xml
+          if-no-files-found: ignore
+          retention-days: 7
 
-      - name: Package tests (framework, engine, celestials, interventions)
-        working-directory: package
-        run: uv run --no-sync python -m pytest tests/ -v -m "not slow"
+  ui:
+    name: UI build
+    needs: plan
+    if: needs.plan.outputs.ui == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+      - run: npm ci
+        working-directory: ui
+      - run: npm run build
+        working-directory: ui
 
-      - name: CLI tests
-        working-directory: cli
-        run: uv run --no-sync python -m pytest tests/ -v
+  tests:
+    name: tests
+    needs: [plan, modules, ui]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require all selected checks
+        env:
+          PLAN: ${{ needs.plan.result }}
+          MODULES: ${{ needs.modules.result }}
+          UI: ${{ needs.ui.result }}
+          RUN_MODULES: ${{ needs.plan.outputs.run_tests }}
+          RUN_UI: ${{ needs.plan.outputs.ui }}
+        run: |
+          test "$PLAN" = success
+          if [ "$RUN_MODULES" = true ]; then test "$MODULES" = success; else test "$MODULES" = skipped; fi
+          if [ "$RUN_UI" = true ]; then test "$UI" = success; else test "$UI" = skipped; fi
+
+  gcm3d-tests:
+    # Preserve the previous required check name for existing branch protection.
+    needs: tests
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          RESULT: ${{ needs.tests.result }}
+        run: test "$RESULT" = success

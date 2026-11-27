@@ -67,17 +67,12 @@ def test_held_suarez_climate_has_canonical_circulation_signature():
 
 
 @pytest.mark.slow
-def test_resting_conservation_converges_across_timestep_and_resolution():
+def test_resting_conservation_is_roundoff_across_timestep_and_resolution():
     """P0.6e: dry mass, total energy, and axial momentum remain at roundoff."""
     matrix = resting_convergence_matrix(MARS_BODY_3D)
     for drift in matrix.values():
         assert drift.relative_mass < 1.0e-12
         assert drift.relative_total_energy < 1.0e-12
         assert drift.relative_axial_angular_momentum < 1.0e-12
-    # Refining T21's timestep reduces all three drift metrics. At T42 all values
-    # are already roundoff-sized, where strict monotonicity is not meaningful.
-    coarse = matrix[("T21", 240.0)]
-    fine = matrix[("T21", 120.0)]
-    assert fine.relative_mass <= coarse.relative_mass
-    assert fine.relative_total_energy <= coarse.relative_total_energy
-    assert fine.relative_axial_angular_momentum <= coarse.relative_axial_angular_momentum
+    # A resting state probes roundoff, not truncation error; its ordering can
+    # reverse between CPU and GPU even when every conservation bound passes.
