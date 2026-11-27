@@ -55,6 +55,22 @@ Engineered-aerosol development is deferred to its separate branches. Natural
 Mars dust and water clouds remain part of the physics port and its tests.
 Paper revision and paper experiment workflows are removed.
 
+## Ames Fortran vs JAX physics parity
+
+This workflow compiles the pinned Ames, FMS and GFDL Fortran routines and compares
+their outputs with the JAX physics port for the same inputs. It checks radiation,
+convection, clouds, dust and surface physics. These checks catch changes to the
+ported equations even when the full model still runs.
+
+The 48 validation cases run in four parallel groups, shown as **group 1 of 4**
+through **group 4 of 4**. Each case runs once. The runner uses internal indices
+0 through 3; these are partitions of one suite. They are not separate models.
+Results and logs are uploaded as CI artifacts. The workflow runs weekly, on
+manual request, and on updates to PRs with the `native-parity` label.
+
+Component agreement does not establish full-model climate agreement. Coupled
+model budgets, restarts and longer climate runs have separate checks.
+
 Run the same selection locally:
 
 ```sh

@@ -263,6 +263,7 @@ def exchange_energy(state,coords,specs,body,*,soil_volumetric_heat_capacity=1500
 def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
                soil_diffusivity,soil_volumetric_heat_capacity=1500.*627.9,
                soil_layers=16,orography=None,hyperdiffusion_tau_seconds=None,return_diagnostics=False,
+               divergence_diffusivity_m2_s=None,
                rayleigh_options=None,conserve_drag_energy=False,
                suspended_co2_clouds=False,cloud_nuclei_per_kg=1.e5,
                bulk_water=False,water_surface_options=None,water_cloud_options=None,form_bulk_clouds=True,
@@ -418,7 +419,8 @@ def build_step(coords,specs,body,forcing,dt_seconds,*,radiation_component,
             None if state.surface_momentum is None else jnp.zeros_like(state.surface_momentum))
 
     dry=stepper(column_primitive_equations(base,zero_forcing),dt_seconds,specs,coords=coords,
-        hyperdiffusion_tau_seconds=hyperdiffusion_tau_seconds)
+        hyperdiffusion_tau_seconds=hyperdiffusion_tau_seconds,
+        divergence_diffusivity_m2_s=divergence_diffusivity_m2_s)
 
     mass_scale=pressure_scale/body.gravity_m_s2*body.surface_area_m2/jnp.sum(jnp.broadcast_to(
         jnp.asarray(grid.quadrature_weights),grid.nodal_shape))
