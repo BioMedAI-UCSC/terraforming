@@ -15,8 +15,11 @@ All 48 validators passed on Ubuntu 24.04 with gfortran 13 at `09e8c105` in the
 Seven archived reports were copied from that run because their recorded source
 files changed: coupled-column, CO2 controls, gas mass, initial conditions,
 radiative driver, release interfaces and surface controls. The other 41 reports
-retain their `71be0ef` results for unchanged source files. All 285 repository and
-asset file hash checks match the current implementation.
+retain their `71be0ef` results for source files unchanged at `09e8c105`. These
+archived reports are historical evidence for their recorded source revisions;
+their 285 repository and asset file hash checks do not verify later changes.
+For current-source hashes and results, use the artifacts for the revision under
+review from [Ames/JAX physics parity CI](https://github.com/BioMedAI-UCSC/terraforming/actions/workflows/native-parity.yml).
 The [repeat at `97b356d`](https://github.com/BioMedAI-UCSC/terraforming/actions/runs/44956786121)
 also passed all four native shards.
 The validators also verify the pinned native bodies and compiled adapters.

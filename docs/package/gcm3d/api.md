@@ -169,6 +169,13 @@ mixture thermodynamics remain separate work.
   comparison fields, coordinates and forcing provenance.
   `co2_frost` is surface ice and `co2_cloud_column` is suspended ice. Both use
   pressure-equivalent Pa; neither field includes the other reservoir.
+  When water tracers are present, the added `water_atmospheric_column` field is
+  the layer-mass-weighted sum of vapour and cloud water in kg/m². Averaged exports
+  use the mean of each step's water ratio times layer mass, so pressure changes
+  remain part of the mean. Legacy restarts without this field's samples can
+  start a new averaging window from an empty or complete window; a partial
+  window is rejected. Legacy averaged exports omit the field when its samples
+  are absent.
 
 Map metadata includes `temperature_kind`, `insolation_sampling` and solar
 longitude; full-state comparison exports also retain forcing controls.
