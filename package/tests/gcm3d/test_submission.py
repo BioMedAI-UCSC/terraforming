@@ -99,6 +99,69 @@ def test_reference_divergence_diffusivity_retains_native_physical_rate(truncatio
         driver.reference_divergence_diffusivity('T85',56)
 
 
+@pytest.mark.parametrize('truncation,flag,enabled',[
+    ('T21',None,True),('T42',None,True),
+    ('T42','--native-top-divergence-damping',True),
+    ('T21','--no-native-top-divergence-damping',False),
+    ('T42','--no-native-top-divergence-damping',False),
+    ('T85','--no-native-top-divergence-damping',False)])
+def test_reference_runner_top_damping_policy_and_restart_identity(monkeypatch,tmp_path,truncation,flag,enabled):
+    import json
+    import sys
+    from src.celestials.planets.mars.reference_constants import AMES_BODY_3D,reference_radiative_forcing
+    driver=_script('run_gcm3d_ablation')
+    monkeypatch.setattr(driver,'reference_configuration',lambda *args,**kwargs:
+        (AMES_BODY_3D,reference_radiative_forcing(),None,{},{}))
+    mola=tmp_path/'mola';mola.touch()
+    root=tmp_path/'output/reference';root.mkdir(parents=True)
+    (root/'checkpoint_diagnostics.csv').touch()
+    class RunnerReached(Exception): pass
+    def capture(**kwargs):
+        config=json.loads((root/'config.json').read_text())
+        assert config['initial_pressure_scheme']=='released-hydro-eq'
+        if enabled:
+            expected=[553244779.2207792,110648955.84415585] if truncation=='T21' else [273915711.16883117,54783142.233766235]
+            profile=kwargs['reference_options']['divergence_diffusivity_m2_s']
+            np.testing.assert_allclose(profile[:2],expected,rtol=2.e-15)
+            assert profile[2:]==[0.]*54
+            assert config['native_top_divergence_damping']['diffusivity_m2_s']==profile
+        else:
+            assert 'divergence_diffusivity_m2_s' not in kwargs['reference_options']
+            assert 'native_top_divergence_damping' not in config
+        raise RunnerReached
+    monkeypatch.setattr(driver,'run_maps',capture)
+    arguments=['run_gcm3d_ablation.py',str(tmp_path),'--config','reference',
+        '--mola-path',str(mola),'--truncation',truncation,'--sols','.01','--chunk-sols','5','--output-dir',str(root.parent)]
+    monkeypatch.setattr(sys,'argv',arguments+([flag] if flag else []))
+    with pytest.raises(RunnerReached): driver.main()
+    if truncation in ('T21','T42'):
+        (root/'restart.npz').touch()
+        changed='--no-native-top-divergence-damping' if enabled else '--native-top-divergence-damping'
+        monkeypatch.setattr(sys,'argv',arguments+['--resume',changed])
+        with pytest.raises(ValueError,match='Restart configuration is missing or differs'): driver.main()
+
+
+@pytest.mark.parametrize('truncation',['T85','T106','T170'])
+def test_reference_runner_requires_damping_opt_out_without_native_preset(monkeypatch,tmp_path,capsys,truncation):
+    import sys
+    driver=_script('run_gcm3d_ablation');mola=tmp_path/'mola';mola.touch()
+    monkeypatch.setattr(sys,'argv',['run_gcm3d_ablation.py',str(tmp_path),'--config','reference',
+        '--mola-path',str(mola),'--truncation',truncation])
+    with pytest.raises(SystemExit) as stopped: driver.main()
+    assert stopped.value.code==2
+    assert '--no-native-top-divergence-damping' in capsys.readouterr().err
+
+
+def test_standard_runner_does_not_require_a_native_damping_preset(monkeypatch,tmp_path):
+    import sys
+    driver=_script('run_gcm3d_ablation')
+    class StandardConfigurationReached(Exception): pass
+    def capture(*args): raise StandardConfigurationReached
+    monkeypatch.setattr(driver,'forcing_with_surface_properties',capture)
+    monkeypatch.setattr(sys,'argv',['run_gcm3d_ablation.py',str(tmp_path),'--truncation','T85'])
+    with pytest.raises(StandardConfigurationReached): driver.main()
+
+
 def test_reference_cold_start_keeps_native_log_weighted_pressure_correction():
     pytest.importorskip('dinosaur')
     from src.framework.gcm.coordinates import coordinate_system
