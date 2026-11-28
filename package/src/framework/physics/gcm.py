@@ -1610,6 +1610,12 @@ class CO2Forcing:
     cloud_particle_radius_m: float = 50.e-6
     cloud_ice_density_kg_m3: float = 1600.
     cloud_ice_heat_capacity_j_kg_k: float = 850.
+    # CO2 mole fraction of the atmosphere (0, 1]. Condensation depends on the
+    # CO2 partial pressure x_CO2 * p_s, not total p_s, so added non-condensable
+    # gases (N2, super-greenhouse gases) lower the frost point (issue #77).
+    # The default 1.0 keeps the historical pure-CO2 behaviour. The 3-D state
+    # carries no composition field, so this is a uniform, constant fraction.
+    co2_mole_fraction: float = 1.0
 
 
 def co2_frost_point_k(pressure_pa):
@@ -1657,12 +1663,16 @@ def _co2_surface_tendencies(
     # Ice reservoir in Pa (dimensional) for gating and rates.
     ice_pa = specs.dimensionalize(ice_nd, _u.pascal).magnitude        # (1,n_lon,n_lat)
 
+    # Only the CO2 share of the column can condense (issue #77).
+    p_co2_pa = cf.co2_mole_fraction * ps_pa[0]
+
     # Frost point: pressure-dependent CO2 saturation temperature per cell (or the
-    # constant fallback). Using the local p_s makes the winter-pole cap form at the
-    # right temperature and respond as the atmosphere thickens/thins.
-    frost_k = (co2_frost_point_k(ps_pa[0]) if cf.use_pressure_frost
+    # constant fallback), evaluated at the CO2 partial pressure. Using the local
+    # p_CO2 makes the winter-pole cap form at the right temperature and respond
+    # as the atmosphere thickens/thins.
+    frost_k = (co2_frost_point_k(p_co2_pa) if cf.use_pressure_frost
                else cf.frost_point_k)
-    supply_gate = jnp.tanh(ps_pa[0] / cf.supply_scale_pa)
+    supply_gate = jnp.tanh(p_co2_pa / cf.supply_scale_pa)
     ice_gate = jnp.tanh(
         (1.0e-6 * jax.nn.softplus(ice_pa[0] / 1.0e-6)) / cf.ice_ref_pa
     )
@@ -1699,7 +1709,7 @@ def _co2_surface_tendencies(
         subl_pa_s = cf.exchange_rate_pa_s_per_k * above * ice_gate
     # Positivity limiter for the explicit phase-change tendency. The configured
     # interval is the maximum physics step supported by this forcing.
-    cond_pa_s = jnp.minimum(cond_pa_s, jnp.clip(ps_pa[0], 0.0, None) / cf.exchange_timestep_s)
+    cond_pa_s = jnp.minimum(cond_pa_s, jnp.clip(p_co2_pa, 0.0, None) / cf.exchange_timestep_s)
     subl_pa_s = jnp.minimum(subl_pa_s, jnp.clip(ice_pa[0], 0.0, None) / cf.exchange_timestep_s)
     net_pa_s = cond_pa_s - subl_pa_s                                   # (n_lon,n_lat), >0 = condensing
 
@@ -1746,7 +1756,8 @@ def _co2_atmospheric_tendencies(state, temperature_nodal, ps_pa, wind_nodal, coo
     ice_ratio = tracer_to_nodal(grid,state.dynamics.tracers[CO2_CLOUD_TRACER])
     speed_scale = float(specs.dimensionalize(1., _u.meter / _u.second).magnitude)
     wind = jnp.stack(wind_nodal) * speed_scale
-    frost = co2_frost_point_k(jnp.asarray(sigma)[:, None, None] * ps_pa[None])
+    # Only the CO2 share of each layer's pressure condenses (issue #77).
+    frost = co2_frost_point_k(cf.co2_mole_fraction * jnp.asarray(sigma)[:, None, None] * ps_pa[None])
     heat, pressure, ice, momentum = phase_exchange(
         temperature, ps_pa, ice_ratio, wind, frost, sigma, dsigma, body, cf)
     time_scale = 1. / float(specs.nondimensionalize(1. * _u.second))
@@ -1767,7 +1778,7 @@ def adjust_co2_cloud_saturation(state, coords, specs, body, cf):
     pressure = jnp.exp(grid.to_nodal(state.dynamics.log_surface_pressure))[0] * pressure_scale
     cloud = tracer_to_nodal(grid,state.dynamics.tracers[CO2_CLOUD_TRACER])
     sigma = np.asarray(coords.vertical.centers, dtype=float)
-    frost = co2_frost_point_k(jnp.asarray(sigma)[:, None, None] * pressure[None])
+    frost = co2_frost_point_k(cf.co2_mole_fraction * jnp.asarray(sigma)[:, None, None] * pressure[None])
     needs_adjustment = jnp.any((temperature < frost - 1.e-8) | ((cloud > 1.e-14) & (temperature > frost + 1.e-8)))
     def adjust(_):
         wind = jnp.stack(spherical_harmonic.vor_div_to_uv_nodal(
@@ -1870,6 +1881,9 @@ def forced_co2_primitive_equations(
         value = getattr(co2_forcing, name)
         if not np.isfinite(value) or value <= 0:
             raise ValueError(f"{name} must be finite and positive")
+    if (not np.isfinite(co2_forcing.co2_mole_fraction)
+            or not 0 < co2_forcing.co2_mole_fraction <= 1):
+        raise ValueError("co2_mole_fraction must be in (0, 1]")
     if (not np.isfinite(co2_forcing.surface_exchange_pressure_ratio)
             or not 0 < co2_forcing.surface_exchange_pressure_ratio <= 1):
         raise ValueError("surface_exchange_pressure_ratio must be in (0, 1]")

@@ -342,3 +342,24 @@ def test_negligible_cloud_ice_does_not_perturb_flow_after_repeated_settling():
     final, _ = jax.jit(lambda s: jax.lax.scan(tick, s, None, length=100))(state)
     for key in ("vorticity", "divergence", "temperature_variation"):
         np.testing.assert_allclose(getattr(final.dynamics, key), getattr(state.dynamics, key), atol=1e-10, rtol=1e-10)
+
+
+def test_issue_77_saturation_adjustment_uses_co2_partial_pressure():
+    # Regression (#77): atmospheric CO2 clouds formed at the pure-CO2 frost
+    # point even when non-condensable gas diluted the CO2. Air between the
+    # pure and the 50%-CO2 frost points must condense only for pure CO2.
+    sigma = (np.arange(12) + .5) / 12
+    dsigma = np.full(12, 1. / 12)
+    ps = jnp.full((1, 1), 610.)
+    pure = physics.co2_frost_point_k(jnp.asarray(sigma)[:, None, None] * ps[None])
+    half = physics.co2_frost_point_k(.5 * jnp.asarray(sigma)[:, None, None] * ps[None])
+    t = .5 * (pure + half)
+    q = jnp.zeros_like(t)
+    wind = jnp.zeros((2, *t.shape))
+    cf = co2_forcing()
+    condensed = clouds.saturation_adjustment(t, ps, q, wind, sigma, dsigma, BODY, cf)
+    assert float(jnp.min(condensed[2])) > 0.
+    mixed = clouds.saturation_adjustment(t, ps, q, wind, sigma, dsigma, BODY,
+        dataclasses.replace(cf, co2_mole_fraction=.5))
+    for actual, expected in zip(mixed, (t, ps, q, wind), strict=True):
+        np.testing.assert_array_equal(actual, expected)

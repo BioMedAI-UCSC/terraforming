@@ -152,7 +152,9 @@ hashes; they do not validate a later code revision merely because they are commi
   checks do not establish whole-model climate skill.
 - Alternative native diffusion branches are rejected until they are ported.
 - CO₂ clouds use a fixed particle size and share gas temperature and horizontal
-  velocity. Phase change assumes CO₂ pressure equals total gas pressure.
+  velocity. Phase change uses the CO₂ partial pressure `co2_mole_fraction · p`,
+  one uniform constant (default 1, pure CO₂), so the mixture does not evolve.
+  The Ames-parity `co2_condensation` path uses total pressure, as the source does.
 - Homogeneous regolith properties and zero-flux bottom boundary; slow soil spin-up.
 - No photochemistry or composition-dependent high-pressure validation.
 - Global CO₂ projection does not prove local transport accuracy or conservation of
