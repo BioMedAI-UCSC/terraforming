@@ -7,6 +7,7 @@ import numpy as np
 from src.framework.gcm._dinosaur import jnp,scales,spherical_harmonic
 from src.framework.gcm.dynamics import reference_temperature
 from src.framework.physics.tracer_transport import tracer_to_nodal
+from src.framework.physics.water_bulk import WATER_VAPOR_TRACER,WATER_CLOUD_TRACER
 
 
 def fields(state,coords,specs,body):
@@ -19,6 +20,11 @@ def fields(state,coords,specs,body):
         air_temperature=grid.to_nodal(state.dynamics.temperature_variation)+jnp.asarray(reference_temperature(coords,body))[:,None,None],
         eastward_wind=u*velocity,northward_wind=v*velocity,wind_speed=jnp.hypot(u,v)*velocity)
     result.update({'tracer_'+name:tracer_to_nodal(grid,value) for name,value in state.dynamics.tracers.items()})
+    water=[result['tracer_'+name] for name in (WATER_VAPOR_TRACER,WATER_CLOUD_TRACER)
+        if 'tracer_'+name in result]
+    if water:
+        layer_mass=jnp.diff(jnp.asarray(coords.vertical.boundaries))[:,None,None]*result['surface_pressure']/body.gravity_m_s2
+        result['water_atmospheric_column']=jnp.sum(sum(water)*layer_mass,axis=0)
     return result
 
 
@@ -33,11 +39,14 @@ def averaging_step(step,state,coords,specs,body,window_steps,dt_seconds):
     if prefix+'count' not in auxiliary:
         auxiliary[prefix+'count']=jnp.asarray(0)
         auxiliary[prefix+'bin_count']=jnp.zeros((8,coords.horizontal.nodal_shape[0]))
-        for name,value in values.items():
-            auxiliary[prefix+'sum_'+name]=jnp.zeros_like(value)
-            # Diurnal climate diagnostics use the lowest atmospheric layer.
-            surface=value[-1] if value.ndim==3 else value
-            auxiliary[prefix+'bin_'+name]=jnp.zeros((8,*surface.shape))
+    for name,value in values.items():
+        if prefix+'sum_'+name in auxiliary: continue
+        if int(auxiliary[prefix+'count']) not in (0,window_steps):
+            raise ValueError(f'comparison restart lacks {name} samples in its partial averaging window')
+        auxiliary[prefix+'sum_'+name]=jnp.zeros_like(value)
+        # Diurnal climate diagnostics use the lowest atmospheric layer.
+        surface=value[-1] if value.ndim==3 else value
+        auxiliary[prefix+'bin_'+name]=jnp.zeros((8,*surface.shape))
     saved=auxiliary.get(prefix+'window_steps')
     if saved is not None and int(saved)!=window_steps:
         raise ValueError('comparison averaging window differs from the restart')

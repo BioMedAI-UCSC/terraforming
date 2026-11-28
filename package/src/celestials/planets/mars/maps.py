@@ -705,6 +705,12 @@ def state_to_comparison_dataset(state, coords, specs, body, forcing):
             attributes['units']='kg kg-1'
         tracer_variables['tracer_'+name]=(('time','sigma','lat','lon'),
             level_field(np.asarray(tracer_to_nodal(grid,value))),attributes)
+    water=[np.asarray(tracer_to_nodal(grid,dyn.tracers[name])) for name in (WATER_VAPOR_TRACER,WATER_CLOUD_TRACER)
+        if name in dyn.tracers]
+    if water:
+        layer_mass=np.diff(np.asarray(coords.vertical.boundaries))[:,None,None]*surface_pressure/body.gravity_m_s2
+        tracer_variables['water_atmospheric_column']=(('time','lat','lon'),
+            surface_field(np.sum(sum(water)*layer_mass,axis=0)),{'units':'kg m-2'})
     reservoirs={};extra_coordinates={}
     auxiliary={} if state.auxiliary_fields is None else state.auxiliary_fields
     for name in ('water_surface_kg_m2','dust_surface_kg_m2','moist_bulk_surface_water_kg_m2'):

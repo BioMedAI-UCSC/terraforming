@@ -15,8 +15,11 @@ All 48 validators passed on Ubuntu 24.04 with gfortran 13 at `09e8c105` in the
 Seven archived reports were copied from that run because their recorded source
 files changed: coupled-column, CO2 controls, gas mass, initial conditions,
 radiative driver, release interfaces and surface controls. The other 41 reports
-retain their `71be0ef` results for unchanged source files. All 285 repository and
-asset file hash checks match the current implementation.
+retain their `71be0ef` results for source files unchanged at `09e8c105`. These
+archived reports are historical evidence for their recorded source revisions;
+their 285 repository and asset file hash checks do not verify later changes.
+For current-source hashes and results, use the artifacts for the revision under
+review from [Ames/JAX physics parity CI](https://github.com/BioMedAI-UCSC/terraforming/actions/workflows/native-parity.yml).
 The [repeat at `97b356d`](https://github.com/BioMedAI-UCSC/terraforming/actions/runs/44956786121)
 also passed all four native shards.
 The validators also verify the pinned native bodies and compiled adapters.
@@ -526,9 +529,12 @@ log-weighted correction. The selected scheme is part of restart identity;
 old native runs cannot resume as balanced runs. This is a sigma-core adaptation;
 it does not reproduce native hybrid pressure interfaces.
 
-`--native-top-divergence-damping` adds explicit top-layer divergence diffusion.
-T21 uses the native C24 preset and T42 uses C48; other resolutions reject this
-preset. In pinned FV3 revision `29654ea167575fa73b65f7f2ceb85f1682884ddd`,
+Reference runs enable top-layer divergence diffusion by default. T21 uses the
+native C24 preset and T42 uses C48. `--no-native-top-divergence-damping` disables
+it for one-factor controls and older configurations. Other reference resolutions
+require this explicit opt-out because no native preset has been recorded for them.
+The nonreference runner and generic `build_step` defaults are unchanged.
+In pinned FV3 revision `29654ea167575fa73b65f7f2ceb85f1682884ddd`,
 [`dyn_core.F90`](https://github.com/NOAA-GFDL/GFDL_atmos_cubed_sphere/blob/29654ea167575fa73b65f7f2ceb85f1682884ddd/model/dyn_core.F90#L695)
 retains the first two background coefficients, 0.2 and 0.04, when `n_sponge=0`.
 [`sw_core.F90`](https://github.com/NOAA-GFDL/GFDL_atmos_cubed_sphere/blob/29654ea167575fa73b65f7f2ceb85f1682884ddd/model/sw_core.F90#L1286)
@@ -550,8 +556,14 @@ added, matching the native configuration's disabled dissipative heating.
 
 The spectral operator differs from FV3's finite-volume substep operator. This
 adaptation does not make their dynamical cores equivalent. Rates stay fixed in
-physical units when the model time step changes. Both new controls remain
-disabled by default; their selected values enter restart identity.
+physical units when the model time step changes. The default retains native
+pressure initialization. Damping is a source-derived missing term, rather than a
+fit to observed top winds. Previous one-factor T42/L56 runs at 231 seconds failed
+without this term and completed five sols with it. Fresh final-source release
+validation remains required. The selected pressure scheme and damping profile
+enter restart identity. A restart made without damping cannot resume with the
+new default. Use the explicit opt-out for undamped control runs. Changing source
+also requires a fresh run because source hashes remain part of the restart check.
 
 Use the released `mars_topo_mola16.nc` for matched comparisons. Its units and
 global cell-center axes are checked, then its cell-area integral is retained

@@ -433,8 +433,8 @@ def main() -> int:
         help='native do_isothermal cold start; disable for its frost-limited lapse profile')
     parser.add_argument('--initial-pressure-scheme',choices=('native','sigma-balanced'),default='native',
         help='retain source pressure, or balance isothermal pressure to core terrain at the same gas mass')
-    parser.add_argument('--native-top-divergence-damping',action='store_true',
-        help='adapt recorded native C24/C48 top-layer background D2 to spectral divergence diffusion')
+    parser.add_argument('--native-top-divergence-damping',action=argparse.BooleanOptionalAction,default=None,
+        help='adapt recorded native C24/C48 top-layer background D2 to spectral divergence diffusion (reference default)')
     parser.add_argument('--north-inertia',type=float,default=-900.,help='replace thermal inertia north of the cap latitude when positive')
     parser.add_argument('--north-inertia-latitude',type=float,default=65.,help='north thermal-inertia boundary in degrees')
     parser.add_argument('--north-inertia-maximum',type=float,default=800.,help='thermal-inertia cap north of the boundary')
@@ -561,8 +561,9 @@ def main() -> int:
         args.cooldown_seconds = max(args.cooldown_seconds, 15.0)
     if args.cooldown_seconds < 0:
         parser.error("--cooldown-seconds must be non-negative")
+    if args.native_top_divergence_damping is None: args.native_top_divergence_damping=reference
     if args.native_top_divergence_damping and args.truncation not in ('T21','T42'):
-        parser.error('native top divergence damping requires T21 or T42')
+        parser.error('native top divergence damping requires T21 or T42; use --no-native-top-divergence-damping for other resolutions')
     for key in ("sols", "chunk_sols", "dt", "hyperdiffusion_tau_sols"):
         if not np.isfinite(getattr(args, key)) or getattr(args, key) <= 0:
             parser.error(f"--{key.replace('_', '-')} must be finite and positive")
