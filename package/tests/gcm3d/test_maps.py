@@ -524,3 +524,52 @@ def test_reference_checkpoints_finish_averaging_window_after_partial_restart(mon
         diagnostic_callback=lambda done,total,state,*args:seen.append((done,int(state.auxiliary_fields['comparison_count']))))
     assert seen==[(1,4),(5,4)]
     np.testing.assert_allclose(final.auxiliary_fields['comparison_sum_surface_temperature']/4.,206.5,rtol=2e-14)
+
+
+def test_reference_runner_averages_water_column_before_pressure_covariance_is_lost(monkeypatch,tmp_path):
+    import dataclasses
+    import xarray as xr
+    from src.framework.physics import dinosaur_physics
+    from src.celestials.planets.mars.reference_constants import AMES_BODY_3D as body,reference_radiative_forcing
+    from src.framework.gcm._dinosaur import scales,jnp
+    monkeypatch.setattr(maps,'regrid_to_nodal',lambda coords,mola_path=None:np.zeros(coords.horizontal.nodal_shape))
+    def factory(coords,specs,*args,**kwargs):
+        tick=float(specs.nondimensionalize(231.*scales.units.second))
+        pressure=float(specs.nondimensionalize(100.*scales.units.pascal))
+        def advance(state):
+            sample=state.dynamics.sim_time/tick+1.
+            tracers={**state.dynamics.tracers,
+                'water_vapor':jnp.full((4,*coords.horizontal.nodal_shape),sample*1e-6),
+                'water_cloud_ice':jnp.full((4,*coords.horizontal.nodal_shape),sample*2e-6)}
+            return state._replace(dynamics=dataclasses.replace(state.dynamics,
+                sim_time=state.dynamics.sim_time+tick,tracers=tracers,
+                log_surface_pressure=coords.horizontal.to_modal(
+                    jnp.full((1,*coords.horizontal.nodal_shape),jnp.log(sample*pressure)))))
+        return advance
+    monkeypatch.setattr(dinosaur_physics,'build_step',factory)
+    forcing=reference_radiative_forcing()
+    options=dict(body=body,truncation='T21',n_layers=4,dt_seconds=231.,n_steps=1,
+        forcing=forcing,radiation_component=lambda *args:None,physics_backend='reference',
+        reference_options=dict(soil_diffusivity=1e-7,moment_water=True,comparison_window_steps=2),
+        return_final_state=True)
+    _,partial=maps.run_maps(**options)
+    legacy=partial._replace(auxiliary_fields={name:value for name,value in partial.auxiliary_fields.items()
+        if 'water_atmospheric_column' not in name})
+    with pytest.raises(ValueError,match='lacks water_atmospheric_column samples'):
+        maps.run_maps(**options,initial_state=legacy)
+    _,state=maps.run_maps(**options,initial_state=partial)
+    from src.framework.gcm.coordinates import coordinate_system
+    from src.framework.gcm.specs import physics_specs
+    coords=coordinate_system('T21',4);specs=physics_specs(body)
+    instantaneous=maps.state_to_comparison_dataset(state,coords,specs,body,forcing)
+    np.testing.assert_allclose(instantaneous.water_atmospheric_column,.0012/body.gravity_m_s2,rtol=3e-11)
+    path=maps.save_comparison_netcdf(state,coords,specs,body,forcing,tmp_path/'mean.nc',average_dt_seconds=231.)
+    with xr.open_dataset(path,decode_times=False) as mean:
+        # Samples have total q=(3,6)e-6 and ps=(100,200) Pa.
+        np.testing.assert_allclose(mean.water_atmospheric_column,.00075/body.gravity_m_s2,rtol=3e-11)
+        assert mean.water_atmospheric_column.attrs['units']=='kg m-2'
+    legacy=state._replace(auxiliary_fields={name:value for name,value in state.auxiliary_fields.items()
+        if 'water_atmospheric_column' not in name})
+    _,next_window=maps.run_maps(**options,initial_state=legacy)
+    np.testing.assert_allclose(next_window.auxiliary_fields['comparison_sum_water_atmospheric_column'],
+        .0027/body.gravity_m_s2,rtol=3e-11)
