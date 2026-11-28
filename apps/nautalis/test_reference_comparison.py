@@ -4,6 +4,7 @@ import copy
 import json
 import os
 from pathlib import Path
+import shlex
 import subprocess
 import sys
 import tempfile
@@ -55,9 +56,11 @@ class ComparisonTests(unittest.TestCase):
                     (tree/directory).mkdir(parents=True,exist_ok=True)
                 (tree/'docs/example/fv_eta.F90').write_text('documentation example')
                 (tree/'tools/fv_eta.F90').write_text('model implementation')
-                listing=root/'listpaths'
-                listing.write_text('#!'+sys.executable+'\n'
-                    'import sys\nfrom pathlib import Path\npaths={}\n'
+                # A shebang cannot hold an interpreter path containing spaces, so a
+                # shell wrapper runs the Python helper with the quoted interpreter.
+                helper=root/'listpaths.py';listing=root/'listpaths'
+                listing.write_text('#!/bin/sh\nexec '+shlex.quote(sys.executable)+' '+shlex.quote(str(helper))+' "$@"\n')
+                helper.write_text('import sys\nfrom pathlib import Path\npaths={}\n'
                     'for directory in sys.argv[3:]:\n'
                     ' for p in sorted(Path(directory).rglob("*.F90")): paths.setdefault(p.name,p)\n'
                     'Path(sys.argv[2]).write_text("\\n".join(map(str,paths.values())))\n')
